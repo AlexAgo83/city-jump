@@ -44,14 +44,30 @@ export function installDebugApi(
       rebuild();
     },
     demoCity() {
-      // Curved avenues with cross streets: enough frontage for a few thousand slots.
-      for (let i = 0; i < 8; i++) {
-        const z = -350 + i * 100;
-        api.road(-400, z, 0, z + 40, 400, z, "avenue");
+      // Curved avenues with cross streets that end on them, so the streets snap and the
+      // avenues split: the frame-rate figure is measured over real junctions, not over
+      // roads that merely overlap.
+      const ROWS = 10;
+      const COLS = 13;
+      const SPAN = 600;
+      const rowZ = (i: number) => -450 + i * 100;
+      // The avenue bows by 80 m at mid-span; this is where it actually is at a given x.
+      const avenueZ = (x: number, z0: number) => {
+        const t = (x / SPAN + 1) / 2;
+        return z0 + 80 * t * (1 - t);
+      };
+
+      for (let i = 0; i < ROWS; i++) {
+        const z = rowZ(i);
+        api.road(-SPAN, z, 0, z + 40, SPAN, z, "avenue");
       }
-      for (let i = 0; i < 9; i++) {
-        const x = -400 + i * 100;
-        api.road(x, -400, x + 30, 0, x, 400);
+      for (let c = 0; c < COLS; c++) {
+        const x = -SPAN + c * 100;
+        for (let i = 0; i < ROWS - 1; i++) {
+          const z0 = avenueZ(x, rowZ(i));
+          const z1 = avenueZ(x, rowZ(i + 1));
+          api.road(x, z0, x, (z0 + z1) / 2, x, z1);
+        }
       }
       rebuild();
     },
