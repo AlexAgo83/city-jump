@@ -1,0 +1,313 @@
+{
+  "title": "Draw a road network the city grows from",
+  "references": [
+    "logics/instructions.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "City simulation core",
+    "needs": [
+      "The repository is empty. `city-jump` is a 3D city-building game whose first playable loop is drawing roads and watching buildings appear along them, and nothing of it exists yet -- no engine, no scene, no data model, no dev command.",
+      "The road network is not one feature among several; it is the structure every later feature reads. Zoning, building placement, growth and eventually traffic all derive from the same network. Choosing its representation late, or choosing it wrong, means rewriting everything built on top of it. It is therefore the first thing to model and the thing this request is about.",
+      "Free-form placement of buildings anywhere on the map was the initial instinct and it is the wrong target. In the Cities:Skylines lineage the roads are freely drawn but the buildings are not: a building attaches to a road segment, aligned to that segment's normal, spaced along its frontage. The organic look comes from the curvature of the roads, not from arbitrary building positions. Following that model removes the need for arbitrary collision resolution, for orientation heuristics, and for any check that a building has road access -- properties that would each be a project of their own if placement were genuinely free.",
+      "A network drawn without constraints degenerates: three-degree angles, forty-centimetre segments, and near-coincident nodes that are not the same node. Every one of those breaks junction geometry downstream. Constraints have to exist at draw time, in the tool, not as a cleanup pass afterwards.",
+      "The engine has been chosen -- Babylon.js -- and the reason is that it already ships what a city renderer needs (thin instances, a glTF loader, a GUI layer, an inspector) so that none of it has to be written here. That decision only pays off if the project does not then wrap it in an abstraction of its own.",
+      "Terrain relief is wanted, but building a terrain system before a single road is on screen would be building the hardest part first with nothing to check it against. What is needed now is not the relief itself but the shape that admits it later without a rewrite."
+    ],
+    "context": [
+      "The network is a graph, not a list of curves: a node is a point of the network (an endpoint or a junction), a segment joins two nodes. Everything else -- meshes, slots, later traffic -- is derived and disposable. The graph is the only thing persisted.",
+      "A segment's curve is a quadratic Bezier: two endpoint nodes and exactly one control point. This is the Cities:Skylines model, and it is chosen over a cubic Bezier or a Catmull-Rom spline deliberately: one control point means one drag handle in the UI, no tangent continuity to reconcile between adjacent segments, and a curve that cannot loop back on itself. A cubic curve buys expressiveness this project does not need and costs constraints it would then have to enforce.",
+      "A Bezier is not parameterised by length: `t = 0.5` is not the midpoint of the curve. Placing building slots at even `t` intervals crowds them in the curves and stretches them on the straights, and it is immediately visible. The fix is to sample each segment into a polyline at roughly one point per metre when it is created and store the cumulative distances, so `position at d metres` is a binary search in that table. It is a small piece of code, and it is the piece that every consumer of the network depends on: slots, surface mesh, displayed length, construction cost, and later traffic.",
+      "Snapping is what creates junctions. The player never places an intersection: a junction is what a node becomes when a third segment snaps to it, or when a segment is drawn onto an existing one and splits it. Four rules cover it -- snap to an existing node within a radius of a few metres, split an existing segment drawn onto, quantise positions to a small fixed step so two nodes at the same place are the same node, and refuse a segment below a minimum length. Angle snapping is deliberately absent: it is what would make the result look gridded rather than organic.",
+      "Junction geometry has three tiers and the cheapest one is enough to unblock everything downstream: a flat disc of road surface laid over the node hides the segment ends and is a few lines; trimming each incident segment back by the junction radius and closing the gap with a polygon is correct in the overwhelming majority of cases; real junctions -- curb fillets, lane markings, signals -- are a multi-year subject that Cities:Skylines staffed a team for. This request delivers the first, then the second, and states the third as out of scope.",
+      "Relief is handled by writing its interface now and shipping the flat implementation. Node positions are three-dimensional from the first line -- never a two-component pair -- and every elevation in the system is read from one `terrainHeight(x, z)` function that returns zero in the first pass. A node samples its elevation once, when it is placed, and keeps it; a placed road is a fixed road, which is what makes embankments possible later. A segment interpolates elevation between its nodes, which gives it a gradient, which gives the validation rules a maximum-gradient constraint that does nothing on flat ground and is ready when the ground is not flat.",
+      "The real cost of relief is not the road going uphill, it is the terrain that has to be flattened beneath it -- without that, roads float over slopes or sink into them. On a heightmap that is a short routine: walk the segment's polyline, overwrite the cells within the road's width plus an embankment margin. On an arbitrary terrain mesh it is a project. The terrain is therefore a heightmap, and that is a decision, not a placeholder.",
+      "Building models come from the sibling `meshanvil` pipeline as GLB, which Babylon's loader reads directly with no conversion step. The asset convention has to be fixed before the model library grows: one GLB per building, origin at the footprint corner, metre scale, a single fixed orientation. Fixing it after two hundred models exist is a two-hundred-model correction.",
+      "Draw-call budget is the constraint that decides whether a city renders at all. Buildings are thin instances -- one matrix per building against a shared mesh -- which is why free placement was never in tension with performance: an instance matrix carries any position and rotation. What the slot model buys is not performance, it is the absence of a placement problem.",
+      "The graph, the arc-length parameterisation and the validation rules are pure logic with no dependency on the engine, and they are where the defects that are hard to see will live. They are testable without a browser and without a GPU, and that is where the tests go. Rendering is checked by looking at it."
+    ],
+    "acceptance_criteria": [
+      "AC1: The project builds and runs in a browser from a single dev command, rendering a Babylon.js scene with a controllable camera, with no engine wrapper or abstraction layer of the project's own standing between the application and Babylon.",
+      "AC2: The road network is a graph of nodes and segments in which a segment is a quadratic Bezier defined by its two endpoint nodes and exactly one control point; the graph is the only persisted representation of the network and every mesh is derived from it and regenerated after each edit, never edited directly.",
+      "AC3: A segment answers `position and tangent at distance d metres along me` with spacing that does not vary with curvature: asking a straight segment and a curved segment of equal length for points every d metres yields the same count, evenly spaced along each.",
+      "AC4: Node positions are three-dimensional from the outset and every elevation in the system is read from one terrain-height function, so that making the ground non-flat changes that function and nothing in the graph; a node samples its elevation when it is placed and retains it.",
+      "AC5: Roads are drawn with the pointer under four snapping rules -- snap to an existing node within a radius, split an existing segment drawn onto, quantise positions to a fixed step, and refuse a segment below a minimum length -- and no angle snapping is applied.",
+      "AC6: A segment violating a validation rule is refused at draw time with its reason shown to the player and never enters the graph; the maximum-gradient rule is among them and is enforced on the segment's interpolated elevation.",
+      "AC7: A junction exists only as a consequence of snapping -- a node incident to three or more segments -- and is never an object the player places directly; drawing onto an existing segment splits it into two segments sharing a new node.",
+      "AC8: The network renders as a road surface generated from the graph, with a junction node covered so that no segment end is visible as an open edge.",
+      "AC9: A junction renders as a surface joining its incident segments with each of them trimmed back to it, showing no gap and no overlapping seam at normal play camera distance.",
+      "AC10: Buildings occupy slots derived from segments -- evenly spaced along the segment by arc length, offset to its side, oriented to its normal -- so that a building always fronts a road and no collision resolution is required to place one.",
+      "AC11: Buildings render as thin instances of GLB models loaded from the MeshAnvil pipeline under a stated asset convention, and a network carrying at least a thousand buildings holds an interactive frame rate; the figure is measured and reported, not asserted.",
+      "AC12: The ground is a heightmap that roads follow, and the terrain beneath a road is flattened to that road's own elevation across its width plus an embankment margin, so that no road floats above the ground or is buried by it.",
+      "AC13: The graph, the arc-length parameterisation, the snapping rules and the validation rules are covered by tests that run with no browser and no GPU."
+    ]
+  },
+  "product": {
+    "title": "A city that grows from the roads you draw",
+    "overview": "The first playable loop of city-jump: draw a curved road network with the pointer, and watch buildings take their places along it. The network is a graph the whole simulation reads from, the buildings are instanced models from the MeshAnvil pipeline, and the ground under both is a heightmap the roads conform to.",
+    "goals": [
+      "Drawing a road feels free and the result looks organic, without the player ever placing an intersection.",
+      "One representation of the network -- a graph -- that zoning, rendering and later traffic all read from, so no later feature has to invent its own.",
+      "A building always fronts a road, by construction rather than by a check.",
+      "A city of a thousand buildings renders at an interactive frame rate on an ordinary machine.",
+      "Relief is a change to one function and a terrain pass, not a rewrite of the network."
+    ],
+    "non_goals": [
+      "Traffic simulation, vehicles, pathfinding, lane counts and one-way directions -- the graph accommodates them all unchanged, and none of them is built here.",
+      "Bridges and tunnels; they need an elevated-segment flag that suppresses terrain flattening, and that is a later request.",
+      "Real junction geometry: curb fillets, lane markings, signals.",
+      "Economy, population, services, or any simulation of what the buildings do.",
+      "Undo/redo, saving and loading a city, and multiplayer.",
+      "Terrain sculpting tools for the player; the heightmap is authored, not edited in game.",
+      "An entity-component system, a level editor, or any framework layer above Babylon."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Stand up the Babylon scene and the dev loop",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC1"
+      ],
+      "problem": [
+        "The repository is empty: there is no build, no dev command, no scene, and therefore nowhere for any of the following work to be seen."
+      ],
+      "scope_in": [
+        "A build and dev-server setup, and a single documented command that opens the running app in a browser.",
+        "A Babylon.js scene with a camera the player can move over the map, a ground plane, and a render loop.",
+        "The project layout that separates pure simulation logic from rendering, since the former is tested and the latter is looked at."
+      ],
+      "scope_out": [
+        "Any wrapper, facade or abstraction layer of the project's own over Babylon.",
+        "Asset loading, UI chrome, and anything to do with roads."
+      ],
+      "acceptance_criteria": [
+        "AC1: One documented command builds and serves the app, and it opens in a browser showing a Babylon scene.",
+        "AC2: The camera can be moved and zoomed over the ground plane.",
+        "AC3: Simulation logic and rendering live in separate places, and the simulation side imports nothing from Babylon."
+      ]
+    },
+    {
+      "title": "Model the road network as a graph of quadratic Bezier segments",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC2",
+        "AC3",
+        "AC4",
+        "AC13"
+      ],
+      "problem": [
+        "Every later feature -- zoning, rendering, growth, traffic -- reads the network, so its representation has to be settled before any of them exists.",
+        "A Bezier is not parameterised by length, so evenly spaced points along a curve cannot be obtained by stepping the curve parameter evenly; without solving this once, every consumer of the network gets the spacing wrong in the same way."
+      ],
+      "scope_in": [
+        "A graph of nodes and segments, with a segment defined by two endpoint nodes and one control point.",
+        "Arc-length parameterisation: a per-segment polyline sample with cumulative distances, and a lookup answering position and tangent at a given distance.",
+        "Three-dimensional node positions and a single terrain-height function returning zero, sampled once when a node is placed.",
+        "Segment elevation interpolated between its nodes, and the gradient that follows from it.",
+        "Splitting a segment at a distance along it, preserving the shape of the original curve on both sides.",
+        "Tests covering the graph operations, the parameterisation and the split, running with no browser."
+      ],
+      "scope_out": [
+        "Any rendering of the network.",
+        "Drawing, snapping, and the validation rules that belong to the tool.",
+        "Road types, lane counts and directions."
+      ],
+      "acceptance_criteria": [
+        "AC1: Nodes and segments can be created, queried and removed, and a segment resolves its two nodes and its control point.",
+        "AC2: Points requested every d metres along a curved segment and along a straight segment of the same length come back in the same number and evenly spaced on both.",
+        "AC3: Node positions are three-dimensional and every elevation comes from the terrain-height function; no elevation is computed anywhere else.",
+        "AC4: A segment reports its length and its gradient.",
+        "AC5: Splitting a segment yields two segments that share a node and together trace the original curve.",
+        "AC6: The tests run with no browser and no GPU, and a failure names the operation that broke."
+      ]
+    },
+    {
+      "title": "Draw roads with the pointer under four snapping rules",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC5",
+        "AC6",
+        "AC7",
+        "AC13"
+      ],
+      "problem": [
+        "An unconstrained drawing tool produces three-degree angles, sub-metre segments and near-coincident nodes that are not the same node, and each of those breaks junction geometry downstream.",
+        "Intersections have to come from somewhere, and asking the player to place them is both more UI and a worse result."
+      ],
+      "scope_in": [
+        "A pointer interaction that places a start node, an end node and a control point, and commits a segment.",
+        "The four snapping rules: node snap within a radius, segment snap that splits the segment drawn onto, position quantisation to a fixed step, and a minimum segment length.",
+        "Validation at draw time -- minimum length and maximum gradient -- with the reason shown when a segment is refused.",
+        "A preview of the segment under the pointer that shows whether it would be accepted.",
+        "Tests for the snapping resolution and the validation rules, independent of the pointer."
+      ],
+      "scope_out": [
+        "Angle snapping, which is what would make the network read as gridded.",
+        "Undo/redo and deletion of existing roads.",
+        "Road types and any choice of width at draw time.",
+        "The road surface mesh; the network may be drawn as bare lines here."
+      ],
+      "acceptance_criteria": [
+        "AC1: A road is drawn by pointer, curves under its control point, and enters the graph.",
+        "AC2: Ending near an existing node attaches to that node rather than creating a second one at the same place.",
+        "AC3: Drawing onto an existing segment splits it and shares the new node, producing a junction.",
+        "AC4: Positions are quantised to the fixed step, so two nodes drawn at the same place are one node.",
+        "AC5: A segment below the minimum length or above the maximum gradient is refused with its reason shown, and does not enter the graph.",
+        "AC6: No angle snapping is applied at any point.",
+        "AC7: The preview shows, before the commit, whether the segment would be accepted."
+      ]
+    },
+    {
+      "title": "Generate the road surface from the graph, with covered junctions",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC2",
+        "AC8"
+      ],
+      "problem": [
+        "The network is drawn as bare lines and has to become a surface before anything reads as a city.",
+        "A junction leaves the ends of its incident segments visible as open edges, and something has to cover them."
+      ],
+      "scope_in": [
+        "A road surface generated by extruding a cross-section along each segment's arc-length polyline.",
+        "Regeneration of the affected meshes after each edit, from the graph, with the mesh never edited directly.",
+        "A flat disc of road surface at each junction node, sized to the widest incident segment, covering the segment ends.",
+        "The road width coming from the segment's type rather than being fixed in the mesh code."
+      ],
+      "scope_out": [
+        "Trimmed-polygon junctions, which the later item covers.",
+        "Curbs, lane markings, sidewalks and signals.",
+        "Any conformance to relief; the ground is flat here."
+      ],
+      "acceptance_criteria": [
+        "AC1: Each segment renders as a road surface following its curve, at the width its type declares.",
+        "AC2: Editing the graph regenerates the affected meshes and nothing else; no mesh is mutated outside regeneration.",
+        "AC3: A junction shows no open segment edge from the play camera.",
+        "AC4: Deleting or splitting a segment leaves no orphaned mesh behind."
+      ]
+    },
+    {
+      "title": "Derive building slots from segments and render them as thin instances",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC10",
+        "AC11"
+      ],
+      "problem": [
+        "Buildings placed freely would each require collision resolution, an orientation heuristic and a road-access check; derived from the segment they need none of those.",
+        "A city is thousands of buildings, and one draw call per building does not render."
+      ],
+      "scope_in": [
+        "Slots generated along each segment by arc length, offset to each side by the road half-width plus a setback, oriented to the segment normal.",
+        "Slot invalidation and regeneration when the segment changes, and suppression of slots that fall within a junction's radius.",
+        "Loading GLB building models from the MeshAnvil pipeline, under a written asset convention: one GLB per building, origin at the footprint corner, metre scale, one fixed orientation.",
+        "Rendering buildings as thin instances against the shared model meshes, one matrix per building.",
+        "A measurement of the frame rate at a stated building count on a stated machine, recorded rather than claimed."
+      ],
+      "scope_out": [
+        "Zoning types, growth rules, demand, and any decision about which building goes in which slot beyond a placeholder rule.",
+        "Level of detail and culling; they are additions to make when the measurement asks for them.",
+        "Building animation, interiors, and anything the buildings do."
+      ],
+      "acceptance_criteria": [
+        "AC1: Slots along a segment are evenly spaced by arc length on both straight and curved segments, offset to the side and oriented to the road.",
+        "AC2: Changing a segment regenerates its slots, and slots inside a junction radius are suppressed.",
+        "AC3: Every slot fronts a road by construction; no collision or access check is performed to place a building.",
+        "AC4: Buildings load as GLB from the MeshAnvil pipeline and the asset convention is written down where the pipeline's authors will read it.",
+        "AC5: Buildings render as thin instances, not as one mesh per building.",
+        "AC6: The frame rate at a stated building count of at least a thousand is measured on a stated machine and recorded."
+      ]
+    },
+    {
+      "title": "Replace disc junctions with trimmed-back polygons",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC9"
+      ],
+      "problem": [
+        "The flat disc covers the segment ends but reads as a disc: it overlaps the road surface, ignores the angles at which the segments arrive, and is visible as soon as the camera comes down."
+      ],
+      "scope_in": [
+        "Trimming each incident segment back from the junction node by the junction radius, so the surfaces stop short of it.",
+        "Building the junction surface as a polygon closing the gap between the trimmed ends, ordered by the incident segments' angles.",
+        "Handling the degenerate cases the drawing rules can still produce: two incident segments, and segments arriving at a narrow angle.",
+        "Recomputing the junction when any incident segment changes."
+      ],
+      "scope_out": [
+        "Curb fillets, lane markings, crosswalks and traffic signals.",
+        "Any change to how junctions are created, which the drawing tool owns."
+      ],
+      "acceptance_criteria": [
+        "AC1: Incident segments stop short of the junction and the junction surface closes the gap with no hole and no overlapping seam at play camera distance.",
+        "AC2: A junction of two segments and a junction of five are both handled without a visible defect.",
+        "AC3: Segments arriving at a narrow angle produce a junction surface that is still closed.",
+        "AC4: Editing an incident segment recomputes the junction."
+      ]
+    },
+    {
+      "title": "Put the network on a heightmap and flatten the terrain beneath it",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC4",
+        "AC12"
+      ],
+      "problem": [
+        "The terrain-height function returns zero, so the whole relief interface exists and does nothing.",
+        "Roads laid over a relief without conforming the terrain to them either float above the ground or are buried by it, and no amount of care in the road mesh fixes that -- the ground has to move."
+      ],
+      "scope_in": [
+        "A heightmap terrain and its mesh, with the terrain-height function reading from it.",
+        "Road surface and building slots following the sampled elevation, through the existing interface with no change to the graph.",
+        "Flattening the terrain beneath each road: walking the segment polyline and setting the cells within the road width to the road's elevation, with an embankment margin blending out to the surrounding ground.",
+        "The maximum-gradient rule taking effect now that segments have real gradients.",
+        "Regenerating the affected terrain when a road is added, changed or removed, including restoring the ground where a road was."
+      ],
+      "scope_out": [
+        "Elevated segments -- bridges and tunnels -- which need a flag suppressing flattening and are a later request.",
+        "Terrain sculpting tools for the player.",
+        "Any change to the graph, which is what the interface was written to avoid."
+      ],
+      "acceptance_criteria": [
+        "AC1: The terrain has relief, and the terrain-height function reads it; nothing else in the codebase computes an elevation.",
+        "AC2: Roads and building slots follow the relief, and the graph is unchanged by this item.",
+        "AC3: No road floats above the ground or is buried by it on any slope the drawing rules allow.",
+        "AC4: The terrain under a road is level with it across its width, and blends out to the surrounding ground over the embankment margin.",
+        "AC5: A segment exceeding the maximum gradient is refused at draw time on real relief.",
+        "AC6: Removing a road restores the ground beneath it."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Deliver the drawable road network and the city that grows from it",
+    "plan": [
+      "1. Stand up the build, the dev command and the Babylon scene, with simulation logic kept clear of the renderer.",
+      "2. Model the graph: nodes, quadratic Bezier segments, arc-length parameterisation, three-dimensional positions behind the terrain-height function, and the split operation -- with its tests, headless.",
+      "3. Build the drawing tool over it: the four snapping rules, draw-time validation with reasons, and the preview; network drawn as bare lines.",
+      "4. Generate the road surface by extrusion along the arc-length polyline, with flat-disc junctions, regenerated from the graph after each edit.",
+      "5. Derive building slots from segments, fix and write down the MeshAnvil asset convention, and render buildings as thin instances; measure the frame rate at a thousand buildings and record it.",
+      "6. Replace the disc junctions with trimmed-back segments and a closing polygon, covering the two-segment and narrow-angle cases.",
+      "7. Add the heightmap, point the terrain-height function at it, and flatten the terrain beneath the roads with an embankment margin; confirm the graph needed no change.",
+      "8. Re-run the headless tests and the Logics gates before closeout, and record the measured frame rate and the machine it was measured on."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/road-network-city-core.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
