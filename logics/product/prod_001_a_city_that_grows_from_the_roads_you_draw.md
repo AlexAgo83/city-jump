@@ -1,11 +1,12 @@
 ## prod_001_a_city_that_grows_from_the_roads_you_draw - A city that grows from the roads you draw
 > Date: 2026-08-26
-> Status: Proposed
+> Status: Settled
 > Related request: `req_000_draw_a_road_network_the_city_grows_from`
-> Related backlog: `item_001_stand_up_the_babylon_scene_and_the_dev_loop`, `item_002_model_the_road_network_as_a_graph_of_quadratic_bezier_segments`, `item_003_draw_roads_with_the_pointer_under_four_snapping_rules`, `item_004_generate_the_road_surface_from_the_graph_with_covered_junctions`, `item_005_derive_building_slots_from_segments_and_render_them_as_thin_instances`, `item_006_replace_disc_junctions_with_trimmed_back_polygons`, `item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it`
+> Related backlog: `item_001_stand_up_the_babylon_scene_and_the_dev_loop`
 > Related task: `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-26 17:54:17
 
 # Overview
 The first playable loop of city-jump: draw a curved road network with the pointer, and watch buildings take their places along it. The network is a graph the whole simulation reads from, the buildings are instanced models from the MeshAnvil pipeline, and the ground under both is a heightmap the roads conform to.
@@ -60,5 +61,5 @@ flowchart TD
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_000_draw_a_road_network_the_city_grows_from`
+- Product back-reference: `item_001_stand_up_the_babylon_scene_and_the_dev_loop`
 - Task back-reference: `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`

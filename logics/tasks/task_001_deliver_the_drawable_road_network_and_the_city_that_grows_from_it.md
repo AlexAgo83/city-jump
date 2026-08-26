@@ -1,14 +1,14 @@
 ## task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it - Deliver the drawable road network and the city that grows from it
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-26 17:54:06
+> Indicators reviewed: 2026-08-26 17:54:16
 > Owner: claude
 
 # AI Context
@@ -68,9 +68,16 @@
 
 # Validation
 - (no validation recorded yet)
+- npm test passed on 2026-08-26: 51 headless tests, 5 files. npx tsc clean. npx vite build succeeded. node scripts/shot.mjs drove the built app in headless Chromium (ANGLE Metal, Apple M3 Pro): 1422 buildings over 237 roads and 126 junctions on relief at the 120 fps requestAnimationFrame cap, 374 active meshes.
+- command: `npm test && npx tsc && npx vite build && node scripts/shot.mjs http://localhost:5173 city.png city` | result: passed | date: 2026-08-26
+- Finish workflow executed on 2026-08-26.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-08-26.
+- Linked backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`, `item_002_model_the_road_network_as_a_graph_of_quadratic_bezier_segments`, `item_003_draw_roads_with_the_pointer_under_four_snapping_rules`, `item_004_generate_the_road_surface_from_the_graph_with_covered_junctions`, `item_005_derive_building_slots_from_segments_and_render_them_as_thin_instances`, `item_006_replace_disc_junctions_with_trimmed_back_polygons`, `item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it`
+- Related request(s): `req_000_draw_a_road_network_the_city_grows_from`
 
 # Links
 - Request: `req_000_draw_a_road_network_the_city_grows_from`

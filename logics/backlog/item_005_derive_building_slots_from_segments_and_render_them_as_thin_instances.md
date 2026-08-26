@@ -1,14 +1,14 @@
 ## item_005_derive_building_slots_from_segments_and_render_them_as_thin_instances - Derive building slots from segments and render them as thin instances
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 17:33:17
+> Indicators reviewed: 2026-08-26 17:54:17
 
 # AI Context
 - Summary: Building slots derived from segments by arc length, offset and oriented to the road, filled with GLB models from the MeshAnvil pipeline rendered as thin instances; carries the measured frame rate at a thousand buildings.
@@ -57,3 +57,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`
+
+# Notes
+- Task `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it` was finished via `logics-manager flow finish task` on 2026-08-26.

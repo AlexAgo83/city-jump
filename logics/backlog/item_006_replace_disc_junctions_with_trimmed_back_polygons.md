@@ -1,14 +1,14 @@
 ## item_006_replace_disc_junctions_with_trimmed_back_polygons - Replace disc junctions with trimmed-back polygons
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 17:33:17
+> Indicators reviewed: 2026-08-26 17:54:17
 
 # AI Context
 - Summary: Replaces the placeholder disc junction with the correct construction: each incident segment trimmed back by the junction radius, the gap closed by a polygon ordered by arrival angle, including the two-segment and narrow-angle cases.
@@ -51,3 +51,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`
+
+# Notes
+- Task `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it` was finished via `logics-manager flow finish task` on 2026-08-26.

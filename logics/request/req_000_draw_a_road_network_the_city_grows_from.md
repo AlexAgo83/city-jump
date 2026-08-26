@@ -1,13 +1,13 @@
 ## req_000_draw_a_road_network_the_city_grows_from - Draw a road network the city grows from
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 16:36:24
+> Indicators reviewed: 2026-08-26 17:54:16
 
 # AI Context
 - Summary: Settles the road network's representation -- a graph of quadratic Bezier segments, arc-length parameterised, drawn under snapping rules -- and everything the first playable loop derives from it: road surface, junctions, building slots as thin instances, and a heightmap the roads conform to.
