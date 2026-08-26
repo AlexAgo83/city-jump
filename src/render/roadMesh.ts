@@ -1,13 +1,14 @@
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
-import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
 
 import type { RoadGraph } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
-import { junctionRadius } from "../sim/junction";
+import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
 import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
@@ -28,18 +29,25 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     for (const mesh of meshes) mesh.dispose();
     meshes = [];
 
+    const junctions = allJunctions(graph);
+
     for (const seg of graph.allSegments()) {
       const half = roadType(seg.type).width / 2;
+      // The surface stops short of each junction; the junction polygon closes the gap.
+      const { start, end } = segmentTrims(junctions, graph, seg.id);
+      const from = start;
+      const to = seg.length - end;
+      if (to - from < 0.25) continue; // wholly inside its junctions
+
       const left: Vector3[] = [];
       const right: Vector3[] = [];
-
-      for (let i = 0; i < seg.samples.length; i++) {
-        const p = seg.samples[i]!;
-        const prev = seg.samples[Math.max(0, i - 1)]!;
-        const next = seg.samples[Math.min(seg.samples.length - 1, i + 1)]!;
-        const n = perpXZ(normalizeXZ(sub(next, prev)));
-        left.push(new Vector3(p.x + n.x * half, p.y + ROAD_LIFT, p.z + n.z * half));
-        right.push(new Vector3(p.x - n.x * half, p.y + ROAD_LIFT, p.z - n.z * half));
+      const steps = Math.max(2, Math.ceil((to - from) / 2));
+      for (let i = 0; i <= steps; i++) {
+        const d = from + ((to - from) * i) / steps;
+        const { position, tangent } = graph.pointAt(seg.id, d);
+        const n = perpXZ(normalizeXZ(tangent));
+        left.push(new Vector3(position.x + n.x * half, position.y + ROAD_LIFT, position.z + n.z * half));
+        right.push(new Vector3(position.x - n.x * half, position.y + ROAD_LIFT, position.z - n.z * half));
       }
 
       const ribbon = MeshBuilder.CreateRibbon(
@@ -52,22 +60,54 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(ribbon);
     }
 
-    // ponytail: a flat disc over each junction hides the segment ends. It overlaps the
-    // roads and ignores their arrival angles -- the trimmed-polygon slice replaces it.
-    for (const node of graph.allNodes()) {
-      if (node.segments.size < 2) continue;
-      const disc = MeshBuilder.CreateDisc(
-        `junction_${node.id}`,
-        { radius: junctionRadius(graph, node.id), tessellation: 24, sideOrientation: MeshClass.DOUBLESIDE },
-        scene,
-      );
-      disc.rotation.x = Math.PI / 2;
-      disc.position.set(node.pos.x, node.pos.y + ROAD_LIFT * 1.5, node.pos.z);
-      disc.material = material;
-      disc.isPickable = false;
-      meshes.push(disc);
+    for (const junction of junctions.values()) {
+      const mesh = junctionMesh(scene, junction);
+      if (!mesh) continue;
+      mesh.material = material;
+      mesh.isPickable = false;
+      meshes.push(mesh);
     }
   }
 
   return { rebuild, material };
+}
+
+/**
+ * A triangle fan from the ring's centroid. The ring is convex, so a fan tessellates it
+ * exactly -- no earcut, no dependency.
+ */
+function junctionMesh(scene: Scene, junction: JunctionGeometry): Mesh | null {
+  const ring = junction.ring;
+  if (ring.length < 3) return null;
+
+  let cx = 0;
+  let cy = 0;
+  let cz = 0;
+  for (const p of ring) {
+    cx += p.x;
+    cy += p.y;
+    cz += p.z;
+  }
+  cx /= ring.length;
+  cy /= ring.length;
+  cz /= ring.length;
+
+  const positions: number[] = [cx, cy + ROAD_LIFT, cz];
+  for (const p of ring) positions.push(p.x, p.y + ROAD_LIFT, p.z);
+
+  const indices: number[] = [];
+  for (let i = 0; i < ring.length; i++) {
+    indices.push(0, 1 + i, 1 + ((i + 1) % ring.length));
+  }
+
+  const mesh = new MeshClass(`junction_${junction.node}`, scene);
+  const data = new VertexData();
+  data.positions = positions;
+  // Wound both ways, because the hull's winding can come out either way and a junction
+  // culled from above is a hole. The normals are set explicitly rather than derived: a
+  // horizontal polygon's normal is known, and deriving it from two windings cancels out.
+  data.indices = [...indices, ...indices.slice().reverse()];
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  data.applyToMesh(mesh);
+  return mesh;
 }
