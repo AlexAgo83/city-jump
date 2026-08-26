@@ -41,6 +41,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph) {
     for (const model of available) {
       const chosen = buckets.get(model.id)!;
       model.mesh.thinInstanceCount = 0;
+      // A mesh with no instance buffer still draws itself, at the origin. Until it has
+      // somewhere to stand, it is switched off rather than left hovering over the map.
+      model.mesh.setEnabled(chosen.length > 0);
       if (chosen.length === 0) continue;
 
       const matrices = new Float32Array(chosen.length * 16);
@@ -93,6 +96,8 @@ async function loadModel(scene: Scene, id: string): Promise<Model | null> {
     mesh.setParent(null);
     mesh.bakeCurrentTransformIntoVertices();
     mesh.refreshBoundingInfo();
+    mesh.setEnabled(false);
+    for (const node of result.meshes) if (node !== mesh) node.dispose();
 
     const bounds = mesh.getBoundingInfo().boundingBox;
     const width = bounds.maximum.x - bounds.minimum.x;

@@ -52,8 +52,13 @@ browser rather than asserted in prose:
 
 ```bash
 npm run dev
-node scripts/shot.mjs http://localhost:5173 city.png city
+node scripts/interact.mjs          # drives the pointer: draws, snaps, gets refused
+node scripts/shot.mjs http://localhost:5173 city.png city   # screenshot + frame rate
 ```
+
+`interact.mjs` exists because `shot.mjs` builds its roads through the debug API, which
+never touches picking — so a drawing tool that swallowed every click passed every check.
+It did, once.
 
 Last measured: **1422 buildings over 237 roads and 126 junctions at the 120 fps
 requestAnimationFrame cap**, 374 active meshes, headless Chromium on an Apple M3 Pro

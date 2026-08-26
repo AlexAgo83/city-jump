@@ -1,3 +1,6 @@
+// Side-effect import: without it `scene.pick` silently returns nothing and every click
+// is swallowed. Babylon only warns, so the tool looks broken rather than unconfigured.
+import "@babylonjs/core/Culling/ray";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
