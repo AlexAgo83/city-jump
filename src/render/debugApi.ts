@@ -4,6 +4,8 @@ import { resolveSnap, commitSegment } from "../sim/rules";
 import { v3 } from "../sim/vec";
 
 export interface DebugApi {
+  /** Escape hatch for the verification scripts; not used by the game. */
+  readonly _scene?: unknown;
   reset(): void;
   road(x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type?: string): boolean;
   demoNetwork(): void;
@@ -92,5 +94,5 @@ export function installDebugApi(
     },
   };
 
-  (window as unknown as { cityjump: DebugApi }).cityjump = api;
+  (window as unknown as { cityjump: DebugApi & { _scene: Scene } }).cityjump = Object.assign(api, { _scene: scene });
 }
