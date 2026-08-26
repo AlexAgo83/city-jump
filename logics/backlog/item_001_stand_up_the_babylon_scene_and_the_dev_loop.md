@@ -1,14 +1,14 @@
 ## item_001_stand_up_the_babylon_scene_and_the_dev_loop - Stand up the Babylon scene and the dev loop
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 16:37:18
+> Indicators reviewed: 2026-08-26 17:33:17
 
 # AI Context
 - Summary: Creates the ground the rest of the request stands on: a build, a single dev command, a Babylon scene with a movable camera, and the split between simulation logic (tested headless) and rendering (looked at).

@@ -1,14 +1,14 @@
 ## item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it - Put the network on a heightmap and flatten the terrain beneath it
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 16:37:18
+> Indicators reviewed: 2026-08-26 17:33:17
 
 # AI Context
 - Summary: Activates the relief the whole request was shaped to admit: a heightmap behind the terrain-height function, roads and slots following it, and the terrain flattened beneath each road with an embankment margin. The graph should need no change.

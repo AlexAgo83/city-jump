@@ -1,14 +1,14 @@
 ## item_004_generate_the_road_surface_from_the_graph_with_covered_junctions - Generate the road surface from the graph, with covered junctions
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 16:37:18
+> Indicators reviewed: 2026-08-26 17:33:17
 
 # AI Context
 - Summary: Turns the graph into a road surface by extruding a cross-section along each segment's arc-length polyline, regenerated from the graph after every edit, with a flat disc covering each junction.

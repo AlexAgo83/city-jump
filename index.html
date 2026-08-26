@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>city-jump</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1e23; }
+  #app { width: 100%; height: 100%; display: block; touch-action: none; }
+  #hud {
+    position: fixed; left: 12px; bottom: 12px; font: 12px/1.5 ui-monospace, monospace;
+    color: #cfd6e0; background: #00000080; padding: 8px 10px; border-radius: 6px;
+    pointer-events: none; white-space: pre;
+  }
+  #toast {
+    position: fixed; left: 50%; top: 24px; transform: translateX(-50%);
+    font: 13px/1.4 ui-sans-serif, system-ui; color: #ffd9d0; background: #7a2718d0;
+    padding: 8px 14px; border-radius: 6px; pointer-events: none; opacity: 0;
+    transition: opacity .15s;
+  }
+</style>
+<canvas id="app"></canvas>
+<div id="hud"></div>
+<div id="toast"></div>
+<script type="module" src="/src/main.ts"></script>

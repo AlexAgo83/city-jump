@@ -1,14 +1,14 @@
 ## item_002_model_the_road_network_as_a_graph_of_quadratic_bezier_segments - Model the road network as a graph of quadratic Bezier segments
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 16:37:18
+> Indicators reviewed: 2026-08-26 17:33:17
 
 # AI Context
 - Summary: Settles the network's data model -- nodes, quadratic Bezier segments, one control point -- and the arc-length parameterisation every consumer depends on; three-dimensional positions behind a terrain-height function that returns zero.
