@@ -1,0 +1,123 @@
+import { RoadGraph, type NodeId, type SegmentId } from "./graph";
+import { type Vec3, v3, distXZ } from "./vec";
+import { roadType } from "./roadTypes";
+import { terrainHeight } from "./terrain";
+
+/**
+ * The four drawing rules. Angle snapping is deliberately absent: it is what would make
+ * the network read as gridded instead of organic.
+ */
+export const RULES = {
+  /** Ending this close to an existing node attaches to it instead of making a new one. */
+  nodeSnapRadius: 8,
+  /** Ending this close to an existing segment splits it. */
+  segmentSnapRadius: 4,
+  /** Positions are quantised so two nodes drawn at the same place are the same node. */
+  gridStep: 2,
+  /** Below this, a segment is refused: micro-segments break junction geometry. */
+  minLength: 8,
+  /** Rise over run. Does nothing on flat ground, and is ready when the ground is not. */
+  maxGradient: 0.1,
+} as const;
+
+export const quantise = (value: number): number => Math.round(value / RULES.gridStep) * RULES.gridStep;
+
+export type Snap =
+  | { kind: "node"; nodeId: NodeId; position: Vec3 }
+  | { kind: "segment"; segmentId: SegmentId; distance: number; position: Vec3 }
+  | { kind: "free"; position: Vec3 };
+
+/**
+ * Resolves a raw ground position to where the road would actually attach. A node wins
+ * over a segment: attaching to the junction that is already there beats making another.
+ */
+export function resolveSnap(graph: RoadGraph, x: number, z: number): Snap {
+  const node = graph.nearestNode(x, z, RULES.nodeSnapRadius);
+  if (node) return { kind: "node", nodeId: node.id, position: node.pos };
+
+  const hit = graph.nearestOnSegment(x, z, RULES.segmentSnapRadius);
+  if (hit) {
+    return { kind: "segment", segmentId: hit.segment.id, distance: hit.distance, position: hit.position };
+  }
+
+  const qx = quantise(x);
+  const qz = quantise(z);
+  return { kind: "free", position: v3(qx, terrainHeight(qx, qz), qz) };
+}
+
+export type Validation = { ok: true } | { ok: false; reason: string };
+
+/**
+ * Draw-time validation. A refused segment never enters the graph, and the reason is the
+ * message shown to the player, so it is written for them rather than for a log.
+ */
+export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: string): Validation {
+  roadType(type);
+
+  const length = quadraticLengthXZ(start, control, end);
+  if (length < RULES.minLength) {
+    return { ok: false, reason: `Too short: ${length.toFixed(1)} m, minimum is ${RULES.minLength} m.` };
+  }
+
+  const gradient = Math.abs(end.y - start.y) / length;
+  if (gradient > RULES.maxGradient) {
+    return {
+      ok: false,
+      reason: `Too steep: ${(gradient * 100).toFixed(0)}%, maximum is ${RULES.maxGradient * 100}%.`,
+    };
+  }
+
+  return { ok: true };
+}
+
+/** Ground length of the quadratic, by sampling. ponytail: the graph rebuilds this table
+ * anyway once the segment is accepted; here it only has to be good enough to judge. */
+function quadraticLengthXZ(a: Vec3, c: Vec3, b: Vec3): number {
+  const STEPS = 24;
+  let total = 0;
+  let prev = a;
+  for (let i = 1; i <= STEPS; i++) {
+    const t = i / STEPS;
+    const u = 1 - t;
+    const p = v3(
+      a.x * u * u + c.x * 2 * u * t + b.x * t * t,
+      0,
+      a.z * u * u + c.z * 2 * u * t + b.z * t * t,
+    );
+    total += distXZ(prev, p);
+    prev = p;
+  }
+  return total;
+}
+
+/**
+ * Commits a drawn road. Snapping is what creates junctions: ending on a segment splits
+ * it, ending on a node shares it, and the player never places an intersection directly.
+ */
+export function commitSegment(
+  graph: RoadGraph,
+  from: Snap,
+  to: Snap,
+  control: Vec3,
+  type: string,
+): { ok: true; segmentId: SegmentId } | { ok: false; reason: string } {
+  const validation = validateSegment(from.position, control, to.position, type);
+  if (!validation.ok) return validation;
+
+  const a = resolveEndpoint(graph, from);
+  const b = resolveEndpoint(graph, to);
+  if (a === b) return { ok: false, reason: "A road cannot start and end at the same point." };
+
+  return { ok: true, segmentId: graph.addSegment(a, b, control, type) };
+}
+
+function resolveEndpoint(graph: RoadGraph, snap: Snap): NodeId {
+  switch (snap.kind) {
+    case "node":
+      return snap.nodeId;
+    case "segment":
+      return graph.splitSegment(snap.segmentId, snap.distance);
+    case "free":
+      return graph.addNode(snap.position.x, snap.position.z);
+  }
+}
