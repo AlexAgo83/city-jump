@@ -1,12 +1,12 @@
 ## prod_001_a_city_that_grows_from_the_roads_you_draw - A city that grows from the roads you draw
 > Date: 2026-08-26
 > Status: Settled
-> Related request: `req_000_draw_a_road_network_the_city_grows_from`
-> Related backlog: `item_001_stand_up_the_babylon_scene_and_the_dev_loop`
-> Related task: `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`
-> Related architecture: (none yet)
+> Related request: `req_002_establish_modular_repository_foundations`
+> Related backlog: `item_008_establish_modular_repository_foundations`
+> Related task: `task_002_establish_modular_repository_foundations`
+> Related architecture: adr_001_keep_the_road_graph_as_the_source_of_truth
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-26 17:54:17
+> Indicators reviewed: 2026-08-27 11:11:42
 
 # Overview
 The first playable loop of city-jump: draw a curved road network with the pointer, and watch buildings take their places along it. The network is a graph the whole simulation reads from, the buildings are instanced models from the MeshAnvil pipeline, and the ground under both is a heightmap the roads conform to.
@@ -49,17 +49,39 @@ flowchart TD
 - An entity-component system, a level editor, or any framework layer above Babylon.
 
 # Scope and guardrails
-- In: scaffolded request, product, backlog, orchestration task, validation, and handoff context.
-- Out: unrelated workflow docs and implementation of generated tasks.
+- In: road construction, road-derived buildable land, procedural building placement,
+  terrain conformance, and the environmental controls needed to evaluate the result.
+- The road graph remains the only authored city state. Terrain, roads, junctions,
+  buildable plots, and buildings are disposable projections of it.
+- Simulation rules stay deterministic and independent from Babylon and browser APIs.
+- Out: traffic, economy, services, progression, persistence, multiplayer, bridges,
+  tunnels, and player-authored terrain until their own product slices are scoped.
 
 # Key product decisions
-- Use structured input as the source of truth for generated docs.
-- Keep generated write paths local and repo-bounded.
+- Represent the network as nodes and quadratic Bezier segments, with arc-length lookup
+  computed once for every downstream consumer.
+- Create junctions only through snapping and segment splitting; the player never places
+  a junction object directly.
+- Derive non-overlapping buildable cells from road frontage instead of placing buildings
+  freely and resolving collisions afterwards.
+- Keep elevation behind one terrain-height function and conform the heightmap beneath
+  fixed-elevation roads.
+- Render repeated buildings as thin instances and add complexity only when measured
+  performance requires it.
 
 # Success signals
-- Generated docs pass lint and audit without broad manual rewrites.
-- Context-pack output can be handed to an implementation agent directly.
+- A new road can be drawn, snapped, validated, and rendered without creating a second
+  representation of the network.
+- Buildable land remains readable around straight and curved roads, reaches useful depth,
+  and never allocates the same ground twice.
+- A terrain change exercises meaningful relief without floating or buried road surfaces.
+- At least one thousand buildings remain interactive in the target browser scenario, with
+  the count, frame rate, and test environment recorded.
+- Pure simulation tests, architecture boundaries, browser interaction checks, and Logics
+  validation all run from documented repository commands.
 
 # References
-- Product back-reference: `item_001_stand_up_the_babylon_scene_and_the_dev_loop`
-- Task back-reference: `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`
+- Product back-reference: `item_008_establish_modular_repository_foundations`
+- Task back-reference: `task_002_establish_modular_repository_foundations`
+- Repository overview: `README.md`
+- Asset contract: `docs/assets.md`

@@ -1,0 +1,228 @@
+{
+  "budgets": {
+    "max_docs": 12,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_002_establish_modular_repository_foundations item_008_establish_modular_repository_foundations task_002_establish_modular_repository_foundations --mode full --profile normal",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "repository, modularity, architecture tests, CI, README, product corpus",
+        "skip when": "Implementing one isolated simulation or rendering behavior inside an existing",
+        "summary": "Establish the repository presentation, source boundaries, tests, CI, and",
+        "use when": "Changing project structure, validation commands, contribution policy, or the"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/request/req_002_establish_modular_repository_foundations.md",
+      "ref": "req_002_establish_modular_repository_foundations",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The repository presents version 0.1.0 with a factual README and real screenshot,",
+          "  MIT licence, contribution and security policies, and a matching versioned changelog.",
+          "- AC2: `main.ts` is only a bootstrap; `src/app/`, `src/ui/`, `src/sim/`, and `src/render/`",
+          "  have explicit ownership, and a runnable architecture test rejects forbidden imports.",
+          "- AC3: One documented CI command runs unit, architecture, build, and Logics gates; GitHub",
+          "  CI also runs the browser interaction check, and the product corpus contains a roadmap,"
+        ],
+        "Needs": [
+          "- Contributors need an explicit source layout before road, zoning, traffic, and economy",
+          "  code begin to depend on one another.",
+          "- The repository needs the same public presentation and collaboration surfaces as the",
+          "  maintainer's other projects: product README, security policy, contribution rules,",
+          "  versioned changelogs, licence, and continuous validation.",
+          "- Product intent, durable architecture decisions, functional contracts, and version"
+        ]
+      },
+      "status": "Done",
+      "title": "Establish modular repository foundations"
+    },
+    {
+      "ai_context": {
+        "keywords": "modularity, repository docs, architecture boundaries, CI, Logics corpus",
+        "skip when": "Scoping a gameplay feature that does not alter these foundations.",
+        "summary": "Deliver repository presentation, application/UI composition boundaries,",
+        "use when": "Reviewing why the source tree, validation scripts, and product documents were"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/backlog/item_008_establish_modular_repository_foundations.md",
+      "ref": "item_008_establish_modular_repository_foundations",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Repository and source boundaries are documented, executable, and verified without",
+          "  adding a runtime or tooling dependency.",
+          "- AC2: The product corpus describes current behavior and future milestones, passes doctor,",
+          "  lint, audit, product consistency, and roadmap validation, and leaves only the existing",
+          "  crossing-road request open."
+        ],
+        "Problem": [
+          "The prototype works, but its composition, repository contract, and product memory are not",
+          "yet strong enough to support several parallel gameplay systems without drift."
+        ]
+      },
+      "status": "Done",
+      "title": "Establish modular repository foundations"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/product/prod_001_a_city_that_grows_from_the_roads_you_draw.md",
+      "ref": "prod_001_a_city_that_grows_from_the_roads_you_draw",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "A city that grows from the roads you draw"
+    },
+    {
+      "ai_context": {
+        "keywords": "repository foundation, app composition, architecture test, CI, product corpus",
+        "skip when": "Implementing gameplay within the established source boundaries.",
+        "summary": "Completed repository presentation, modular composition, architecture and CI",
+        "use when": "Verifying or extending the version 0.1.0 repository foundation."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/tasks/task_002_establish_modular_repository_foundations.md",
+      "ref": "task_002_establish_modular_repository_foundations",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "The implementation is deliberately dependency-free beyond the project's existing Vite,",
+          "Vitest, Playwright, TypeScript, Babylon, and Logics Manager toolchain."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)",
+          "- Finish workflow executed on 2026-08-27.",
+          "- Linked backlog/request close verification passed.",
+          "- 2026-08-27: npm run ci passed (55 unit tests, 2 architecture tests, production build, Logics lint and audit); npm run test:e2e passed 17 browser checks"
+        ]
+      },
+      "status": "Done",
+      "title": "Establish modular repository foundations"
+    }
+  ],
+  "estimates": {
+    "char_count": 5357,
+    "companion_doc_count": 0,
+    "doc_count": 4
+  },
+  "generated_at": "2026-08-27T09:19:48Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_002_establish_modular_repository_foundations",
+      "item_008_establish_modular_repository_foundations",
+      "task_002_establish_modular_repository_foundations"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_002_establish_modular_repository_foundations,item_008_establish_modular_repository_foundations,task_002_establish_modular_repository_foundations",
+  "refs": [
+    "req_002_establish_modular_repository_foundations",
+    "item_008_establish_modular_repository_foundations",
+    "task_002_establish_modular_repository_foundations"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": []
+}
