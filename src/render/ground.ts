@@ -1,8 +1,10 @@
 import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3 } from "@babylonjs/core/Maths/math";
+import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import type { Heightmap } from "../sim/heightmap";
 
@@ -64,4 +66,39 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 
   refresh();
   return { mesh, refresh };
+}
+
+export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
+  let visible = false;
+  let mesh: LinesMesh | null = null;
+
+  function rebuild(): void {
+    mesh?.dispose();
+    mesh = null;
+    if (!visible) return;
+
+    const lines: Vector3[][] = [];
+    for (let i = 0; i < heightmap.count; i++) {
+      const row: Vector3[] = [];
+      const column: Vector3[] = [];
+      for (let j = 0; j < heightmap.count; j++) {
+        row.push(new Vector3(heightmap.worldX(j), heightmap.at(j, i) + 0.04, heightmap.worldZ(i)));
+        column.push(new Vector3(heightmap.worldX(i), heightmap.at(i, j) + 0.04, heightmap.worldZ(j)));
+      }
+      lines.push(row, column);
+    }
+
+    mesh = MeshBuilder.CreateLineSystem("world-grid", { lines }, scene);
+    mesh.color = new Color3(0.36, 0.42, 0.45);
+    mesh.alpha = 0.2;
+    mesh.isPickable = false;
+  }
+
+  return {
+    rebuild,
+    setVisible(next: boolean): void {
+      visible = next;
+      rebuild();
+    },
+  };
 }

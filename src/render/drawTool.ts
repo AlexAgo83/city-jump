@@ -30,8 +30,13 @@ type Stage =
 
 export interface DrawTool {
   readonly stageLabel: () => string;
+  readonly mode: () => DrawMode;
   cancel(): void;
+  setMode(mode: DrawMode): void;
+  setGridSnap(enabled: boolean): void;
 }
+
+export type DrawMode = "straight" | "curve";
 
 export function createDrawTool(
   scene: Scene,
@@ -41,6 +46,8 @@ export function createDrawTool(
   typeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
+  let mode: DrawMode = "curve";
+  let gridSnap = true;
   let preview: LinesMesh | null = null;
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
@@ -85,7 +92,7 @@ export function createDrawTool(
       nodeHighlight.setEnabled(false);
       return clearPreview();
     }
-    const snap = resolveSnap(graph, at.x, at.z);
+    const snap = resolveSnap(graph, at.x, at.z, gridSnap);
     nodeHighlight.setEnabled(snap.kind === "node");
     if (snap.kind === "node") {
       nodeHighlight.position.copyFromFloats(snap.position.x, snap.position.y + PREVIEW_LIFT, snap.position.z);
@@ -107,18 +114,26 @@ export function createDrawTool(
   function onClick(): void {
     const at = groundPoint();
     if (!at) return;
-    const snap = resolveSnap(graph, at.x, at.z);
+    const snap = resolveSnap(graph, at.x, at.z, gridSnap);
 
     if (stage.phase === "idle") {
       stage = { phase: "control", from: snap };
       return;
     }
     if (stage.phase === "control") {
+      if (mode === "straight") {
+        finish(stage.from, snap, lerp(stage.from.position, snap.position, 0.5));
+        return;
+      }
       stage = { phase: "end", from: stage.from, control: snap.position };
       return;
     }
 
-    const result = commitSegment(graph, stage.from, snap, stage.control, typeId);
+    finish(stage.from, snap, stage.control);
+  }
+
+  function finish(from: Snap, to: Snap, control: Vec3): void {
+    const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
       showRefusal(result.reason);
       return; // the refused segment never entered the graph; keep drawing from the same start
@@ -152,13 +167,24 @@ export function createDrawTool(
   void Vector3;
 
   return {
+    mode: () => mode,
     stageLabel: () =>
       stage.phase === "idle"
         ? "click: start a road"
         : stage.phase === "control"
-          ? "click: place the bend"
+          ? mode === "straight"
+            ? "click: finish the road"
+            : "click: place the bend"
           : "click: finish the road",
     cancel,
+    setMode(next) {
+      mode = next;
+      cancel();
+    },
+    setGridSnap(enabled) {
+      gridSnap = enabled;
+      cancel();
+    },
   };
 }
 

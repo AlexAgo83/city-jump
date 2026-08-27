@@ -2,6 +2,7 @@ import type { RoadGraph, SegmentId } from "./graph";
 import { roadType } from "./roadTypes";
 import { junctionRadius } from "./junction";
 import { type Vec3, v3, normalizeXZ, perpXZ } from "./vec";
+import { terrainHeight } from "./terrain";
 
 export interface Slot {
   readonly segment: SegmentId;
@@ -21,6 +22,20 @@ export const SLOT = {
   /** Gap between the kerb and the building line. */
   setback: 5,
 } as const;
+
+export const GRID = {
+  cellSize: SLOT.spacing / 2,
+  depth: 5,
+  maxBlockSlots: 3,
+  maxBlockTurn: Math.PI / 18,
+} as const;
+
+export interface BuildableCell {
+  readonly segment: SegmentId;
+  readonly side: -1 | 1;
+  readonly row: number;
+  readonly corners: readonly [Vec3, Vec3, Vec3, Vec3];
+}
 
 /**
  * Slots derived from the segment: evenly spaced by arc length, offset to the side,
@@ -64,6 +79,121 @@ export function slotsForSegment(graph: RoadGraph, id: SegmentId): Slot[] {
 
 export function allSlots(graph: RoadGraph): Slot[] {
   return graph.allSegments().flatMap((seg) => slotsForSegment(graph, seg.id));
+}
+
+/** Buildable cells in road creation order; an older cell wins any overlap. */
+export function buildableCells(graph: RoadGraph): BuildableCell[] {
+  const accepted: BuildableCell[] = [];
+  const buckets = new Map<string, BuildableCell[]>();
+
+  for (const segment of graph.allSegments()) {
+    for (const block of slotBlocks(graph, segment.id)) {
+      for (const candidate of cellsForBlock(block)) {
+        const keys = bucketKeys(candidate);
+        const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
+        if ([...nearby].some((cell) => cellsOverlap(candidate, cell))) continue;
+        accepted.push(candidate);
+        for (const key of keys) {
+          const bucket = buckets.get(key) ?? [];
+          bucket.push(candidate);
+          buckets.set(key, bucket);
+        }
+      }
+    }
+  }
+  return accepted;
+}
+
+export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
+  for (const corners of [a.corners, b.corners]) {
+    for (let i = 0; i < 4; i++) {
+      const p = corners[i]!;
+      const q = corners[(i + 1) % 4]!;
+      const axisX = -(q.z - p.z);
+      const axisZ = q.x - p.x;
+      const project = (cell: BuildableCell) => cell.corners.map((c) => c.x * axisX + c.z * axisZ);
+      const pa = project(a);
+      const pb = project(b);
+      if (Math.max(...pa) <= Math.min(...pb) + 1e-6 || Math.max(...pb) <= Math.min(...pa) + 1e-6) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function cellsForBlock(block: Slot[]): BuildableCell[] {
+  const rotationY = averageRotation(block);
+  const alongX = Math.cos(rotationY);
+  const alongZ = -Math.sin(rotationY);
+  const outX = -Math.sin(rotationY);
+  const outZ = -Math.cos(rotationY);
+  const originX = block.reduce((sum, slot) => sum + slot.position.x, 0) / block.length;
+  const originZ = block.reduce((sum, slot) => sum + slot.position.z, 0) / block.length;
+  const width = block.length * SLOT.spacing;
+  const point = (along: number, out: number) => {
+    const x = originX + alongX * along + outX * out;
+    const z = originZ + alongZ * along + outZ * out;
+    return v3(x, terrainHeight(x, z), z);
+  };
+  const cells: BuildableCell[] = [];
+  for (let row = 0; row < GRID.depth; row++) {
+    for (let along = -width / 2; along < width / 2; along += GRID.cellSize) {
+      cells.push({
+        segment: block[0]!.segment,
+        side: block[0]!.side,
+        row,
+        corners: [
+          point(along, row * GRID.cellSize),
+          point(along + GRID.cellSize, row * GRID.cellSize),
+          point(along + GRID.cellSize, (row + 1) * GRID.cellSize),
+          point(along, (row + 1) * GRID.cellSize),
+        ],
+      });
+    }
+  }
+  return cells;
+}
+
+function slotBlocks(graph: RoadGraph, segment: SegmentId): Slot[][] {
+  const blocks: Slot[][] = [];
+  const slots = slotsForSegment(graph, segment);
+  for (const side of [1, -1] as const) {
+    let block: Slot[] = [];
+    for (const slot of slots.filter((candidate) => candidate.side === side)) {
+      const turn = block.length ? angleDifference(slot.rotationY, averageRotation(block)) : 0;
+      if (block.length >= GRID.maxBlockSlots || turn > GRID.maxBlockTurn) {
+        blocks.push(block);
+        block = [];
+      }
+      block.push(slot);
+    }
+    if (block.length) blocks.push(block);
+  }
+  return blocks;
+}
+
+function averageRotation(slots: Slot[]): number {
+  return Math.atan2(
+    slots.reduce((sum, slot) => sum + Math.sin(slot.rotationY), 0),
+    slots.reduce((sum, slot) => sum + Math.cos(slot.rotationY), 0),
+  );
+}
+
+function angleDifference(a: number, b: number): number {
+  return Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+}
+
+function bucketKeys(cell: BuildableCell): string[] {
+  const xs = cell.corners.map((p) => p.x);
+  const zs = cell.corners.map((p) => p.z);
+  const keys: string[] = [];
+  for (let x = Math.floor(Math.min(...xs) / GRID.cellSize); x <= Math.floor(Math.max(...xs) / GRID.cellSize); x++) {
+    for (let z = Math.floor(Math.min(...zs) / GRID.cellSize); z <= Math.floor(Math.max(...zs) / GRID.cellSize); z++) {
+      keys.push(`${x},${z}`);
+    }
+  }
+  return keys;
 }
 
 /** How far from a node the frontage has to start. A junction needs its whole radius. */

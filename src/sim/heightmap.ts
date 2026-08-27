@@ -43,13 +43,17 @@ export class Heightmap implements Terrain {
     this.base = new Float32Array(total);
     this.current = new Float32Array(total);
     this.claim = new Float32Array(total);
+    this.regenerate(options.generator);
+  }
 
+  regenerate(generator: (x: number, z: number) => number): void {
     for (let iz = 0; iz < this.count; iz++) {
       for (let ix = 0; ix < this.count; ix++) {
-        this.base[iz * this.count + ix] = options.generator(this.worldX(ix), this.worldZ(iz));
+        this.base[iz * this.count + ix] = generator(this.worldX(ix), this.worldZ(iz));
       }
     }
     this.current.set(this.base);
+    this.claim.fill(Infinity);
   }
 
   worldX(ix: number): number {

@@ -132,6 +132,23 @@ describe("heightmap", () => {
     }
     expect(refused / tried).toBeLessThan(0.2);
   });
+
+  it("can regenerate a substantially more rugged test terrain", () => {
+    const h = new Heightmap({ size: 800, cell: 8, generator: rollingHills() });
+    const before = h.baseAt(...gridOf(h, 120, 80));
+    h.regenerate(rollingHills(18, 450));
+
+    let low = Infinity;
+    let high = -Infinity;
+    for (let iz = 0; iz < h.count; iz++) {
+      for (let ix = 0; ix < h.count; ix++) {
+        low = Math.min(low, h.baseAt(ix, iz));
+        high = Math.max(high, h.baseAt(ix, iz));
+      }
+    }
+    expect(h.baseAt(...gridOf(h, 120, 80))).not.toBeCloseTo(before, 3);
+    expect(high - low).toBeGreaterThan(40);
+  });
 });
 
 function gridOf(h: Heightmap, x: number, z: number): [number, number] {

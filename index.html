@@ -10,13 +10,46 @@
     pointer-events: none; white-space: pre;
   }
   #toast {
-    position: fixed; left: 50%; top: 24px; transform: translateX(-50%);
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
     font: 13px/1.4 ui-sans-serif, system-ui; color: #ffd9d0; background: #7a2718d0;
     padding: 8px 14px; border-radius: 6px; pointer-events: none; opacity: 0;
     transition: opacity .15s;
   }
+  #toolbar {
+    position: fixed; top: 12px; left: 12px; display: flex; align-items: center;
+    flex-wrap: wrap; gap: 10px; max-width: calc(100vw - 24px); padding: 7px 9px;
+    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
+    border-radius: 6px; font: 12px/1.2 ui-sans-serif, system-ui; box-sizing: border-box;
+  }
+  #toolbar label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  #toolbar input, #toolbar select { accent-color: #75b9d1; }
+  .segmented { display: flex; border: 1px solid #ffffff2b; border-radius: 5px; overflow: hidden; }
+  .segmented label { position: relative; }
+  .segmented input { position: absolute; opacity: 0; }
+  .segmented span { padding: 5px 8px; color: #aeb8c0; cursor: pointer; }
+  .segmented input:checked + span { color: #fff; background: #3c5965; }
+  #terrain { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
+  #sun-hour { width: 110px; }
+  #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
+  @media (max-width: 680px) { #sun-hour { width: 80px; } }
 </style>
 <canvas id="app"></canvas>
+<div id="toolbar">
+  <div class="segmented" role="group" aria-label="Road shape">
+    <label><input type="radio" name="road-mode" value="straight" /><span>Straight</span></label>
+    <label><input type="radio" name="road-mode" value="curve" checked /><span>Curve</span></label>
+  </div>
+  <label><input id="show-grid" type="checkbox" /> Grid</label>
+  <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
+  <label>Terrain
+    <select id="terrain">
+      <option value="rolling">Rolling</option>
+      <option value="rugged">Rugged</option>
+    </select>
+  </label>
+  <label>Sun <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="14" /></label>
+  <output id="sun-time" for="sun-hour">14:00</output>
+</div>
 <div id="hud"></div>
 <div id="toast"></div>
 <script type="module" src="/src/main.ts"></script>

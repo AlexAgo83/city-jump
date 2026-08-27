@@ -41,6 +41,12 @@ describe("snapping", () => {
     expect(resolveSnap(g, 200, 200).kind).toBe("free");
   });
 
+  it("keeps a free point exact when grid snapping is disabled", () => {
+    const snap = resolveSnap(new RoadGraph(), 10.7, 13.3, false);
+    expect(snap.position.x).toBe(10.7);
+    expect(snap.position.z).toBe(13.3);
+  });
+
   it("prefers an existing node over the segment it sits on", () => {
     const g = new RoadGraph();
     road(g, 0, 0, 60, 0);

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
-import { slotsForSegment, allSlots, SLOT } from "./slots";
+import { slotsForSegment, allSlots, buildableCells, cellsOverlap, GRID, SLOT } from "./slots";
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
 import { roadType } from "./roadTypes";
@@ -99,5 +99,32 @@ describe("slots", () => {
     const streetOffset = Math.abs(slotsForSegment(g, street)[0]!.position.z);
     const avenueOffset = Math.abs(slotsForSegment(g, avenue)[0]!.position.z - 400);
     expect(avenueOffset).toBeGreaterThan(streetOffset);
+  });
+
+  it("keeps older grid cells and rejects overlapping new ones", () => {
+    const g = new RoadGraph();
+    const first = straight(g, -60, 0, 60, 0);
+    const firstCount = buildableCells(g).length;
+    straight(g, 0, -60, 0, 60);
+
+    const cells = buildableCells(g);
+    const rawCount = allSlots(g).length * GRID.depth * (SLOT.spacing / GRID.cellSize);
+    expect(cells.filter((cell) => cell.segment === first)).toHaveLength(firstCount);
+    expect(cells.length).toBeLessThan(rawCount);
+    expect(cells.some((cell, i) => cells.slice(i + 1).some((other) => cellsOverlap(cell, other)))).toBe(false);
+  });
+
+  it("keeps deep zoning rows on both sides of a curve", () => {
+    const g = new RoadGraph();
+    const a = g.addNode(0, 0);
+    const b = g.addNode(200, 0);
+    const id = g.addSegment(a, b, v3(100, 0, 100));
+    const cells = buildableCells(g).filter((cell) => cell.segment === id);
+
+    for (const side of [1, -1] as const) {
+      const front = cells.filter((cell) => cell.side === side && cell.row === 0).length;
+      const back = cells.filter((cell) => cell.side === side && cell.row === GRID.depth - 1).length;
+      expect(back).toBeGreaterThan(front / 2);
+    }
   });
 });

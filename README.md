@@ -12,10 +12,12 @@ npm run lint     # typecheck
 
 ## Drawing
 
-Three clicks: **start**, **bend**, **end**. Right-click or `Esc` cancels. Roads snap to
-existing nodes and split existing segments, which is the only way a junction is ever
-created — you never place one. A road under 8 m long or steeper than 10% is refused with
-its reason, and never enters the network.
+Choose **Straight** for two clicks or **Curve** for three: **start**, **bend**, **end**.
+Right-click or `Esc` cancels. The toolbar toggles the global reference grid, 2 m grid
+snapping, rolling or rugged terrain, and the sun hour. Changing terrain clears the city
+because placed node elevations are fixed. Roads snap to existing nodes and split existing
+segments, which is the only way a junction is ever created — you never place one. A road
+under 8 m long or steeper than 10% is refused with its reason, and never enters the network.
 
 ## How it is put together
 

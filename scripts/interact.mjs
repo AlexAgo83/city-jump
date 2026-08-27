@@ -33,11 +33,37 @@ const hud = () => page.evaluate(() => document.getElementById("hud").textContent
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
 const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
+const buildableGridCells = () =>
+  page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
+const worldGridVisible = () =>
+  page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
+const sunState = () =>
+  page.evaluate(() => {
+    const sun = window.cityjump._scene.getLightByName("sun");
+    return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity };
+  });
 
 // Nothing has been drawn, so nothing but the ground may be on screen. A building model
 // with no instance buffer still draws itself at the origin if it is left enabled.
 const fresh = await stats();
 check("a fresh map draws only the ground", fresh.activeMeshes === 1, `${fresh.activeMeshes} active meshes`);
+
+await page.locator("#show-grid").check();
+check("the global reference grid can be shown", await worldGridVisible());
+await page.locator("#grid-snap").uncheck();
+check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
+await page.locator("#grid-snap").check();
+
+const afternoonSun = await sunState();
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "20";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+const eveningSun = await sunState();
+check(
+  "the sun control changes angle and intensity",
+  afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) && eveningSun.intensity < afternoonSun.intensity,
+);
 
 const click = async (x, y) => {
   await page.mouse.move(x, y);
@@ -55,6 +81,8 @@ await click(700, 360);
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+const gridCells = await buildableGridCells();
+check("the buildable grid reaches up to five cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 10, `${gridCells} cells`);
 
 await page.mouse.move(702, 360);
 await page.waitForTimeout(100);
@@ -67,13 +95,34 @@ await click(500, 318);
 const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
 
+await page.locator('input[name="road-mode"][value="straight"]').check();
+await click(760, 500);
+await click(850, 430);
+const straight = await stats();
+check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
+await page.locator('input[name="road-mode"][value="curve"]').check();
+
 // A road shorter than the minimum has to be refused, with a reason the player can read.
 await click(200, 600);
 await click(203, 602);
 await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
-check("a refused road is not added", (await stats()).segments === branched.segments);
+check("a refused road is not added", (await stats()).segments === straight.segments);
+
+page.once("dialog", (dialog) => dialog.accept());
+await page.locator("#terrain").selectOption("rugged");
+await page.waitForTimeout(250);
+const rugged = await stats();
+const terrainRelief = await page.evaluate(() => {
+  const bounds = window.cityjump._scene.getMeshByName("ground").getBoundingInfo().boundingBox;
+  return bounds.maximumWorld.y - bounds.minimumWorld.y;
+});
+check("changing terrain resets the fixed-elevation road graph", rugged.segments === 0);
+check("the rugged terrain has substantial relief", terrainRelief > 20, `${terrainRelief.toFixed(1)} m`);
+await page.evaluate(() => window.cityjump.demoNetwork());
+await page.waitForTimeout(200);
+check("roads still render on rugged terrain", (await stats()).segments > 0);
 
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));
 

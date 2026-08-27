@@ -31,7 +31,7 @@ export type Snap =
  * Resolves a raw ground position to where the road would actually attach. A node wins
  * over a segment: attaching to the junction that is already there beats making another.
  */
-export function resolveSnap(graph: RoadGraph, x: number, z: number): Snap {
+export function resolveSnap(graph: RoadGraph, x: number, z: number, gridSnap = true): Snap {
   const node = graph.nearestNode(x, z, RULES.nodeSnapRadius);
   if (node) return { kind: "node", nodeId: node.id, position: node.pos };
 
@@ -40,8 +40,8 @@ export function resolveSnap(graph: RoadGraph, x: number, z: number): Snap {
     return { kind: "segment", segmentId: hit.segment.id, distance: hit.distance, position: hit.position };
   }
 
-  const qx = quantise(x);
-  const qz = quantise(z);
+  const qx = gridSnap ? quantise(x) : x;
+  const qz = gridSnap ? quantise(z) : z;
   return { kind: "free", position: v3(qx, terrainHeight(qx, qz), qz) };
 }
 

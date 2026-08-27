@@ -2,10 +2,12 @@ import "@babylonjs/loaders/glTF";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Matrix, Vector3, Quaternion } from "@babylonjs/core/Maths/math";
+import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
-import { allSlots, type Slot } from "../sim/slots";
+import { allSlots, buildableCells, type Slot } from "../sim/slots";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = ["house", "shop", "block", "tower"] as const;
@@ -24,9 +26,28 @@ interface Model {
 export async function createBuildingRenderer(scene: Scene, graph: RoadGraph) {
   const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id)));
   const available = models.filter((m): m is Model => m !== null);
+  let grid: LinesMesh | null = null;
 
   function rebuild(): number {
     const slots = allSlots(graph);
+    const cells = buildableCells(graph);
+    grid?.dispose();
+    grid = cells.length
+      ? MeshBuilder.CreateLineSystem(
+          "buildable-grid",
+          {
+            lines: cells.map(({ corners }) =>
+              [...corners, corners[0]].map((p) => new Vector3(p.x, p.y + 0.12, p.z)),
+            ),
+          },
+          scene,
+        )
+      : null;
+    if (grid) {
+      grid.color = new Color3(0.55, 0.8, 0.9);
+      grid.alpha = 0.65;
+      grid.isPickable = false;
+    }
     const buckets = new Map<string, Slot[]>(available.map((m) => [m.id, []]));
 
     for (const [i, slot] of slots.entries()) {
