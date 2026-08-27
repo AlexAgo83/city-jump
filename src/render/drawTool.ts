@@ -42,6 +42,19 @@ export function createDrawTool(
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let preview: LinesMesh | null = null;
+  const nodeHighlight = MeshBuilder.CreateLines(
+    "node-highlight",
+    {
+      points: Array.from({ length: 33 }, (_, i) => {
+        const angle = (i / 32) * Math.PI * 2;
+        return new Vector3(Math.cos(angle) * 3, 0, Math.sin(angle) * 3);
+      }),
+    },
+    scene,
+  );
+  nodeHighlight.color = ACCEPTED;
+  nodeHighlight.isPickable = false;
+  nodeHighlight.setEnabled(false);
 
   function clearPreview(): void {
     preview?.dispose();
@@ -67,10 +80,17 @@ export function createDrawTool(
   }
 
   function onMove(): void {
-    if (stage.phase === "idle") return clearPreview();
     const at = groundPoint();
-    if (!at) return;
+    if (!at) {
+      nodeHighlight.setEnabled(false);
+      return clearPreview();
+    }
     const snap = resolveSnap(graph, at.x, at.z);
+    nodeHighlight.setEnabled(snap.kind === "node");
+    if (snap.kind === "node") {
+      nodeHighlight.position.copyFromFloats(snap.position.x, snap.position.y + PREVIEW_LIFT, snap.position.z);
+    }
+    if (stage.phase === "idle") return clearPreview();
 
     if (stage.phase === "control") {
       // Before the control point is placed, the preview is the straight it would be.

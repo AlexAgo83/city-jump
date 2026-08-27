@@ -31,6 +31,8 @@ await page.waitForTimeout(600);
 const stats = () => page.evaluate(() => window.cityjump.stats());
 const hud = () => page.evaluate(() => document.getElementById("hud").textContent);
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
+const nodeHighlighted = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
 
 // Nothing has been drawn, so nothing but the ground may be on screen. A building model
 // with no instance buffer still draws itself at the origin if it is left enabled.
@@ -53,6 +55,10 @@ await click(700, 360);
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+
+await page.mouse.move(702, 360);
+await page.waitForTimeout(100);
+check("an existing node is highlighted inside its snap radius", await nodeHighlighted());
 
 // A second road ending on the first has to split it and make a junction.
 await click(500, 480);
