@@ -1,12 +1,11 @@
 const hud = document.getElementById("hud") as HTMLDivElement;
 const toast = document.getElementById("toast") as HTMLDivElement;
+let toastTimer = 0;
 
 export function setHud(text: string): void {
   hud.textContent = text;
 }
 
-let toastTimer = 0;
-/** Shows why an action was refused. Replaces the previous message rather than queueing. */
 export function showRefusal(reason: string): void {
   toast.textContent = reason;
   toast.style.opacity = "1";

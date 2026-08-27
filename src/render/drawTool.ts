@@ -12,7 +12,6 @@ import { RoadGraph } from "../sim/graph";
 import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { roadType } from "../sim/roadTypes";
 import { type Vec3, v3, lerp } from "../sim/vec";
-import { showRefusal } from "./hud";
 import { toBabylon } from "./convert";
 
 const ACCEPTED = new Color3(0.45, 0.85, 0.5);
@@ -43,6 +42,7 @@ export function createDrawTool(
   graph: RoadGraph,
   ground: Mesh,
   onCommitted: () => void,
+  onRefused: (reason: string) => void,
   typeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
@@ -135,7 +135,7 @@ export function createDrawTool(
   function finish(from: Snap, to: Snap, control: Vec3): void {
     const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
-      showRefusal(result.reason);
+      onRefused(result.reason);
       return; // the refused segment never entered the graph; keep drawing from the same start
     }
     stage = { phase: "idle" };
