@@ -30,7 +30,7 @@ const report = await page.evaluate(async (which) => {
     api.camera(1400, Math.PI / 3.2);
   } else {
     api.demoNetwork();
-    api.camera(520, Math.PI / 5);
+    api.camera(360, Math.PI / 5);
   }
   const fps = await api.measureFps(3000);
   const gl = document.createElement("canvas").getContext("webgl2");
