@@ -3,12 +3,18 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc",
+    "build": "vite build && npm run typecheck",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "tsc",
-    "verify": "node scripts/shot.mjs",
-    "check": "node scripts/interact.mjs"
+    "test:architecture": "node --test tests/architecture.mjs",
+    "test:e2e": "node scripts/interact.mjs",
+    "test:visual": "node scripts/shot.mjs",
+    "typecheck": "tsc",
+    "lint": "npm run typecheck",
+    "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc",
+    "ci": "npm test && npm run test:architecture && npm run build && npm run logics:validate",
+    "verify": "npm run test:visual",
+    "check": "npm run test:e2e"
   },
   "keywords": [
     "city-builder",
