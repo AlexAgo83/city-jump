@@ -1,73 +1,98 @@
 # city-jump
 
-A 3D city builder in the Cities:Skylines lineage: you draw curved roads, and the city
-grows along them.
+![Version](https://img.shields.io/badge/version-0.1.0-4C8BF5)
+![License](https://img.shields.io/badge/license-MIT-2E8B57)
+![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
+![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)
 
-```bash
-npm install
-npm run dev      # http://localhost:5173
-npm test         # headless simulation tests, no browser
-npm run lint     # typecheck
+`city-jump` is a browser-based 3D city builder. Draw straight or curved roads across
+terrain and the buildable plots, buildings, junctions, and shaped ground are derived
+from that road network.
+
+![A generated city following a curved road network](docs/media/city-jump.png)
+
+## Product Loop
+
+1. Shape a road network with straight or curved segments.
+2. Read the buildable grid generated along each road.
+3. Let buildings occupy valid, non-overlapping plots.
+4. Inspect the result under different terrain and daylight conditions.
+
+The current prototype focuses on road construction and spatial legibility. Traffic,
+services, economy, progression, persistence, bridges, and tunnels are not implemented.
+
+## Current State
+
+- Roads snap to the 2 m world grid, existing nodes, and existing segments.
+- Hovered snap nodes are highlighted before placement.
+- Buildable plots extend up to five 8 m cells perpendicular to a road and never overlap.
+- Curved roads regroup nearby cells into usable blocks where geometry permits.
+- Rolling and rugged terrain presets exercise road shaping and ground conformance.
+- A 24-hour sun control changes light direction, intensity, ambient light, and sky.
+- A browser debug surface drives deterministic visual and interaction checks.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI[UI and pointer input] --> APP[Application composition]
+    APP --> SIM[Pure road simulation]
+    APP --> RENDER[Babylon rendering]
+    SIM --> GRAPH[(Road graph)]
+    GRAPH --> RENDER
+    RENDER --> VIEW[Terrain, roads, plots, buildings]
 ```
 
-## Drawing
+The road graph is the source of truth. Babylon meshes are derived views and are rebuilt
+after an edit. Simulation modules contain no Babylon or DOM imports, so geometry and
+rules run headless in Vitest.
 
-Choose **Straight** for two clicks or **Curve** for three: **start**, **bend**, **end**.
-Right-click or `Esc` cancels. The toolbar toggles the global reference grid, 2 m grid
-snapping, rolling or rugged terrain, and the sun hour. Changing terrain clears the city
-because placed node elevations are fixed. Roads snap to existing nodes and split existing
-segments, which is the only way a junction is ever created — you never place one. A road
-under 8 m long or steeper than 10% is refused with its reason, and never enters the network.
+| Path | Responsibility |
+| --- | --- |
+| `src/app/` | Composition and rebuild lifecycle. |
+| `src/ui/` | Toolbar, HUD, and browser feedback. |
+| `src/sim/` | Deterministic graph, road rules, terrain, and plot generation. |
+| `src/render/` | Babylon scene, meshes, picking, and visual debug API. |
+| `scripts/` | Browser interaction and visual checks. |
+| `logics/` | Product, roadmap, decisions, specifications, and delivery corpus. |
 
-## How it is put together
+## Quick Start
 
-The **road graph** is the only state. Nodes and quadratic Bezier segments, each segment
-carrying a cumulative-distance table so `position at d metres` is a lookup rather than a
-guess. Every mesh — road surface, junctions, buildings, the ground itself — is derived
-from the graph and regenerated after each edit; nothing is edited in place.
-
-- `src/sim/` — the simulation. No Babylon import anywhere in it, so it tests headless.
-  - `graph.ts` — nodes, segments, arc length, split
-  - `rules.ts` — the four snapping rules and draw-time validation
-  - `junction.ts` — trimming the incident roads back and closing the gap
-  - `slots.ts` — building plots derived from segments
-  - `heightmap.ts` — the ground, and cutting the roads into it
-  - `terrain.ts` — the one function every elevation in the game comes through
-- `src/render/` — Babylon. Meshes, the pointer, the camera.
-
-## Buildings
-
-Models are GLB, loaded from `public/buildings/` and drawn as thin instances — one matrix
-per building against a shared mesh. The placeholder library is generated headless in
-Blender:
+Requires Node.js 22.
 
 ```bash
-/Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/gen_buildings.py
-```
-
-Anything authoring models has to obey [`docs/assets.md`](docs/assets.md).
-
-## Checking the rendering
-
-The visual behaviour and the frame rate are checked by driving the running app in a real
-browser rather than asserted in prose:
-
-```bash
+npm ci
 npm run dev
-node scripts/interact.mjs          # drives the pointer: draws, snaps, gets refused
-node scripts/shot.mjs http://localhost:5173 city.png city   # screenshot + frame rate
 ```
 
-`interact.mjs` exists because `shot.mjs` builds its roads through the debug API, which
-never touches picking — so a drawing tool that swallowed every click passed every check.
-It did, once.
+Open `http://localhost:5173`. Choose **Straight** for two clicks or **Curve** for three
+clicks: start, bend, end. Right-click or `Esc` cancels.
 
-Last measured: **1422 buildings over 237 roads and 126 junctions at the 120 fps
-requestAnimationFrame cap**, 374 active meshes, headless Chromium on an Apple M3 Pro
-(ANGLE Metal). The buildings account for four of those draw calls.
+## Validation
 
-## Not built yet
+```bash
+npm run typecheck
+npm test
+npm run test:architecture
+npm run build
+npm run test:e2e       # requires the dev server
+npm run test:visual    # requires the dev server
+npm run logics:validate
+```
 
-Traffic, vehicles and lane directions; bridges and tunnels; zoning and growth rules;
-undo/redo; saving a city. The graph accommodates all of them unchanged — bridges need one
-`elevated` flag on a segment to suppress terrain flattening.
+The largest checked scenario currently renders 237 roads, 126 junctions, and 1,422
+buildings at the browser's 120 fps requestAnimationFrame cap on an Apple M3 Pro.
+
+## Assets
+
+Building GLBs live under `public/buildings/` and render as thin instances. Their
+authoring contract is documented in [`docs/assets.md`](docs/assets.md).
+
+## Project Documents
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) describes collaboration and validation.
+- [`SECURITY.md`](SECURITY.md) describes the current local-client threat model.
+- [`changelogs/`](changelogs/README.md) contains versioned release notes.
+- [`LOGICS.md`](LOGICS.md) explains the repository-local product corpus.
+
+Licensed under the [MIT License](LICENSE).

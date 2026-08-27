@@ -1,7 +1,6 @@
 {
   "name": "city-jump",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build && tsc",
@@ -11,10 +10,14 @@
     "verify": "node scripts/shot.mjs",
     "check": "node scripts/interact.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "city-builder",
+    "babylonjs",
+    "simulation"
+  ],
+  "author": "Alexandre Agostini",
+  "license": "MIT",
+  "description": "A browser-based 3D city builder where roads shape the city.",
   "devDependencies": {
     "playwright": "^1.62.1",
     "typescript": "^7.0.2",
