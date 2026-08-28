@@ -155,7 +155,7 @@ describe("heightmap", () => {
   it("can regenerate a substantially more rugged test terrain", () => {
     const h = new Heightmap({ size: 800, cell: 8, generator: rollingHills() });
     const before = h.baseAt(...gridOf(h, 120, 80));
-    h.regenerate(rollingHills(18, 450));
+    h.regenerate(rollingHills(18, 450, 18));
 
     let low = Infinity;
     let high = -Infinity;

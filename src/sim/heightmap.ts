@@ -153,10 +153,20 @@ const smoothstep = (t: number): number => {
  * Gentle rolling ground. Deliberately not steeper than the drawing rules allow over the
  * distance a road spans, so a map is buildable rather than mostly refused.
  */
-export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: number) => number {
+export function rollingHills(amplitude = 6, wavelength = 900, roughness = 0): (x: number, z: number) => number {
   const k = (Math.PI * 2) / wavelength;
+  const roughFeatures = Array.from({ length: roughness ? 18 : 0 }, (_, i) => ({
+    x: (randomish(i, 1) - 0.5) * 1900,
+    z: (randomish(i, 2) - 0.5) * 1900,
+    height: (randomish(i, 3) * 2 - 1) * roughness,
+    radius: 150 + randomish(i, 4) * 210,
+  }));
   return (x, z) => {
     const hills = amplitude * (Math.sin(x * k) * Math.cos(z * k * 0.8) + 0.45 * Math.sin((x + z) * k * 1.7));
+    const rough = roughFeatures.reduce(
+      (sum, p) => sum + p.height * Math.exp(-((x - p.x) ** 2 + (z - p.z) ** 2) / (2 * p.radius * p.radius)),
+      0,
+    );
     const peak = (cx: number, cz: number, height: number, radius: number) =>
       height * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radius * radius));
     const ridge = 64 * Math.exp(-((x + z * 0.28) ** 2) / (2 * 360 * 360)) * Math.exp(-(z * z) / (2 * 1520 * 1520));
@@ -169,6 +179,18 @@ export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: nu
     const r = Math.hypot(x, z);
     const coast = smoothstep((r - 1520) / 520);
     const deep = smoothstep((r - 1960) / 720);
-    return 10 + mountain + hills - coast * 60 - deep * 90;
+    let base = 10 + mountain + hills - coast * 60 - deep * 90;
+    if (roughness) {
+      const lakeGuard = (SEA_LEVEL + 8 - base) * (1 - smoothstep((r - 1180) / 360));
+      if (lakeGuard > 0) base += lakeGuard;
+    }
+    const mountainMask = smoothstep((base - 52) / 34);
+    const inlandMask = 1 - smoothstep((r - 1120) / 520);
+    return base + rough * mountainMask * inlandMask;
   };
+}
+
+function randomish(index: number, salt: number): number {
+  const value = Math.sin(index * 127.1 + salt * 311.7) * 43758.5453;
+  return value - Math.floor(value);
 }

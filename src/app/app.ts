@@ -80,7 +80,7 @@ export async function startApp(): Promise<void> {
       }
       tool.cancel();
       for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
-      heightmap.regenerate(preset === "rugged" ? rollingHills(18, 450) : rollingHills());
+      heightmap.regenerate(preset === "rugged" ? rollingHills(18, 450, 18) : rollingHills());
       frameTerrain();
       rebuild();
       return true;
