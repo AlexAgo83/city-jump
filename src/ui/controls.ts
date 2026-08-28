@@ -1,5 +1,5 @@
 export function bindControls(handlers: {
-  onRoadMode(mode: "view" | "straight" | "curve"): void;
+  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze"): void;
   onRoadType(type: "street" | "avenue" | "tunnel"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
@@ -7,9 +7,35 @@ export function bindControls(handlers: {
   onTerrain(preset: "rolling" | "rugged"): boolean;
   onSunHour(hour: number): void;
 }): void {
-  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-mode"]')) {
+  const toolbar = document.getElementById("toolbar")!;
+  const toolbarContent = document.getElementById("toolbar-content")!;
+  const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
+  toolbarToggle.addEventListener("click", () => {
+    const expanded = toolbarToggle.getAttribute("aria-expanded") === "true";
+    toolbarToggle.setAttribute("aria-expanded", String(!expanded));
+    toolbarToggle.title = expanded ? "Expand settings" : "Collapse settings";
+    toolbar.classList.toggle("collapsed", expanded);
+    toolbarContent.hidden = expanded;
+  });
+
+  const roadOptions = document.getElementById("road-options")!;
+  const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
+  let roadMode: "straight" | "curve" = "straight";
+
+  for (const button of toolButtons) {
+    button.addEventListener("click", () => {
+      for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
+      const tool = button.dataset.tool;
+      roadOptions.hidden = tool !== "roads";
+      handlers.onRoadMode(tool === "roads" ? roadMode : tool === "bulldoze" ? "bulldoze" : "view");
+    });
+  }
+
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-shape"]')) {
     input.addEventListener("change", () => {
-      if (input.checked) handlers.onRoadMode(input.value === "view" ? "view" : input.value === "straight" ? "straight" : "curve");
+      if (!input.checked) return;
+      roadMode = input.value === "curve" ? "curve" : "straight";
+      handlers.onRoadMode(roadMode);
     });
   }
 

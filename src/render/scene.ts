@@ -41,7 +41,8 @@ export function createScene(canvas: HTMLCanvasElement) {
     sun.direction.copyFromFloats(Math.cos(azimuth), -Math.max(0.05, daylight), Math.sin(azimuth)).normalize();
     sun.intensity = daylight * 1.22;
     sun.diffuse = Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight);
-    ambient.intensity = 0.16 + daylight * 0.36;
+    ambient.intensity = 0.1 + daylight * 0.42;
+    ambient.diffuse = Color3.Lerp(new Color3(0.22, 0.3, 0.48), Color3.White(), daylight);
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,

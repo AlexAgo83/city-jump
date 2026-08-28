@@ -29,9 +29,9 @@ be honest, which is what the origin rule is for.
 
 ## Fitting a slot
 
-Slots are `SLOT.spacing` metres of frontage (see `src/sim/slots.ts`). A model wider than
-the frontage is not placed. Depth is not constrained: buildings may run back as far as
-they like, because nothing is behind them yet.
+Buildable cells are 8 m square. The generated `lot_<frontage>x<depth>.glb` library covers
+every rectangular footprint from 1x1 through 4x4 cells, with a small gap inside each
+parcel. `buildingParcels` packs the free cells and the renderer loads the matching model.
 
 ## Authoring with Blender
 

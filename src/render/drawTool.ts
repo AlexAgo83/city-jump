@@ -29,7 +29,6 @@ type Stage =
   | { phase: "end"; from: Snap; control: Vec3 };
 
 export interface DrawTool {
-  readonly stageLabel: () => string;
   readonly mode: () => ToolMode;
   cancel(): void;
   setMode(mode: ToolMode): void;
@@ -38,7 +37,7 @@ export interface DrawTool {
 }
 
 export type DrawMode = "straight" | "curve";
-export type ToolMode = "view" | DrawMode;
+export type ToolMode = "view" | "bulldoze" | DrawMode;
 export type RoadTypeId = "street" | "avenue" | "tunnel";
 
 export function createDrawTool(
@@ -99,6 +98,11 @@ export function createDrawTool(
       nodeHighlight.setEnabled(false);
       return clearPreview();
     }
+    if (mode === "bulldoze") {
+      nodeHighlight.setEnabled(false);
+      const target = bulldozeTarget(at.x, at.z);
+      return target ? drawPreview([...target.samples], false) : clearPreview();
+    }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
     nodeHighlight.setEnabled(snap.kind === "node");
     if (snap.kind === "node") {
@@ -122,6 +126,14 @@ export function createDrawTool(
     if (mode === "view") return;
     const at = groundPoint();
     if (!at) return;
+    if (mode === "bulldoze") {
+      const target = bulldozeTarget(at.x, at.z);
+      if (!target) return;
+      graph.removeSegment(target.id);
+      clearPreview();
+      onCommitted();
+      return;
+    }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
 
     if (stage.phase === "idle") {
@@ -153,7 +165,15 @@ export function createDrawTool(
 
   function cancel(): void {
     stage = { phase: "idle" };
+    nodeHighlight.setEnabled(false);
     clearPreview();
+  }
+
+  function bulldozeTarget(x: number, z: number) {
+    const nearest = graph.nearestOnSegment(x, z, 20);
+    if (!nearest) return null;
+    const hitDistance = Math.hypot(x - nearest.position.x, z - nearest.position.z);
+    return hitDistance <= roadType(nearest.segment.type).width / 2 + 3 ? nearest.segment : null;
   }
 
   scene.onPointerObservable.add((info) => {
@@ -180,16 +200,6 @@ export function createDrawTool(
 
   return {
     mode: () => mode,
-    stageLabel: () =>
-      mode === "view"
-        ? "view: camera only"
-        : stage.phase === "idle"
-        ? "click: start a road"
-        : stage.phase === "control"
-          ? mode === "straight"
-            ? "click: finish the road"
-            : "click: place the bend"
-          : "click: finish the road",
     cancel,
     setMode(next) {
       mode = next;

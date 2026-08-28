@@ -8,16 +8,16 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
-import { allSlots, buildableCells, type Slot } from "../sim/slots";
+import { buildingParcels, buildableCells, PARCEL_SIZES, type BuildingParcel } from "../sim/slots";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
-export const BUILDING_MODELS = ["house", "shop", "block", "tower"] as const;
+export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
 
 interface Model {
   readonly id: string;
   readonly mesh: Mesh;
-  /** Footprint width, read from the loaded geometry rather than declared anywhere. */
-  readonly width: number;
+  /** Local frontage centre after the loader's handedness transform has been baked. */
+  readonly centerX: number;
 }
 
 /**
@@ -32,8 +32,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let gridVisible = false;
 
   function rebuild(): number {
-    const slots = allSlots(graph);
     const cells = buildableCells(graph);
+    const parcels = buildingParcels(cells);
     grid?.dispose();
     grid = cells.length
       ? MeshBuilder.CreateLineSystem(
@@ -60,14 +60,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       return 0;
     }
 
-    const buckets = new Map<string, Slot[]>(available.map((m) => [m.id, []]));
+    const buckets = new Map<string, BuildingParcel[]>(available.map((m) => [m.id, []]));
 
-    for (const [i, slot] of slots.entries()) {
-      // ponytail: round-robin placeholder. Which building goes where is zoning, and
-      // zoning is not in this request at all.
-      const model = available[i % available.length];
-      if (!model || model.width > slot.frontage) continue;
-      buckets.get(model.id)!.push(slot);
+    for (const parcel of parcels) {
+      buckets.get(`lot_${parcel.frontageCells}x${parcel.depthCells}`)?.push(parcel);
     }
 
     let placed = 0;
@@ -80,8 +76,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       if (chosen.length === 0) continue;
 
       const matrices = new Float32Array(chosen.length * 16);
-      for (const [i, slot] of chosen.entries()) {
-        matrixFor(slot, model.width).copyToArray(matrices, i * 16);
+      for (const [i, parcel] of chosen.entries()) {
+        matrixFor(parcel, model.centerX).copyToArray(matrices, i * 16);
       }
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16);
       placed += chosen.length;
@@ -100,22 +96,19 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   };
 }
 
-/**
- * The model's origin is its front-left footprint corner, so it is shifted half its width
- * back along the frontage to sit centred on the slot.
- */
-function matrixFor(slot: Slot, width: number): Matrix {
-  const rotation = Quaternion.FromEulerAngles(0, slot.rotationY, 0);
+/** Centres the baked mesh on the parcel frontage regardless of glTF handedness. */
+function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
+  const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // Along-frontage direction is the model's +X once rotated.
-  const alongX = Math.cos(slot.rotationY);
-  const alongZ = -Math.sin(slot.rotationY);
+  const alongX = Math.cos(parcel.rotationY);
+  const alongZ = -Math.sin(parcel.rotationY);
   return Matrix.Compose(
     Vector3.OneReadOnly,
     rotation,
     new Vector3(
-      slot.position.x - (alongX * width) / 2,
-      slot.position.y,
-      slot.position.z - (alongZ * width) / 2,
+      parcel.position.x - alongX * centerX,
+      parcel.position.y,
+      parcel.position.z - alongZ * centerX,
     ),
   );
 }
@@ -129,6 +122,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     const mesh = parts.length === 1 ? parts[0]! : Mesh.MergeMeshes(parts, true, true, undefined, false, true)!;
     mesh.name = `building_${id}`;
     mesh.isPickable = false;
+    mesh.receiveShadows = true;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
     shadows.addShadowCaster(mesh);
 
@@ -142,8 +136,8 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     for (const node of result.meshes) if (node !== mesh) node.dispose();
 
     const bounds = mesh.getBoundingInfo().boundingBox;
-    const width = bounds.maximum.x - bounds.minimum.x;
-    return { id, mesh, width };
+    const centerX = (bounds.minimum.x + bounds.maximum.x) / 2;
+    return { id, mesh, centerX };
   } catch (error) {
     console.error(`could not load building model "${id}"`, error);
     return null;

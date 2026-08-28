@@ -12,7 +12,7 @@ import { Heightmap, rollingHills } from "../sim/heightmap";
 import { roadType } from "../sim/roadTypes";
 import { setTerrain } from "../sim/terrain";
 import { bindControls } from "../ui/controls";
-import { setHud, showRefusal } from "../ui/hud";
+import { showRefusal } from "../ui/hud";
 
 export async function startApp(): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
@@ -40,19 +40,6 @@ export async function startApp(): Promise<void> {
     trees.setSunHour(hour);
   };
 
-  const refreshHud = (): void => {
-    setHud(
-      [
-        `roads      ${graph.allSegments().length}`,
-        `junctions  ${surfaceJunctions()}`,
-        `buildings  ${buildingCount}`,
-        "",
-        tool.stageLabel(),
-        "Esc: cancel",
-      ].join("\n"),
-    );
-  };
-
   const rebuild = (): void => {
     heightmap.conformToRoads(graph);
     ground.refresh();
@@ -62,7 +49,6 @@ export async function startApp(): Promise<void> {
     streetlights.rebuild();
     traffic.rebuild();
     buildingCount = buildings.rebuild();
-    refreshHud();
   };
 
   const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal);
@@ -70,17 +56,14 @@ export async function startApp(): Promise<void> {
   bindControls({
     onRoadMode(mode) {
       tool.setMode(mode);
-      buildings.setGridVisible(mode !== "view");
-      refreshHud();
+      buildings.setGridVisible(mode === "straight" || mode === "curve");
     },
     onRoadType(type) {
       tool.setRoadType(type);
-      refreshHud();
     },
     onWorldGrid: worldGrid.setVisible,
     onGridSnap(enabled) {
       tool.setGridSnap(enabled);
-      refreshHud();
     },
     onBuildings(visible) {
       buildings.setVisible(visible);
@@ -100,7 +83,6 @@ export async function startApp(): Promise<void> {
     onSunHour: setSun,
   });
 
-  scene.onPointerObservable.add(refreshHud);
   rebuild();
 
   installDebugApi(scene, graph, rebuild, () => ({

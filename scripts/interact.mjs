@@ -29,8 +29,9 @@ await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_0
 await page.waitForTimeout(600);
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
-const hud = () => page.evaluate(() => document.getElementById("hud").textContent);
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
+const previewVisible = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false);
 const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
 const buildableGridCells = () =>
@@ -41,6 +42,26 @@ const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
 const oceanSampleY = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position")?.[1] ?? 0);
+const terrainColorVariation = () =>
+  page.evaluate(() => {
+    const mesh = window.cityjump._scene.getMeshByName("ground");
+    const positions = mesh.getVerticesData("position");
+    const colors = mesh.getVerticesData("color");
+    const width = Math.round(Math.sqrt(positions.length / 3));
+    const luminance = (i) => colors[i * 4] * 0.21 + colors[i * 4 + 1] * 0.72 + colors[i * 4 + 2] * 0.07;
+    let variation = 0;
+    let samples = 0;
+    for (let z = 0; z < width; z += 4) {
+      for (let x = 0; x < width - 1; x += 4) {
+        const a = z * width + x;
+        const b = a + 1;
+        if (Math.abs(positions[a * 3 + 1] - positions[b * 3 + 1]) > 0.02) continue;
+        variation += Math.abs(luminance(a) - luminance(b));
+        samples++;
+      }
+    }
+    return variation / samples;
+  });
 const tunnelPortalCount = () =>
   page.evaluate(() => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("tunnel_portal_")).length);
 const realStreetlightCount = () =>
@@ -63,6 +84,9 @@ const shadowState = () =>
     const renderList = generator?.getShadowMap()?.renderList ?? [];
     return {
       groundReceives: scene.getMeshByName("ground")?.receiveShadows ?? false,
+      buildingsReceive: scene.meshes
+        .filter((mesh) => mesh.name.startsWith("building_"))
+        .every((mesh) => mesh.receiveShadows),
       casters: renderList.length,
       names: renderList.map((mesh) => mesh.name),
       generator: generator?.getClassName(),
@@ -78,10 +102,25 @@ const trafficPositions = () =>
 const sunState = () =>
   page.evaluate(() => {
     const sun = window.cityjump._scene.getLightByName("sun");
-    return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity };
+    const ambient = window.cityjump._scene.getLightByName("ambient");
+    return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity, ambient: ambient.intensity };
   });
 const firstTreeShadowX = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("tree_ground_shadows")?.thinInstanceGetWorldMatrices()[0]?.m[12] ?? 0);
+const densestTreeCluster = () =>
+  page.evaluate(() => {
+    const trees = window.cityjump._scene
+      .getMeshByName("tree_trunks")
+      .thinInstanceGetWorldMatrices()
+      .map((matrix) => [matrix.m[12], matrix.m[14]]);
+    let densest = 0;
+    for (const [x, z] of trees) {
+      let nearby = 0;
+      for (const [otherX, otherZ] of trees) if ((x - otherX) ** 2 + (z - otherZ) ** 2 < 120 ** 2) nearby++;
+      densest = Math.max(densest, nearby);
+    }
+    return densest;
+  });
 
 // Nothing has been drawn, so generated scenery is allowed but authored city state is not.
 const fresh = await stats();
@@ -90,13 +129,33 @@ check(
   fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments === 0 && fresh.buildings === 0,
   `${JSON.stringify(fresh)}`,
 );
-check("view mode is selected by default", (await hud()).includes("camera only"));
+const localTerrainVariation = await terrainColorVariation();
+check("terrain colors have natural local variation", localTerrainVariation > 0.002, localTerrainVariation.toFixed(4));
+const forestDensity = await densestTreeCluster();
+check("some areas grow as dense forest", forestDensity >= 20, `${forestDensity} trees within 120 m`);
+check("all sixteen parcel models load", fresh.models === 16, `${fresh.models} models`);
+check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
+check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
+const paletteBox = await page.locator("#action-palette").boundingBox();
+check("the action palette is centered at the bottom", Math.abs(paletteBox.x + paletteBox.width / 2 - 500) < 2 && paletteBox.y > 620);
+check("road actions are absent from the top toolbar", (await page.locator("#toolbar #road-type").count()) === 0);
+const expandedToolbarWidth = (await page.locator("#toolbar").boundingBox()).width;
+await page.locator("#toolbar-toggle").click();
+const collapsedToolbarWidth = (await page.locator("#toolbar").boundingBox()).width;
+check("the settings toolbar collapses into its right chevron", collapsedToolbarWidth < 50 && collapsedToolbarWidth < expandedToolbarWidth);
+await page.locator("#toolbar-toggle").click();
+check("the settings toolbar expands again", await page.locator("#toolbar-content").isVisible());
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
+await page.locator('[data-tool="roads"]').click();
+check("the road category opens its options", await page.locator("#road-options").isVisible());
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
 await page.locator("#grid-snap").check();
+await page.locator('[data-tool="power"]').click();
+check("empty categories do not show road options", !(await page.locator("#road-options").isVisible()));
+await page.locator('[data-tool="select"]').click();
 
 const afternoonSun = await sunState();
 await page.locator("#sun-hour").evaluate((input) => {
@@ -106,7 +165,9 @@ await page.locator("#sun-hour").evaluate((input) => {
 const eveningSun = await sunState();
 check(
   "the sun control changes angle and intensity",
-  afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) && eveningSun.intensity < afternoonSun.intensity,
+  afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) &&
+    eveningSun.intensity < afternoonSun.intensity &&
+    eveningSun.ambient < 0.12,
 );
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
@@ -138,21 +199,25 @@ const click = async (x, y) => {
 };
 
 await click(260, 320);
-check("view mode leaves left-click to the camera", (await hud()).includes("camera only") && (await stats()).segments === 0);
+check("select mode leaves left-click to the camera", (await stats()).segments === 0);
 const oceanBefore = await oceanSampleY();
 await page.waitForTimeout(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
-await page.locator('input[name="road-mode"][value="curve"]').check();
+await page.locator('[data-tool="roads"]').click();
+await page.locator('input[name="road-shape"][value="curve"]').check();
 
 await page.mouse.click(360, 360, { button: "right" });
-check("right-click is camera-only, not drawing input", (await hud()).includes("start a road") && (await stats()).segments === 0);
+check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === 0);
 
 await click(300, 340);
-check("the first click arms the tool", (await hud()).includes("place the bend"));
+await page.mouse.move(400, 330);
+check("the first click arms the tool", await previewVisible());
 await page.mouse.click(360, 360, { button: "right" });
-check("right-click does not cancel an armed road", (await hud()).includes("place the bend"));
+await page.mouse.move(420, 330);
+check("right-click does not cancel an armed road", await previewVisible());
 await click(500, 280);
-check("the second click takes the bend", (await hud()).includes("finish the road"));
+await page.mouse.move(600, 330);
+check("the second click takes the bend", await previewVisible());
 await click(700, 360);
 
 const drawn = await stats();
@@ -181,14 +246,15 @@ await page.waitForTimeout(250);
 const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 const gridCells = await buildableGridCells();
-check("the buildable grid reaches up to five cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 10, `${gridCells} cells`);
+check("the buildable grid reaches up to four cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 16, `${gridCells} cells`);
 check("the buildable grid is visible while drawing roads", await buildableGridVisible());
-await page.locator('input[name="road-mode"][value="view"]').check();
+await page.locator('[data-tool="select"]').click();
 check("view mode hides the buildable grid", !(await buildableGridVisible()));
-await page.locator('input[name="road-mode"][value="curve"]').check();
+await page.locator('[data-tool="roads"]').click();
 check("road mode restores the buildable grid", await buildableGridVisible());
 const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
+check("buildings receive shadows from neighbouring buildings", shadows.buildingsReceive);
 check("building shadows use stabilized cascades", shadows.generator === "CascadedShadowGenerator" && shadows.stabilized);
 check(
   "trees cast shadows onto the ground",
@@ -207,7 +273,7 @@ await click(500, 318);
 const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
 
-await page.locator('input[name="road-mode"][value="straight"]').check();
+await page.locator('input[name="road-shape"][value="straight"]').check();
 await page.locator("#road-type").selectOption("avenue");
 await click(760, 500);
 await click(850, 430);
@@ -222,7 +288,7 @@ check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled
 check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
 await page.locator("#road-type").selectOption("street");
-await page.locator('input[name="road-mode"][value="curve"]').check();
+await page.locator('input[name="road-shape"][value="curve"]').check();
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.
 await click(200, 600);
@@ -231,6 +297,15 @@ await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
 check("a refused road is not added", (await stats()).segments === tunneled.segments);
+
+await page.locator('[data-tool="bulldoze"]').click();
+await page.mouse.move(805, 465);
+await page.waitForTimeout(100);
+check("the bulldozer highlights a road under the pointer", await previewVisible());
+const beforeBulldoze = await stats();
+await click(805, 465);
+const afterBulldoze = await stats();
+check("the bulldozer removes the clicked road", afterBulldoze.segments === beforeBulldoze.segments - 1);
 
 page.once("dialog", (dialog) => dialog.accept());
 await page.locator("#terrain").selectOption("rugged");

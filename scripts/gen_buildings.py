@@ -16,13 +16,30 @@ import bpy
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public", "buildings")
 
-# name, width (m), depth (m), height (m), roof height (m), colour
-BUILDINGS = [
-    ("house", 9.0, 10.0, 6.0, 3.0, (0.78, 0.70, 0.58, 1.0)),
-    ("shop", 12.0, 12.0, 8.0, 0.0, (0.68, 0.55, 0.48, 1.0)),
-    ("block", 14.0, 14.0, 18.0, 0.0, (0.60, 0.62, 0.66, 1.0)),
-    ("tower", 12.0, 12.0, 34.0, 0.0, (0.45, 0.52, 0.60, 1.0)),
+CELL = 8.0
+COLOURS = [
+    (0.78, 0.70, 0.58, 1.0),
+    (0.68, 0.55, 0.48, 1.0),
+    (0.60, 0.62, 0.66, 1.0),
+    (0.45, 0.52, 0.60, 1.0),
+    (0.62, 0.68, 0.58, 1.0),
 ]
+
+
+def building_specs():
+    for frontage in range(1, 5):
+        for depth in range(1, 5):
+            area = frontage * depth
+            height = 6.0 + ((frontage * 7 + depth * 3) % 5) * 3.5 + min(area, 8)
+            roof = 2.5 if area <= 2 else 0.0
+            yield (
+                f"lot_{frontage}x{depth}",
+                frontage * CELL - 1.5,
+                depth * CELL - 1.5,
+                height,
+                roof,
+                COLOURS[(frontage * 4 + depth) % len(COLOURS)],
+            )
 
 
 def clear_scene():
@@ -98,7 +115,7 @@ def build(name, w, d, h, roof, colour):
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
-    for spec in BUILDINGS:
+    for spec in building_specs():
         build(*spec)
 
 

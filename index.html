@@ -4,25 +4,34 @@
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #1b1e23; }
   #app { width: 100%; height: 100%; display: block; touch-action: none; }
-  #hud {
-    position: fixed; left: 12px; bottom: 12px; font: 12px/1.5 ui-monospace, monospace;
-    color: #cfd6e0; background: #00000080; padding: 8px 10px; border-radius: 6px;
-    pointer-events: none; white-space: pre;
-  }
   #toast {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    position: fixed; left: 50%; bottom: 116px; transform: translateX(-50%);
     font: 13px/1.4 ui-sans-serif, system-ui; color: #ffd9d0; background: #7a2718d0;
     padding: 8px 14px; border-radius: 6px; pointer-events: none; opacity: 0;
     transition: opacity .15s;
   }
   #toolbar {
-    position: fixed; top: 12px; left: 12px; display: flex; align-items: center;
-    flex-wrap: wrap; gap: 10px; max-width: calc(100vw - 24px); padding: 7px 9px;
+    position: fixed; top: 12px; left: 12px; display: flex; align-items: stretch;
+    max-width: calc(100vw - 24px); padding: 0; overflow: hidden;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.2 ui-sans-serif, system-ui; box-sizing: border-box;
   }
+  #toolbar-content { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 7px 4px 7px 9px; }
+  #toolbar-content[hidden] { display: none; }
   #toolbar label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   #toolbar input, #toolbar select { accent-color: #75b9d1; }
+  #toolbar-toggle {
+    width: 34px; min-height: 38px; padding: 0; border: 0; border-left: 1px solid #ffffff1f;
+    color: #b9c3ca; background: transparent; cursor: pointer;
+  }
+  #toolbar-toggle:hover { color: #fff; background: #2b343b; }
+  #toolbar-toggle:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  #toolbar.collapsed #toolbar-toggle { border-left: 0; }
+  .toolbar-chevron {
+    display: inline-block; width: 7px; height: 7px; border: solid currentColor;
+    border-width: 0 2px 2px 0; transform: rotate(135deg);
+  }
+  #toolbar.collapsed .toolbar-chevron { transform: rotate(-45deg); }
   .segmented { display: flex; border: 1px solid #ffffff2b; border-radius: 5px; overflow: hidden; }
   .segmented label { position: relative; }
   .segmented input { position: absolute; opacity: 0; }
@@ -31,35 +40,79 @@
   #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   #sun-hour { width: 110px; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
-  @media (max-width: 680px) { #sun-hour { width: 80px; } }
+  #action-dock {
+    position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    max-width: calc(100vw - 24px); color: #e6ebef;
+    font: 12px/1.2 ui-sans-serif, system-ui;
+  }
+  #action-palette, .tool-options {
+    background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
+    box-shadow: 0 5px 18px #0000004d;
+  }
+  #action-palette { display: flex; max-width: 100%; overflow-x: auto; padding: 4px; box-sizing: border-box; }
+  .tool-button {
+    min-width: 78px; min-height: 40px; padding: 7px 10px; border: 0; border-right: 1px solid #ffffff18;
+    color: #aeb8c0; background: transparent; font: inherit; cursor: pointer; white-space: nowrap;
+  }
+  .tool-button:last-child { border-right: 0; }
+  .tool-button[aria-pressed="true"] { color: #fff; background: #3c5965; }
+  .tool-button:hover { color: #fff; background: #2b343b; }
+  .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  .tool-options {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+    gap: 10px; max-width: 100%; padding: 7px 9px; box-sizing: border-box;
+  }
+  .tool-options[hidden] { display: none; }
+  .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .tool-options input, .tool-options select { accent-color: #75b9d1; }
+  .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
+  @media (max-width: 680px) {
+    #sun-hour { width: 80px; }
+    .tool-button { min-width: 70px; padding-inline: 8px; }
+  }
 </style>
 <canvas id="app"></canvas>
 <div id="toolbar">
-  <div class="segmented" role="group" aria-label="Road shape">
-    <label><input type="radio" name="road-mode" value="view" checked /><span>View</span></label>
-    <label><input type="radio" name="road-mode" value="straight" /><span>Straight</span></label>
-    <label><input type="radio" name="road-mode" value="curve" /><span>Curve</span></label>
+  <div id="toolbar-content">
+    <label><input id="show-grid" type="checkbox" /> Grid</label>
+    <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
+    <label>Terrain
+      <select id="terrain">
+        <option value="rolling">Rolling</option>
+        <option value="rugged">Rugged</option>
+      </select>
+    </label>
+    <label>Sun <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="14" /></label>
+    <output id="sun-time" for="sun-hour">14:00</output>
+    <label><input id="sun-auto" type="checkbox" /> Auto</label>
   </div>
-  <label><input id="show-grid" type="checkbox" /> Grid</label>
-  <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
-  <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
-  <label>Road
-    <select id="road-type">
-      <option value="street">Street</option>
-      <option value="avenue">Avenue</option>
-      <option value="tunnel">Tunnel</option>
-    </select>
-  </label>
-  <label>Terrain
-    <select id="terrain">
-      <option value="rolling">Rolling</option>
-      <option value="rugged">Rugged</option>
-    </select>
-  </label>
-  <label>Sun <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="14" /></label>
-  <output id="sun-time" for="sun-hour">14:00</output>
-  <label><input id="sun-auto" type="checkbox" /> Auto</label>
+  <button id="toolbar-toggle" type="button" aria-expanded="true" aria-controls="toolbar-content" title="Collapse settings">
+    <span class="toolbar-chevron" aria-hidden="true"></span>
+  </button>
 </div>
-<div id="hud"></div>
+<div id="action-dock">
+  <div id="road-options" class="tool-options" hidden>
+    <div class="segmented" role="group" aria-label="Road shape">
+      <label><input type="radio" name="road-shape" value="straight" checked /><span>Straight</span></label>
+      <label><input type="radio" name="road-shape" value="curve" /><span>Curve</span></label>
+    </div>
+    <label>Type
+      <select id="road-type">
+        <option value="street">Street</option>
+        <option value="avenue">Avenue</option>
+        <option value="tunnel">Tunnel</option>
+      </select>
+    </label>
+    <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
+  </div>
+  <div id="action-palette" role="toolbar" aria-label="Build tools">
+    <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
+    <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
+    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
+    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
+    <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
+  </div>
+</div>
 <div id="toast"></div>
 <script type="module" src="/src/main.ts"></script>

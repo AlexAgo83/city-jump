@@ -9,7 +9,19 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { RoadGraph } from "../sim/graph";
 import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
 import { roadType } from "../sim/roadTypes";
+import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
+
+const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
+  const angle = randomish(i, 20) * Math.PI * 2;
+  const distance = 260 + randomish(i, 21) * 1050;
+  return {
+    x: Math.cos(angle) * distance,
+    z: Math.sin(angle) * distance,
+    radius: 130 + randomish(i, 22) * 190,
+    density: 0.45 + randomish(i, 23) * 0.35,
+  };
+});
 
 export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: RoadGraph, shadows: ShadowGenerator) {
   const trunk = MeshBuilder.CreateCylinder("tree_trunks", { height: 5, diameter: 0.8, tessellation: 6 }, scene);
@@ -55,8 +67,23 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
     const trunkMatrices: Matrix[] = [];
     const leafMatrices: Matrix[] = [];
     const bases: typeof treeBases = [];
+    const occupied = new Set<string>();
     const step = 58;
     let i = 0;
+
+    const plant = (px: number, pz: number, seed: number): void => {
+      const h = heightmap.heightAt(px, pz);
+      const bucket = `${Math.round(px / 10)}:${Math.round(pz / 10)}`;
+      if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(graph, px, pz)) return;
+
+      const scale = 0.75 + randomish(seed, 4) * 0.55;
+      const yaw = randomish(seed, 5) * Math.PI * 2;
+      const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
+      trunkMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 2.5 * scale, pz)));
+      leafMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 8.3 * scale, pz)));
+      bases.push({ x: px, y: h, z: pz, scale });
+      occupied.add(bucket);
+    };
 
     for (let z = -GROUND_SIZE / 2 + step; z < GROUND_SIZE / 2; z += step) {
       for (let x = -GROUND_SIZE / 2 + step; x < GROUND_SIZE / 2; x += step) {
@@ -64,19 +91,22 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
         const jz = (randomish(i, 2) - 0.5) * step * 0.75;
         const px = x + jx;
         const pz = z + jz;
-        const h = heightmap.heightAt(px, pz);
-        if (h <= SEA_LEVEL + 5 || h > 86 || randomish(i, 3) > 0.36 || nearRoad(graph, px, pz)) {
-          i++;
-          continue;
-        }
-
-        const scale = 0.75 + randomish(i, 4) * 0.55;
-        const yaw = randomish(i, 5) * Math.PI * 2;
-        const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
-        trunkMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 2.5 * scale, pz)));
-        leafMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 8.3 * scale, pz)));
-        bases.push({ x: px, y: h, z: pz, scale });
+        if (randomish(i, 3) <= 0.36) plant(px, pz, i);
         i++;
+      }
+    }
+
+    const forestStep = 16;
+    for (const patch of FOREST_PATCHES) {
+      for (let z = patch.z - patch.radius; z <= patch.z + patch.radius; z += forestStep) {
+        for (let x = patch.x - patch.radius; x <= patch.x + patch.radius; x += forestStep) {
+          const seed = i++;
+          const px = x + (randomish(seed, 6) - 0.5) * forestStep * 0.65;
+          const pz = z + (randomish(seed, 7) - 0.5) * forestStep * 0.65;
+          const distance = Math.hypot(px - patch.x, pz - patch.z) / patch.radius;
+          const density = patch.density * Math.max(0, 1 - distance * distance);
+          if (randomish(seed, 8) <= density) plant(px, pz, seed);
+        }
       }
     }
 
@@ -136,7 +166,7 @@ function nearRoad(graph: RoadGraph, x: number, z: number): boolean {
   for (const segment of graph.allSegments()) {
     const type = roadType(segment.type);
     if (type.tunnelDepth) continue;
-    const reserve = type.width / 2 + 22;
+    const reserve = type.width / 2 + SLOT.setback + GRID.depth * GRID.cellSize + 4;
     for (let i = 0; i < segment.samples.length; i += 8) {
       const p = segment.samples[i]!;
       if (Math.hypot(p.x - x, p.z - z) < reserve) return true;

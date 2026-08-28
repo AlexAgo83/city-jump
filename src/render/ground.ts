@@ -156,12 +156,39 @@ function terrainColor(h: number, x: number, z: number): Color4 {
   const rock = new Color4(0.34, 0.35, 0.31, 1);
   const snow = new Color4(0.86, 0.87, 0.8, 1);
   const seafloor = Color4.Lerp(new Color4(0.19, 0.36, 0.32, 1), new Color4(0.05, 0.1, 0.15, 1), distanceFromIsland(x, z));
+  let color: Color4;
   if (h < SEA_LEVEL + 4) {
     const shore = Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 8));
-    return Color4.Lerp(seafloor, shore, smoothstep((h - (SEA_LEVEL - 10)) / 14));
+    color = Color4.Lerp(seafloor, shore, smoothstep((h - (SEA_LEVEL - 10)) / 14));
+  } else if (h < 52) {
+    color = Color4.Lerp(grass, rock, smoothstep((h - 28) / 24));
+  } else {
+    color = Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
   }
-  if (h < 52) return Color4.Lerp(grass, rock, smoothstep((h - 28) / 24));
-  return Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
+
+  const shade = 0.84 + valueNoise(x, z, 150) * 0.14 + valueNoise(x, z, 18) * 0.18;
+  const tint = (valueNoise(x + 700, z - 400, 90) - 0.5) * 0.08;
+  color.r *= shade * (1 - tint);
+  color.g *= shade * (1 + tint * 0.6);
+  color.b *= shade * (1 - tint * 0.4);
+  return color;
+}
+
+function valueNoise(x: number, z: number, scale: number): number {
+  const sx = x / scale;
+  const sz = z / scale;
+  const x0 = Math.floor(sx);
+  const z0 = Math.floor(sz);
+  const tx = smoothstep(sx - x0);
+  const tz = smoothstep(sz - z0);
+  const top = hash(x0, z0) * (1 - tx) + hash(x0 + 1, z0) * tx;
+  const bottom = hash(x0, z0 + 1) * (1 - tx) + hash(x0 + 1, z0 + 1) * tx;
+  return top * (1 - tz) + bottom * tz;
+}
+
+function hash(x: number, z: number): number {
+  const value = Math.sin(x * 127.1 + z * 311.7) * 43758.5453;
+  return value - Math.floor(value);
 }
 
 const smoothstep = (t: number): number => {

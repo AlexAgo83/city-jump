@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
-import { slotsForSegment, allSlots, buildableCells, cellsOverlap, GRID, SLOT } from "./slots";
+import { slotsForSegment, allSlots, buildingParcels, buildableCells, cellsOverlap, GRID, SLOT } from "./slots";
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
 import { roadType } from "./roadTypes";
@@ -141,5 +141,20 @@ describe("slots", () => {
       const back = cells.filter((cell) => cell.side === side && cell.row === GRID.depth - 1).length;
       expect(back).toBeGreaterThan(front / 2);
     }
+  });
+
+  it("packs roadside cells into stable parcels no larger than four by four", () => {
+    const g = new RoadGraph();
+    straight(g, 0, 0, 240, 0);
+    const cells = buildableCells(g);
+    const parcels = buildingParcels(cells);
+
+    expect(buildingParcels(cells)).toEqual(parcels);
+    expect(parcels.every((parcel) => parcel.frontageCells >= 1 && parcel.frontageCells <= 4)).toBe(true);
+    expect(parcels.every((parcel) => parcel.depthCells >= 1 && parcel.depthCells <= 4)).toBe(true);
+    expect(parcels.reduce((width, parcel) => width + parcel.frontageCells, 0)).toBe(
+      cells.filter((cell) => cell.row === 0).length,
+    );
+    expect(parcels.reduce((area, parcel) => area + parcel.frontageCells * parcel.depthCells, 0)).toBeLessThanOrEqual(cells.length);
   });
 });

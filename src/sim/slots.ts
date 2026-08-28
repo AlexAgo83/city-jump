@@ -25,7 +25,7 @@ export const SLOT = {
 
 export const GRID = {
   cellSize: SLOT.spacing / 2,
-  depth: 5,
+  depth: 4,
   maxBlockSlots: 3,
   maxBlockTurn: Math.PI / 18,
 } as const;
@@ -33,9 +33,23 @@ export const GRID = {
 export interface BuildableCell {
   readonly segment: SegmentId;
   readonly side: -1 | 1;
+  readonly block: number;
+  readonly column: number;
   readonly row: number;
+  readonly rotationY: number;
   readonly corners: readonly [Vec3, Vec3, Vec3, Vec3];
 }
+
+export interface BuildingParcel {
+  readonly position: Vec3;
+  readonly rotationY: number;
+  readonly frontageCells: number;
+  readonly depthCells: number;
+}
+
+export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
+  Array.from({ length: 4 }, (_, depth) => ({ frontageCells: frontage + 1, depthCells: depth + 1 })),
+).flat();
 
 /**
  * Slots derived from the segment: evenly spaced by arc length, offset to the side,
@@ -89,8 +103,8 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
   const buckets = new Map<string, BuildableCell[]>();
 
   for (const segment of graph.allSegments()) {
-    for (const block of slotBlocks(graph, segment.id)) {
-      for (const candidate of cellsForBlock(block)) {
+    for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
+      for (const candidate of cellsForBlock(block, blockIndex)) {
         if (cellTouchesOtherRoad(graph, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -105,6 +119,49 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
     }
   }
   return accepted;
+}
+
+/** Packs the roadside cells into a stable random mix of rectangular 1x1 to 4x4 parcels. */
+export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel[] {
+  const groups = new Map<string, BuildableCell[]>();
+  for (const cell of cells) {
+    const key = `${cell.segment}:${cell.side}:${cell.block}`;
+    const group = groups.get(key) ?? [];
+    group.push(cell);
+    groups.set(key, group);
+  }
+
+  const parcels: BuildingParcel[] = [];
+  for (const group of groups.values()) {
+    const free = new Map(group.map((cell) => [`${cell.column}:${cell.row}`, cell]));
+    const first = group[0]!;
+    const random = seededRandom(`${first.corners[0].x.toFixed(2)}:${first.corners[0].z.toFixed(2)}`);
+    const roadside = group.filter((cell) => cell.row === 0).sort((a, b) => a.column - b.column);
+
+    for (const origin of roadside) {
+      if (!free.has(`${origin.column}:${origin.row}`)) continue;
+      const sizes = shuffled(PARCEL_SIZES, random);
+      const size = sizes.find(({ frontageCells, depthCells }) =>
+        rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
+      )!; // 1x1 always fits the free origin
+      const occupied = rectangle(origin, size.frontageCells, size.depthCells).map(([column, row]) => free.get(`${column}:${row}`)!);
+      for (const cell of occupied) free.delete(`${cell.column}:${cell.row}`);
+
+      const frontRight = occupied.find(
+        (cell) => cell.row === origin.row && cell.column === origin.column + size.frontageCells - 1,
+      )!;
+      parcels.push({
+        position: v3(
+          (origin.corners[0].x + frontRight.corners[1].x) / 2,
+          (origin.corners[0].y + frontRight.corners[1].y) / 2,
+          (origin.corners[0].z + frontRight.corners[1].z) / 2,
+        ),
+        rotationY: origin.rotationY,
+        ...size,
+      });
+    }
+  }
+  return parcels;
 }
 
 export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
@@ -165,7 +222,7 @@ function distanceToSamples(p: Vec3, samples: readonly Vec3[]): number {
   return best;
 }
 
-function cellsForBlock(block: Slot[]): BuildableCell[] {
+function cellsForBlock(block: Slot[], blockIndex: number): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -181,11 +238,15 @@ function cellsForBlock(block: Slot[]): BuildableCell[] {
   };
   const cells: BuildableCell[] = [];
   for (let row = 0; row < GRID.depth; row++) {
+    let column = 0;
     for (let along = -width / 2; along < width / 2; along += GRID.cellSize) {
       cells.push({
         segment: block[0]!.segment,
         side: block[0]!.side,
+        block: blockIndex,
+        column: column++,
         row,
+        rotationY,
         corners: [
           point(along, row * GRID.cellSize),
           point(along + GRID.cellSize, row * GRID.cellSize),
@@ -196,6 +257,33 @@ function cellsForBlock(block: Slot[]): BuildableCell[] {
     }
   }
   return cells;
+}
+
+function rectangle(origin: BuildableCell, width: number, depth: number): [number, number][] {
+  return Array.from({ length: width * depth }, (_, i) => [
+    origin.column + (i % width),
+    origin.row + Math.floor(i / width),
+  ]);
+}
+
+function shuffled<T>(values: readonly T[], random: () => number): T[] {
+  const out = [...values];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
+function seededRandom(text: string): () => number {
+  let state = 2166136261;
+  for (let i = 0; i < text.length; i++) state = Math.imul(state ^ text.charCodeAt(i), 16777619);
+  return () => {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    return (state >>> 0) / 4294967296;
+  };
 }
 
 function slotBlocks(graph: RoadGraph, segment: SegmentId): Slot[][] {
