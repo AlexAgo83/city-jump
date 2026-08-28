@@ -1,0 +1,489 @@
+{
+  "budgets": {
+    "max_docs": 48,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_009_include_browser_interaction_in_the_normal_validation_gate.md",
+    "logics/backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md",
+    "logics/backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md",
+    "logics/backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md",
+    "logics/context-packs/project-reliability-hardening.json",
+    "logics/product/prod_002_reliable_prototype_validation_and_evidence.md",
+    "logics/request/req_004_harden_project_reliability_gates_and_demo_evidence.md",
+    "logics/scaffold/project-reliability-hardening.json",
+    "logics/tasks/task_003_implement_project_reliability_hardening.md"
+  ],
+  "command": "logics-manager sync context-pack req_004_harden_project_reliability_gates_and_demo_evidence item_009_include_browser_interaction_in_the_normal_validation_gate item_010_make_demo_and_screenshot_scenarios_fail_loudly item_011_avoid_per_car_full_graph_scans_in_traffic_updates item_012_refresh_readme_feature_status_and_measured_evidence task_003_implement_project_reliability_hardening --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_009_include_browser_interaction_in_the_normal_validation_gate",
+          "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+          "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+          "item_012_refresh_readme_feature_status_and_measured_evidence"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/product/prod_002_reliable_prototype_validation_and_evidence.md",
+      "ref": "prod_002_reliable_prototype_validation_and_evidence",
+      "sections": {
+        "Goals": [
+          "- One local validation path proves pure logic, browser interaction, and visual demo generation.",
+          "- Screenshots fail when their required scenario was not actually built.",
+          "- Runtime traffic cost stays proportional to the cars being updated, not to cars times road count.",
+          "- README status and performance numbers remain tied to current behavior."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "The city-jump prototype already has useful unit, architecture, browser, and visual checks, but the authoritative gate and docs do not yet make browser behavior and demo evidence hard to accidentally break. This product slice makes the existing checks stricter and cheaper to trust without changing gameplay scope.",
+          "```mermaid",
+          "flowchart TD",
+          "  review[Review findings] --> req[Reliability request]",
+          "  req --> gate[Browser interaction gate]",
+          "  req --> capture[Strict visual scenarios]"
+        ],
+        "References": [
+          "- Product back-reference: `req_004_harden_project_reliability_gates_and_demo_evidence`",
+          "- Task back-reference: `task_003_implement_project_reliability_hardening`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "Reliable prototype validation and evidence"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "project reliability, browser gate, visual capture, debug API, traffic lookup, README evidence",
+        "skip when": "working on road-crossing graph behavior, gameplay features, or rendering polish unrelated to validation evidence.",
+        "summary": "Scope the review findings into reliability work: make browser checks part of the normal gate, make screenshot scenarios strict, remove the traffic per-car segment scan, and refresh README evidence.",
+        "use when": "implementing validation hardening or documentation evidence from the project review findings."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_009_include_browser_interaction_in_the_normal_validation_gate",
+          "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+          "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+          "item_012_refresh_readme_feature_status_and_measured_evidence"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_003_review_findings_project_reliability",
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ]
+      },
+      "path": "logics/request/req_004_harden_project_reliability_gates_and_demo_evidence.md",
+      "ref": "req_004_harden_project_reliability_gates_and_demo_evidence",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A single validation command starts or reuses a dev-server safely and runs the browser interaction check, so pointer input and Babylon picking cannot regress outside the normal gate.",
+          "- AC2: Visual capture scripts exit non-zero when a named scenario drops below explicit counts for required roads, avenues, tunnels, junctions, buildings, or rendered meshes.",
+          "- AC3: Demo builders fail loudly when a required debug road is refused, and the failure message names the road label/type that did not build.",
+          "- AC4: Traffic frame updates resolve segment references without scanning the full segment list once per car per frame.",
+          "- AC5: README feature status and measured scenario figures match current behavior, and any performance figure names the command and scenario that produced it.",
+          "- AC6: The existing road-crossing draft request remains separate and is not widened by this reliability work."
+        ],
+        "Needs": [
+          "- The current green local gate does not prove the browser path. `npm run ci` excludes `test:e2e` and `test:visual`, so pointer input, Babylon picking, and screenshot generation can regress while the authoritative command still passes.",
+          "- The debug road builders used by screenshots can fail silently. `DebugApi.road(...)` returns `false`, but `demoNetwork()` and `demoCity()` ignore the result, so a capture can lose required avenues, tunnels, streets, or junctions and still exit successfully.",
+          "- Traffic resolves its segment by scanning every graph segment for every car on every frame. That is acceptable for the tiny prototype, but it scales as cars times roads and will become the easiest avoidable runtime cost as demo sizes grow.",
+          "- README feature status and measured figures are stale after recent tunnel, terrain, and capture work. Documentation should match the current app and should name how any performance figure was measured."
+        ]
+      },
+      "status": "Draft",
+      "title": "Harden project reliability gates and demo evidence"
+    },
+    {
+      "ai_context": {
+        "keywords": "road crossing, segment intersection, mid-segment split, junction creation, snapping rules, req_000 follow-up",
+        "skip when": "the work is endpoint snapping, which req_000 already delivered, or junction geometry, which req_000's trimmed-polygon slice owns.",
+        "summary": "Two roads drawn across each other overlap without producing a junction, because the segment-snap rule only fires when an endpoint lands on a segment. Found while building req_000; deliberately left out of it, since nothing in that request's criteria mentions crossings.",
+        "use when": "changing how junctions come into existence, or investigating two roads that overlap with no junction between them."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto"
+        ]
+      },
+      "path": "logics/request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md",
+      "ref": "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A road drawn across an existing one splits both at the crossing and leaves a single node shared by four segments, so the network is connected wherever it looks connected.",
+          "- AC2: A road crossing several others in one stroke splits at every crossing, in order along its length.",
+          "- AC3: A crossing that falls within the node-snap radius of an existing node attaches to that node instead of creating a second one beside it.",
+          "- AC4: Crossings are found from the segments' existing sample polylines, with no new curve-intersection machinery, and the cost of the search is stated against the segment count it was measured at.",
+          "- AC5: The junction geometry a new crossing produces is the one already delivered, with no change to how it is built.",
+          "- AC6: The interaction with elevated segments is written down: when a segment can be elevated, a crossing is a decision rather than always a split."
+        ],
+        "Needs": [
+          "- `resolveSnap` in `src/sim/rules.ts` snaps an endpoint to a nearby node or splits the segment that endpoint lands on. Neither rule looks at what a segment passes *through*, so a road drawn straight across another produces two segments that overlap in the world and share nothing in the graph.",
+          "- The road surface still renders -- the two ribbons simply cross -- so the defect is invisible until something reads the graph and expects the network to be connected. Traffic would be the first to find it, but building slots already suffer a milder version: neither road knows to keep its frontage clear of the other.",
+          "- This was found while delivering `req_000` and deliberately left out of it. That request's AC7 defines a junction as what snapping produces, and none of its criteria mentions crossings; widening it during delivery would have made the scope unreadable."
+        ]
+      },
+      "status": "Draft",
+      "title": "Split roads that cross each other, not only those drawn onto"
+    },
+    {
+      "ai_context": {
+        "keywords": "review, findings, project, reliability, browser validation, visual capture, debug API, traffic performance, README drift",
+        "skip when": "implementing the already-captured crossing-road behavior in `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`.",
+        "summary": "Code review found several reliability and maintenance gaps that are not covered by the current green local gate: browser checks are outside `ci`, debug capture roads can fail silently, traffic does a per-car segment scan every frame, and README state is stale after tunnel and capture changes.",
+        "use when": "improving the project's validation gate, screenshot/demo reliability, runtime traffic cost, or README accuracy."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "req": [
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_003_review_findings_project_reliability"
+        ]
+      },
+      "path": "logics/request/req_003_review_findings_project_reliability.md",
+      "ref": "req_003_review_findings_project_reliability",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A single command can run the browser interaction check in a fresh dev-server context, so pointer input and Babylon picking cannot regress while `ci` stays green.",
+          "- AC2: Visual capture scripts fail non-zero when a named scenario refuses required road types or drops below expected counts for avenues, tunnels, streets, and junctions.",
+          "- AC3: Traffic per-frame updates resolve segment references without scanning the full graph once per car, and the measured largest demo remains smooth.",
+          "- AC4: README feature status and measured scenario figures match current behavior and name the command used to produce the figures.",
+          "- AC5: This review request does not scope or duplicate the road-crossing behavior already captured by `req_001`."
+        ],
+        "Needs": [
+          "- Browser-critical behavior should be represented in an automated gate. `npm run ci` currently runs unit tests, architecture tests, build, typecheck, lint, and Logics validation, but not `test:e2e` or `test:visual`; both browser checks are only listed as separate commands. This lets a commit pass `ci` while pointer input, Babylon picking, debug screenshots, or captured rendering are broken.",
+          "- Screenshot/demo generation should fail loudly when the requested scenario is not actually built. `DebugApi.road(...)` returns `false` when a road is refused, but `demoNetwork()` and `demoCity()` ignore every return value. The current `scripts/interact.mjs` rugged check only asserts that some road remains, so the screenshot scenario can silently drop avenues, tunnels, or local streets and still pass.",
+          "- Traffic lookup should avoid scanning all segments once per car per frame. `createTrafficRenderer` stores only `segmentId` per car, then each `beforeRender` loops over cars and calls `graph.allSegments().find(...)` for every one. That is fine for the prototype, but the README already claims a 237-road scenario; with several cars per segment, the current loop scales as cars times roads every frame.",
+          "- README state should be refreshed after recent feature work. It still says tunnels are not implemented, while the code and e2e test now include tunnel drawing and portal rendering. It also cites the largest checked scenario as 237 roads, 126 junctions, and 1,422 buildings, which should be reverified or removed if it is no longer the live measured scenario."
+        ]
+      },
+      "status": "Draft",
+      "title": "Review findings: project reliability"
+    },
+    {
+      "ai_context": {
+        "keywords": "browser validation, e2e, Vite server, ci gate, pointer input, Babylon picking",
+        "skip when": "changing the interaction assertions themselves or adding unrelated visual screenshot checks.",
+        "summary": "Add a local validation path that runs the existing browser interaction script with a managed Vite server, then include it in the normal readiness gate.",
+        "use when": "making `npm run ci` or another readiness command prove the real browser interaction path."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_009_include_browser_interaction_in_the_normal_validation_gate"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_009_include_browser_interaction_in_the_normal_validation_gate.md",
+      "ref": "item_009_include_browser_interaction_in_the_normal_validation_gate",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A clean checkout can run one validation command without manually starting Vite first, and it executes the browser interaction check.",
+          "- AC2: The command exits non-zero if the dev server fails, the browser check fails, or the browser check times out.",
+          "- AC3: The dev server process started by the command is stopped after success or failure.",
+          "- AC4: Existing direct use of `npm run test:e2e` against a running URL still works."
+        ],
+        "Problem": [
+          "- `npm run ci` is treated as the local gate but does not run the browser interaction check.",
+          "- `scripts/interact.mjs` covers pointer input and Babylon picking, which unit tests and visual screenshots do not prove."
+        ]
+      },
+      "status": "Ready",
+      "title": "Include browser interaction in the normal validation gate"
+    },
+    {
+      "ai_context": {
+        "keywords": "screenshot validation, debug API, demoNetwork, demoCity, required counts, rugged capture",
+        "skip when": "changing road validation to make a demo pass or inventing a layout DSL.",
+        "summary": "Make debug demo roads and screenshot scenarios strict so refused roads or missing scenario elements fail the script instead of producing misleading docs media.",
+        "use when": "hardening `src/render/debugApi.ts` or `scripts/shot.mjs` around demo-road success and screenshot scenario counts."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_010_make_demo_and_screenshot_scenarios_fail_loudly"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md",
+      "ref": "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: If a required demo road is refused, the browser console or script output names the rejected label and road type.",
+          "- AC2: `scripts/shot.mjs` exits non-zero when `network`, `city`, or `rugged` drops below its declared required counts.",
+          "- AC3: The rugged scenario keeps a terrain-specific lower bound while still requiring avenues, a tunnel, and buildings.",
+          "- AC4: The implementation is a small wrapper/check around the existing debug API, not a new scenario engine."
+        ],
+        "Problem": [
+          "- Debug demo builders call `api.road(...)` repeatedly and ignore `false`, so a screenshot can silently lose required scenario elements.",
+          "- The rugged e2e check currently only verifies that some roads render, not that the required capture hierarchy survived terrain validation."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make demo and screenshot scenarios fail loudly"
+    },
+    {
+      "ai_context": {
+        "keywords": "traffic performance, per-frame loop, segment lookup, graph scan, cars",
+        "skip when": "implementing pathfinding, lanes, traffic rules, or graph spatial indexing.",
+        "summary": "Replace the per-frame `graph.allSegments().find(...)` traffic lookup with a stored segment reference or O(1) lookup prepared during traffic rebuild.",
+        "use when": "touching `src/render/traffic.ts` runtime update cost."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_011_avoid_per_car_full_graph_scans_in_traffic_updates"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md",
+      "ref": "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The per-frame traffic loop reads a stored segment reference or O(1) lookup rather than scanning all segments for each car.",
+          "- AC2: Traffic still disappears safely if its segment is removed after rebuild boundaries change.",
+          "- AC3: Existing e2e traffic movement coverage remains green."
+        ],
+        "Problem": [
+          "- Every traffic frame resolves each car's `segmentId` through `graph.allSegments().find(...)`, making frame work scale as cars times roads."
+        ]
+      },
+      "status": "Ready",
+      "title": "Avoid per-car full graph scans in traffic updates"
+    },
+    {
+      "ai_context": {
+        "keywords": "README drift, tunnel status, validation docs, performance figure, measured scenario",
+        "skip when": "writing release notes, marketing copy, or new gameplay documentation.",
+        "summary": "Refresh README current-state text and measured scenario figures so tunnels, validation commands, and performance evidence match the current prototype.",
+        "use when": "updating repository documentation after reliability and tunnel/capture changes."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_012_refresh_readme_feature_status_and_measured_evidence"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md",
+      "ref": "item_012_refresh_readme_feature_status_and_measured_evidence",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: README no longer claims tunnels are absent while tunnel roads and portals are present.",
+          "- AC2: Validation instructions include the browser path needed for user-facing input/rendering work.",
+          "- AC3: Any frame-rate or scenario-size number in README is tied to a command and current output, or is removed."
+        ],
+        "Problem": [
+          "- The README says tunnels are not implemented even though tunnel roads and portals now exist.",
+          "- The README cites a largest checked scenario without tying it to a current command/output, so it can drift silently."
+        ]
+      },
+      "status": "Ready",
+      "title": "Refresh README feature status and measured evidence"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_009_include_browser_interaction_in_the_normal_validation_gate",
+          "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+          "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+          "item_012_refresh_readme_feature_status_and_measured_evidence"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/product/prod_002_reliable_prototype_validation_and_evidence.md",
+      "ref": "prod_002_reliable_prototype_validation_and_evidence",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "Reliable prototype validation and evidence"
+    },
+    {
+      "ai_context": {
+        "keywords": "project reliability implementation, browser gate, strict screenshots, traffic lookup, README evidence",
+        "skip when": "implementing the separate road-crossing request or unrelated city simulation features.",
+        "summary": "Orchestrate the four reliability backlog slices from `req_004`: browser gate, strict demo screenshots, traffic lookup, and README evidence.",
+        "use when": "starting implementation for `req_004_harden_project_reliability_gates_and_demo_evidence`."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_009_include_browser_interaction_in_the_normal_validation_gate",
+          "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+          "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+          "item_012_refresh_readme_feature_status_and_measured_evidence"
+        ],
+        "prod": [
+          "prod_002_reliable_prototype_validation_and_evidence"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence"
+        ],
+        "task": [
+          "task_003_implement_project_reliability_hardening"
+        ]
+      },
+      "path": "logics/tasks/task_003_implement_project_reliability_hardening.md",
+      "ref": "task_003_implement_project_reliability_hardening",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement project reliability hardening"
+    }
+  ],
+  "estimates": {
+    "char_count": 20695,
+    "companion_doc_count": 1,
+    "doc_count": 9
+  },
+  "generated_at": "2026-08-28T14:27:34Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_004_harden_project_reliability_gates_and_demo_evidence",
+      "item_009_include_browser_interaction_in_the_normal_validation_gate",
+      "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+      "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+      "item_012_refresh_readme_feature_status_and_measured_evidence",
+      "task_003_implement_project_reliability_hardening"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_004_harden_project_reliability_gates_and_demo_evidence,item_009_include_browser_interaction_in_the_normal_validation_gate,item_010_make_demo_and_screenshot_scenarios_fail_loudly,item_011_avoid_per_car_full_graph_scans_in_traffic_updates,item_012_refresh_readme_feature_status_and_measured_evidence,task_003_implement_project_reliability_hardening",
+  "refs": [
+    "req_004_harden_project_reliability_gates_and_demo_evidence",
+    "item_009_include_browser_interaction_in_the_normal_validation_gate",
+    "item_010_make_demo_and_screenshot_scenarios_fail_loudly",
+    "item_011_avoid_per_car_full_graph_scans_in_traffic_updates",
+    "item_012_refresh_readme_feature_status_and_measured_evidence",
+    "task_003_implement_project_reliability_hardening"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_003_implement_project_reliability_hardening.md",
+      "ref": "task_003_implement_project_reliability_hardening"
+    }
+  ]
+}

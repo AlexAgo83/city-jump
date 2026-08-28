@@ -13,6 +13,7 @@
 | Doc | Title | Status | Owner | Progress | Path |
 |---|---|---|---|---|---|
 | [prod_001_a_city_that_grows_from_the_roads_you_draw](product/prod_001_a_city_that_grows_from_the_roads_you_draw.md) | A city that grows from the roads you draw | Settled |  |  | product/prod_001_a_city_that_grows_from_the_roads_you_draw.md |
+| [prod_002_reliable_prototype_validation_and_evidence](product/prod_002_reliable_prototype_validation_and_evidence.md) | Reliable prototype validation and evidence | Proposed |  |  | product/prod_002_reliable_prototype_validation_and_evidence.md |
 
 ## Roadmaps
 
@@ -28,6 +29,7 @@
 | [req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto](request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md) | Split roads that cross each other, not only those drawn onto | Draft |  |  | request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md |
 | [req_002_establish_modular_repository_foundations](request/req_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  |  | request/req_002_establish_modular_repository_foundations.md |
 | [req_003_review_findings_project_reliability](request/req_003_review_findings_project_reliability.md) | Review findings: project reliability | Draft |  |  | request/req_003_review_findings_project_reliability.md |
+| [req_004_harden_project_reliability_gates_and_demo_evidence](request/req_004_harden_project_reliability_gates_and_demo_evidence.md) | Harden project reliability gates and demo evidence | Draft |  |  | request/req_004_harden_project_reliability_gates_and_demo_evidence.md |
 
 ## Backlog
 
@@ -41,6 +43,10 @@
 | [item_006_replace_disc_junctions_with_trimmed_back_polygons](backlog/item_006_replace_disc_junctions_with_trimmed_back_polygons.md) | Replace disc junctions with trimmed-back polygons | Done |  | 100% | backlog/item_006_replace_disc_junctions_with_trimmed_back_polygons.md |
 | [item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it](backlog/item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it.md) | Put the network on a heightmap and flatten the terrain beneath it | Done |  | 100% | backlog/item_007_put_the_network_on_a_heightmap_and_flatten_the_terrain_beneath_it.md |
 | [item_008_establish_modular_repository_foundations](backlog/item_008_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  | 100% | backlog/item_008_establish_modular_repository_foundations.md |
+| [item_009_include_browser_interaction_in_the_normal_validation_gate](backlog/item_009_include_browser_interaction_in_the_normal_validation_gate.md) | Include browser interaction in the normal validation gate | Ready |  | 0% | backlog/item_009_include_browser_interaction_in_the_normal_validation_gate.md |
+| [item_010_make_demo_and_screenshot_scenarios_fail_loudly](backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md) | Make demo and screenshot scenarios fail loudly | Ready |  | 0% | backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md |
+| [item_011_avoid_per_car_full_graph_scans_in_traffic_updates](backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md) | Avoid per-car full graph scans in traffic updates | Ready |  | 0% | backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md |
+| [item_012_refresh_readme_feature_status_and_measured_evidence](backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md) | Refresh README feature status and measured evidence | Ready |  | 0% | backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md |
 
 ## Tasks
 
@@ -48,6 +54,7 @@
 |---|---|---|---|---|---|
 | [task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it](tasks/task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it.md) | Deliver the drawable road network and the city that grows from it | Done | claude | 100% | tasks/task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it.md |
 | [task_002_establish_modular_repository_foundations](tasks/task_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  | 100% | tasks/task_002_establish_modular_repository_foundations.md |
+| [task_003_implement_project_reliability_hardening](tasks/task_003_implement_project_reliability_hardening.md) | Implement project reliability hardening | Ready |  | 0% | tasks/task_003_implement_project_reliability_hardening.md |
 
 ## Runbooks
 

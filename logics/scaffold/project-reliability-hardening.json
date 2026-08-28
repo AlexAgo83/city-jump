@@ -1,0 +1,188 @@
+{
+  "title": "Harden project reliability gates and demo evidence",
+  "references": [
+    "logics/request/req_003_review_findings_project_reliability.md",
+    "package.json",
+    "scripts/interact.mjs",
+    "scripts/shot.mjs",
+    "src/render/debugApi.ts",
+    "src/render/traffic.ts",
+    "README.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "The current green local gate does not prove the browser path. `npm run ci` excludes `test:e2e` and `test:visual`, so pointer input, Babylon picking, and screenshot generation can regress while the authoritative command still passes.",
+      "The debug road builders used by screenshots can fail silently. `DebugApi.road(...)` returns `false`, but `demoNetwork()` and `demoCity()` ignore the result, so a capture can lose required avenues, tunnels, streets, or junctions and still exit successfully.",
+      "Traffic resolves its segment by scanning every graph segment for every car on every frame. That is acceptable for the tiny prototype, but it scales as cars times roads and will become the easiest avoidable runtime cost as demo sizes grow.",
+      "README feature status and measured figures are stale after recent tunnel, terrain, and capture work. Documentation should match the current app and should name how any performance figure was measured."
+    ],
+    "context": [
+      "This request is derived from `req_003_review_findings_project_reliability`; it scopes those review findings into ready-to-dev slices.",
+      "`req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto` already owns mid-segment road crossing behavior and is deliberately out of scope here.",
+      "Review evidence: `rtk npm run ci` passed on 2026-08-28, with unit tests, architecture tests, build/typecheck, and Logics validation green.",
+      "Gate evidence: `package.json` defines `ci` without `test:e2e` or `test:visual`, while `scripts/interact.mjs` states it exists because screenshots do not test picking.",
+      "Capture evidence: `src/render/debugApi.ts` exposes `road(...)` as a boolean but the demo methods currently ignore that boolean.",
+      "Runtime evidence: `src/render/traffic.ts` stores `segmentId` on each car and resolves it with `graph.allSegments().find(...)` during `scene.registerBeforeRender`.",
+      "Documentation evidence: `README.md` still says tunnels are not implemented, despite e2e coverage and rendering support for tunnel roads and portals."
+    ],
+    "acceptance_criteria": [
+      "AC1: A single validation command starts or reuses a dev-server safely and runs the browser interaction check, so pointer input and Babylon picking cannot regress outside the normal gate.",
+      "AC2: Visual capture scripts exit non-zero when a named scenario drops below explicit counts for required roads, avenues, tunnels, junctions, buildings, or rendered meshes.",
+      "AC3: Demo builders fail loudly when a required debug road is refused, and the failure message names the road label/type that did not build.",
+      "AC4: Traffic frame updates resolve segment references without scanning the full segment list once per car per frame.",
+      "AC5: README feature status and measured scenario figures match current behavior, and any performance figure names the command and scenario that produced it.",
+      "AC6: The existing road-crossing draft request remains separate and is not widened by this reliability work."
+    ]
+  },
+  "product": {
+    "title": "Reliable prototype validation and evidence",
+    "overview": "The city-jump prototype already has useful unit, architecture, browser, and visual checks, but the authoritative gate and docs do not yet make browser behavior and demo evidence hard to accidentally break. This product slice makes the existing checks stricter and cheaper to trust without changing gameplay scope.",
+    "goals": [
+      "One local validation path proves pure logic, browser interaction, and visual demo generation.",
+      "Screenshots fail when their required scenario was not actually built.",
+      "Runtime traffic cost stays proportional to the cars being updated, not to cars times road count.",
+      "README status and performance numbers remain tied to current behavior."
+    ],
+    "non_goals": [
+      "Changing road crossing behavior; that belongs to the existing crossing request.",
+      "Adding a new test framework, browser runner, or performance harness.",
+      "Reworking rendering architecture or replacing Babylon APIs.",
+      "Changing gameplay features beyond reliability, evidence, and documentation."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Include browser interaction in the normal validation gate",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC1",
+        "AC6"
+      ],
+      "problem": [
+        "`npm run ci` is treated as the local gate but does not run the browser interaction check.",
+        "`scripts/interact.mjs` covers pointer input and Babylon picking, which unit tests and visual screenshots do not prove."
+      ],
+      "scope_in": [
+        "Add the smallest script path that runs a dev server and `scripts/interact.mjs` together, with cleanup when the check exits.",
+        "Wire that browser interaction check into the normal validation path used before claims of readiness.",
+        "Keep the existing standalone `test:e2e` command usable against an already running server."
+      ],
+      "scope_out": [
+        "Adding a new browser test framework.",
+        "Running visual screenshots in every unit-only workflow unless explicitly chosen.",
+        "Changing the interaction assertions themselves except where needed for orchestration."
+      ],
+      "acceptance_criteria": [
+        "AC1: A clean checkout can run one validation command without manually starting Vite first, and it executes the browser interaction check.",
+        "AC2: The command exits non-zero if the dev server fails, the browser check fails, or the browser check times out.",
+        "AC3: The dev server process started by the command is stopped after success or failure.",
+        "AC4: Existing direct use of `npm run test:e2e` against a running URL still works."
+      ]
+    },
+    {
+      "title": "Make demo and screenshot scenarios fail loudly",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC2",
+        "AC3"
+      ],
+      "problem": [
+        "Debug demo builders call `api.road(...)` repeatedly and ignore `false`, so a screenshot can silently lose required scenario elements.",
+        "The rugged e2e check currently only verifies that some roads render, not that the required capture hierarchy survived terrain validation."
+      ],
+      "scope_in": [
+        "Wrap required debug road creation so a refused required road throws with a useful label.",
+        "Add explicit scenario count checks for required avenues, tunnels, roads, junctions, buildings, and active meshes where the capture script can assert them.",
+        "Keep the scenario data local to the debug/capture code instead of introducing a route-planning abstraction."
+      ],
+      "scope_out": [
+        "Inventing a city layout DSL.",
+        "Guaranteeing identical counts across all future terrain presets unless the scenario explicitly requires it.",
+        "Changing the road validation rules to make screenshots pass."
+      ],
+      "acceptance_criteria": [
+        "AC1: If a required demo road is refused, the browser console or script output names the rejected label and road type.",
+        "AC2: `scripts/shot.mjs` exits non-zero when `network`, `city`, or `rugged` drops below its declared required counts.",
+        "AC3: The rugged scenario keeps a terrain-specific lower bound while still requiring avenues, a tunnel, and buildings.",
+        "AC4: The implementation is a small wrapper/check around the existing debug API, not a new scenario engine."
+      ]
+    },
+    {
+      "title": "Avoid per-car full graph scans in traffic updates",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC4"
+      ],
+      "problem": [
+        "Every traffic frame resolves each car's `segmentId` through `graph.allSegments().find(...)`, making frame work scale as cars times roads."
+      ],
+      "scope_in": [
+        "Store the segment reference or a segment lookup map when traffic is rebuilt.",
+        "Keep traffic rebuilding derived from the graph, as it is today.",
+        "Add a focused check or code-level evidence that the per-frame loop no longer calls `graph.allSegments().find(...)` per car."
+      ],
+      "scope_out": [
+        "Traffic pathfinding, lane logic, or simulation behavior.",
+        "Spatial indexing for the road graph.",
+        "Performance micro-benchmarking beyond verifying the measured demo remains smooth."
+      ],
+      "acceptance_criteria": [
+        "AC1: The per-frame traffic loop reads a stored segment reference or O(1) lookup rather than scanning all segments for each car.",
+        "AC2: Traffic still disappears safely if its segment is removed after rebuild boundaries change.",
+        "AC3: Existing e2e traffic movement coverage remains green."
+      ]
+    },
+    {
+      "title": "Refresh README feature status and measured evidence",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC5"
+      ],
+      "problem": [
+        "The README says tunnels are not implemented even though tunnel roads and portals now exist.",
+        "The README cites a largest checked scenario without tying it to a current command/output, so it can drift silently."
+      ],
+      "scope_in": [
+        "Update the current-state and non-goal text for tunnels, terrain, captures, and validation commands.",
+        "Re-run the current measurement command before changing the performance figure, or remove the specific figure if it cannot be reproduced cheaply.",
+        "Name the command and scenario used for any retained measured figure."
+      ],
+      "scope_out": [
+        "Marketing copy rewrite.",
+        "New screenshots beyond those needed to keep existing docs accurate.",
+        "Release notes or version bump."
+      ],
+      "acceptance_criteria": [
+        "AC1: README no longer claims tunnels are absent while tunnel roads and portals are present.",
+        "AC2: Validation instructions include the browser path needed for user-facing input/rendering work.",
+        "AC3: Any frame-rate or scenario-size number in README is tied to a command and current output, or is removed."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement project reliability hardening",
+    "plan": [
+      "Read `req_003` plus the generated backlog items and confirm the road-crossing request remains out of scope.",
+      "Implement the validation script path first, because later changes should use the stricter gate.",
+      "Make debug demo road creation and screenshot scenarios strict, then regenerate only affected documentation media if required.",
+      "Replace the traffic per-frame segment scan with the smallest stored-reference or lookup-map change.",
+      "Refresh README status and measured evidence from the current command output.",
+      "Run the full local gate, Logics validation, and closeout commands before finishing."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/project-reliability-hardening.json",
+    "mode": "diff-first",
+    "profile": "normal"
+  }
+}
