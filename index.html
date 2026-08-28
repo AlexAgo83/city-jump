@@ -16,8 +16,19 @@
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.2 ui-sans-serif, system-ui; box-sizing: border-box;
   }
-  #toolbar-content { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 7px 4px 7px 9px; }
+  #toolbar-content { display: flex; flex-direction: column; min-width: 0; padding: 2px 0; }
   #toolbar-content[hidden] { display: none; }
+  .toolbar-row {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px 6px 9px;
+  }
+  .toolbar-row + .toolbar-row { border-top: 1px solid #ffffff14; }
+  /* The buttons continue the City row, so no rule between the two. */
+  .toolbar-row + .toolbar-actions { padding-top: 0; border-top: 0; }
+  .toolbar-actions button { flex: 1 1 0; }
+  .row-label {
+    flex: none; width: 40px; color: #7f8b95; font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase;
+  }
   #toolbar label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   #toolbar input, #toolbar select { accent-color: #75b9d1; }
   #toolbar-toggle {
@@ -38,7 +49,14 @@
   .segmented span { padding: 5px 8px; color: #aeb8c0; cursor: pointer; }
   .segmented input:checked + span { color: #fff; background: #3c5965; }
   #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
-  #sun-hour { width: 110px; }
+  #sun-hour { width: 104px; }
+  #save-slot { flex: 1 1 0; min-width: 0; }
+  #toolbar button:not(#toolbar-toggle) {
+    color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
+    padding: 3px 8px; cursor: pointer; font: inherit;
+  }
+  #toolbar button:not(#toolbar-toggle):hover { background: #333c45; }
+  #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
   #action-dock {
     position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%);
@@ -68,24 +86,39 @@
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   @media (max-width: 680px) {
-    #sun-hour { width: 80px; }
+    #toolbar { max-width: calc(100vw - 24px); }
+    #sun-hour { width: 72px; }
     .tool-button { min-width: 70px; padding-inline: 8px; }
   }
 </style>
 <canvas id="app"></canvas>
 <div id="toolbar">
   <div id="toolbar-content">
-    <label><input id="show-grid" type="checkbox" /> Grid</label>
-    <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
-    <label>Terrain
-      <select id="terrain">
+    <div class="toolbar-row">
+      <span class="row-label">World</span>
+      <label><input id="show-grid" type="checkbox" /> Grid</label>
+      <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
+      <select id="terrain" aria-label="Terrain">
         <option value="rolling">Rolling</option>
         <option value="rugged">Rugged</option>
       </select>
-    </label>
-    <label>Sun <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="14" /></label>
-    <output id="sun-time" for="sun-hour">14:00</output>
-    <label><input id="sun-auto" type="checkbox" /> Auto</label>
+    </div>
+    <div class="toolbar-row">
+      <span class="row-label">Sun</span>
+      <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="14" aria-label="Hour of day" />
+      <output id="sun-time" for="sun-hour">14:00</output>
+      <label><input id="sun-auto" type="checkbox" /> Auto</label>
+    </div>
+    <div class="toolbar-row">
+      <span class="row-label">City</span>
+      <select id="save-slot" aria-label="Saved cities"></select>
+    </div>
+    <div class="toolbar-row toolbar-actions">
+      <span class="row-label"></span>
+      <button id="save-store" type="button" title="Save the current city">Save</button>
+      <button id="save-load" type="button" title="Load the selected city">Load</button>
+      <button id="save-delete" type="button" title="Delete the selected city">Delete</button>
+    </div>
   </div>
   <button id="toolbar-toggle" type="button" aria-expanded="true" aria-controls="toolbar-content" title="Collapse settings">
     <span class="toolbar-chevron" aria-hidden="true"></span>

@@ -1,3 +1,7 @@
+import type { CitySave } from "../sim/save";
+import { listSaves, readSave, writeSave, deleteSave } from "./saves";
+import { showRefusal } from "./hud";
+
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze"): void;
   onRoadType(type: "street" | "avenue" | "tunnel"): void;
@@ -6,7 +10,11 @@ export function bindControls(handlers: {
   onBuildings(visible: boolean): void;
   onTerrain(preset: "rolling" | "rugged"): boolean;
   onSunHour(hour: number): void;
-}): void {
+  /** Current city as data, ready to store. */
+  onSave(): CitySave;
+  /** Replays a stored city. Returns false if it could not be replayed. */
+  onLoad(city: CitySave): boolean;
+}): { applyCity(city: CitySave): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -105,5 +113,86 @@ export function bindControls(handlers: {
     autoStartedAt = performance.now();
     sunFrame = requestAnimationFrame(tickSun);
   });
+  /** Points the toolbar at a city that was just loaded, without re-firing its handlers. */
+  const applyCity = (city: CitySave): void => {
+    terrainPreset = city.terrain === "rugged" ? "rugged" : "rolling";
+    terrain.value = terrainPreset;
+    sunHour.value = String(city.hour);
+    updateSun(city.hour);
+  };
+
+  bindSaves(handlers, applyCity);
   updateSun();
+  return { applyCity };
+}
+
+/**
+ * The saved-city picker. Names live in localStorage; the select is rebuilt from that list rather
+ * than kept in sync, so a save made in another tab shows up on the next refresh.
+ * ponytail: window.prompt for the name. A modal is a lot of markup for one string.
+ */
+function bindSaves(
+  handlers: { onSave(): CitySave; onLoad(city: CitySave): boolean },
+  applyCity: (city: CitySave) => void,
+): void {
+  const slot = document.getElementById("save-slot") as HTMLSelectElement;
+  const store = document.getElementById("save-store") as HTMLButtonElement;
+  const load = document.getElementById("save-load") as HTMLButtonElement;
+  const remove = document.getElementById("save-delete") as HTMLButtonElement;
+
+  const refresh = (selected?: string): void => {
+    const names = listSaves();
+    slot.replaceChildren(
+      ...names.map((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        return option;
+      }),
+    );
+    if (names.length === 0) {
+      const empty = document.createElement("option");
+      empty.textContent = "No saved cities";
+      empty.value = "";
+      slot.append(empty);
+    }
+    if (selected && names.includes(selected)) slot.value = selected;
+    load.disabled = names.length === 0;
+    remove.disabled = names.length === 0;
+  };
+
+  store.addEventListener("click", () => {
+    const suggested = slot.value || "My city";
+    const name = window.prompt("Save the city as:", suggested)?.trim();
+    if (!name) return;
+    if (listSaves().includes(name) && !window.confirm(`Overwrite "${name}"?`)) return;
+    if (!writeSave(name, handlers.onSave())) {
+      showRefusal("Could not save: browser storage is full or unavailable.");
+      return;
+    }
+    refresh(name);
+    showRefusal(`Saved "${name}".`);
+  });
+
+  load.addEventListener("click", () => {
+    const name = slot.value;
+    const city = name ? readSave(name) : null;
+    if (!city) {
+      showRefusal(`Could not read "${name}".`);
+      return;
+    }
+    if (!handlers.onLoad(city)) return;
+    applyCity(city);
+    showRefusal(`Loaded "${name}".`);
+  });
+
+  remove.addEventListener("click", () => {
+    const name = slot.value;
+    if (!name || !window.confirm(`Delete "${name}"?`)) return;
+    deleteSave(name);
+    refresh();
+    showRefusal(`Deleted "${name}".`);
+  });
+
+  refresh();
 }

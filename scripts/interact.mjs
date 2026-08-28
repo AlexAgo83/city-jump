@@ -460,6 +460,59 @@ check(
   `x ${turnedForward.x.toFixed(0)} z ${turnedForward.z.toFixed(0)}`,
 );
 
+await page.evaluate(() => window.cityjump.demoNetwork());
+await page.waitForTimeout(400);
+const built = await stats();
+// A full rebuild blocks the main thread for ~20s on this city, long enough that Playwright's
+// post-click actionability check times out even though the click landed. Dispatch the event
+// directly for the buttons that trigger one.
+const press = (id) => page.evaluate((selector) => document.querySelector(selector).click(), id);
+page.once("dialog", (dialog) => dialog.accept("Testville"));
+await press("#save-store");
+await page.waitForTimeout(300);
+const slotNames = await page.locator("#save-slot option").allTextContents();
+check("a saved city appears in the picker", slotNames.includes("Testville"));
+
+await page.evaluate(() => window.cityjump.reset());
+await page.waitForTimeout(300);
+await press("#save-load");
+await page.waitForTimeout(600);
+const loaded = await stats();
+check("loading restores every segment", loaded.segments === built.segments, `${loaded.segments}/${built.segments}`);
+// Replaying onto pristine terrain shifts road heights slightly, so parcel counts move a little.
+// What must hold is that they stop moving: loading is a fixed point.
+const drift = Math.abs(loaded.buildings - built.buildings) / built.buildings;
+check("loading lands within 2% of the original building count", drift < 0.02, `${(drift * 100).toFixed(2)}%`);
+await page.evaluate(() => window.cityjump.reset());
+await page.waitForTimeout(200);
+await press("#save-load");
+await page.waitForTimeout(600);
+const reloaded = await stats();
+check(
+  "loading twice gives exactly the same city",
+  reloaded.segments === loaded.segments && reloaded.buildings === loaded.buildings,
+  `${reloaded.buildings} vs ${loaded.buildings}`,
+);
+
+await page.waitForTimeout(2400); // let the debounced autosave land
+const beforeReload = await stats();
+await page.reload({ waitUntil: "load" });
+await page.waitForTimeout(1500);
+await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+await page.waitForTimeout(800);
+check(
+  "a page reload resumes the autosaved city",
+  (await stats()).segments === beforeReload.segments,
+  `${(await stats()).segments}/${beforeReload.segments}`,
+);
+
+await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
+await page.reload({ waitUntil: "load" });
+await page.waitForTimeout(1500);
+await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+await page.waitForTimeout(600);
+check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === 0);
+
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));
 
 if (shot) await page.screenshot({ path: shot });

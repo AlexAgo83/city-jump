@@ -107,7 +107,8 @@ export class RoadGraph {
     return this.addNodeAt(v3(x, terrainHeight(x, z), z));
   }
 
-  private addNodeAt(pos: Vec3): NodeId {
+  /** Places a node at an exact position, bypassing the terrain sample. Used to replay a save. */
+  addNodeAt(pos: Vec3): NodeId {
     const id = this.nextNodeId++;
     this.nodes.set(id, { id, pos, segments: new Set() });
     return id;
