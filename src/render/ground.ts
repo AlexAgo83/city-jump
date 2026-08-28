@@ -60,7 +60,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
         current[i * 3 + 1] = h;
-        terrainColor(h).toArray(colorData, i * 4);
+        terrainColor(h, heightmap.worldX(ix), heightmap.worldZ(iz)).toArray(colorData, i * 4);
       }
     }
     mesh.updateVerticesData(VertexBuffer.PositionKind, current);
@@ -135,16 +135,24 @@ function oceanDepth(x: number, z: number): number {
   return smoothstep((Math.hypot(x, z) - 720) / 520);
 }
 
+function distanceFromIsland(x: number, z: number): number {
+  return smoothstep((Math.hypot(x, z) - 760) / 500);
+}
+
 function waveNoise(x: number, z: number): number {
   return (Math.sin(x * 0.017 + z * 0.031) + Math.sin(x * 0.043 - z * 0.019)) * 0.25 + 0.5;
 }
 
-function terrainColor(h: number): Color4 {
+function terrainColor(h: number, x: number, z: number): Color4 {
   const sand = new Color4(0.46, 0.43, 0.27, 1);
   const grass = new Color4(0.39, 0.51, 0.34, 1);
   const rock = new Color4(0.43, 0.43, 0.4, 1);
   const snow = new Color4(0.78, 0.8, 0.76, 1);
-  if (h < SEA_LEVEL + 3) return Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 3));
+  const seafloor = Color4.Lerp(new Color4(0.22, 0.34, 0.32, 1), new Color4(0.08, 0.13, 0.15, 1), distanceFromIsland(x, z));
+  if (h < SEA_LEVEL + 4) {
+    const shore = Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 8));
+    return Color4.Lerp(seafloor, shore, smoothstep((h - (SEA_LEVEL - 10)) / 14));
+  }
   if (h < 52) return Color4.Lerp(grass, rock, smoothstep((h - 28) / 24));
   return Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
 }
