@@ -188,13 +188,48 @@ function tunnelPortal(
   color: Color3,
 ): (Mesh | LinesMesh)[] {
   const { position, tangent } = graph.pointAt(id, distance);
-  const y = terrainHeight(position.x, position.z) + 1.8;
-  const portal = portalMesh(scene, `tunnel_portal_${id}_${distance}`, position, tangent, width, direction, y - 2.5);
+  const y = terrainHeight(position.x, position.z) + MARK_LIFT;
+  const exterior = portalExterior(scene, `tunnel_headwall_${id}_${distance}`, position, tangent, width, direction, y);
+  for (const mesh of exterior) {
+    mesh.material = material;
+    mesh.isPickable = false;
+  }
+
+  const portal = portalMesh(scene, `tunnel_portal_${id}_${distance}`, position, tangent, width, direction, y);
   portal.material = material;
   portal.isPickable = false;
 
-  const lip = portalOutline(position, tangent, width, y - 2.5);
-  return [portal, styledLine(scene, `tunnel_lip_${id}_${distance}`, lip, color)];
+  const lip = portalOutline(position, tangent, width, y);
+  return [...exterior, portal, styledLine(scene, `tunnel_lip_${id}_${distance}`, lip, color)];
+}
+
+function portalExterior(
+  scene: Scene,
+  name: string,
+  center: { x: number; z: number },
+  tangent: { x: number; z: number },
+  width: number,
+  direction: 1 | -1,
+  y: number,
+): Mesh[] {
+  const gate = width + 8;
+  const side = 5;
+  const height = 9;
+  const top = 3;
+  const depth = 5;
+  const rotation = Math.atan2(tangent.x * direction, tangent.z * direction);
+  const n = perpXZ(normalizeXZ({ x: tangent.x, y: 0, z: tangent.z }));
+  const block = (label: string, x: number, boxWidth: number, boxHeight: number, cy: number) => {
+    const mesh = MeshBuilder.CreateBox(`${name}_${label}`, { width: boxWidth, height: boxHeight, depth }, scene);
+    mesh.position.set(center.x + n.x * x, cy, center.z + n.z * x);
+    mesh.rotation.y = rotation;
+    return mesh;
+  };
+  return [
+    block("left", -gate / 2 - side / 2, side, height, y + height / 2),
+    block("right", gate / 2 + side / 2, side, height, y + height / 2),
+    block("top", 0, gate + side * 2, top, y + height + top / 2),
+  ];
 }
 
 function portalMesh(
