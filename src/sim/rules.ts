@@ -17,7 +17,7 @@ export const RULES = {
   /** Below this, a segment is refused: micro-segments break junction geometry. */
   minLength: 8,
   /** Rise over run. Does nothing on flat ground, and is ready when the ground is not. */
-  maxGradient: 0.1,
+  maxGradient: 0.25,
 } as const;
 
 export const quantise = (value: number): number => Math.round(value / RULES.gridStep) * RULES.gridStep;
@@ -59,8 +59,8 @@ export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: str
     return { ok: false, reason: `Too short: ${length.toFixed(1)} m, minimum is ${RULES.minLength} m.` };
   }
 
-  const gradient = Math.abs(end.y - start.y) / length;
-  if (gradient > RULES.maxGradient) {
+  const gradient = maxSampleGradient(start, control, end);
+  if (gradient > RULES.maxGradient + 1e-6) {
     return {
       ok: false,
       reason: `Too steep: ${(gradient * 100).toFixed(0)}%, maximum is ${RULES.maxGradient * 100}%.`,
@@ -88,6 +88,22 @@ function quadraticLengthXZ(a: Vec3, c: Vec3, b: Vec3): number {
     prev = p;
   }
   return total;
+}
+
+function maxSampleGradient(a: Vec3, c: Vec3, b: Vec3): number {
+  let steepest = 0;
+  let prev = v3(a.x, a.y, a.z);
+  for (let i = 1; i <= 24; i++) {
+    const t = i / 24;
+    const u = 1 - t;
+    const x = a.x * u * u + c.x * 2 * u * t + b.x * t * t;
+    const z = a.z * u * u + c.z * 2 * u * t + b.z * t * t;
+    const p = v3(x, i === 24 ? b.y : terrainHeight(x, z), z);
+    const run = distXZ(prev, p);
+    if (run > 1e-9) steepest = Math.max(steepest, Math.abs(p.y - prev.y) / run);
+    prev = p;
+  }
+  return steepest;
 }
 
 /**

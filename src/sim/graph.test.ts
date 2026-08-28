@@ -134,8 +134,8 @@ describe("elevation", () => {
     }
   });
 
-  it("interpolates elevation along the segment and reports a constant gradient", () => {
-    setTerrain({ heightAt: (x) => (x >= 100 ? 10 : 0) });
+  it("follows sampled terrain elevation along the segment", () => {
+    setTerrain({ heightAt: (x) => x / 10 });
     let id: number;
     let g: RoadGraph;
     try {
@@ -149,6 +149,17 @@ describe("elevation", () => {
     expect(g!.gradient(id!)).toBeCloseTo(0.1, 6);
     expect(g!.pointAt(id!, 50).position.y).toBeCloseTo(5, 1);
     expect(g!.pointAt(id!, 100).position.y).toBeCloseTo(10, 3);
+  });
+
+  it("climbs terrain between endpoints instead of bridging over it", () => {
+    setTerrain({ heightAt: (x) => 12 * Math.sin((Math.PI * x) / 100) });
+    try {
+      const g = new RoadGraph();
+      const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
+      expect(g.pointAt(id, 50).position.y).toBeGreaterThan(8);
+    } finally {
+      setTerrain(flatTerrain);
+    }
   });
 
   it("is flat when the terrain is flat", () => {

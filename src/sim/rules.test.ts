@@ -95,7 +95,12 @@ describe("validation", () => {
   });
 
   it("accepts a gradient at the limit", () => {
-    expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 10, 0), "street").ok).toBe(true);
+    setTerrain({ heightAt: (x) => x / 4 });
+    try {
+      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 25, 0), "street").ok).toBe(true);
+    } finally {
+      setTerrain(flatTerrain);
+    }
   });
 
   it("keeps a refused segment out of the graph", () => {

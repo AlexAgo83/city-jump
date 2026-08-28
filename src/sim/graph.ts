@@ -48,8 +48,8 @@ const MIN_SAMPLES = 8;
 const MAX_SAMPLES = 512;
 
 /**
- * Samples the curve and builds its cumulative-distance table. Elevation is laid on
- * afterwards, linearly in ground distance, so a segment has one constant gradient.
+ * Samples the curve and builds its cumulative-distance table. Elevation follows the
+ * terrain at each sample, with one tiny smoothing pass so rugged ground is driveable.
  * ponytail: two passes (shape, then elevation) rather than solving arc length in closed
  * form -- the table is what every consumer wants anyway.
  */
@@ -71,12 +71,17 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3) {
   }
   const length = cumulative[cumulative.length - 1]!;
 
-  const samples: Vec3[] = flat.map((p, i) => {
-    const f = length < 1e-9 ? 0 : cumulative[i]! / length;
-    return v3(p.x, a.y + (b.y - a.y) * f, p.z);
-  });
+  const heights = smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
+  heights[0] = a.y;
+  heights[heights.length - 1] = b.y;
+  const samples: Vec3[] = flat.map((p, i) => v3(p.x, heights[i]!, p.z));
 
   return { samples, ts, cumulative, length };
+}
+
+function smoothHeights(heights: number[]): number[] {
+  if (heights.length < 3) return heights;
+  return heights.map((h, i) => (i === 0 || i === heights.length - 1 ? h : (heights[i - 1]! + h * 2 + heights[i + 1]!) / 4));
 }
 
 export class RoadGraph {
@@ -163,11 +168,15 @@ export class RoadGraph {
     return out;
   }
 
-  /** Rise over run, using the planimetric length. Zero-length segments read as flat. */
+  /** Steepest sampled rise over run, using planimetric distance. */
   gradient(id: SegmentId): number {
     const seg = this.segment(id);
-    if (seg.length < 1e-9) return 0;
-    return Math.abs(this.node(seg.b).pos.y - this.node(seg.a).pos.y) / seg.length;
+    let steepest = 0;
+    for (let i = 1; i < seg.samples.length; i++) {
+      const run = seg.cumulative[i]! - seg.cumulative[i - 1]!;
+      if (run > 1e-9) steepest = Math.max(steepest, Math.abs(seg.samples[i]!.y - seg.samples[i - 1]!.y) / run);
+    }
+    return steepest;
   }
 
   /** Curve parameter at a ground distance, via the sample table. */
