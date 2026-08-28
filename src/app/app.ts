@@ -12,7 +12,7 @@ import { setHud, showRefusal } from "../ui/hud";
 
 export async function startApp(): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, setSunHour } = createScene(canvas);
+  const { scene, shadows, setSunHour } = createScene(canvas);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
   setTerrain(heightmap);
 
@@ -20,7 +20,7 @@ export async function startApp(): Promise<void> {
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
-  const buildings = await createBuildingRenderer(scene, graph);
+  const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
 
   const refreshHud = (): void => {
@@ -31,7 +31,7 @@ export async function startApp(): Promise<void> {
         `buildings  ${buildingCount}`,
         "",
         tool.stageLabel(),
-        "right-click or Esc: cancel",
+        "Esc: cancel",
       ].join("\n"),
     );
   };

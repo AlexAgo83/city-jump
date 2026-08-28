@@ -1,6 +1,7 @@
 import "@babylonjs/loaders/glTF";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -23,8 +24,8 @@ interface Model {
  * One mesh per model, one matrix per building. A city is thousands of buildings and one
  * draw call each does not render; thin instances make the count irrelevant.
  */
-export async function createBuildingRenderer(scene: Scene, graph: RoadGraph) {
-  const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id)));
+export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
+  const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows)));
   const available = models.filter((m): m is Model => m !== null);
   let grid: LinesMesh | null = null;
 
@@ -100,7 +101,7 @@ function matrixFor(slot: Slot, width: number): Matrix {
   );
 }
 
-async function loadModel(scene: Scene, id: string): Promise<Model | null> {
+async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Promise<Model | null> {
   try {
     const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb`, scene);
     const parts = result.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
@@ -110,6 +111,7 @@ async function loadModel(scene: Scene, id: string): Promise<Model | null> {
     mesh.name = `building_${id}`;
     mesh.isPickable = false;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
+    shadows.addShadowCaster(mesh);
 
     // The loader parents everything under a __root__ carrying glTF's handedness flip.
     // setParent(null) moves that transform into the mesh's own, and baking it into the

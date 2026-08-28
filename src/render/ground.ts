@@ -22,6 +22,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 
   const mesh = new Mesh("ground", scene);
   mesh.material = material;
+  mesh.receiveShadows = true;
 
   const n = heightmap.count;
   const positions = new Float32Array(n * n * 3);

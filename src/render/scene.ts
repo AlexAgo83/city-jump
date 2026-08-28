@@ -3,6 +3,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
+import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Vector3, Color3, Color4 } from "@babylonjs/core/Maths/math";
 
 /** Engine, scene, camera and lights. Nothing here knows about roads. */
@@ -26,6 +27,10 @@ export function createScene(canvas: HTMLCanvasElement) {
   ambient.groundColor = new Color3(0.25, 0.27, 0.3);
 
   const sun = new DirectionalLight("sun", new Vector3(-0.5, -1, -0.35), scene);
+  const shadows = new ShadowGenerator(1024, sun);
+  shadows.useBlurExponentialShadowMap = true;
+  shadows.blurKernel = 8;
+  shadows.setDarkness(0.35);
 
   function setSunHour(hour: number): void {
     const phase = ((hour - 6) / 12) * Math.PI;
@@ -47,5 +52,5 @@ export function createScene(canvas: HTMLCanvasElement) {
   engine.runRenderLoop(() => scene.render());
   window.addEventListener("resize", () => engine.resize());
 
-  return { engine, scene, camera, setSunHour };
+  return { engine, scene, camera, shadows, setSunHour };
 }

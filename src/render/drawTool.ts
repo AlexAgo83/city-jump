@@ -49,6 +49,7 @@ export function createDrawTool(
   let mode: DrawMode = "curve";
   let gridSnap = true;
   let preview: LinesMesh | null = null;
+  let leftPointerDown = false;
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
     {
@@ -150,10 +151,14 @@ export function createDrawTool(
 
   scene.onPointerObservable.add((info) => {
     if (info.type === PointerEventTypes.POINTERMOVE) return onMove();
+    if (info.type === PointerEventTypes.POINTERDOWN) {
+      leftPointerDown = (info.event as PointerEvent).button === 0;
+      return;
+    }
     if (info.type !== PointerEventTypes.POINTERUP) return;
-    const button = (info.event as PointerEvent).button;
-    if (button === 2) return cancel();
-    if (button === 0) return onClick();
+    const isLeftClick = leftPointerDown && (info.event as PointerEvent).button === 0;
+    leftPointerDown = false;
+    if (isLeftClick) onClick();
   });
 
   window.addEventListener("keydown", (e) => {

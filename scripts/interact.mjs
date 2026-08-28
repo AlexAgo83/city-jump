@@ -37,6 +37,15 @@ const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
 const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
+const shadowState = () =>
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const sun = scene.getLightByName("sun");
+    return {
+      groundReceives: scene.getMeshByName("ground")?.receiveShadows ?? false,
+      casters: sun?.getShadowGenerator()?.getShadowMap()?.renderList?.length ?? 0,
+    };
+  });
 const sunState = () =>
   page.evaluate(() => {
     const sun = window.cityjump._scene.getLightByName("sun");
@@ -72,8 +81,13 @@ const click = async (x, y) => {
   await page.waitForTimeout(160);
 };
 
+await page.mouse.click(360, 360, { button: "right" });
+check("right-click is camera-only, not drawing input", (await hud()).includes("start a road") && (await stats()).segments === 0);
+
 await click(300, 340);
 check("the first click arms the tool", (await hud()).includes("place the bend"));
+await page.mouse.click(360, 360, { button: "right" });
+check("right-click does not cancel an armed road", (await hud()).includes("place the bend"));
 await click(500, 280);
 check("the second click takes the bend", (await hud()).includes("finish the road"));
 await click(700, 360);
@@ -83,6 +97,8 @@ check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segme
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 const gridCells = await buildableGridCells();
 check("the buildable grid reaches up to five cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 10, `${gridCells} cells`);
+const shadows = await shadowState();
+check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
 
 await page.mouse.move(702, 360);
 await page.waitForTimeout(100);
