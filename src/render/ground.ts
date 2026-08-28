@@ -80,8 +80,8 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 export function createOcean(scene: Scene) {
   const material = new StandardMaterial("ocean", scene);
   material.diffuseColor = Color3.White();
-  material.emissiveColor = new Color3(0.01, 0.04, 0.055);
-  material.specularColor = new Color3(0.35, 0.55, 0.62);
+  material.emissiveColor = new Color3(0.005, 0.035, 0.055);
+  material.specularColor = new Color3(0.45, 0.68, 0.72);
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
   const size = GROUND_SIZE;
@@ -138,7 +138,7 @@ function oceanDepth(x: number, z: number): number {
 }
 
 function oceanColor(depth: number, noise: number): Color4 {
-  const color = Color4.Lerp(new Color4(0.1, 0.42, 0.46, 1), new Color4(0.015, 0.12, 0.2, 1), depth * 0.85 + noise * 0.15);
+  const color = Color4.Lerp(new Color4(0.08, 0.5, 0.48, 1), new Color4(0.01, 0.09, 0.22, 1), depth * 0.85 + noise * 0.15);
   color.a = 0.18 + smoothstep(depth) * 0.72;
   return color;
 }
@@ -152,11 +152,11 @@ function waveNoise(x: number, z: number): number {
 }
 
 function terrainColor(h: number, x: number, z: number): Color4 {
-  const sand = new Color4(0.46, 0.43, 0.27, 1);
-  const grass = new Color4(0.39, 0.51, 0.34, 1);
-  const rock = new Color4(0.43, 0.43, 0.4, 1);
-  const snow = new Color4(0.78, 0.8, 0.76, 1);
-  const seafloor = Color4.Lerp(new Color4(0.22, 0.34, 0.32, 1), new Color4(0.08, 0.13, 0.15, 1), distanceFromIsland(x, z));
+  const sand = new Color4(0.58, 0.5, 0.29, 1);
+  const grass = new Color4(0.31, 0.5, 0.27, 1);
+  const rock = new Color4(0.34, 0.35, 0.31, 1);
+  const snow = new Color4(0.86, 0.87, 0.8, 1);
+  const seafloor = Color4.Lerp(new Color4(0.19, 0.36, 0.32, 1), new Color4(0.05, 0.1, 0.15, 1), distanceFromIsland(x, z));
   if (h < SEA_LEVEL + 4) {
     const shore = Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 8));
     return Color4.Lerp(seafloor, shore, smoothstep((h - (SEA_LEVEL - 10)) / 14));

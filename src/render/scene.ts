@@ -11,6 +11,8 @@ export function createScene(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false });
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
+  scene.imageProcessingConfiguration.contrast = 1.12;
+  scene.imageProcessingConfiguration.exposure = 1.04;
 
   // Top-down-ish orbit camera: the city-builder default.
   const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3.6, 220, Vector3.Zero(), scene);
@@ -23,23 +25,23 @@ export function createScene(canvas: HTMLCanvasElement) {
   camera.panningInertia = 0.7;
 
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
-  ambient.intensity = 0.65;
-  ambient.groundColor = new Color3(0.25, 0.27, 0.3);
+  ambient.intensity = 0.52;
+  ambient.groundColor = new Color3(0.18, 0.2, 0.22);
 
   const sun = new DirectionalLight("sun", new Vector3(-0.5, -1, -0.35), scene);
   const shadows = new ShadowGenerator(1024, sun);
   shadows.useBlurExponentialShadowMap = true;
   shadows.blurKernel = 8;
-  shadows.setDarkness(0.35);
+  shadows.setDarkness(0.44);
 
   function setSunHour(hour: number): void {
     const phase = ((hour - 6) / 12) * Math.PI;
     const daylight = Math.max(0, Math.sin(phase));
     const azimuth = ((hour - 6) / 24) * Math.PI * 2;
     sun.direction.copyFromFloats(Math.cos(azimuth), -Math.max(0.05, daylight), Math.sin(azimuth)).normalize();
-    sun.intensity = daylight * 1.1;
-    sun.diffuse = Color3.Lerp(new Color3(1, 0.56, 0.34), Color3.White(), daylight);
-    ambient.intensity = 0.2 + daylight * 0.45;
+    sun.intensity = daylight * 1.22;
+    sun.diffuse = Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight);
+    ambient.intensity = 0.16 + daylight * 0.36;
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,

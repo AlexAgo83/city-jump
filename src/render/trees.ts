@@ -26,7 +26,7 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
   trunk.material = trunkMaterial;
 
   const leafMaterial = new StandardMaterial("tree_canopy", scene);
-  leafMaterial.diffuseColor = new Color3(0.16, 0.38, 0.17);
+  leafMaterial.diffuseColor = new Color3(0.12, 0.42, 0.14);
   leafMaterial.specularColor = Color3.Black();
   leaves.material = leafMaterial;
 
@@ -101,7 +101,7 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
       return;
     }
 
-    shadowMaterial.alpha = 0.08 + daylight * 0.13;
+    shadowMaterial.alpha = 0.1 + daylight * 0.16;
     const directionX = Math.cos(azimuth);
     const directionZ = Math.sin(azimuth);
     const length = 2.6 + (1 - daylight) * 6.8;
