@@ -9,7 +9,6 @@ export function bindControls(handlers: {
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onBuildings(visible: boolean): void;
-  onTerrain(preset: "rolling" | "rugged"): boolean;
   onSunHour(hour: number): void;
   /** Current city as data, ready to store. */
   onSave(): CitySave;
@@ -82,14 +81,6 @@ export function bindControls(handlers: {
     handlers.onRoadType(value === "avenue" ? "avenue" : value === "tunnel" ? "tunnel" : "street");
   });
 
-  const terrain = document.getElementById("terrain") as HTMLSelectElement;
-  let terrainPreset = terrain.value;
-  terrain.addEventListener("change", () => {
-    const next = terrain.value === "rugged" ? "rugged" : "rolling";
-    if (handlers.onTerrain(next)) terrainPreset = next;
-    else terrain.value = terrainPreset;
-  });
-
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;
   const sunAuto = document.getElementById("sun-auto") as HTMLInputElement;
@@ -137,8 +128,6 @@ export function bindControls(handlers: {
   });
   /** Points the toolbar at a city that was just loaded, without re-firing its handlers. */
   const applyCity = (city: CitySave): void => {
-    terrainPreset = city.terrain === "rugged" ? "rugged" : "rolling";
-    terrain.value = terrainPreset;
     sunHour.value = String(city.hour);
     updateSun(city.hour);
   };

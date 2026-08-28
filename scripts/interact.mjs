@@ -418,18 +418,32 @@ await click(805, 465);
 const afterBulldoze = await stats();
 check("the bulldozer removes the clicked road", afterBulldoze.segments === beforeBulldoze.segments - 1);
 
-page.once("dialog", (dialog) => dialog.accept());
-await page.locator("#terrain").selectOption("rugged");
-await page.waitForTimeout(250);
-const rugged = await stats();
+// The rugged map is no longer offered in the toolbar, but a city saved on it still has to come
+// back on it. Loading is the only way in now, so that is how it gets tested.
+await page.evaluate(() => {
+  window.localStorage.setItem(
+    "cityjump.save.Rugged",
+    // 22:00, so the streetlight checks below still run at night, and the hour a save carries is
+    // proven to be applied on load.
+    JSON.stringify({ v: 3, terrain: "rugged", hour: 22, nodes: [], segments: [], planted: [], cleared: [] }),
+  );
+  window.localStorage.setItem("cityjump.saves", JSON.stringify(["Rugged"]));
+});
+await page.reload({ waitUntil: "load" });
+await page.waitForTimeout(1500);
+await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+await page.waitForTimeout(800);
+await page.locator("#save-slot").selectOption("Rugged");
+await page.locator("#save-load").click();
+await page.waitForTimeout(600);
 const terrainRelief = await page.evaluate(() => {
   const bounds = window.cityjump._scene.getMeshByName("ground").getBoundingInfo().boundingBox;
   return bounds.maximumWorld.y - bounds.minimumWorld.y;
 });
-check("changing terrain resets the fixed-elevation road graph", rugged.segments === 0);
-check("the rugged terrain has substantial relief", terrainRelief > 20, `${terrainRelief.toFixed(1)} m`);
+check("a city saved on the rugged map loads back onto it", terrainRelief > 20, `${terrainRelief.toFixed(1)} m of relief`);
+check("a save restores its hour of day", (await page.locator("#sun-time").textContent()).startsWith("22:"));
 await page.evaluate(() => window.cityjump.demoNetwork());
-await page.waitForTimeout(200);
+await page.waitForTimeout(400);
 const ruggedNetwork = await stats();
 check("roads still render on rugged terrain", ruggedNetwork.segments > 0);
 check(

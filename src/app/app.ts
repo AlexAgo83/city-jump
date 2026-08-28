@@ -62,6 +62,8 @@ export async function startApp(): Promise<void> {
     scheduleAutosave();
   };
 
+  // No longer chosen in the UI, but still carried by saves and honoured on load, so a city built
+  // on the rugged map comes back on the rugged map.
   let terrainPreset = "rolling";
   let sunHour = 14;
   const applyTerrain = (preset: string): void => {
@@ -118,16 +120,6 @@ export async function startApp(): Promise<void> {
     onBuildings(visible) {
       buildings.setVisible(visible);
       rebuild();
-    },
-    onTerrain(preset) {
-      if (graph.allSegments().length && !window.confirm("Changing terrain clears the current city. Continue?")) {
-        return false;
-      }
-      tool.cancel();
-      for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
-      applyTerrain(preset);
-      rebuild();
-      return true;
     },
     onSunHour(hour) {
       sunHour = hour;
