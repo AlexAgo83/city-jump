@@ -4,6 +4,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
@@ -81,6 +82,7 @@ export function createOcean(scene: Scene) {
   material.diffuseColor = Color3.White();
   material.emissiveColor = new Color3(0.01, 0.04, 0.055);
   material.specularColor = new Color3(0.35, 0.55, 0.62);
+  material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
   const size = GROUND_SIZE;
   const cells = 72;
@@ -96,7 +98,7 @@ export function createOcean(scene: Scene) {
       const depth = oceanDepth(wx, wz);
       positions[i * 3] = wx;
       positions[i * 3 + 2] = wz;
-      Color4.Lerp(new Color4(0.09, 0.36, 0.42, 0.34), new Color4(0.02, 0.14, 0.22, 0.97), depth * 0.75 + waveNoise(wx, wz) * 0.25).toArray(colors, i * 4);
+      oceanColor(depth, waveNoise(wx, wz)).toArray(colors, i * 4);
       if (x < cells && z < cells && Math.hypot(wx + size / cells / 2, wz + size / cells / 2) > 700) {
         indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
       }
@@ -133,6 +135,12 @@ export function createOcean(scene: Scene) {
 
 function oceanDepth(x: number, z: number): number {
   return smoothstep((Math.hypot(x, z) - 720) / 520);
+}
+
+function oceanColor(depth: number, noise: number): Color4 {
+  const color = Color4.Lerp(new Color4(0.1, 0.42, 0.46, 1), new Color4(0.015, 0.12, 0.2, 1), depth * 0.85 + noise * 0.15);
+  color.a = 0.18 + smoothstep(depth) * 0.72;
+  return color;
 }
 
 function distanceFromIsland(x: number, z: number): number {
