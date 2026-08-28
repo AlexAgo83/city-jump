@@ -101,17 +101,26 @@ describe("slots", () => {
     expect(avenueOffset).toBeGreaterThan(streetOffset);
   });
 
-  it("keeps older grid cells and rejects overlapping new ones", () => {
+  it("rejects overlapping grid cells around crossing roads", () => {
     const g = new RoadGraph();
-    const first = straight(g, -60, 0, 60, 0);
-    const firstCount = buildableCells(g).length;
+    straight(g, -60, 0, 60, 0);
     straight(g, 0, -60, 0, 60);
 
     const cells = buildableCells(g);
     const rawCount = allSlots(g).length * GRID.depth * (SLOT.spacing / GRID.cellSize);
-    expect(cells.filter((cell) => cell.segment === first)).toHaveLength(firstCount);
     expect(cells.length).toBeLessThan(rawCount);
     expect(cells.some((cell, i) => cells.slice(i + 1).some((other) => cellsOverlap(cell, other)))).toBe(false);
+  });
+
+  it("rejects grid cells that cross a nearby road", () => {
+    const g = new RoadGraph();
+    straight(g, -100, 0, 100, 0);
+    straight(g, -100, 24, 100, 24);
+
+    for (const cell of buildableCells(g)) {
+      const zs = cell.corners.map((p) => p.z);
+      expect(!(Math.min(...zs) < 24 && Math.max(...zs) > 24)).toBe(true);
+    }
   });
 
   it("keeps deep zoning rows on both sides of a curve", () => {

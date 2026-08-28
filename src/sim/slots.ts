@@ -89,6 +89,7 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
   for (const segment of graph.allSegments()) {
     for (const block of slotBlocks(graph, segment.id)) {
       for (const candidate of cellsForBlock(block)) {
+        if (cellTouchesOtherRoad(graph, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
         if ([...nearby].some((cell) => cellsOverlap(candidate, cell))) continue;
@@ -120,6 +121,44 @@ export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
     }
   }
   return true;
+}
+
+function cellTouchesOtherRoad(graph: RoadGraph, cell: BuildableCell): boolean {
+  for (const seg of graph.allSegments()) {
+    if (seg.id === cell.segment) continue;
+    const reserve = roadType(seg.type).width / 2;
+    if (seg.samples.some((p) => pointInCell(p, cell))) return true;
+    if (cell.corners.some((p) => distanceToSamples(p, seg.samples) < reserve)) return true;
+  }
+  return false;
+}
+
+function pointInCell(p: Vec3, cell: BuildableCell): boolean {
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = cell.corners[i]!;
+    const b = cell.corners[(i + 1) % 4]!;
+    const cross = (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x);
+    if (Math.abs(cross) < 1e-6) continue;
+    const next = Math.sign(cross);
+    if (sign && next !== sign) return false;
+    sign = next;
+  }
+  return true;
+}
+
+function distanceToSamples(p: Vec3, samples: readonly Vec3[]): number {
+  let best = Infinity;
+  for (let i = 1; i < samples.length; i++) {
+    const a = samples[i - 1]!;
+    const b = samples[i]!;
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const lenSq = dx * dx + dz * dz;
+    const t = lenSq ? Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.z - a.z) * dz) / lenSq)) : 0;
+    best = Math.min(best, Math.hypot(p.x - (a.x + dx * t), p.z - (a.z + dz * t)));
+  }
+  return best;
 }
 
 function cellsForBlock(block: Slot[]): BuildableCell[] {

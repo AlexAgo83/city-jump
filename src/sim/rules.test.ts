@@ -65,6 +65,19 @@ describe("snapping", () => {
     expect(junction).toBeDefined();
     expect(g.isJunction(junction!.id)).toBe(true);
   });
+
+  it("splits both roads when one crosses another in the middle", () => {
+    const g = new RoadGraph();
+    road(g, -60, 0, 60, 0);
+    const result = road(g, 0, -60, 0, 60);
+
+    expect(result.ok).toBe(true);
+    expect(g.allSegments()).toHaveLength(4);
+    const junction = g.allNodes().find((n) => n.segments.size === 4);
+    expect(junction).toBeDefined();
+    expect(junction!.pos.x).toBeCloseTo(0, 1);
+    expect(junction!.pos.z).toBeCloseTo(0, 1);
+  });
 });
 
 describe("validation", () => {

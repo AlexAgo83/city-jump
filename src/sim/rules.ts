@@ -1,5 +1,5 @@
 import { RoadGraph, type NodeId, type SegmentId } from "./graph";
-import { type Vec3, v3, distXZ } from "./vec";
+import { type Vec3, v3, distXZ, lerp } from "./vec";
 import { roadType } from "./roadTypes";
 import { terrainHeight } from "./terrain";
 
@@ -108,6 +108,14 @@ export function commitSegment(
   const b = resolveEndpoint(graph, to);
   if (a === b) return { ok: false, reason: "A road cannot start and end at the same point." };
 
+  const crossing = firstCrossing(graph, from.position, control, to.position);
+  if (crossing) {
+    const middle = graph.splitSegment(crossing.segmentId, crossing.distance);
+    const { leftControl, rightControl } = splitControl(from.position, control, to.position, crossing.t);
+    graph.addSegment(a, middle, leftControl, type);
+    return { ok: true, segmentId: graph.addSegment(middle, b, rightControl, type) };
+  }
+
   return { ok: true, segmentId: graph.addSegment(a, b, control, type) };
 }
 
@@ -120,4 +128,58 @@ function resolveEndpoint(graph: RoadGraph, snap: Snap): NodeId {
     case "free":
       return graph.addNode(snap.position.x, snap.position.z);
   }
+}
+
+function firstCrossing(
+  graph: RoadGraph,
+  from: Vec3,
+  control: Vec3,
+  to: Vec3,
+): { segmentId: SegmentId; distance: number; t: number } | null {
+  // ponytail: sampled curve intersection; replace with exact Bezier solving if misses show up.
+  const proposed = sampleQuadratic(from, control, to);
+  for (const seg of graph.allSegments()) {
+    for (let i = 1; i < proposed.length; i++) {
+      for (let j = 1; j < seg.samples.length; j++) {
+        const hit = segmentCross(proposed[i - 1]!.point, proposed[i]!.point, seg.samples[j - 1]!, seg.samples[j]!);
+        if (!hit) continue;
+        const t = proposed[i - 1]!.t + (proposed[i]!.t - proposed[i - 1]!.t) * hit.a;
+        const distance = seg.cumulative[j - 1]! + (seg.cumulative[j]! - seg.cumulative[j - 1]!) * hit.b;
+        if (t < 1e-3 || t > 1 - 1e-3 || distance < RULES.minLength || seg.length - distance < RULES.minLength) continue;
+        return { segmentId: seg.id, distance, t };
+      }
+    }
+  }
+  return null;
+}
+
+function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3): { point: Vec3; t: number }[] {
+  const out: { point: Vec3; t: number }[] = [];
+  for (let i = 0; i <= 48; i++) {
+    const t = i / 48;
+    const u = 1 - t;
+    out.push({
+      t,
+      point: v3(a.x * u * u + c.x * 2 * u * t + b.x * t * t, 0, a.z * u * u + c.z * 2 * u * t + b.z * t * t),
+    });
+  }
+  return out;
+}
+
+function segmentCross(a: Vec3, b: Vec3, c: Vec3, d: Vec3): { a: number; b: number } | null {
+  const abx = b.x - a.x;
+  const abz = b.z - a.z;
+  const cdx = d.x - c.x;
+  const cdz = d.z - c.z;
+  const den = abx * cdz - abz * cdx;
+  if (Math.abs(den) < 1e-9) return null;
+  const acx = c.x - a.x;
+  const acz = c.z - a.z;
+  const ua = (acx * cdz - acz * cdx) / den;
+  const ub = (acx * abz - acz * abx) / den;
+  return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1 ? { a: ua, b: ub } : null;
+}
+
+function splitControl(a: Vec3, c: Vec3, b: Vec3, t: number): { leftControl: Vec3; rightControl: Vec3 } {
+  return { leftControl: lerp(a, c, t), rightControl: lerp(c, b, t) };
 }

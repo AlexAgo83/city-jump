@@ -1,6 +1,5 @@
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -50,11 +49,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         right.push(new Vector3(position.x - n.x * half, position.y + ROAD_LIFT, position.z - n.z * half));
       }
 
-      const ribbon = MeshBuilder.CreateRibbon(
-        `road_${seg.id}`,
-        { pathArray: [left, right], sideOrientation: MeshClass.DOUBLESIDE },
-        scene,
-      );
+      const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
       ribbon.material = material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
@@ -70,6 +65,23 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   return { rebuild, material };
+}
+
+function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[]): Mesh {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  for (let i = 0; i < left.length; i++) positions.push(left[i]!.x, left[i]!.y, left[i]!.z, right[i]!.x, right[i]!.y, right[i]!.z);
+  for (let i = 0; i < left.length - 1; i++) {
+    const a = i * 2;
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  const mesh = new MeshClass(name, scene);
+  const data = new VertexData();
+  data.positions = positions;
+  data.indices = indices;
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  data.applyToMesh(mesh);
+  return mesh;
 }
 
 /**
