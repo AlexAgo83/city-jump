@@ -57,10 +57,10 @@ export function bindControls(handlers: {
   const tickSun = (): void => {
     const now = performance.now();
     const next = autoStartHour + ((now - autoStartedAt) / 1000) * AUTO_HOURS_PER_SECOND;
-    if (next >= 22) {
-      autoStartHour = 4;
+    if (next >= 21) {
+      autoStartHour = 5;
       autoStartedAt = now;
-      updateSun(4);
+      updateSun(5);
     } else {
       updateSun(next);
     }

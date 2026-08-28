@@ -108,11 +108,11 @@ await page.waitForTimeout(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
 check("the automatic sun cycle advances smoothly", autoMinute > 0 && autoMinute < 15, `${autoMinute} minutes`);
 await page.locator("#sun-hour").evaluate((input) => {
-  input.value = "21.95";
+  input.value = "20.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.waitForTimeout(350);
-check("the automatic sun cycle skips from 22:00 to 04:00", (await page.locator("#sun-time").textContent()).startsWith("04:"));
+check("the automatic sun cycle skips from 21:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
 await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
