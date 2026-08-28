@@ -85,8 +85,9 @@ check(
   afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) && eveningSun.intensity < afternoonSun.intensity,
 );
 await page.locator("#sun-auto").check();
-await page.waitForTimeout(1100);
-check("the automatic sun cycle advances by 15 minutes", (await page.locator("#sun-time").textContent()).startsWith("20:15"));
+await page.waitForTimeout(350);
+const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
+check("the automatic sun cycle advances smoothly", autoMinute > 0 && autoMinute < 15, `${autoMinute} minutes`);
 await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
