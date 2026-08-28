@@ -398,6 +398,38 @@ const tunneled = await stats();
 check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels`);
 check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
+
+// A pedestrian path carries people on foot and no cars at all.
+await page.locator("#road-type").selectOption("pedestrian");
+await click(180, 300);
+await click(560, 250);
+const walked = await stats();
+check("the road type selector draws pedestrian paths", walked.segments === tunneled.segments + 1, `${walked.segments} segments`);
+check("a pedestrian path is populated on foot", walked.pedestrians > tunneled.pedestrians, `${walked.pedestrians} pedestrians`);
+check("a pedestrian path puts no cars on the road", walked.cars === tunneled.cars, `${walked.cars} vs ${tunneled.cars}`);
+const walkerPositions = () =>
+  page.evaluate(() =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("pedestrian_"))
+      .map((mesh) => [mesh.position.x, mesh.position.z]),
+  );
+const walkersBefore = await walkerPositions();
+await page.waitForTimeout(900);
+const walkersAfter = await walkerPositions();
+check(
+  "pedestrians walk along the path",
+  walkersBefore.length > 0 &&
+    walkersBefore.every(([x, z], i) => Math.hypot(x - walkersAfter[i][0], z - walkersAfter[i][1]) > 0.3),
+  `${walkersBefore.length} walking`,
+);
+check(
+  "a pedestrian path is paved rather than surfaced like a street",
+  await page.evaluate(() => {
+    const paved = window.cityjump._scene.meshes.filter((mesh) => mesh.material?.name === "paving");
+    return paved.length > 0;
+  }),
+);
+
 await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
@@ -407,7 +439,7 @@ await click(203, 602);
 await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
-check("a refused road is not added", (await stats()).segments === tunneled.segments);
+check("a refused road is not added", (await stats()).segments === walked.segments);
 
 await page.locator('[data-tool="bulldoze"]').click();
 await page.mouse.move(805, 465);

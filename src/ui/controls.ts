@@ -4,7 +4,7 @@ import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray"): void;
-  onRoadType(type: "street" | "avenue" | "tunnel"): void;
+  onRoadType(type: "street" | "avenue" | "tunnel" | "pedestrian"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
@@ -78,7 +78,9 @@ export function bindControls(handlers: {
 
   document.getElementById("road-type")!.addEventListener("change", (event) => {
     const value = (event.currentTarget as HTMLSelectElement).value;
-    handlers.onRoadType(value === "avenue" ? "avenue" : value === "tunnel" ? "tunnel" : "street");
+    handlers.onRoadType(
+      value === "avenue" ? "avenue" : value === "tunnel" ? "tunnel" : value === "pedestrian" ? "pedestrian" : "street",
+    );
   });
 
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;

@@ -24,6 +24,10 @@ const MARK_LIFT = ROAD_LIFT + 0.05;
 export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const material = new StandardMaterial("road", scene);
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
+  // A footpath in the same asphalt as a street reads as a street. Paving reads as somewhere to walk.
+  const pavingMaterial = new StandardMaterial("paving", scene);
+  pavingMaterial.diffuseColor = new Color3(0.56, 0.53, 0.48);
+  pavingMaterial.specularColor = Color3.Black();
   material.specularColor = Color3.Black();
   const portalMaterial = new StandardMaterial("tunnel_portal", scene);
   portalMaterial.diffuseColor = new Color3(0.26, 0.25, 0.23);
@@ -83,7 +87,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       }
 
       const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
-      ribbon.material = material;
+      ribbon.material = type.pedestrian ? pavingMaterial : material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
       meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));

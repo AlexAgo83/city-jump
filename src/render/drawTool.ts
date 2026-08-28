@@ -40,7 +40,7 @@ export interface DrawTool {
 export type DrawMode = "straight" | "curve";
 export type PlantMode = "plant" | "spray";
 export type ToolMode = "view" | "bulldoze" | DrawMode | PlantMode;
-export type RoadTypeId = "street" | "avenue" | "tunnel";
+export type RoadTypeId = "street" | "avenue" | "tunnel" | "pedestrian";
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
 const SPRAY_RADIUS = 45;

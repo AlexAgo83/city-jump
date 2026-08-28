@@ -158,6 +158,7 @@ export async function startApp(): Promise<void> {
     avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => segment.type === "tunnel").length,
     cars: traffic.count(),
+    pedestrians: traffic.pedestrians(),
     streetlights: streetlights.count(),
     realStreetlights: streetlights.realLightCount(),
     trees: trees.count(),
