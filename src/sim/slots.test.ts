@@ -1,6 +1,15 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
-import { slotsForSegment, allSlots, buildingParcels, buildableCells, cellsOverlap, GRID, SLOT } from "./slots";
+import {
+  slotsForSegment,
+  allSlots,
+  buildingParcels,
+  buildableCells,
+  cellsOverlap,
+  GRID,
+  SLOT,
+  LOW_RISE_SIZES,
+} from "./slots";
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
 import { roadType } from "./roadTypes";
@@ -156,5 +165,38 @@ describe("slots", () => {
       cells.filter((cell) => cell.row === 0).length,
     );
     expect(parcels.reduce((area, parcel) => area + parcel.frontageCells * parcel.depthCells, 0)).toBeLessThanOrEqual(cells.length);
+  });
+});
+
+describe("pedestrian frontage", () => {
+  it("only offers parcel sizes whose building model is short", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "pedestrian");
+    const parcels = buildingParcels(buildableCells(g));
+
+    expect(parcels.length).toBeGreaterThan(0);
+    for (const parcel of parcels) {
+      expect(LOW_RISE_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`)).toBe(true);
+    }
+  });
+
+  it("leaves an ordinary street the full range, including the tall sizes", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "street");
+    const parcels = buildingParcels(buildableCells(g));
+
+    expect(parcels.length).toBeGreaterThan(0);
+    const tall = parcels.some((parcel) => !LOW_RISE_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`));
+    expect(tall).toBe(true);
+  });
+
+  it("marks cells by the road they front", () => {
+    const g = new RoadGraph();
+    const path = straight(g, -200, 0, 200, 0, "pedestrian");
+    const road = straight(g, -200, 400, 200, 400, "street");
+    const cells = buildableCells(g);
+
+    expect(cells.filter((cell) => cell.segment === path).every((cell) => cell.lowRise)).toBe(true);
+    expect(cells.filter((cell) => cell.segment === road).some((cell) => cell.lowRise)).toBe(false);
   });
 });

@@ -423,6 +423,11 @@ check(
   `${walkersBefore.length} walking`,
 );
 check(
+  "a pedestrian path grows buildings of its own",
+  walked.buildings > tunneled.buildings,
+  `${walked.buildings} vs ${tunneled.buildings}`,
+);
+check(
   "a pedestrian path is paved rather than surfaced like a street",
   await page.evaluate(() => {
     const paved = window.cityjump._scene.meshes.filter((mesh) => mesh.material?.name === "paving");

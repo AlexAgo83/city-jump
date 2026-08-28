@@ -31,6 +31,8 @@ export const GRID = {
 } as const;
 
 export interface BuildableCell {
+  /** Set on cells fronting a pedestrian path, which only carries low buildings. */
+  readonly lowRise: boolean;
   readonly segment: SegmentId;
   readonly side: -1 | 1;
   readonly block: number;
@@ -50,6 +52,18 @@ export interface BuildingParcel {
 export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
   Array.from({ length: 4 }, (_, depth) => ({ frontageCells: frontage + 1, depthCells: depth + 1 })),
 ).flat();
+
+/**
+ * Parcel sizes whose building model is short. A parcel picks its model by size, and model height
+ * does NOT follow parcel area -- 1x1 is 9.5m while 4x2 is 28m and 4x4 only 14m -- so a low-rise
+ * street has to name the sizes rather than cap the dimensions.
+ *
+ * Measured from the loaded models; if a model is reshaped, re-measure with the bounding box of
+ * each `building_lot_*` mesh and update this list. Everything here is 14m or under.
+ */
+export const LOW_RISE_SIZES = new Set(["1x1", "2x2", "1x3", "4x1", "4x4", "3x3"]);
+
+const sizeKey = (frontageCells: number, depthCells: number): string => `${frontageCells}x${depthCells}`;
 
 /**
  * Slots derived from the segment: evenly spaced by arc length, offset to the side,
@@ -104,8 +118,9 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
   const roads = indexRoadSamples(graph);
 
   for (const segment of graph.allSegments()) {
+    const lowRise = roadType(segment.type).pedestrian === true;
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
-      for (const candidate of cellsForBlock(block, blockIndex)) {
+      for (const candidate of cellsForBlock(block, blockIndex, lowRise)) {
         if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -139,9 +154,14 @@ export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel
     const random = seededRandom(`${first.corners[0].x.toFixed(2)}:${first.corners[0].z.toFixed(2)}`);
     const roadside = group.filter((cell) => cell.row === 0).sort((a, b) => a.column - b.column);
 
+    // Every cell in a group comes from one segment, so the whole block is low-rise or none of it.
+    const allowed = first.lowRise
+      ? PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)))
+      : PARCEL_SIZES;
+
     for (const origin of roadside) {
       if (!free.has(`${origin.column}:${origin.row}`)) continue;
-      const sizes = shuffled(PARCEL_SIZES, random);
+      const sizes = shuffled(allowed, random);
       const size = sizes.find(({ frontageCells, depthCells }) =>
         rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
       )!; // 1x1 always fits the free origin
@@ -257,7 +277,7 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
 }
 
 
-function cellsForBlock(block: Slot[], blockIndex: number): BuildableCell[] {
+function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -276,6 +296,7 @@ function cellsForBlock(block: Slot[], blockIndex: number): BuildableCell[] {
     let column = 0;
     for (let along = -width / 2; along < width / 2; along += GRID.cellSize) {
       cells.push({
+        lowRise,
         segment: block[0]!.segment,
         side: block[0]!.side,
         block: blockIndex,
