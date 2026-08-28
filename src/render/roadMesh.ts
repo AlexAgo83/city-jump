@@ -54,9 +54,11 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         line.isPickable = false;
 
         const tube = tunnelMesh(scene, `tunnel_${seg.id}`, graph, seg.id, steps, type.width);
-        tube.material = tubeMaterial;
-        tube.isPickable = false;
-        meshes.push(line, tube);
+        tube.shell.material = portalMaterial;
+        tube.interior.material = tubeMaterial;
+        tube.shell.isPickable = false;
+        tube.interior.isPickable = false;
+        meshes.push(line, tube.shell, tube.interior);
         meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel));
         continue;
       }
@@ -120,20 +122,41 @@ function pointsBetween(graph: RoadGraph, id: number, from: number, to: number, s
   return points;
 }
 
-function tunnelMesh(scene: Scene, name: string, graph: RoadGraph, id: number, steps: number, width: number): Mesh {
+function tunnelMesh(scene: Scene, name: string, graph: RoadGraph, id: number, steps: number, width: number): { shell: Mesh; interior: Mesh } {
   const seg = graph.segment(id);
-  const section = tunnelSection(width);
-  const positions: number[] = [];
-  const indices: number[] = [];
+  const inner = tunnelSection(width);
+  const outer = tunnelSection(width + 8).map((p) => ({ x: p.x, y: p.y + 1.5 }));
+  const shellPositions: number[] = [];
+  const interiorPositions: number[] = [];
   for (let i = 0; i <= steps; i++) {
     const { position, tangent } = graph.pointAt(id, (seg.length * i) / steps);
     const n = perpXZ(normalizeXZ(tangent));
-    for (const p of section) positions.push(position.x + n.x * p.x, position.y + ROAD_LIFT + p.y, position.z + n.z * p.x);
+    const y = terrainHeight(position.x, position.z) + MARK_LIFT;
+    for (const p of outer) shellPositions.push(position.x + n.x * p.x, y + p.y, position.z + n.z * p.x);
+    for (const p of inner) interiorPositions.push(position.x + n.x * p.x, y + p.y, position.z + n.z * p.x);
   }
+  const shellIndices = tunnelStripIndices(outer.length, steps, false);
+  const interiorIndices = tunnelStripIndices(inner.length, steps, true);
+  return {
+    shell: vertexMesh(scene, `${name}_shell`, shellPositions, shellIndices),
+    interior: vertexMesh(scene, `${name}_interior`, interiorPositions, interiorIndices),
+  };
+}
+
+function tunnelStripIndices(count: number, steps: number, flip: boolean): number[] {
+  const indices: number[] = [];
   for (let i = 0; i < steps; i++) {
-    const a = i * section.length;
-    for (let j = 0; j < section.length - 1; j++) indices.push(a + j, a + j + 1, a + section.length + j, a + j + 1, a + section.length + j + 1, a + section.length + j);
+    const a = i * count;
+    const b = a + count;
+    for (let j = 0; j < count - 1; j++) {
+      if (flip) indices.push(a + j, a + j + 1, b + j, a + j + 1, b + j + 1, b + j);
+      else indices.push(a + j, b + j, a + j + 1, a + j + 1, b + j, b + j + 1);
+    }
   }
+  return indices;
+}
+
+function vertexMesh(scene: Scene, name: string, positions: number[], indices: number[]): Mesh {
   const mesh = new MeshClass(name, scene);
   const data = new VertexData();
   data.positions = positions;
