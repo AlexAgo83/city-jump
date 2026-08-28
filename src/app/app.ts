@@ -32,6 +32,10 @@ export async function startApp(): Promise<void> {
   const trees = createTreeRenderer(scene, heightmap, graph, shadows);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
+  const setSun = (hour: number): void => {
+    setSunHour(hour);
+    trees.setSunHour(hour);
+  };
 
   const refreshHud = (): void => {
     setHud(
@@ -89,7 +93,7 @@ export async function startApp(): Promise<void> {
       rebuild();
       return true;
     },
-    onSunHour: setSunHour,
+    onSunHour: setSun,
   });
 
   scene.onPointerObservable.add(refreshHud);

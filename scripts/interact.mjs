@@ -65,6 +65,8 @@ const sunState = () =>
     const sun = window.cityjump._scene.getLightByName("sun");
     return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity };
   });
+const firstTreeShadowX = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("tree_ground_shadows")?.thinInstanceGetWorldMatrices()[0]?.m[12] ?? 0);
 
 // Nothing has been drawn, so generated scenery is allowed but authored city state is not.
 const fresh = await stats();
@@ -91,6 +93,16 @@ check(
   "the sun control changes angle and intensity",
   afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) && eveningSun.intensity < afternoonSun.intensity,
 );
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "8";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+const morningTreeShadowX = await firstTreeShadowX();
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "16";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+check("tree ground shadows follow the sun direction", Math.abs((await firstTreeShadowX()) - morningTreeShadowX) > 2);
 await page.locator("#sun-auto").check();
 await page.waitForTimeout(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);

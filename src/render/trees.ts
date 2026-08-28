@@ -48,11 +48,13 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
   }
 
   let treeCount = 0;
+  let treeBases: { x: number; y: number; z: number; scale: number }[] = [];
+  let sunHour = 14;
 
   function rebuild(): number {
     const trunkMatrices: Matrix[] = [];
     const leafMatrices: Matrix[] = [];
-    const shadowMatrices: Matrix[] = [];
+    const bases: typeof treeBases = [];
     const step = 58;
     let i = 0;
 
@@ -73,25 +75,51 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
         const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
         trunkMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 2.5 * scale, pz)));
         leafMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 8.3 * scale, pz)));
-        shadowMatrices.push(
-          Matrix.Compose(
-            new Vector3(5.4 * scale, 1, 2.2 * scale),
-            Quaternion.FromEulerAngles(0, -0.65, 0),
-            new Vector3(px + 1.8 * scale, h + 0.04, pz + 1.1 * scale),
-          ),
-        );
+        bases.push({ x: px, y: h, z: pz, scale });
         i++;
       }
     }
 
     applyInstances(trunk, trunkMatrices);
     applyInstances(leaves, leafMatrices);
-    applyInstances(groundShadows, shadowMatrices);
+    treeBases = bases;
+    updateGroundShadows();
     treeCount = trunkMatrices.length;
     return treeCount;
   }
 
-  return { rebuild, count: () => treeCount };
+  function setSunHour(hour: number): void {
+    sunHour = hour;
+    updateGroundShadows();
+  }
+
+  function updateGroundShadows(): void {
+    const daylight = Math.max(0, Math.sin(((sunHour - 6) / 12) * Math.PI));
+    const azimuth = ((sunHour - 6) / 24) * Math.PI * 2;
+    if (daylight <= 0.03) {
+      applyInstances(groundShadows, []);
+      return;
+    }
+
+    shadowMaterial.alpha = 0.08 + daylight * 0.13;
+    const directionX = Math.cos(azimuth);
+    const directionZ = Math.sin(azimuth);
+    const length = 2.6 + (1 - daylight) * 6.8;
+    const yaw = Math.atan2(-directionZ, directionX);
+    const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
+    applyInstances(
+      groundShadows,
+      treeBases.map(({ x, y, z, scale }) =>
+        Matrix.Compose(
+          new Vector3(length * scale, 1, 1.8 * scale),
+          rotation,
+          new Vector3(x + directionX * length * scale * 0.45, y + 0.04, z + directionZ * length * scale * 0.45),
+        ),
+      ),
+    );
+  }
+
+  return { rebuild, setSunHour, count: () => treeCount };
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {
