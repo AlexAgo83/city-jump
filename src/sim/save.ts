@@ -10,16 +10,19 @@
  * and `conformToRoads` reshapes the ground under them anyway.
  */
 import { RoadGraph, type NodeId } from "./graph";
-import type { Planting, Plantings } from "./plantings";
+import { DEFAULT_TREE_SPECIES, type Planting, type Plantings } from "./plantings";
 import { v3 } from "./vec";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
 export type SavedNode = [id: NodeId, x: number, y: number, z: number];
 export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string];
-/** A hand-planted tree or a cleared spot: ground position only, the rest is generated. */
-export type SavedPlanting = [x: number, z: number];
+/**
+ * A hand-planted tree or a cleared spot. The species is optional so that saves written before
+ * there was a choice still load; they were all firs.
+ */
+export type SavedPlanting = [x: number, z: number, species?: string];
 
 export interface CitySave {
   readonly v: number;
@@ -36,7 +39,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: s
     v: SAVE_VERSION,
     terrain,
     hour,
-    planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z]),
+    planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
     nodes: graph.allNodes().map((node) => [node.id, node.pos.x, node.pos.y, node.pos.z]),
     segments: graph
@@ -100,7 +103,7 @@ export function parseCity(text: string): CitySave | null {
 }
 
 function toPlantings(points: readonly SavedPlanting[]): Planting[] {
-  return points.map(([x, z]) => ({ x, z }));
+  return points.map(([x, z, species]) => ({ x, z, species: species ?? DEFAULT_TREE_SPECIES }));
 }
 
 /** Absent is fine and means none; present but malformed is not. */
@@ -108,7 +111,11 @@ function readPlantings(value: unknown): SavedPlanting[] | null {
   if (value === undefined) return [];
   if (!Array.isArray(value)) return null;
   const points = value.filter(
-    (point): point is SavedPlanting => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite),
+    (point): point is SavedPlanting =>
+      Array.isArray(point) &&
+      (point.length === 2 || (point.length === 3 && typeof point[2] === "string")) &&
+      Number.isFinite(point[0]) &&
+      Number.isFinite(point[1]),
   );
   return points.length === value.length ? points : null;
 }

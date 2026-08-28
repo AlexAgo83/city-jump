@@ -25,6 +25,66 @@ const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
   };
 });
 
+/** Species differ only in geometry and colour; everything else about a tree is shared. */
+const SPECIES = {
+  fir: {
+    trunk: { height: 5, diameter: 0.8 },
+    trunkLift: 2.5,
+    canopy: (scene: Scene, name: string) =>
+      MeshBuilder.CreateCylinder(name, { height: 8, diameterTop: 0.4, diameterBottom: 5.6, tessellation: 7 }, scene),
+    canopyLift: 8.3,
+    trunkColor: new Color3(0.25, 0.14, 0.08),
+    canopyColor: new Color3(0.12, 0.42, 0.14),
+    spread: 1,
+  },
+  oak: {
+    trunk: { height: 5, diameter: 1.3 },
+    trunkLift: 2.5,
+    // A squashed sphere: baked into the vertices so thin instances inherit the shape.
+    canopy: (scene: Scene, name: string) => {
+      const mesh = MeshBuilder.CreateSphere(name, { diameter: 8, segments: 5 }, scene);
+      mesh.scaling.y = 0.72;
+      mesh.bakeCurrentTransformIntoVertices();
+      return mesh;
+    },
+    canopyLift: 6.5,
+    trunkColor: new Color3(0.3, 0.19, 0.1),
+    canopyColor: new Color3(0.2, 0.44, 0.16),
+    spread: 1.5,
+  },
+  apple: {
+    trunk: { height: 3.6, diameter: 0.7 },
+    trunkLift: 1.8,
+    canopy: (scene: Scene, name: string) => MeshBuilder.CreateSphere(name, { diameter: 5.4, segments: 5 }, scene),
+    canopyLift: 4.8,
+    trunkColor: new Color3(0.28, 0.17, 0.09),
+    canopyColor: new Color3(0.34, 0.56, 0.22),
+    spread: 1.05,
+  },
+  palm: {
+    trunk: { height: 10, diameter: 0.6 },
+    trunkLift: 5,
+    // A wide, shallow cone flaring downwards: fronds droop away from the crown, which is what
+    // separates a palm from a parasol. ponytail: one cone, not modelled leaves.
+    canopy: (scene: Scene, name: string) =>
+      MeshBuilder.CreateCylinder(name, { height: 2.4, diameterTop: 1.2, diameterBottom: 9.5, tessellation: 7 }, scene),
+    canopyLift: 10.6,
+    trunkColor: new Color3(0.42, 0.32, 0.18),
+    canopyColor: new Color3(0.26, 0.5, 0.2),
+    spread: 1.7,
+  },
+} as const;
+
+export type TreeSpeciesId = keyof typeof SPECIES;
+export const TREE_SPECIES = Object.keys(SPECIES) as TreeSpeciesId[];
+/** What the landscape grows on its own, and what a save without a species means. */
+export const DEFAULT_SPECIES: TreeSpeciesId = "fir";
+
+/** Saves carry a plain string, so an id from another build falls back rather than crashing. */
+function speciesOf(id: string): TreeSpeciesId {
+  return (TREE_SPECIES as string[]).includes(id) ? (id as TreeSpeciesId) : DEFAULT_SPECIES;
+}
+
 export function createTreeRenderer(
   scene: Scene,
   heightmap: Heightmap,
@@ -32,24 +92,7 @@ export function createTreeRenderer(
   shadows: ShadowGenerator,
   plantings: Plantings,
 ) {
-  const trunk = MeshBuilder.CreateCylinder("tree_trunks", { height: 5, diameter: 0.8, tessellation: 6 }, scene);
-  const leaves = MeshBuilder.CreateCylinder(
-    "tree_canopies",
-    { height: 8, diameterTop: 0.4, diameterBottom: 5.6, tessellation: 7 },
-    scene,
-  );
   const groundShadows = MeshBuilder.CreateCylinder("tree_ground_shadows", { height: 0.02, diameter: 1, tessellation: 14 }, scene);
-
-  const trunkMaterial = new StandardMaterial("tree_trunk", scene);
-  trunkMaterial.diffuseColor = new Color3(0.25, 0.14, 0.08);
-  trunkMaterial.specularColor = Color3.Black();
-  trunk.material = trunkMaterial;
-
-  const leafMaterial = new StandardMaterial("tree_canopy", scene);
-  leafMaterial.diffuseColor = new Color3(0.12, 0.42, 0.14);
-  leafMaterial.specularColor = Color3.Black();
-  leaves.material = leafMaterial;
-
   const shadowMaterial = new StandardMaterial("tree_ground_shadow", scene);
   shadowMaterial.diffuseColor = Color3.Black();
   shadowMaterial.specularColor = Color3.Black();
@@ -57,35 +100,60 @@ export function createTreeRenderer(
   shadowMaterial.disableLighting = true;
   shadowMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
   groundShadows.material = shadowMaterial;
+  groundShadows.isPickable = false;
+  groundShadows.alwaysSelectAsActiveMesh = true;
+  groundShadows.setEnabled(false);
 
-  for (const mesh of [trunk, leaves, groundShadows]) {
-    mesh.isPickable = false;
-    mesh.alwaysSelectAsActiveMesh = true;
-    mesh.setEnabled(false);
-  }
-  for (const mesh of [trunk, leaves]) {
-    shadows.addShadowCaster(mesh);
-  }
+  const built = TREE_SPECIES.map((id) => {
+    const look = SPECIES[id];
+    const trunk = MeshBuilder.CreateCylinder(
+      `tree_trunks_${id}`,
+      { height: look.trunk.height, diameter: look.trunk.diameter, tessellation: 6 },
+      scene,
+    );
+    const canopy = look.canopy(scene, `tree_canopies_${id}`);
+
+    const trunkMaterial = new StandardMaterial(`tree_trunk_${id}`, scene);
+    trunkMaterial.diffuseColor = look.trunkColor;
+    trunkMaterial.specularColor = Color3.Black();
+    trunk.material = trunkMaterial;
+
+    const canopyMaterial = new StandardMaterial(`tree_canopy_${id}`, scene);
+    canopyMaterial.diffuseColor = look.canopyColor;
+    canopyMaterial.specularColor = Color3.Black();
+    canopy.material = canopyMaterial;
+
+    for (const mesh of [trunk, canopy]) {
+      mesh.isPickable = false;
+      mesh.alwaysSelectAsActiveMesh = true;
+      mesh.setEnabled(false);
+      shadows.addShadowCaster(mesh);
+    }
+    return { id, look, trunk, canopy };
+  });
 
   let treeCount = 0;
-  let treeBases: { x: number; y: number; z: number; scale: number }[] = [];
+  let treeBases: { x: number; y: number; z: number; scale: number; spread: number }[] = [];
   let sunHour = 14;
 
   function rebuild(): number {
-    const trunkMatrices: Matrix[] = [];
-    const leafMatrices: Matrix[] = [];
+    const matrices = new Map<TreeSpeciesId, { trunks: Matrix[]; canopies: Matrix[] }>(
+      TREE_SPECIES.map((id) => [id, { trunks: [], canopies: [] }]),
+    );
     const bases: typeof treeBases = [];
     const occupied = new Set<string>();
     const step = 58;
     let i = 0;
 
-    const put = (px: number, pz: number, seed: number, h: number): void => {
+    const put = (px: number, pz: number, seed: number, h: number, id: TreeSpeciesId): void => {
+      const look = SPECIES[id];
+      const into = matrices.get(id)!;
       const scale = 0.75 + randomish(seed, 4) * 0.55;
-      const yaw = randomish(seed, 5) * Math.PI * 2;
-      const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
-      trunkMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 2.5 * scale, pz)));
-      leafMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 8.3 * scale, pz)));
-      bases.push({ x: px, y: h, z: pz, scale });
+      const size = new Vector3(scale, scale, scale);
+      const rotation = Quaternion.FromEulerAngles(0, randomish(seed, 5) * Math.PI * 2, 0);
+      into.trunks.push(Matrix.Compose(size, rotation, new Vector3(px, h + look.trunkLift * scale, pz)));
+      into.canopies.push(Matrix.Compose(size, rotation, new Vector3(px, h + look.canopyLift * scale, pz)));
+      bases.push({ x: px, y: h, z: pz, scale, spread: look.spread });
     };
 
     /** Scenery: skips water, peaks, roads, its own neighbours, and anything cleared by hand. */
@@ -95,7 +163,7 @@ export function createTreeRenderer(
       if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(graph, px, pz)) return;
       if (plantings.isCleared(px, pz)) return;
       occupied.add(bucket);
-      put(px, pz, seed, h);
+      put(px, pz, seed, h, DEFAULT_SPECIES);
     };
 
     for (let z = -GROUND_SIZE / 2 + step; z < GROUND_SIZE / 2; z += step) {
@@ -126,14 +194,17 @@ export function createTreeRenderer(
     // Hand-planted trees go in last and answer to none of the scenery rules: the player put them
     // there deliberately. Only the sea is off limits, and the tool refuses that before we get here.
     for (const [index, tree] of plantings.plantedTrees.entries()) {
-      put(tree.x, tree.z, index + 7919, heightmap.heightAt(tree.x, tree.z));
+      put(tree.x, tree.z, index + 7919, heightmap.heightAt(tree.x, tree.z), speciesOf(tree.species));
     }
 
-    applyInstances(trunk, trunkMatrices);
-    applyInstances(leaves, leafMatrices);
+    for (const { id, trunk, canopy } of built) {
+      const set = matrices.get(id)!;
+      applyInstances(trunk, set.trunks);
+      applyInstances(canopy, set.canopies);
+    }
     treeBases = bases;
     updateGroundShadows();
-    treeCount = trunkMatrices.length;
+    treeCount = bases.length;
     return treeCount;
   }
 
@@ -158,9 +229,9 @@ export function createTreeRenderer(
     const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
     applyInstances(
       groundShadows,
-      treeBases.map(({ x, y, z, scale }) =>
+      treeBases.map(({ x, y, z, scale, spread }) =>
         Matrix.Compose(
-          new Vector3(length * scale, 1, 1.8 * scale),
+          new Vector3(length * scale, 1, 1.8 * scale * spread),
           rotation,
           new Vector3(x + directionX * length * scale * 0.45, y + 0.04, z + directionZ * length * scale * 0.45),
         ),

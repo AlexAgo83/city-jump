@@ -85,9 +85,9 @@ export async function startApp(): Promise<void> {
   };
 
   const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal, {
-    plant(x, z) {
+    plant(x, z, species) {
       if (heightmap.heightAt(x, z) <= SEA_LEVEL) return false;
-      plantings.plant(x, z);
+      plantings.plant(x, z, species);
       refreshTrees();
       return true;
     },
@@ -111,6 +111,9 @@ export async function startApp(): Promise<void> {
     onWorldGrid: worldGrid.setVisible,
     onGridSnap(enabled) {
       tool.setGridSnap(enabled);
+    },
+    onTreeSpecies(species) {
+      tool.setTreeSpecies(species);
     },
     onBuildings(visible) {
       buildings.setVisible(visible);

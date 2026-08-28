@@ -178,7 +178,7 @@ const firstTreeShadowX = () =>
 const densestTreeCluster = () =>
   page.evaluate(() => {
     const trees = window.cityjump._scene
-      .getMeshByName("tree_trunks")
+      .getMeshByName("tree_trunks_fir")
       .thinInstanceGetWorldMatrices()
       .map((matrix) => [matrix.m[12], matrix.m[14]]);
     let densest = 0;
@@ -355,7 +355,10 @@ check("building shadows use stabilized cascades", shadows.generator === "Cascade
 check("building shadows avoid acne", shadows.bias >= 0.002 && shadows.normalBias >= 0.08 && shadows.pcf);
 check(
   "trees cast shadows onto the ground",
-  shadows.groundReceives && shadows.names.includes("tree_trunks") && shadows.names.includes("tree_canopies"),
+  shadows.groundReceives &&
+    shadows.names.includes("tree_trunks_fir") &&
+    shadows.names.includes("tree_canopies_fir") &&
+    shadows.names.includes("tree_canopies_palm"),
   `${JSON.stringify(shadows)}`,
 );
 
@@ -472,6 +475,31 @@ const wildTrees = await treeCount();
 await click(500, 350);
 const oneMore = await treeCount();
 check("a click plants a single tree", oneMore === wildTrees + 1, `${wildTrees} -> ${oneMore}`);
+
+// Each species plants its own mesh, so the picker really changes what grows.
+const speciesCounts = () =>
+  page.evaluate(() =>
+    Object.fromEntries(
+      ["fir", "oak", "apple", "palm"].map((id) => {
+        const mesh = window.cityjump._scene.getMeshByName(`tree_trunks_${id}`);
+        return [id, mesh?.isEnabled() ? mesh.thinInstanceCount : 0];
+      }),
+    ),
+  );
+const beforeSpecies = await speciesCounts();
+for (const [index, species] of ["oak", "apple", "palm"].entries()) {
+  await page.locator("#tree-species").selectOption(species);
+  await page.waitForTimeout(120);
+  await click(560 + index * 90, 350);
+}
+const afterSpecies = await speciesCounts();
+check(
+  "each species plants its own kind of tree",
+  ["oak", "apple", "palm"].every((id) => afterSpecies[id] === beforeSpecies[id] + 1),
+  JSON.stringify(afterSpecies),
+);
+await page.locator("#tree-species").selectOption("fir");
+await page.waitForTimeout(120);
 
 await page.locator('input[name="plant-mode"][value="spray"]').check();
 await page.waitForTimeout(150);

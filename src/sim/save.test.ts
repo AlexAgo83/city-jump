@@ -32,7 +32,7 @@ describe("city saves", () => {
 
   it("is a fixed point: save, load, save gives the same data", () => {
     const planted = new Plantings();
-    planted.plant(10, 20);
+    planted.plant(10, 20, "oak");
     planted.clear(-40, 5);
     const once = serializeCity(city(), planted, "rolling", 14);
 
@@ -44,18 +44,36 @@ describe("city saves", () => {
 
   it("carries hand-planted and cleared trees through a save", () => {
     const plantings = new Plantings();
-    plantings.plant(10, 20);
-    plantings.plant(-5, 60);
+    plantings.plant(10, 20, "oak");
+    plantings.plant(-5, 60, "palm");
     plantings.clear(300, 300); // a generated tree, so it is recorded as a clearing
     plantings.clear(10, 20); // one we planted, so it is simply dropped again
 
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), plantings, "rolling", 14)));
     const restored = new Plantings();
     restoreCity(new RoadGraph(), restored, save!);
-    expect(restored.plantedTrees).toEqual([{ x: -5, z: 60 }]);
-    expect(restored.clearedPoints).toEqual([{ x: 300, z: 300 }]);
+    expect(restored.plantedTrees).toEqual([{ x: -5, z: 60, species: "palm" }]);
+    expect(restored.clearedPoints).toEqual([{ x: 300, z: 300, species: "fir" }]);
     expect(restored.isCleared(300, 301)).toBe(true);
     expect(restored.isCleared(400, 400)).toBe(false);
+  });
+
+  it("reads plantings saved before species existed as firs", () => {
+    const v2 = JSON.stringify({
+      v: 2,
+      terrain: "rolling",
+      hour: 14,
+      nodes: [],
+      segments: [],
+      planted: [[10, 20], [30, 40]],
+      cleared: [[50, 60]],
+    });
+    const save = parseCity(v2);
+    expect(save).not.toBeNull();
+    const restored = new Plantings();
+    restoreCity(new RoadGraph(), restored, save!);
+    expect(restored.plantedTrees.map((tree) => tree.species)).toEqual(["fir", "fir"]);
+    expect(restored.plantedTrees[0]).toEqual({ x: 10, z: 20, species: "fir" });
   });
 
   it("still reads a city saved before plantings existed", () => {

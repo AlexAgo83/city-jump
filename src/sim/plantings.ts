@@ -9,7 +9,18 @@
 export interface Planting {
   readonly x: number;
   readonly z: number;
+  /** Which tree stands here. Cleared points carry the default and never use it. */
+  readonly species: TreeSpecies;
 }
+
+/**
+ * Kept as a bare string rather than importing the renderer's union: sim must not depend on
+ * render, and the renderer validates the id when it looks the species up.
+ */
+export type TreeSpecies = string;
+
+/** What a planting means when a save does not name a species. */
+export const DEFAULT_TREE_SPECIES: TreeSpecies = "fir";
 
 /** How close a removal point has to be to a tree to count as that tree. */
 export const REMOVAL_RADIUS = 3;
@@ -18,8 +29,8 @@ export class Plantings {
   private readonly added: Planting[] = [];
   private readonly removed: Planting[] = [];
 
-  plant(x: number, z: number): void {
-    this.added.push({ x, z });
+  plant(x: number, z: number, species: TreeSpecies): void {
+    this.added.push({ x, z, species });
   }
 
   /**
@@ -32,7 +43,7 @@ export class Plantings {
       this.added.splice(index, 1);
       return;
     }
-    this.removed.push({ x, z });
+    this.removed.push({ x, z, species: DEFAULT_TREE_SPECIES });
   }
 
   /**

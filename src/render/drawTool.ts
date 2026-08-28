@@ -34,6 +34,7 @@ export interface DrawTool {
   setMode(mode: ToolMode): void;
   setGridSnap(enabled: boolean): void;
   setRoadType(type: RoadTypeId): void;
+  setTreeSpecies(species: string): void;
 }
 
 export type DrawMode = "straight" | "curve";
@@ -57,7 +58,7 @@ export const TREE_REACH = 8;
  */
 export interface NatureTools {
   /** False if a tree cannot go here -- underwater, mainly. */
-  plant(x: number, z: number): boolean;
+  plant(x: number, z: number, species: string): boolean;
   /** True if a tree was actually cleared. */
   clearTree(x: number, z: number): boolean;
 }
@@ -75,6 +76,7 @@ export function createDrawTool(
   let mode: ToolMode = "view";
   let gridSnap = true;
   let typeId = initialTypeId;
+  let treeSpecies = "fir";
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
@@ -127,7 +129,7 @@ export function createDrawTool(
     for (let i = 0; i < SPRAY_PER_BURST; i++) {
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.sqrt(Math.random()) * SPRAY_RADIUS;
-      nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance);
+      nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance, treeSpecies);
     }
   }
 
@@ -212,7 +214,7 @@ export function createDrawTool(
       return;
     }
     if (mode === "plant") {
-      if (!nature.plant(at.x, at.z)) onRefused("A tree needs dry ground.");
+      if (!nature.plant(at.x, at.z, treeSpecies)) onRefused("A tree needs dry ground.");
       return;
     }
     if (mode === "spray") {
@@ -320,6 +322,9 @@ export function createDrawTool(
     setRoadType(next) {
       typeId = next;
       cancel();
+    },
+    setTreeSpecies(next) {
+      treeSpecies = next;
     },
   };
 }
