@@ -11,6 +11,7 @@ import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
 import { roadType } from "../sim/roadTypes";
 import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
+import { daylightAt, sunAzimuthAt } from "./scene";
 
 const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
   const angle = randomish(i, 20) * Math.PI * 2;
@@ -124,8 +125,8 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
   }
 
   function updateGroundShadows(): void {
-    const daylight = Math.max(0, Math.sin(((sunHour - 6) / 12) * Math.PI));
-    const azimuth = ((sunHour - 6) / 24) * Math.PI * 2;
+    const daylight = daylightAt(sunHour);
+    const azimuth = sunAzimuthAt(sunHour);
     if (daylight <= 0.03) {
       applyInstances(groundShadows, []);
       return;

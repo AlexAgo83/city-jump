@@ -69,12 +69,53 @@ const realStreetlightCount = () =>
     const scene = window.cityjump._scene;
     const cluster = scene.getLightByName("streetlight_lights");
     if (cluster?.lights.length) return cluster.isEnabled() ? cluster.lights.length : 0;
-    return scene.lights.filter((light) => light.name.startsWith("streetlight_light_") && light.isEnabled()).length;
+    return scene.lights.filter((light) => light.name.startsWith("streetlight_") && light.isEnabled()).length;
   });
 const clusteredStreetlights = () =>
   page.evaluate(() => {
     const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
     return cluster?.getClassName() === "ClusteredLightContainer" && cluster.isSupported;
+  });
+const streetlightsReachBuildings = () =>
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const cluster = scene.getLightByName("streetlight_lights");
+    const lights = cluster?.isEnabled() ? cluster.lights : [];
+    const buildings = scene.meshes.filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled());
+    const materialMaxLights = (material) =>
+      Math.max(material?.maxSimultaneousLights ?? 0, ...(material?.subMaterials ?? []).map(materialMaxLights));
+    const hasLitFacadeMaterial = buildings.some((mesh) => materialMaxLights(mesh.material) >= 32);
+    const reaches = buildings.some((mesh) =>
+      mesh.thinInstanceGetWorldMatrices().some((matrix) =>
+        lights.some((light) => Math.hypot(matrix.m[12] - light.position.x, matrix.m[14] - light.position.z) < light.range),
+      ),
+    );
+    return hasLitFacadeMaterial && reaches;
+  });
+const buildingFacadeEmission = () =>
+  page.evaluate(() => {
+    const materialEmission = (material) =>
+      Math.max(
+        material?.emissiveColor ? material.emissiveColor.r + material.emissiveColor.g + material.emissiveColor.b : 0,
+        ...(material?.subMaterials ?? []).map(materialEmission),
+      );
+    return Math.max(
+      0,
+      ...window.cityjump._scene.meshes
+        .filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled())
+        .map((mesh) => materialEmission(mesh.material)),
+    );
+  });
+const buildingLightPipeline = () =>
+  page.evaluate(() => {
+    return window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled())
+      .every((mesh) => mesh.material?.getClassName?.() === "StandardMaterial");
+  });
+const streetlightFacadeLights = () =>
+  page.evaluate(() => {
+    const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
+    return cluster?.lights.some((light) => light.name.startsWith("streetlight_facade_") && light.range >= 40) ?? false;
   });
 const shadowState = () =>
   page.evaluate(() => {
@@ -91,6 +132,9 @@ const shadowState = () =>
       names: renderList.map((mesh) => mesh.name),
       generator: generator?.getClassName(),
       stabilized: generator?.stabilizeCascades ?? false,
+      bias: generator?.bias ?? 0,
+      normalBias: generator?.normalBias ?? 0,
+      pcf: generator?.usePercentageCloserFiltering ?? false,
     };
   });
 const trafficPositions = () =>
@@ -104,6 +148,20 @@ const sunState = () =>
     const sun = window.cityjump._scene.getLightByName("sun");
     const ambient = window.cityjump._scene.getLightByName("ambient");
     return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity, ambient: ambient.intensity };
+  });
+const skyState = () =>
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const sky = scene.getMeshByName("skybox");
+    const colors = sky?.getVerticesData("color") ?? [];
+    const brightness = colors.length ? colors[0] * 0.21 + colors[1] * 0.72 + colors[2] * 0.07 : 0;
+    return {
+      sky: Boolean(sky),
+      far: Boolean(sky && sky.scaling.x >= 10000 && sky.material?.disableDepthWrite),
+      brightness,
+      sun: scene.getMeshByName("sun_disc")?.isEnabled() ?? false,
+      moon: scene.getMeshByName("moon_disc")?.isEnabled() ?? false,
+    };
   });
 const firstTreeShadowX = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("tree_ground_shadows")?.thinInstanceGetWorldMatrices()[0]?.m[12] ?? 0);
@@ -158,17 +216,30 @@ check("empty categories do not show road options", !(await page.locator("#road-o
 await page.locator('[data-tool="select"]').click();
 
 const afternoonSun = await sunState();
+const afternoonSky = await skyState();
+check("the skybox shows the daytime sun", afternoonSky.sky && afternoonSky.sun && !afternoonSky.moon);
+check("the skybox stays behind the playable island", afternoonSky.far);
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "20";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
+await page.waitForTimeout(60);
 const eveningSun = await sunState();
+const eveningSky = await skyState();
 check(
   "the sun control changes angle and intensity",
   afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) &&
     eveningSun.intensity < afternoonSun.intensity &&
-    eveningSun.ambient < 0.12,
+    eveningSun.ambient > 0.44,
 );
+check("the skybox shifts to evening", eveningSky.sun && eveningSky.moon && eveningSky.brightness < afternoonSky.brightness);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "23";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForTimeout(60);
+const nightSky = await skyState();
+check("the skybox shows the night moon", nightSky.moon && !nightSky.sun && nightSky.brightness < eveningSky.brightness);
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -184,11 +255,11 @@ await page.waitForTimeout(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
 check("the automatic sun cycle advances smoothly", autoMinute > 0 && autoMinute < 15, `${autoMinute} minutes`);
 await page.locator("#sun-hour").evaluate((input) => {
-  input.value = "20.95";
+  input.value = "21.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.waitForTimeout(350);
-check("the automatic sun cycle skips from 21:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
+check("the automatic sun cycle skips from 22:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
 await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
@@ -235,7 +306,22 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.value = "17";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-check("streetlights switch on at 17:00", (await realStreetlightCount()) > 0);
+check("streetlights stay off at 17:00", (await realStreetlightCount()) === 0);
+check("buildings do not use fake emissive lighting by day", (await buildingFacadeEmission()) === 0);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "21";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+check("streetlights stay off at 21:00", (await realStreetlightCount()) === 0);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "22";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+check("streetlights switch on at 22:00", (await realStreetlightCount()) > 0);
+check("streetlights include facade fill lights", await streetlightFacadeLights());
+check("streetlights reach nearby buildings", await streetlightsReachBuildings());
+check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);
+check("buildings use the same night lighting pipeline as scenery", await buildingLightPipeline());
 await page.locator("#show-buildings").uncheck();
 check("generated buildings can be hidden", (await stats()).buildings === 0);
 await page.locator("#show-buildings").check();
@@ -256,6 +342,7 @@ const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
 check("buildings receive shadows from neighbouring buildings", shadows.buildingsReceive);
 check("building shadows use stabilized cascades", shadows.generator === "CascadedShadowGenerator" && shadows.stabilized);
+check("building shadows avoid acne", shadows.bias >= 0.002 && shadows.normalBias >= 0.08 && shadows.pcf);
 check(
   "trees cast shadows onto the ground",
   shadows.groundReceives && shadows.names.includes("tree_trunks") && shadows.names.includes("tree_canopies"),
@@ -323,7 +410,7 @@ const ruggedNetwork = await stats();
 check("roads still render on rugged terrain", ruggedNetwork.segments > 0);
 check(
   "every streetlight has a real light",
-  ruggedNetwork.streetlights > 0 && ruggedNetwork.realStreetlights === ruggedNetwork.streetlights,
+  ruggedNetwork.streetlights > 0 && ruggedNetwork.realStreetlights >= ruggedNetwork.streetlights,
   `${ruggedNetwork.realStreetlights}/${ruggedNetwork.streetlights}`,
 );
 

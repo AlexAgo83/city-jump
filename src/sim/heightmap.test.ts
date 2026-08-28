@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Heightmap, EMBANKMENT, ROAD_BED_DROP, SEA_LEVEL, rollingHills } from "./heightmap";
 import { RoadGraph } from "./graph";
 import { setTerrain, flatTerrain, terrainHeight } from "./terrain";
-import { allSlots } from "./slots";
+import { allSlots, buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { RULES } from "./rules";
 
@@ -95,6 +95,35 @@ describe("heightmap", () => {
     // A point on the first road's centre line still belongs to the first road.
     const p = g.pointAt(near, 100);
     expect(h.heightAt(p.position.x, p.position.z)).toBeCloseTo(p.position.y - ROAD_BED_DROP, 1);
+  });
+
+  it("levels terraces under building parcels", () => {
+    const h = map();
+    setTerrain(h);
+    const g = new RoadGraph();
+    g.addSegment(g.addNode(-200, 20), g.addNode(200, 20), v3(0, 0, 0));
+    h.conformToRoads(g);
+    const parcels = buildingParcels(buildableCells(g));
+    const parcel = parcels.find((p) => Math.abs(h.baseAt(...gridOf(h, p.position.x, p.position.z)) - p.position.y) > 0.08)!;
+    h.conformToRoads(g, [parcel]);
+
+    const before = Math.abs(h.baseAt(...gridOf(h, parcel.position.x, parcel.position.z)) - parcel.position.y);
+    const after = Math.abs(h.heightAt(parcel.position.x, parcel.position.z) - parcel.position.y);
+    expect(before).toBeGreaterThan(0.08);
+    expect(after).toBeLessThan(0.05);
+  });
+
+  it("keeps road beds ahead of building terraces", () => {
+    const h = map();
+    setTerrain(h);
+    const g = new RoadGraph();
+    const road = g.addSegment(g.addNode(-200, 20), g.addNode(200, 20), v3(0, 0, 0));
+    h.conformToRoads(g);
+    const parcel = buildingParcels(buildableCells(g))[0]!;
+    h.conformToRoads(g, [parcel]);
+
+    const p = g.pointAt(road, g.segment(road).length / 2).position;
+    expect(h.heightAt(p.x, p.z)).toBeCloseTo(p.y - ROAD_BED_DROP, 1);
   });
 
   it("leaves the graph untouched: roads and slots follow the ground through the interface", () => {

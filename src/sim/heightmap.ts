@@ -1,6 +1,7 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
+import type { BuildingParcel } from "./slots";
 
 /** How far past the kerb the ground blends back to what it was. */
 export const EMBANKMENT = 10;
@@ -10,6 +11,7 @@ export const EMBANKMENT = 10;
  * above a road drawn at exactly the same elevation, and it shows as speckle.
  */
 export const ROAD_BED_DROP = 0.3;
+export const BUILDING_PAD_EMBANKMENT = 8;
 export const SEA_LEVEL = 0;
 
 export interface HeightmapOptions {
@@ -98,7 +100,7 @@ export class Heightmap implements Terrain {
    * ground each time. A road that has been removed simply is not cut, and the ground
    * beneath it comes back.
    */
-  conformToRoads(graph: RoadGraph): void {
+  conformToRoads(graph: RoadGraph, parcels: readonly BuildingParcel[] = []): void {
     this.current.set(this.base);
     this.claim.fill(Infinity);
 
@@ -114,6 +116,8 @@ export class Heightmap implements Terrain {
         this.stamp(position.x, position.z, position.y, half, reach);
       }
     }
+
+    for (const parcel of parcels) this.stampParcel(parcel);
   }
 
   /** Levels the cells around one point of road, blending out across the embankment. */
@@ -139,6 +143,35 @@ export class Heightmap implements Terrain {
           const t = smoothstep((distance - half) / (reach - half));
           this.current[index] = bed + (this.base[index]! - bed) * t;
         }
+      }
+    }
+  }
+
+  private stampParcel(parcel: BuildingParcel): void {
+    const halfWidth = (parcel.frontageCells * 8) / 2;
+    const depth = parcel.depthCells * 8;
+    const reach = BUILDING_PAD_EMBANKMENT;
+    const alongX = Math.cos(parcel.rotationY);
+    const alongZ = -Math.sin(parcel.rotationY);
+    const outX = -Math.sin(parcel.rotationY);
+    const outZ = -Math.cos(parcel.rotationY);
+    const radius = Math.hypot(halfWidth, depth) + reach;
+    const lo = (v: number) => Math.max(0, Math.floor((v - radius + this.size / 2) / this.cell));
+    const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + radius + this.size / 2) / this.cell));
+
+    for (let iz = lo(parcel.position.z); iz <= hi(parcel.position.z); iz++) {
+      for (let ix = lo(parcel.position.x); ix <= hi(parcel.position.x); ix++) {
+        const dx = this.worldX(ix) - parcel.position.x;
+        const dz = this.worldZ(iz) - parcel.position.z;
+        const along = dx * alongX + dz * alongZ;
+        const out = dx * outX + dz * outZ;
+        const outside = Math.hypot(Math.max(0, Math.abs(along) - halfWidth), Math.max(0, out - depth, -out));
+        if (outside > reach) continue;
+
+        const index = iz * this.count + ix;
+        if (Number.isFinite(this.claim[index]!)) continue;
+        const t = smoothstep(outside / reach);
+        this.current[index] = parcel.position.y + (this.current[index]! - parcel.position.y) * t;
       }
     }
   }

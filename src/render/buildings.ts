@@ -2,6 +2,8 @@ import "@babylonjs/loaders/glTF";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import type { Material } from "@babylonjs/core/Materials/material";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -121,6 +123,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
 
     const mesh = parts.length === 1 ? parts[0]! : Mesh.MergeMeshes(parts, true, true, undefined, false, true)!;
     mesh.name = `building_${id}`;
+    mesh.material = normalizeBuildingMaterial(scene, mesh.material);
     mesh.isPickable = false;
     mesh.receiveShadows = true;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
@@ -131,6 +134,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     // vertices leaves an identity transform for the instance matrices to replace.
     mesh.setParent(null);
     mesh.bakeCurrentTransformIntoVertices();
+    mesh.convertToFlatShadedMesh();
     mesh.refreshBoundingInfo();
     mesh.setEnabled(false);
     for (const node of result.meshes) if (node !== mesh) node.dispose();
@@ -142,4 +146,33 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     console.error(`could not load building model "${id}"`, error);
     return null;
   }
+}
+
+function normalizeBuildingMaterial(scene: Scene, material: Material | null): Material | null {
+  const lit = material as
+    | (Material & {
+        ambientColor?: Color3;
+        albedoColor?: Color3;
+        diffuseColor?: Color3;
+        emissiveColor?: Color3;
+        environmentIntensity?: number;
+        maxSimultaneousLights?: number;
+        subMaterials?: (Material | null)[];
+      })
+    | null;
+  if (!lit) return null;
+  if (lit.subMaterials) {
+    lit.subMaterials = lit.subMaterials.map((sub) => normalizeBuildingMaterial(scene, sub));
+  } else if (lit.albedoColor && !lit.diffuseColor) {
+    const standard = new StandardMaterial(`${lit.name}_standard`, scene);
+    standard.diffuseColor = lit.albedoColor.clone();
+    standard.specularColor = Color3.Black();
+    standard.maxSimultaneousLights = 32;
+    return standard;
+  }
+  if (lit.ambientColor) lit.ambientColor = Color3.Black();
+  if (lit.emissiveColor) lit.emissiveColor = Color3.Black();
+  if (typeof lit.environmentIntensity === "number") lit.environmentIntensity = 0;
+  if (typeof lit.maxSimultaneousLights === "number") lit.maxSimultaneousLights = 32;
+  return lit;
 }

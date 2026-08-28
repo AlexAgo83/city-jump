@@ -10,6 +10,7 @@ import { createTreeRenderer } from "../render/trees";
 import { RoadGraph } from "../sim/graph";
 import { Heightmap, rollingHills } from "../sim/heightmap";
 import { roadType } from "../sim/roadTypes";
+import { buildingParcels, buildableCells } from "../sim/slots";
 import { setTerrain } from "../sim/terrain";
 import { bindControls } from "../ui/controls";
 import { showRefusal } from "../ui/hud";
@@ -42,6 +43,7 @@ export async function startApp(): Promise<void> {
 
   const rebuild = (): void => {
     heightmap.conformToRoads(graph);
+    heightmap.conformToRoads(graph, buildingParcels(buildableCells(graph)));
     ground.refresh();
     trees.rebuild();
     worldGrid.rebuild();
