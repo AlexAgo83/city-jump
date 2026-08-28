@@ -69,10 +69,20 @@ export function createScene(canvas: HTMLCanvasElement) {
     const azimuth = sunAzimuthAt(hour);
     const sunVector = new Vector3(-Math.cos(azimuth), Math.sin(phase), -Math.sin(azimuth)).normalize();
     sun.direction.copyFromFloats(Math.cos(azimuth), -Math.max(0.05, daylight), Math.sin(azimuth)).normalize();
-    sun.intensity = daylight * 1.22;
-    sun.diffuse = Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight);
-    ambient.intensity = 0.02 + daylight * 0.5;
-    ambient.diffuse = Color3.Lerp(new Color3(0.22, 0.3, 0.48), Color3.White(), daylight);
+    // Once the sun is down the directional light becomes moonlight: dim, blue and still
+    // directional, so the night keeps some shape instead of going flat black. Real moonlight is
+    // near-neutral; the eye's scotopic response reads it as blue, which is also what film does.
+    const moonlit = 1 - Math.min(1, daylight * 4);
+    sun.intensity = daylight * 1.22 + moonlit * 0.18;
+    sun.diffuse = Color3.Lerp(
+      Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight),
+      new Color3(0.44, 0.58, 0.95),
+      moonlit,
+    );
+    // Sky fill. The night floor used to be 0.02, which is black in practice.
+    ambient.intensity = 0.12 + daylight * 0.4;
+    ambient.diffuse = Color3.Lerp(new Color3(0.3, 0.42, 0.72), Color3.White(), daylight);
+    ambient.groundColor = Color3.Lerp(new Color3(0.05, 0.08, 0.16), new Color3(0.18, 0.2, 0.22), daylight);
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,
