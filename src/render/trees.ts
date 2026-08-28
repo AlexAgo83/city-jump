@@ -64,16 +64,42 @@ const SPECIES = {
   palm: {
     trunk: { height: 10, diameter: 0.6 },
     trunkLift: 5,
-    // A wide, shallow cone flaring downwards: fronds droop away from the crown, which is what
-    // separates a palm from a parasol. ponytail: one cone, not modelled leaves.
-    canopy: (scene: Scene, name: string) =>
-      MeshBuilder.CreateCylinder(name, { height: 2.4, diameterTop: 1.2, diameterBottom: 9.5, tessellation: 7 }, scene),
-    canopyLift: 10.6,
+    canopy: palmCrown,
+    canopyLift: 10,
     trunkColor: new Color3(0.42, 0.32, 0.18),
     canopyColor: new Color3(0.26, 0.5, 0.2),
     spread: 1.7,
   },
 } as const;
+
+/**
+ * Eight tapered blades swung out and down from a crown. Any single cone reads as a parasol,
+ * whatever its proportions; separate fronds with sky between them is what makes it a palm.
+ * ponytail: baked transforms merged into one mesh, so the whole crown is still one draw call
+ * and one thin-instance buffer, like every other species here.
+ */
+function palmCrown(scene: Scene, name: string): Mesh {
+  const FRONDS = 8;
+  const parts = Array.from({ length: FRONDS }, (_, i) => {
+    const blade = MeshBuilder.CreateCylinder(
+      `${name}_frond_${i}`,
+      { height: 5.4, diameterTop: 0.25, diameterBottom: 1.5, tessellation: 3 },
+      scene,
+    );
+    // Stand the blade on the origin, then swing it out past horizontal so its tip hangs.
+    blade.bakeTransformIntoVertices(Matrix.Translation(0, 2.7, 0));
+    // Three angles in rotation: one rising, one near horizontal, one hanging past it. A single
+    // angle makes a wheel; the mix gives the crown some depth.
+    const droop = 1.4 + (i % 3) * 0.3;
+    blade.bakeTransformIntoVertices(Matrix.RotationX(droop).multiply(Matrix.RotationY((i / FRONDS) * Math.PI * 2)));
+    return blade;
+  });
+  const heart = MeshBuilder.CreateSphere(`${name}_heart`, { diameter: 1.3, segments: 4 }, scene);
+  const merged = Mesh.MergeMeshes([...parts, heart], true, true, undefined, false, false);
+  if (!merged) throw new Error("palm crown failed to merge");
+  merged.name = name;
+  return merged;
+}
 
 export type TreeSpeciesId = keyof typeof SPECIES;
 export const TREE_SPECIES = Object.keys(SPECIES) as TreeSpeciesId[];
