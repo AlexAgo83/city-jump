@@ -33,10 +33,12 @@ export interface DrawTool {
   cancel(): void;
   setMode(mode: ToolMode): void;
   setGridSnap(enabled: boolean): void;
+  setRoadType(type: RoadTypeId): void;
 }
 
 export type DrawMode = "straight" | "curve";
 export type ToolMode = "view" | DrawMode;
+export type RoadTypeId = "street" | "avenue";
 
 export function createDrawTool(
   scene: Scene,
@@ -44,11 +46,12 @@ export function createDrawTool(
   ground: Mesh,
   onCommitted: () => void,
   onRefused: (reason: string) => void,
-  typeId = "street",
+  initialTypeId: RoadTypeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "curve";
   let gridSnap = true;
+  let typeId = initialTypeId;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
   const nodeHighlight = MeshBuilder.CreateLines(
@@ -193,6 +196,10 @@ export function createDrawTool(
     },
     setGridSnap(enabled) {
       gridSnap = enabled;
+      cancel();
+    },
+    setRoadType(next) {
+      typeId = next;
       cancel();
     },
   };

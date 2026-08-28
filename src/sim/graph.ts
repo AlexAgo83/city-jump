@@ -92,8 +92,12 @@ export class RoadGraph {
 
   /** Places a node, sampling its elevation once. A placed road is a fixed road. */
   addNode(x: number, z: number): NodeId {
+    return this.addNodeAt(v3(x, terrainHeight(x, z), z));
+  }
+
+  private addNodeAt(pos: Vec3): NodeId {
     const id = this.nextNodeId++;
-    this.nodes.set(id, { id, pos: v3(x, terrainHeight(x, z), z), segments: new Set() });
+    this.nodes.set(id, { id, pos, segments: new Set() });
     return id;
   }
 
@@ -101,11 +105,20 @@ export class RoadGraph {
     const na = this.node(a);
     const nb = this.node(b);
     roadType(type); // rejects an unknown type here rather than at render time
+    return this.addBuiltSegment(a, b, control, type, buildSamples(na.pos, control, nb.pos));
+  }
+
+  private addBuiltSegment(
+    a: NodeId,
+    b: NodeId,
+    control: Vec3,
+    type: string,
+    built: Pick<Segment, "samples" | "ts" | "cumulative" | "length">,
+  ): SegmentId {
     const id = this.nextSegmentId++;
-    const built = buildSamples(na.pos, control, nb.pos);
     this.segments.set(id, { id, a, b, control, type, ...built });
-    na.segments.add(id);
-    nb.segments.add(id);
+    this.node(a).segments.add(id);
+    this.node(b).segments.add(id);
     return id;
   }
 
@@ -196,18 +209,19 @@ export class RoadGraph {
   splitSegment(id: SegmentId, distance: number): NodeId {
     const seg = this.segment(id);
     const t = this.paramAt(seg, distance);
-    const a = this.node(seg.a).pos;
-    const b = this.node(seg.b).pos;
+    const a = seg.samples[0]!;
+    const b = seg.samples[seg.samples.length - 1]!;
 
     const q0 = lerp(a, seg.control, t);
     const q1 = lerp(seg.control, b, t);
-    const mid = lerp(q0, q1, t);
+    const mid = this.pointAt(id, distance).position;
+    const split = splitBuilt(seg, mid, t, distance);
 
-    const midId = this.addNode(mid.x, mid.z);
+    const midId = this.addNodeAt(mid);
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addSegment(seg.a, midId, q0, seg.type);
-    this.addSegment(midId, seg.b, q1, seg.type);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, split.left);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, split.right);
     this.removeSegment(id);
     return midId;
   }
@@ -267,4 +281,22 @@ function upperIndex(cumulative: readonly number[], d: number): number {
     else hi = mid;
   }
   return lo;
+}
+
+function splitBuilt(seg: Segment, mid: Vec3, t: number, distance: number) {
+  const i = upperIndex(seg.cumulative, distance);
+  const leftSamples = [...seg.samples.slice(0, i), mid];
+  const rightSamples = [mid, ...seg.samples.slice(i)];
+  const leftTs = [...seg.ts.slice(0, i), t];
+  const rightTs = [t, ...seg.ts.slice(i)];
+  return {
+    left: rebuildBuilt(leftSamples, leftTs),
+    right: rebuildBuilt(rightSamples, rightTs),
+  };
+}
+
+function rebuildBuilt(samples: Vec3[], ts: number[]) {
+  const cumulative = [0];
+  for (let i = 1; i < samples.length; i++) cumulative.push(cumulative[i - 1]! + distXZ(samples[i - 1]!, samples[i]!));
+  return { samples, ts, cumulative, length: cumulative[cumulative.length - 1]! };
 }

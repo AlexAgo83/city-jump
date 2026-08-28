@@ -119,6 +119,19 @@ describe("split", () => {
     expect(lengths[0]).toBeCloseTo(30, 1);
     expect(lengths[1]).toBeCloseTo(70, 1);
   });
+
+  it("keeps the original road elevation when splitting after terrain changes", () => {
+    setTerrain({ heightAt: () => 12 });
+    try {
+      const g = new RoadGraph();
+      const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
+      setTerrain({ heightAt: () => -20 });
+      const mid = g.splitSegment(id, 50);
+      expect(g.node(mid).pos.y).toBeCloseTo(12, 6);
+    } finally {
+      setTerrain(flatTerrain);
+    }
+  });
 });
 
 describe("elevation", () => {

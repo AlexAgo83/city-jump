@@ -46,6 +46,12 @@ const shadowState = () =>
       casters: sun?.getShadowGenerator()?.getShadowMap()?.renderList?.length ?? 0,
     };
   });
+const trafficPositions = () =>
+  page.evaluate(() =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("traffic_"))
+      .map((mesh) => [mesh.position.x, mesh.position.z]),
+  );
 const sunState = () =>
   page.evaluate(() => {
     const sun = window.cityjump._scene.getLightByName("sun");
@@ -100,6 +106,11 @@ await click(700, 360);
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
+const beforeTraffic = await trafficPositions();
+await page.waitForTimeout(250);
+const afterTraffic = await trafficPositions();
+check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 const gridCells = await buildableGridCells();
 check("the buildable grid reaches up to five cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 10, `${gridCells} cells`);
 const shadows = await shadowState();
@@ -117,10 +128,13 @@ const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
 
 await page.locator('input[name="road-mode"][value="straight"]').check();
+await page.locator("#road-type").selectOption("avenue");
 await click(760, 500);
 await click(850, 430);
 const straight = await stats();
 check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
+check("the road type selector draws avenues", straight.avenues >= 1, `${straight.avenues} avenues`);
+await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-mode"][value="curve"]').check();
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.

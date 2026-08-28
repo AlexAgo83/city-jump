@@ -4,6 +4,7 @@ import { createDrawTool } from "../render/drawTool";
 import { createGround, createWorldGrid, GROUND_CELL, GROUND_SIZE } from "../render/ground";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
+import { createTrafficRenderer } from "../render/traffic";
 import { RoadGraph } from "../sim/graph";
 import { Heightmap, rollingHills } from "../sim/heightmap";
 import { setTerrain } from "../sim/terrain";
@@ -20,6 +21,7 @@ export async function startApp(): Promise<void> {
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
+  const traffic = createTrafficRenderer(scene, graph);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
 
@@ -41,6 +43,7 @@ export async function startApp(): Promise<void> {
     ground.refresh();
     worldGrid.rebuild();
     roads.rebuild();
+    traffic.rebuild();
     buildingCount = buildings.rebuild();
     refreshHud();
   };
@@ -50,6 +53,10 @@ export async function startApp(): Promise<void> {
   bindControls({
     onRoadMode(mode) {
       tool.setMode(mode);
+      refreshHud();
+    },
+    onRoadType(type) {
+      tool.setRoadType(type);
       refreshHud();
     },
     onWorldGrid: worldGrid.setVisible,
@@ -77,6 +84,8 @@ export async function startApp(): Promise<void> {
     segments: graph.allSegments().length,
     junctions: graph.allNodes().filter((node) => node.segments.size >= 3).length,
     buildings: buildingCount,
+    avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
+    cars: traffic.count(),
     models: buildings.modelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));

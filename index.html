@@ -28,7 +28,7 @@
   .segmented input { position: absolute; opacity: 0; }
   .segmented span { padding: 5px 8px; color: #aeb8c0; cursor: pointer; }
   .segmented input:checked + span { color: #fff; background: #3c5965; }
-  #terrain { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
+  #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   #sun-hour { width: 110px; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
   @media (max-width: 680px) { #sun-hour { width: 80px; } }
@@ -42,6 +42,12 @@
   </div>
   <label><input id="show-grid" type="checkbox" /> Grid</label>
   <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
+  <label>Road
+    <select id="road-type">
+      <option value="street">Street</option>
+      <option value="avenue">Avenue</option>
+    </select>
+  </label>
   <label>Terrain
     <select id="terrain">
       <option value="rolling">Rolling</option>

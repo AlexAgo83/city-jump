@@ -1,5 +1,7 @@
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
+import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -12,6 +14,7 @@ import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
 export const ROAD_LIFT = 0.06;
+const MARK_LIFT = ROAD_LIFT + 0.05;
 
 /**
  * Turns the graph into road surface. Every mesh here is derived: `rebuild` disposes what
@@ -19,10 +22,12 @@ export const ROAD_LIFT = 0.06;
  */
 export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const material = new StandardMaterial("road", scene);
-  material.diffuseColor = new Color3(0.22, 0.22, 0.24);
+  material.diffuseColor = new Color3(0.18, 0.18, 0.19);
   material.specularColor = Color3.Black();
+  const curb = new Color3(0.52, 0.55, 0.53);
+  const lane = new Color3(0.86, 0.78, 0.48);
 
-  let meshes: Mesh[] = [];
+  let meshes: (Mesh | LinesMesh)[] = [];
 
   function rebuild(): void {
     for (const mesh of meshes) mesh.dispose();
@@ -32,6 +37,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
 
     for (const seg of graph.allSegments()) {
       const half = roadType(seg.type).width / 2;
+      const isAvenue = seg.type === "avenue";
       // The surface stops short of each junction; the junction polygon closes the gap.
       const { start, end } = segmentTrims(junctions, graph, seg.id);
       const from = start;
@@ -53,6 +59,11 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       ribbon.material = material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
+      meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
+      if (isAvenue) {
+        const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT);
+        meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));
+      }
     }
 
     for (const junction of junctions.values()) {
@@ -65,6 +76,23 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   return { rebuild, material };
+}
+
+function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3, close = false): LinesMesh {
+  const mesh = MeshBuilder.CreateLines(name, { points: close ? [...points, points[0]!] : points }, scene);
+  mesh.color = color;
+  mesh.isPickable = false;
+  return mesh;
+}
+
+function pointsBetween(graph: RoadGraph, id: number, from: number, to: number, steps: number, lift: number): Vector3[] {
+  const points: Vector3[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const d = from + ((to - from) * i) / steps;
+    const { position } = graph.pointAt(id, d);
+    points.push(new Vector3(position.x, position.y + lift, position.z));
+  }
+  return points;
 }
 
 function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[]): Mesh {

@@ -7,6 +7,7 @@ export interface DebugApi {
   /** Escape hatch for the verification scripts; not used by the game. */
   readonly _scene?: unknown;
   reset(): void;
+  rebuild(): void;
   road(x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type?: string): boolean;
   demoNetwork(): void;
   demoCity(): void;
@@ -30,6 +31,7 @@ export function installDebugApi(
       for (const seg of graph.allSegments()) graph.removeSegment(seg.id);
       rebuild();
     },
+    rebuild,
     road(x0, z0, cx, cz, x1, z1, type = "street") {
       const from = resolveSnap(graph, x0, z0);
       const to = resolveSnap(graph, x1, z1);

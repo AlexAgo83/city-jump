@@ -4,8 +4,8 @@
 //
 //   node scripts/shot.mjs <url> <out.png> [scenario]
 //
-// Scenarios: `network` (default) draws a small road network; `city` draws a denser one
-// and reports the frame rate at the resulting building count.
+// Scenarios: `network` (default) draws a small road network; `city` draws a denser one;
+// `rugged` switches to the steep terrain first.
 import { chromium } from "playwright";
 
 const [url = "http://localhost:5173", out = "shot.png", scenario = "network"] = process.argv.slice(2);
@@ -28,6 +28,19 @@ const report = await page.evaluate(async (which) => {
   if (which === "city") {
     api.demoCity();
     api.camera(1400, Math.PI / 3.2);
+  } else if (which === "rugged") {
+    document.querySelector("#terrain").value = "rugged";
+    document.querySelector("#terrain").dispatchEvent(new Event("change", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    api.reset();
+    api.road(-180, -240, -60, -230, 80, -240, "avenue");
+    api.road(-180, -160, -60, -150, 80, -160);
+    api.road(-240, -180, -230, -60, -240, 80);
+    api.road(-160, -180, -150, -60, -160, 80);
+    api.road(0, -180, 10, -60, 0, 80, "avenue");
+    api.road(180, 120, 80, 140, -20, 120);
+    api.rebuild();
+    api.camera(360, Math.PI / 5);
   } else {
     api.demoNetwork();
     api.camera(360, Math.PI / 5);
