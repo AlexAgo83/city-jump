@@ -25,6 +25,14 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const material = new StandardMaterial("road", scene);
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
   material.specularColor = Color3.Black();
+  const portalMaterial = new StandardMaterial("tunnel_portal", scene);
+  portalMaterial.diffuseColor = new Color3(0.07, 0.08, 0.08);
+  portalMaterial.specularColor = Color3.Black();
+  const tubeMaterial = new StandardMaterial("tunnel_tube", scene);
+  tubeMaterial.diffuseColor = new Color3(0.08, 0.52, 0.58);
+  tubeMaterial.emissiveColor = new Color3(0.02, 0.18, 0.2);
+  tubeMaterial.specularColor = Color3.Black();
+  tubeMaterial.alpha = 0.45;
   const curb = new Color3(0.52, 0.55, 0.53);
   const lane = new Color3(0.86, 0.78, 0.48);
   const tunnel = new Color3(0.36, 0.9, 0.95);
@@ -40,11 +48,12 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     for (const seg of graph.allSegments()) {
       const type = roadType(seg.type);
       if (type.tunnelDepth) {
-        const points = pointsBetween(graph, seg.id, 0, seg.length, Math.max(2, Math.ceil(seg.length / 8)), MARK_LIFT);
-        const line = MeshBuilder.CreateDashedLines(`tunnel_${seg.id}`, { points, dashSize: 8, gapSize: 5 }, scene);
-        line.color = tunnel;
-        line.isPickable = false;
-        meshes.push(line);
+        const points = pointsBetween(graph, seg.id, 0, seg.length, Math.max(4, Math.ceil(seg.length / 8)), 1.2);
+        const tube = MeshBuilder.CreateTube(`tunnel_${seg.id}`, { path: points, radius: type.width * 0.28, tessellation: 8 }, scene);
+        tube.material = tubeMaterial;
+        tube.isPickable = false;
+        meshes.push(tube);
+        meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel));
         continue;
       }
 
@@ -105,6 +114,68 @@ function pointsBetween(graph: RoadGraph, id: number, from: number, to: number, s
     points.push(new Vector3(position.x, Math.max(position.y, terrainHeight(position.x, position.z)) + lift, position.z));
   }
   return points;
+}
+
+function tunnelPortals(
+  scene: Scene,
+  graph: RoadGraph,
+  id: number,
+  width: number,
+  material: StandardMaterial,
+  color: Color3,
+): (Mesh | LinesMesh)[] {
+  const seg = graph.segment(id);
+  return [
+    ...tunnelPortal(scene, graph, id, 0, width, 1, material, color),
+    ...tunnelPortal(scene, graph, id, seg.length, width, -1, material, color),
+  ];
+}
+
+function tunnelPortal(
+  scene: Scene,
+  graph: RoadGraph,
+  id: number,
+  distance: number,
+  width: number,
+  direction: 1 | -1,
+  material: StandardMaterial,
+  color: Color3,
+): (Mesh | LinesMesh)[] {
+  const { position, tangent } = graph.pointAt(id, distance);
+  const y = terrainHeight(position.x, position.z) + 1.8;
+  const approach = MeshBuilder.CreateBox(`tunnel_mouth_${id}_${distance}`, { width: width + 10, height: 0.25, depth: 28 }, scene);
+  approach.position.set(position.x, y - 1.75, position.z);
+  approach.rotation.y = Math.atan2(tangent.x * direction, tangent.z * direction);
+  approach.material = material;
+  approach.isPickable = false;
+
+  const portal = MeshBuilder.CreateBox(`tunnel_portal_${id}_${distance}`, { width: width + 8, height: 8, depth: 1.6 }, scene);
+  portal.position.set(position.x, y + 1.5, position.z);
+  portal.rotation.y = Math.atan2(tangent.x * direction, tangent.z * direction);
+  portal.material = material;
+  portal.isPickable = false;
+
+  const n = perpXZ(normalizeXZ(tangent));
+  const half = width / 2;
+  const lip = [
+    new Vector3(position.x - n.x * half, y - 1.1, position.z - n.z * half),
+    new Vector3(position.x - n.x * half, y + 4.8, position.z - n.z * half),
+    new Vector3(position.x + n.x * half, y + 4.8, position.z + n.z * half),
+    new Vector3(position.x + n.x * half, y - 1.1, position.z + n.z * half),
+  ];
+  const mouth = flatRect(position, tangent, width + 10, 28, terrainHeight(position.x, position.z) + MARK_LIFT);
+  return [approach, styledLine(scene, `tunnel_mouth_lip_${id}_${distance}`, mouth, color, true), portal, styledLine(scene, `tunnel_lip_${id}_${distance}`, lip, color, true)];
+}
+
+function flatRect(center: { x: number; z: number }, tangent: { x: number; z: number }, width: number, depth: number, y: number): Vector3[] {
+  const t = normalizeXZ({ x: tangent.x, y: 0, z: tangent.z });
+  const n = perpXZ(t);
+  return [
+    new Vector3(center.x - n.x * width / 2 - t.x * depth / 2, y, center.z - n.z * width / 2 - t.z * depth / 2),
+    new Vector3(center.x + n.x * width / 2 - t.x * depth / 2, y, center.z + n.z * width / 2 - t.z * depth / 2),
+    new Vector3(center.x + n.x * width / 2 + t.x * depth / 2, y, center.z + n.z * width / 2 + t.z * depth / 2),
+    new Vector3(center.x - n.x * width / 2 + t.x * depth / 2, y, center.z - n.z * width / 2 + t.z * depth / 2),
+  ];
 }
 
 function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[]): Mesh {

@@ -39,6 +39,8 @@ const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
 const oceanSampleY = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position")?.[1] ?? 0);
+const tunnelPortalCount = () =>
+  page.evaluate(() => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("tunnel_portal_")).length);
 const shadowState = () =>
   page.evaluate(() => {
     const scene = window.cityjump._scene;
@@ -148,6 +150,7 @@ await click(220, 500);
 await click(300, 430);
 const tunneled = await stats();
 check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels`);
+check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
 await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-mode"][value="curve"]').check();
