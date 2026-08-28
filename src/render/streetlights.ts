@@ -14,7 +14,7 @@ import { normalizeXZ, perpXZ } from "../sim/vec";
 import { ROAD_LIFT } from "./roadMesh";
 
 function streetlightsOnAt(hour: number): boolean {
-  return hour >= 21.5 || hour < 6.5;
+  return hour >= 20 || hour < 6.5;
 }
 
 export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {

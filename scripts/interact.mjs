@@ -319,15 +319,15 @@ await page.locator("#sun-hour").evaluate((input) => {
 check("streetlights stay off at 17:00", (await realStreetlightCount()) === 0);
 check("buildings do not use fake emissive lighting by day", (await buildingFacadeEmission()) === 0);
 await page.locator("#sun-hour").evaluate((input) => {
-  input.value = "21";
+  input.value = "19.5";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-check("streetlights stay off at 21:00", (await realStreetlightCount()) === 0);
+check("streetlights stay off at 19:30", (await realStreetlightCount()) === 0);
 await page.locator("#sun-hour").evaluate((input) => {
-  input.value = "22";
+  input.value = "20";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-check("streetlights switch on at 22:00", (await realStreetlightCount()) > 0);
+check("streetlights switch on at 20:00", (await realStreetlightCount()) > 0);
 check("streetlights include facade fill lights", await streetlightFacadeLights());
 check("streetlights reach nearby buildings", await streetlightsReachBuildings());
 check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);

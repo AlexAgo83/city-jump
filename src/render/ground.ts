@@ -262,13 +262,21 @@ function terrainColor(h: number, x: number, z: number): Color4 {
     color = Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
   }
 
-  const shade = 0.84 + valueNoise(x, z, 150) * 0.14 + valueNoise(x, z, 18) * 0.18;
+  // The fine octave used to run at scale 18, barely twice the 8m cell size and on the same axes
+  // as the mesh, so it read as a grid of little squares. Sampling it wider and on rotated
+  // coordinates keeps the same amount of variation without any alignment to look at.
+  // ponytail: rotate and rescale one octave, rather than layering more of them.
+  const fine = valueNoise(x * SIN45 + z * SIN45, z * SIN45 - x * SIN45, 52);
+  const shade = 0.84 + valueNoise(x, z, 150) * 0.14 + fine * 0.26;
   const tint = (valueNoise(x + 700, z - 400, 90) - 0.5) * 0.08;
   color.r *= shade * (1 - tint);
   color.g *= shade * (1 + tint * 0.6);
   color.b *= shade * (1 - tint * 0.4);
   return color;
 }
+
+/** cos/sin of 45 degrees: turns a noise octave off the mesh axes. */
+const SIN45 = Math.SQRT1_2;
 
 function valueNoise(x: number, z: number, scale: number): number {
   const sx = x / scale;
