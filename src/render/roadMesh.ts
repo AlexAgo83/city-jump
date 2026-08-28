@@ -8,6 +8,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph } from "../sim/graph";
+import type { Vec3 } from "../sim/vec";
 import { roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
@@ -268,13 +269,11 @@ function roundaboutMeshes(
 }
 
 /**
- * Closes the footway around an ordinary junction: one patch per pair of neighbouring arms,
- * spanning from where one arm's sidewalk ends to where the next one begins. Without it every
- * sidewalk stops at the junction and the corner is a gap.
- *
- * Arms come ordered by bearing, so walking that order leaves each arm by its counter-clockwise
- * corner and arrives at the next by its clockwise one.
- * ponytail: a flat quad per corner, not an offset of the junction polygon.
+ * Closes the footway around an ordinary junction. The junction polygon already has exactly the
+ * right outline: each edge is either the mouth of a road, or a stretch of kerb between two roads.
+ * Sweeping every non-mouth edge outwards gives the corner paving, and cannot cut across the
+ * junction the way joining arm corners pairwise could.
+ * ponytail: walk the hull that is already computed, rather than deriving a second polygon.
  */
 function junctionFootway(
   scene: Scene,
@@ -282,36 +281,76 @@ function junctionFootway(
   junction: JunctionGeometry,
   paving: StandardMaterial,
 ): Mesh[] {
-  const walkable = junction.arms.filter((arm) => {
-    const type = roadType(graph.segment(arm.segment).type);
-    return !type.tunnelDepth && !type.pedestrian;
-  });
-  if (walkable.length < 2) return [];
+  const ring = junction.ring;
+  if (ring.length < 3) return [];
 
-  const centre = graph.node(junction.node).pos;
-  const outward = (corner: { x: number; y: number; z: number }): Vector3 => {
-    const dx = corner.x - centre.x;
-    const dz = corner.z - centre.z;
-    const length = Math.hypot(dx, dz) || 1;
-    return new Vector3(
-      corner.x + (dx / length) * SIDEWALK_WIDTH,
-      corner.y + SIDEWALK_LIFT,
-      corner.z + (dz / length) * SIDEWALK_WIDTH,
+  const centroid = ring.reduce((sum, p) => ({ x: sum.x + p.x / ring.length, z: sum.z + p.z / ring.length }), {
+    x: 0,
+    z: 0,
+  });
+  // Two neighbouring arms each compute their shared corner independently, from their own
+  // (possibly curved) centreline -- they land within a few centimetres of each other, not
+  // exactly on top. A tighter epsilon here misses that match, misreads the mouth as a kerb
+  // gap, and pastes a sidewalk patch straight onto the carriageway.
+  const same = (a: Vec3, b: Vec3): boolean => Math.hypot(a.x - b.x, a.z - b.z) < 0.15;
+  /** True when this edge is where a road opens onto the junction, which must stay clear. */
+  const isMouth = (a: Vec3, b: Vec3): boolean =>
+    junction.arms.some(
+      (arm) =>
+        (same(a, arm.cornerLow) && same(b, arm.cornerHigh)) || (same(a, arm.cornerHigh) && same(b, arm.cornerLow)),
     );
+
+  // A narrower road can meet this node without ever reaching the hull -- its corners sit
+  // inside the ring, pulled behind the wider roads either side of it. The kerb edge that
+  // "closes" the gap those wide roads leave then actually runs straight over that narrower
+  // road's own mouth. Detected by bearing rather than distance: does any arm open into the
+  // angular span this edge sweeps?
+  const nodePos = graph.node(junction.node).pos;
+  const bearingOf = (p: Vec3): number => Math.atan2(p.z - nodePos.z, p.x - nodePos.x);
+  const norm = (angle: number): number => {
+    let d = angle % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    return d;
   };
-  const inner = (corner: { x: number; y: number; z: number }): Vector3 =>
-    new Vector3(corner.x, corner.y + SIDEWALK_LIFT, corner.z);
+  const hasHiddenArm = (a: Vec3, b: Vec3): boolean => {
+    const span = norm(bearingOf(b) - bearingOf(a));
+    return junction.arms.some((arm) => {
+      const d = norm(arm.angle - bearingOf(a));
+      return span >= 0 ? d > 1e-3 && d < span - 1e-3 : d < -1e-3 && d > span + 1e-3;
+    });
+  };
 
   const out: Mesh[] = [];
-  for (const [i, arm] of walkable.entries()) {
-    const next = walkable[(i + 1) % walkable.length]!;
-    if (walkable.length === 2 && i === 1) break; // two arms meet in one patch, not two
-    const patch = roadStripMesh(
-      scene,
-      `sidewalk_corner_${junction.node}_${i}`,
-      [outward(arm.cornerHigh), outward(next.cornerLow)],
-      [inner(arm.cornerHigh), inner(next.cornerLow)],
-    );
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i]!;
+    const b = ring[(i + 1) % ring.length]!;
+    if (isMouth(a, b)) continue;
+    // Left unpaved rather than paved wrong: routing the patch around the hidden arm's own
+    // mouth needs the corner points of an arm that never made it into `ring` -- more geometry
+    // than this closes for. ponytail: skip the corner instead of getting it wrong.
+    if (hasHiddenArm(a, b)) continue;
+
+    const dx = b.x - a.x;
+    const dz = b.z - a.z;
+    const length = Math.hypot(dx, dz);
+    if (length < 0.05) continue;
+    // Outward normal: perpendicular to the edge, pointing away from the middle of the junction.
+    let nx = -dz / length;
+    let nz = dx / length;
+    if (nx * ((a.x + b.x) / 2 - centroid.x) + nz * ((a.z + b.z) / 2 - centroid.z) < 0) {
+      nx = -nx;
+      nz = -nz;
+    }
+    const inner = [
+      new Vector3(a.x, a.y + SIDEWALK_LIFT, a.z),
+      new Vector3(b.x, b.y + SIDEWALK_LIFT, b.z),
+    ];
+    const outer = [
+      new Vector3(a.x + nx * SIDEWALK_WIDTH, a.y + SIDEWALK_LIFT, a.z + nz * SIDEWALK_WIDTH),
+      new Vector3(b.x + nx * SIDEWALK_WIDTH, b.y + SIDEWALK_LIFT, b.z + nz * SIDEWALK_WIDTH),
+    ];
+    const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}_${i}`, outer, inner);
     patch.material = paving;
     patch.isPickable = false;
     out.push(patch);

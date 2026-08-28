@@ -1,7 +1,7 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
-import { roundaboutRadius } from "./junction";
+import { allJunctions, junctionRadius } from "./junction";
 import type { BuildingParcel } from "./slots";
 
 /** How far past the kerb the ground blends back to what it was. */
@@ -140,11 +140,15 @@ export class Heightmap implements Terrain {
       }
     }
 
-    // A roundabout is a flat disc of road that no segment passes through, so nothing above would
-    // have levelled the ground under it and the ring would sit on the slope it spans.
-    for (const node of graph.allNodes()) {
-      if (!node.roundabout) continue;
-      const radius = roundaboutRadius(graph, node.id);
+    // A junction polygon can reach further from the node than any single arm's own half-width
+    // stamp covers -- a wide-angle corner sits well off every incident road's centerline. Left
+    // alone, the ground there only gets the soft embankment blend, not a hard flatten, and pokes
+    // through the road/sidewalk surface at the corner farthest from every arm. A roundabout is
+    // the extreme case: no segment passes through its ring at all, so it got this treatment first;
+    // ordinary junctions need exactly the same disc, just sized by `junctionRadius` instead.
+    for (const nodeId of allJunctions(graph).keys()) {
+      const node = graph.node(nodeId);
+      const radius = junctionRadius(graph, nodeId);
       const step = Math.max(1, this.cell / 2);
       for (let z = -radius; z <= radius; z += step) {
         for (let x = -radius; x <= radius; x += step) {
