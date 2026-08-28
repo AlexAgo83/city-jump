@@ -438,6 +438,40 @@ check(
 await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
+// Left-drag also orbits the camera, so a drag in a build mode must not be taken for a click.
+const drag = async (x0, y0, x1, y1) => {
+  await page.mouse.move(x0, y0);
+  await page.waitForTimeout(60);
+  await page.mouse.down();
+  for (let i = 1; i <= 6; i++) {
+    await page.mouse.move(x0 + ((x1 - x0) * i) / 6, y0 + ((y1 - y0) * i) / 6);
+    await page.waitForTimeout(35);
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+};
+const beforeDrags = await stats();
+const cameraBeforeDrag = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+// Two drags: if the first were taken as a click it would start a segment, and the second finish it.
+await drag(500, 400, 760, 330);
+await drag(760, 330, 520, 420);
+const cameraAfterDrag = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+check(
+  "dragging in a build mode orbits the camera",
+  cameraBeforeDrag[0] !== cameraAfterDrag[0] || cameraBeforeDrag[1] !== cameraAfterDrag[1],
+);
+check(
+  "dragging in a build mode draws no road",
+  (await stats()).segments === beforeDrags.segments,
+  `${(await stats()).segments}/${beforeDrags.segments}`,
+);
+
 // A road shorter than the minimum has to be refused, with a reason the player can read.
 await click(200, 600);
 await click(203, 602);

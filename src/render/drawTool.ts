@@ -48,6 +48,13 @@ const SPRAY_RADIUS = 45;
 const SPRAY_PER_BURST = 8;
 const SPRAY_RING_POINTS = 56;
 
+/**
+ * Pointer travel, in pixels, still counted as a click rather than a drag. Left-drag also orbits
+ * the camera, so without this every time you swing the view in a build mode you would also place
+ * a node, plant a tree, or bulldoze whatever you happened to release over.
+ */
+const CLICK_SLOP = 5;
+
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
 
@@ -80,6 +87,7 @@ export function createDrawTool(
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
+  let pressedAt: { x: number; y: number } | null = null;
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
     {
@@ -254,6 +262,7 @@ export function createDrawTool(
   function cancel(): void {
     stage = { phase: "idle" };
     lastSprayed = null;
+    pressedAt = null;
     sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
@@ -274,16 +283,21 @@ export function createDrawTool(
     }
     if (info.type === PointerEventTypes.POINTERDOWN) {
       leftPointerDown = (info.event as PointerEvent).button === 0;
+      pressedAt = { x: scene.pointerX, y: scene.pointerY };
       lastSprayed = null;
       return;
     }
     if (info.type !== PointerEventTypes.POINTERUP) return;
     const isLeftClick = leftPointerDown && (info.event as PointerEvent).button === 0;
     leftPointerDown = false;
+    const travelled = pressedAt
+      ? Math.hypot(scene.pointerX - pressedAt.x, scene.pointerY - pressedAt.y)
+      : 0;
+    pressedAt = null;
     // A drag that already sprayed must not also fire a burst on release.
     const sprayed = mode === "spray" && lastSprayed !== null;
     lastSprayed = null;
-    if (isLeftClick && !sprayed) onClick();
+    if (isLeftClick && !sprayed && travelled <= CLICK_SLOP) onClick();
   });
 
   window.addEventListener("keydown", (e) => {
