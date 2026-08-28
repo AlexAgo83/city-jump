@@ -44,15 +44,19 @@ export async function startApp(): Promise<void> {
   };
 
   const rebuild = (): void => {
+    // Solving the parcel layout is the most expensive step in here, so it happens once and both
+    // the terrain flattening and the building renderer work from the same answer.
+    const cells = buildableCells(graph);
+    const parcels = buildingParcels(cells);
     heightmap.conformToRoads(graph);
-    heightmap.conformToRoads(graph, buildingParcels(buildableCells(graph)));
+    heightmap.conformToRoads(graph, parcels);
     ground.refresh();
     trees.rebuild();
     worldGrid.rebuild();
     roads.rebuild();
     streetlights.rebuild();
     traffic.rebuild();
-    buildingCount = buildings.rebuild();
+    buildingCount = buildings.rebuild(cells, parcels);
     scheduleAutosave();
   };
 

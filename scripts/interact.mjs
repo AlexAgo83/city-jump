@@ -463,19 +463,15 @@ check(
 await page.evaluate(() => window.cityjump.demoNetwork());
 await page.waitForTimeout(400);
 const built = await stats();
-// A full rebuild blocks the main thread for ~20s on this city, long enough that Playwright's
-// post-click actionability check times out even though the click landed. Dispatch the event
-// directly for the buttons that trigger one.
-const press = (id) => page.evaluate((selector) => document.querySelector(selector).click(), id);
 page.once("dialog", (dialog) => dialog.accept("Testville"));
-await press("#save-store");
+await page.locator("#save-store").click();
 await page.waitForTimeout(300);
 const slotNames = await page.locator("#save-slot option").allTextContents();
 check("a saved city appears in the picker", slotNames.includes("Testville"));
 
 await page.evaluate(() => window.cityjump.reset());
 await page.waitForTimeout(300);
-await press("#save-load");
+await page.locator("#save-load").click();
 await page.waitForTimeout(600);
 const loaded = await stats();
 check("loading restores every segment", loaded.segments === built.segments, `${loaded.segments}/${built.segments}`);
@@ -485,7 +481,7 @@ const drift = Math.abs(loaded.buildings - built.buildings) / built.buildings;
 check("loading lands within 2% of the original building count", drift < 0.02, `${(drift * 100).toFixed(2)}%`);
 await page.evaluate(() => window.cityjump.reset());
 await page.waitForTimeout(200);
-await press("#save-load");
+await page.locator("#save-load").click();
 await page.waitForTimeout(600);
 const reloaded = await stats();
 check(

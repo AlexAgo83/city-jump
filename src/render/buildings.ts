@@ -10,7 +10,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
-import { buildingParcels, buildableCells, PARCEL_SIZES, type BuildingParcel } from "../sim/slots";
+import { PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
@@ -33,9 +33,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let visible = true;
   let gridVisible = false;
 
-  function rebuild(): number {
-    const cells = buildableCells(graph);
-    const parcels = buildingParcels(cells);
+  /**
+   * `cells` and `parcels` are the caller's, so the layout is solved once per rebuild rather than
+   * once here and once again for the terrain that has to be flattened under it.
+   */
+  function rebuild(cells: readonly BuildableCell[], parcels: readonly BuildingParcel[]): number {
     grid?.dispose();
     grid = cells.length
       ? MeshBuilder.CreateLineSystem(

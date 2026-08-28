@@ -1,7 +1,7 @@
 import type { RoadGraph, SegmentId } from "./graph";
 import { roadType } from "./roadTypes";
 import { junctionRadius } from "./junction";
-import { type Vec3, v3, normalizeXZ, perpXZ } from "./vec";
+import { type Vec3, v3, normalizeXZ, perpXZ, distXZ } from "./vec";
 import { terrainHeight } from "./terrain";
 
 export interface Slot {
@@ -101,11 +101,12 @@ export function allSlots(graph: RoadGraph): Slot[] {
 export function buildableCells(graph: RoadGraph): BuildableCell[] {
   const accepted: BuildableCell[] = [];
   const buckets = new Map<string, BuildableCell[]>();
+  const roads = indexRoadSamples(graph);
 
   for (const segment of graph.allSegments()) {
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
       for (const candidate of cellsForBlock(block, blockIndex)) {
-        if (cellTouchesOtherRoad(graph, candidate)) continue;
+        if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
         if ([...nearby].some((cell) => cellsOverlap(candidate, cell))) continue;
@@ -182,14 +183,61 @@ export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
   return true;
 }
 
-function cellTouchesOtherRoad(graph: RoadGraph, cell: BuildableCell): boolean {
+/**
+ * One road sample, with the segment it belongs to and that road's half width.
+ * Testing a cell used to walk every segment's every sample, so the cost was
+ * cells x segments x samples -- tens of millions of distance tests on a modest city, and the
+ * single biggest cost in a rebuild. The samples go into a grid instead, so a cell only ever looks
+ * at the handful of buckets it overlaps.
+ * ponytail: a Map keyed by grid square, not an R-tree. Roads are already roughly uniform.
+ */
+interface RoadSample {
+  readonly point: Vec3;
+  readonly segment: number;
+  readonly reserve: number;
+}
+
+/** Bucket size: a cell's own reach plus the widest reserve, so neighbours never need a wider scan. */
+const ROAD_INDEX_CELL = 24;
+
+function indexRoadSamples(graph: RoadGraph): Map<string, RoadSample[]> {
+  const index = new Map<string, RoadSample[]>();
   for (const seg of graph.allSegments()) {
-    if (seg.id === cell.segment) continue;
     const type = roadType(seg.type);
     if (type.tunnelDepth) continue;
     const reserve = type.width / 2;
-    if (seg.samples.some((p) => pointInCell(p, cell))) return true;
-    if (cell.corners.some((p) => distanceToSamples(p, seg.samples) < reserve)) return true;
+    for (const point of seg.samples) {
+      const key = `${Math.floor(point.x / ROAD_INDEX_CELL)},${Math.floor(point.z / ROAD_INDEX_CELL)}`;
+      const bucket = index.get(key);
+      if (bucket) bucket.push({ point, segment: seg.id, reserve });
+      else index.set(key, [{ point, segment: seg.id, reserve }]);
+    }
+  }
+  return index;
+}
+
+function cellTouchesOtherRoad(roads: Map<string, RoadSample[]>, cell: BuildableCell): boolean {
+  const xs = cell.corners.map((p) => p.x);
+  const zs = cell.corners.map((p) => p.z);
+  // Widen by the largest reserve, so a sample just outside the cell that still reserves into it
+  // lands in a bucket we look at.
+  const pad = ROAD_INDEX_CELL;
+  const x0 = Math.floor((Math.min(...xs) - pad) / ROAD_INDEX_CELL);
+  const x1 = Math.floor((Math.max(...xs) + pad) / ROAD_INDEX_CELL);
+  const z0 = Math.floor((Math.min(...zs) - pad) / ROAD_INDEX_CELL);
+  const z1 = Math.floor((Math.max(...zs) + pad) / ROAD_INDEX_CELL);
+
+  for (let x = x0; x <= x1; x++) {
+    for (let z = z0; z <= z1; z++) {
+      for (const sample of roads.get(`${x},${z}`) ?? []) {
+        if (sample.segment === cell.segment) continue;
+        if (pointInCell(sample.point, cell)) return true;
+        // Distance to the nearest sample rather than to the polyline between samples. Samples sit
+        // about a metre apart, so this can under-reserve by at most half that against a reserve
+        // several metres wide.
+        if (cell.corners.some((corner) => distXZ(corner, sample.point) < sample.reserve)) return true;
+      }
+    }
   }
   return false;
 }
@@ -208,19 +256,6 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
   return true;
 }
 
-function distanceToSamples(p: Vec3, samples: readonly Vec3[]): number {
-  let best = Infinity;
-  for (let i = 1; i < samples.length; i++) {
-    const a = samples[i - 1]!;
-    const b = samples[i]!;
-    const dx = b.x - a.x;
-    const dz = b.z - a.z;
-    const lenSq = dx * dx + dz * dz;
-    const t = lenSq ? Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.z - a.z) * dz) / lenSq)) : 0;
-    best = Math.min(best, Math.hypot(p.x - (a.x + dx * t), p.z - (a.z + dz * t)));
-  }
-  return best;
-}
 
 function cellsForBlock(block: Slot[], blockIndex: number): BuildableCell[] {
   const rotationY = averageRotation(block);
