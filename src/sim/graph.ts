@@ -73,13 +73,22 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE)
   const length = cumulative[cumulative.length - 1]!;
 
   const heights = spec.tunnelDepth
-    ? flat.map((p, i) => terrainHeight(p.x, p.z) - Math.sin((Math.PI * i) / count) * spec.tunnelDepth!)
+    ? flat.map((_, i) => a.y + (b.y - a.y) * (i / count) - tunnelDrop(i / count, spec.tunnelDepth!))
     : smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
   heights[0] = a.y;
   heights[heights.length - 1] = b.y;
   const samples: Vec3[] = flat.map((p, i) => v3(p.x, heights[i]!, p.z));
 
   return { samples, ts, cumulative, length };
+}
+
+function tunnelDrop(t: number, depth: number): number {
+  return depth * 2.2 * Math.min(smoothstep(t / 0.18), smoothstep((1 - t) / 0.18));
+}
+
+function smoothstep(t: number): number {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
 }
 
 function smoothHeights(heights: number[]): number[] {

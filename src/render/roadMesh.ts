@@ -131,7 +131,7 @@ function tunnelMesh(scene: Scene, name: string, graph: RoadGraph, id: number, st
   for (let i = 0; i <= steps; i++) {
     const { position, tangent } = graph.pointAt(id, (seg.length * i) / steps);
     const n = perpXZ(normalizeXZ(tangent));
-    const y = terrainHeight(position.x, position.z) + MARK_LIFT;
+    const y = position.y + ROAD_LIFT;
     for (const p of outer) shellPositions.push(position.x + n.x * p.x, y + p.y, position.z + n.z * p.x);
     for (const p of inner) interiorPositions.push(position.x + n.x * p.x, y + p.y, position.z + n.z * p.x);
   }

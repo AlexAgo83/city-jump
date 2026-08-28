@@ -61,7 +61,8 @@ describe("graph basics", () => {
 
     expect(seg.samples[0]!.y).toBeCloseTo(terrainHeight(0, 0), 6);
     expect(seg.samples[seg.samples.length - 1]!.y).toBeCloseTo(terrainHeight(100, 0), 6);
-    expect(seg.samples[Math.floor(seg.samples.length / 2)]!.y).toBeLessThan(terrainHeight(50, 0) - 10);
+    expect(seg.samples[Math.floor(seg.samples.length * 0.2)]!.y).toBeLessThan(terrainHeight(20, 0) - 25);
+    expect(seg.samples[Math.floor(seg.samples.length / 2)]!.y).toBeLessThan(terrainHeight(50, 0) - 30);
   });
 });
 
