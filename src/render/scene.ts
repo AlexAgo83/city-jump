@@ -29,13 +29,18 @@ export function createScene(canvas: HTMLCanvasElement) {
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
   scene.imageProcessingConfiguration.contrast = 1.12;
   scene.imageProcessingConfiguration.exposure = 1.04;
+  // Aerial perspective: everything far enough away becomes the horizon colour, so the
+  // ocean has no visible end. ponytail: exp2 fog, swap for a real atmosphere shader only if needed.
+  scene.fogMode = Scene.FOGMODE_EXP2;
+  scene.fogDensity = 0.00016;
 
   // Top-down-ish orbit camera: the city-builder default.
   const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3.6, 220, Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
   camera.lowerRadiusLimit = 20;
   camera.upperRadiusLimit = 1200;
-  camera.maxZ = 20_000;
+  camera.minZ = 2; // paired with the far maxZ below: keeps depth precision usable
+  camera.maxZ = 60_000;
   camera.upperBetaLimit = Math.PI / 2.2; // never go under the ground
   camera.wheelPrecision = 0.6;
   camera.panningSensibility = 12;
@@ -72,6 +77,8 @@ export function createScene(canvas: HTMLCanvasElement) {
       0.07 + daylight * 0.067,
       1,
     );
+    const horizon = horizonColor(daylight, sunVector.y);
+    scene.fogColor.copyFromFloats(horizon.r, horizon.g, horizon.b);
     sky.setHour(daylight, sunVector);
   }
   setSunHour(14);
@@ -100,6 +107,7 @@ function createSky(scene: Scene, camera: ArcRotateCamera) {
   skyMaterial.disableDepthWrite = true;
   skyMaterial.backFaceCulling = false;
   skyMaterial.specularColor = Color3.Black();
+  skyMaterial.fogEnabled = false;
   skybox.material = skyMaterial;
 
   const sunDisc = celestialDisc(scene, "sun_disc", new Color3(1, 0.78, 0.34), 260);
@@ -132,6 +140,7 @@ function celestialDisc(scene: Scene, name: string, color: Color3, size: number):
   material.specularColor = Color3.Black();
   material.backFaceCulling = false;
   material.alpha = 1;
+  material.fogEnabled = false;
   mesh.material = material;
   mesh.billboardMode = Mesh.BILLBOARDMODE_ALL;
   mesh.ignoreCameraMaxZ = true;
@@ -139,15 +148,21 @@ function celestialDisc(scene: Scene, name: string, color: Color3, size: number):
   return mesh;
 }
 
-function updateSkyColors(mesh: Mesh, daylight: number, sunAltitude: number): void {
-  const positions = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
-  const colors = new Float32Array((positions.length / 3) * 4);
+/** The colour the sky fades to at eye level. Fog uses it so distant water dissolves into the sky. */
+export function horizonColor(daylight: number, sunAltitude: number): Color4 {
   const twilight = (1 - Math.min(1, Math.abs(sunAltitude) / 0.45)) * (sunAltitude < 0.5 ? 1 : 0);
-  const horizon = Color4.Lerp(
+  return Color4.Lerp(
     Color4.Lerp(new Color4(0.04, 0.055, 0.13, 1), new Color4(0.76, 0.88, 0.98, 1), daylight),
     new Color4(0.95, 0.38, 0.18, 1),
     twilight,
   );
+}
+
+function updateSkyColors(mesh: Mesh, daylight: number, sunAltitude: number): void {
+  const positions = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
+  const colors = new Float32Array((positions.length / 3) * 4);
+  const twilight = (1 - Math.min(1, Math.abs(sunAltitude) / 0.45)) * (sunAltitude < 0.5 ? 1 : 0);
+  const horizon = horizonColor(daylight, sunAltitude);
   const zenith = Color4.Lerp(
     Color4.Lerp(new Color4(0.018, 0.028, 0.09, 1), new Color4(0.22, 0.5, 0.9, 1), daylight),
     new Color4(0.08, 0.12, 0.32, 1),

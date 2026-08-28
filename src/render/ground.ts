@@ -4,6 +4,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
 import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
@@ -76,10 +77,88 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   return { mesh, refresh };
 }
 
+/**
+ * Water seen edge-on mirrors the sky, seen from above stays deep blue. This is what makes water
+ * shine — a sun glint can't reach a grazing camera on a flat plane. Both water surfaces share it:
+ * if only one reacts to the view angle, the seam between them lights up.
+ * ponytail: Fresnel term, not a mirror/reflection probe — there is nothing out there to mirror.
+ */
+function waterFresnel(): FresnelParameters {
+  return new FresnelParameters({
+    bias: 0.05,
+    power: 2,
+    leftColor: new Color3(0.42, 0.62, 0.78), // grazing: the sky
+    rightColor: new Color3(0.01, 0.09, 0.22), // top-down: the deep
+  });
+}
+
+/**
+ * The water past the detailed ocean tile: one big opaque disc, so the square edge of the
+ * animated mesh always sits on more water. Fog turns it into sky at the horizon.
+ * ponytail: a disc, not a projected grid — nothing here needs waves you can't see.
+ */
+/**
+ * Half an island's worth of extra seabed past the terrain mesh, so its edge can never show even
+ * if the water above it is clear. Sits just under the terrain's own floor (-140 out past the
+ * coast). ponytail: a flat ring at the floor height, not an extended heightmap — growing the
+ * heightmap 50% would quadruple `refresh`'s cost on every road edit for scenery nobody builds on.
+ */
+function createSeafloorSkirt(scene: Scene): Mesh {
+  const material = new StandardMaterial("seafloor-skirt", scene);
+  material.diffuseColor = new Color3(0.05, 0.1, 0.15); // the deep end of terrainColor's seafloor
+  material.specularColor = Color3.Black();
+  const mesh = MeshBuilder.CreateLathe(
+    "seafloor-skirt",
+    {
+      shape: [new Vector3(GROUND_SIZE / 2, 0, 0), new Vector3(GROUND_SIZE / 2 + 1500, 0, 0)],
+      tessellation: 64,
+      sideOrientation: Mesh.DOUBLESIDE,
+    },
+    scene,
+  );
+  mesh.material = material;
+  mesh.isPickable = false;
+  mesh.position.y = -145; // just below the terrain's own deep floor, so the corners win any overlap
+  mesh.alwaysSelectAsActiveMesh = true;
+  return mesh;
+}
+
+function createFarOcean(scene: Scene): Mesh {
+  const material = new StandardMaterial("ocean-far", scene);
+  material.diffuseColor = Color3.Black();
+  material.emissiveColor = Color3.White(); // modulated by the Fresnel term below
+  material.specularColor = new Color3(0.45, 0.68, 0.72);
+  material.specularPower = 32;
+  material.emissiveFresnelParameters = waterFresnel();
+  // A ring, not a disc: the terrain mesh (and its seafloor) reaches GROUND_SIZE / 2, and a disc
+  // would sit on top of it, hiding the sand under the shallows behind a flat turquoise slab.
+  // ponytail: start where the terrain ends, rather than fading a disc out over the shore.
+  const mesh = MeshBuilder.CreateLathe(
+    "ocean-far",
+    {
+      shape: [new Vector3(GROUND_SIZE / 2, 0, 0), new Vector3(50_000, 0, 0)],
+      tessellation: 64,
+      sideOrientation: Mesh.DOUBLESIDE,
+    },
+    scene,
+  );
+  mesh.material = material;
+  mesh.isPickable = false;
+  mesh.receiveShadows = false;
+  // Below the deepest wave trough (amplitude peaks near 2.4), or it pokes through the animated
+  // ocean as bright patches. ponytail: one constant, not a depth-sorted render pass.
+  mesh.position.y = SEA_LEVEL - 4;
+  mesh.alwaysSelectAsActiveMesh = true;
+  return mesh;
+}
+
 export function createOcean(scene: Scene) {
+  createSeafloorSkirt(scene);
+  createFarOcean(scene);
   const material = new StandardMaterial("ocean", scene);
   material.diffuseColor = Color3.White();
-  material.emissiveColor = new Color3(0.005, 0.035, 0.055);
+  material.emissiveColor = Color3.White();
+  material.emissiveFresnelParameters = waterFresnel();
   material.specularColor = new Color3(0.45, 0.68, 0.72);
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
@@ -92,13 +171,15 @@ export function createOcean(scene: Scene) {
   for (let z = 0; z <= cells; z++) {
     for (let x = 0; x <= cells; x++) {
       const i = z * (cells + 1) + x;
-      const wx = -size / 2 + (x / cells) * size;
-      const wz = -size / 2 + (z / cells) * size;
+      const wx = stretch((x / cells) * 2 - 1, size / 2);
+      const wz = stretch((z / cells) * 2 - 1, size / 2);
       const depth = oceanDepth(wx, wz);
       positions[i * 3] = wx;
       positions[i * 3 + 2] = wz;
       oceanColor(depth, waveNoise(wx, wz)).toArray(colors, i * 4);
-      if (x < cells && z < cells && Math.hypot(wx + size / cells / 2, wz + size / cells / 2) > 1400) {
+      const nextX = stretch(((x + 1) / cells) * 2 - 1, size / 2);
+      const nextZ = stretch(((z + 1) / cells) * 2 - 1, size / 2);
+      if (x < cells && z < cells && Math.hypot((wx + nextX) / 2, (wz + nextZ) / 2) > 1400) {
         indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
       }
     }
@@ -121,7 +202,10 @@ export function createOcean(scene: Scene) {
     const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
     for (let i = 0; i < current.length; i += 3) {
       const depth = oceanDepth(current[i]!, current[i + 2]!);
-      const amplitude = 0.25 + depth * 1.25;
+      // Cells grow with distance, so waves out there are undersampled — fade them out instead of
+      // letting them alias. ponytail: one fade, not a LOD system.
+      const reach = 1 - smoothstep((Math.hypot(current[i]!, current[i + 2]!) - 3000) / 5000);
+      const amplitude = (0.25 + depth * 1.25) * reach;
       current[i + 1] =
         Math.sin(current[i]! * 0.015 + t) * amplitude + Math.cos(current[i + 2]! * 0.012 + t * 0.7) * amplitude * 0.6;
     }
@@ -132,13 +216,25 @@ export function createOcean(scene: Scene) {
   return mesh;
 }
 
+/**
+ * Maps a [-1,1] grid coordinate onto the world so cells keep their spacing near the island and
+ * stretch outwards: the animated water now reaches ~20k instead of 2.7k for the same vertex count,
+ * pushing the seam with the flat far ocean past where anyone can see it.
+ * ponytail: cubic stretch on the existing grid, not a second LOD mesh.
+ */
+function stretch(t: number, half: number): number {
+  return t * (1 + 6.4 * t * t) * half;
+}
+
 function oceanDepth(x: number, z: number): number {
   return smoothstep((Math.hypot(x, z) - 1440) / 1040);
 }
 
 function oceanColor(depth: number, noise: number): Color4 {
   const color = Color4.Lerp(new Color4(0.08, 0.5, 0.48, 1), new Color4(0.01, 0.09, 0.22, 1), depth * 0.85 + noise * 0.15);
-  color.a = 0.18 + smoothstep(depth) * 0.72;
+  // Clear over the sand, fully opaque by the time the seabed drops away (~2480 out), which also
+  // hides the far ocean ring starting at 2700. ponytail: one alpha ramp, no depth-fade shader.
+  color.a = 0.05 + smoothstep(depth) * 0.95;
   return color;
 }
 
