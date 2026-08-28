@@ -26,7 +26,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
   material.specularColor = Color3.Black();
   const portalMaterial = new StandardMaterial("tunnel_portal", scene);
-  portalMaterial.diffuseColor = new Color3(0.07, 0.08, 0.08);
+  portalMaterial.diffuseColor = new Color3(0.26, 0.25, 0.23);
   portalMaterial.specularColor = Color3.Black();
   const tubeMaterial = new StandardMaterial("tunnel_tube", scene);
   tubeMaterial.diffuseColor = new Color3(0.06, 0.06, 0.055);
@@ -189,19 +189,12 @@ function tunnelPortal(
 ): (Mesh | LinesMesh)[] {
   const { position, tangent } = graph.pointAt(id, distance);
   const y = terrainHeight(position.x, position.z) + 1.8;
-  const approach = MeshBuilder.CreateBox(`tunnel_mouth_${id}_${distance}`, { width: width + 10, height: 0.25, depth: 28 }, scene);
-  approach.position.set(position.x, y - 1.75, position.z);
-  approach.rotation.y = Math.atan2(tangent.x * direction, tangent.z * direction);
-  approach.material = material;
-  approach.isPickable = false;
-
   const portal = portalMesh(scene, `tunnel_portal_${id}_${distance}`, position, tangent, width, direction, y - 2.5);
   portal.material = material;
   portal.isPickable = false;
 
   const lip = portalOutline(position, tangent, width, y - 2.5);
-  const mouth = flatRect(position, tangent, width + 10, 28, terrainHeight(position.x, position.z) + MARK_LIFT);
-  return [approach, styledLine(scene, `tunnel_mouth_lip_${id}_${distance}`, mouth, color, true), portal, styledLine(scene, `tunnel_lip_${id}_${distance}`, lip, color, true)];
+  return [portal, styledLine(scene, `tunnel_lip_${id}_${distance}`, lip, color)];
 }
 
 function portalMesh(
@@ -215,17 +208,25 @@ function portalMesh(
 ): Mesh {
   const t = normalizeXZ({ x: tangent.x * direction, y: 0, z: tangent.z * direction });
   const n = perpXZ(t);
-  const section = tunnelSection(width);
+  const inner = tunnelSection(width);
+  const outer = tunnelSection(width + 8).map((p) => ({ x: p.x, y: p.y + 1.5 }));
   const positions: number[] = [];
-  for (const d of [-0.8, 0.8]) {
-    for (const p of section) positions.push(center.x + n.x * p.x + t.x * d, y + p.y, center.z + n.z * p.x + t.z * d);
+  for (const d of [-1.4, 1.4]) {
+    for (const section of [outer, inner]) {
+      for (const p of section) positions.push(center.x + n.x * p.x + t.x * d, y + p.y, center.z + n.z * p.x + t.z * d);
+    }
   }
   const indices: number[] = [];
-  for (let i = 0; i < section.length - 1; i++) indices.push(i, i + 1, section.length + i, i + 1, section.length + i + 1, section.length + i);
-  for (const start of [0, section.length]) {
-    const centerIndex = positions.length / 3;
-    positions.push(center.x + t.x * (start ? 0.8 : -0.8), y + 3.3, center.z + t.z * (start ? 0.8 : -0.8));
-    for (let i = 0; i < section.length - 1; i++) indices.push(centerIndex, start + i, start + i + 1);
+  const count = inner.length;
+  const frontOuter = 0;
+  const frontInner = count;
+  const backOuter = count * 2;
+  const backInner = count * 3;
+  for (let i = 0; i < count - 1; i++) {
+    indices.push(frontOuter + i, frontOuter + i + 1, frontInner + i, frontOuter + i + 1, frontInner + i + 1, frontInner + i);
+    indices.push(backOuter + i, backInner + i, backOuter + i + 1, backOuter + i + 1, backInner + i, backInner + i + 1);
+    indices.push(frontOuter + i, backOuter + i, frontOuter + i + 1, frontOuter + i + 1, backOuter + i, backOuter + i + 1);
+    indices.push(frontInner + i, frontInner + i + 1, backInner + i, frontInner + i + 1, backInner + i + 1, backInner + i);
   }
   const mesh = new MeshClass(name, scene);
   const data = new VertexData();
@@ -241,17 +242,6 @@ function portalMesh(
 function portalOutline(center: { x: number; z: number }, tangent: { x: number; z: number }, width: number, y: number): Vector3[] {
   const n = perpXZ(normalizeXZ({ x: tangent.x, y: 0, z: tangent.z }));
   return tunnelSection(width).map((p) => new Vector3(center.x + n.x * p.x, y + p.y, center.z + n.z * p.x));
-}
-
-function flatRect(center: { x: number; z: number }, tangent: { x: number; z: number }, width: number, depth: number, y: number): Vector3[] {
-  const t = normalizeXZ({ x: tangent.x, y: 0, z: tangent.z });
-  const n = perpXZ(t);
-  return [
-    new Vector3(center.x - n.x * width / 2 - t.x * depth / 2, y, center.z - n.z * width / 2 - t.z * depth / 2),
-    new Vector3(center.x + n.x * width / 2 - t.x * depth / 2, y, center.z + n.z * width / 2 - t.z * depth / 2),
-    new Vector3(center.x + n.x * width / 2 + t.x * depth / 2, y, center.z + n.z * width / 2 + t.z * depth / 2),
-    new Vector3(center.x - n.x * width / 2 + t.x * depth / 2, y, center.z - n.z * width / 2 + t.z * depth / 2),
-  ];
 }
 
 function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[]): Mesh {
