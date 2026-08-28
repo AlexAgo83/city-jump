@@ -7,12 +7,13 @@
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 00:57:20
 
 # AI Context
 - Summary: Code review of `rebuild()` and its downstream calls found one fully wasted computation (`conformToRoads` runs twice), one recent change that does the right thing at far more than the necessary cost (the per-junction ground-flatten loop added in `aa8167e`), and one quadratic tree-placement scan with no spatial index. None overlap the reliability findings already captured in `req_003`/`req_004`.
 - Keywords: review, findings, rebuild performance, redundant computation, quadratic scan, heightmap, tree placement
 - Use when: improving `rebuild()` cost, heightmap flattening cost, or tree-placement cost.
-- Skip when: implementing the browser-gate/demo-strictness/traffic-lookup/README work already captured in `req_003_review_findings_project_reliability` and `req_004_harden_project_reliability_gates_and_demo_evidence`, or the road-crossing behavior in `req_001`.
+- Skip when: implementing the browser-gate/demo-strictness/traffic-lookup/README work already captured in `req_003_review_findings_project_reliability` and `req_004_harden_project_reliability_gates_and_demo_evidence`, or the road-crossing behavior in `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`.
 
 # Needs
 - `rebuild()` should not compute the same expensive answer twice for no reason. `src/app/app.ts:53-54` calls `heightmap.conformToRoads(graph)` and then immediately `heightmap.conformToRoads(graph, parcels)`. `Heightmap.conformToRoads` (`src/sim/heightmap.ts:120-122`) starts by resetting `this.current` from `this.base` and `this.claim` to `Infinity`, then re-stamps every segment and junction from scratch -- the second call fully overwrites everything the first call produced, and nothing reads `heightmap` in between. `buildableCells`/`buildingParcels` (`src/sim/slots.ts`) do not read the heightmap at all, so there is no ordering reason for the first call either. The comment directly above these two lines (`src/app/app.ts:49-50`) calls this "the most expensive step in here" -- the code runs it twice anyway.
@@ -22,7 +23,7 @@
 # Context
 - Review started from a clean worktree on `main`, at commit `1a981ef`, no uncommitted changes.
 - Validation run during review: `npm run ci` passed -- unit tests, architecture tests, build/typecheck, and Logics lint/audit all green.
-- This review deliberately does not repeat the findings already captured in `req_003_review_findings_project_reliability` / `req_004_harden_project_reliability_gates_and_demo_evidence` (CI missing browser checks, `DebugApi.road()` return value ignored, `traffic.ts` per-car-per-frame segment scan, README drift) or the road-crossing behavior in `req_001`.
+- This review deliberately does not repeat the findings already captured in `req_003_review_findings_project_reliability` / `req_004_harden_project_reliability_gates_and_demo_evidence` (CI missing browser checks, `DebugApi.road()` return value ignored, `traffic.ts` per-car-per-frame segment scan, README drift) or the road-crossing behavior in `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`.
 - `conformToRoads` evidence: `src/app/app.ts:48-63` (the `rebuild()` function); `src/sim/heightmap.ts:120-122` (the reset at the top of `conformToRoads`); `src/sim/slots.ts` (`buildableCells`/`buildingParcels` take no heightmap argument).
 - Junction-flatten evidence: `src/sim/heightmap.ts:149-159` (the loop) and `:165-188` (`stamp()`'s own bounding-box scan and claim/blend logic); `src/render/ground.ts:14` (`GROUND_CELL`); `src/sim/heightmap.ts:8` (`EMBANKMENT`); `src/sim/roadTypes.ts` (avenue width) and `src/sim/junction.ts` (`roundaboutRadius` multiplier).
 - Tree-placement evidence: `src/render/trees.ts:190-197` (`plant()` calling `nearRoad()`), `:199-222` (the candidate-site loops), `:300-311` (`nearRoad()`'s per-segment scan).
@@ -56,4 +57,6 @@
 - `logics/request/req_004_harden_project_reliability_gates_and_demo_evidence.md`
 
 # Backlog
-- none
+- `item_014_stop_computing_conformtoroads_twice_per_rebuild`
+- `item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell`
+- `item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement`

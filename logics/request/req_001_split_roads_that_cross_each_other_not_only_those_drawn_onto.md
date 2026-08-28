@@ -7,33 +7,31 @@
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-26 17:55:01
+> Indicators reviewed: 2026-08-29 00:57:19
 
 # AI Context
-- Summary: Two roads drawn across each other overlap without producing a junction, because the segment-snap rule only fires when an endpoint lands on a segment. Found while building req_000; deliberately left out of it, since nothing in that request's criteria mentions crossings.
-- Keywords: road crossing, segment intersection, mid-segment split, junction creation, snapping rules, req_000 follow-up
-- Use when: changing how junctions come into existence, or investigating two roads that overlap with no junction between them.
-- Skip when: the work is endpoint snapping, which req_000 already delivered, or junction geometry, which req_000's trimmed-polygon slice owns.
+- Summary: Most of this was delivered without going back through this request: `firstCrossing` in `src/sim/rules.ts` now splits both roads where a drawn curve crosses an existing one (AC1), built from the sample polylines rather than new curve-intersection math (AC4), reusing the existing junction geometry unchanged (AC5), and skipping tunnels on either side of the crossing (AC6, verified by the `does not split surface roads when a tunnel crosses under them` test). Re-verified 2026-08-29: still true against the current tree. Two gaps remain open: a stroke that crosses more than one existing road only splits at the first crossing found (AC2), and a crossing that lands within the node-snap radius of an existing node still creates a new node beside it instead of reusing it (AC3).
+- Keywords: road crossing, segment intersection, mid-segment split, junction creation, snapping rules, multiple crossings, snap-radius merge
+- Use when: changing how junctions come into existence from a crossing, or investigating a multi-road stroke that only splits at one of the roads it crosses.
+- Skip when: the work is endpoint snapping (already delivered by `req_000`), junction geometry (unchanged, owned by `req_000`'s trimmed-polygon slice), or the single-crossing case (already delivered and tested here).
 
 # Needs
-- `resolveSnap` in `src/sim/rules.ts` snaps an endpoint to a nearby node or splits the segment that endpoint lands on. Neither rule looks at what a segment passes *through*, so a road drawn straight across another produces two segments that overlap in the world and share nothing in the graph.
-- The road surface still renders -- the two ribbons simply cross -- so the defect is invisible until something reads the graph and expects the network to be connected. Traffic would be the first to find it, but building slots already suffer a milder version: neither road knows to keep its frontage clear of the other.
-- This was found while delivering `req_000` and deliberately left out of it. That request's AC7 defines a junction as what snapping produces, and none of its criteria mentions crossings; widening it during delivery would have made the scope unreadable.
+- `firstCrossing` (`src/sim/rules.ts:151-173`) returns after the first crossing it finds and `commitSegment` (`:115-138`) splits only there; a stroke drawn across two or more existing roads leaves every crossing past the first one unsplit, so the network reads as connected at the first junction and silently is not at the rest.
+- The same function has no node-snap-radius check: the crossing point becomes a brand-new node (via `graph.splitSegment`) even when an existing node sits within `RULES.nodeSnapRadius` (8 units, `src/sim/rules.ts:12`) of it, producing two nodes a few units apart where the player would expect one junction.
+- Delivered and should not be redone: AC1 (single crossing splits both roads, tested in `src/sim/rules.test.ts:69` "splits both roads when one crosses another in the middle"), AC4 (sample-polyline sweep, no new curve math), AC5 (junction geometry untouched), AC6 (tunnels excluded from crossing checks on both sides, tested in `src/sim/rules.test.ts:144` "does not split surface roads when a tunnel crosses under them").
 
 # Context
-- The graph already has everything the fix needs: `splitSegment` splits at a distance along a segment and preserves the curve on both sides, and `nearestOnSegment` turns a world position into a segment plus a distance. What is missing is finding the crossing in the first place.
-- Two quadratic Beziers can be intersected exactly, but the sample polylines every segment already carries make a segment-segment sweep far simpler, and their resolution -- roughly one point per metre -- is well under the 2 m position grid the drawing rules quantise to.
-- The expensive part is not the intersection test but deciding what to test against. A linear scan over every segment is fine at the scale measured so far (237 segments) and is what `nearestNode`/`nearestOnSegment` already do; both carry a note that a spatial index is the upgrade when a profile asks for one.
-- Cities:Skylines splits both roads at the crossing and makes it a junction. The alternative -- refusing the crossing outright -- is worse: it makes a common drawing gesture fail for a reason the player cannot see.
-- Bridges are the reason this cannot simply always split: once a segment can be elevated, a crossing is sometimes deliberate. That interaction should be named here even though elevated segments do not exist yet.
+- Re-verified against `src/sim/rules.ts` and `src/sim/rules.test.ts` on 2026-08-29; `npm run ci` green at the same commit.
+- `graph.splitSegment` already preserves the curve on both sides of a split and is reused as-is for every additional crossing this would add; nothing new is needed there.
+- The expensive part is still deciding what to test against, not the intersection test itself. A linear scan over every segment remains fine at the scale measured so far and matches what `nearestNode`/`nearestOnSegment` already do.
 
 # Acceptance criteria
-- AC1: A road drawn across an existing one splits both at the crossing and leaves a single node shared by four segments, so the network is connected wherever it looks connected.
-- AC2: A road crossing several others in one stroke splits at every crossing, in order along its length.
-- AC3: A crossing that falls within the node-snap radius of an existing node attaches to that node instead of creating a second one beside it.
-- AC4: Crossings are found from the segments' existing sample polylines, with no new curve-intersection machinery, and the cost of the search is stated against the segment count it was measured at.
-- AC5: The junction geometry a new crossing produces is the one already delivered, with no change to how it is built.
-- AC6: The interaction with elevated segments is written down: when a segment can be elevated, a crossing is a decision rather than always a split.
+- AC1 (delivered): A road drawn across an existing one splits both at the crossing and leaves a single node shared by four segments.
+- AC2 (open): A road crossing several others in one stroke splits at every crossing, in order along its length -- not only the first one `firstCrossing` finds.
+- AC3 (open): A crossing that falls within the node-snap radius of an existing node attaches to that node instead of creating a second one beside it.
+- AC4 (delivered): Crossings are found from the segments' existing sample polylines, with no new curve-intersection machinery.
+- AC5 (delivered): The junction geometry a new crossing produces is the one already delivered, with no change to how it is built.
+- AC6 (delivered): Tunnels are excluded from crossing detection on both the drawn road and the existing segments it is tested against.
 
 # Definition of Ready (DoR)
 - [ ] Problem statement is explicit and user impact is clear.
@@ -53,4 +51,4 @@
 - `req_000_draw_a_road_network_the_city_grows_from`
 
 # Backlog
-- none
+- `item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto`

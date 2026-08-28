@@ -28,7 +28,7 @@
 | [req_000_draw_a_road_network_the_city_grows_from](request/req_000_draw_a_road_network_the_city_grows_from.md) | Draw a road network the city grows from | Done |  |  | request/req_000_draw_a_road_network_the_city_grows_from.md |
 | [req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto](request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md) | Split roads that cross each other, not only those drawn onto | Draft |  |  | request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md |
 | [req_002_establish_modular_repository_foundations](request/req_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  |  | request/req_002_establish_modular_repository_foundations.md |
-| [req_003_review_findings_project_reliability](request/req_003_review_findings_project_reliability.md) | Review findings: project reliability | Draft |  |  | request/req_003_review_findings_project_reliability.md |
+| [req_003_review_findings_project_reliability](request/req_003_review_findings_project_reliability.md) | Review findings: project reliability | Obsolete |  |  | request/req_003_review_findings_project_reliability.md |
 | [req_004_harden_project_reliability_gates_and_demo_evidence](request/req_004_harden_project_reliability_gates_and_demo_evidence.md) | Harden project reliability gates and demo evidence | Draft |  |  | request/req_004_harden_project_reliability_gates_and_demo_evidence.md |
 | [req_005_review_findings_redundant_and_quadratic_rebuild_work](request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md) | Review findings: redundant and quadratic rebuild work | Draft |  |  | request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md |
 
@@ -48,6 +48,10 @@
 | [item_010_make_demo_and_screenshot_scenarios_fail_loudly](backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md) | Make demo and screenshot scenarios fail loudly | Ready |  | 0% | backlog/item_010_make_demo_and_screenshot_scenarios_fail_loudly.md |
 | [item_011_avoid_per_car_full_graph_scans_in_traffic_updates](backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md) | Avoid per-car full graph scans in traffic updates | Ready |  | 0% | backlog/item_011_avoid_per_car_full_graph_scans_in_traffic_updates.md |
 | [item_012_refresh_readme_feature_status_and_measured_evidence](backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md) | Refresh README feature status and measured evidence | Ready |  | 0% | backlog/item_012_refresh_readme_feature_status_and_measured_evidence.md |
+| [item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto](backlog/item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto.md) | Split roads that cross each other, not only those drawn onto | Ready |  | 0% | backlog/item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto.md |
+| [item_014_stop_computing_conformtoroads_twice_per_rebuild](backlog/item_014_stop_computing_conformtoroads_twice_per_rebuild.md) | Stop computing conformToRoads twice per rebuild | Ready |  | 0% | backlog/item_014_stop_computing_conformtoroads_twice_per_rebuild.md |
+| [item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell](backlog/item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell.md) | Stamp junction ground flatten once instead of per grid cell | Ready |  | 0% | backlog/item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell.md |
+| [item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement](backlog/item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md) | Avoid the quadratic road-proximity scan in tree placement | Ready |  | 0% | backlog/item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md |
 
 ## Tasks
 
@@ -56,6 +60,10 @@
 | [task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it](tasks/task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it.md) | Deliver the drawable road network and the city that grows from it | Done | claude | 100% | tasks/task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it.md |
 | [task_002_establish_modular_repository_foundations](tasks/task_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  | 100% | tasks/task_002_establish_modular_repository_foundations.md |
 | [task_003_implement_project_reliability_hardening](tasks/task_003_implement_project_reliability_hardening.md) | Implement project reliability hardening | Ready |  | 0% | tasks/task_003_implement_project_reliability_hardening.md |
+| [task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto](tasks/task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto.md) | Split roads that cross each other, not only those drawn onto | Ready |  | 0% | tasks/task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto.md |
+| [task_005_stop_computing_conformtoroads_twice_per_rebuild](tasks/task_005_stop_computing_conformtoroads_twice_per_rebuild.md) | Stop computing conformToRoads twice per rebuild | Ready |  | 0% | tasks/task_005_stop_computing_conformtoroads_twice_per_rebuild.md |
+| [task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell](tasks/task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell.md) | Stamp junction ground flatten once instead of per grid cell | Ready |  | 0% | tasks/task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell.md |
+| [task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement](tasks/task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md) | Avoid the quadratic road-proximity scan in tree placement | Ready |  | 0% | tasks/task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md |
 
 ## Runbooks
 

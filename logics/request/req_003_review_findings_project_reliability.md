@@ -1,12 +1,13 @@
 ## req_003_review_findings_project_reliability - Review findings: project reliability
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Obsolete
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 00:57:19
 
 # AI Context
 - Summary: Code review found several reliability and maintenance gaps that are not covered by the current green local gate: browser checks are outside `ci`, debug capture roads can fail silently, traffic does a per-car segment scan every frame, and README state is stale after tunnel and capture changes.
@@ -58,3 +59,6 @@
 
 # Backlog
 - none
+
+# Links
+- Superseded by: `req_004_harden_project_reliability_gates_and_demo_evidence`
