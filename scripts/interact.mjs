@@ -428,6 +428,33 @@ check(
   `${walked.buildings} vs ${tunneled.buildings}`,
 );
 check(
+  "ordinary roads get a footway either side",
+  await page.evaluate(() => {
+    const meshes = window.cityjump._scene.meshes.filter((m) => m.name.startsWith("sidewalk_"));
+    return meshes.some((m) => m.name.startsWith("sidewalk_l_")) && meshes.some((m) => m.name.startsWith("sidewalk_r_"));
+  }),
+);
+check(
+  "walkers on a street keep to the footway, clear of the carriageway",
+  await page.evaluate(() => {
+    const graph = window.cityjump._graph;
+    const scene = window.cityjump._scene;
+    // Pick a surface road and measure how far its walkers sit from its centre line.
+    const seg = graph.allSegments().find((s) => s.type === "street" || s.type === "avenue");
+    if (!seg) return false;
+    const half = (s) => (s.type === "avenue" ? 14 : 8) / 2;
+    const walkers = scene.meshes.filter((m) => m.name.startsWith(`pedestrian_${seg.id}_`));
+    if (walkers.length === 0) return false;
+    return walkers.every((walker) => {
+      let nearest = Infinity;
+      for (const point of seg.samples) {
+        nearest = Math.min(nearest, Math.hypot(walker.position.x - point.x, walker.position.z - point.z));
+      }
+      return nearest > half(seg);
+    });
+  }),
+);
+check(
   "a pedestrian path is paved rather than surfaced like a street",
   await page.evaluate(() => {
     const paved = window.cityjump._scene.meshes.filter((mesh) => mesh.material?.name === "paving");
@@ -525,6 +552,84 @@ check(
   (await stats()).segments === beforeDrags.segments,
   `${(await stats()).segments}/${beforeDrags.segments}`,
 );
+
+// The bulldozer aims at what the pointer is actually over.
+const screenPoint = (worldish) =>
+  page.evaluate((expr) => {
+    const scene = window.cityjump._scene;
+    const pos = new Function("return " + expr)();
+    if (!pos) return null;
+    const t = scene.getTransformMatrix().m;
+    const { x, y, z } = pos;
+    const w = x * t[3] + y * t[7] + z * t[11] + t[15];
+    const engine = scene.getEngine();
+    return {
+      x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
+      y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
+    };
+  }, worldish);
+const highlightRadius = () =>
+  page.evaluate(() => {
+    const mesh = window.cityjump._scene.getMeshByName("bulldoze-highlight");
+    return mesh?.isEnabled() ? mesh.scaling.x : null;
+  });
+
+await page.locator('[data-tool="bulldoze"]').click();
+await page.waitForTimeout(200);
+// A tree standing on a road: the tree is what the pointer is on, so the tree is what goes.
+// Planted at a screen point the suite already knows has road under it, so this does not depend
+// on where the camera happens to be looking.
+const OVER_ROAD = { x: 805, y: 465 };
+await page.locator('[data-tool="nature"]').click();
+await page.locator('input[name="plant-mode"][value="plant"]').check();
+await page.waitForTimeout(150);
+const beforePlant = await stats();
+await click(OVER_ROAD.x, OVER_ROAD.y);
+check("a tree can be planted over a road", (await stats()).trees === beforePlant.trees + 1);
+
+await page.locator('[data-tool="bulldoze"]').click();
+await page.waitForTimeout(200);
+await page.mouse.move(OVER_ROAD.x, OVER_ROAD.y);
+await page.waitForTimeout(220);
+check("hovering a tree with the bulldozer highlights it", (await highlightRadius()) !== null);
+const beforeFell = await stats();
+await page.mouse.click(OVER_ROAD.x, OVER_ROAD.y);
+await page.waitForTimeout(400);
+const afterFell = await stats();
+check(
+  "the tree goes before the road it stands on",
+  afterFell.trees === beforeFell.trees - 1 && afterFell.segments === beforeFell.segments,
+  `${afterFell.trees}/${beforeFell.trees} trees, ${afterFell.segments}/${beforeFell.segments} segments`,
+);
+
+// And a roundabout can be taken off without touching the roads that meet it.
+const ringNode = await page.evaluate(() => {
+  const graph = window.cityjump._graph;
+  const node = graph
+    .allNodes()
+    .filter((candidate) => candidate.segments.size >= 3)
+    .sort((a, b) => Math.hypot(a.pos.x, a.pos.z) - Math.hypot(b.pos.x, b.pos.z))[0];
+  graph.setRoundabout(node.id, true);
+  window.cityjump.rebuild();
+  return node.id;
+});
+await page.waitForTimeout(500);
+const ringPoint = await screenPoint(`window.cityjump._graph.node(${ringNode}).pos`);
+await page.mouse.move(Math.round(ringPoint.x), Math.round(ringPoint.y));
+await page.waitForTimeout(220);
+const ringHighlight = await highlightRadius();
+check("hovering a roundabout highlights the whole ring", ringHighlight > 8, `${ringHighlight?.toFixed(1)} m`);
+const beforeRing = await stats();
+await page.mouse.click(Math.round(ringPoint.x), Math.round(ringPoint.y));
+await page.waitForTimeout(500);
+const afterRing = await stats();
+check(
+  "the bulldozer removes the roundabout, leaving its roads",
+  afterRing.roundabouts === 0 && afterRing.segments === beforeRing.segments,
+  `${afterRing.roundabouts} roundabouts, ${afterRing.segments}/${beforeRing.segments} segments`,
+);
+await page.locator('[data-tool="roads"]').click();
+await page.waitForTimeout(150);
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.
 await click(200, 600);

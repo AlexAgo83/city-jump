@@ -15,6 +15,11 @@ import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
 export const ROAD_LIFT = 0.06;
+
+/** Footway either side of a carriageway. Fits inside SLOT.setback, so no building has to move. */
+export const SIDEWALK_WIDTH = 2.6;
+/** Kerb height. Enough to read as a step, low enough that nothing has to climb it. */
+export const SIDEWALK_LIFT = ROAD_LIFT + 0.18;
 const MARK_LIFT = ROAD_LIFT + 0.05;
 
 /**
@@ -91,6 +96,32 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       ribbon.isPickable = false;
       meshes.push(ribbon);
       meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
+
+      // A footway either side, stepped up from the carriageway. A path is already all footway.
+      if (!type.pedestrian) {
+        const outerLeft: Vector3[] = [];
+        const outerRight: Vector3[] = [];
+        const innerLeft: Vector3[] = [];
+        const innerRight: Vector3[] = [];
+        for (let i = 0; i <= steps; i++) {
+          const d = from + ((to - from) * i) / steps;
+          const { position, tangent } = graph.pointAt(seg.id, d);
+          const n = perpXZ(normalizeXZ(tangent));
+          const y = position.y + SIDEWALK_LIFT;
+          const out = half + SIDEWALK_WIDTH;
+          innerLeft.push(new Vector3(position.x + n.x * half, y, position.z + n.z * half));
+          outerLeft.push(new Vector3(position.x + n.x * out, y, position.z + n.z * out));
+          innerRight.push(new Vector3(position.x - n.x * half, y, position.z - n.z * half));
+          outerRight.push(new Vector3(position.x - n.x * out, y, position.z - n.z * out));
+        }
+        const walkLeft = roadStripMesh(scene, `sidewalk_l_${seg.id}`, outerLeft, innerLeft);
+        const walkRight = roadStripMesh(scene, `sidewalk_r_${seg.id}`, innerRight, outerRight);
+        for (const walk of [walkLeft, walkRight]) {
+          walk.material = pavingMaterial;
+          walk.isPickable = false;
+          meshes.push(walk);
+        }
+      }
       if (isAvenue) {
         const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT);
         meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));

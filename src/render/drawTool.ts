@@ -8,7 +8,8 @@ import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
-import { RoadGraph } from "../sim/graph";
+import { RoadGraph, type Segment } from "../sim/graph";
+import { roundaboutRadius } from "../sim/junction";
 import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
@@ -23,6 +24,11 @@ const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
  * Three clicks: start, control point, end. No drag state to manage, and the bend is
  * explicit rather than inferred from how the pointer moved.
  */
+type BulldozeTarget =
+  | { kind: "road"; segment: Segment }
+  | { kind: "tree"; x: number; z: number }
+  | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
+
 type Stage =
   | { phase: "idle" }
   | { phase: "control"; from: Snap }
@@ -60,6 +66,8 @@ const NODE_REACH = 22;
 
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
+/** Standing this close to a tree means you are pointing AT it, and it wins over the road behind. */
+const TREE_HIT = 3.5;
 
 /**
  * Planting and clearing, which the tool drives but does not own. Both refresh the scenery
@@ -71,6 +79,8 @@ export interface NatureTools {
   plant(x: number, z: number, species: string): boolean;
   /** True if a tree was actually cleared. */
   clearTree(x: number, z: number): boolean;
+  /** Where the nearest tree stands, for aiming and for showing what would go. */
+  treeAt(x: number, z: number, within: number): { x: number; z: number } | null;
 }
 
 export function createDrawTool(
@@ -104,6 +114,28 @@ export function createDrawTool(
   nodeHighlight.color = ACCEPTED;
   nodeHighlight.isPickable = false;
   nodeHighlight.setEnabled(false);
+
+  // One unit circle, moved and scaled to outline whatever the bulldozer is about to take.
+  // ponytail: scale one mesh, rather than rebuilding a ring per hover.
+  const targetHighlight = MeshBuilder.CreateLines(
+    "bulldoze-highlight",
+    {
+      points: Array.from({ length: 49 }, (_, i) => {
+        const angle = (i / 48) * Math.PI * 2;
+        return new Vector3(Math.cos(angle), 0, Math.sin(angle));
+      }),
+    },
+    scene,
+  );
+  targetHighlight.color = REFUSED;
+  targetHighlight.isPickable = false;
+  targetHighlight.setEnabled(false);
+
+  function highlightCircle(x: number, z: number, radius: number): void {
+    targetHighlight.position.set(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
+    targetHighlight.scaling.set(radius, 1, radius);
+    targetHighlight.setEnabled(true);
+  }
 
   // The spray brush. Rebuilt in place every time the pointer moves so it lies on the terrain
   // rather than cutting through it. ponytail: an updatable line loop, not a decal or a projector.
@@ -187,8 +219,14 @@ export function createDrawTool(
     if (mode === "bulldoze") {
       nodeHighlight.setEnabled(false);
       const target = bulldozeTarget(at.x, at.z);
-      return target ? drawPreview([...target.samples], false) : clearPreview();
+      clearPreview();
+      targetHighlight.setEnabled(false);
+      if (!target) return;
+      if (target.kind === "road") return drawPreview([...target.segment.samples], false);
+      if (target.kind === "tree") return highlightCircle(target.x, target.z, 3);
+      return highlightCircle(target.x, target.z, target.radius);
     }
+    targetHighlight.setEnabled(false);
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
     nodeHighlight.setEnabled(snap.kind === "node");
     if (snap.kind === "node") {
@@ -214,14 +252,19 @@ export function createDrawTool(
     if (!at) return;
     if (mode === "bulldoze") {
       const target = bulldozeTarget(at.x, at.z);
-      if (target) {
-        graph.removeSegment(target.id);
-        clearPreview();
-        onCommitted();
+      if (!target) return;
+      clearPreview();
+      targetHighlight.setEnabled(false);
+      if (target.kind === "tree") {
+        nature.clearTree(target.x, target.z);
         return;
       }
-      // Nothing paved under the pointer, so the bulldozer takes a tree instead.
-      nature.clearTree(at.x, at.z);
+      if (target.kind === "roundabout") {
+        graph.setRoundabout(target.node, false);
+      } else {
+        graph.removeSegment(target.segment.id);
+      }
+      onCommitted();
       return;
     }
     if (mode === "roundabout") {
@@ -273,6 +316,7 @@ export function createDrawTool(
     stage = { phase: "idle" };
     lastSprayed = null;
     pressedAt = null;
+    targetHighlight.setEnabled(false);
     sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
@@ -297,11 +341,32 @@ export function createDrawTool(
     return best;
   }
 
-  function bulldozeTarget(x: number, z: number) {
+  /**
+   * What the bulldozer would take, in the order a player means them. A tree right under the
+   * pointer beats the road it stands beside; a roundabout beats the roads running into it, since
+   * their geometry still passes through the node under the ring; and a tree merely nearby is the
+   * last resort, so clicking beside a road does not silently fell something several metres off.
+   */
+  function bulldozeTarget(x: number, z: number): BulldozeTarget | null {
+    const onTree = nature.treeAt(x, z, TREE_HIT);
+    if (onTree) return { kind: "tree", ...onTree };
+
+    for (const node of graph.allNodes()) {
+      if (!node.roundabout) continue;
+      const radius = roundaboutRadius(graph, node.id);
+      if (Math.hypot(node.pos.x - x, node.pos.z - z) <= radius) {
+        return { kind: "roundabout", node: node.id, x: node.pos.x, z: node.pos.z, radius };
+      }
+    }
+
     const nearest = graph.nearestOnSegment(x, z, 20);
-    if (!nearest) return null;
-    const hitDistance = Math.hypot(x - nearest.position.x, z - nearest.position.z);
-    return hitDistance <= roadType(nearest.segment.type).width / 2 + 3 ? nearest.segment : null;
+    if (nearest) {
+      const hit = Math.hypot(x - nearest.position.x, z - nearest.position.z);
+      if (hit <= roadType(nearest.segment.type).width / 2 + 3) return { kind: "road", segment: nearest.segment };
+    }
+
+    const nearTree = nature.treeAt(x, z, TREE_REACH);
+    return nearTree ? { kind: "tree", ...nearTree } : null;
   }
 
   scene.onPointerObservable.add((info) => {

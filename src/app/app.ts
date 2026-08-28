@@ -100,6 +100,7 @@ export async function startApp(): Promise<void> {
       refreshTrees();
       return true;
     },
+    treeAt: (x, z, within) => trees.nearestTree(x, z, within),
   });
 
   const controls = bindControls({

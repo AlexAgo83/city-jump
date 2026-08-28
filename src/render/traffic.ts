@@ -8,7 +8,7 @@ import { Color3 } from "@babylonjs/core/Maths/math";
 import type { RoadGraph } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
-import { ROAD_LIFT } from "./roadMesh";
+import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 
 const CAR_COLORS = [
   new Color3(0.86, 0.18, 0.14),
@@ -38,6 +38,8 @@ interface Mover {
   /** Non-zero only for walkers, which bob as they go. */
   readonly stride: number;
   readonly phase: number;
+  /** Distance from the centre line. Cars keep to their lane, walkers to the footway. */
+  readonly offset: number;
 }
 
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
@@ -84,28 +86,34 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const type = roadType(seg.type);
       if (type.tunnelDepth) continue;
 
-      if (type.pedestrian) {
-        // People pack in tighter than cars, and a short path still deserves a couple.
-        const count = Math.min(8, Math.max(2, Math.floor(seg.length / 22)));
-        for (let i = 0; i < count; i++) {
-          const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
-            `pedestrian_${seg.id}_${i}`,
-          );
-          walker.isPickable = false;
-          movers.push({
-            mesh: walker,
-            segmentId: seg.id,
-            direction: i % 2 ? -1 : 1,
-            // Vary the pace a little, or a path reads as a conveyor belt.
-            speed: WALKER_SPEED * (0.75 + ((si + i * 7) % 5) * 0.12),
-            lift: 0.58,
-            stride: 0.05,
-            phase: ((si * 13 + i * 29) % 100) / 100 * Math.PI * 2,
-          });
-          walkerCount++;
-        }
-        continue;
+      const half = type.width / 2;
+      // Down the middle of a path, along the footway of anything else.
+      const walkOffset = type.pedestrian ? Math.max(0.7, half * 0.45) : half + SIDEWALK_WIDTH / 2;
+      const walkLift = type.pedestrian ? ROAD_LIFT + 0.58 : SIDEWALK_LIFT + 0.58;
+      // A path is all footway, so it carries more; a street gets a handful either side.
+      const walkers = type.pedestrian
+        ? Math.min(8, Math.max(2, Math.floor(seg.length / 22)))
+        : Math.min(6, Math.floor(seg.length / 45));
+
+      for (let i = 0; i < walkers; i++) {
+        const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
+          `pedestrian_${seg.id}_${i}`,
+        );
+        walker.isPickable = false;
+        movers.push({
+          mesh: walker,
+          segmentId: seg.id,
+          direction: i % 2 ? -1 : 1,
+          // Vary the pace a little, or a path reads as a conveyor belt.
+          speed: WALKER_SPEED * (0.75 + ((si + i * 7) % 5) * 0.12),
+          lift: walkLift,
+          stride: 0.05,
+          phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
+          offset: walkOffset,
+        });
+        walkerCount++;
       }
+      if (type.pedestrian) continue;
 
       const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
       for (let i = 0; i < count; i++) {
@@ -117,9 +125,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           segmentId: seg.id,
           direction: i % 2 ? -1 : 1,
           speed: CAR_SPEED,
-          lift: 0.75,
+          lift: ROAD_LIFT + 0.75,
           stride: 0,
           phase: i * 35,
+          offset: Math.max(1.8, type.width * 0.22),
         });
         carCount++;
       }
@@ -141,12 +150,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         mover.direction === 1 ? travelled : seg.length - travelled,
       );
       const normal = perpXZ(normalizeXZ(tangent));
-      const width = roadType(seg.type).width;
-      const offset = Math.max(mover.stride > 0 ? 0.7 : 1.8, width * 0.22) * -mover.direction;
+      const offset = mover.offset * -mover.direction;
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
       mover.mesh.position.set(
         position.x + normal.x * offset,
-        position.y + ROAD_LIFT + mover.lift + bob,
+        position.y + mover.lift + bob,
         position.z + normal.z * offset,
       );
       mover.mesh.rotation.y = Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction);
