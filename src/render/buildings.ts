@@ -29,6 +29,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   const available = models.filter((m): m is Model => m !== null);
   let grid: LinesMesh | null = null;
   let visible = true;
+  let gridVisible = false;
 
   function rebuild(): number {
     const slots = allSlots(graph);
@@ -49,6 +50,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       grid.color = new Color3(0.55, 0.8, 0.9);
       grid.alpha = 0.65;
       grid.isPickable = false;
+      grid.setEnabled(gridVisible);
     }
     if (!visible) {
       for (const model of available) {
@@ -87,7 +89,15 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     return placed;
   }
 
-  return { rebuild, setVisible: (next: boolean) => (visible = next), modelCount: available.length };
+  return {
+    rebuild,
+    setVisible: (next: boolean) => (visible = next),
+    setGridVisible(next: boolean) {
+      gridVisible = next;
+      grid?.setEnabled(next);
+    },
+    modelCount: available.length,
+  };
 }
 
 /**

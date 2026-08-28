@@ -35,6 +35,8 @@ const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
 const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
+const buildableGridVisible = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("buildable-grid")?.isEnabled() ?? false);
 const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
 const oceanSampleY = () =>
@@ -129,6 +131,11 @@ const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 const gridCells = await buildableGridCells();
 check("the buildable grid reaches up to five cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 10, `${gridCells} cells`);
+check("the buildable grid is visible while drawing roads", await buildableGridVisible());
+await page.locator('input[name="road-mode"][value="view"]').check();
+check("view mode hides the buildable grid", !(await buildableGridVisible()));
+await page.locator('input[name="road-mode"][value="curve"]').check();
+check("road mode restores the buildable grid", await buildableGridVisible());
 const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
 

@@ -59,6 +59,7 @@ export async function startApp(): Promise<void> {
   bindControls({
     onRoadMode(mode) {
       tool.setMode(mode);
+      buildings.setGridVisible(mode !== "view");
       refreshHud();
     },
     onRoadType(type) {
