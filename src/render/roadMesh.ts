@@ -25,6 +25,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const material = new StandardMaterial("road", scene);
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
   material.specularColor = Color3.Black();
+  material.maxSimultaneousLights = 12;
   const portalMaterial = new StandardMaterial("tunnel_portal", scene);
   portalMaterial.diffuseColor = new Color3(0.26, 0.25, 0.23);
   portalMaterial.specularColor = Color3.Black();
