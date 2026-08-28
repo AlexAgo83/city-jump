@@ -12,6 +12,13 @@ export const EMBANKMENT = 10;
  */
 export const ROAD_BED_DROP = 0.3;
 export const BUILDING_PAD_EMBANKMENT = 8;
+
+/**
+ * Earth a tunnel needs overhead before the ground is left alone. The tube's outer shell stands
+ * about 9.5m above the roadway, so anything less than this and the hill would be sitting on the
+ * portal rather than over it.
+ */
+export const TUNNEL_COVER = 12;
 export const SEA_LEVEL = 0;
 
 export interface HeightmapOptions {
@@ -67,8 +74,17 @@ export class Heightmap implements Terrain {
     return -this.size / 2 + iz * this.cell;
   }
 
-  /** Bilinear sample, clamped at the edges. */
+  /** Bilinear sample of the current ground, clamped at the edges. */
   heightAt(x: number, z: number): number {
+    return this.sample(x, z, (ix, iz) => this.at(ix, iz));
+  }
+
+  /** The same sample against the untouched ground, before any road was cut into it. */
+  baseHeightAt(x: number, z: number): number {
+    return this.sample(x, z, (ix, iz) => this.baseAt(ix, iz));
+  }
+
+  private sample(x: number, z: number, read: (ix: number, iz: number) => number): number {
     const fx = (x + this.size / 2) / this.cell;
     const fz = (z + this.size / 2) / this.cell;
     const ix = Math.min(this.count - 2, Math.max(0, Math.floor(fx)));
@@ -76,10 +92,10 @@ export class Heightmap implements Terrain {
     const tx = Math.min(1, Math.max(0, fx - ix));
     const tz = Math.min(1, Math.max(0, fz - iz));
 
-    const h00 = this.at(ix, iz);
-    const h10 = this.at(ix + 1, iz);
-    const h01 = this.at(ix, iz + 1);
-    const h11 = this.at(ix + 1, iz + 1);
+    const h00 = read(ix, iz);
+    const h10 = read(ix + 1, iz);
+    const h01 = read(ix, iz + 1);
+    const h11 = read(ix + 1, iz + 1);
     return (h00 * (1 - tx) + h10 * tx) * (1 - tz) + (h01 * (1 - tx) + h11 * tx) * tz;
   }
 
@@ -106,13 +122,19 @@ export class Heightmap implements Terrain {
 
     for (const seg of graph.allSegments()) {
       const type = roadType(seg.type);
-      if (type.tunnelDepth) continue;
       const half = type.width / 2;
       const reach = half + EMBANKMENT;
       const step = Math.max(1, this.cell / 2);
 
       for (let d = 0; d <= seg.length; d += step) {
         const { position } = graph.pointAt(seg.id, d);
+        // A tunnel cuts the ground only where it has not buried itself yet, which is the approach
+        // trench at each end. Under the middle of the hill there is earth overhead and the ground
+        // is left whole, which is the whole point of a tunnel.
+        // ponytail: one depth test per sample, reusing the same stamp as a surface road.
+        if (type.tunnelDepth && this.baseHeightAt(position.x, position.z) - position.y > TUNNEL_COVER) {
+          continue;
+        }
         this.stamp(position.x, position.z, position.y, half, reach);
       }
     }
