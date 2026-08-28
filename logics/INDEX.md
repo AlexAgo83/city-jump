@@ -27,6 +27,7 @@
 | [req_000_draw_a_road_network_the_city_grows_from](request/req_000_draw_a_road_network_the_city_grows_from.md) | Draw a road network the city grows from | Done |  |  | request/req_000_draw_a_road_network_the_city_grows_from.md |
 | [req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto](request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md) | Split roads that cross each other, not only those drawn onto | Draft |  |  | request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md |
 | [req_002_establish_modular_repository_foundations](request/req_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  |  | request/req_002_establish_modular_repository_foundations.md |
+| [req_003_review_findings_project_reliability](request/req_003_review_findings_project_reliability.md) | Review findings: project reliability | Draft |  |  | request/req_003_review_findings_project_reliability.md |
 
 ## Backlog
 
