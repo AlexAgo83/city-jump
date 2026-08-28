@@ -35,13 +35,11 @@ const report = await page.evaluate(async (which) => {
     api.reset();
     api.demoNetwork();
     api._scene.getMeshByName("buildable-grid")?.setEnabled(false);
-    api.camera(1250, Math.PI / 5, -Math.PI / 2);
+    api.camera(1450, Math.PI / 5, -Math.PI / 2);
   } else {
     api.demoNetwork();
-    document.querySelector("#show-buildings").checked = false;
-    document.querySelector("#show-buildings").dispatchEvent(new Event("change", { bubbles: true }));
     api._scene.getMeshByName("buildable-grid")?.setEnabled(false);
-    api.camera(1250, Math.PI / 5, -Math.PI / 2);
+    api.camera(1450, Math.PI / 5, -Math.PI / 2);
   }
   const fps = await api.measureFps(3000);
   const gl = document.createElement("canvas").getContext("webgl2");

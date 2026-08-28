@@ -39,24 +39,31 @@ export function installDebugApi(
       return result.ok;
     },
     demoNetwork() {
-      // Schematic arterial/local layout, close to the planning sketch used for docs.
-      api.road(-760, -420, 0, -520, 760, -420, "avenue");
-      api.road(-760, 420, 0, 520, 760, 420, "avenue");
-      api.road(-760, -420, -860, 0, -760, 420, "avenue");
-      api.road(760, -420, 860, 0, 760, 420, "avenue");
-      api.road(-650, 240, -220, -120, 230, 160, "avenue");
-      api.road(230, 160, 410, 330, 620, 300, "avenue");
-      api.road(-720, -80, -450, -260, -180, -60);
-      api.road(-620, 220, -420, 40, -160, 150);
-      api.road(-220, -300, 20, -160, 220, -260);
-      api.road(120, -40, 330, -250, 650, -170);
-      api.road(330, 120, 480, 20, 650, 120);
-      api.road(-80, 330, 90, 210, 260, 360);
-      api.road(-520, 20, -500, 110, -500, 220);
-      api.road(-80, -60, -80, 60, -80, 190);
-      api.road(250, -210, 250, -20, 250, 170);
-      api.road(520, -140, 520, 20, 520, 180);
-      api.road(-640, -250, -230, -330, 260, -250, "tunnel");
+      // Neighborhood capture: big avenues define districts, collectors feed local streets.
+      api.road(-900, -520, 0, -620, 900, -520, "avenue");
+      api.road(-900, 520, 0, 620, 900, 520, "avenue");
+      api.road(-900, -520, -1040, 0, -900, 520, "avenue");
+      api.road(900, -520, 1040, 0, 900, 520, "avenue");
+      api.road(-180, -660, -60, -60, -70, 660, "avenue");
+      api.road(-850, -120, -330, -170, 230, -80, "avenue");
+      api.road(-760, 280, -260, 40, 760, 250, "avenue");
+      api.road(-780, -360, -430, -420, -110, -300);
+      api.road(-760, -230, -430, -260, -120, -190);
+      api.road(-720, 80, -470, 10, -210, 80);
+      api.road(-690, 420, -430, 330, -160, 390);
+      api.road(80, -410, 310, -300, 720, -340);
+      api.road(120, -230, 380, -160, 770, -190);
+      api.road(90, 70, 340, 110, 770, 60);
+      api.road(100, 360, 360, 420, 790, 360);
+      api.road(-610, -470, -570, -350, -540, -210);
+      api.road(-460, -450, -430, -330, -390, -190);
+      api.road(-600, 250, -560, 360, -530, 500);
+      api.road(-430, 210, -400, 330, -360, 480);
+      api.road(290, -450, 300, -330, 320, -210);
+      api.road(480, -440, 500, -320, 520, -200);
+      api.road(300, 90, 340, 210, 330, 350);
+      api.road(520, 90, 570, 210, 560, 350);
+      api.road(-780, -360, -340, -470, 130, -360, "tunnel");
       rebuild();
     },
     demoCity() {
