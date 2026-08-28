@@ -460,6 +460,66 @@ check(
   `x ${turnedForward.x.toFixed(0)} z ${turnedForward.z.toFixed(0)}`,
 );
 
+// Nature tool: plant, spray, and clear with the bulldozer.
+await page.evaluate(() => { window.cityjump.reset(); window.cityjump.camera(600, Math.PI / 4, -Math.PI / 2); });
+await page.waitForTimeout(400);
+await page.locator('[data-tool="nature"]').click();
+check("the nature tool shows its planting options", !(await page.locator("#nature-options").isHidden()));
+check("the nature tool hides the road options", await page.locator("#road-options").isHidden());
+
+const treeCount = async () => (await stats()).trees;
+const wildTrees = await treeCount();
+await click(500, 350);
+const oneMore = await treeCount();
+check("a click plants a single tree", oneMore === wildTrees + 1, `${wildTrees} -> ${oneMore}`);
+
+await page.locator('input[name="plant-mode"][value="spray"]').check();
+await page.waitForTimeout(150);
+await page.mouse.move(420, 430);
+await page.waitForTimeout(200);
+const brush = await page.evaluate(() => {
+  const mesh = window.cityjump._scene.getMeshByName("spray-ring");
+  if (!mesh?.isEnabled()) return null;
+  const positions = mesh.getVerticesData("position");
+  const ys = [];
+  for (let i = 1; i < positions.length; i += 3) ys.push(positions[i]);
+  return +(Math.max(...ys) - Math.min(...ys)).toFixed(2);
+});
+check("the spray brush ring is shown", brush !== null);
+check("the brush ring follows the terrain instead of sitting flat", brush > 0.05, `${brush} m of relief`);
+
+const beforeStroke = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+await page.mouse.down();
+for (let x = 420; x <= 700; x += 20) {
+  await page.mouse.move(x, 430);
+  await page.waitForTimeout(45);
+}
+await page.mouse.up();
+await page.waitForTimeout(500);
+const afterStroke = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+// A held left drag normally orbits; spray takes that button so the view stays put while painting.
+check("spraying does not swing the camera", beforeStroke[0] === afterStroke[0] && beforeStroke[1] === afterStroke[1]);
+const sprayed = await treeCount();
+check("a spray stroke scatters trees across the brush", sprayed > oneMore + 10, `${oneMore} -> ${sprayed}`);
+
+await page.locator('[data-tool="bulldoze"]').click();
+await page.waitForTimeout(150);
+check(
+  "the brush ring is hidden outside spray mode",
+  !(await page.evaluate(() => window.cityjump._scene.getMeshByName("spray-ring")?.isEnabled())),
+);
+await click(500, 350);
+const cleared = await treeCount();
+check("the bulldozer clears a tree where there is no road", cleared === sprayed - 1, `${sprayed} -> ${cleared}`);
+await page.locator('[data-tool="select"]').click();
+await page.waitForTimeout(150);
+
 await page.evaluate(() => window.cityjump.demoNetwork());
 await page.waitForTimeout(400);
 const built = await stats();

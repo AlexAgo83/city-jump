@@ -10,13 +10,16 @@
  * and `conformToRoads` reshapes the ground under them anyway.
  */
 import { RoadGraph, type NodeId } from "./graph";
+import type { Planting, Plantings } from "./plantings";
 import { v3 } from "./vec";
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
 export type SavedNode = [id: NodeId, x: number, y: number, z: number];
 export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string];
+/** A hand-planted tree or a cleared spot: ground position only, the rest is generated. */
+export type SavedPlanting = [x: number, z: number];
 
 export interface CitySave {
   readonly v: number;
@@ -24,13 +27,17 @@ export interface CitySave {
   readonly hour: number;
   readonly nodes: readonly SavedNode[];
   readonly segments: readonly SavedSegment[];
+  readonly planted: readonly SavedPlanting[];
+  readonly cleared: readonly SavedPlanting[];
 }
 
-export function serializeCity(graph: RoadGraph, terrain: string, hour: number): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: string, hour: number): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
+    planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z]),
+    cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
     nodes: graph.allNodes().map((node) => [node.id, node.pos.x, node.pos.y, node.pos.z]),
     segments: graph
       .allSegments()
@@ -43,7 +50,8 @@ export function serializeCity(graph: RoadGraph, terrain: string, hour: number): 
  * has had segments removed no longer numbers its nodes from 1.
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
-export function restoreCity(graph: RoadGraph, save: CitySave): void {
+export function restoreCity(graph: RoadGraph, plantings: Plantings, save: CitySave): void {
+  plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();
   for (const [id, x, y, z] of save.nodes) ids.set(id, graph.addNodeAt(v3(x, y, z)));
@@ -69,6 +77,9 @@ export function parseCity(text: string): CitySave | null {
   if (!isRecord(value) || value.v !== SAVE_VERSION) return null;
   if (typeof value.terrain !== "string" || !Number.isFinite(value.hour)) return null;
   if (!Array.isArray(value.nodes) || !Array.isArray(value.segments)) return null;
+  const planted = readPlantings(value.planted);
+  const cleared = readPlantings(value.cleared);
+  if (planted === null || cleared === null) return null;
 
   const nodes = value.nodes.filter(
     (node): node is SavedNode => Array.isArray(node) && node.length === 4 && node.every(Number.isFinite),
@@ -82,7 +93,21 @@ export function parseCity(text: string): CitySave | null {
   );
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments };
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared };
+}
+
+function toPlantings(points: readonly SavedPlanting[]): Planting[] {
+  return points.map(([x, z]) => ({ x, z }));
+}
+
+/** Absent is fine and means none; present but malformed is not. */
+function readPlantings(value: unknown): SavedPlanting[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const points = value.filter(
+    (point): point is SavedPlanting => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite),
+  );
+  return points.length === value.length ? points : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

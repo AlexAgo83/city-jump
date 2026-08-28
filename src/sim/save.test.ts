@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { RoadGraph } from "./graph";
+import { Plantings } from "./plantings";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
@@ -18,11 +19,11 @@ describe("city saves", () => {
   beforeEach(() => setTerrain(flatTerrain));
 
   it("round-trips a city through JSON", () => {
-    const save = parseCity(JSON.stringify(serializeCity(city(), "rugged", 18.5)));
+    const save = parseCity(JSON.stringify(serializeCity(city(), new Plantings(), "rugged", 18.5)));
     expect(save).not.toBeNull();
 
     const restored = new RoadGraph();
-    restoreCity(restored, save!);
+    restoreCity(restored, new Plantings(), save!);
     expect(restored.allNodes().map((node) => node.pos.y)).toEqual([4, 9, 12]);
     expect(restored.allSegments().map((segment) => segment.type)).toEqual(["street", "avenue"]);
     expect(save!.terrain).toBe("rugged");
@@ -30,27 +31,55 @@ describe("city saves", () => {
   });
 
   it("is a fixed point: save, load, save gives the same data", () => {
-    const once = serializeCity(city(), "rolling", 14);
-    const restored = new RoadGraph();
-    restoreCity(restored, once);
-    expect(serializeCity(restored, "rolling", 14)).toEqual(once);
+    const planted = new Plantings();
+    planted.plant(10, 20);
+    planted.clear(-40, 5);
+    const once = serializeCity(city(), planted, "rolling", 14);
+
+    const restoredGraph = new RoadGraph();
+    const restoredPlantings = new Plantings();
+    restoreCity(restoredGraph, restoredPlantings, once);
+    expect(serializeCity(restoredGraph, restoredPlantings, "rolling", 14)).toEqual(once);
+  });
+
+  it("carries hand-planted and cleared trees through a save", () => {
+    const plantings = new Plantings();
+    plantings.plant(10, 20);
+    plantings.plant(-5, 60);
+    plantings.clear(300, 300); // a generated tree, so it is recorded as a clearing
+    plantings.clear(10, 20); // one we planted, so it is simply dropped again
+
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), plantings, "rolling", 14)));
+    const restored = new Plantings();
+    restoreCity(new RoadGraph(), restored, save!);
+    expect(restored.plantedTrees).toEqual([{ x: -5, z: 60 }]);
+    expect(restored.clearedPoints).toEqual([{ x: 300, z: 300 }]);
+    expect(restored.isCleared(300, 301)).toBe(true);
+    expect(restored.isCleared(400, 400)).toBe(false);
+  });
+
+  it("treats a save with no plantings as a save with none", () => {
+    const bare = JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [] });
+    const save = parseCity(bare);
+    expect(save?.planted).toEqual([]);
+    expect(parseCity(JSON.stringify({ ...JSON.parse(bare), planted: "nope" }))).toBeNull();
   });
 
   it("replays onto a graph whose ids no longer start at 1", () => {
     const graph = city();
     graph.removeSegment(graph.allSegments()[0]!.id);
-    const save = serializeCity(graph, "rolling", 14);
+    const save = serializeCity(graph, new Plantings(), "rolling", 14);
 
     const target = new RoadGraph();
     target.addNodeAt(v3(-500, 0, -500)); // burns id 1
-    restoreCity(target, save);
+    restoreCity(target, new Plantings(), save);
     expect(target.allSegments()).toHaveLength(save.segments.length);
     for (const segment of target.allSegments()) expect(() => target.node(segment.a)).not.toThrow();
   });
 
   it("clears whatever the graph held first", () => {
     const target = city();
-    restoreCity(target, serializeCity(new RoadGraph(), "rolling", 14));
+    restoreCity(target, new Plantings(), serializeCity(new RoadGraph(), new Plantings(), "rolling", 14));
     expect(target.allSegments()).toEqual([]);
   });
 
@@ -67,7 +96,7 @@ describe("city saves", () => {
   });
 
   it("refuses a segment pointing at a node the save does not contain", () => {
-    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]] };
-    expect(() => restoreCity(new RoadGraph(), save)).toThrow(/missing node/);
+    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [] };
+    expect(() => restoreCity(new RoadGraph(), new Plantings(), save)).toThrow(/missing node/);
   });
 });

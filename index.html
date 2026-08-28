@@ -139,11 +139,18 @@
     </label>
     <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
   </div>
+  <div id="nature-options" class="tool-options" hidden>
+    <div class="segmented" role="group" aria-label="Planting mode">
+      <label><input type="radio" name="plant-mode" value="plant" checked /><span>Single</span></label>
+      <label><input type="radio" name="plant-mode" value="spray" /><span>Spray</span></label>
+    </div>
+  </div>
   <div id="action-palette" role="toolbar" aria-label="Build tools">
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
     <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
     <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
     <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
+    <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>
 </div>

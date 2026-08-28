@@ -37,8 +37,30 @@ export interface DrawTool {
 }
 
 export type DrawMode = "straight" | "curve";
-export type ToolMode = "view" | "bulldoze" | DrawMode;
+export type PlantMode = "plant" | "spray";
+export type ToolMode = "view" | "bulldoze" | DrawMode | PlantMode;
 export type RoadTypeId = "street" | "avenue" | "tunnel";
+
+/** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
+const SPRAY_RADIUS = 45;
+/** Trees attempted per press, and again each time the brush has moved half its own width. */
+const SPRAY_PER_BURST = 8;
+const SPRAY_RING_POINTS = 56;
+
+/** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
+export const TREE_REACH = 8;
+
+/**
+ * Planting and clearing, which the tool drives but does not own. Both refresh the scenery
+ * themselves rather than going through `onCommitted`: a tree changes no road, so re-solving
+ * parcels and reshaping terrain for one sapling would make spray unusable.
+ */
+export interface NatureTools {
+  /** False if a tree cannot go here -- underwater, mainly. */
+  plant(x: number, z: number): boolean;
+  /** True if a tree was actually cleared. */
+  clearTree(x: number, z: number): boolean;
+}
 
 export function createDrawTool(
   scene: Scene,
@@ -46,6 +68,7 @@ export function createDrawTool(
   ground: Mesh,
   onCommitted: () => void,
   onRefused: (reason: string) => void,
+  nature: NatureTools,
   initialTypeId: RoadTypeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
@@ -54,6 +77,7 @@ export function createDrawTool(
   let typeId = initialTypeId;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
+  let lastSprayed: { x: number; z: number } | null = null;
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
     {
@@ -67,6 +91,45 @@ export function createDrawTool(
   nodeHighlight.color = ACCEPTED;
   nodeHighlight.isPickable = false;
   nodeHighlight.setEnabled(false);
+
+  // The spray brush. Rebuilt in place every time the pointer moves so it lies on the terrain
+  // rather than cutting through it. ponytail: an updatable line loop, not a decal or a projector.
+  let sprayRing = MeshBuilder.CreateLines(
+    "spray-ring",
+    { points: ringPoints(0, 0), updatable: true },
+    scene,
+  );
+  sprayRing.color = ACCEPTED;
+  sprayRing.isPickable = false;
+  sprayRing.alwaysSelectAsActiveMesh = true;
+  sprayRing.setEnabled(false);
+
+  function ringPoints(cx: number, cz: number): Vector3[] {
+    return Array.from({ length: SPRAY_RING_POINTS + 1 }, (_, i) => {
+      const angle = (i / SPRAY_RING_POINTS) * Math.PI * 2;
+      const x = cx + Math.cos(angle) * SPRAY_RADIUS;
+      const z = cz + Math.sin(angle) * SPRAY_RADIUS;
+      return new Vector3(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
+    });
+  }
+
+  function moveSprayRing(centre: { x: number; z: number } | null): void {
+    if (!centre) {
+      sprayRing.setEnabled(false);
+      return;
+    }
+    sprayRing = MeshBuilder.CreateLines("spray-ring", { points: ringPoints(centre.x, centre.z), instance: sprayRing });
+    sprayRing.setEnabled(true);
+  }
+
+  /** One burst: scattered evenly over the disc, so the middle is not denser than the edge. */
+  function sprayBurst(centre: { x: number; z: number }): void {
+    for (let i = 0; i < SPRAY_PER_BURST; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.sqrt(Math.random()) * SPRAY_RADIUS;
+      nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance);
+    }
+  }
 
   function clearPreview(): void {
     preview?.dispose();
@@ -89,6 +152,16 @@ export function createDrawTool(
     const pick = scene.pick(scene.pointerX, scene.pointerY, (m) => m === ground);
     if (!pick?.hit || !pick.pickedPoint) return null;
     return { x: pick.pickedPoint.x, z: pick.pickedPoint.z };
+  }
+
+  function onSprayMove(painting: boolean): void {
+    const at = groundPoint();
+    moveSprayRing(at);
+    if (!at || !painting) return;
+    // Wait until the brush has moved half its width before laying down another burst.
+    if (lastSprayed && Math.hypot(at.x - lastSprayed.x, at.z - lastSprayed.z) < SPRAY_RADIUS / 2) return;
+    sprayBurst(at);
+    lastSprayed = at;
   }
 
   function onMove(): void {
@@ -128,10 +201,23 @@ export function createDrawTool(
     if (!at) return;
     if (mode === "bulldoze") {
       const target = bulldozeTarget(at.x, at.z);
-      if (!target) return;
-      graph.removeSegment(target.id);
-      clearPreview();
-      onCommitted();
+      if (target) {
+        graph.removeSegment(target.id);
+        clearPreview();
+        onCommitted();
+        return;
+      }
+      // Nothing paved under the pointer, so the bulldozer takes a tree instead.
+      nature.clearTree(at.x, at.z);
+      return;
+    }
+    if (mode === "plant") {
+      if (!nature.plant(at.x, at.z)) onRefused("A tree needs dry ground.");
+      return;
+    }
+    if (mode === "spray") {
+      sprayBurst(at);
+      lastSprayed = at;
       return;
     }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
@@ -165,6 +251,8 @@ export function createDrawTool(
 
   function cancel(): void {
     stage = { phase: "idle" };
+    lastSprayed = null;
+    sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
   }
@@ -177,15 +265,23 @@ export function createDrawTool(
   }
 
   scene.onPointerObservable.add((info) => {
-    if (info.type === PointerEventTypes.POINTERMOVE) return onMove();
+    if (info.type === PointerEventTypes.POINTERMOVE) {
+      // The brush follows the pointer whatever the button is doing; it only paints while held.
+      if (mode === "spray") return onSprayMove(leftPointerDown);
+      return onMove();
+    }
     if (info.type === PointerEventTypes.POINTERDOWN) {
       leftPointerDown = (info.event as PointerEvent).button === 0;
+      lastSprayed = null;
       return;
     }
     if (info.type !== PointerEventTypes.POINTERUP) return;
     const isLeftClick = leftPointerDown && (info.event as PointerEvent).button === 0;
     leftPointerDown = false;
-    if (isLeftClick) onClick();
+    // A drag that already sprayed must not also fire a burst on release.
+    const sprayed = mode === "spray" && lastSprayed !== null;
+    lastSprayed = null;
+    if (isLeftClick && !sprayed) onClick();
   });
 
   window.addEventListener("keydown", (e) => {
@@ -195,6 +291,17 @@ export function createDrawTool(
   // Right-click cancels rather than opening the browser menu.
   scene.getEngine().getRenderingCanvas()?.addEventListener("contextmenu", (e) => e.preventDefault());
 
+  /**
+   * Spray paints with a held left drag, which is also how the camera orbits. Taking button 0 off
+   * the camera for the duration means a spray stroke does not swing the view out from under it.
+   * Middle and right drags still orbit, and the wheel still zooms.
+   * ponytail: drop one button from the existing input, rather than detaching the camera.
+   */
+  function setCameraDrag(allowLeft: boolean): void {
+    const pointers = scene.activeCamera?.inputs?.attached?.pointers as { buttons?: number[] } | undefined;
+    if (pointers) pointers.buttons = allowLeft ? [0, 1, 2] : [1, 2];
+  }
+
   void roadType(typeId); // fail here rather than at the first commit
   void Vector3;
 
@@ -203,6 +310,7 @@ export function createDrawTool(
     cancel,
     setMode(next) {
       mode = next;
+      setCameraDrag(next !== "spray");
       cancel();
     },
     setGridSnap(enabled) {

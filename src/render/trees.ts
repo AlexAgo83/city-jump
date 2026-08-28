@@ -8,6 +8,7 @@ import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
 import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
+import type { Plantings } from "../sim/plantings";
 import { roadType } from "../sim/roadTypes";
 import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
@@ -24,7 +25,13 @@ const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
   };
 });
 
-export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: RoadGraph, shadows: ShadowGenerator) {
+export function createTreeRenderer(
+  scene: Scene,
+  heightmap: Heightmap,
+  graph: RoadGraph,
+  shadows: ShadowGenerator,
+  plantings: Plantings,
+) {
   const trunk = MeshBuilder.CreateCylinder("tree_trunks", { height: 5, diameter: 0.8, tessellation: 6 }, scene);
   const leaves = MeshBuilder.CreateCylinder(
     "tree_canopies",
@@ -72,18 +79,23 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
     const step = 58;
     let i = 0;
 
-    const plant = (px: number, pz: number, seed: number): void => {
-      const h = heightmap.heightAt(px, pz);
-      const bucket = `${Math.round(px / 10)}:${Math.round(pz / 10)}`;
-      if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(graph, px, pz)) return;
-
+    const put = (px: number, pz: number, seed: number, h: number): void => {
       const scale = 0.75 + randomish(seed, 4) * 0.55;
       const yaw = randomish(seed, 5) * Math.PI * 2;
       const rotation = Quaternion.FromEulerAngles(0, yaw, 0);
       trunkMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 2.5 * scale, pz)));
       leafMatrices.push(Matrix.Compose(new Vector3(scale, scale, scale), rotation, new Vector3(px, h + 8.3 * scale, pz)));
       bases.push({ x: px, y: h, z: pz, scale });
+    };
+
+    /** Scenery: skips water, peaks, roads, its own neighbours, and anything cleared by hand. */
+    const plant = (px: number, pz: number, seed: number): void => {
+      const h = heightmap.heightAt(px, pz);
+      const bucket = `${Math.round(px / 10)}:${Math.round(pz / 10)}`;
+      if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(graph, px, pz)) return;
+      if (plantings.isCleared(px, pz)) return;
       occupied.add(bucket);
+      put(px, pz, seed, h);
     };
 
     for (let z = -GROUND_SIZE / 2 + step; z < GROUND_SIZE / 2; z += step) {
@@ -109,6 +121,12 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
           if (randomish(seed, 8) <= density) plant(px, pz, seed);
         }
       }
+    }
+
+    // Hand-planted trees go in last and answer to none of the scenery rules: the player put them
+    // there deliberately. Only the sea is off limits, and the tool refuses that before we get here.
+    for (const [index, tree] of plantings.plantedTrees.entries()) {
+      put(tree.x, tree.z, index + 7919, heightmap.heightAt(tree.x, tree.z));
     }
 
     applyInstances(trunk, trunkMatrices);
@@ -150,7 +168,21 @@ export function createTreeRenderer(scene: Scene, heightmap: Heightmap, graph: Ro
     );
   }
 
-  return { rebuild, setSunHour, count: () => treeCount };
+  /** The nearest tree base to a point, for the bulldozer. Null if nothing is close enough. */
+  function nearestTree(x: number, z: number, within: number): { x: number; z: number } | null {
+    let best: { x: number; z: number } | null = null;
+    let bestDistance = within;
+    for (const base of treeBases) {
+      const distance = Math.hypot(base.x - x, base.z - z);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = { x: base.x, z: base.z };
+      }
+    }
+    return best;
+  }
+
+  return { rebuild, setSunHour, nearestTree, count: () => treeCount };
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {

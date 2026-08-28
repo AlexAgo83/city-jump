@@ -3,7 +3,7 @@ import { listSaves, readSave, writeSave, deleteSave } from "./saves";
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
-  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze"): void;
+  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray"): void;
   onRoadType(type: "street" | "avenue" | "tunnel"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
@@ -27,15 +27,28 @@ export function bindControls(handlers: {
   });
 
   const roadOptions = document.getElementById("road-options")!;
+  const natureOptions = document.getElementById("nature-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
   let roadMode: "straight" | "curve" = "straight";
+  let plantMode: "plant" | "spray" = "plant";
 
   for (const button of toolButtons) {
     button.addEventListener("click", () => {
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
       roadOptions.hidden = tool !== "roads";
-      handlers.onRoadMode(tool === "roads" ? roadMode : tool === "bulldoze" ? "bulldoze" : "view");
+      natureOptions.hidden = tool !== "nature";
+      handlers.onRoadMode(
+        tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "bulldoze" ? "bulldoze" : "view",
+      );
+    });
+  }
+
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="plant-mode"]')) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      plantMode = input.value === "spray" ? "spray" : "plant";
+      handlers.onRoadMode(plantMode);
     });
   }
 

@@ -1,6 +1,6 @@
 import { createBuildingRenderer } from "../render/buildings";
 import { installDebugApi } from "../render/debugApi";
-import { createDrawTool } from "../render/drawTool";
+import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE } from "../render/ground";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
@@ -8,7 +8,8 @@ import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createTreeRenderer } from "../render/trees";
 import { RoadGraph } from "../sim/graph";
-import { Heightmap, rollingHills } from "../sim/heightmap";
+import { Plantings } from "../sim/plantings";
+import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
 import { roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
 import { serializeCity, restoreCity, type CitySave } from "../sim/save";
@@ -28,13 +29,14 @@ export async function startApp(): Promise<void> {
   frameTerrain();
 
   const graph = new RoadGraph();
+  const plantings = new Plantings();
   createOcean(scene);
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
   const traffic = createTrafficRenderer(scene, graph);
   const streetlights = createStreetlightRenderer(scene, graph);
-  const trees = createTreeRenderer(scene, heightmap, graph, shadows);
+  const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
   const setSun = (hour: number): void => {
@@ -73,10 +75,30 @@ export async function startApp(): Promise<void> {
   let autosaveTimer = 0;
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
-    autosaveTimer = window.setTimeout(() => writeAutosave(serializeCity(graph, terrainPreset, sunHour)), 2000);
+    autosaveTimer = window.setTimeout(() => writeAutosave(serializeCity(graph, plantings, terrainPreset, sunHour)), 2000);
   };
 
-  const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal);
+  /** A tree changes no road, so only the scenery is rebuilt. */
+  const refreshTrees = (): void => {
+    trees.rebuild();
+    scheduleAutosave();
+  };
+
+  const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal, {
+    plant(x, z) {
+      if (heightmap.heightAt(x, z) <= SEA_LEVEL) return false;
+      plantings.plant(x, z);
+      refreshTrees();
+      return true;
+    },
+    clearTree(x, z) {
+      const tree = trees.nearestTree(x, z, TREE_REACH);
+      if (!tree) return false;
+      plantings.clear(tree.x, tree.z);
+      refreshTrees();
+      return true;
+    },
+  });
 
   const controls = bindControls({
     onRoadMode(mode) {
@@ -108,7 +130,7 @@ export async function startApp(): Promise<void> {
       sunHour = hour;
       setSun(hour);
     },
-    onSave: () => serializeCity(graph, terrainPreset, sunHour),
+    onSave: () => serializeCity(graph, plantings, terrainPreset, sunHour),
     onLoad: loadCity,
   });
 
@@ -118,7 +140,7 @@ export async function startApp(): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, city);
+      restoreCity(graph, plantings, city);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
