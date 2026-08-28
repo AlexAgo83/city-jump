@@ -78,15 +78,55 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 
 export function createOcean(scene: Scene) {
   const material = new StandardMaterial("ocean", scene);
-  material.diffuseColor = new Color3(0.05, 0.22, 0.3);
-  material.specularColor = new Color3(0.08, 0.12, 0.12);
-  material.alpha = 0.78;
+  material.diffuseColor = Color3.White();
+  material.emissiveColor = new Color3(0.01, 0.04, 0.055);
+  material.specularColor = new Color3(0.35, 0.55, 0.62);
 
-  const mesh = MeshBuilder.CreateGround("ocean", { width: GROUND_SIZE * 1.35, height: GROUND_SIZE * 1.35 }, scene);
-  mesh.position.y = SEA_LEVEL;
+  const size = GROUND_SIZE * 1.35;
+  const cells = 72;
+  const positions = new Float32Array((cells + 1) * (cells + 1) * 3);
+  const normals = new Float32Array((cells + 1) * (cells + 1) * 3);
+  const colors = new Float32Array((cells + 1) * (cells + 1) * 4);
+  const indices: number[] = [];
+  for (let z = 0; z <= cells; z++) {
+    for (let x = 0; x <= cells; x++) {
+      const i = z * (cells + 1) + x;
+      const wx = -size / 2 + (x / cells) * size;
+      const wz = -size / 2 + (z / cells) * size;
+      positions[i * 3] = wx;
+      positions[i * 3 + 2] = wz;
+      Color4.Lerp(new Color4(0.03, 0.18, 0.25, 1), new Color4(0.1, 0.38, 0.45, 1), waveNoise(wx, wz)).toArray(
+        colors,
+        i * 4,
+      );
+      if (x < cells && z < cells) indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
+    }
+  }
+
+  const mesh = new Mesh("ocean", scene);
+  const data = new VertexData();
+  data.positions = positions as unknown as number[];
+  data.indices = indices;
+  VertexData.ComputeNormals(positions, indices, normals as unknown as number[]);
+  data.normals = normals as unknown as number[];
+  data.colors = colors as unknown as number[];
+  data.applyToMesh(mesh, true);
+  mesh.position.y = SEA_LEVEL - 0.2;
   mesh.material = material;
   mesh.isPickable = false;
+  scene.registerBeforeRender(() => {
+    const t = performance.now() / 1000;
+    const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
+    for (let i = 0; i < current.length; i += 3) {
+      current[i + 1] = Math.sin(current[i]! * 0.015 + t) * 0.18 + Math.cos(current[i + 2]! * 0.012 + t * 0.7) * 0.12;
+    }
+    mesh.updateVerticesData(VertexBuffer.PositionKind, current);
+  });
   return mesh;
+}
+
+function waveNoise(x: number, z: number): number {
+  return (Math.sin(x * 0.017 + z * 0.031) + Math.sin(x * 0.043 - z * 0.019)) * 0.25 + 0.5;
 }
 
 function terrainColor(h: number): Color4 {
