@@ -4,9 +4,9 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
+import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
-import type { Heightmap } from "../sim/heightmap";
+import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
 
 export const GROUND_SIZE = 2000;
 export const GROUND_CELL = 8;
@@ -17,7 +17,7 @@ export const GROUND_CELL = 8;
  */
 export function createGround(scene: Scene, heightmap: Heightmap) {
   const material = new StandardMaterial("ground", scene);
-  material.diffuseColor = new Color3(0.34, 0.42, 0.29);
+  material.diffuseColor = Color3.White();
   material.specularColor = Color3.Black();
 
   const mesh = new Mesh("ground", scene);
@@ -28,6 +28,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   const positions = new Float32Array(n * n * 3);
   const normals = new Float32Array(n * n * 3);
   const uvs = new Float32Array(n * n * 2);
+  const colors = new Float32Array(n * n * 4);
   const indices: number[] = [];
 
   for (let iz = 0; iz < n; iz++) {
@@ -48,16 +49,22 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   data.indices = indices;
   data.normals = normals as unknown as number[];
   data.uvs = uvs as unknown as number[];
+  data.colors = colors as unknown as number[];
   data.applyToMesh(mesh, true);
 
   function refresh(): void {
     const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
+    const colorData = mesh.getVerticesData(VertexBuffer.ColorKind) as Float32Array;
     for (let iz = 0; iz < n; iz++) {
       for (let ix = 0; ix < n; ix++) {
-        current[(iz * n + ix) * 3 + 1] = heightmap.at(ix, iz);
+        const h = heightmap.at(ix, iz);
+        const i = iz * n + ix;
+        current[i * 3 + 1] = h;
+        terrainColor(h).toArray(colorData, i * 4);
       }
     }
     mesh.updateVerticesData(VertexBuffer.PositionKind, current);
+    mesh.updateVerticesData(VertexBuffer.ColorKind, colorData);
 
     const recomputed: number[] = [];
     VertexData.ComputeNormals(current, indices, recomputed);
@@ -67,6 +74,27 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 
   refresh();
   return { mesh, refresh };
+}
+
+export function createOcean(scene: Scene) {
+  const material = new StandardMaterial("ocean", scene);
+  material.diffuseColor = new Color3(0.05, 0.22, 0.3);
+  material.specularColor = new Color3(0.08, 0.12, 0.12);
+  material.alpha = 0.78;
+
+  const mesh = MeshBuilder.CreateGround("ocean", { width: GROUND_SIZE * 1.35, height: GROUND_SIZE * 1.35 }, scene);
+  mesh.position.y = SEA_LEVEL;
+  mesh.material = material;
+  mesh.isPickable = false;
+  return mesh;
+}
+
+function terrainColor(h: number): Color4 {
+  if (h < SEA_LEVEL + 1) return new Color4(0.46, 0.43, 0.27, 1);
+  if (h > 85) return new Color4(0.78, 0.8, 0.76, 1);
+  if (h > 48) return new Color4(0.43, 0.43, 0.4, 1);
+  const t = Math.min(1, Math.max(0, (h - 1) / 31));
+  return new Color4(0.33 + t * 0.08, 0.43 + t * 0.08, 0.27 + t * 0.07, 1);
 }
 
 export function createWorldGrid(scene: Scene, heightmap: Heightmap) {

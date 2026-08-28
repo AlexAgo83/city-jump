@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { Heightmap, EMBANKMENT, ROAD_BED_DROP, rollingHills } from "./heightmap";
+import { Heightmap, EMBANKMENT, ROAD_BED_DROP, SEA_LEVEL, rollingHills } from "./heightmap";
 import { RoadGraph } from "./graph";
 import { setTerrain, flatTerrain, terrainHeight } from "./terrain";
 import { allSlots } from "./slots";
 import { v3 } from "./vec";
+import { RULES } from "./rules";
 
 const map = () =>
   new Heightmap({ size: 600, cell: 4, generator: (x, z) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70) });
@@ -127,10 +128,23 @@ describe("heightmap", () => {
       for (let z = -300; z <= 300; z += 25) {
         tried++;
         const rise = Math.abs(generator(x + 50, z) - generator(x, z));
-        if (rise / 50 > 0.1) refused++;
+        if (rise / 50 > RULES.maxGradient) refused++;
       }
     }
     expect(refused / tried).toBeLessThan(0.2);
+  });
+
+  it("makes the map an island around sea level", () => {
+    const terrain = rollingHills();
+    expect(terrain(0, 0)).toBeGreaterThan(SEA_LEVEL);
+    expect(terrain(980, 0)).toBeLessThan(SEA_LEVEL);
+  });
+
+  it("raises clustered mountains into a higher central peak", () => {
+    const terrain = rollingHills();
+    expect(terrain(0, 0)).toBeGreaterThan(terrain(500, 0) + 70);
+    expect(terrain(0, 0)).toBeGreaterThan(terrain(-180, -80));
+    expect(terrain(0, 0)).toBeGreaterThan(terrain(20, 190));
   });
 
   it("can regenerate a substantially more rugged test terrain", () => {

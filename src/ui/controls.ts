@@ -34,13 +34,24 @@ export function bindControls(handlers: {
 
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;
+  const sunAuto = document.getElementById("sun-auto") as HTMLInputElement;
+  let sunTimer: ReturnType<typeof setInterval> | null = null;
   const updateSun = (): void => {
-    const hour = Number(sunHour.value);
+    const hour = Number(sunHour.value) % 24;
     handlers.onSunHour(hour);
     const whole = Math.floor(hour) % 24;
     const minutes = Math.round((hour - Math.floor(hour)) * 60);
     sunTime.value = `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   };
   sunHour.addEventListener("input", updateSun);
+  sunAuto.addEventListener("change", () => {
+    if (sunTimer) clearInterval(sunTimer);
+    sunTimer = sunAuto.checked
+      ? setInterval(() => {
+          sunHour.value = String((Number(sunHour.value) + 0.25) % 24);
+          updateSun();
+        }, 1000)
+      : null;
+  });
   updateSun();
 }

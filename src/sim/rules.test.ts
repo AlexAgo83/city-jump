@@ -88,16 +88,16 @@ describe("validation", () => {
   });
 
   it("refuses a segment above the maximum gradient, with a reason", () => {
-    // 100 m long, 30 m of rise: 30%.
-    const result = validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 30, 0), "street");
+    // 100 m long, 60 m of rise: 60%.
+    const result = validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 60, 0), "street");
     expect(result.ok).toBe(false);
     expect(!result.ok && result.reason).toMatch(/steep/i);
   });
 
   it("accepts a gradient at the limit", () => {
-    setTerrain({ heightAt: (x) => x / 4 });
+    setTerrain({ heightAt: (x) => x * RULES.maxGradient });
     try {
-      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 25, 0), "street").ok).toBe(true);
+      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 100 * RULES.maxGradient, 0), "street").ok).toBe(true);
     } finally {
       setTerrain(flatTerrain);
     }
@@ -121,7 +121,7 @@ describe("validation", () => {
   });
 
   it("enforces the gradient rule on real relief", () => {
-    setTerrain({ heightAt: (x) => x * 0.3 });
+    setTerrain({ heightAt: (x) => x * 0.6 });
     try {
       const g = new RoadGraph();
       const result = road(g, 0, 0, 100, 0);

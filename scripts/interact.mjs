@@ -58,10 +58,11 @@ const sunState = () =>
     return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity };
   });
 
-// Nothing has been drawn, so nothing but the ground may be on screen. A building model
+// Nothing has been drawn, so nothing but the ground and ocean may be on screen. A building model
 // with no instance buffer still draws itself at the origin if it is left enabled.
 const fresh = await stats();
-check("a fresh map draws only the ground", fresh.activeMeshes === 1, `${fresh.activeMeshes} active meshes`);
+check("a fresh map draws only the ground and ocean", fresh.activeMeshes === 2, `${fresh.activeMeshes} active meshes`);
+check("view mode is selected by default", (await hud()).includes("camera only"));
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
@@ -79,6 +80,10 @@ check(
   "the sun control changes angle and intensity",
   afternoonSun.direction.some((value, i) => Math.abs(value - eveningSun.direction[i]) > 0.1) && eveningSun.intensity < afternoonSun.intensity,
 );
+await page.locator("#sun-auto").check();
+await page.waitForTimeout(1100);
+check("the automatic sun cycle advances by 15 minutes", (await page.locator("#sun-time").textContent()).startsWith("20:15"));
+await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
   await page.mouse.move(x, y);
@@ -87,7 +92,6 @@ const click = async (x, y) => {
   await page.waitForTimeout(160);
 };
 
-await page.locator('input[name="road-mode"][value="view"]').check();
 await click(260, 320);
 check("view mode leaves left-click to the camera", (await hud()).includes("camera only") && (await stats()).segments === 0);
 await page.locator('input[name="road-mode"][value="curve"]').check();

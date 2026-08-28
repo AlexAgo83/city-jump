@@ -10,6 +10,7 @@ export const EMBANKMENT = 10;
  * above a road drawn at exactly the same elevation, and it shows as speckle.
  */
 export const ROAD_BED_DROP = 0.3;
+export const SEA_LEVEL = 0;
 
 export interface HeightmapOptions {
   /** Side of the square map, in metres. */
@@ -152,6 +153,18 @@ const smoothstep = (t: number): number => {
  */
 export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: number) => number {
   const k = (Math.PI * 2) / wavelength;
-  return (x, z) =>
-    amplitude * (Math.sin(x * k) * Math.cos(z * k * 0.8) + 0.45 * Math.sin((x + z) * k * 1.7));
+  return (x, z) => {
+    const hills = amplitude * (Math.sin(x * k) * Math.cos(z * k * 0.8) + 0.45 * Math.sin((x + z) * k * 1.7));
+    const peak = (cx: number, cz: number, height: number, radius: number) =>
+      height * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radius * radius));
+    const ridge = 64 * Math.exp(-((x + z * 0.28) ** 2) / (2 * 360 * 360)) * Math.exp(-(z * z) / (2 * 760 * 760));
+    const mountain =
+      peak(-180, -80, 19, 360) +
+      peak(170, -60, 18, 350) +
+      peak(20, 190, 17, 360) +
+      peak(0, 0, 19, 300) +
+      ridge;
+    const coast = smoothstep((Math.hypot(x, z) - 760) / 260);
+    return 10 + mountain + hills - coast * 60;
+  };
 }

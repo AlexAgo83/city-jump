@@ -17,7 +17,7 @@ export const RULES = {
   /** Below this, a segment is refused: micro-segments break junction geometry. */
   minLength: 8,
   /** Rise over run. Does nothing on flat ground, and is ready when the ground is not. */
-  maxGradient: 0.25,
+  maxGradient: 0.45,
 } as const;
 
 export const quantise = (value: number): number => Math.round(value / RULES.gridStep) * RULES.gridStep;

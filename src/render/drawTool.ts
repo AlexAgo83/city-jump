@@ -49,7 +49,7 @@ export function createDrawTool(
   initialTypeId: RoadTypeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
-  let mode: ToolMode = "curve";
+  let mode: ToolMode = "view";
   let gridSnap = true;
   let typeId = initialTypeId;
   let preview: LinesMesh | null = null;
