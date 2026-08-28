@@ -30,6 +30,7 @@
 | [req_002_establish_modular_repository_foundations](request/req_002_establish_modular_repository_foundations.md) | Establish modular repository foundations | Done |  |  | request/req_002_establish_modular_repository_foundations.md |
 | [req_003_review_findings_project_reliability](request/req_003_review_findings_project_reliability.md) | Review findings: project reliability | Draft |  |  | request/req_003_review_findings_project_reliability.md |
 | [req_004_harden_project_reliability_gates_and_demo_evidence](request/req_004_harden_project_reliability_gates_and_demo_evidence.md) | Harden project reliability gates and demo evidence | Draft |  |  | request/req_004_harden_project_reliability_gates_and_demo_evidence.md |
+| [req_005_review_findings_redundant_and_quadratic_rebuild_work](request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md) | Review findings: redundant and quadratic rebuild work | Draft |  |  | request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md |
 
 ## Backlog
 
