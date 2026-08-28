@@ -39,12 +39,24 @@ export function installDebugApi(
       return result.ok;
     },
     demoNetwork() {
-      // A bend, a crossroads and a T -- the three things a junction has to survive.
-      api.road(-160, 0, -80, -60, 0, 0, "avenue");
-      api.road(0, 0, 80, 60, 160, 0, "avenue");
-      api.road(0, -120, 0, -60, 0, 120);
-      api.road(0, 0, 60, 40, 120, 90);
-      api.road(-120, 60, -60, 70, 0, 60);
+      // Schematic arterial/local layout, close to the planning sketch used for docs.
+      api.road(-760, -420, 0, -520, 760, -420, "avenue");
+      api.road(-760, 420, 0, 520, 760, 420, "avenue");
+      api.road(-760, -420, -860, 0, -760, 420, "avenue");
+      api.road(760, -420, 860, 0, 760, 420, "avenue");
+      api.road(-650, 240, -220, -120, 230, 160, "avenue");
+      api.road(230, 160, 410, 330, 620, 300, "avenue");
+      api.road(-720, -80, -450, -260, -180, -60);
+      api.road(-620, 220, -420, 40, -160, 150);
+      api.road(-220, -300, 20, -160, 220, -260);
+      api.road(120, -40, 330, -250, 650, -170);
+      api.road(330, 120, 480, 20, 650, 120);
+      api.road(-80, 330, 90, 210, 260, 360);
+      api.road(-520, 20, -500, 110, -500, 220);
+      api.road(-80, -60, -80, 60, -80, 190);
+      api.road(250, -210, 250, -20, 250, 170);
+      api.road(520, -140, 520, 20, 520, 180);
+      api.road(-640, -250, -230, -330, 260, -250, "tunnel");
       rebuild();
     },
     demoCity() {
