@@ -143,6 +143,12 @@ await click(850, 430);
 const straight = await stats();
 check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
 check("the road type selector draws avenues", straight.avenues >= 1, `${straight.avenues} avenues`);
+await page.locator("#road-type").selectOption("tunnel");
+await click(220, 500);
+await click(300, 430);
+const tunneled = await stats();
+check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels`);
+check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
 await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-mode"][value="curve"]').check();
 
@@ -152,7 +158,7 @@ await click(203, 602);
 await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
-check("a refused road is not added", (await stats()).segments === straight.segments);
+check("a refused road is not added", (await stats()).segments === tunneled.segments);
 
 page.once("dialog", (dialog) => dialog.accept());
 await page.locator("#terrain").selectOption("rugged");

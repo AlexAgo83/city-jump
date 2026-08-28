@@ -7,6 +7,7 @@ import { createScene } from "../render/scene";
 import { createTrafficRenderer } from "../render/traffic";
 import { RoadGraph } from "../sim/graph";
 import { Heightmap, rollingHills } from "../sim/heightmap";
+import { roadType } from "../sim/roadTypes";
 import { setTerrain } from "../sim/terrain";
 import { bindControls } from "../ui/controls";
 import { setHud, showRefusal } from "../ui/hud";
@@ -34,7 +35,7 @@ export async function startApp(): Promise<void> {
     setHud(
       [
         `roads      ${graph.allSegments().length}`,
-        `junctions  ${graph.allNodes().filter((node) => node.segments.size >= 3).length}`,
+        `junctions  ${surfaceJunctions()}`,
         `buildings  ${buildingCount}`,
         "",
         tool.stageLabel(),
@@ -88,11 +89,18 @@ export async function startApp(): Promise<void> {
 
   installDebugApi(scene, graph, rebuild, () => ({
     segments: graph.allSegments().length,
-    junctions: graph.allNodes().filter((node) => node.segments.size >= 3).length,
+    junctions: surfaceJunctions(),
     buildings: buildingCount,
     avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
+    tunnels: graph.allSegments().filter((segment) => segment.type === "tunnel").length,
     cars: traffic.count(),
     models: buildings.modelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));
+
+  function surfaceJunctions(): number {
+    return graph
+      .allNodes()
+      .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
+  }
 }

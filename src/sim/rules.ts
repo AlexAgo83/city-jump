@@ -35,7 +35,7 @@ export function resolveSnap(graph: RoadGraph, x: number, z: number, gridSnap = t
   const node = graph.nearestNode(x, z, RULES.nodeSnapRadius);
   if (node) return { kind: "node", nodeId: node.id, position: node.pos };
 
-  const hit = graph.nearestOnSegment(x, z, RULES.segmentSnapRadius);
+  const hit = graph.nearestOnSegment(x, z, RULES.segmentSnapRadius, (segment) => !roadType(segment.type).tunnelDepth);
   if (hit) {
     return { kind: "segment", segmentId: hit.segment.id, distance: hit.distance, position: hit.position };
   }
@@ -59,12 +59,14 @@ export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: str
     return { ok: false, reason: `Too short: ${length.toFixed(1)} m, minimum is ${RULES.minLength} m.` };
   }
 
-  const gradient = maxSampleGradient(start, control, end);
-  if (gradient > RULES.maxGradient + 1e-6) {
-    return {
-      ok: false,
-      reason: `Too steep: ${(gradient * 100).toFixed(0)}%, maximum is ${RULES.maxGradient * 100}%.`,
-    };
+  if (!roadType(type).tunnelDepth) {
+    const gradient = maxSampleGradient(start, control, end);
+    if (gradient > RULES.maxGradient + 1e-6) {
+      return {
+        ok: false,
+        reason: `Too steep: ${(gradient * 100).toFixed(0)}%, maximum is ${RULES.maxGradient * 100}%.`,
+      };
+    }
   }
 
   return { ok: true };
@@ -124,7 +126,7 @@ export function commitSegment(
   const b = resolveEndpoint(graph, to);
   if (a === b) return { ok: false, reason: "A road cannot start and end at the same point." };
 
-  const crossing = firstCrossing(graph, from.position, control, to.position);
+  const crossing = roadType(type).tunnelDepth ? null : firstCrossing(graph, from.position, control, to.position);
   if (crossing) {
     const middle = graph.splitSegment(crossing.segmentId, crossing.distance);
     const { leftControl, rightControl } = splitControl(from.position, control, to.position, crossing.t);
@@ -155,6 +157,7 @@ function firstCrossing(
   // ponytail: sampled curve intersection; replace with exact Bezier solving if misses show up.
   const proposed = sampleQuadratic(from, control, to);
   for (const seg of graph.allSegments()) {
+    if (roadType(seg.type).tunnelDepth) continue;
     for (let i = 1; i < proposed.length; i++) {
       for (let j = 1; j < seg.samples.length; j++) {
         const hit = segmentCross(proposed[i - 1]!.point, proposed[i]!.point, seg.samples[j - 1]!, seg.samples[j]!);

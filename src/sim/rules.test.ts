@@ -131,6 +131,24 @@ describe("validation", () => {
       setTerrain(flatTerrain);
     }
   });
+
+  it("lets tunnels pass through steep relief", () => {
+    setTerrain({ heightAt: (x) => x * 0.6 });
+    try {
+      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 60, 0), "tunnel").ok).toBe(true);
+    } finally {
+      setTerrain(flatTerrain);
+    }
+  });
+
+  it("does not split surface roads when a tunnel crosses under them", () => {
+    const g = new RoadGraph();
+    expect(road(g, -60, 0, 60, 0).ok).toBe(true);
+    const result = commitSegment(g, resolveSnap(g, 0, -60), resolveSnap(g, 0, 60), v3(0, 0, 0), "tunnel");
+
+    expect(result.ok).toBe(true);
+    expect(g.allSegments()).toHaveLength(2);
+  });
 });
 
 describe("no angle snapping", () => {

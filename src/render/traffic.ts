@@ -35,6 +35,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     for (const car of cars) car.mesh.dispose();
     cars = [];
     for (const [si, seg] of graph.allSegments().entries()) {
+      if (roadType(seg.type).tunnelDepth) continue;
       const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
       for (let i = 0; i < count; i++) {
         const car = MeshBuilder.CreateBox(`traffic_${seg.id}_${i}`, { width: 3, height: 1.2, depth: 6 }, scene);

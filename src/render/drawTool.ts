@@ -38,7 +38,7 @@ export interface DrawTool {
 
 export type DrawMode = "straight" | "curve";
 export type ToolMode = "view" | DrawMode;
-export type RoadTypeId = "street" | "avenue";
+export type RoadTypeId = "street" | "avenue" | "tunnel";
 
 export function createDrawTool(
   scene: Scene,

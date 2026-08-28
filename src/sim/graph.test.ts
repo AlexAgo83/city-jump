@@ -51,6 +51,18 @@ describe("graph basics", () => {
     }
     expect(g.isJunction(hub)).toBe(true);
   });
+
+  it("sinks tunnel samples below the terrain between surface portals", () => {
+    const g = new RoadGraph();
+    const a = g.addNode(0, 0);
+    const b = g.addNode(100, 0);
+    const id = g.addSegment(a, b, v3(50, 0, 0), "tunnel");
+    const seg = g.segment(id);
+
+    expect(seg.samples[0]!.y).toBeCloseTo(terrainHeight(0, 0), 6);
+    expect(seg.samples[seg.samples.length - 1]!.y).toBeCloseTo(terrainHeight(100, 0), 6);
+    expect(seg.samples[Math.floor(seg.samples.length / 2)]!.y).toBeLessThan(terrainHeight(50, 0) - 10);
+  });
 });
 
 describe("arc-length parameterisation", () => {

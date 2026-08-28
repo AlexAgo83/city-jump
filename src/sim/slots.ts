@@ -44,7 +44,9 @@ export interface BuildableCell {
  */
 export function slotsForSegment(graph: RoadGraph, id: SegmentId): Slot[] {
   const seg = graph.segment(id);
-  const half = roadType(seg.type).width / 2;
+  const type = roadType(seg.type);
+  if (type.tunnelDepth) return [];
+  const half = type.width / 2;
   const offset = half + SLOT.setback;
 
   // Keep clear of whatever covers each end, so no building lands in a junction.
@@ -126,7 +128,9 @@ export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
 function cellTouchesOtherRoad(graph: RoadGraph, cell: BuildableCell): boolean {
   for (const seg of graph.allSegments()) {
     if (seg.id === cell.segment) continue;
-    const reserve = roadType(seg.type).width / 2;
+    const type = roadType(seg.type);
+    if (type.tunnelDepth) continue;
+    const reserve = type.width / 2;
     if (seg.samples.some((p) => pointInCell(p, cell))) return true;
     if (cell.corners.some((p) => distanceToSamples(p, seg.samples) < reserve)) return true;
   }

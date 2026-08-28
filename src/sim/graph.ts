@@ -53,7 +53,8 @@ const MAX_SAMPLES = 512;
  * ponytail: two passes (shape, then elevation) rather than solving arc length in closed
  * form -- the table is what every consumer wants anyway.
  */
-function buildSamples(a: Vec3, control: Vec3, b: Vec3) {
+function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE) {
+  const spec = roadType(type);
   const chord = distXZ(a, b) + distXZ(a, control) + distXZ(control, b);
   const count = Math.min(MAX_SAMPLES, Math.max(MIN_SAMPLES, Math.ceil(chord / 2 / SAMPLE_SPACING_M)));
 
@@ -71,7 +72,9 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3) {
   }
   const length = cumulative[cumulative.length - 1]!;
 
-  const heights = smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
+  const heights = spec.tunnelDepth
+    ? flat.map((p, i) => terrainHeight(p.x, p.z) - Math.sin((Math.PI * i) / count) * spec.tunnelDepth!)
+    : smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
   heights[0] = a.y;
   heights[heights.length - 1] = b.y;
   const samples: Vec3[] = flat.map((p, i) => v3(p.x, heights[i]!, p.z));
@@ -105,7 +108,7 @@ export class RoadGraph {
     const na = this.node(a);
     const nb = this.node(b);
     roadType(type); // rejects an unknown type here rather than at render time
-    return this.addBuiltSegment(a, b, control, type, buildSamples(na.pos, control, nb.pos));
+    return this.addBuiltSegment(a, b, control, type, buildSamples(na.pos, control, nb.pos, type));
   }
 
   private addBuiltSegment(
@@ -246,11 +249,13 @@ export class RoadGraph {
     x: number,
     z: number,
     radius: number,
+    accept: (segment: Segment) => boolean = () => true,
   ): { segment: Segment; distance: number; position: Vec3 } | null {
     const p = v3(x, 0, z);
     let best: { segment: Segment; distance: number; position: Vec3 } | null = null;
     let bestDist = radius;
     for (const seg of this.segments.values()) {
+      if (!accept(seg)) continue;
       for (let i = 1; i < seg.samples.length; i++) {
         const s0 = seg.samples[i - 1]!;
         const s1 = seg.samples[i]!;

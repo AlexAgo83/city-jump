@@ -101,6 +101,12 @@ describe("slots", () => {
     expect(avenueOffset).toBeGreaterThan(streetOffset);
   });
 
+  it("does not place buildings along tunnels", () => {
+    const g = new RoadGraph();
+    const tunnel = straight(g, 0, 0, 200, 0, "tunnel");
+    expect(slotsForSegment(g, tunnel)).toHaveLength(0);
+  });
+
   it("rejects overlapping grid cells around crossing roads", () => {
     const g = new RoadGraph();
     straight(g, -60, 0, 60, 0);

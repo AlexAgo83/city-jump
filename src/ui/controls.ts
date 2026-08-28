@@ -1,6 +1,6 @@
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve"): void;
-  onRoadType(type: "street" | "avenue"): void;
+  onRoadType(type: "street" | "avenue" | "tunnel"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTerrain(preset: "rolling" | "rugged"): boolean;
@@ -21,7 +21,8 @@ export function bindControls(handlers: {
   });
 
   document.getElementById("road-type")!.addEventListener("change", (event) => {
-    handlers.onRoadType((event.currentTarget as HTMLSelectElement).value === "avenue" ? "avenue" : "street");
+    const value = (event.currentTarget as HTMLSelectElement).value;
+    handlers.onRoadType(value === "avenue" ? "avenue" : value === "tunnel" ? "tunnel" : "street");
   });
 
   const terrain = document.getElementById("terrain") as HTMLSelectElement;

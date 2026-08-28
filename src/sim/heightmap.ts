@@ -103,7 +103,9 @@ export class Heightmap implements Terrain {
     this.claim.fill(Infinity);
 
     for (const seg of graph.allSegments()) {
-      const half = roadType(seg.type).width / 2;
+      const type = roadType(seg.type);
+      if (type.tunnelDepth) continue;
+      const half = type.width / 2;
       const reach = half + EMBANKMENT;
       const step = Math.max(1, this.cell / 2);
 

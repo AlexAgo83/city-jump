@@ -9,6 +9,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
+import { terrainHeight } from "../sim/terrain";
 import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
 import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 
@@ -26,6 +27,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   material.specularColor = Color3.Black();
   const curb = new Color3(0.52, 0.55, 0.53);
   const lane = new Color3(0.86, 0.78, 0.48);
+  const tunnel = new Color3(0.36, 0.9, 0.95);
 
   let meshes: (Mesh | LinesMesh)[] = [];
 
@@ -36,7 +38,17 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     const junctions = allJunctions(graph);
 
     for (const seg of graph.allSegments()) {
-      const half = roadType(seg.type).width / 2;
+      const type = roadType(seg.type);
+      if (type.tunnelDepth) {
+        const points = pointsBetween(graph, seg.id, 0, seg.length, Math.max(2, Math.ceil(seg.length / 8)), MARK_LIFT);
+        const line = MeshBuilder.CreateDashedLines(`tunnel_${seg.id}`, { points, dashSize: 8, gapSize: 5 }, scene);
+        line.color = tunnel;
+        line.isPickable = false;
+        meshes.push(line);
+        continue;
+      }
+
+      const half = type.width / 2;
       const isAvenue = seg.type === "avenue";
       // The surface stops short of each junction; the junction polygon closes the gap.
       const { start, end } = segmentTrims(junctions, graph, seg.id);
@@ -90,7 +102,7 @@ function pointsBetween(graph: RoadGraph, id: number, from: number, to: number, s
   for (let i = 0; i <= steps; i++) {
     const d = from + ((to - from) * i) / steps;
     const { position } = graph.pointAt(id, d);
-    points.push(new Vector3(position.x, position.y + lift, position.z));
+    points.push(new Vector3(position.x, Math.max(position.y, terrainHeight(position.x, position.z)) + lift, position.z));
   }
   return points;
 }

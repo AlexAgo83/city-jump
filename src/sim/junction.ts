@@ -6,7 +6,8 @@ import { type Vec3, v3, normalizeXZ, perpXZ, scale } from "./vec";
 export function widestIncidentWidth(graph: RoadGraph, nodeId: NodeId): number {
   let widest = 0;
   for (const segId of graph.node(nodeId).segments) {
-    widest = Math.max(widest, roadType(graph.segment(segId).type).width);
+    const type = roadType(graph.segment(segId).type);
+    if (!type.tunnelDepth) widest = Math.max(widest, type.width);
   }
   return widest;
 }
@@ -58,10 +59,11 @@ const MAX_TRIM_WIDTHS = 1.5;
  */
 export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeometry {
   const node = graph.node(nodeId);
-  if (node.segments.size < 2) return { node: nodeId, arms: [], ring: [] };
+  const surfaceSegments = [...node.segments].filter((segId) => !roadType(graph.segment(segId).type).tunnelDepth);
+  if (surfaceSegments.length < 2) return { node: nodeId, arms: [], ring: [] };
 
   // Every arm, first with a provisional trim, ordered by the bearing it leaves on.
-  const provisional = [...node.segments]
+  const provisional = surfaceSegments
     .map((segId) => {
       const seg = graph.segment(segId);
       const atStart = seg.a === nodeId;
