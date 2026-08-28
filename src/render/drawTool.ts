@@ -11,6 +11,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { RoadGraph } from "../sim/graph";
 import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { roadType } from "../sim/roadTypes";
+import { terrainHeight } from "../sim/terrain";
 import { type Vec3, v3, lerp } from "../sim/vec";
 import { toBabylon } from "./convert";
 
@@ -211,13 +212,9 @@ function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const u = 1 - t;
-    out.push(
-      v3(
-        a.x * u * u + c.x * 2 * u * t + b.x * t * t,
-        a.y * u * u + c.y * 2 * u * t + b.y * t * t,
-        a.z * u * u + c.z * 2 * u * t + b.z * t * t,
-      ),
-    );
+    const x = a.x * u * u + c.x * 2 * u * t + b.x * t * t;
+    const z = a.z * u * u + c.z * 2 * u * t + b.z * t * t;
+    out.push(v3(x, terrainHeight(x, z), z));
   }
   return out;
 }
