@@ -495,6 +495,7 @@ await page.locator('input[name="road-shape"][value="curve"]').check();
 // A roundabout sits on a node and pulls every road back to its ring.
 await page.locator('input[name="road-shape"][value="roundabout"]').check();
 await page.waitForTimeout(150);
+check("the buildable grid stays visible in roundabout mode", await buildableGridVisible());
 // Nodes are not meshes, so project the junction's world position to a screen point to click it.
 const junctionScreen = await page.evaluate(() => {
   const scene = window.cityjump._scene;
