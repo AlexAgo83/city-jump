@@ -40,8 +40,18 @@ const buildableGridVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("buildable-grid")?.isEnabled() ?? false);
 const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
+// Sample water near the coast: the grid stretches outwards and wave amplitude is faded out far
+// from the island, so the corner vertices are deliberately flat.
 const oceanSampleY = () =>
-  page.evaluate(() => window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position")?.[1] ?? 0);
+  page.evaluate(() => {
+    const positions = window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position");
+    if (!positions) return 0;
+    for (let i = 0; i < positions.length; i += 3) {
+      const distance = Math.hypot(positions[i], positions[i + 2]);
+      if (distance > 1500 && distance < 2500) return positions[i + 1];
+    }
+    return 0;
+  });
 const terrainColorVariation = () =>
   page.evaluate(() => {
     const mesh = window.cityjump._scene.getMeshByName("ground");
@@ -412,6 +422,42 @@ check(
   "every streetlight has a real light",
   ruggedNetwork.streetlights > 0 && ruggedNetwork.realStreetlights >= ruggedNetwork.streetlights,
   `${ruggedNetwork.realStreetlights}/${ruggedNetwork.streetlights}`,
+);
+
+const cameraTarget = () =>
+  page.evaluate(() => {
+    const camera = window.cityjump._scene.activeCamera;
+    return { x: camera.target.x, z: camera.target.z, alpha: camera.alpha };
+  });
+const holdKey = async (key) => {
+  await page.keyboard.down(key);
+  await page.waitForTimeout(400);
+  await page.keyboard.up(key);
+  await page.waitForTimeout(100);
+};
+
+// alpha = -PI/2 puts the camera at -Z looking towards +Z, so "forward" has to be +Z.
+await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, -Math.PI / 2));
+await page.waitForTimeout(300);
+const panStart = await cameraTarget();
+await holdKey("ArrowUp");
+const panForward = await cameraTarget();
+check("arrow up moves the camera forward, not around", panForward.z > panStart.z + 50, `z ${panForward.z.toFixed(0)}`);
+check("arrow keys no longer orbit", panForward.alpha === panStart.alpha);
+await holdKey("ArrowRight");
+const panStrafe = await cameraTarget();
+check("arrow right strafes sideways", panStrafe.x > panForward.x + 50, `x ${panStrafe.x.toFixed(0)}`);
+
+// Turn the camera a quarter turn: "forward" must follow it onto another world axis.
+await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, 0));
+await page.waitForTimeout(300);
+const turnedStart = await cameraTarget();
+await holdKey("ArrowUp");
+const turnedForward = await cameraTarget();
+check(
+  "forward follows the live camera direction",
+  turnedForward.x < turnedStart.x - 50 && Math.abs(turnedForward.z - turnedStart.z) < 20,
+  `x ${turnedForward.x.toFixed(0)} z ${turnedForward.z.toFixed(0)}`,
 );
 
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));

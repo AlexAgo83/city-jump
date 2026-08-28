@@ -10,6 +10,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Vector3, Color3, Color4 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
+import { GROUND_SIZE } from "./ground";
 
 export const DAYLIGHT_START = 5.5;
 export const DAYLIGHT_END = 21.5;
@@ -45,6 +46,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   camera.wheelPrecision = 0.6;
   camera.panningSensibility = 12;
   camera.panningInertia = 0.7;
+  attachKeyboardPan(scene, camera);
 
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
   ambient.intensity = 0.52;
@@ -88,6 +90,71 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   return { engine, scene, camera, shadows, setSunHour };
 }
+
+const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
+  ArrowUp: "forward",
+  ArrowDown: "back",
+  ArrowLeft: "left",
+  ArrowRight: "right",
+};
+
+/**
+ * Arrow keys walk the camera over the map instead of orbiting it: up/down move along the
+ * direction the camera currently faces, left/right strafe across it. Recomputed every frame, so
+ * turning the camera turns what "forward" means.
+ * ponytail: held-key set + one per-frame vector, no input abstraction layer.
+ */
+function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera): void {
+  camera.keysUp = [];
+  camera.keysDown = [];
+  camera.keysLeft = [];
+  camera.keysRight = [];
+
+  const held = new Set<string>();
+  const track = (event: KeyboardEvent, down: boolean): void => {
+    const direction = PAN_KEYS[event.key];
+    if (!direction) return;
+    // Let the arrow keys keep doing their normal job inside the toolbar controls.
+    const focused = document.activeElement?.tagName;
+    if (focused === "INPUT" || focused === "SELECT") return;
+    event.preventDefault();
+    if (down) held.add(direction);
+    else held.delete(direction);
+  };
+  window.addEventListener("keydown", (event) => track(event, true));
+  window.addEventListener("keyup", (event) => track(event, false));
+  window.addEventListener("blur", () => held.clear());
+
+  const move = new Vector3();
+  scene.registerBeforeRender(() => {
+    if (held.size === 0) return;
+    const forward = camera.getDirection(Vector3.Forward());
+    const right = camera.getDirection(Vector3.Right());
+    forward.y = 0;
+    right.y = 0;
+    forward.normalize();
+    right.normalize();
+
+    move.setAll(0);
+    if (held.has("forward")) move.addInPlace(forward);
+    if (held.has("back")) move.subtractInPlace(forward);
+    if (held.has("right")) move.addInPlace(right);
+    if (held.has("left")) move.subtractInPlace(right);
+    if (move.lengthSquared() === 0) return;
+
+    // Speed scales with zoom: the same keypress should cover the same fraction of the screen
+    // whether you are on a street or looking at the whole island.
+    const step = (camera.radius * 0.9 * scene.getEngine().getDeltaTime()) / 1000;
+    move.normalize().scaleInPlace(step);
+    camera.target.x = clamp(camera.target.x + move.x, PAN_LIMIT);
+    camera.target.z = clamp(camera.target.z + move.z, PAN_LIMIT);
+  });
+}
+
+/** Half the ground, so the camera cannot walk off the map. */
+const PAN_LIMIT = GROUND_SIZE / 2;
+
+const clamp = (value: number, limit: number): number => Math.min(limit, Math.max(-limit, value));
 
 function sunPhase(hour: number): number {
   return ((hour - DAYLIGHT_START) / (DAYLIGHT_END - DAYLIGHT_START)) * Math.PI;
