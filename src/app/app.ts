@@ -107,6 +107,7 @@ export async function startApp(): Promise<void> {
     onRoadMode(mode) {
       tool.setMode(mode);
       buildings.setGridVisible(mode === "straight" || mode === "curve");
+      buildings.setFaded(mode === "straight" || mode === "curve" || mode === "roundabout");
     },
     onRoadType(type) {
       tool.setRoadType(type);

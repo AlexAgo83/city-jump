@@ -2,7 +2,7 @@ import "@babylonjs/loaders/glTF";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
-import type { Material } from "@babylonjs/core/Materials/material";
+import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
@@ -109,8 +109,28 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       gridVisible = next;
       grid?.setEnabled(next);
     },
+    /** Faded rather than hidden while drawing roads, so the layout underneath stays visible. */
+    setFaded(faded: boolean) {
+      for (const model of available) setMaterialAlpha(model.mesh.material, faded ? 0.35 : 1);
+    },
     modelCount: available.length,
   };
+}
+
+/**
+ * A building's material can be a plain StandardMaterial, a converted-in-place PBRMaterial, or
+ * a MultiMaterial with either as a sub-material -- recurse the same way normalizeBuildingMaterial
+ * already does, rather than assume one shape.
+ */
+function setMaterialAlpha(material: Material | null, alpha: number): void {
+  if (!material) return;
+  const withSubs = material as Material & { subMaterials?: (Material | null)[] };
+  if (withSubs.subMaterials) {
+    for (const sub of withSubs.subMaterials) setMaterialAlpha(sub, alpha);
+    return;
+  }
+  material.alpha = alpha;
+  material.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
 }
 
 /** Centres the baked mesh on the parcel frontage regardless of glTF handedness. */
