@@ -49,12 +49,21 @@ export function bindControls(handlers: {
     const hour = ((next % 24) + 24) % 24;
     sunHour.value = String(hour);
     handlers.onSunHour(hour);
-    const whole = Math.floor(hour) % 24;
-    const minutes = Math.round((hour - Math.floor(hour)) * 60);
+    const totalMinutes = Math.round(hour * 60) % (24 * 60);
+    const whole = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     sunTime.value = `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   };
   const tickSun = (): void => {
-    updateSun(autoStartHour + ((performance.now() - autoStartedAt) / 1000) * AUTO_HOURS_PER_SECOND);
+    const now = performance.now();
+    const next = autoStartHour + ((now - autoStartedAt) / 1000) * AUTO_HOURS_PER_SECOND;
+    if (next >= 22) {
+      autoStartHour = 4;
+      autoStartedAt = now;
+      updateSun(4);
+    } else {
+      updateSun(next);
+    }
     sunFrame = requestAnimationFrame(tickSun);
   };
   sunHour.addEventListener("input", () => {

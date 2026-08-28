@@ -47,9 +47,11 @@ const shadowState = () =>
   page.evaluate(() => {
     const scene = window.cityjump._scene;
     const sun = scene.getLightByName("sun");
+    const renderList = sun?.getShadowGenerator()?.getShadowMap()?.renderList ?? [];
     return {
       groundReceives: scene.getMeshByName("ground")?.receiveShadows ?? false,
-      casters: sun?.getShadowGenerator()?.getShadowMap()?.renderList?.length ?? 0,
+      casters: renderList.length,
+      names: renderList.map((mesh) => mesh.name),
     };
   });
 const trafficPositions = () =>
@@ -64,10 +66,13 @@ const sunState = () =>
     return { direction: [sun.direction.x, sun.direction.y, sun.direction.z], intensity: sun.intensity };
   });
 
-// Nothing has been drawn, so nothing but the ground and ocean may be on screen. A building model
-// with no instance buffer still draws itself at the origin if it is left enabled.
+// Nothing has been drawn, so generated scenery is allowed but authored city state is not.
 const fresh = await stats();
-check("a fresh map draws only the ground and ocean", fresh.activeMeshes === 2, `${fresh.activeMeshes} active meshes`);
+check(
+  "a fresh map draws terrain and trees only",
+  fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments === 0 && fresh.buildings === 0,
+  `${JSON.stringify(fresh)}`,
+);
 check("view mode is selected by default", (await hud()).includes("camera only"));
 
 await page.locator("#show-grid").check();
@@ -90,6 +95,12 @@ await page.locator("#sun-auto").check();
 await page.waitForTimeout(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
 check("the automatic sun cycle advances smoothly", autoMinute > 0 && autoMinute < 15, `${autoMinute} minutes`);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "21.95";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForTimeout(350);
+check("the automatic sun cycle skips from 22:00 to 04:00", (await page.locator("#sun-time").textContent()).startsWith("04:"));
 await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
@@ -138,6 +149,11 @@ await page.locator('input[name="road-mode"][value="curve"]').check();
 check("road mode restores the buildable grid", await buildableGridVisible());
 const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
+check(
+  "trees cast shadows onto the ground",
+  shadows.groundReceives && shadows.names.includes("tree_trunks") && shadows.names.includes("tree_canopies"),
+  `${JSON.stringify(shadows)}`,
+);
 
 await page.mouse.move(702, 360);
 await page.waitForTimeout(100);
