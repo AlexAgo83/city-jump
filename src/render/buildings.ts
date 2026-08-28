@@ -7,6 +7,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
@@ -33,7 +34,19 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
   const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
+  const takenMaterial = new StandardMaterial("buildable-grid-taken", scene);
+  // disableLighting means diffuseColor is lit by (black) ambient and never shows -- every other
+  // unlit material in this codebase (streetlight glow, tunnel tube) drives its visible color
+  // through emissiveColor instead, and this one follows the same convention.
+  takenMaterial.diffuseColor = Color3.Black();
+  takenMaterial.emissiveColor = new Color3(0.95, 0.55, 0.2);
+  takenMaterial.specularColor = Color3.Black();
+  takenMaterial.disableLighting = true;
+  takenMaterial.alpha = 0.3;
+  takenMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
+  takenMaterial.backFaceCulling = false;
   let grid: LinesMesh | null = null;
+  let taken: Mesh | null = null;
   let visible = true;
   let gridVisible = false;
 
@@ -59,6 +72,19 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       grid.alpha = 0.65;
       grid.isPickable = false;
       grid.setEnabled(gridVisible);
+    }
+
+    // Not every buildable cell ends up under a building -- a shallow parcel can leave the cells
+    // behind it (further from the road) free. Filling only the cells a parcel actually consumed
+    // shows which grid squares are taken and which are still open, instead of leaving the grid a
+    // uniform outline that gives no hint why a building isn't sitting in some of its cells.
+    taken?.dispose();
+    const takenCells = parcels.flatMap((parcel) => parcel.cells);
+    taken = takenCells.length ? takenCellsMesh(scene, takenCells) : null;
+    if (taken) {
+      taken.material = takenMaterial;
+      taken.isPickable = false;
+      taken.setEnabled(gridVisible);
     }
     if (!visible) {
       for (const model of available) {
@@ -108,6 +134,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     setGridVisible(next: boolean) {
       gridVisible = next;
       grid?.setEnabled(next);
+      taken?.setEnabled(next);
     },
     /** Faded rather than hidden while drawing roads, so the layout underneath stays visible. */
     setFaded(faded: boolean) {
@@ -148,6 +175,24 @@ function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
       parcel.position.z - alongZ * centerX,
     ),
   );
+}
+
+/** One quad per taken cell, merged into a single mesh -- a highlight, not a hundred draw calls. */
+function takenCellsMesh(scene: Scene, cells: readonly BuildableCell[]): Mesh {
+  const positions: number[] = [];
+  const indices: number[] = [];
+  for (const cell of cells) {
+    const base = positions.length / 3;
+    for (const corner of cell.corners) positions.push(corner.x, corner.y + 0.1, corner.z);
+    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const mesh = new Mesh("buildable-grid-taken", scene);
+  const data = new VertexData();
+  data.positions = positions;
+  data.indices = indices;
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  data.applyToMesh(mesh);
+  return mesh;
 }
 
 async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Promise<Model | null> {

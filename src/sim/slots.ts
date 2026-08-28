@@ -47,6 +47,8 @@ export interface BuildingParcel {
   readonly rotationY: number;
   readonly frontageCells: number;
   readonly depthCells: number;
+  /** The buildable cells this parcel consumed, so the grid can highlight them as taken. */
+  readonly cells: readonly BuildableCell[];
 }
 
 export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
@@ -179,6 +181,7 @@ export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel
         ),
         rotationY: origin.rotationY,
         ...size,
+        cells: occupied,
       });
     }
   }
