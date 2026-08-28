@@ -43,6 +43,8 @@ const oceanSampleY = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position")?.[1] ?? 0);
 const tunnelPortalCount = () =>
   page.evaluate(() => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("tunnel_portal_")).length);
+const realStreetlightCount = () =>
+  page.evaluate(() => window.cityjump._scene.lights.filter((light) => light.name.startsWith("streetlight_light_")).length);
 const shadowState = () =>
   page.evaluate(() => {
     const scene = window.cityjump._scene;
@@ -143,6 +145,18 @@ await click(700, 360);
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
+check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "8";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+check("streetlights switch off at 08:00", (await realStreetlightCount()) === 0);
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "17";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+check("streetlights switch on at 17:00", (await realStreetlightCount()) > 0);
 await page.locator("#show-buildings").uncheck();
 check("generated buildings can be hidden", (await stats()).buildings === 0);
 await page.locator("#show-buildings").check();

@@ -4,6 +4,7 @@ import { createDrawTool } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE } from "../render/ground";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
+import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createTreeRenderer } from "../render/trees";
 import { RoadGraph } from "../sim/graph";
@@ -29,11 +30,13 @@ export async function startApp(): Promise<void> {
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
   const traffic = createTrafficRenderer(scene, graph);
+  const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
   const setSun = (hour: number): void => {
     setSunHour(hour);
+    streetlights.setSunHour(hour);
     trees.setSunHour(hour);
   };
 
@@ -56,6 +59,7 @@ export async function startApp(): Promise<void> {
     trees.rebuild();
     worldGrid.rebuild();
     roads.rebuild();
+    streetlights.rebuild();
     traffic.rebuild();
     buildingCount = buildings.rebuild();
     refreshHud();
@@ -106,6 +110,8 @@ export async function startApp(): Promise<void> {
     avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => segment.type === "tunnel").length,
     cars: traffic.count(),
+    streetlights: streetlights.count(),
+    realStreetlights: streetlights.realLightCount(),
     trees: trees.count(),
     models: buildings.modelCount,
     activeMeshes: scene.getActiveMeshes().length,
