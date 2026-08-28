@@ -90,12 +90,19 @@ export function createOcean(scene: Scene) {
 }
 
 function terrainColor(h: number): Color4 {
-  if (h < SEA_LEVEL + 1) return new Color4(0.46, 0.43, 0.27, 1);
-  if (h > 85) return new Color4(0.78, 0.8, 0.76, 1);
-  if (h > 48) return new Color4(0.43, 0.43, 0.4, 1);
-  const t = Math.min(1, Math.max(0, (h - 1) / 31));
-  return new Color4(0.33 + t * 0.08, 0.43 + t * 0.08, 0.27 + t * 0.07, 1);
+  const sand = new Color4(0.46, 0.43, 0.27, 1);
+  const grass = new Color4(0.39, 0.51, 0.34, 1);
+  const rock = new Color4(0.43, 0.43, 0.4, 1);
+  const snow = new Color4(0.78, 0.8, 0.76, 1);
+  if (h < SEA_LEVEL + 3) return Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 3));
+  if (h < 52) return Color4.Lerp(grass, rock, smoothstep((h - 28) / 24));
+  return Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
 }
+
+const smoothstep = (t: number): number => {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+};
 
 export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
   let visible = false;
