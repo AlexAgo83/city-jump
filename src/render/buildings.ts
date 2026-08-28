@@ -10,7 +10,8 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
-import { PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
@@ -29,6 +30,9 @@ interface Model {
 export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
   const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows)));
   const available = models.filter((m): m is Model => m !== null);
+  // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
+  // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
+  const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
   let grid: LinesMesh | null = null;
   let visible = true;
   let gridVisible = false;
@@ -61,6 +65,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         model.mesh.thinInstanceCount = 0;
         model.mesh.setEnabled(false);
       }
+      groundShadow.setInstances([]);
       return 0;
     }
 
@@ -69,6 +74,14 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     for (const parcel of parcels) {
       buckets.get(`lot_${parcel.frontageCells}x${parcel.depthCells}`)?.push(parcel);
     }
+    groundShadow.setInstances(
+      parcels.map((parcel) => ({
+        x: parcel.position.x,
+        y: parcel.position.y,
+        z: parcel.position.z,
+        radius: ((parcel.frontageCells + parcel.depthCells) / 2) * GRID.cellSize * 0.3,
+      })),
+    );
 
     let placed = 0;
     for (const model of available) {

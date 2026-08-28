@@ -11,6 +11,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { RoadGraph } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
+import { createGroundShadow } from "./groundShadow";
 import { ROAD_LIFT } from "./roadMesh";
 
 function streetlightsOnAt(hour: number): boolean {
@@ -20,6 +21,7 @@ function streetlightsOnAt(hour: number): boolean {
 export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   const lightCluster = new ClusteredLightContainer("streetlight_lights", [], scene);
   lightCluster.maxRange = 52;
+  const groundShadow = createGroundShadow(scene, "streetlight_ground_shadows", 0.28);
   const pole = MeshBuilder.CreateCylinder(
     "streetlight_poles",
     { height: 7.5, diameterBottom: 0.38, diameterTop: 0.24, tessellation: 8 },
@@ -60,6 +62,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     const headMatrices: Matrix[] = [];
     const bulbMatrices: Matrix[] = [];
     const positions: typeof lampPositions = [];
+    const shadowBases: { x: number; y: number; z: number; radius: number }[] = [];
 
     for (const segment of graph.allSegments()) {
       const type = roadType(segment.type);
@@ -85,6 +88,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
           const lightPosition = new Vector3(bulbX, y + 7.06, bulbZ);
           bulbMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, lightPosition));
           positions.push({ position: lightPosition, direction: new Vector3(n.x * side * 0.45, -1, n.z * side * 0.45).normalize() });
+          shadowBases.push({ x: poleX, y, z: poleZ, radius: 0.5 });
         }
       }
     }
@@ -93,6 +97,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     applyInstances(arm, armMatrices);
     applyInstances(head, headMatrices);
     applyInstances(bulb, bulbMatrices);
+    groundShadow.setInstances(shadowBases);
     lampPositions = positions;
     lamps = bulbMatrices.length;
     rebuildLights();

@@ -12,6 +12,7 @@ import type { Plantings } from "../sim/plantings";
 import { roadType } from "../sim/roadTypes";
 import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
+import { createGroundShadow } from "./groundShadow";
 import { daylightAt, sunAzimuthAt } from "./scene";
 
 const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
@@ -129,6 +130,9 @@ export function createTreeRenderer(
   groundShadows.isPickable = false;
   groundShadows.alwaysSelectAsActiveMesh = true;
   groundShadows.setEnabled(false);
+  // Static, always-on: the sun-tracking shadow above goes flat and vanishes at night, which
+  // otherwise leaves every tree looking pasted onto the ground until sunrise.
+  const contactShadow = createGroundShadow(scene, "tree_contact_shadows", 0.26);
 
   const built = TREE_SPECIES.map((id) => {
     const look = SPECIES[id];
@@ -229,6 +233,7 @@ export function createTreeRenderer(
       applyInstances(canopy, set.canopies);
     }
     treeBases = bases;
+    contactShadow.setInstances(bases.map(({ x, y, z, scale, spread }) => ({ x, y, z, radius: scale * spread * 1.6 })));
     updateGroundShadows();
     treeCount = bases.length;
     return treeCount;
