@@ -562,6 +562,25 @@ check(
   `${(await stats()).segments}/${beforeReload.segments}`,
 );
 
+// A city saved by an older build has to keep loading. Take the current autosave, strip the
+// fields added since, stamp it version 1, and it must come back exactly as it went in.
+await page.evaluate(() => {
+  const raw = JSON.parse(window.localStorage.getItem("cityjump.autosave"));
+  delete raw.planted;
+  delete raw.cleared;
+  raw.v = 1;
+  window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
+});
+await page.reload({ waitUntil: "load" });
+await page.waitForTimeout(1500);
+await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+await page.waitForTimeout(800);
+check(
+  "a city saved by an older build still loads",
+  (await stats()).segments === beforeReload.segments,
+  `${(await stats()).segments}/${beforeReload.segments}`,
+);
+
 await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
 await page.reload({ waitUntil: "load" });
 await page.waitForTimeout(1500);

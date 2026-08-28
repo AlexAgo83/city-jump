@@ -58,6 +58,30 @@ describe("city saves", () => {
     expect(restored.isCleared(400, 400)).toBe(false);
   });
 
+  it("still reads a city saved before plantings existed", () => {
+    const v1 = JSON.stringify({
+      v: 1,
+      terrain: "rugged",
+      hour: 9,
+      nodes: [[1, 0, 4, 0], [2, 100, 6, 0]],
+      segments: [[1, 2, 50, 0, 0, "street"]],
+    });
+    const save = parseCity(v1);
+    expect(save).not.toBeNull();
+    expect(save!.terrain).toBe("rugged");
+    expect(save!.segments).toHaveLength(1);
+    expect(save!.planted).toEqual([]);
+
+    const graph = new RoadGraph();
+    restoreCity(graph, new Plantings(), save!);
+    expect(graph.allSegments()).toHaveLength(1);
+  });
+
+  it("refuses a save from a newer build rather than dropping what it does not understand", () => {
+    const future = JSON.stringify({ v: SAVE_VERSION + 1, terrain: "rolling", hour: 1, nodes: [], segments: [] });
+    expect(parseCity(future)).toBeNull();
+  });
+
   it("treats a save with no plantings as a save with none", () => {
     const bare = JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [] });
     const save = parseCity(bare);
@@ -86,7 +110,6 @@ describe("city saves", () => {
   it("refuses malformed or foreign saves rather than replaying them", () => {
     expect(parseCity("not json")).toBeNull();
     expect(parseCity("null")).toBeNull();
-    expect(parseCity(JSON.stringify({ v: SAVE_VERSION + 1, terrain: "rolling", hour: 1, nodes: [], segments: [] }))).toBeNull();
     expect(parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))).not.toBeNull();
     // A node short of a coordinate, and a segment with a non-string road type.
     expect(parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [[1, 0, 0]], segments: [] }))).toBeNull();

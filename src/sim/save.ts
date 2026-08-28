@@ -74,7 +74,10 @@ export function parseCity(text: string): CitySave | null {
   } catch {
     return null;
   }
-  if (!isRecord(value) || value.v !== SAVE_VERSION) return null;
+  // Any version up to the current one is readable: the fields added since are all optional and
+  // default to empty, so an older city loads as itself. Only a save from a NEWER build is refused,
+  // because that one may carry state this build would silently drop.
+  if (!isRecord(value) || typeof value.v !== "number" || value.v < 1 || value.v > SAVE_VERSION) return null;
   if (typeof value.terrain !== "string" || !Number.isFinite(value.hour)) return null;
   if (!Array.isArray(value.nodes) || !Array.isArray(value.segments)) return null;
   const planted = readPlantings(value.planted);
