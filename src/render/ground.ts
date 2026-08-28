@@ -9,7 +9,7 @@ import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
 
-export const GROUND_SIZE = 2700;
+export const GROUND_SIZE = 5400;
 export const GROUND_CELL = 8;
 
 /**
@@ -99,7 +99,7 @@ export function createOcean(scene: Scene) {
       positions[i * 3] = wx;
       positions[i * 3 + 2] = wz;
       oceanColor(depth, waveNoise(wx, wz)).toArray(colors, i * 4);
-      if (x < cells && z < cells && Math.hypot(wx + size / cells / 2, wz + size / cells / 2) > 700) {
+      if (x < cells && z < cells && Math.hypot(wx + size / cells / 2, wz + size / cells / 2) > 1400) {
         indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
       }
     }
@@ -134,7 +134,7 @@ export function createOcean(scene: Scene) {
 }
 
 function oceanDepth(x: number, z: number): number {
-  return smoothstep((Math.hypot(x, z) - 720) / 520);
+  return smoothstep((Math.hypot(x, z) - 1440) / 1040);
 }
 
 function oceanColor(depth: number, noise: number): Color4 {
@@ -144,7 +144,7 @@ function oceanColor(depth: number, noise: number): Color4 {
 }
 
 function distanceFromIsland(x: number, z: number): number {
-  return smoothstep((Math.hypot(x, z) - 760) / 500);
+  return smoothstep((Math.hypot(x, z) - 1520) / 1000);
 }
 
 function waveNoise(x: number, z: number): number {

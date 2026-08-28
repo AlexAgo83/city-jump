@@ -159,7 +159,7 @@ export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: nu
     const hills = amplitude * (Math.sin(x * k) * Math.cos(z * k * 0.8) + 0.45 * Math.sin((x + z) * k * 1.7));
     const peak = (cx: number, cz: number, height: number, radius: number) =>
       height * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radius * radius));
-    const ridge = 64 * Math.exp(-((x + z * 0.28) ** 2) / (2 * 360 * 360)) * Math.exp(-(z * z) / (2 * 760 * 760));
+    const ridge = 64 * Math.exp(-((x + z * 0.28) ** 2) / (2 * 360 * 360)) * Math.exp(-(z * z) / (2 * 1520 * 1520));
     const mountain =
       peak(-180, -80, 19, 360) +
       peak(170, -60, 18, 350) +
@@ -167,8 +167,8 @@ export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: nu
       peak(0, 0, 19, 300) +
       ridge;
     const r = Math.hypot(x, z);
-    const coast = smoothstep((r - 760) / 260);
-    const deep = smoothstep((r - 980) / 360);
+    const coast = smoothstep((r - 1520) / 520);
+    const deep = smoothstep((r - 1960) / 720);
     return 10 + mountain + hills - coast * 60 - deep * 90;
   };
 }
