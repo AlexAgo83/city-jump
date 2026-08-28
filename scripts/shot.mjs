@@ -33,14 +33,9 @@ const report = await page.evaluate(async (which) => {
     document.querySelector("#terrain").dispatchEvent(new Event("change", { bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 300));
     api.reset();
-    api.road(-180, -240, -60, -230, 80, -240, "avenue");
-    api.road(-180, -160, -60, -150, 80, -160);
-    api.road(-240, -180, -230, -60, -240, 80);
-    api.road(-160, -180, -150, -60, -160, 80);
-    api.road(0, -180, 10, -60, 0, 80, "avenue");
-    api.road(180, 120, 80, 140, -20, 120);
-    api.rebuild();
-    api.camera(360, Math.PI / 5);
+    api.demoNetwork();
+    api._scene.getMeshByName("buildable-grid")?.setEnabled(false);
+    api.camera(1250, Math.PI / 5, -Math.PI / 2);
   } else {
     api.demoNetwork();
     document.querySelector("#show-buildings").checked = false;
