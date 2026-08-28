@@ -29,13 +29,14 @@ type Stage =
 
 export interface DrawTool {
   readonly stageLabel: () => string;
-  readonly mode: () => DrawMode;
+  readonly mode: () => ToolMode;
   cancel(): void;
-  setMode(mode: DrawMode): void;
+  setMode(mode: ToolMode): void;
   setGridSnap(enabled: boolean): void;
 }
 
 export type DrawMode = "straight" | "curve";
+export type ToolMode = "view" | DrawMode;
 
 export function createDrawTool(
   scene: Scene,
@@ -46,7 +47,7 @@ export function createDrawTool(
   typeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
-  let mode: DrawMode = "curve";
+  let mode: ToolMode = "curve";
   let gridSnap = true;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
@@ -88,6 +89,7 @@ export function createDrawTool(
   }
 
   function onMove(): void {
+    if (mode === "view") return;
     const at = groundPoint();
     if (!at) {
       nodeHighlight.setEnabled(false);
@@ -113,6 +115,7 @@ export function createDrawTool(
   }
 
   function onClick(): void {
+    if (mode === "view") return;
     const at = groundPoint();
     if (!at) return;
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
@@ -174,7 +177,9 @@ export function createDrawTool(
   return {
     mode: () => mode,
     stageLabel: () =>
-      stage.phase === "idle"
+      mode === "view"
+        ? "view: camera only"
+        : stage.phase === "idle"
         ? "click: start a road"
         : stage.phase === "control"
           ? mode === "straight"

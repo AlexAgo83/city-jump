@@ -81,6 +81,11 @@ const click = async (x, y) => {
   await page.waitForTimeout(160);
 };
 
+await page.locator('input[name="road-mode"][value="view"]').check();
+await click(260, 320);
+check("view mode leaves left-click to the camera", (await hud()).includes("camera only") && (await stats()).segments === 0);
+await page.locator('input[name="road-mode"][value="curve"]').check();
+
 await page.mouse.click(360, 360, { button: "right" });
 check("right-click is camera-only, not drawing input", (await hud()).includes("start a road") && (await stats()).segments === 0);
 

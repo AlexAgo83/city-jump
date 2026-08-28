@@ -1,5 +1,5 @@
 export function bindControls(handlers: {
-  onRoadMode(mode: "straight" | "curve"): void;
+  onRoadMode(mode: "view" | "straight" | "curve"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTerrain(preset: "rolling" | "rugged"): boolean;
@@ -7,7 +7,7 @@ export function bindControls(handlers: {
 }): void {
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-mode"]')) {
     input.addEventListener("change", () => {
-      if (input.checked) handlers.onRoadMode(input.value === "straight" ? "straight" : "curve");
+      if (input.checked) handlers.onRoadMode(input.value === "view" ? "view" : input.value === "straight" ? "straight" : "curve");
     });
   }
 
