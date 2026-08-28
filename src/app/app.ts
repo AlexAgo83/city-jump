@@ -70,6 +70,10 @@ export async function startApp(): Promise<void> {
       tool.setGridSnap(enabled);
       refreshHud();
     },
+    onBuildings(visible) {
+      buildings.setVisible(visible);
+      rebuild();
+    },
     onTerrain(preset) {
       if (graph.allSegments().length && !window.confirm("Changing terrain clears the current city. Continue?")) {
         return false;

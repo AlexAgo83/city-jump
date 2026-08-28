@@ -28,6 +28,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows)));
   const available = models.filter((m): m is Model => m !== null);
   let grid: LinesMesh | null = null;
+  let visible = true;
 
   function rebuild(): number {
     const slots = allSlots(graph);
@@ -49,6 +50,14 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       grid.alpha = 0.65;
       grid.isPickable = false;
     }
+    if (!visible) {
+      for (const model of available) {
+        model.mesh.thinInstanceCount = 0;
+        model.mesh.setEnabled(false);
+      }
+      return 0;
+    }
+
     const buckets = new Map<string, Slot[]>(available.map((m) => [m.id, []]));
 
     for (const [i, slot] of slots.entries()) {
@@ -78,7 +87,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     return placed;
   }
 
-  return { rebuild, modelCount: available.length };
+  return { rebuild, setVisible: (next: boolean) => (visible = next), modelCount: available.length };
 }
 
 /**

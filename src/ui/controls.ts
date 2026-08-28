@@ -3,6 +3,7 @@ export function bindControls(handlers: {
   onRoadType(type: "street" | "avenue" | "tunnel"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
+  onBuildings(visible: boolean): void;
   onTerrain(preset: "rolling" | "rugged"): boolean;
   onSunHour(hour: number): void;
 }): void {
@@ -18,6 +19,10 @@ export function bindControls(handlers: {
 
   document.getElementById("grid-snap")!.addEventListener("change", (event) => {
     handlers.onGridSnap((event.currentTarget as HTMLInputElement).checked);
+  });
+
+  document.getElementById("show-buildings")!.addEventListener("change", (event) => {
+    handlers.onBuildings((event.currentTarget as HTMLInputElement).checked);
   });
 
   document.getElementById("road-type")!.addEventListener("change", (event) => {
