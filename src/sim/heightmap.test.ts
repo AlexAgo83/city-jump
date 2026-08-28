@@ -140,6 +140,11 @@ describe("heightmap", () => {
     expect(terrain(980, 0)).toBeLessThan(SEA_LEVEL);
   });
 
+  it("sinks the island into deeper water offshore", () => {
+    const terrain = rollingHills();
+    expect(terrain(1300, 0)).toBeLessThan(terrain(980, 0) - 50);
+  });
+
   it("raises clustered mountains into a higher central peak", () => {
     const terrain = rollingHills();
     expect(terrain(0, 0)).toBeGreaterThan(terrain(500, 0) + 70);

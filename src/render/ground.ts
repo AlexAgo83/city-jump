@@ -8,7 +8,7 @@ import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
 
-export const GROUND_SIZE = 2000;
+export const GROUND_SIZE = 2700;
 export const GROUND_CELL = 8;
 
 /**
@@ -82,7 +82,7 @@ export function createOcean(scene: Scene) {
   material.emissiveColor = new Color3(0.01, 0.04, 0.055);
   material.specularColor = new Color3(0.35, 0.55, 0.62);
 
-  const size = GROUND_SIZE * 1.35;
+  const size = GROUND_SIZE;
   const cells = 72;
   const positions = new Float32Array((cells + 1) * (cells + 1) * 3);
   const normals = new Float32Array((cells + 1) * (cells + 1) * 3);

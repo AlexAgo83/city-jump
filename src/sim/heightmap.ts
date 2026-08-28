@@ -164,7 +164,9 @@ export function rollingHills(amplitude = 6, wavelength = 900): (x: number, z: nu
       peak(20, 190, 17, 360) +
       peak(0, 0, 19, 300) +
       ridge;
-    const coast = smoothstep((Math.hypot(x, z) - 760) / 260);
-    return 10 + mountain + hills - coast * 60;
+    const r = Math.hypot(x, z);
+    const coast = smoothstep((r - 760) / 260);
+    const deep = smoothstep((r - 980) / 360);
+    return 10 + mountain + hills - coast * 60 - deep * 90;
   };
 }
