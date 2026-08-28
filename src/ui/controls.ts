@@ -93,6 +93,7 @@ export function bindControls(handlers: {
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;
   const sunAuto = document.getElementById("sun-auto") as HTMLInputElement;
+  const shortNight = document.getElementById("short-night") as HTMLInputElement;
   const AUTO_HOURS_PER_SECOND = 0.25;
   let sunFrame: number | null = null;
   let autoStartHour = 0;
@@ -109,7 +110,10 @@ export function bindControls(handlers: {
   const tickSun = (): void => {
     const now = performance.now();
     const next = autoStartHour + ((now - autoStartedAt) / 1000) * AUTO_HOURS_PER_SECOND;
-    if (next >= 22) {
+    // Short night jumps 22:00 to 05:00, so a run of the cycle is mostly daylight. Turned off, the
+    // clock simply wraps through 24 and you get the whole night. updateSun already takes the
+    // modulo, so nothing else has to know which of the two is running.
+    if (shortNight.checked && next >= 22) {
       autoStartHour = 5;
       autoStartedAt = now;
       updateSun(5);

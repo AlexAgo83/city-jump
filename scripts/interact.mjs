@@ -270,6 +270,17 @@ await page.locator("#sun-hour").evaluate((input) => {
 });
 await page.waitForTimeout(350);
 check("the automatic sun cycle skips from 22:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
+
+// With short night off the clock wraps through 24 instead, so the whole night is playable.
+await page.locator("#short-night").uncheck();
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "21.95";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForTimeout(350);
+const throughNight = await page.locator("#sun-time").textContent();
+check("with short night off the cycle runs past 22:00 into the night", throughNight.startsWith("22:"), throughNight);
+await page.locator("#short-night").check();
 await page.locator("#sun-auto").uncheck();
 
 const click = async (x, y) => {
