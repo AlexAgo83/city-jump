@@ -93,13 +93,13 @@ export function createOcean(scene: Scene) {
       const i = z * (cells + 1) + x;
       const wx = -size / 2 + (x / cells) * size;
       const wz = -size / 2 + (z / cells) * size;
+      const depth = smoothstep((Math.hypot(wx, wz) - 720) / 520);
       positions[i * 3] = wx;
       positions[i * 3 + 2] = wz;
-      Color4.Lerp(new Color4(0.03, 0.18, 0.25, 1), new Color4(0.1, 0.38, 0.45, 1), waveNoise(wx, wz)).toArray(
-        colors,
-        i * 4,
-      );
-      if (x < cells && z < cells) indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
+      Color4.Lerp(new Color4(0.09, 0.36, 0.42, 0.34), new Color4(0.02, 0.14, 0.22, 0.97), depth * 0.75 + waveNoise(wx, wz) * 0.25).toArray(colors, i * 4);
+      if (x < cells && z < cells && Math.hypot(wx + size / cells / 2, wz + size / cells / 2) > 700) {
+        indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
+      }
     }
   }
 
@@ -111,6 +111,7 @@ export function createOcean(scene: Scene) {
   data.normals = normals as unknown as number[];
   data.colors = colors as unknown as number[];
   data.applyToMesh(mesh, true);
+  mesh.hasVertexAlpha = true;
   mesh.position.y = SEA_LEVEL - 0.2;
   mesh.material = material;
   mesh.isPickable = false;
@@ -118,9 +119,11 @@ export function createOcean(scene: Scene) {
     const t = performance.now() / 1000;
     const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
     for (let i = 0; i < current.length; i += 3) {
-      current[i + 1] = Math.sin(current[i]! * 0.015 + t) * 0.18 + Math.cos(current[i + 2]! * 0.012 + t * 0.7) * 0.12;
+      current[i + 1] = Math.sin(current[i]! * 0.015 + t) * 0.65 + Math.cos(current[i + 2]! * 0.012 + t * 0.7) * 0.4;
     }
     mesh.updateVerticesData(VertexBuffer.PositionKind, current);
+    VertexData.ComputeNormals(current, indices, normals as unknown as number[]);
+    mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
   });
   return mesh;
 }

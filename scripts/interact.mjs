@@ -37,6 +37,8 @@ const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
 const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
+const oceanSampleY = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("ocean")?.getVerticesData("position")?.[1] ?? 0);
 const shadowState = () =>
   page.evaluate(() => {
     const scene = window.cityjump._scene;
@@ -94,6 +96,9 @@ const click = async (x, y) => {
 
 await click(260, 320);
 check("view mode leaves left-click to the camera", (await hud()).includes("camera only") && (await stats()).segments === 0);
+const oceanBefore = await oceanSampleY();
+await page.waitForTimeout(250);
+check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
 await page.locator('input[name="road-mode"][value="curve"]').check();
 
 await page.mouse.click(360, 360, { button: "right" });
