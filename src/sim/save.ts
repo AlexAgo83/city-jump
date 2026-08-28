@@ -13,10 +13,11 @@ import { RoadGraph, type NodeId } from "./graph";
 import { DEFAULT_TREE_SPECIES, type Planting, type Plantings } from "./plantings";
 import { v3 } from "./vec";
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
-export type SavedNode = [id: NodeId, x: number, y: number, z: number];
+/** The trailing flag marks a roundabout; absent means an ordinary node, which is what v3 had. */
+export type SavedNode = [id: NodeId, x: number, y: number, z: number, roundabout?: 1];
 export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string];
 /**
  * A hand-planted tree or a cleared spot. The species is optional so that saves written before
@@ -41,7 +42,13 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: s
     hour,
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
-    nodes: graph.allNodes().map((node) => [node.id, node.pos.x, node.pos.y, node.pos.z]),
+    nodes: graph
+      .allNodes()
+      .map((node) =>
+        node.roundabout
+          ? [node.id, node.pos.x, node.pos.y, node.pos.z, 1]
+          : [node.id, node.pos.x, node.pos.y, node.pos.z],
+      ),
     segments: graph
       .allSegments()
       .map((segment) => [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type]),
@@ -57,13 +64,20 @@ export function restoreCity(graph: RoadGraph, plantings: Plantings, save: CitySa
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();
-  for (const [id, x, y, z] of save.nodes) ids.set(id, graph.addNodeAt(v3(x, y, z)));
+  const roundabouts: NodeId[] = [];
+  for (const [id, x, y, z, roundabout] of save.nodes) {
+    const placed = graph.addNodeAt(v3(x, y, z));
+    ids.set(id, placed);
+    if (roundabout) roundabouts.push(placed);
+  }
   for (const [a, b, cx, cy, cz, type] of save.segments) {
     const from = ids.get(a);
     const to = ids.get(b);
     if (from === undefined || to === undefined) throw new Error(`segment references a missing node (${a} -> ${b})`);
     graph.addSegment(from, to, v3(cx, cy, cz), type);
   }
+  // After the segments, since a roundabout is refused on a node with nothing meeting it yet.
+  for (const node of roundabouts) graph.setRoundabout(node, true);
 }
 
 /**
@@ -88,7 +102,8 @@ export function parseCity(text: string): CitySave | null {
   if (planted === null || cleared === null) return null;
 
   const nodes = value.nodes.filter(
-    (node): node is SavedNode => Array.isArray(node) && node.length === 4 && node.every(Number.isFinite),
+    (node): node is SavedNode =>
+      Array.isArray(node) && (node.length === 4 || node.length === 5) && node.every(Number.isFinite),
   );
   const segments = value.segments.filter(
     (segment): segment is SavedSegment =>

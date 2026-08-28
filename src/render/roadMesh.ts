@@ -10,7 +10,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { RoadGraph } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
-import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
+import { allJunctions, segmentTrims, widestIncidentWidth, type JunctionGeometry } from "../sim/junction";
 import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
@@ -98,6 +98,10 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     }
 
     for (const junction of junctions.values()) {
+      if (junction.roundabout > 0) {
+        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb));
+        continue;
+      }
       const mesh = junctionMesh(scene, junction);
       if (!mesh) continue;
       mesh.material = material;
@@ -107,6 +111,39 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   return { rebuild, material };
+}
+
+/**
+ * The ring itself: a flat annulus from the kerb of the island out to where the arms were trimmed.
+ * Carriageway width is the widest road meeting the node, which is the same reference the radius
+ * takes. ponytail: a lathe over two points, not a swept road built from the graph.
+ */
+function roundaboutMeshes(scene: Scene, graph: RoadGraph, junction: JunctionGeometry, surface: StandardMaterial, kerb: Color3): Mesh[] {
+  const centre = graph.node(junction.node).pos;
+  const outer = junction.roundabout;
+  const lane = Math.max(6, widestIncidentWidth(graph, junction.node));
+  const inner = Math.max(3, outer - lane);
+
+  const ring = MeshBuilder.CreateLathe(
+    `roundabout_${junction.node}`,
+    { shape: [new Vector3(inner, 0, 0), new Vector3(outer, 0, 0)], tessellation: 40, sideOrientation: MeshClass.DOUBLESIDE },
+    scene,
+  );
+  ring.position.set(centre.x, centre.y + ROAD_LIFT, centre.z);
+  ring.material = surface;
+  ring.isPickable = false;
+
+  const circle = (radius: number): Vector3[] =>
+    Array.from({ length: 41 }, (_, i) => {
+      const angle = (i / 40) * Math.PI * 2;
+      return new Vector3(centre.x + Math.cos(angle) * radius, centre.y + MARK_LIFT, centre.z + Math.sin(angle) * radius);
+    });
+
+  return [
+    ring,
+    styledLine(scene, `roundabout_kerb_out_${junction.node}`, circle(outer), kerb),
+    styledLine(scene, `roundabout_kerb_in_${junction.node}`, circle(inner), kerb),
+  ];
 }
 
 function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3, close = false): LinesMesh {

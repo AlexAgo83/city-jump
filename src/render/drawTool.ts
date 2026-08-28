@@ -39,7 +39,7 @@ export interface DrawTool {
 
 export type DrawMode = "straight" | "curve";
 export type PlantMode = "plant" | "spray";
-export type ToolMode = "view" | "bulldoze" | DrawMode | PlantMode;
+export type ToolMode = "view" | "bulldoze" | "roundabout" | DrawMode | PlantMode;
 export type RoadTypeId = "street" | "avenue" | "tunnel" | "pedestrian";
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
@@ -54,6 +54,9 @@ const SPRAY_RING_POINTS = 56;
  * a node, plant a tree, or bulldoze whatever you happened to release over.
  */
 const CLICK_SLOP = 5;
+
+/** How far from a node you can click and still mean that node. */
+const NODE_REACH = 22;
 
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
@@ -221,6 +224,13 @@ export function createDrawTool(
       nature.clearTree(at.x, at.z);
       return;
     }
+    if (mode === "roundabout") {
+      const node = nearestJunctionNode(at.x, at.z);
+      if (!node) return onRefused("Click where two or more roads meet.");
+      graph.setRoundabout(node, !graph.node(node).roundabout);
+      onCommitted();
+      return;
+    }
     if (mode === "plant") {
       if (!nature.plant(at.x, at.z, treeSpecies)) onRefused("A tree needs dry ground.");
       return;
@@ -266,6 +276,25 @@ export function createDrawTool(
     sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
+  }
+
+  /**
+   * Nodes are not pickable meshes, so the nearest one within reach is the click target. Only nodes
+   * with roads meeting them count: a dead end can sit a few metres from a junction, and picking
+   * the plain nearest would hand back the one that cannot carry a roundabout.
+   */
+  function nearestJunctionNode(x: number, z: number): number | null {
+    let best: number | null = null;
+    let bestDistance = NODE_REACH;
+    for (const node of graph.allNodes()) {
+      if (node.segments.size < 2) continue;
+      const distance = Math.hypot(node.pos.x - x, node.pos.z - z);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = node.id;
+      }
+    }
+    return best;
   }
 
   function bulldozeTarget(x: number, z: number) {

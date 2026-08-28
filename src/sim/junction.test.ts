@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph, type NodeId } from "./graph";
-import { junctionGeometry, allJunctions, segmentTrims } from "./junction";
+import { junctionGeometry, allJunctions, segmentTrims, junctionRadius, roundaboutRadius } from "./junction";
 import { v3, type Vec3 } from "./vec";
 
 /** Spokes leaving a hub at the given bearings, in degrees. */
@@ -127,5 +127,75 @@ describe("junction geometry", () => {
     const extra = g.addNode(0, -200);
     g.addSegment(node, extra, v3(0, 0, -100));
     expect(junctionGeometry(g, node).arms).toHaveLength(before + 1);
+  });
+});
+
+describe("roundabouts", () => {
+  it("pulls every arm back to the ring, whatever angle it arrives on", () => {
+    const g = new RoadGraph();
+    const centre = g.addNode(0, 0);
+    const arms = [
+      [200, 0],
+      [-200, 30], // deliberately not opposite, so the angle-driven trim would differ per arm
+      [0, 200],
+    ].map(([x, z]) => {
+      const end = g.addNode(x!, z!);
+      return g.addSegment(centre, end, v3(x! / 2, 0, z! / 2));
+    });
+
+    const before = junctionGeometry(g, centre).arms.map((arm) => arm.trim);
+    expect(new Set(before.map((t) => t.toFixed(2))).size).toBeGreaterThan(1);
+
+    g.setRoundabout(centre, true);
+    const geometry = junctionGeometry(g, centre);
+    const radius = roundaboutRadius(g, centre);
+    expect(geometry.arms).toHaveLength(arms.length);
+    for (const arm of geometry.arms) expect(arm.trim).toBeCloseTo(radius, 5);
+  });
+
+  it("sizes the ring off the widest road meeting it", () => {
+    const street = new RoadGraph();
+    const a = street.addNode(0, 0);
+    street.addSegment(a, street.addNode(200, 0), v3(100, 0, 0), "street");
+    street.addSegment(a, street.addNode(0, 200), v3(0, 0, 100), "street");
+
+    const avenue = new RoadGraph();
+    const b = avenue.addNode(0, 0);
+    avenue.addSegment(b, avenue.addNode(200, 0), v3(100, 0, 0), "avenue");
+    avenue.addSegment(b, avenue.addNode(0, 200), v3(0, 0, 100), "street");
+
+    expect(roundaboutRadius(avenue, b)).toBeGreaterThan(roundaboutRadius(street, a));
+  });
+
+  it("draws no filler polygon, but still appears so roads get trimmed", () => {
+    const g = new RoadGraph();
+    const centre = g.addNode(0, 0);
+    g.addSegment(centre, g.addNode(200, 0), v3(100, 0, 0));
+    g.addSegment(centre, g.addNode(0, 200), v3(0, 0, 100));
+    g.setRoundabout(centre, true);
+
+    const geometry = junctionGeometry(g, centre);
+    expect(geometry.ring).toEqual([]);
+    expect(geometry.roundabout).toBeGreaterThan(0);
+    expect(allJunctions(g).has(centre)).toBe(true);
+  });
+
+  it("refuses a node with nothing meeting it", () => {
+    const g = new RoadGraph();
+    const lonely = g.addNode(0, 0);
+    expect(g.setRoundabout(lonely, true)).toBe(false);
+    expect(g.node(lonely).roundabout).toBe(false);
+  });
+
+  it("keeps frontage clear of the whole ring", () => {
+    const g = new RoadGraph();
+    const centre = g.addNode(0, 0);
+    g.addSegment(centre, g.addNode(200, 0), v3(100, 0, 0));
+    g.addSegment(centre, g.addNode(0, 200), v3(0, 0, 100));
+
+    const plain = junctionRadius(g, centre);
+    g.setRoundabout(centre, true);
+    expect(junctionRadius(g, centre)).toBeCloseTo(roundaboutRadius(g, centre), 5);
+    expect(junctionRadius(g, centre)).toBeGreaterThan(plain);
   });
 });

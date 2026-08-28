@@ -19,9 +19,11 @@ export function widestIncidentWidth(graph: RoadGraph, nodeId: NodeId): number {
  * ever shows up in a profile.
  */
 export function junctionRadius(graph: RoadGraph, nodeId: NodeId): number {
-  const arms = junctionGeometry(graph, nodeId).arms;
-  if (arms.length === 0) return widestIncidentWidth(graph, nodeId) * 0.75;
-  return Math.max(...arms.map((arm) => arm.trim));
+  const geometry = junctionGeometry(graph, nodeId);
+  // Frontage clears the whole ring, not just the trimmed arms, or buildings stand on the island.
+  if (geometry.roundabout > 0) return geometry.roundabout;
+  if (geometry.arms.length === 0) return widestIncidentWidth(graph, nodeId) * 0.75;
+  return Math.max(...geometry.arms.map((arm) => arm.trim));
 }
 
 export interface JunctionArm {
@@ -42,10 +44,29 @@ export interface JunctionGeometry {
   readonly arms: readonly JunctionArm[];
   /** Closed ring, counter-clockwise. Empty when the node is not a junction. */
   readonly ring: readonly Vec3[];
+  /** Outer radius when the node is a roundabout; zero when it is an ordinary junction. */
+  readonly roundabout: number;
 }
 
 /** A trim never eats more than this fraction of the segment it belongs to. */
 const MAX_TRIM_FRACTION = 0.4;
+
+/**
+ * Outer radius of a roundabout, as a multiple of the widest road meeting it. Wide enough that
+ * the island reads as one and the arms meet it square, tight enough to fit a normal block.
+ */
+const ROUNDABOUT_WIDTHS = 1.7;
+/** Small streets still need a ring you can see. */
+const ROUNDABOUT_MIN_RADIUS = 13;
+
+/**
+ * The ring a roundabout at this node would have. Sized off the widest road meeting it, which is
+ * the reference the whole thing takes: a roundabout where an avenue meets two streets is an
+ * avenue-sized roundabout.
+ */
+export function roundaboutRadius(graph: RoadGraph, nodeId: NodeId): number {
+  return Math.max(ROUNDABOUT_MIN_RADIUS, widestIncidentWidth(graph, nodeId) * ROUNDABOUT_WIDTHS);
+}
 /**
  * Nor more than this many carriageway widths, however narrow the angle. Past it the
  * junction reads as a car park; the hull below copes with the overlap that is left.
@@ -60,7 +81,7 @@ const MAX_TRIM_WIDTHS = 1.5;
 export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeometry {
   const node = graph.node(nodeId);
   const surfaceSegments = [...node.segments].filter((segId) => !roadType(graph.segment(segId).type).tunnelDepth);
-  if (surfaceSegments.length < 2) return { node: nodeId, arms: [], ring: [] };
+  if (surfaceSegments.length < 2) return { node: nodeId, arms: [], ring: [], roundabout: 0 };
 
   // Every arm, first with a provisional trim, ordered by the bearing it leaves on.
   const provisional = surfaceSegments
@@ -78,8 +99,27 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
 
   // A road arriving at a narrow angle to its neighbour has to be pulled back further,
   // or the two surfaces overlap before the junction polygon ever gets to close them.
+  // A roundabout overrides the angle-driven trim entirely: every arm stops at the ring, whatever
+  // bearing it arrives on. That is the whole geometric content of one.
+  const ring0 = graph.node(nodeId).roundabout ? roundaboutRadius(graph, nodeId) : 0;
+
   const arms: JunctionArm[] = provisional.map((arm, i) => {
     let trim = arm.half;
+    if (ring0 > 0) {
+      // Still bounded by the segment, or a short road between two roundabouts vanishes.
+      trim = Math.min(ring0, arm.seg.length * MAX_TRIM_FRACTION);
+      const distance = arm.atStart ? trim : arm.seg.length - trim;
+      const { position } = graph.pointAt(arm.segId, distance);
+      const n = normalizeXZ(perpXZ(arm.outward));
+      return {
+        segment: arm.segId,
+        trim,
+        outward: arm.outward,
+        angle: arm.angle,
+        cornerLow: v3(position.x - n.x * arm.half, position.y, position.z - n.z * arm.half),
+        cornerHigh: v3(position.x + n.x * arm.half, position.y, position.z + n.z * arm.half),
+      };
+    }
     for (const other of [
       provisional[(i + 1) % provisional.length]!,
       provisional[(i - 1 + provisional.length) % provisional.length]!,
@@ -111,15 +151,19 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
   // hull also holds when they are not: two wide roads a few degrees apart cannot have
   // disjoint ends at any trim the segment can afford, and walking that in order produces
   // a self-crossing ring. Every corner is on or inside the hull, so there is never a gap.
+  // A roundabout is drawn as a ring, so it needs no filler polygon -- but it still has to appear
+  // in the junction map, or nothing would trim the roads running into it.
+  if (ring0 > 0) return { node: nodeId, arms, ring: [], roundabout: ring0 };
+
   const ring = convexHullXZ(arms.flatMap((arm) => [arm.cornerLow, arm.cornerHigh]));
-  return { node: nodeId, arms, ring };
+  return { node: nodeId, arms, ring, roundabout: 0 };
 }
 
 export function allJunctions(graph: RoadGraph): Map<NodeId, JunctionGeometry> {
   const out = new Map<NodeId, JunctionGeometry>();
   for (const node of graph.allNodes()) {
     const geometry = junctionGeometry(graph, node.id);
-    if (geometry.ring.length > 0) out.set(node.id, geometry);
+    if (geometry.ring.length > 0 || geometry.roundabout > 0) out.set(node.id, geometry);
   }
   return out;
 }

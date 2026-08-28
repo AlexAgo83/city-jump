@@ -438,6 +438,60 @@ check(
 await page.locator("#road-type").selectOption("street");
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
+// A roundabout sits on a node and pulls every road back to its ring.
+await page.locator('input[name="road-shape"][value="roundabout"]').check();
+await page.waitForTimeout(150);
+// Nodes are not meshes, so project the junction's world position to a screen point to click it.
+const junctionScreen = await page.evaluate(() => {
+  const scene = window.cityjump._scene;
+  const node = window.cityjump._graph.allNodes().find((candidate) => candidate.segments.size >= 3);
+  if (!node) return null;
+  const t = scene.getTransformMatrix().m;
+  const { x, y, z } = node.pos;
+  const w = x * t[3] + y * t[7] + z * t[11] + t[15];
+  const engine = scene.getEngine();
+  return {
+    id: node.id,
+    x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
+    y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
+  };
+});
+check("there is a junction to put a roundabout on", junctionScreen !== null);
+await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
+const withRoundabout = await stats();
+check("clicking a junction places a roundabout", withRoundabout.roundabouts === 1, `${withRoundabout.roundabouts}`);
+check(
+  "the roundabout is drawn as a ring",
+  await page.evaluate((id) => Boolean(window.cityjump._scene.getMeshByName(`roundabout_${id}`)), junctionScreen.id),
+);
+// The drawn surface stops at the ring, while the road geometry still reaches the node.
+const trims = await page.evaluate((id) => {
+  const graph = window.cityjump._graph;
+  const node = graph.node(id);
+  return [...node.segments].map((segId) => {
+    const seg = graph.segment(segId);
+    const near = seg.a === id ? seg.samples[0] : seg.samples[seg.samples.length - 1];
+    return Math.hypot(near.x - node.pos.x, near.z - node.pos.z);
+  });
+}, junctionScreen.id);
+check("roads still meet the roundabout node", trims.every((d) => d < 1), `${trims.map((d) => d.toFixed(2))}`);
+
+// Clicking again takes it away.
+await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
+check("clicking it again removes the roundabout", (await stats()).roundabouts === 0);
+await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
+
+// It has to survive a save.
+await page.waitForTimeout(2400);
+await page.reload({ waitUntil: "load" });
+await page.waitForTimeout(1500);
+await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+await page.waitForTimeout(800);
+check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);
+await page.locator('[data-tool="roads"]').click();
+await page.locator('input[name="road-shape"][value="straight"]').check();
+await page.waitForTimeout(150);
+
 // Left-drag also orbits the camera, so a drag in a build mode must not be taken for a click.
 const drag = async (x0, y0, x1, y1) => {
   await page.mouse.move(x0, y0);

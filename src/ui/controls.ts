@@ -3,7 +3,7 @@ import { listSaves, readSave, writeSave, deleteSave } from "./saves";
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
-  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray"): void;
+  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout"): void;
   onRoadType(type: "street" | "avenue" | "tunnel" | "pedestrian"): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
@@ -29,7 +29,7 @@ export function bindControls(handlers: {
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
-  let roadMode: "straight" | "curve" = "straight";
+  let roadMode: "straight" | "curve" | "roundabout" = "straight";
   let plantMode: "plant" | "spray" = "plant";
 
   for (const button of toolButtons) {
@@ -55,7 +55,7 @@ export function bindControls(handlers: {
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-shape"]')) {
     input.addEventListener("change", () => {
       if (!input.checked) return;
-      roadMode = input.value === "curve" ? "curve" : "straight";
+      roadMode = input.value === "curve" ? "curve" : input.value === "roundabout" ? "roundabout" : "straight";
       handlers.onRoadMode(roadMode);
     });
   }

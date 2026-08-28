@@ -154,6 +154,7 @@ export async function startApp(): Promise<void> {
   installDebugApi(scene, graph, rebuild, () => ({
     segments: graph.allSegments().length,
     junctions: surfaceJunctions(),
+    roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
     buildings: buildingCount,
     avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => segment.type === "tunnel").length,

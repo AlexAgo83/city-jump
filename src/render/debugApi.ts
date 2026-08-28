@@ -115,5 +115,8 @@ export function installDebugApi(
     },
   };
 
-  (window as unknown as { cityjump: DebugApi & { _scene: Scene } }).cityjump = Object.assign(api, { _scene: scene });
+  (window as unknown as { cityjump: DebugApi & { _scene: Scene; _graph: RoadGraph } }).cityjump = Object.assign(api, {
+    _scene: scene,
+    _graph: graph,
+  });
 }

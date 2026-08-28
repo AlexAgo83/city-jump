@@ -10,6 +10,8 @@ export interface RoadNode {
   readonly pos: Vec3;
   /** Segments incident to this node. Three or more makes it a junction. */
   readonly segments: Set<SegmentId>;
+  /** Every arm is pulled back to the ring radius and the node is drawn as one. */
+  roundabout: boolean;
 }
 
 export interface Segment {
@@ -110,7 +112,7 @@ export class RoadGraph {
   /** Places a node at an exact position, bypassing the terrain sample. Used to replay a save. */
   addNodeAt(pos: Vec3): NodeId {
     const id = this.nextNodeId++;
-    this.nodes.set(id, { id, pos, segments: new Set() });
+    this.nodes.set(id, { id, pos, segments: new Set(), roundabout: false });
     return id;
   }
 
@@ -133,6 +135,14 @@ export class RoadGraph {
     this.node(a).segments.add(id);
     this.node(b).segments.add(id);
     return id;
+  }
+
+  /** Returns false when the node cannot carry one, which the caller reports to the player. */
+  setRoundabout(id: NodeId, on: boolean): boolean {
+    const node = this.node(id);
+    if (on && node.segments.size < 2) return false;
+    node.roundabout = on;
+    return true;
   }
 
   removeSegment(id: SegmentId): void {

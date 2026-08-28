@@ -1,6 +1,7 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
+import { roundaboutRadius } from "./junction";
 import type { BuildingParcel } from "./slots";
 
 /** How far past the kerb the ground blends back to what it was. */
@@ -136,6 +137,20 @@ export class Heightmap implements Terrain {
           continue;
         }
         this.stamp(position.x, position.z, position.y, half, reach);
+      }
+    }
+
+    // A roundabout is a flat disc of road that no segment passes through, so nothing above would
+    // have levelled the ground under it and the ring would sit on the slope it spans.
+    for (const node of graph.allNodes()) {
+      if (!node.roundabout) continue;
+      const radius = roundaboutRadius(graph, node.id);
+      const step = Math.max(1, this.cell / 2);
+      for (let z = -radius; z <= radius; z += step) {
+        for (let x = -radius; x <= radius; x += step) {
+          if (Math.hypot(x, z) > radius) continue;
+          this.stamp(node.pos.x + x, node.pos.z + z, node.pos.y, step, step + EMBANKMENT);
+        }
       }
     }
 
