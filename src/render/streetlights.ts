@@ -1,4 +1,4 @@
-import { Light } from "@babylonjs/core/Lights/light";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
 import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -11,9 +11,9 @@ import { roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { ROAD_LIFT } from "./roadMesh";
 
-const MAX_REAL_LIGHTS = 72;
-
 export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
+  const lightCluster = new ClusteredLightContainer("streetlight_lights", [], scene);
+  lightCluster.maxRange = 24;
   const pole = MeshBuilder.CreateCylinder(
     "streetlight_poles",
     { height: 7.5, diameterBottom: 0.38, diameterTop: 0.24, tessellation: 8 },
@@ -89,6 +89,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     applyInstances(bulb, bulbMatrices);
     lampPositions = positions;
     lamps = bulbMatrices.length;
+    rebuildLights();
     updateLights();
     return lamps;
   }
@@ -101,25 +102,30 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   function updateLights(): void {
     const on = sunHour >= 17 || sunHour < 8;
     glow.emissiveColor = on ? new Color3(1, 0.68, 0.24) : new Color3(0.25, 0.18, 0.08);
-    for (const light of realLights) light.dispose();
-    realLights = [];
-    if (!on) return;
+    lightCluster.setEnabled(on);
+    for (const light of realLights) light.setEnabled(on);
+  }
 
-    const stride = Math.max(1, Math.ceil(lampPositions.length / MAX_REAL_LIGHTS));
-    for (let i = 0; i < lampPositions.length && realLights.length < MAX_REAL_LIGHTS; i += stride) {
+  function rebuildLights(): void {
+    for (const light of realLights) {
+      lightCluster.removeLight(light);
+      light.dispose();
+    }
+    realLights = [];
+
+    for (const position of lampPositions) {
       const angle = Math.PI / 3;
-      const light = new SpotLight(`streetlight_light_${realLights.length}`, lampPositions[i]!, new Vector3(0, -1, 0), angle, 2, scene);
-      light.falloffType = Light.FALLOFF_GLTF;
-      light.innerAngle = angle * 0.55;
+      const light = new SpotLight(`streetlight_light_${realLights.length}`, position, new Vector3(0, -1, 0), angle, 2, scene);
       light.diffuse = new Color3(1, 0.68, 0.34);
       light.specular = new Color3(0.25, 0.16, 0.05);
-      light.intensity = 6;
+      light.intensity = 2;
       light.range = 24;
+      lightCluster.addLight(light);
       realLights.push(light);
     }
   }
 
-  return { rebuild, setSunHour, count: () => lamps, realLightCount: () => realLights.length };
+  return { rebuild, setSunHour, count: () => lamps, realLightCount: () => (lightCluster.isEnabled() ? realLights.length : 0) };
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {

@@ -20,8 +20,6 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   const material = new StandardMaterial("ground", scene);
   material.diffuseColor = Color3.White();
   material.specularColor = Color3.Black();
-  material.maxSimultaneousLights = 12;
-
   const mesh = new Mesh("ground", scene);
   mesh.material = material;
   mesh.receiveShadows = true;

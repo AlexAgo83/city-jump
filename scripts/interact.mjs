@@ -44,16 +44,29 @@ const oceanSampleY = () =>
 const tunnelPortalCount = () =>
   page.evaluate(() => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("tunnel_portal_")).length);
 const realStreetlightCount = () =>
-  page.evaluate(() => window.cityjump._scene.lights.filter((light) => light.name.startsWith("streetlight_light_")).length);
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const cluster = scene.getLightByName("streetlight_lights");
+    if (cluster?.lights.length) return cluster.isEnabled() ? cluster.lights.length : 0;
+    return scene.lights.filter((light) => light.name.startsWith("streetlight_light_") && light.isEnabled()).length;
+  });
+const clusteredStreetlights = () =>
+  page.evaluate(() => {
+    const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
+    return cluster?.getClassName() === "ClusteredLightContainer" && cluster.isSupported;
+  });
 const shadowState = () =>
   page.evaluate(() => {
     const scene = window.cityjump._scene;
     const sun = scene.getLightByName("sun");
-    const renderList = sun?.getShadowGenerator()?.getShadowMap()?.renderList ?? [];
+    const generator = sun?.getShadowGenerator();
+    const renderList = generator?.getShadowMap()?.renderList ?? [];
     return {
       groundReceives: scene.getMeshByName("ground")?.receiveShadows ?? false,
       casters: renderList.length,
       names: renderList.map((mesh) => mesh.name),
+      generator: generator?.getClassName(),
+      stabilized: generator?.stabilizeCascades ?? false,
     };
   });
 const trafficPositions = () =>
@@ -147,6 +160,7 @@ check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segme
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
+check("streetlights use clustered lighting", await clusteredStreetlights());
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -175,6 +189,7 @@ await page.locator('input[name="road-mode"][value="curve"]').check();
 check("road mode restores the buildable grid", await buildableGridVisible());
 const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
+check("building shadows use stabilized cascades", shadows.generator === "CascadedShadowGenerator" && shadows.stabilized);
 check(
   "trees cast shadows onto the ground",
   shadows.groundReceives && shadows.names.includes("tree_trunks") && shadows.names.includes("tree_canopies"),
@@ -229,7 +244,13 @@ check("changing terrain resets the fixed-elevation road graph", rugged.segments 
 check("the rugged terrain has substantial relief", terrainRelief > 20, `${terrainRelief.toFixed(1)} m`);
 await page.evaluate(() => window.cityjump.demoNetwork());
 await page.waitForTimeout(200);
-check("roads still render on rugged terrain", (await stats()).segments > 0);
+const ruggedNetwork = await stats();
+check("roads still render on rugged terrain", ruggedNetwork.segments > 0);
+check(
+  "every streetlight has a real light",
+  ruggedNetwork.streetlights > 0 && ruggedNetwork.realStreetlights === ruggedNetwork.streetlights,
+  `${ruggedNetwork.realStreetlights}/${ruggedNetwork.streetlights}`,
+);
 
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));
 
