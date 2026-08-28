@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { RoadGraph, type NodeId } from "./graph";
 import { junctionGeometry, allJunctions, segmentTrims, junctionRadius, roundaboutRadius } from "./junction";
 import { v3, type Vec3 } from "./vec";
+import { roadType } from "./roadTypes";
 
 /** Spokes leaving a hub at the given bearings, in degrees. */
 function hub(bearings: number[], type = "street", length = 200): { g: RoadGraph; node: NodeId } {
@@ -52,13 +53,26 @@ describe("junction geometry", () => {
     expect(allJunctions(g).size).toBe(0);
   });
 
-  it("closes a crossroads with one corner pair per arm", () => {
+  it("closes a crossroads with a simple polygon", () => {
     const { g, node } = hub([0, 90, 180, 270]);
     const geometry = junctionGeometry(g, node);
     expect(geometry.arms).toHaveLength(4);
-    expect(geometry.ring).toHaveLength(8);
+    // At right angles each pair of neighbouring arms meets at the same corner, so the hull is the
+    // central square rather than eight distinct points.
+    expect(geometry.ring.length).toBeGreaterThanOrEqual(4);
     expect(area(geometry.ring)).toBeGreaterThan(0);
     expect(isSimple(geometry.ring)).toBe(true);
+  });
+
+  it("keeps a crossroads about as wide as the roads crossing it", () => {
+    const { g, node } = hub([0, 90, 180, 270]);
+    const half = roadType("street").width / 2;
+    const geometry = junctionGeometry(g, node);
+    const reach = Math.max(...geometry.ring.map((p) => Math.hypot(p.x, p.z)));
+    // The square corner sits at half*sqrt(2); anything much past that is the junction spilling
+    // out over the pavements either side of it.
+    expect(reach).toBeLessThan(half * 1.8);
+    for (const arm of geometry.arms) expect(arm.trim).toBeLessThanOrEqual(half * 1.2);
   });
 
   it("closes a two-arm bend", () => {

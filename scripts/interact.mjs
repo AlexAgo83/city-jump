@@ -428,6 +428,33 @@ check(
   `${walked.buildings} vs ${tunneled.buildings}`,
 );
 check(
+  "junctions are marked with a crossing on each arm",
+  await page.evaluate(() => window.cityjump._scene.meshes.filter((m) => m.name.startsWith("crossing_")).length > 0),
+);
+check(
+  "the footway closes around a junction instead of stopping at it",
+  await page.evaluate(() => window.cityjump._scene.meshes.some((m) => m.name.startsWith("sidewalk_corner_"))),
+);
+check(
+  "a junction stays about as wide as the roads crossing it",
+  await page.evaluate(() => {
+    const graph = window.cityjump._graph;
+    const node = graph.allNodes().find((n) => n.segments.size >= 3 && !n.roundabout);
+    if (!node) return false;
+    const mesh = window.cityjump._scene.meshes.find((m) => m.name === `junction_${node.id}`);
+    if (!mesh) return true;
+    const positions = mesh.getVerticesData("position");
+    let reach = 0;
+    for (let i = 0; i < positions.length; i += 3) {
+      reach = Math.max(reach, Math.hypot(positions[i] - node.pos.x, positions[i + 2] - node.pos.z));
+    }
+    const widest = Math.max(
+      ...[...node.segments].map((id) => (graph.segment(id).type === "avenue" ? 14 : 8)),
+    );
+    return reach < widest * 1.6;
+  }),
+);
+check(
   "ordinary roads get a footway either side",
   await page.evaluate(() => {
     const meshes = window.cityjump._scene.meshes.filter((m) => m.name.startsWith("sidewalk_"));

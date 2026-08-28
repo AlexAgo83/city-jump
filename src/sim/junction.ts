@@ -2,14 +2,23 @@ import type { RoadGraph, NodeId, SegmentId } from "./graph";
 import { roadType } from "./roadTypes";
 import { type Vec3, v3, normalizeXZ, perpXZ, scale } from "./vec";
 
-/** Widest incident carriageway; the junction has to cover at least that. */
-export function widestIncidentWidth(graph: RoadGraph, nodeId: NodeId): number {
-  let widest = 0;
+/**
+ * The widest surface road meeting this node. It is the reference a junction takes its size from,
+ * and a roundabout takes its surface from too: a ring where footpaths meet is a paved ring.
+ */
+export function widestIncidentRoad(graph: RoadGraph, nodeId: NodeId) {
+  let widest = null;
   for (const segId of graph.node(nodeId).segments) {
     const type = roadType(graph.segment(segId).type);
-    if (!type.tunnelDepth) widest = Math.max(widest, type.width);
+    if (type.tunnelDepth) continue;
+    if (!widest || type.width > widest.width) widest = type;
   }
   return widest;
+}
+
+/** Widest incident carriageway; the junction has to cover at least that. */
+export function widestIncidentWidth(graph: RoadGraph, nodeId: NodeId): number {
+  return widestIncidentRoad(graph, nodeId)?.width ?? 0;
 }
 
 /**
@@ -106,8 +115,9 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
   const arms: JunctionArm[] = provisional.map((arm, i) => {
     let trim = arm.half;
     if (ring0 > 0) {
-      // Still bounded by the segment, or a short road between two roundabouts vanishes.
-      trim = Math.min(ring0, arm.seg.length * MAX_TRIM_FRACTION);
+      // A roundabout may eat nearly all of a short road. Holding it to the ordinary trim limit
+      // would leave the middle of that road drawn across the ring instead.
+      trim = Math.min(ring0, arm.seg.length * 0.9);
       const distance = arm.atStart ? trim : arm.seg.length - trim;
       const { position } = graph.pointAt(arm.segId, distance);
       const n = normalizeXZ(perpXZ(arm.outward));
@@ -125,9 +135,14 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
       provisional[(i - 1 + provisional.length) % provisional.length]!,
     ]) {
       if (other === arm) continue;
+      // Where this arm's edge meets its neighbour's edge, measured along this arm's axis. For
+      // two strips of half-width a and b whose axes are `gap` apart, that is
+      // (b + a*cos gap) / sin gap. At a right angle it is b, which is all a crossroads needs;
+      // the old (a + b) / tan(gap/2) returned a + b there and inflated the junction to roughly
+      // twice the width of the roads meeting it.
       const gap = angleBetween(arm.angle, other.angle);
-      const halfGap = Math.max(gap / 2, 1e-3);
-      trim = Math.max(trim, (arm.half + other.half) / Math.tan(Math.min(halfGap, Math.PI / 2 - 1e-3)));
+      const sin = Math.sin(gap);
+      if (sin > 1e-3) trim = Math.max(trim, (other.half + arm.half * Math.cos(gap)) / sin);
     }
     trim = Math.min(trim, arm.half * 2 * MAX_TRIM_WIDTHS);
     trim = Math.min(trim, arm.seg.length * MAX_TRIM_FRACTION);
