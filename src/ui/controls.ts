@@ -26,7 +26,7 @@ export function bindControls(handlers: {
   onSave(): CitySave;
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
-}): { applyCity(city: CitySave): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -183,6 +183,20 @@ export function bindControls(handlers: {
     updateSun(city.hour);
   };
 
+  /**
+   * The eyedropper: picking a road in Select mode sets the Roads tab up to match it, so
+   * switching to Roads and drawing continues in the same style instead of back to the default.
+   */
+  const applyRoadType = (baseId: string, lanes: 1 | 2, oneWay: boolean): void => {
+    const radio = document.querySelector<HTMLInputElement>(`input[name="road-type"][value="${baseId}"]`);
+    if (!radio) return;
+    radio.checked = true;
+    roadTypeValue = baseId;
+    roadLanes.checked = lanes === 2;
+    roadOneway.checked = oneWay;
+    emitRoadType();
+  };
+
   // The toolbar's own checkboxes, not the city -- restored once at startup so a reload comes
   // back exactly as it was left, instead of resetting to whatever the markup defaults to.
   function persistSettings(): void {
@@ -208,7 +222,7 @@ export function bindControls(handlers: {
 
   bindSaves(handlers, applyCity);
   updateSun();
-  return { applyCity };
+  return { applyCity, applyRoadType };
 }
 
 /**

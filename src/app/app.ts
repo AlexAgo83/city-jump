@@ -14,6 +14,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
 import { serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
+import type { SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, writeAutosave, readCameraState, writeCameraState } from "../ui/saves";
 import { showRefusal, showSelection } from "../ui/hud";
@@ -88,6 +89,15 @@ export async function startApp(): Promise<void> {
     scheduleAutosave();
   };
 
+  // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
+  // that exists, but the callback itself only ever fires later, once the player actually clicks.
+  let controls: ReturnType<typeof bindControls> | undefined;
+  const onSelect = (info: SelectionInfo | null): void => {
+    showSelection(info);
+    // The eyedropper: picking a road sets the Roads tab up to match it, ready to draw more.
+    if (info?.kind === "road") controls?.applyRoadType(info.baseId, info.lanes, info.oneWay);
+  };
+
   const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal, {
     plant(x, z, species) {
       if (heightmap.heightAt(x, z) <= SEA_LEVEL) return false;
@@ -103,9 +113,9 @@ export async function startApp(): Promise<void> {
       return true;
     },
     treeAt: (x, z, within) => trees.nearestTree(x, z, within),
-  }, showSelection);
+  }, onSelect);
 
-  const controls = bindControls({
+  controls = bindControls({
     onRoadMode(mode) {
       tool.setMode(mode);
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
@@ -169,7 +179,7 @@ export async function startApp(): Promise<void> {
 
   // Pick up where the last session stopped. A city the player never named is still their work.
   const resumed = readAutosave();
-  if (resumed && loadCity(resumed)) controls.applyCity(resumed);
+  if (resumed && loadCity(resumed)) controls!.applyCity(resumed);
 
   // Resumes wherever the camera was left, instead of snapping back to the default framing on
   // every reload -- a source edit already forces one of those more often than is comfortable.

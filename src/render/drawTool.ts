@@ -11,7 +11,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { RoadGraph, type Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
 import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
-import { roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { type Vec3, v3, lerp } from "../sim/vec";
 import { toBabylon } from "./convert";
@@ -32,7 +32,7 @@ type BulldozeTarget =
 
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
-  | { kind: "road"; name: string; lanes: 1 | 2; oneWay: boolean; length: number }
+  | { kind: "road"; name: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
   | { kind: "tree" }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number };
 
@@ -178,7 +178,14 @@ export function createDrawTool(
       selectLine.color = SELECTED;
       selectLine.isPickable = false;
       const type = roadType(target.segment.type);
-      onSelect({ kind: "road", name: type.name, lanes: type.lanes, oneWay: Boolean(type.oneWay), length: target.segment.length });
+      onSelect({
+        kind: "road",
+        name: type.name,
+        baseId: baseRoadTypeId(target.segment.type),
+        lanes: type.lanes,
+        oneWay: Boolean(type.oneWay),
+        length: target.segment.length,
+      });
       return;
     }
     if (target.kind === "tree") {
