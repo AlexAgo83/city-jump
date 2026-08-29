@@ -7,7 +7,7 @@
  * Everything returned sits on the road surface. Each caller adds its own lift.
  */
 import type { NodeId, RoadGraph } from "./graph";
-import { ringElevation, type JunctionArm, type JunctionGeometry } from "./junction";
+import { ringElevation, widestIncidentRoad, type JunctionArm, type JunctionGeometry } from "./junction";
 import { roadType } from "./roadTypes";
 import { distXZ, normalizeXZ, perpXZ, v3, type Vec3 } from "./vec";
 
@@ -62,6 +62,8 @@ export interface Ring {
   readonly radii: readonly number[];
   /** The kerb: where the carriageway ends and the footway around it begins. */
   readonly edge: number;
+  /** The ring is itself a footway -- a roundabout of paths, with no carriageway to skirt. */
+  readonly onFoot: boolean;
   readonly arms: readonly JunctionArm[];
   readonly elevation: (angle: number) => number;
 }
@@ -73,6 +75,7 @@ export function ringOf(graph: RoadGraph, geometry: JunctionGeometry, radii: read
     centre,
     radii,
     edge: geometry.roundabout,
+    onFoot: widestIncidentRoad(graph, geometry.node)?.pedestrian === true,
     arms: geometry.arms,
     elevation: ringElevation(geometry.arms, centre.y),
   };
@@ -218,9 +221,13 @@ export function pointAlong(points: readonly Vec3[], cumulative: readonly number[
   };
 }
 
-/** The circle the footway round a roundabout follows: the middle of the paving outside the kerb. */
+/**
+ * The circle people on foot follow round a roundabout: the paving outside the kerb of an
+ * ordinary one -- but a roundabout of footpaths has no kerb to skirt and no pavement beyond it,
+ * so there the ring's own walking lane is the way round, the same circle the overlay draws.
+ */
 export function walkRingRadius(ring: Ring, sidewalkWidth: number): number {
-  return ring.edge + sidewalkWidth / 2;
+  return ring.onFoot ? ring.radii[ring.radii.length - 1]! : ring.edge + sidewalkWidth / 2;
 }
 
 /**
