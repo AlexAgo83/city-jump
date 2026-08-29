@@ -1,14 +1,14 @@
 ## item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement - Avoid the quadratic road-proximity scan in tree placement
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:35:32
+> Indicators reviewed: 2026-08-29 10:39:33
 
 # AI Context
 - Summary: `nearRoad()` re-scans every road segment's full sample array for every candidate tree site, with no spatial index; a real per-rebuild cost distinct from the already-tracked per-frame `traffic.ts` scan.
@@ -44,8 +44,8 @@ Tree placement should not re-scan every road segment's full sample array for eve
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`
-- Primary task(s): (none yet)
+- Request: `req_005_review_findings_redundant_and_quadratic_rebuild_work`
+- Primary task(s): `task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement`
 
 # Priority
 - Priority: Low
@@ -55,6 +55,7 @@ Tree placement should not re-scan every road segment's full sample array for eve
 - Hybrid rationale: Derived from request `req_005_review_findings_redundant_and_quadratic_rebuild_work` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`.
 - Generated locally by logics-manager.
+- Task `task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement` was finished via `logics-manager flow finish task` on 2026-08-29.
 
 # Tasks
 - `task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement`
