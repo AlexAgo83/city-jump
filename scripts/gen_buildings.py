@@ -32,6 +32,10 @@ AWNING = (0.18, 0.28, 0.34, 1.0)
 INDUSTRIAL_DOOR = (0.12, 0.13, 0.14, 1.0)
 
 
+def trim_colour(colour):
+    return (colour[0] * 0.55, colour[1] * 0.55, colour[2] * 0.55, 1.0)
+
+
 def building_specs():
     for frontage in range(1, 5):
         for depth in range(1, 5):
@@ -254,7 +258,7 @@ def build(name, w, d, h, roof, colour, style):
         "wall": material(name, colour),
         "glass": material(f"{name}_glass", GLASS),
         "door": material(f"{name}_door", DOOR),
-        "trim": material(f"{name}_trim", ROOF_TRIM),
+        "trim": material(f"{name}_trim", trim_colour(colour)),
         "sign": material(f"{name}_sign", SIGN),
         "awning": material(f"{name}_awning", AWNING),
         "industrial_door": material(f"{name}_industrial_door", INDUSTRIAL_DOOR),

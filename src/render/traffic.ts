@@ -100,6 +100,7 @@ interface Ride {
   readonly trim: number;
   /** Slower than the road it came off: a junction or a ring is taken at a crawl. */
   readonly pace: number;
+  readonly roundabout: { readonly node: NodeId; readonly radius: number } | null;
   travelled: number;
 }
 
@@ -141,6 +142,30 @@ interface Mover {
   heading: number;
   ride: Ride | null;
   plan: Plan | null;
+}
+
+export function circularQueueRooms<T>(
+  entries: readonly { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[],
+): Map<T, number> {
+  const TAU = Math.PI * 2;
+  const byRing = new Map<string, { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[]>();
+  for (const entry of entries) {
+    const queue = byRing.get(entry.key);
+    if (queue) queue.push(entry);
+    else byRing.set(entry.key, [entry]);
+  }
+  const out = new Map<T, number>();
+  for (const queue of byRing.values()) {
+    if (queue.length < 2) continue;
+    const sorted = [...queue].sort((a, b) => a.at - b.at);
+    for (let i = 0; i < sorted.length; i++) {
+      const current = sorted[i]!;
+      const next = sorted[(i + 1) % sorted.length]!;
+      const arc = ((next.at - current.at + TAU) % TAU) || TAU;
+      out.set(current.item, arc * current.radius - CAR_GAP);
+    }
+  }
+  return out;
 }
 
 /**
@@ -714,6 +739,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       changing: entry.changing,
       trim,
       pace: mover.walk ? 1 : roundabout ? RING_PACE : JUNCTION_PACE,
+      roundabout: !mover.walk && roundabout ? { node: nodeId, radius: ringAt(nodeId).edge } : null,
       travelled: 0,
     };
     mover.plan = entry.plan;
@@ -896,6 +922,18 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     mover.mesh.rotation.y = mover.heading;
   }
 
+  function roundaboutRooms(movers: readonly Mover[]): Map<Mover, number> {
+    return circularQueueRooms(
+      movers.flatMap((mover) => {
+        const ride = mover.ride;
+        if (mover.walk || !ride?.roundabout) return [];
+        const { position } = pointAlong(ride.points, ride.cumulative, ride.travelled);
+        const ring = ringAt(ride.roundabout.node);
+        return [{ item: mover, key: `roundabout:${ride.roundabout.node}`, at: ringBearing(ring, position), radius: ride.roundabout.radius }];
+      }),
+    );
+  }
+
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
@@ -921,6 +959,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       queue.sort((l, r) => (l.distance - r.distance) * l.direction);
       for (let i = 0; i < queue.length - 1; i++) ahead.set(queue[i]!, queue[i + 1]!);
     }
+    const ringRoom = roundaboutRooms(movers);
 
     for (const mover of movers) {
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
@@ -929,7 +968,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         const ride = mover.ride;
         // Same ramp as the straight road it just left: a car pulling away into its turn keeps
         // accelerating rather than snapping straight to the turn's own pace.
-        const target = mover.speed * ride.pace;
+        const room = ringRoom.get(mover) ?? Infinity;
+        const target = mover.speed * ride.pace * Math.max(0, Math.min(1, room / BRAKING));
         mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
         ride.travelled += mover.currentSpeed * dt;
         const total = ride.cumulative[ride.cumulative.length - 1]!;

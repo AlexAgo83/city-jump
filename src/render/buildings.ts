@@ -21,7 +21,7 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
-const BUILDING_ASSET_VERSION = "2026-08-29-22";
+const BUILDING_ASSET_VERSION = "2026-08-29-23";
 let glassReflectionTexture: RawCubeTexture | null = null;
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
@@ -572,10 +572,6 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.reflectionTexture = mirrorGlassReflection(material.getScene());
     material.specularColor = new Color3(0.8, 0.9, 1);
     material.specularPower = 96;
-  } else if (material.name.includes("_trim")) {
-    material.diffuseColor = new Color3(0.16, 0.17, 0.18);
-    material.emissiveColor = new Color3(0.07, 0.075, 0.08);
-    material.disableLighting = true;
   } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
     material.diffuseColor = new Color3(0.22, 0.12, 0.08);
     material.emissiveColor = new Color3(0.06, 0.03, 0.02);
