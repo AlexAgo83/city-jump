@@ -25,6 +25,7 @@ import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 import { laneRank, ringEntryRadius } from "../sim/routing";
 import {
   armPort,
+  crossesRoad,
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
@@ -253,7 +254,8 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       for (const arm of junction.arms) {
         const type = roadType(graph.segment(arm.segment).type);
         if (type.tunnelDepth || type.pedestrian) continue;
-        if (!crossesArm(graph, junction.node, arm, type.width, paths)) continue;
+        const reach = arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2;
+        if (!crossesRoad(graph.node(junction.node).pos, arm.outward, reach, paths)) continue;
         meshes.push(...crossingMeshes(scene, graph, junction.node, arm, type.width, paintMaterial));
       }
     }
@@ -662,28 +664,6 @@ function walkTransferPaths(graph: RoadGraph, junction: JunctionGeometry): Vec3[]
   }
   return paths;
 }
-
-/** Whether any of those paths runs over this arm's carriageway, near enough the node to mark. */
-function crossesArm(
-  graph: RoadGraph,
-  nodeId: NodeId,
-  arm: JunctionArm,
-  width: number,
-  paths: readonly Vec3[][],
-): boolean {
-  const node = graph.node(nodeId);
-  const reach = arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2;
-  return paths.some((path) =>
-    path.some((point) => {
-      const dx = point.x - node.pos.x;
-      const dz = point.z - node.pos.z;
-      const along = dx * arm.outward.x + dz * arm.outward.z;
-      if (along < 0 || along > reach) return false;
-      return Math.abs(dx * arm.outward.z - dz * arm.outward.x) <= width / 2;
-    }),
-  );
-}
-
 
 function junctionTurnLines(scene: Scene, graph: RoadGraph, junction: JunctionGeometry, color: Color3): LinesMesh[] {
   interface Port {

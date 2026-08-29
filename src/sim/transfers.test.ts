@@ -4,6 +4,7 @@ import { junctionGeometry, ringLaneRadii } from "./junction";
 import { laneCentres, roadType } from "./roadTypes";
 import {
   armPort,
+  crossesRoad,
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
@@ -127,6 +128,27 @@ describe("transfers", () => {
     expect(Math.atan2(back[0]!.z - ring.centre.z, back[0]!.x - ring.centre.x)).toBeCloseTo(0);
     const last = back[back.length - 1]!;
     expect(Math.abs(Math.atan2(last.z - ring.centre.z, last.x - ring.centre.x) + Math.PI / 2)).toBeCloseTo(0);
+  });
+
+  it("sees a crossing even where a closed path starts on the road it crosses", () => {
+    const node = v3(0, 0, 0);
+    const outward = v3(1, 0, 0); // a road running east out of the node
+    const circle = (steps: number) =>
+      Array.from({ length: steps + 1 }, (_, i) => {
+        const angle = (i / steps) * Math.PI * 2;
+        return v3(Math.cos(angle) * 20, 0, Math.sin(angle) * 20);
+      });
+
+    // The footway ring: its first and last point sit exactly on this arm's centreline, so the
+    // side it changes over happens across the join rather than at any one step.
+    expect(crossesRoad(node, outward, 30, [circle(64)])).toBe(true);
+    // Out of reach of the node, the same circle marks nothing.
+    expect(crossesRoad(node, outward, 10, [circle(64)])).toBe(false);
+    // A path that walks straight over the road, and one that keeps to one side of it.
+    expect(crossesRoad(node, outward, 30, [[v3(10, 0, -8), v3(10, 0, 8)]])).toBe(true);
+    expect(crossesRoad(node, outward, 30, [[v3(10, 0, 4), v3(40, 0, 8)]])).toBe(false);
+    // Crossing the same line behind the node is another arm's business, not this one's.
+    expect(crossesRoad(node, outward, 30, [[v3(-10, 0, -8), v3(-10, 0, 8)]])).toBe(false);
   });
 
   it("walks a path by ground distance", () => {

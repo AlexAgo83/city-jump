@@ -234,3 +234,37 @@ export function ringArcPath(ring: Ring, from: number, to: number, radius: number
   const count = Math.max(2, Math.round((Math.abs(arc) / (Math.PI / 2)) * steps));
   return Array.from({ length: count + 1 }, (_, i) => onRing(ring, from + arc * (i / count), radius));
 }
+
+/**
+ * Whether any of these paths crosses a road: not merely passes near it, but goes from one side
+ * of its centreline to the other, in front of the node and within `reach` of it. Points sitting
+ * exactly on the line -- which is where a closed footway circle starts, one arm always landing
+ * on the seam -- belong to neither side and are stepped over rather than counted as one; a
+ * closed path is then checked round its join too, or that arm is the one that goes unmarked.
+ */
+export function crossesRoad(
+  node: Vec3,
+  outward: Vec3,
+  reach: number,
+  paths: readonly (readonly Vec3[])[],
+): boolean {
+  const place = (point: Vec3) => {
+    const dx = point.x - node.x;
+    const dz = point.z - node.z;
+    return { along: dx * outward.x + dz * outward.z, across: dx * outward.z - dz * outward.x };
+  };
+  const crosses = (a: { along: number; across: number }, b: { along: number; across: number }): boolean => {
+    if (a.across > 0 === b.across > 0) return false;
+    const t = a.across / (a.across - b.across);
+    const along = a.along + (b.along - a.along) * t;
+    return along >= 0 && along <= reach;
+  };
+
+  return paths.some((path) => {
+    const sided = path.map(place).filter((p) => p.across !== 0);
+    if (sided.length < 2) return false;
+    const closed = distXZ(path[0]!, path[path.length - 1]!) < 1e-6;
+    const steps = closed ? [...sided, sided[0]!] : sided;
+    return steps.some((p, i) => i > 0 && crosses(steps[i - 1]!, p));
+  });
+}
