@@ -15,12 +15,14 @@ import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
   ringElevation,
+  ringLaneRadii,
   segmentTrims,
   widestIncidentRoad,
   type JunctionArm,
   type JunctionGeometry,
 } from "../sim/junction";
 import { normalizeXZ, perpXZ, sub } from "../sim/vec";
+import { laneRank, ringEntryRadius } from "../sim/routing";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
 export const ROAD_LIFT = 0.06;
@@ -213,6 +215,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, laneCentre.offset);
           meshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
         }
+        // Where traffic crosses between the lanes it has: the middle third of the road, one
+        // weave per direction, drawn along the very path a car changing lane travels.
+        meshes.push(...laneChangeLines(scene, graph, seg, type, from, to, turnColor));
       }
       // Same idea for foot traffic: a path's own lane, or an ordinary road's sidewalks either
       // side. A highway has no footway at all to draw one on. A path is paved at the carriageway's
@@ -246,12 +251,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         if (showTraffic) {
           const centre = graph.node(junction.node).pos;
           const elevationAt = ringElevation(junction.arms, centre.y);
-          const outer = junction.roundabout;
-          const reference = widestIncidentRoad(graph, junction.node);
-          const inner = Math.max(3, outer - Math.max(6, reference?.width ?? 0));
-          const mid = (inner + outer) / 2;
-          const lanes = graph.node(junction.node).roundaboutLanes;
-          const radii = lanes === 2 ? [(inner + mid) / 2, (mid + outer) / 2] : [mid];
+          const radii = ringLaneRadii(graph, junction.node, junction.roundabout);
           for (const [i, radius] of radii.entries()) {
             const points = Array.from({ length: 65 }, (_, s) => {
               const angle = (s / 64) * Math.PI * 2;
@@ -260,6 +260,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
             });
             meshes.push(styledLine(scene, `traffic_lane_roundabout_${junction.node}_${i}`, points, laneOutbound));
           }
+          // How a car actually gets between an arm's lanes and that ring, drawn like the turn
+          // diagram an ordinary junction gets.
+          meshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
         }
         continue;
       }
@@ -508,6 +511,129 @@ function junctionFootway(
  * on: `lanesFor` labels lanes by which way distance increases along the segment, not by which
  * way they face this particular node, so that has to be flipped at the `b` end.
  */
+/**
+ * The merges and exits of a roundabout: one curve per lane of each arm, from the lane into the
+ * ring the way traffic joins it, and out of the ring the way it leaves. Each curve is a real
+ * fillet -- its control point is where the lane's own line meets the ring's tangent -- so it
+ * arrives along the ring rather than cutting across it.
+ */
+function roundaboutTurnLines(
+  scene: Scene,
+  graph: RoadGraph,
+  junction: JunctionGeometry,
+  radii: readonly number[],
+  color: Color3,
+): LinesMesh[] {
+  const centre = graph.node(junction.node).pos;
+  const outer = radii[radii.length - 1]!;
+  const elevationAt = ringElevation(junction.arms, centre.y);
+  const lines: LinesMesh[] = [];
+
+  for (const arm of junction.arms) {
+    const seg = graph.segment(arm.segment);
+    const type = roadType(seg.type);
+    if (type.pedestrian) continue;
+    const atStart = seg.a === junction.node;
+    const { position, tangent } = graph.pointAt(arm.segment, atStart ? arm.trim : seg.length - arm.trim);
+    const n = perpXZ(normalizeXZ(tangent));
+    // A merge does not end where the arm meets the ring, it ends a little way round it -- and an
+    // exit likewise starts before its arm. Without that the curve is a stub too short to read.
+    const blend = Math.min(0.5, type.width / outer);
+    const onRingAt = (angle: number, radius: number): Vector3 =>
+      new Vector3(
+        centre.x + Math.cos(angle) * radius,
+        elevationAt(angle) + MARK_LIFT + 0.02,
+        centre.z + Math.sin(angle) * radius,
+      );
+    const alongAt = (angle: number) => ({ x: -Math.sin(angle), z: Math.cos(angle) });
+    const inward = { x: -arm.outward.x, z: -arm.outward.z };
+
+    const lanes = laneCentres(type);
+    for (const [i, lane] of lanes.entries()) {
+      const onArm = new Vector3(
+        position.x + n.x * lane.offset,
+        position.y + MARK_LIFT + 0.02,
+        position.z + n.z * lane.offset,
+      );
+      const arriving = atStart ? lane.direction === -1 : lane.direction === 1;
+      // Traffic circulates towards a growing bearing, so a car joins downstream of its arm and
+      // has already left the ring upstream of the arm it exits by.
+      const angle = arm.angle + (arriving ? blend : -blend);
+      // A lane joins the ring lane it feeds -- kerb-side onto the outer one, the lane beside the
+      // centreline onto the inner. Leaving is only ever done from the outer lane.
+      const radius = arriving ? ringEntryRadius(radii, laneRank(lanes, lane)) : outer;
+      const onRing = onRingAt(angle, radius);
+      const y = Math.max(onArm.y, onRing.y);
+      const control = meetXZ(onArm, inward, onRing, alongAt(angle), y);
+      const points = arriving
+        ? sampleQuadratic(onArm, control, onRing, 12)
+        : sampleQuadratic(onRing, control, onArm, 12);
+      lines.push(styledLine(scene, `traffic_ring_turn_${junction.node}_${arm.segment}_${i}`, points, color));
+    }
+
+    // Leaving is only done from the outer lane, so on a two-lane ring everything on the inner
+    // one has to cross over first. That crossing is drawn as its own quarter turn of spiral.
+    if (radii.length > 1 && junction.arms.length > 1) {
+      const exitAngle = arm.angle - blend;
+      const spiral = Array.from({ length: 13 }, (_, k) => {
+        const t = k / 12;
+        const angle = exitAngle - (Math.PI / 2) * (1 - t);
+        const radius = radii[0]! + (outer - radii[0]!) * smoothstep01(t);
+        return onRingAt(angle, radius);
+      });
+      lines.push(styledLine(scene, `traffic_ring_cross_${junction.node}_${arm.segment}`, spiral, color));
+    }
+  }
+  return lines;
+}
+
+/** Eases 0 -> 1, so a drawn lane change leans out of one lane and settles into the next. */
+function smoothstep01(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * The weave between a road's own lanes: the line a car takes when it moves over, one per
+ * direction that actually has two lanes to move between. Same middle third the traffic uses.
+ */
+function laneChangeLines(
+  scene: Scene,
+  graph: RoadGraph,
+  seg: { id: number; length: number },
+  type: RoadType,
+  from: number,
+  to: number,
+  color: Color3,
+): LinesMesh[] {
+  const lanes = laneCentres(type);
+  const lines: LinesMesh[] = [];
+  for (const direction of [1, -1] as const) {
+    const sameWay = lanes.filter((lane) => lane.direction === direction);
+    if (sameWay.length < 2) continue;
+    const [a, b] = [sameWay[0]!.offset, sameWay[1]!.offset];
+    const start = from + (to - from) * 0.35;
+    const end = from + (to - from) * 0.65;
+    const points = Array.from({ length: 13 }, (_, i) => {
+      const t = i / 12;
+      const d = direction === 1 ? start + (end - start) * t : end - (end - start) * t;
+      const { position, tangent } = graph.pointAt(seg.id, d);
+      const n = perpXZ(normalizeXZ(tangent));
+      const offset = a + (b - a) * smoothstep01(t);
+      return new Vector3(position.x + n.x * offset, position.y + MARK_LIFT + 0.03, position.z + n.z * offset);
+    });
+    lines.push(styledLine(scene, `traffic_lane_change_${seg.id}_${direction === 1 ? "out" : "in"}`, points, color));
+  }
+  return lines;
+}
+
+/** Where two ground lines cross, or their midpoint when they are too near parallel to cross. */
+function meetXZ(a: Vector3, da: { x: number; z: number }, b: Vector3, db: { x: number; z: number }, y: number): Vector3 {
+  const det = db.x * da.z - da.x * db.z;
+  if (Math.abs(det) < 1e-6) return new Vector3((a.x + b.x) / 2, y, (a.z + b.z) / 2);
+  const t = (db.x * (b.z - a.z) - db.z * (b.x - a.x)) / det;
+  return new Vector3(a.x + da.x * t, y, a.z + da.z * t);
+}
+
 function junctionTurnLines(
   scene: Scene,
   graph: RoadGraph,
