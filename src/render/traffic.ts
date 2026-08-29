@@ -5,7 +5,7 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math";
 
-import type { RoadGraph } from "../sim/graph";
+import type { RoadGraph, Segment } from "../sim/graph";
 import { roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
@@ -31,7 +31,7 @@ const WALKER_SPEED = 1.4;
 /** Anything moving along a segment. Cars and walkers differ only in these numbers. */
 interface Mover {
   readonly mesh: Mesh | InstancedMesh;
-  readonly segmentId: number;
+  readonly segment: Segment;
   readonly direction: 1 | -1;
   readonly speed: number;
   readonly lift: number;
@@ -102,7 +102,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         walker.isPickable = false;
         movers.push({
           mesh: walker,
-          segmentId: seg.id,
+          segment: seg,
           direction: i % 2 ? -1 : 1,
           // Vary the pace a little, or a path reads as a conveyor belt.
           speed: WALKER_SPEED * (0.75 + ((si + i * 7) % 5) * 0.12),
@@ -122,7 +122,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         car.isPickable = false;
         movers.push({
           mesh: car,
-          segmentId: seg.id,
+          segment: seg,
           direction: i % 2 ? -1 : 1,
           speed: CAR_SPEED,
           lift: ROAD_LIFT + 0.75,
@@ -138,11 +138,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
     for (const mover of movers) {
-      const seg = graph.allSegments().find((candidate) => candidate.id === mover.segmentId);
-      if (!seg) {
-        mover.mesh.setEnabled(false);
-        continue;
-      }
+      const seg = mover.segment;
       mover.mesh.setEnabled(true);
       const travelled = (now * mover.speed + mover.phase * 6) % seg.length;
       const { position, tangent } = graph.pointAt(

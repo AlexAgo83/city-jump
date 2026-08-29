@@ -9,6 +9,11 @@
 import { chromium } from "playwright";
 
 const [url = "http://localhost:5173", out = "shot.png", scenario = "network"] = process.argv.slice(2);
+const minimums = {
+  network: { segments: 24, avenues: 7, tunnels: 1, junctions: 4, buildings: 120, activeMeshes: 20 },
+  rugged: { segments: 24, avenues: 7, tunnels: 1, junctions: 4, buildings: 80, activeMeshes: 20 },
+  city: { segments: 200, avenues: 20, junctions: 100, buildings: 1000, cars: 200, pedestrians: 400, activeMeshes: 20 },
+};
 
 const browser = await chromium.launch({
   args: ["--use-gl=angle", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
@@ -47,6 +52,10 @@ const report = await page.evaluate(async (which) => {
   const renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : "unknown";
   return { fps, renderer, ...api.stats() };
 }, scenario);
+
+const required = minimums[scenario] ?? minimums.network;
+const missing = Object.entries(required).filter(([key, value]) => (report[key] ?? 0) < value);
+if (missing.length) throw new Error(`scenario ${scenario} below minimums: ${missing.map(([key, value]) => `${key} ${report[key] ?? 0}/${value}`).join(", ")}`);
 
 await page.waitForTimeout(500);
 await page.screenshot({ path: out });

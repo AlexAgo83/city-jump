@@ -20,8 +20,9 @@ from that road network.
 3. Let buildings occupy valid, non-overlapping plots.
 4. Inspect the result under different terrain and daylight conditions.
 
-The current prototype focuses on road construction and spatial legibility. Traffic,
-services, economy, progression, persistence, bridges, and tunnels are not implemented.
+The current prototype focuses on road construction, spatial legibility, terrain shaping,
+traffic, persistence, pedestrian paths, and tunnel rendering. Services, economy,
+progression, and bridges are not implemented.
 
 ## Current State
 
@@ -30,6 +31,7 @@ services, economy, progression, persistence, bridges, and tunnels are not implem
 - Buildable plots extend up to five 8 m cells perpendicular to a road and never overlap.
 - Curved roads regroup nearby cells into usable blocks where geometry permits.
 - Rolling and rugged terrain presets exercise road shaping and ground conformance.
+- Tunnels pass under surface roads and render portals without growing buildings or traffic.
 - A 24-hour sun control changes light direction, intensity, ambient light, and sky.
 - A browser debug surface drives deterministic visual and interaction checks.
 
@@ -77,13 +79,16 @@ npm run typecheck
 npm test
 npm run test:architecture
 npm run build
-npm run test:e2e       # requires the dev server
-npm run test:visual    # requires the dev server
+npm run test:e2e
+npm run test:visual
 npm run logics:validate
+npm run ci
 ```
 
-The largest checked scenario currently renders 237 roads, 126 junctions, and 1,422
-buildings at the browser's 120 fps requestAnimationFrame cap on an Apple M3 Pro.
+`test:e2e`, `test:visual`, and `ci` start or reuse the local Vite server. On 2026-08-29,
+`node scripts/with-dev-server.mjs scripts/shot.mjs /tmp/city-jump-city.png city` rendered
+237 roads, 126 junctions, 1,688 buildings, 237 cars, and 474 pedestrians at 52 fps on an
+Apple M3 Pro using ANGLE Metal.
 
 ## Assets
 

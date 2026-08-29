@@ -1,14 +1,14 @@
 ## item_012_refresh_readme_feature_status_and_measured_evidence - Refresh README feature status and measured evidence
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-28 16:27:22
+> Indicators reviewed: 2026-08-29 10:14:53
 
 # AI Context
 - Summary: Refresh README current-state text and measured scenario figures so tunnels, validation commands, and performance evidence match the current prototype.

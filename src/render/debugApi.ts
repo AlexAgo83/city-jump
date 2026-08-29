@@ -26,6 +26,11 @@ export function installDebugApi(
   rebuild: () => void,
   stats: () => Record<string, number>,
 ): void {
+  const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
+    const from = resolveSnap(graph, x0, z0);
+    const to = resolveSnap(graph, x1, z1);
+    return commitSegment(graph, from, to, v3(cx, 0, cz), type);
+  };
   const api: DebugApi = {
     reset() {
       for (const seg of graph.allSegments()) graph.removeSegment(seg.id);
@@ -33,37 +38,38 @@ export function installDebugApi(
     },
     rebuild,
     road(x0, z0, cx, cz, x1, z1, type = "street") {
-      const from = resolveSnap(graph, x0, z0);
-      const to = resolveSnap(graph, x1, z1);
-      const result = commitSegment(graph, from, to, v3(cx, 0, cz), type);
-      return result.ok;
+      return addRoad(x0, z0, cx, cz, x1, z1, type).ok;
     },
     demoNetwork() {
+      const mustRoad = (label: string, x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
+        const result = addRoad(x0, z0, cx, cz, x1, z1, type);
+        if (!result.ok) throw new Error(`demoNetwork road refused: ${label} (${type}): ${result.reason}`);
+      };
       // Neighborhood capture: big avenues define districts, collectors feed local streets.
-      api.road(-900, -520, 0, -620, 900, -520, "avenue");
-      api.road(-900, 520, 0, 620, 900, 520, "avenue");
-      api.road(-900, -520, -1040, 0, -900, 520, "avenue");
-      api.road(900, -520, 1040, 0, 900, 520, "avenue");
-      api.road(-180, -660, -60, -60, -70, 660, "avenue");
-      api.road(-850, -120, -330, -170, 230, -80, "avenue");
-      api.road(-760, 280, -260, 40, 760, 250, "avenue");
-      api.road(-780, -360, -430, -420, -110, -300);
-      api.road(-760, -230, -430, -260, -120, -190);
-      api.road(-720, 80, -470, 10, -210, 80);
-      api.road(-690, 420, -430, 330, -160, 390);
-      api.road(80, -410, 310, -300, 720, -340);
-      api.road(120, -230, 380, -160, 770, -190);
-      api.road(90, 70, 340, 110, 770, 60);
-      api.road(100, 360, 360, 420, 790, 360);
-      api.road(-610, -470, -570, -350, -540, -210);
-      api.road(-460, -450, -430, -330, -390, -190);
-      api.road(-600, 250, -560, 360, -530, 500);
-      api.road(-430, 210, -400, 330, -360, 480);
-      api.road(290, -450, 300, -330, 320, -210);
-      api.road(480, -440, 500, -320, 520, -200);
-      api.road(300, 90, 340, 210, 330, 350);
-      api.road(520, 90, 570, 210, 560, 350);
-      api.road(-780, -360, -340, -470, 130, -360, "tunnel");
+      mustRoad("north avenue", -900, -520, 0, -620, 900, -520, "avenue");
+      mustRoad("south avenue", -900, 520, 0, 620, 900, 520, "avenue");
+      mustRoad("west avenue", -900, -520, -1040, 0, -900, 520, "avenue");
+      mustRoad("east avenue", 900, -520, 1040, 0, 900, 520, "avenue");
+      mustRoad("central avenue", -200, -660, -200, -60, -200, 660, "avenue");
+      mustRoad("market avenue", -850, -420, -330, -470, 230, -380, "avenue");
+      mustRoad("park avenue", -760, 180, -260, -60, 760, 150, "avenue");
+      mustRoad("west street 1", -900, -480, -550, -540, -230, -420);
+      mustRoad("west street 2", -880, -470, -550, -500, -240, -430);
+      mustRoad("west street 3", -720, 80, -470, 10, -210, 80);
+      mustRoad("west street 4", -690, 420, -430, 330, -160, 390);
+      mustRoad("east street 1", -40, -650, 190, -540, 600, -580);
+      mustRoad("east street 2", 120, -230, 380, -160, 770, -190);
+      mustRoad("east street 3", -30, -170, 220, -130, 650, -180);
+      mustRoad("east street 4", 400, -150, 450, -30, 440, 110);
+      mustRoad("west connector 1", -610, -470, -570, -350, -540, -210);
+      mustRoad("west connector 2", -460, -450, -430, -330, -390, -190);
+      mustRoad("west connector 3", -600, 250, -560, 360, -530, 500);
+      mustRoad("west connector 4", -430, 210, -400, 330, -360, 480);
+      mustRoad("east connector 1", 290, -450, 300, -330, 320, -210);
+      mustRoad("east connector 2", 480, -440, 500, -320, 520, -200);
+      mustRoad("east connector 3", 300, 90, 340, 210, 330, 350);
+      mustRoad("east connector 4", 400, -210, 450, -90, 440, 50);
+      mustRoad("tunnel bypass", -780, -360, -340, -470, 130, -360, "tunnel");
       rebuild();
     },
     demoCity() {
@@ -79,17 +85,21 @@ export function installDebugApi(
         const t = (x / SPAN + 1) / 2;
         return z0 + 80 * t * (1 - t);
       };
+      const mustRoad = (label: string, x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
+        const result = addRoad(x0, z0, cx, cz, x1, z1, type);
+        if (!result.ok) throw new Error(`demoCity road refused: ${label} (${type}): ${result.reason}`);
+      };
 
       for (let i = 0; i < ROWS; i++) {
         const z = rowZ(i);
-        api.road(-SPAN, z, 0, z + 40, SPAN, z, "avenue");
+        mustRoad(`avenue ${i}`, -SPAN, z, 0, z + 40, SPAN, z, "avenue");
       }
       for (let c = 0; c < COLS; c++) {
         const x = -SPAN + c * 100;
         for (let i = 0; i < ROWS - 1; i++) {
           const z0 = avenueZ(x, rowZ(i));
           const z1 = avenueZ(x, rowZ(i + 1));
-          api.road(x, z0, x, (z0 + z1) / 2, x, z1);
+          mustRoad(`street ${c}.${i}`, x, z0, x, (z0 + z1) / 2, x, z1);
         }
       }
       rebuild();

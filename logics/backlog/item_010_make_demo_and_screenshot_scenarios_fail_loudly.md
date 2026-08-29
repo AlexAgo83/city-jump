@@ -1,14 +1,14 @@
 ## item_010_make_demo_and_screenshot_scenarios_fail_loudly - Make demo and screenshot scenarios fail loudly
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-28 16:27:15
+> Indicators reviewed: 2026-08-29 10:14:53
 
 # AI Context
 - Summary: Make debug demo roads and screenshot scenarios strict so refused roads or missing scenario elements fail the script instead of producing misleading docs media.

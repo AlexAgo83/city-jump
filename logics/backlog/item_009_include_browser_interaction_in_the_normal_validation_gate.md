@@ -1,14 +1,14 @@
 ## item_009_include_browser_interaction_in_the_normal_validation_gate - Include browser interaction in the normal validation gate
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-28 16:27:15
+> Indicators reviewed: 2026-08-29 10:14:53
 
 # AI Context
 - Summary: Add a local validation path that runs the existing browser interaction script with a managed Vite server, then include it in the normal readiness gate.
