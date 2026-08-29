@@ -1,5 +1,5 @@
 import { RoadGraph, type NodeId, type SegmentId } from "./graph";
-import { type Vec3, v3, distXZ, lerp } from "./vec";
+import { type Vec3, v3, add, distXZ, lerp, scale, sub } from "./vec";
 import { roadType } from "./roadTypes";
 import { terrainHeight } from "./terrain";
 
@@ -126,12 +126,22 @@ export function commitSegment(
   const b = resolveEndpoint(graph, to);
   if (a === b) return { ok: false, reason: "A road cannot start and end at the same point." };
 
-  const crossing = roadType(type).tunnelDepth ? null : firstCrossing(graph, from.position, control, to.position);
-  if (crossing) {
-    const middle = graph.splitSegment(crossing.segmentId, crossing.distance);
-    const { leftControl, rightControl } = splitControl(from.position, control, to.position, crossing.t);
-    graph.addSegment(a, middle, leftControl, type);
-    return { ok: true, segmentId: graph.addSegment(middle, b, rightControl, type) };
+  const crossings = roadType(type).tunnelDepth ? [] : allCrossings(graph, from.position, control, to.position);
+  if (crossings.length) {
+    const nodes = [a];
+    for (const crossing of crossings) {
+      const near = graph.nearestNode(crossing.point.x, crossing.point.z, RULES.nodeSnapRadius);
+      nodes.push(near?.id ?? graph.splitSegment(crossing.segmentId, crossing.distance));
+    }
+    nodes.push(b);
+
+    let lastSegment = 0 as SegmentId;
+    const ts = [0, ...crossings.map((crossing) => crossing.t), 1];
+    for (let i = 1; i < nodes.length; i++) {
+      if (nodes[i - 1] === nodes[i]) continue;
+      lastSegment = graph.addSegment(nodes[i - 1]!, nodes[i]!, subControl(from.position, control, to.position, ts[i - 1]!, ts[i]!), type);
+    }
+    return { ok: true, segmentId: lastSegment };
   }
 
   return { ok: true, segmentId: graph.addSegment(a, b, control, type) };
@@ -148,14 +158,15 @@ function resolveEndpoint(graph: RoadGraph, snap: Snap): NodeId {
   }
 }
 
-function firstCrossing(
+function allCrossings(
   graph: RoadGraph,
   from: Vec3,
   control: Vec3,
   to: Vec3,
-): { segmentId: SegmentId; distance: number; t: number } | null {
+): { segmentId: SegmentId; distance: number; point: Vec3; t: number }[] {
   // ponytail: sampled curve intersection; replace with exact Bezier solving if misses show up.
   const proposed = sampleQuadratic(from, control, to);
+  const crossings: { segmentId: SegmentId; distance: number; point: Vec3; t: number }[] = [];
   for (const seg of graph.allSegments()) {
     if (roadType(seg.type).tunnelDepth) continue;
     for (let i = 1; i < proposed.length; i++) {
@@ -165,11 +176,11 @@ function firstCrossing(
         const t = proposed[i - 1]!.t + (proposed[i]!.t - proposed[i - 1]!.t) * hit.a;
         const distance = seg.cumulative[j - 1]! + (seg.cumulative[j]! - seg.cumulative[j - 1]!) * hit.b;
         if (t < 1e-3 || t > 1 - 1e-3 || distance < RULES.minLength || seg.length - distance < RULES.minLength) continue;
-        return { segmentId: seg.id, distance, t };
+        crossings.push({ segmentId: seg.id, distance, point: lerp(proposed[i - 1]!.point, proposed[i]!.point, hit.a), t });
       }
     }
   }
-  return null;
+  return crossings.sort((a, b) => a.t - b.t);
 }
 
 function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3): { point: Vec3; t: number }[] {
@@ -179,10 +190,15 @@ function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3): { point: Vec3; t: number }[
     const u = 1 - t;
     out.push({
       t,
-      point: v3(a.x * u * u + c.x * 2 * u * t + b.x * t * t, 0, a.z * u * u + c.z * 2 * u * t + b.z * t * t),
+      point: pointQuadratic(a, c, b, t),
     });
   }
   return out;
+}
+
+function pointQuadratic(a: Vec3, c: Vec3, b: Vec3, t: number): Vec3 {
+  const u = 1 - t;
+  return v3(a.x * u * u + c.x * 2 * u * t + b.x * t * t, 0, a.z * u * u + c.z * 2 * u * t + b.z * t * t);
 }
 
 function segmentCross(a: Vec3, b: Vec3, c: Vec3, d: Vec3): { a: number; b: number } | null {
@@ -199,6 +215,7 @@ function segmentCross(a: Vec3, b: Vec3, c: Vec3, d: Vec3): { a: number; b: numbe
   return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1 ? { a: ua, b: ub } : null;
 }
 
-function splitControl(a: Vec3, c: Vec3, b: Vec3, t: number): { leftControl: Vec3; rightControl: Vec3 } {
-  return { leftControl: lerp(a, c, t), rightControl: lerp(c, b, t) };
+function subControl(a: Vec3, c: Vec3, b: Vec3, from: number, to: number): Vec3 {
+  const p = pointQuadratic(a, c, b, from);
+  return add(p, scale(add(scale(sub(c, a), 1 - from), scale(sub(b, c), from)), to - from));
 }

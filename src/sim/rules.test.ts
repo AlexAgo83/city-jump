@@ -78,6 +78,28 @@ describe("snapping", () => {
     expect(junction!.pos.x).toBeCloseTo(0, 1);
     expect(junction!.pos.z).toBeCloseTo(0, 1);
   });
+
+  it("splits every road crossed by one stroke", () => {
+    const g = new RoadGraph();
+    road(g, -60, -40, 60, -40);
+    road(g, -60, 40, 60, 40);
+    const result = road(g, 0, -80, 0, 80);
+
+    expect(result.ok).toBe(true);
+    expect(g.allSegments()).toHaveLength(7);
+    expect(g.allNodes().filter((n) => n.segments.size === 4)).toHaveLength(2);
+  });
+
+  it("merges a crossing into an existing node inside the snap radius", () => {
+    const g = new RoadGraph();
+    road(g, -60, 0, 60, 0);
+    g.addNodeAt(v3(0, 0, RULES.nodeSnapRadius - 1));
+
+    const result = road(g, 0, -60, 0, 60);
+
+    expect(result.ok).toBe(true);
+    expect(g.allNodes().filter((n) => Math.abs(n.pos.x) < 1 && Math.abs(n.pos.z) < RULES.nodeSnapRadius)).toHaveLength(1);
+  });
 });
 
 describe("validation", () => {

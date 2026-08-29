@@ -1,13 +1,15 @@
 ## task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto - Split roads that cross each other, not only those drawn onto
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-29 10:25:54
 
 # AI Context
 - Summary: Close the two remaining gaps in road-crossing splitting: `firstCrossing` (`src/sim/rules.ts:151-173`) only acts on the first crossing a stroke finds (AC2), and has no node-snap-radius merge (AC3). AC1/AC4/AC5/AC6 are already delivered and tested (`src/sim/rules.test.ts:69`, `:144`) -- do not redo them.

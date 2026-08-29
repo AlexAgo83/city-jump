@@ -1,13 +1,14 @@
 ## item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto - Split roads that cross each other, not only those drawn onto
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: High
 > Theme: Operator workflow and runtime integration
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:25:54
 
 # AI Context
 - Summary: The single-crossing case is already delivered and tested; this slice closes the two remaining gaps -- a stroke crossing several roads only splits at the first one found, and a crossing near an existing node does not merge into it.
