@@ -30,6 +30,7 @@ import {
   ringWalkJoin,
   CROSSING_DEPTH,
   crossesRoad,
+  crossingNear,
   walkLoop,
   walkLoopSlice,
   walkRingRadius,
@@ -47,6 +48,10 @@ const CAR_WIDTH = 3;
 const CAR_GAP = 8.5;
 /** Within this far of what is stopping it, a car is already slowing for it. */
 const BRAKING = 16;
+/** Metres per second, per second: how quickly speed catches up when pulling away from a stop. */
+const ACCEL = 4;
+/** A car's own bonnet, so a red stops its bumper at the line rather than its centre. */
+const CAR_STOP_SETBACK = 3;
 
 /**
  * How fast a heading can turn, in radians a second. A car has a steering wheel and cannot flick
@@ -127,6 +132,9 @@ interface Mover {
   /** The lane it started this road in, while a lane change is still to happen or under way. */
   changing: LaneCentre | null;
   speed: number;
+  /** What it is actually doing, in the same units as `speed` -- eases toward it either way, so
+   *  pulling away from a stop is a car accelerating rather than teleporting up to cruising speed. */
+  currentSpeed: number;
   /** Which way it is facing, which follows the path it is on rather than snapping to it. */
   heading: number;
   ride: Ride | null;
@@ -573,8 +581,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * light is against it. Whichever comes first in the direction it is going.
    */
   function stopFor(mover: Mover, ahead: Mover | undefined, time: number): number {
-    const limit = limitOf(mover);
-    const line = heldAtLights(mover, time) ? limit : limit + mover.direction * BRAKING * 2;
+    const line = heldAtLights(mover, time) ? stopLineOf(mover) : limitOf(mover) + mover.direction * BRAKING * 2;
     if (!ahead) return line;
     const behind = ahead.distance - mover.direction * CAR_GAP;
     return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
@@ -585,6 +592,23 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const end = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     const trim = Math.min(trimAt(end, mover.segment.id), mover.segment.length * 0.45);
     return mover.direction === 1 ? mover.segment.length - trim : trim;
+  }
+
+  /**
+   * Where a held car actually stops: short of the crossing, not at the far edge of the junction
+   * plaza behind it -- which is where the old stop line put it, on top of or past the zebra
+   * stripes rather than before them. Set back from the crossing's outer edge by a bonnet's worth,
+   * so it is the bumper that stops at the line rather than the middle of the car.
+   */
+  function stopLineOf(mover: Mover): number {
+    const end = mover.direction === 1 ? mover.segment.b : mover.segment.a;
+    const other = mover.direction === 1 ? mover.segment.a : mover.segment.b;
+    const arm = armOf(end, mover.segment.id);
+    if (!arm) return limitOf(mover);
+    const room = mover.segment.length - arm.trim - trimAt(other, mover.segment.id);
+    if (room < CROSSING_DEPTH) return limitOf(mover);
+    const far = Math.min(crossingNear(arm, room) + CROSSING_DEPTH + CAR_STOP_SETBACK, arm.trim + room);
+    return mover.direction === 1 ? mover.segment.length - far : far;
   }
 
   /**
@@ -762,6 +786,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           lane,
           changing: null,
           speed: (walk ? WALKER_SPEED : type.maxSpeed) * pace,
+          // Placed already moving, mid-road -- a city does not load with everyone stalled.
+          currentSpeed: (walk ? WALKER_SPEED : type.maxSpeed) * pace,
           heading: 0,
           ride: null,
           plan: null,
@@ -841,8 +867,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     }
     const ahead = new Map<Mover, Mover>();
     for (const queue of queues.values()) {
+      // Sorted least progressed first, whichever way the lane runs, so the car in front of each
+      // one is simply the next entry along -- and the last, most progressed car has none: only
+      // the light or the road's own end is in front of it.
       queue.sort((l, r) => (l.distance - r.distance) * l.direction);
-      for (let i = 1; i < queue.length; i++) ahead.set(queue[i]!, queue[i - 1]!);
+      for (let i = 0; i < queue.length - 1; i++) ahead.set(queue[i]!, queue[i + 1]!);
     }
 
     for (const mover of movers) {
@@ -850,7 +879,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
       if (mover.ride) {
         const ride = mover.ride;
-        ride.travelled += mover.speed * ride.pace * dt;
+        // Same ramp as the straight road it just left: a car pulling away into its turn keeps
+        // accelerating rather than snapping straight to the turn's own pace.
+        const target = mover.speed * ride.pace;
+        mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
+        ride.travelled += mover.currentSpeed * dt;
         const total = ride.cumulative[ride.cumulative.length - 1]!;
         if (ride.travelled >= total) {
           board(mover, ride.exit, ride.from, { lane: ride.lane, changing: ride.changing, plan: mover.plan }, ride.trim);
@@ -869,7 +902,12 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       // eased against its own exact target it would never quite arrive, and so never get asked
       // whether the crossing is clear.
       const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now) - mover.distance) * mover.direction;
-      mover.distance += mover.direction * mover.speed * dt * Math.max(0, Math.min(1, room / BRAKING));
+      const target = mover.speed * Math.max(0, Math.min(1, room / BRAKING));
+      // Braking follows that curve straight down -- a car easing off is as responsive as before.
+      // Pulling away is the other way round: speed catches up to the target rather than jumping
+      // to it, so leaving a stop is an acceleration rather than a teleport to cruising speed.
+      mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
+      mover.distance += mover.direction * mover.currentSpeed * dt;
 
       const limit = limitOf(mover);
       const atEnd = mover.direction === 1 ? mover.distance >= limit : mover.distance <= limit;

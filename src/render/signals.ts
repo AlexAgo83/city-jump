@@ -111,15 +111,22 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
     const mast = mastMesh.createInstance(`signal_${arm.segment}_${nodeId}`);
     mast.isPickable = false;
     mast.position.set(base.x + n.x * offset, base.y, base.z + n.z * offset);
+    // Facing back down the road at the traffic arriving on it -- the opposite way to that
+    // traffic's own direction of travel, which is `tangent` itself from the far end and against
+    // it from the start (the same sense `side`, just above, is worked out from).
+    const facing = normalizeXZ(atStart ? tangent : { x: -tangent.x, y: tangent.y, z: -tangent.z });
+    mast.rotation.y = Math.atan2(facing.x, facing.z);
     meshes.push(mast);
 
     const lamps = [0, 1, 2].map((i) => {
       const lens = lamp.createInstance(`signal_lamp_${arm.segment}_${nodeId}_${i}`);
       lens.isPickable = false;
+      // On the housing's traffic-facing side, not its kerb-facing one: the lamps are their own
+      // instances, positioned in the world rather than carried by the mast's own rotation.
       lens.position.set(
-        mast.position.x - n.x * 0.2 * side,
+        mast.position.x + facing.x * 0.2,
         base.y + POST + HEAD - 0.32 - i * LAMP_PITCH,
-        mast.position.z - n.z * 0.2 * side,
+        mast.position.z + facing.z * 0.2,
       );
       lens.instancedBuffers[VertexBuffer.ColorKind] = LAMP_DARK;
       meshes.push(lens);
