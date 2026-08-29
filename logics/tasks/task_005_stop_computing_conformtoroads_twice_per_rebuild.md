@@ -1,13 +1,15 @@
 ## task_005_stop_computing_conformtoroads_twice_per_rebuild - Stop computing conformToRoads twice per rebuild
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-29 10:33:44
 
 # AI Context
 - Summary: `rebuild()` (`src/app/app.ts:53-54`) calls `heightmap.conformToRoads()` twice; the first call's output is fully discarded by the second (`Heightmap.conformToRoads` resets `current`/`claim` from scratch each call), and `buildableCells`/`buildingParcels` never read the heightmap in between. Delete the redundant call.

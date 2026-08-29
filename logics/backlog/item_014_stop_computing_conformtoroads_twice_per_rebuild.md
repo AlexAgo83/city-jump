@@ -1,13 +1,14 @@
 ## item_014_stop_computing_conformtoroads_twice_per_rebuild - Stop computing conformToRoads twice per rebuild
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:33:44
 
 # AI Context
 - Summary: `rebuild()` calls `heightmap.conformToRoads()` twice; the first call's output is fully discarded by the second, and nothing reads it in between.

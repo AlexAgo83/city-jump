@@ -50,7 +50,6 @@ export async function startApp(): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     const cells = buildableCells(graph);
     const parcels = buildingParcels(cells);
-    heightmap.conformToRoads(graph);
     heightmap.conformToRoads(graph, parcels);
     ground.refresh();
     trees.rebuild();
