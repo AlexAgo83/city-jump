@@ -10,6 +10,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
 import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "../sim/routing";
+import { canGo, signalAt, signalCycle, type SignalCycle } from "../sim/signals";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
   armPort,
@@ -27,6 +28,8 @@ import {
   ringOf,
   ringSweep,
   ringWalkJoin,
+  CROSSING_DEPTH,
+  crossesRoad,
   walkLoop,
   walkLoopSlice,
   walkRingRadius,
@@ -39,6 +42,11 @@ import { streetlightsOnAt } from "./streetlights";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
+
+/** Bumper to bumper: how much road a car keeps between itself and the one in front. */
+const CAR_GAP = 8.5;
+/** Within this far of what is stopping it, a car is already slowing for it. */
+const BRAKING = 16;
 
 /**
  * How fast a heading can turn, in radians a second. A car has a steering wheel and cannot flick
@@ -424,6 +432,19 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     junctionAt(nodeId).arms.find((arm) => arm.segment === segmentId);
 
   const loops = new Map<NodeId, WalkLoop>();
+  const cycles = new Map<NodeId, SignalCycle | null>();
+
+  function cycleAt(nodeId: NodeId): SignalCycle | null {
+    if (!cycles.has(nodeId)) cycles.set(nodeId, signalCycle(graph, nodeId, junctionAt(nodeId)));
+    return cycles.get(nodeId) ?? null;
+  }
+
+  /** Whether the light at the end of this road lets a mover out of it. */
+  function heldAtLights(mover: Mover, time: number): boolean {
+    const node = mover.direction === 1 ? mover.segment.b : mover.segment.a;
+    const cycle = cycleAt(node);
+    return cycle !== null && !canGo(signalAt(cycle, mover.segment.id, time));
+  }
 
   function walkLoopAt(nodeId: NodeId): WalkLoop {
     const cached = loops.get(nodeId);
@@ -547,6 +568,18 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     return laneChangeOffset(mover.changing.offset, mover.lane.offset, travelled / (span.end - span.start));
   }
 
+  /**
+   * Where a car has to be stopped by: the car in front, less a gap, or the stop line when the
+   * light is against it. Whichever comes first in the direction it is going.
+   */
+  function stopFor(mover: Mover, ahead: Mover | undefined, time: number): number {
+    const limit = limitOf(mover);
+    const line = heldAtLights(mover, time) ? limit : limit + mover.direction * BRAKING * 2;
+    if (!ahead) return line;
+    const behind = ahead.distance - mover.direction * CAR_GAP;
+    return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
+  }
+
   /** The distance along the current segment at which the car has run out of road. */
   function limitOf(mover: Mover): number {
     const end = mover.direction === 1 ? mover.segment.b : mover.segment.a;
@@ -558,7 +591,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * Reached the end of a road. The car takes the drawn transfer from here to its next lane: the
    * junction's own turn curve, or a roundabout's merge, sweep and exit joined into one.
    */
-  function arrive(mover: Mover): void {
+  function arrive(mover: Mover, now: number): void {
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     const planned = mover.plan?.node === nodeId ? mover.plan : null;
     const next = planned?.exit ?? pickExit(graph, nodeId, mover.segment.id, roll(mover), mover.walk);
@@ -596,6 +629,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
               armPort(graph, nodeId, from, mover.lane.offset),
               armPort(graph, nodeId, to, landing.offset),
             );
+    // On foot, a crossing is only taken while the traffic it crosses is being held. Until then
+    // the walker waits at the kerb, and this is asked again on the next frame.
+    if (mover.walk && !crossingIsClear(nodeId, points, now)) return;
+
     mover.ride = {
       points,
       cumulative: pathCumulative(points),
@@ -623,6 +660,21 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       position.z + tangent.z * mover.direction * reach,
     );
     return sampleQuadratic(port(mover.lane.offset), nose, port(exitOffset), 12);
+  }
+
+  /**
+   * Whether a walk across a junction can be taken now: every road it runs over has to be showing
+   * red. A junction with no signals never holds anybody up.
+   */
+  function crossingIsClear(nodeId: NodeId, path: readonly Vec3[], time: number): boolean {
+    const cycle = cycleAt(nodeId);
+    if (!cycle) return true;
+    const centre = graph.node(nodeId).pos;
+    return junctionAt(nodeId).arms.every((arm) => {
+      const reach = arm.trim + CROSSING_DEPTH * 3;
+      if (!crossesRoad(centre, arm.outward, reach, [path])) return true;
+      return !canGo(signalAt(cycle, arm.segment, time));
+    });
   }
 
   /**
@@ -683,6 +735,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     junctions.clear();
     ringsAt.clear();
     loops.clear();
+    cycles.clear();
 
     for (const [si, seg] of graph.allSegments().entries()) {
       const type = roadType(seg.type);
@@ -776,6 +829,22 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const beams = lightsOn() ? headlights : null;
     let beam = 0;
 
+    // Who is in front of whom. Same road, same way, same lane: a car goes no further than the one
+    // ahead of it lets it, which is what makes a red light a queue rather than a pile.
+    const queues = new Map<string, Mover[]>();
+    for (const mover of movers) {
+      if (mover.walk || mover.ride) continue;
+      const key = `${mover.segment.id}:${mover.direction}:${mover.lane.offset}`;
+      const queue = queues.get(key);
+      if (queue) queue.push(mover);
+      else queues.set(key, [mover]);
+    }
+    const ahead = new Map<Mover, Mover>();
+    for (const queue of queues.values()) {
+      queue.sort((l, r) => (l.distance - r.distance) * l.direction);
+      for (let i = 1; i < queue.length; i++) ahead.set(queue[i]!, queue[i - 1]!);
+    }
+
     for (const mover of movers) {
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
 
@@ -794,11 +863,17 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         }
       }
 
-      mover.distance += mover.direction * mover.speed * dt;
+      // What has to stop this mover: the car in front, or a light against it. Easing off over
+      // the last few metres rather than stopping dead on the line, and never backing up.
+      const stop = mover.walk ? limitOf(mover) : stopFor(mover, ahead.get(mover), now);
+      const room = (stop - mover.distance) * mover.direction;
+      mover.distance += mover.direction * mover.speed * dt * Math.max(0, Math.min(1, room / BRAKING));
+
       const limit = limitOf(mover);
-      if (mover.direction === 1 ? mover.distance >= limit : mover.distance <= limit) {
+      const atEnd = mover.direction === 1 ? mover.distance >= limit : mover.distance <= limit;
+      if (atEnd && (mover.walk || !heldAtLights(mover, now))) {
         mover.distance = limit;
-        arrive(mover);
+        arrive(mover, now);
         if (mover.ride) continue;
       }
       const offset = offsetOf(mover);

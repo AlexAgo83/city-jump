@@ -6,6 +6,7 @@ import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
 import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
+import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
@@ -36,6 +37,7 @@ export async function startApp(): Promise<void> {
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
   const traffic = createTrafficRenderer(scene, graph);
+  const signals = createSignalRenderer(scene, graph);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
@@ -62,6 +64,7 @@ export async function startApp(): Promise<void> {
     roads.rebuild();
     streetlights.rebuild();
     traffic.rebuild();
+    signals.rebuild();
     buildingCount = buildings.rebuild(cells, parcels);
     scheduleAutosave();
   };
@@ -218,6 +221,7 @@ export async function startApp(): Promise<void> {
     avenues: graph.allSegments().filter((segment) => baseRoadTypeId(segment.type) === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => roadType(segment.type).tunnelDepth !== undefined).length,
     cars: traffic.count(),
+    signals: signals.count(),
     pedestrians: traffic.pedestrians(),
     streetlights: streetlights.count(),
     realStreetlights: streetlights.realLightCount(),
