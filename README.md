@@ -4,7 +4,7 @@
 
 <br clear="left"/>
 
-![Version](https://img.shields.io/badge/version-0.1.0-4C8BF5)
+![Version](https://img.shields.io/badge/version-0.2.0-4C8BF5)
 ![License](https://img.shields.io/badge/license-MIT-2E8B57)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)
@@ -103,6 +103,13 @@ schedule. On 2026-08-29,
 `node scripts/with-dev-server.mjs scripts/shot.mjs /tmp/city-jump-city.png city` rendered
 237 roads, 126 junctions, 1,688 buildings, 237 cars, and 474 pedestrians at 50 fps on an
 Apple M3 Pro using ANGLE Metal.
+
+## Static Release
+
+`npm run release:static` validates the project and writes the static app to `dist/`.
+The output is plain files from Vite: `index.html`, hashed assets, the app icons, the
+manifest, and the building GLBs copied from `public/`. Tag releases as `v0.2.0` for this
+baseline.
 
 ## Assets
 

@@ -1,6 +1,6 @@
 {
   "name": "city-jump",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run typecheck",
@@ -13,17 +13,24 @@
     "lint": "npm run typecheck",
     "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc",
     "ci": "npm test && npm run test:architecture && npm run build && npm run logics:validate",
+    "release:static": "npm run ci",
     "verify": "npm run test:visual",
     "check": "npm run test:e2e"
   },
   "keywords": [
     "city-builder",
+    "city-simulation",
+    "urban-planning",
+    "road-network",
+    "traffic-simulation",
+    "procedural-generation",
     "babylonjs",
-    "simulation"
+    "typescript",
+    "webgl"
   ],
   "author": "Alexandre Agostini",
   "license": "MIT",
-  "description": "A browser-based 3D city builder where roads shape the city.",
+  "description": "A browser-based 3D city builder where roads, terrain, buildings, and traffic derive from a playable road graph.",
   "devDependencies": {
     "playwright": "^1.62.1",
     "typescript": "^7.0.2",
