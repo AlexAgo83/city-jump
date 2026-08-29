@@ -256,7 +256,11 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         if (type.tunnelDepth || type.pedestrian) continue;
         const reach = arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2;
         if (!crossesRoad(graph.node(junction.node).pos, arm.outward, reach, paths)) continue;
-        meshes.push(...crossingMeshes(scene, graph, junction.node, arm, type.width, paintMaterial));
+        // How much road there is between this junction and whatever is at the other end.
+        const seg = graph.segment(arm.segment);
+        const trims = segmentTrims(junctions, graph, arm.segment);
+        const room = seg.length - arm.trim - (seg.a === junction.node ? trims.end : trims.start);
+        meshes.push(...crossingMeshes(scene, graph, junction.node, arm, type.width, paintMaterial, room));
       }
     }
 
@@ -337,31 +341,40 @@ function crossingMeshes(
   arm: JunctionArm,
   width: number,
   paint: StandardMaterial,
+  room: number,
 ): Mesh[] {
   const seg = graph.segment(arm.segment);
   const atStart = seg.a === nodeId;
-  const near = arm.trim + CROSSING_GAP;
+  // Sits just clear of the junction, and gives up that clearance before it gives up the crossing
+  // itself: a roundabout holds its arms back by a whole ring radius, so a road between two of
+  // them has far less room than its length suggests -- and people cross it all the same.
+  const near = arm.trim + Math.min(CROSSING_GAP, Math.max(0, room - CROSSING_DEPTH));
   const far = near + CROSSING_DEPTH;
-  // Not if the road is too short to hold one clear of its other end.
-  if (far > seg.length - arm.trim) return [];
+  if (room < CROSSING_DEPTH) return [];
 
   const half = width / 2;
   const stripes = Math.max(2, Math.floor(width / (STRIPE_WIDTH * 2)));
   const pitch = width / stripes;
   const out: Mesh[] = [];
 
+  // Both rows run the way the segment does, and the two sides keep the road ribbon's own order
+  // of left and right. Laid from the junction outwards instead, a crossing at the near end of a
+  // road came out wound the other way up and was culled away: whether one showed at all came
+  // down to which direction that road happened to have been drawn in.
+  const rows = [near, far].map((d) => (atStart ? d : seg.length - d)).sort((l, r) => l - r);
+
   for (let i = 0; i < stripes; i++) {
     const centre = -half + pitch * (i + 0.5);
     const left: Vector3[] = [];
     const right: Vector3[] = [];
-    for (const d of [near, far]) {
-      const along = atStart ? d : seg.length - d;
+    for (const along of rows) {
       const { position, tangent } = graph.pointAt(arm.segment, along);
       const n = perpXZ(normalizeXZ(tangent));
       const lo = centre - STRIPE_WIDTH / 2;
       const hi = centre + STRIPE_WIDTH / 2;
-      left.push(new Vector3(position.x + n.x * lo, position.y + MARK_LIFT, position.z + n.z * lo));
-      right.push(new Vector3(position.x + n.x * hi, position.y + MARK_LIFT, position.z + n.z * hi));
+      const y = position.y + MARK_LIFT;
+      left.push(new Vector3(position.x + n.x * hi, y, position.z + n.z * hi));
+      right.push(new Vector3(position.x + n.x * lo, y, position.z + n.z * lo));
     }
     const stripe = roadStripMesh(scene, `crossing_${arm.segment}_${nodeId}_${i}`, left, right);
     stripe.material = paint;
