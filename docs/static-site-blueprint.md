@@ -27,6 +27,20 @@ production build. The deployable output is `dist/`.
 - Keep client-side storage enabled; named saves and autosave live in localStorage.
 - No server API, database, secret, or environment variable is required.
 
+## Render Blueprint
+
+`render.yaml` at the repository root defines the Render Static Site Blueprint:
+
+```yaml
+services:
+  - type: web
+    name: city-jump
+    runtime: static
+    buildCommand: npm ci && npm run release:static
+    staticPublishPath: ./dist
+    autoDeployTrigger: checksPass
+```
+
 ## Hook contract
 
 A release hook can stay small:
