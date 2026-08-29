@@ -24,7 +24,7 @@ COLOURS = [
     (0.45, 0.52, 0.60, 1.0),
     (0.62, 0.68, 0.58, 1.0),
 ]
-GLASS = (0.35, 0.75, 0.95, 1.0)
+GLASS = (0.28, 0.38, 0.44, 1.0)
 DOOR = (0.18, 0.12, 0.08, 1.0)
 ROOF_TRIM = (0.20, 0.22, 0.24, 1.0)
 SIGN = (0.92, 0.66, 0.22, 1.0)
@@ -89,7 +89,7 @@ def material(name, colour):
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = colour
-    bsdf.inputs["Roughness"].default_value = 0.85
+    bsdf.inputs["Roughness"].default_value = 0.18 if name.endswith("_glass") else 0.85
     return mat
 
 
@@ -132,7 +132,7 @@ def right_panel(parts, name, x0, y0, z0, y1, z1):
 def add_windows(parts, name, w, d, h, style, x0=0.0, y0=0.0, z0=0.0):
     floors = max(1, int((h - 2.5) // 3.0))
     for floor in range(floors):
-        z = z0 + 3.0 + floor * 3.0
+        z = z0 + (1.0 if h < 4.5 else 3.0) + floor * 3.0
         if z > z0 + h - 1.2:
             break
         if style == "residential":

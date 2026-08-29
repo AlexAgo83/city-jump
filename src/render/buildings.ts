@@ -3,8 +3,12 @@ import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { Constants } from "@babylonjs/core/Engines/constants";
 import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
+import { RawCubeTexture } from "@babylonjs/core/Materials/Textures/rawCubeTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -17,7 +21,8 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
-const BUILDING_ASSET_VERSION = "2026-08-29-19";
+const BUILDING_ASSET_VERSION = "2026-08-29-22";
+let glassReflectionTexture: RawCubeTexture | null = null;
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 
@@ -532,6 +537,9 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
         emissiveColor?: Color3;
         environmentIntensity?: number;
         maxSimultaneousLights?: number;
+        reflectionTexture?: BaseTexture | null;
+        specularColor?: Color3;
+        specularPower?: number;
         subMaterials?: (Material | null)[];
       })
     | null;
@@ -545,11 +553,13 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
     return standard;
   }
   if (lit.name.includes("_glass") && lit.diffuseColor) {
-    lit.diffuseColor = new Color3(0.18, 0.32, 0.42);
-    lit.emissiveColor = new Color3(0.12, 0.22, 0.3);
+    lit.diffuseColor = new Color3(0.28, 0.38, 0.44);
+    lit.reflectionTexture = mirrorGlassReflection(scene);
+    if (lit.specularColor) lit.specularColor = new Color3(0.8, 0.9, 1);
+    if (typeof lit.specularPower === "number") lit.specularPower = 96;
   }
   if (lit.ambientColor) lit.ambientColor = Color3.Black();
-  if (lit.emissiveColor && !lit.name.includes("_glass")) lit.emissiveColor = Color3.Black();
+  if (lit.emissiveColor) lit.emissiveColor = Color3.Black();
   if (typeof lit.environmentIntensity === "number") lit.environmentIntensity = 0;
   if (typeof lit.maxSimultaneousLights === "number") lit.maxSimultaneousLights = 32;
   return lit;
@@ -557,9 +567,11 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
 
 function finishBuildingMaterial(material: StandardMaterial): void {
   if (material.name.includes("_glass")) {
-    material.diffuseColor = new Color3(0.35, 0.75, 0.95);
-    material.emissiveColor = new Color3(0.28, 0.55, 0.7);
-    material.disableLighting = true;
+    material.diffuseColor = new Color3(0.28, 0.38, 0.44);
+    material.emissiveColor = Color3.Black();
+    material.reflectionTexture = mirrorGlassReflection(material.getScene());
+    material.specularColor = new Color3(0.8, 0.9, 1);
+    material.specularPower = 96;
   } else if (material.name.includes("_trim")) {
     material.diffuseColor = new Color3(0.16, 0.17, 0.18);
     material.emissiveColor = new Color3(0.07, 0.075, 0.08);
@@ -577,6 +589,33 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.emissiveColor = new Color3(0.03, 0.05, 0.06);
     material.disableLighting = true;
   }
-  material.specularColor = Color3.Black();
+  if (!material.name.includes("_glass")) material.specularColor = Color3.Black();
   material.maxSimultaneousLights = 32;
+}
+
+function mirrorGlassReflection(scene: Scene): RawCubeTexture {
+  if (glassReflectionTexture) return glassReflectionTexture;
+  const face = (top: [number, number, number], bottom: [number, number, number]) =>
+    new Uint8Array([...top, ...top, ...bottom, ...bottom]);
+  glassReflectionTexture = new RawCubeTexture(
+    scene,
+    [
+      face([90, 125, 150], [28, 34, 38]),
+      face([70, 95, 115], [22, 28, 32]),
+      face([145, 180, 215], [85, 120, 150]),
+      face([35, 42, 38], [18, 22, 20]),
+      face([80, 110, 130], [24, 30, 34]),
+      face([65, 85, 105], [20, 26, 30]),
+    ],
+    2,
+    Constants.TEXTUREFORMAT_RGB,
+    Constants.TEXTURETYPE_UNSIGNED_BYTE,
+    false,
+    false,
+    Texture.BILINEAR_SAMPLINGMODE,
+  );
+  glassReflectionTexture.name = "building_glass_reflection";
+  glassReflectionTexture.coordinatesMode = Texture.CUBIC_MODE;
+  glassReflectionTexture.level = 0.55;
+  return glassReflectionTexture;
 }
