@@ -180,6 +180,33 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
   return { node: nodeId, arms, ring, roundabout: 0 };
 }
 
+/**
+ * A ring's elevation at any angle, taken from each arm's own corner elevation (where its
+ * carriageway actually is) rather than one flat plane, and blended smoothly around the circle
+ * from one arm to the next. Shared by the ring's own render geometry and the ground flattened
+ * under it -- both have to agree, or one shows through the other wherever they disagree.
+ * No arms at all falls back to the node's own elevation -- a flat disc has nothing else to read.
+ */
+export function ringElevation(arms: readonly JunctionArm[], fallback: number): (angle: number) => number {
+  const TAU = Math.PI * 2;
+  const norm = (a: number) => ((a % TAU) + TAU) % TAU;
+  const points = arms.map((arm) => ({ angle: norm(arm.angle), y: (arm.cornerLow.y + arm.cornerHigh.y) / 2 })).sort((l, r) => l.angle - r.angle);
+  if (points.length === 0) return () => fallback;
+  if (points.length === 1) return () => points[0]!.y;
+
+  return (angle: number) => {
+    const a = norm(angle);
+    for (let i = 0; i < points.length; i++) {
+      const p0 = points[i]!;
+      const p1 = points[(i + 1) % points.length]!;
+      const a1 = p1.angle > p0.angle ? p1.angle : p1.angle + TAU;
+      const aa = a >= p0.angle ? a : a + TAU;
+      if (aa <= a1) return p0.y + (p1.y - p0.y) * ((aa - p0.angle) / (a1 - p0.angle));
+    }
+    return points[0]!.y; // unreachable: the loop above always finds a bracketing pair
+  };
+}
+
 export function allJunctions(graph: RoadGraph): Map<NodeId, JunctionGeometry> {
   const out = new Map<NodeId, JunctionGeometry>();
   for (const node of graph.allNodes()) {

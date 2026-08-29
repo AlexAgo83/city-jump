@@ -1,8 +1,9 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
-import { allJunctions, junctionRadius } from "./junction";
+import { allJunctions, ringElevation } from "./junction";
 import type { BuildingParcel } from "./slots";
+import type { Vec3 } from "./vec";
 
 /** How far past the kerb the ground blends back to what it was. */
 export const EMBANKMENT = 10;
@@ -148,20 +149,25 @@ export class Heightmap implements Terrain {
       }
     }
 
-    // A junction polygon can reach further from the node than any single arm's own half-width
-    // stamp covers -- a wide-angle corner sits well off every incident road's centerline. Left
-    // alone, the ground there only gets the soft embankment blend, not a hard flatten, and pokes
-    // through the road/sidewalk surface at the corner farthest from every arm. A roundabout is
-    // the extreme case: no segment passes through its ring at all, so it got this treatment first;
-    // ordinary junctions need exactly the same disc, just sized by `junctionRadius` instead.
-    for (const nodeId of allJunctions(graph).keys()) {
+    // An ordinary junction's true footprint is the same irregular polygon it is rendered as
+    // (`junction.ring`), not a circle -- a wide-angle corner sits further from the node than any
+    // arm's own half-width, offset sideways as well as out, and a circular flatten sized off the
+    // widest arm's trim undercounts exactly that corner. Flattening the real polygon instead
+    // means the ground can never disagree with the surface drawn over it, whatever angle the
+    // roads meet at. A roundabout has no filler polygon (it is drawn as a ring, not a hull), so it
+    // keeps the circular stamp -- which already matches its perfectly circular render.
+    for (const [nodeId, junction] of allJunctions(graph)) {
       const node = graph.node(nodeId);
-      const radius = junctionRadius(graph, nodeId);
-      // Forced: an arm still samples and stamps itself right up to the node it ends at, so its
-      // (denser, more numerous) stamps land inside the junction's own disc too and would
-      // otherwise win the ordinary nearest-wins race almost everywhere except the exact centre,
-      // leaving jagged slivers of the arm's own grade poking through the disc.
-      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT, JUNCTION_PRIORITY);
+      if (junction.ring.length >= 3) {
+        // Forced: an arm still samples and stamps itself right up to the node it ends at, so its
+        // (denser, more numerous) stamps land inside the junction's own footprint too and would
+        // otherwise win the ordinary nearest-wins race almost everywhere except the exact centre,
+        // leaving jagged slivers of the arm's own grade poking through the polygon.
+        this.stampPolygon(junction.ring, EMBANKMENT, JUNCTION_PRIORITY);
+      } else {
+        const elevationAt = ringElevation(junction.arms, node.pos.y);
+        this.stamp(node.pos.x, node.pos.z, elevationAt, junction.roundabout, junction.roundabout + EMBANKMENT, JUNCTION_PRIORITY);
+      }
     }
 
     for (const parcel of parcels) this.stampParcel(parcel);
@@ -182,7 +188,14 @@ export class Heightmap implements Terrain {
    * junction's flat plateau out past where the road's own surface actually starts, leaving a
    * visible seam of raw terrain right at that boundary.
    */
-  private stamp(x: number, z: number, elevation: number, half: number, reach: number, priority = 0): void {
+  private stamp(
+    x: number,
+    z: number,
+    elevation: number | ((angle: number) => number),
+    half: number,
+    reach: number,
+    priority = 0,
+  ): void {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
 
@@ -198,11 +211,74 @@ export class Heightmap implements Terrain {
         if (claim >= this.claim[index]!) continue; // a nearer (or higher-priority) road already owns this cell
         this.claim[index] = claim;
 
-        const bed = elevation - ROAD_BED_DROP;
+        // A roundabout's ring varies its own elevation by angle (it matches each arm's actual
+        // approach height, see `ringElevation`), so the ground under it has to read the same
+        // function at the same angle, not one fixed elevation, or the flat parts of the ground
+        // sit above or below the ring wherever it dips or rises.
+        const bed = (typeof elevation === "function" ? elevation(Math.atan2(dz, dx)) : elevation) - ROAD_BED_DROP;
         if (distance <= half) {
           this.current[index] = bed;
         } else {
           const t = smoothstep((distance - half) / (reach - half));
+          this.current[index] = bed + (this.base[index]! - bed) * t;
+        }
+      }
+    }
+  }
+
+  /**
+   * Flattens the ground under an arbitrary polygon -- a junction's actual rendered footprint --
+   * exactly, blending outward over `reach` beyond its boundary. Matches `junctionMesh`'s own
+   * triangle fan from the polygon's centroid vertex for vertex, so a corner can never come out
+   * higher on the ground than it is drawn on the road.
+   */
+  private stampPolygon(ring: readonly Vec3[], reach: number, priority: number): void {
+    if (ring.length < 3) return;
+    let cx = 0;
+    let cy = 0;
+    let cz = 0;
+    for (const p of ring) {
+      cx += p.x;
+      cy += p.y;
+      cz += p.z;
+    }
+    cx /= ring.length;
+    cy /= ring.length;
+    cz /= ring.length;
+
+    let minX = cx;
+    let maxX = cx;
+    let minZ = cz;
+    let maxZ = cz;
+    for (const p of ring) {
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minZ = Math.min(minZ, p.z);
+      maxZ = Math.max(maxZ, p.z);
+    }
+
+    const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
+    const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
+
+    for (let iz = lo(minZ); iz <= hi(maxZ); iz++) {
+      for (let ix = lo(minX); ix <= hi(maxX); ix++) {
+        const x = this.worldX(ix);
+        const z = this.worldZ(iz);
+        const { distance, y: edgeY } = nearestOnRingXZ(ring, x, z);
+        const inside = pointInRingXZ(ring, x, z);
+        if (!inside && distance > reach) continue;
+
+        const index = iz * this.count + ix;
+        const claim = inside ? -distance - priority : distance;
+        if (claim >= this.claim[index]!) continue;
+        this.claim[index] = claim;
+
+        if (inside) {
+          const y = ringInteriorY(ring, cx, cy, cz, x, z);
+          this.current[index] = y - ROAD_BED_DROP;
+        } else {
+          const bed = edgeY - ROAD_BED_DROP;
+          const t = smoothstep(distance / reach);
           this.current[index] = bed + (this.base[index]! - bed) * t;
         }
       }
@@ -243,6 +319,74 @@ const smoothstep = (t: number): number => {
   const c = Math.min(1, Math.max(0, t));
   return c * c * (3 - 2 * c);
 };
+
+/** Ray-casting point-in-polygon test over the ground plane. Works for any simple ring. */
+function pointInRingXZ(ring: readonly Vec3[], x: number, z: number): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i]!;
+    const b = ring[j]!;
+    if (a.z > z !== b.z > z && x < ((b.x - a.x) * (z - a.z)) / (b.z - a.z) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+/** Nearest point on segment ab to (x, z), with the elevation that point of the segment carries. */
+function nearestOnSegmentXZ(a: Vec3, b: Vec3, x: number, z: number): { distance: number; y: number } {
+  const abx = b.x - a.x;
+  const abz = b.z - a.z;
+  const lenSq = abx * abx + abz * abz;
+  const t = lenSq > 1e-9 ? Math.min(1, Math.max(0, ((x - a.x) * abx + (z - a.z) * abz) / lenSq)) : 0;
+  const px = a.x + abx * t;
+  const pz = a.z + abz * t;
+  return { distance: Math.hypot(x - px, z - pz), y: a.y + (b.y - a.y) * t };
+}
+
+/** Nearest point on the ring's boundary to (x, z) -- the edge the ground blends from outside it. */
+function nearestOnRingXZ(ring: readonly Vec3[], x: number, z: number): { distance: number; y: number } {
+  let best = { distance: Infinity, y: 0 };
+  for (let i = 0; i < ring.length; i++) {
+    const candidate = nearestOnSegmentXZ(ring[i]!, ring[(i + 1) % ring.length]!, x, z);
+    if (candidate.distance < best.distance) best = candidate;
+  }
+  return best;
+}
+
+/**
+ * Elevation at (x, z), known to be inside the ring, read off the same centroid triangle fan
+ * `junctionMesh` renders the polygon as -- so the ground under a corner comes out at exactly the
+ * height the corner's own triangle draws there, not the ring's average.
+ */
+function ringInteriorY(ring: readonly Vec3[], cx: number, cy: number, cz: number, x: number, z: number): number {
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i]!;
+    const b = ring[(i + 1) % ring.length]!;
+    const bary = barycentricXZ(cx, cz, a.x, a.z, b.x, b.z, x, z);
+    if (bary) return cy * bary[0] + a.y * bary[1] + b.y * bary[2];
+  }
+  return cy; // the fan should always cover an interior point; the centroid height is the safe fallback
+}
+
+/** Barycentric weights of (px, pz) in triangle (x0,z0)-(x1,z1)-(x2,z2), or null if outside it. */
+function barycentricXZ(
+  x0: number,
+  z0: number,
+  x1: number,
+  z1: number,
+  x2: number,
+  z2: number,
+  px: number,
+  pz: number,
+): [number, number, number] | null {
+  const denom = (z1 - z2) * (x0 - x2) + (x2 - x1) * (z0 - z2);
+  if (Math.abs(denom) < 1e-9) return null;
+  const w0 = ((z1 - z2) * (px - x2) + (x2 - x1) * (pz - z2)) / denom;
+  const w1 = ((z2 - z0) * (px - x2) + (x0 - x2) * (pz - z2)) / denom;
+  const w2 = 1 - w0 - w1;
+  const slack = 1e-6;
+  if (w0 < -slack || w1 < -slack || w2 < -slack) return null;
+  return [w0, w1, w2];
+}
 
 /**
  * Gentle rolling ground. Deliberately not steeper than the drawing rules allow over the

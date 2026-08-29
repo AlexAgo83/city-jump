@@ -13,6 +13,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
+  ringElevation,
   segmentTrims,
   widestIncidentRoad,
   type JunctionArm,
@@ -266,22 +267,31 @@ function roundaboutMeshes(
   // A ring between footpaths is paved, like the paths themselves.
   const onFoot = reference?.pedestrian === true;
 
-  const ring = MeshBuilder.CreateLathe(
-    `roundabout_${junction.node}`,
-    { shape: [new Vector3(inner, 0, 0), new Vector3(outer, 0, 0)], tessellation: 40, sideOrientation: MeshClass.DOUBLESIDE },
-    scene,
-  );
-  // A little more clearance than an ordinary road: the ring's disc is much wider than any
-  // single road is, so it has more terrain to clear underneath it, and a couple of centimetres
-  // extra here is cheap insurance against whatever the flatten still leaves imperfect.
-  ring.position.set(centre.x, centre.y + ROAD_LIFT + 0.15, centre.z);
+  // A flat ring at one elevation only agrees with every road meeting it if the ground is flat
+  // too -- on a slope, an arm arrives at its own elevation, not the node's, and a flat ring can
+  // come out above or below it, showing as a gap right at the seam. Reading the ring's height
+  // off the same per-arm elevations the arms' own corners already carry, blended smoothly
+  // between one arm and the next, means the ring always meets every road exactly where it is.
+  const elevationAt = ringElevation(junction.arms, centre.y);
+
+  const ringPoints = (radius: number): Vector3[] =>
+    Array.from({ length: 41 }, (_, i) => {
+      const angle = (i / 40) * Math.PI * 2;
+      // A little more clearance than an ordinary road: the ring's disc is much wider than any
+      // single road is, so it has more terrain to clear underneath it, and a couple of
+      // centimetres extra here is cheap insurance against whatever the flatten still leaves
+      // imperfect.
+      const y = elevationAt(angle) + ROAD_LIFT + 0.15;
+      return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
+    });
+  const ring = roadStripMesh(scene, `roundabout_${junction.node}`, ringPoints(inner), ringPoints(outer));
   ring.material = onFoot ? paving : surface;
   ring.isPickable = false;
 
   const circle = (radius: number): Vector3[] =>
     Array.from({ length: 41 }, (_, i) => {
       const angle = (i / 40) * Math.PI * 2;
-      return new Vector3(centre.x + Math.cos(angle) * radius, centre.y + MARK_LIFT, centre.z + Math.sin(angle) * radius);
+      return new Vector3(centre.x + Math.cos(angle) * radius, elevationAt(angle) + MARK_LIFT, centre.z + Math.sin(angle) * radius);
     });
 
   const lanes = graph.node(junction.node).roundaboutLanes;
@@ -290,13 +300,14 @@ function roundaboutMeshes(
     ring,
     // A footway ring outside it, but broken where the arms come in: a full lathe would lay a band
     // straight across every road meeting the roundabout. A path is all footway already.
-    ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, paving)),
+    ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, elevationAt, paving)),
     styledLine(scene, `roundabout_kerb_out_${junction.node}`, circle(outer), kerb),
     styledLine(scene, `roundabout_kerb_in_${junction.node}`, circle(inner), kerb),
     // A second lane's own divider, the same colour as a straight road's centre line.
     ...(lanes === 2 && !onFoot ? [styledLine(scene, `roundabout_lane_${junction.node}`, circle((inner + outer) / 2), laneColor)] : []),
   ];
 }
+
 
 /**
  * Closes the footway around an ordinary junction. The junction polygon already has exactly the
@@ -399,6 +410,7 @@ function footwayArcs(
   junction: JunctionGeometry,
   centre: { x: number; y: number; z: number },
   outer: number,
+  elevationAt: (angle: number) => number,
   paving: StandardMaterial,
 ): Mesh[] {
   const blocked = junction.arms
@@ -410,7 +422,6 @@ function footwayArcs(
   if (blocked.length === 0) return [];
 
   const out: Mesh[] = [];
-  const y = centre.y + SIDEWALK_LIFT;
   for (const [i, arm] of blocked.entries()) {
     const next = blocked[(i + 1) % blocked.length]!;
     const from = arm.angle + arm.spread;
@@ -425,6 +436,7 @@ function footwayArcs(
       const angle = from + ((to - from) * s) / steps;
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
+      const y = elevationAt(angle) + SIDEWALK_LIFT;
       near.push(new Vector3(centre.x + cos * outer, y, centre.z + sin * outer));
       far.push(new Vector3(centre.x + cos * (outer + SIDEWALK_WIDTH), y, centre.z + sin * (outer + SIDEWALK_WIDTH)));
     }

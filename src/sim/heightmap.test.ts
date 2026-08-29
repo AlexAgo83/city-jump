@@ -5,6 +5,7 @@ import { setTerrain, flatTerrain, terrainHeight } from "./terrain";
 import { allSlots, buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { RULES } from "./rules";
+import { junctionGeometry, ringElevation } from "./junction";
 
 const map = () =>
   new Heightmap({ size: 600, cell: 4, generator: (x, z) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70) });
@@ -60,6 +61,73 @@ describe("heightmap", () => {
     // Just past the embankment it is back to the original ground.
     const edge = h.heightAt(0, 4 + EMBANKMENT + 8);
     expect(Math.abs(edge - h.heightAt(0, 4 + EMBANKMENT + 8))).toBeLessThan(1e-9);
+  });
+
+  it("follows a roundabout ring's own per-arm elevation, not one flat plane under it", () => {
+    const h = map();
+    setTerrain(h);
+    const g = new RoadGraph();
+    const hub = g.addNode(0, 0);
+    // Four arms around a roundabout, at bearings uneven enough that a flat ring (the node's own
+    // elevation) would sit above the ground at some angles and below it at others: the ring
+    // itself now varies per arm (see `ringElevation`), and the ground has to track the very same
+    // function, or one shows through the other wherever they disagree.
+    const bearings = [2, 91, 183, 268];
+    for (const deg of bearings) {
+      const r = (deg * Math.PI) / 180;
+      const end = g.addNode(Math.cos(r) * 260, Math.sin(r) * 260);
+      g.addSegment(hub, end, v3(Math.cos(r) * 130, 0, Math.sin(r) * 130));
+    }
+    g.setRoundabout(hub, true);
+    h.conformToRoads(g);
+
+    const junction = junctionGeometry(g, hub);
+    expect(junction.roundabout).toBeGreaterThan(0);
+    const elevationAt = ringElevation(junction.arms, g.node(hub).pos.y);
+    for (let deg = 0; deg < 360; deg += 15) {
+      const angle = (deg * Math.PI) / 180;
+      const radius = junction.roundabout * 0.7;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      // Never above the ring's own surface at that angle: that is what would poke through.
+      expect(h.heightAt(x, z)).toBeLessThan(elevationAt(angle));
+    }
+  });
+
+  it("flattens a junction's true corner, not just a circle sized off the widest arm's trim", () => {
+    const h = map();
+    setTerrain(h);
+    const g = new RoadGraph();
+    const hub = g.addNode(0, 0);
+    // A wide avenue and a narrow street meeting at a sharp angle: the ring corner where they
+    // meet sits sideways as well as out from the node, well past a circle sized off either
+    // arm's own trim distance -- exactly the case a radial approximation undercounts.
+    const wideEnd = g.addNode(300, 0);
+    const angle = Math.PI / 8;
+    const narrowEnd = g.addNode(300 * Math.cos(angle), 300 * Math.sin(angle));
+    g.addSegment(hub, wideEnd, v3(150, 0, 0), "avenue");
+    g.addSegment(hub, narrowEnd, v3(150 * Math.cos(angle), 0, 150 * Math.sin(angle)));
+    h.conformToRoads(g);
+
+    const junction = junctionGeometry(g, hub);
+    expect(junction.ring.length).toBeGreaterThanOrEqual(3);
+    let cx = 0;
+    let cz = 0;
+    for (const p of junction.ring) {
+      cx += p.x;
+      cz += p.z;
+    }
+    cx /= junction.ring.length;
+    cz /= junction.ring.length;
+
+    for (const corner of junction.ring) {
+      // A touch inboard of the exact vertex, not on it: what matters is that the ground never
+      // pokes through the polygon anywhere inside it, corners included -- not matching a bilinear
+      // sample to sub-centimetre precision against an analytic triangle fan.
+      const x = cx + (corner.x - cx) * 0.9;
+      const z = cz + (corner.z - cz) * 0.9;
+      expect(h.heightAt(x, z)).toBeLessThan(corner.y);
+    }
   });
 
   it("restores the ground when the road is removed", () => {
