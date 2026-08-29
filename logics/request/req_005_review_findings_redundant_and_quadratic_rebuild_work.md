@@ -7,7 +7,7 @@
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:33:27
+> Indicators reviewed: 2026-08-29 10:35:13
 
 # AI Context
 - Summary: Code review of `rebuild()` and its downstream calls found one fully wasted computation (`conformToRoads` runs twice), one recent change that does the right thing at far more than the necessary cost (the per-junction ground-flatten loop added in `aa8167e`), and one quadratic tree-placement scan with no spatial index. None overlap the reliability findings already captured in `req_003`/`req_004`.

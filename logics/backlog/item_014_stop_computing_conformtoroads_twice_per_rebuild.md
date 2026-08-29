@@ -1,14 +1,14 @@
 ## item_014_stop_computing_conformtoroads_twice_per_rebuild - Stop computing conformToRoads twice per rebuild
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:33:44
+> Indicators reviewed: 2026-08-29 10:35:14
 
 # AI Context
 - Summary: `rebuild()` calls `heightmap.conformToRoads()` twice; the first call's output is fully discarded by the second, and nothing reads it in between.
@@ -42,8 +42,8 @@
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`
-- Primary task(s): (none yet)
+- Request: `req_005_review_findings_redundant_and_quadratic_rebuild_work`
+- Primary task(s): `task_005_stop_computing_conformtoroads_twice_per_rebuild`
 
 # Priority
 - Priority: Low
@@ -53,6 +53,7 @@
 - Hybrid rationale: Derived from request `req_005_review_findings_redundant_and_quadratic_rebuild_work` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`.
 - Generated locally by logics-manager.
+- Task `task_005_stop_computing_conformtoroads_twice_per_rebuild` was finished via `logics-manager flow finish task` on 2026-08-29.
 
 # Tasks
 - `task_005_stop_computing_conformtoroads_twice_per_rebuild`
