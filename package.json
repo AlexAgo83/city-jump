@@ -12,7 +12,7 @@
     "typecheck": "tsc",
     "lint": "npm run typecheck",
     "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc",
-    "ci": "npm test && npm run test:architecture && npm run build && npm run test:e2e && npm run logics:validate",
+    "ci": "npm test && npm run test:architecture && npm run build && npm run logics:validate",
     "verify": "npm run test:visual",
     "check": "npm run test:e2e"
   },

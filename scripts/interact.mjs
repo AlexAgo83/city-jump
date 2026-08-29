@@ -31,14 +31,38 @@ page.on("console", (m) => {
   if (m.type() === "error" || /needs to be imported/.test(text)) noise.push(text);
 });
 
+const nextFrame = async () => {
+  const frame = await page.evaluate(() => window.cityjump?._scene?.getFrameId?.() ?? 0);
+  await page.waitForFunction((start) => (window.cityjump?._scene?.getFrameId?.() ?? 0) > start, frame, { timeout: 5_000 });
+};
+const waitForApp = async () => {
+  await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+  await nextFrame();
+};
+const waitCameraStill = () =>
+  page.waitForFunction(
+    () => {
+      const camera = window.cityjump._scene.activeCamera;
+      const key = `${camera.alpha.toFixed(4)}:${camera.beta.toFixed(4)}:${camera.target.x.toFixed(2)}:${camera.target.z.toFixed(2)}`;
+      const stable = window.__cityjumpCameraKey === key;
+      window.__cityjumpCameraKey = key;
+      return stable;
+    },
+    null,
+    { polling: 80, timeout: 5_000 },
+  );
+// Only for checks that need real elapsed time: animation, movement, held keys, or debounced autosave.
+const realTime = (ms) => page.waitForTimeout(ms);
+
 await page.goto(url, { waitUntil: "load" });
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(600);
+await waitForApp();
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
 const previewVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false);
+const waitForPreview = () =>
+  page.waitForFunction(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false, null, { timeout: 5_000 });
 const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
 const buildableGridCells = () =>
@@ -240,7 +264,7 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.value = "20";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForTimeout(60);
+await nextFrame();
 const eveningSun = await sunState();
 const eveningSky = await skyState();
 check(
@@ -254,7 +278,7 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.value = "23";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForTimeout(60);
+await nextFrame();
 const nightSky = await skyState();
 check("the skybox shows the night moon", nightSky.moon && !nightSky.sun && nightSky.brightness < eveningSky.brightness);
 await page.locator("#sun-hour").evaluate((input) => {
@@ -268,7 +292,7 @@ await page.locator("#sun-hour").evaluate((input) => {
 });
 check("tree ground shadows follow the sun direction", Math.abs((await firstTreeShadowX()) - morningTreeShadowX) > 2);
 await page.locator("#sun-auto").check();
-await page.waitForTimeout(350);
+await realTime(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
 // The cycle advances by real elapsed time between rendered frames, not by this wait's length --
 // a single slow/stalled frame (a loaded CI runner, a GC pause) can jump it far more than a fast
@@ -279,7 +303,7 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.value = "21.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForTimeout(350);
+await realTime(350);
 check("the automatic sun cycle skips from 22:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
 
 // With short night off the clock wraps through 24 instead, so the whole night is playable.
@@ -288,7 +312,7 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.value = "21.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForTimeout(350);
+await realTime(350);
 const throughNight = await page.locator("#sun-time").textContent();
 check("with short night off the cycle runs past 22:00 into the night", throughNight.startsWith("22:"), throughNight);
 await page.locator("#short-night").check();
@@ -304,15 +328,15 @@ await page.locator("#sun-hour").evaluate((input) => {
 
 const click = async (x, y) => {
   await page.mouse.move(x, y);
-  await page.waitForTimeout(90);
+  await nextFrame();
   await page.mouse.click(x, y);
-  await page.waitForTimeout(160);
+  await nextFrame();
 };
 
 await click(260, 320);
 check("select mode leaves left-click to the camera", (await stats()).segments === 0);
 const oceanBefore = await oceanSampleY();
-await page.waitForTimeout(250);
+await realTime(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
 await page.locator('[data-tool="roads"]').click();
 await page.locator('input[name="road-shape"][value="curve"]').check();
@@ -368,7 +392,7 @@ await page.locator("#show-buildings").check();
 check("generated buildings can be restored", (await stats()).buildings === drawn.buildings);
 check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
 const beforeTraffic = await trafficPositions();
-await page.waitForTimeout(250);
+await realTime(250);
 const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 const gridCells = await buildableGridCells();
@@ -393,7 +417,7 @@ check(
 );
 
 await page.mouse.move(702, 360);
-await page.waitForTimeout(100);
+await nextFrame();
 check("an existing node is highlighted inside its snap radius", await nodeHighlighted());
 
 // A second road ending on the first has to split it and make a junction.
@@ -433,7 +457,7 @@ const walkerPositions = () =>
       .map((mesh) => [mesh.position.x, mesh.position.z]),
   );
 const walkersBefore = await walkerPositions();
-await page.waitForTimeout(900);
+await realTime(900);
 const walkersAfter = await walkerPositions();
 check(
   "pedestrians walk along the path",
@@ -513,7 +537,7 @@ await page.locator('input[name="road-shape"][value="curve"]').check();
 
 // A roundabout sits on a node and pulls every road back to its ring.
 await page.locator('input[name="road-shape"][value="roundabout"]').check();
-await page.waitForTimeout(150);
+await nextFrame();
 check("the buildable grid stays visible in roundabout mode", await buildableGridVisible());
 // Nodes are not meshes, so project the junction's world position to a screen point to click it.
 const junctionScreen = await page.evaluate(() => {
@@ -556,27 +580,25 @@ check("clicking it again removes the roundabout", (await stats()).roundabouts ==
 await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
 
 // It has to survive a save.
-await page.waitForTimeout(2400);
+await realTime(2400);
 await page.reload({ waitUntil: "load" });
-await page.waitForTimeout(1500);
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(800);
+await waitForApp();
 check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);
 await page.locator('[data-tool="roads"]').click();
 await page.locator('input[name="road-shape"][value="straight"]').check();
-await page.waitForTimeout(150);
+await nextFrame();
 
 // Left-drag also orbits the camera, so a drag in a build mode must not be taken for a click.
 const drag = async (x0, y0, x1, y1) => {
   await page.mouse.move(x0, y0);
-  await page.waitForTimeout(60);
+  await nextFrame();
   await page.mouse.down();
   for (let i = 1; i <= 6; i++) {
     await page.mouse.move(x0 + ((x1 - x0) * i) / 6, y0 + ((y1 - y0) * i) / 6);
-    await page.waitForTimeout(35);
+    await nextFrame();
   }
   await page.mouse.up();
-  await page.waitForTimeout(300);
+  await nextFrame();
 };
 const beforeDrags = await stats();
 const cameraBeforeDrag = await page.evaluate(() => {
@@ -586,6 +608,7 @@ const cameraBeforeDrag = await page.evaluate(() => {
 // Two drags: if the first were taken as a click it would start a segment, and the second finish it.
 await drag(500, 400, 760, 330);
 await drag(760, 330, 520, 420);
+await waitCameraStill();
 const cameraAfterDrag = await page.evaluate(() => {
   const camera = window.cityjump._scene.activeCamera;
   return [camera.alpha, camera.beta];
@@ -620,28 +643,34 @@ const highlightRadius = () =>
     const mesh = window.cityjump._scene.getMeshByName("bulldoze-highlight");
     return mesh?.isEnabled() ? mesh.scaling.x : null;
   });
+const waitForHighlight = () =>
+  page.waitForFunction(() => window.cityjump._scene.getMeshByName("bulldoze-highlight")?.isEnabled() ?? false, null, {
+    timeout: 5_000,
+  });
 
 await page.locator('[data-tool="bulldoze"]').click();
-await page.waitForTimeout(200);
+await nextFrame();
 // A tree standing on a road: the tree is what the pointer is on, so the tree is what goes.
 // Planted at a screen point the suite already knows has road under it, so this does not depend
 // on where the camera happens to be looking.
 const OVER_ROAD = { x: 805, y: 465 };
 await page.locator('[data-tool="nature"]').click();
 await page.locator('input[name="plant-mode"][value="plant"]').check();
-await page.waitForTimeout(150);
+await nextFrame();
 const beforePlant = await stats();
 await click(OVER_ROAD.x, OVER_ROAD.y);
 check("a tree can be planted over a road", (await stats()).trees === beforePlant.trees + 1);
 
 await page.locator('[data-tool="bulldoze"]').click();
-await page.waitForTimeout(200);
+await nextFrame();
+await page.mouse.move(20, 20);
+await nextFrame();
 await page.mouse.move(OVER_ROAD.x, OVER_ROAD.y);
-await page.waitForTimeout(220);
+await waitForHighlight();
 check("hovering a tree with the bulldozer highlights it", (await highlightRadius()) !== null);
 const beforeFell = await stats();
 await page.mouse.click(OVER_ROAD.x, OVER_ROAD.y);
-await page.waitForTimeout(400);
+await page.waitForFunction((trees) => window.cityjump.stats().trees === trees - 1, beforeFell.trees, { timeout: 5_000 });
 const afterFell = await stats();
 check(
   "the tree goes before the road it stands on",
@@ -660,15 +689,15 @@ const ringNode = await page.evaluate(() => {
   window.cityjump.rebuild();
   return node.id;
 });
-await page.waitForTimeout(500);
+await nextFrame();
 const ringPoint = await screenPoint(`window.cityjump._graph.node(${ringNode}).pos`);
 await page.mouse.move(Math.round(ringPoint.x), Math.round(ringPoint.y));
-await page.waitForTimeout(220);
+await waitForHighlight();
 const ringHighlight = await highlightRadius();
 check("hovering a roundabout highlights the whole ring", ringHighlight > 8, `${ringHighlight?.toFixed(1)} m`);
 const beforeRing = await stats();
 await page.mouse.click(Math.round(ringPoint.x), Math.round(ringPoint.y));
-await page.waitForTimeout(500);
+await page.waitForFunction(() => window.cityjump.stats().roundabouts === 0, null, { timeout: 5_000 });
 const afterRing = await stats();
 check(
   "the bulldozer removes the roundabout, leaving its roads",
@@ -676,7 +705,7 @@ check(
   `${afterRing.roundabouts} roundabouts, ${afterRing.segments}/${beforeRing.segments} segments`,
 );
 await page.locator('[data-tool="roads"]').click();
-await page.waitForTimeout(150);
+await nextFrame();
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.
 await click(200, 600);
@@ -687,11 +716,16 @@ check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedT
 check("a refused road is not added", (await stats()).segments === walked.segments);
 
 await page.locator('[data-tool="bulldoze"]').click();
+await page.mouse.move(20, 20);
+await nextFrame();
 await page.mouse.move(805, 465);
-await page.waitForTimeout(100);
+await waitForPreview();
 check("the bulldozer highlights a road under the pointer", await previewVisible());
 const beforeBulldoze = await stats();
 await click(805, 465);
+await page.waitForFunction((segments) => window.cityjump.stats().segments === segments - 1, beforeBulldoze.segments, {
+  timeout: 5_000,
+});
 const afterBulldoze = await stats();
 check("the bulldozer removes the clicked road", afterBulldoze.segments === beforeBulldoze.segments - 1);
 
@@ -707,12 +741,10 @@ await page.evaluate(() => {
   window.localStorage.setItem("cityjump.saves", JSON.stringify(["Rugged"]));
 });
 await page.reload({ waitUntil: "load" });
-await page.waitForTimeout(1500);
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(800);
+await waitForApp();
 await page.locator("#save-slot").selectOption("Rugged");
 await page.locator("#save-load").click();
-await page.waitForTimeout(600);
+await nextFrame();
 const terrainRelief = await page.evaluate(() => {
   const bounds = window.cityjump._scene.getMeshByName("ground").getBoundingInfo().boundingBox;
   return bounds.maximumWorld.y - bounds.minimumWorld.y;
@@ -720,7 +752,7 @@ const terrainRelief = await page.evaluate(() => {
 check("a city saved on the rugged map loads back onto it", terrainRelief > 20, `${terrainRelief.toFixed(1)} m of relief`);
 check("a save restores its hour of day", (await page.locator("#sun-time").textContent()).startsWith("22:"));
 await page.evaluate(() => window.cityjump.demoNetwork());
-await page.waitForTimeout(400);
+await nextFrame();
 const ruggedNetwork = await stats();
 check("roads still render on rugged terrain", ruggedNetwork.segments > 0);
 check(
@@ -736,14 +768,14 @@ const cameraTarget = () =>
   });
 const holdKey = async (key) => {
   await page.keyboard.down(key);
-  await page.waitForTimeout(400);
+  await realTime(400);
   await page.keyboard.up(key);
-  await page.waitForTimeout(100);
+  await nextFrame();
 };
 
 // alpha = -PI/2 puts the camera at -Z looking towards +Z, so "forward" has to be +Z.
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, -Math.PI / 2));
-await page.waitForTimeout(300);
+await nextFrame();
 const panStart = await cameraTarget();
 await holdKey("ArrowUp");
 const panForward = await cameraTarget();
@@ -755,7 +787,7 @@ check("arrow right strafes sideways", panStrafe.x > panForward.x + 50, `x ${panS
 
 // Turn the camera a quarter turn: "forward" must follow it onto another world axis.
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, 0));
-await page.waitForTimeout(300);
+await nextFrame();
 const turnedStart = await cameraTarget();
 await holdKey("ArrowUp");
 const turnedForward = await cameraTarget();
@@ -767,7 +799,7 @@ check(
 
 // Nature tool: plant, spray, and clear with the bulldozer.
 await page.evaluate(() => { window.cityjump.reset(); window.cityjump.camera(600, Math.PI / 4, -Math.PI / 2); });
-await page.waitForTimeout(400);
+await nextFrame();
 await page.locator('[data-tool="nature"]').click();
 check("the nature tool shows its planting options", !(await page.locator("#nature-options").isHidden()));
 check("the nature tool hides the road options", await page.locator("#road-options").isHidden());
@@ -791,7 +823,7 @@ const speciesCounts = () =>
 const beforeSpecies = await speciesCounts();
 for (const [index, species] of ["oak", "apple", "palm"].entries()) {
   await page.locator("#tree-species").selectOption(species);
-  await page.waitForTimeout(120);
+  await nextFrame();
   await click(560 + index * 90, 350);
 }
 const afterSpecies = await speciesCounts();
@@ -801,12 +833,12 @@ check(
   JSON.stringify(afterSpecies),
 );
 await page.locator("#tree-species").selectOption("fir");
-await page.waitForTimeout(120);
+await nextFrame();
 
 await page.locator('input[name="plant-mode"][value="spray"]').check();
-await page.waitForTimeout(150);
+await nextFrame();
 await page.mouse.move(420, 430);
-await page.waitForTimeout(200);
+await nextFrame();
 const brush = await page.evaluate(() => {
   const mesh = window.cityjump._scene.getMeshByName("spray-ring");
   if (!mesh?.isEnabled()) return null;
@@ -825,10 +857,10 @@ const beforeStroke = await page.evaluate(() => {
 await page.mouse.down();
 for (let x = 420; x <= 700; x += 20) {
   await page.mouse.move(x, 430);
-  await page.waitForTimeout(45);
+  await nextFrame();
 }
 await page.mouse.up();
-await page.waitForTimeout(500);
+await nextFrame();
 const afterStroke = await page.evaluate(() => {
   const camera = window.cityjump._scene.activeCamera;
   return [camera.alpha, camera.beta];
@@ -839,7 +871,7 @@ const sprayed = await treeCount();
 check("a spray stroke scatters trees across the brush", sprayed > oneMore + 10, `${oneMore} -> ${sprayed}`);
 
 await page.locator('[data-tool="bulldoze"]').click();
-await page.waitForTimeout(150);
+await nextFrame();
 check(
   "the brush ring is hidden outside spray mode",
   !(await page.evaluate(() => window.cityjump._scene.getMeshByName("spray-ring")?.isEnabled())),
@@ -848,21 +880,21 @@ await click(500, 350);
 const cleared = await treeCount();
 check("the bulldozer clears a tree where there is no road", cleared === sprayed - 1, `${sprayed} -> ${cleared}`);
 await page.locator('[data-tool="select"]').click();
-await page.waitForTimeout(150);
+await nextFrame();
 
 await page.evaluate(() => window.cityjump.demoNetwork());
-await page.waitForTimeout(400);
+await nextFrame();
 const built = await stats();
 page.once("dialog", (dialog) => dialog.accept("Testville"));
 await page.locator("#save-store").click();
-await page.waitForTimeout(300);
+await nextFrame();
 const slotNames = await page.locator("#save-slot option").allTextContents();
 check("a saved city appears in the picker", slotNames.includes("Testville"));
 
 await page.evaluate(() => window.cityjump.reset());
-await page.waitForTimeout(300);
+await nextFrame();
 await page.locator("#save-load").click();
-await page.waitForTimeout(600);
+await nextFrame();
 const loaded = await stats();
 check("loading restores every segment", loaded.segments === built.segments, `${loaded.segments}/${built.segments}`);
 // Replaying onto pristine terrain shifts road heights slightly, so parcel counts move a little.
@@ -870,9 +902,9 @@ check("loading restores every segment", loaded.segments === built.segments, `${l
 const drift = Math.abs(loaded.buildings - built.buildings) / built.buildings;
 check("loading lands within 2% of the original building count", drift < 0.02, `${(drift * 100).toFixed(2)}%`);
 await page.evaluate(() => window.cityjump.reset());
-await page.waitForTimeout(200);
+await nextFrame();
 await page.locator("#save-load").click();
-await page.waitForTimeout(600);
+await nextFrame();
 const reloaded = await stats();
 check(
   "loading twice gives exactly the same city",
@@ -880,12 +912,10 @@ check(
   `${reloaded.buildings} vs ${loaded.buildings}`,
 );
 
-await page.waitForTimeout(2400); // let the debounced autosave land
+await realTime(2400); // let the debounced autosave land
 const beforeReload = await stats();
 await page.reload({ waitUntil: "load" });
-await page.waitForTimeout(1500);
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(800);
+await waitForApp();
 check(
   "a page reload resumes the autosaved city",
   (await stats()).segments === beforeReload.segments,
@@ -902,9 +932,7 @@ await page.evaluate(() => {
   window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
 });
 await page.reload({ waitUntil: "load" });
-await page.waitForTimeout(1500);
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(800);
+await waitForApp();
 check(
   "a city saved by an older build still loads",
   (await stats()).segments === beforeReload.segments,
@@ -913,9 +941,7 @@ check(
 
 await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
 await page.reload({ waitUntil: "load" });
-await page.waitForTimeout(1500);
-await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
-await page.waitForTimeout(600);
+await waitForApp();
 check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === 0);
 
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));

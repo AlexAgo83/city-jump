@@ -85,7 +85,10 @@ npm run logics:validate
 npm run ci
 ```
 
-`test:e2e`, `test:visual`, and `ci` start or reuse the local Vite server. On 2026-08-29,
+`ci` is the fast push gate. `test:e2e` and `test:visual` start or reuse the local Vite
+server. GitHub Actions runs the browser interaction suite in the separate
+`Browser Interaction` workflow, manually with `workflow_dispatch` or on its weekly
+schedule. On 2026-08-29,
 `node scripts/with-dev-server.mjs scripts/shot.mjs /tmp/city-jump-city.png city` rendered
 237 roads, 126 junctions, 1,688 buildings, 237 cars, and 474 pedestrians at 50 fps on an
 Apple M3 Pro using ANGLE Metal.

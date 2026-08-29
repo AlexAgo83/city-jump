@@ -30,13 +30,16 @@ request:
 npm run ci
 ```
 
-Browser checks require a running development server:
+Browser checks run locally through the shared dev-server wrapper:
 
 ```bash
-npm run dev
 npm run test:e2e
 npm run test:visual
 ```
+
+GitHub Actions keeps browser coverage out of the push gate. Use the `Browser
+Interaction` workflow's manual trigger when a pull request touches rendering, browser
+controls, persistence, or road drawing; it also runs on its weekly schedule.
 
 ## Pull Requests
 

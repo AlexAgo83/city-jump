@@ -1,13 +1,14 @@
 ## item_018_move_the_browser_interaction_suite_off_the_push_trigger - Move the browser interaction suite off the push trigger
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:39:44
 
 # AI Context
 - Summary: The push-triggered workflow runs the full ~10-25 minute browser suite on every push, which the operator does not have GitHub Actions quota for. Split it: push keeps the fast gate only; a separate on-demand/scheduled workflow owns the browser suite.

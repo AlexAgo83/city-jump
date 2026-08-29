@@ -1,13 +1,14 @@
 ## item_019_replace_fixed_ui_settle_sleeps_with_condition_polling_in_the_interaction_script - Replace fixed UI-settle sleeps with condition polling in the interaction script
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:39:44
 
 # AI Context
 - Summary: Dozens of `page.waitForTimeout(...)` calls in `scripts/interact.mjs` stand in for "wait until the UI has settled" and spend that fixed real time even on a fast, fully passing run. Replace those specific ones with condition-based polling; leave alone any wait that is deliberately timing real elapsed behavior (sun auto-cycle, traffic movement, ocean animation).
