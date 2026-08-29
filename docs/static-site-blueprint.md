@@ -16,8 +16,8 @@ npm ci
 npm run release:static
 ```
 
-`release:static` runs the normal project gate through `npm run ci`, and `ci` runs the Vite
-production build. The deployable output is `dist/`.
+`release:static` runs the normal local project gate through `npm run ci`, and `ci` runs
+the Vite production build. The deployable output is `dist/`.
 
 ## Static host contract
 
@@ -36,7 +36,7 @@ services:
   - type: web
     name: city-jump
     runtime: static
-    buildCommand: npm ci && npm run release:static
+    buildCommand: npm ci && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
     envVars:
