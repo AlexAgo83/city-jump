@@ -19,7 +19,13 @@ export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) 
 
 type PropKind = "ac" | "tank" | "antenna" | "hut" | "solar";
 
-/** One thing standing on a roof, in fractions of the parcel's own footprint (-0.5 to 0.5). */
+/**
+ * One thing standing on a roof, `x`/`z` a small, fixed offset in metres off the parcel's own
+ * reference point -- not a fraction of the footprint, and not rotated with the building. Both of
+ * those have to agree with a building's own placement to land on the roof rather than off it, and
+ * both have each done that wrong once already; a couple of metres in a fixed direction is
+ * comfortably on the smallest roof any layout naming it is offered to, full stop.
+ */
 interface RoofProp {
   readonly kind: PropKind;
   readonly x: number;
@@ -37,41 +43,42 @@ interface RoofLayout {
  * A handful of authored roofscapes rather than a scattering algorithm -- plausible clutter is a
  * handful of props that don't collide, and that is easier to draw by eye a few times over than to
  * get right in general. Every parcel is offered the ones its footprint can fit and picks between
- * them by its own position, so the same building always rolls the same roof.
+ * them by its own position, so the same building always rolls the same roof. The smallest lot
+ * (1x1) is 8m a side, so every offset below stays well under 4m from centre.
  */
 const ROOF_LAYOUTS: readonly RoofLayout[] = [
   // Most roofs are just a roof -- clutter on every single one reads as noise, not detail.
   { minCells: 0, props: [] },
-  { minCells: 1, props: [{ kind: "ac", x: -0.2, z: 0.15, rotationY: 0 }] },
+  { minCells: 1, props: [{ kind: "ac", x: -0.8, z: 0.6, rotationY: 0 }] },
   {
     minCells: 2,
     props: [
-      { kind: "ac", x: -0.25, z: 0.2, rotationY: 0.3 },
-      { kind: "ac", x: 0.2, z: -0.15, rotationY: -0.4 },
+      { kind: "ac", x: -1, z: 0.8, rotationY: 0.3 },
+      { kind: "ac", x: 0.8, z: -0.6, rotationY: -0.4 },
     ],
   },
   {
     minCells: 2,
     props: [
-      { kind: "tank", x: 0.18, z: 0.1, rotationY: 0 },
-      { kind: "antenna", x: -0.25, z: -0.2, rotationY: 0 },
+      { kind: "tank", x: 0.7, z: 0.4, rotationY: 0 },
+      { kind: "antenna", x: -1, z: -0.8, rotationY: 0 },
     ],
   },
-  { minCells: 4, props: [{ kind: "hut", x: -0.15, z: 0, rotationY: 0 }] },
+  { minCells: 4, props: [{ kind: "hut", x: -1, z: 0, rotationY: 0 }] },
   {
     minCells: 3,
     props: [
-      { kind: "solar", x: 0, z: -0.25, rotationY: 0 },
+      { kind: "solar", x: 0, z: -1.7, rotationY: 0 },
       { kind: "solar", x: 0, z: 0, rotationY: 0 },
-      { kind: "solar", x: 0, z: 0.25, rotationY: 0 },
+      { kind: "solar", x: 0, z: 1.7, rotationY: 0 },
     ],
   },
   {
     minCells: 6,
     props: [
-      { kind: "hut", x: 0.2, z: 0.15, rotationY: 0 },
-      { kind: "ac", x: -0.2, z: -0.15, rotationY: 0.5 },
-      { kind: "antenna", x: -0.2, z: 0.25, rotationY: 0 },
+      { kind: "hut", x: 1.2, z: 0.9, rotationY: 0 },
+      { kind: "ac", x: -1.2, z: -0.9, rotationY: 0.5 },
+      { kind: "antenna", x: -1.2, z: 1.4, rotationY: 0 },
     ],
   },
 ];
@@ -212,21 +219,16 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const cells = parcel.frontageCells * parcel.depthCells;
       const offered = ROOF_LAYOUTS.filter((layout) => layout.minCells <= cells);
       const layout = offered[roofSeed(parcel) % offered.length]!;
-      const width = parcel.frontageCells * GRID.cellSize;
-      const depth = parcel.depthCells * GRID.cellSize;
-      // The building's own matrix, local origin and all -- a prop's roof position is a point in
-      // that same local space, carried into the world by the very transform already proven to
-      // put the building itself in the right place, rather than a second copy of that rotation
-      // hand-rolled here and liable to disagree with it. That matrix's translation already backs
-      // out the model's frontage centre, so a local point still in the model's own space has to
-      // add it back rather than land shifted by it a second time.
-      const buildingMatrix = matrixFor(parcel, model.centerX);
       for (const prop of layout.props) {
-        const local = new Vector3(prop.x * width + model.centerX, model.roofY, prop.z * depth);
+        // Straight off the parcel's own reference point -- the same one that already proves
+        // out correct for the building itself -- by a small, fixed, unrotated offset in metres.
+        // Not scaled to the footprint and not corrected for the model's own frontage centre:
+        // both of those have each already put a prop over the street once, and a few metres
+        // in any direction is comfortably on the smallest roof any layout is offered to.
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
-          Vector3.TransformCoordinates(local, buildingMatrix),
+          new Vector3(parcel.position.x + prop.x, parcel.position.y + model.roofY, parcel.position.z + prop.z),
         );
         const bucket = propMatrices.get(prop.kind);
         if (bucket) bucket.push(matrix);
