@@ -24,8 +24,13 @@ import {
 import { normalizeXZ, perpXZ, sub } from "../sim/vec";
 import { laneRank, ringEntryRadius } from "../sim/routing";
 import {
+  CROSSING_DEPTH,
+  CROSSING_GAP,
   armPort,
   crossesRoad,
+  crossingNear,
+  walkLoop,
+  walkTransfers,
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
@@ -49,8 +54,6 @@ export const SIDEWALK_LIFT = ROAD_LIFT + 0.18;
 const GUARDRAIL_HEIGHT = 0.85;
 
 /** Zebra stripes: painted on the carriageway just outside the junction each arm runs into. */
-const CROSSING_DEPTH = 4;
-const CROSSING_GAP = 1.6;
 const STRIPE_WIDTH = 0.9;
 const MARK_LIFT = ROAD_LIFT + 0.05;
 
@@ -250,16 +253,14 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     // footways go -- read off those transfers themselves, so the paint marks a real movement
     // rather than every arm on principle. A highway carries no footway, so nothing crosses it.
     for (const junction of junctions.values()) {
-      const paths = walkTransferPaths(graph, junction);
+      const paths = walkCrossings(graph, junction, junctions);
       for (const arm of junction.arms) {
         const type = roadType(graph.segment(arm.segment).type);
         if (type.tunnelDepth || type.pedestrian) continue;
         const reach = arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2;
         if (!crossesRoad(graph.node(junction.node).pos, arm.outward, reach, paths)) continue;
         // How much road there is between this junction and whatever is at the other end.
-        const seg = graph.segment(arm.segment);
-        const trims = segmentTrims(junctions, graph, arm.segment);
-        const room = seg.length - arm.trim - (seg.a === junction.node ? trims.end : trims.start);
+        const room = roomOn(graph, junctions, arm, junction.node);
         meshes.push(...crossingMeshes(scene, graph, junction.node, arm, type.width, paintMaterial, room));
       }
     }
@@ -286,7 +287,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           meshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
           // And the same for people on foot: the footway circles the ring outside the kerb, and
           // each arm's two walkways join it.
-          for (const [i, path] of walkTransferPaths(graph, junction).entries()) {
+          for (const [i, path] of walkTransferPaths(graph, junction, junctions).entries()) {
             meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
           }
         }
@@ -302,8 +303,8 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
 
       if (showTraffic) {
         meshes.push(...junctionTurnLines(scene, graph, junction, turnColor));
-        for (const [i, path] of walkTransferPaths(graph, junction).entries()) {
-          meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, MARK_LIFT + 0.02), walkTurnColor));
+        for (const [i, path] of walkTransferPaths(graph, junction, junctions).entries()) {
+          meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
         }
       }
     }
@@ -348,7 +349,7 @@ function crossingMeshes(
   // Sits just clear of the junction, and gives up that clearance before it gives up the crossing
   // itself: a roundabout holds its arms back by a whole ring radius, so a road between two of
   // them has far less room than its length suggests -- and people cross it all the same.
-  const near = arm.trim + Math.min(CROSSING_GAP, Math.max(0, room - CROSSING_DEPTH));
+  const near = crossingNear(arm, room);
   const far = near + CROSSING_DEPTH;
   if (room < CROSSING_DEPTH) return [];
 
@@ -632,12 +633,30 @@ function laneChangeLines(
 
 
 /**
+ * The walks people actually make at this node, as opposed to the footway drawn round it: what a
+ * crossing has to be answerable to. At a roundabout the footway circles it, so the ways round it
+ * are the ways round it; at a junction the loop is closed and contains crossings nobody needs.
+ */
+function walkCrossings(graph: RoadGraph, junction: JunctionGeometry, junctions: Map<NodeId, JunctionGeometry>): Vec3[][] {
+  if (junction.roundabout > 0) return walkTransferPaths(graph, junction, junctions);
+  const loop = walkLoop(graph, junction, SIDEWALK_WIDTH, (arm) => roomOn(graph, junctions, arm, junction.node));
+  return walkTransfers(graph, junction, loop);
+}
+
+/** How much of an arm is road rather than junction: its length less the trim at either end. */
+function roomOn(graph: RoadGraph, junctions: Map<NodeId, JunctionGeometry>, arm: JunctionArm, nodeId: NodeId): number {
+  const seg = graph.segment(arm.segment);
+  const trims = segmentTrims(junctions, graph, arm.segment);
+  return seg.length - arm.trim - (seg.a === nodeId ? trims.end : trims.start);
+}
+
+/**
  * Every way someone on foot gets across or around a node: the turn from each arm's arriving
  * walkway to every other arm's departing one, or, at a roundabout, the footway that circles it
  * and the step onto that footway from each arm. One list, three uses -- the Traffic view draws
  * it, the walkers walk it, and the zebra crossings are placed where it runs over a carriageway.
  */
-function walkTransferPaths(graph: RoadGraph, junction: JunctionGeometry): Vec3[][] {
+function walkTransferPaths(graph: RoadGraph, junction: JunctionGeometry, junctions: Map<NodeId, JunctionGeometry>): Vec3[][] {
   const onFoot = (arm: JunctionArm) => roadType(graph.segment(arm.segment).type);
   const paths: Vec3[][] = [];
 
@@ -654,29 +673,10 @@ function walkTransferPaths(graph: RoadGraph, junction: JunctionGeometry): Vec3[]
     return paths;
   }
 
-  const centre = graph.node(junction.node).pos;
-  const ports: { arm: JunctionArm; arriving: Vec3; leaving: Vec3 }[] = [];
-  for (const arm of junction.arms) {
-    const type = onFoot(arm);
-    if (type.highway) continue;
-    const atStart = graph.segment(arm.segment).a === junction.node;
-    const walks = walkCentres(type, SIDEWALK_WIDTH);
-    const arriving = walks.find((walk) => (atStart ? walk.direction === -1 : walk.direction === 1))!;
-    const leaving = walks.find((walk) => walk !== arriving)!;
-    ports.push({
-      arm,
-      arriving: armPort(graph, junction.node, arm, arriving.offset),
-      leaving: armPort(graph, junction.node, arm, leaving.offset),
-    });
-  }
-  for (const from of ports) {
-    for (const to of ports) {
-      if (from.arm === to.arm) continue;
-      paths.push(junctionTurnPath(centre, from.arriving, to.leaving));
-    }
-  }
-  return paths;
+  const loop = walkLoop(graph, junction, SIDEWALK_WIDTH, (arm) => roomOn(graph, junctions, arm, junction.node));
+  return loop.points.length > 0 ? [[...loop.points, loop.points[0]!]] : [];
 }
+
 
 function junctionTurnLines(scene: Scene, graph: RoadGraph, junction: JunctionGeometry, color: Color3): LinesMesh[] {
   interface Port {

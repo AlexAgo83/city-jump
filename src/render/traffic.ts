@@ -24,7 +24,10 @@ import {
   ringOf,
   ringSweep,
   ringWalkJoin,
+  walkLoop,
+  walkLoopSlice,
   walkRingRadius,
+  type WalkLoop,
   type Ring,
 } from "../sim/transfers";
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
@@ -162,6 +165,20 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   const armOf = (nodeId: NodeId, segmentId: SegmentId): JunctionArm | undefined =>
     junctionAt(nodeId).arms.find((arm) => arm.segment === segmentId);
 
+  const loops = new Map<NodeId, WalkLoop>();
+
+  function walkLoopAt(nodeId: NodeId): WalkLoop {
+    const cached = loops.get(nodeId);
+    if (cached) return cached;
+    const loop = walkLoop(graph, junctionAt(nodeId), SIDEWALK_WIDTH, (arm) => {
+      const seg = graph.segment(arm.segment);
+      const far = seg.a === nodeId ? seg.b : seg.a;
+      return seg.length - arm.trim - trimAt(far, arm.segment);
+    });
+    loops.set(nodeId, loop);
+    return loop;
+  }
+
   /**
    * Where the carriageway stops short of a node -- the same trim the road surface and the lane
    * lines are drawn to, so a car leaves the road exactly where the turn diagram picks it up.
@@ -296,6 +313,13 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           ? mover.walk
             ? walkRingTransfer(nodeId, from, to, mover.lane.offset, landing.offset)
             : ringTransfer(mover, nodeId, from, to, landing.offset)
+          : mover.walk
+            ? walkJunctionTransfer(nodeId, from, mover.lane.offset, next, landing.offset) ??
+              junctionTurnPath(
+                graph.node(nodeId).pos,
+                armPort(graph, nodeId, from, mover.lane.offset),
+                armPort(graph, nodeId, to, landing.offset),
+              )
           : junctionTurnPath(
               graph.node(nodeId).pos,
               armPort(graph, nodeId, from, mover.lane.offset),
@@ -328,6 +352,27 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       position.z + tangent.z * mover.direction * reach,
     );
     return sampleQuadratic(port(mover.lane.offset), nose, port(exitOffset), 12);
+  }
+
+  /**
+   * Round the junction on its footway, never across it: someone on foot follows the pavement to
+   * the corner and crosses one road at a time, at its crossing. The loop is the same one the
+   * Traffic view draws.
+   */
+  function walkJunctionTransfer(
+    nodeId: NodeId,
+    from: JunctionArm,
+    offset: number,
+    exit: SegmentId,
+    exitOffset: number,
+  ): Vec3[] | null {
+    const loop = walkLoopAt(nodeId);
+    const near = (segment: SegmentId, at: number) =>
+      loop.ports.find((port) => port.segment === segment && Math.abs(port.offset - at) < 0.01);
+    const start = near(from.segment, offset);
+    const finish = near(exit, exitOffset);
+    if (!start || !finish) return null;
+    return walkLoopSlice(loop, start.index, finish.index);
   }
 
   /** On foot a roundabout is one footway outside the kerb, joined at each arm and taken either way. */
@@ -366,6 +411,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     movers = [];
     junctions.clear();
     ringsAt.clear();
+    loops.clear();
 
     for (const [si, seg] of graph.allSegments().entries()) {
       const type = roadType(seg.type);

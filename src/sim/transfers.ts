@@ -6,9 +6,9 @@
  *
  * Everything returned sits on the road surface. Each caller adds its own lift.
  */
-import type { NodeId, RoadGraph } from "./graph";
+import type { NodeId, RoadGraph, SegmentId } from "./graph";
 import { ringElevation, widestIncidentRoad, type JunctionArm, type JunctionGeometry } from "./junction";
-import { roadType } from "./roadTypes";
+import { roadType, walkCentres } from "./roadTypes";
 import { distXZ, normalizeXZ, perpXZ, v3, type Vec3 } from "./vec";
 
 /** Eases 0 -> 1, so a transfer leans out of one line and settles into the next. */
@@ -33,13 +33,19 @@ export function sampleQuadratic(a: Vec3, control: Vec3, b: Vec3, steps: number):
   });
 }
 
-/** Where a lane meets the node: its arm's trimmed end, offset sideways to that lane. */
-export function armPort(graph: RoadGraph, nodeId: NodeId, arm: JunctionArm, laneOffset: number): Vec3 {
+/** A point on one of an arm's lanes, a given distance out from the node. */
+export function armPoint(graph: RoadGraph, nodeId: NodeId, arm: JunctionArm, laneOffset: number, distance: number): Vec3 {
   const seg = graph.segment(arm.segment);
   const atStart = seg.a === nodeId;
-  const { position, tangent } = graph.pointAt(arm.segment, atStart ? arm.trim : seg.length - arm.trim);
+  const along = Math.min(distance, seg.length);
+  const { position, tangent } = graph.pointAt(arm.segment, atStart ? along : seg.length - along);
   const n = perpXZ(normalizeXZ(tangent));
   return v3(position.x + n.x * laneOffset, position.y, position.z + n.z * laneOffset);
+}
+
+/** Where a lane meets the node: its arm's trimmed end, offset sideways to that lane. */
+export function armPort(graph: RoadGraph, nodeId: NodeId, arm: JunctionArm, laneOffset: number): Vec3 {
+  return armPoint(graph, nodeId, arm, laneOffset, arm.trim);
 }
 
 /**
@@ -274,4 +280,117 @@ export function crossesRoad(
     const steps = closed ? [...sided, sided[0]!] : sided;
     return steps.some((p, i) => i > 0 && crosses(steps[i - 1]!, p));
   });
+}
+
+/** A crossing's own dimensions: how far it keeps clear of the junction, and how deep it is. */
+export const CROSSING_GAP = 1.6;
+export const CROSSING_DEPTH = 4;
+
+/**
+ * Where the crossing over an arm begins, measured from the node. It gives up its clearance from
+ * the junction before it gives up the crossing, because a roundabout holds its arms back by a
+ * whole ring radius and people cross those short roads all the same. `room` is the road actually
+ * available: its length less the trim at each end.
+ */
+export function crossingNear(arm: JunctionArm, room: number): number {
+  return arm.trim + Math.min(CROSSING_GAP, Math.max(0, room - CROSSING_DEPTH));
+}
+
+/** One walkway of one arm, where it meets the junction. */
+export interface WalkPort {
+  readonly segment: SegmentId;
+  readonly offset: number;
+  /** Where this port's own position sits in the loop's points. */
+  readonly index: number;
+}
+
+/** The footway around a junction, as one closed path, and where each walkway joins it. */
+export interface WalkLoop {
+  readonly points: Vec3[];
+  readonly ports: WalkPort[];
+}
+
+/**
+ * The footway round a junction. Every arm's two walkways, in bearing order, joined by a rounded
+ * corner where they belong to two different roads and by a crossing straight over the tarmac
+ * where they are the two sides of the same one. That is how someone on foot actually gets from
+ * one pavement to another -- round the corner and over at the crossing -- rather than the
+ * diagonal a car takes, and it is one path per junction rather than one per pair of pavements.
+ */
+export function walkLoop(
+  graph: RoadGraph,
+  geometry: JunctionGeometry,
+  sidewalkWidth: number,
+  roomOf: (arm: JunctionArm) => number,
+): WalkLoop {
+  const centre = graph.node(geometry.node).pos;
+  const raw = geometry.arms
+    .filter((arm) => {
+      const type = roadType(graph.segment(arm.segment).type);
+      return !type.highway && !type.tunnelDepth; // no footway on either to join
+    })
+    .flatMap((arm) =>
+      walkCentres(roadType(graph.segment(arm.segment).type), sidewalkWidth).map((walk) => {
+        const position = armPort(graph, geometry.node, arm, walk.offset);
+        return { arm, offset: walk.offset, position, angle: Math.atan2(position.z - centre.z, position.x - centre.x) };
+      }),
+    )
+    .sort((l, r) => l.angle - r.angle);
+  if (raw.length < 2) return { points: [], ports: [] };
+
+  const points: Vec3[] = [];
+  const ports: WalkPort[] = [];
+  for (const [i, port] of raw.entries()) {
+    ports.push({ segment: port.arm.segment, offset: port.offset, index: points.length });
+    points.push(port.position);
+    const next = raw[(i + 1) % raw.length]!;
+    if (port.arm === next.arm) {
+      // The two sides of one road: out to the crossing, straight over it, and back in.
+      const at = crossingNear(port.arm, roomOf(port.arm)) + CROSSING_DEPTH / 2;
+      points.push(
+        armPoint(graph, geometry.node, port.arm, port.offset, at),
+        armPoint(graph, geometry.node, next.arm, next.offset, at),
+      );
+    } else {
+      // Two roads meeting: round the corner, where the two footways would cross.
+      const y = Math.max(port.position.y, next.position.y);
+      const control = meetXZ(port.position, port.arm.outward, next.position, next.arm.outward, y);
+      points.push(...sampleQuadratic(port.position, control, next.position, 6).slice(1, -1));
+    }
+  }
+  return { points, ports };
+}
+
+/** The way round that loop from one port to another: whichever way is actually shorter on foot. */
+export function walkLoopSlice(loop: WalkLoop, from: number, to: number): Vec3[] {
+  const n = loop.points.length;
+  const take = (step: 1 | -1, count: number) =>
+    Array.from({ length: count + 1 }, (_, k) => loop.points[(from + step * k + n * (count + 1)) % n]!);
+  const forward = take(1, (to - from + n) % n);
+  const backward = take(-1, (from - to + n) % n);
+  const length = (path: Vec3[]) => pathCumulative(path)[path.length - 1] ?? 0;
+  return length(forward) <= length(backward) ? forward : backward;
+}
+
+/**
+ * The walks the loop actually offers: from the pavement each arm is arrived on to the pavement
+ * every other arm is left by. The loop itself is closed, so it contains a crossing over every
+ * arm whether or not anybody needs one -- at a bend in a road, both pavements simply carry on,
+ * and no transfer crosses anything. This is the list to ask about crossings.
+ */
+export function walkTransfers(graph: RoadGraph, geometry: JunctionGeometry, loop: WalkLoop): Vec3[][] {
+  const sides = geometry.arms.flatMap((arm) => {
+    const atStart = graph.segment(arm.segment).a === geometry.node;
+    const walks = walkCentres(roadType(graph.segment(arm.segment).type), 1);
+    const arriving = walks.find((walk) => (atStart ? walk.direction === -1 : walk.direction === 1));
+    const port = (offset: number | undefined) =>
+      loop.ports.find((p) => p.segment === arm.segment && Math.sign(p.offset) === Math.sign(offset ?? 0));
+    const from = port(arriving?.offset);
+    const to = loop.ports.find((p) => p.segment === arm.segment && p !== from);
+    return from && to ? [{ segment: arm.segment, from, to }] : [];
+  });
+
+  return sides.flatMap((from) =>
+    sides.filter((to) => to.segment !== from.segment).map((to) => walkLoopSlice(loop, from.from.index, to.to.index)),
+  );
 }

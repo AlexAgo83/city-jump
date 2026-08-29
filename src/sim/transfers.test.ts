@@ -3,8 +3,12 @@ import { RoadGraph, type NodeId } from "./graph";
 import { junctionGeometry, ringLaneRadii } from "./junction";
 import { laneCentres, roadType } from "./roadTypes";
 import {
+  CROSSING_DEPTH,
+  CROSSING_GAP,
   armPort,
   crossesRoad,
+  walkLoop,
+  walkLoopSlice,
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
@@ -128,6 +132,38 @@ describe("transfers", () => {
     expect(Math.atan2(back[0]!.z - ring.centre.z, back[0]!.x - ring.centre.x)).toBeCloseTo(0);
     const last = back[back.length - 1]!;
     expect(Math.abs(Math.atan2(last.z - ring.centre.z, last.x - ring.centre.x) + Math.PI / 2)).toBeCloseTo(0);
+  });
+
+  it("walks round a junction rather than across it, one road at a time", () => {
+    const { g, hub } = crossroads("street");
+    const geometry = junctionGeometry(g, hub);
+    const room = (arm: { segment: number; trim: number }) => g.segment(arm.segment).length - arm.trim;
+    const loop = walkLoop(g, geometry, 2.6, room);
+    const centre = g.node(hub).pos;
+
+    // Two walkways per arm, and the loop closes round all of them.
+    expect(loop.ports).toHaveLength(8);
+    const junctionReach = Math.max(...geometry.arms.map((arm) => arm.trim));
+    // Nothing on it cuts through the middle: every point stays out by the junction's own reach,
+    // less half a road's width for the crossings that run over an arm.
+    const widest = Math.max(...geometry.arms.map((arm) => roadType(g.segment(arm.segment).type).width));
+    for (const point of loop.points) {
+      expect(distXZ(point, centre)).toBeGreaterThan(junctionReach - widest / 2);
+    }
+
+    // From one arm's pavement to the next one round: the short way, and over one road at most.
+    const [from, to] = [loop.ports[0]!, loop.ports[1]!];
+    const slice = walkLoopSlice(loop, from.index, to.index);
+    expect(distXZ(slice[0]!, loop.points[from.index]!)).toBeLessThan(1e-6);
+    expect(distXZ(slice[slice.length - 1]!, loop.points[to.index]!)).toBeLessThan(1e-6);
+    const crossed = geometry.arms.filter((arm) =>
+      crossesRoad(centre, arm.outward, arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2, [slice]),
+    );
+    expect(crossed.length).toBeLessThanOrEqual(1);
+
+    // The long way round is never taken when the short way exists.
+    const far = walkLoopSlice(loop, from.index, loop.ports[4]!.index);
+    expect(far.length).toBeLessThan(loop.points.length);
   });
 
   it("sees a crossing even where a closed path starts on the road it crosses", () => {
