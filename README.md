@@ -1,13 +1,17 @@
+<img src="docs/img/icon.png" alt="city-jump icon" width="64" align="left" />
+
 # city-jump
+
+<br clear="left"/>
 
 ![Version](https://img.shields.io/badge/version-0.1.0-4C8BF5)
 ![License](https://img.shields.io/badge/license-MIT-2E8B57)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)
 
-`city-jump` is a browser-based 3D city builder. Draw straight or curved roads across
-terrain and the buildable plots, buildings, junctions, and shaped ground are derived
-from that road network.
+`city-jump` is a browser-based 3D city builder. Draw roads, roundabouts, paths, and
+tunnels across terrain; buildable plots, buildings, junctions, traffic, and shaped
+ground are derived from that road network.
 
 ![The saved Demo city in Select mode, framed on a roundabout](docs/media/city-jump.png)
 
@@ -17,23 +21,27 @@ from that road network.
 
 ## Product Loop
 
-1. Shape a road network with straight or curved segments.
+1. Shape a road network with straight, curved, and roundabout tools.
 2. Read the buildable grid generated along each road.
 3. Let buildings occupy valid, non-overlapping plots.
-4. Inspect the result under different terrain and daylight conditions.
+4. Inspect zones, traffic, terrain, saves, and daylight from the same city.
 
 The current prototype focuses on road construction, spatial legibility, terrain shaping,
-traffic, persistence, pedestrian paths, and tunnel rendering. Services, economy,
-progression, and bridges are not implemented.
+traffic, persistence, pedestrian paths, roundabouts, and tunnel rendering. Services,
+economy, progression, zoning demand, and bridges are not implemented.
 
 ## Current State
 
 - Roads snap to the 2 m world grid, existing nodes, and existing segments.
 - Hovered snap nodes are highlighted before placement.
+- Roads can be straight, curved, one-way, two-lane, highway, pedestrian, or tunnel.
+- Roundabouts sit on existing junction nodes, carry lane overlays, and survive saves.
 - Buildable plots extend up to five 8 m cells perpendicular to a road and never overlap.
 - Curved roads regroup nearby cells into usable blocks where geometry permits.
+- Select mode switches between all buildings, zone/buildable-grid reading, and traffic overlays.
 - Rolling and rugged terrain presets exercise road shaping and ground conformance.
 - Tunnels pass under surface roads and render portals without growing buildings or traffic.
+- Named saves and autosave persist the graph, plantings, terrain, camera, and sun state.
 - A 24-hour sun control changes light direction, intensity, ambient light, and sky.
 - A browser debug surface drives deterministic visual and interaction checks.
 
@@ -71,8 +79,9 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`. Choose **Straight** for two clicks or **Curve** for three
-clicks: start, bend, end. Right-click or `Esc` cancels.
+Open `http://localhost:5173`. **Straight** roads take two clicks; **Curve** roads take
+start, bend, and end; **Roundabout** toggles an existing junction. Right-click or `Esc`
+cancels.
 
 ## Validation
 

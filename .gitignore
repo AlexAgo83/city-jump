@@ -5,6 +5,9 @@ test-results/
 playwright-report/
 *.png
 !docs/media/*.png
+!docs/img/icon.png
+!public/apple-touch-icon.png
+!public/icon-*.png
 .obsidian/
 logics/.cache/
 .DS_Store

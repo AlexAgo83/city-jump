@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="city-jump">
+  <defs>
+    <linearGradient id="sky" x1="84" y1="28" x2="428" y2="484" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#25313c"/>
+      <stop offset="1" stop-color="#11161b"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="120" y1="172" x2="392" y2="444" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#74a45f"/>
+      <stop offset="1" stop-color="#315b3a"/>
+    </linearGradient>
+    <linearGradient id="road" x1="94" y1="332" x2="420" y2="178" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22272d"/>
+      <stop offset="1" stop-color="#3a4047"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="204" y1="112" x2="300" y2="284" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9edff4"/>
+      <stop offset="1" stop-color="#3b7f98"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity=".42"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="108" fill="url(#sky)"/>
+  <path d="M66 336 256 226l190 110-190 110Z" fill="url(#ground)" filter="url(#shadow)"/>
+
+  <path d="M90 348c86-58 129-85 166-85s80 27 166 85" fill="none" stroke="#171b20" stroke-width="86" stroke-linecap="round"/>
+  <path d="M90 348c86-58 129-85 166-85s80 27 166 85" fill="none" stroke="url(#road)" stroke-width="68" stroke-linecap="round"/>
+  <path d="M108 348c80-52 118-74 148-74s68 22 148 74" fill="none" stroke="#e7c85c" stroke-width="8" stroke-linecap="round" stroke-dasharray="28 24"/>
+
+  <g transform="translate(-18 -18) scale(1.14)" filter="url(#shadow)">
+    <path d="M176 246 236 212l60 34-60 35Z" fill="#d59b68"/>
+    <path d="M176 246v86l60 35v-86Z" fill="#8b5b43"/>
+    <path d="M296 246v86l-60 35v-86Z" fill="#5f6f76"/>
+    <path d="M199 262v14l28 16v-14Zm0 31v14l28 16v-14Zm74-31v14l-28 16v-14Zm0 31v14l-28 16v-14Z" fill="url(#glass)"/>
+
+    <path d="M258 178 318 144l60 34-60 35Z" fill="#b9896a"/>
+    <path d="M258 178v122l60 35V213Z" fill="#6f7f83"/>
+    <path d="M378 178v122l-60 35V213Z" fill="#9c6a50"/>
+    <path d="M284 198v13l24 14v-13Zm0 30v13l24 14v-13Zm0 30v13l24 14v-13Zm68-60v13l-24 14v-13Zm0 30v13l-24 14v-13Zm0 30v13l-24 14v-13Z" fill="url(#glass)"/>
+  </g>
+
+  <circle cx="128" cy="162" r="18" fill="#7cc96d"/>
+  <path d="M128 177v52" stroke="#3b2a20" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="398" cy="124" r="14" fill="#7cc96d"/>
+  <path d="M398 137v39" stroke="#3b2a20" stroke-width="9" stroke-linecap="round"/>
+
+  <path d="M86 66h340" stroke="#ffffff" stroke-opacity=".14" stroke-width="1"/>
+  <path d="M68 426h376" stroke="#ffffff" stroke-opacity=".12" stroke-width="1"/>
+</svg>
