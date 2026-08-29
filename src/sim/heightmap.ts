@@ -169,15 +169,18 @@ export class Heightmap implements Terrain {
 
   /**
    * Levels the cells around one point of road, blending out across the embankment.
-   * `priority` biases the nearest-wins claim rather than skipping it: a junction's own arms
-   * keep sampling and stamping themselves right up to the node they end at, so their stamps
-   * land inside the junction's own disc too -- and being denser (one every half a cell,
-   * against the disc's single stamp), they win the ordinary distance race almost everywhere
-   * except the exact centre. A junction's footprint has to beat any arm regardless, so its
-   * claim is recorded as though it were `priority` metres closer than it really is -- but two
-   * junctions whose discs overlap (a dense cluster of roundabouts) still have to resolve which
-   * one actually owns a cell by real distance between them, not by whichever happened to run
-   * last, so the bias has to apply uniformly rather than skipping the check outright.
+   * `priority` biases the nearest-wins claim inside the hard-flat radius (`half`) only, not the
+   * embankment blend beyond it: a junction's own arms keep sampling and stamping themselves
+   * right up to the node they end at, so their stamps land inside the junction's own flat disc
+   * too -- and being denser (one every half a cell, against the disc's single stamp), they win
+   * the ordinary distance race almost everywhere except the exact centre. The flat disc has to
+   * beat any arm there regardless, so its claim is recorded as though it were `priority` metres
+   * closer than it really is -- but only up to `half`. Past it, in the embankment, the nearby
+   * connecting road is normally the more locally-accurate source (it grades between the
+   * junction's height and the natural terrain along its own path, not radially from the node),
+   * so that band is left as ordinary, unbiased nearest-wins -- biasing it too pushed the
+   * junction's flat plateau out past where the road's own surface actually starts, leaving a
+   * visible seam of raw terrain right at that boundary.
    */
   private stamp(x: number, z: number, elevation: number, half: number, reach: number, priority = 0): void {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
@@ -191,7 +194,7 @@ export class Heightmap implements Terrain {
         if (distance > reach) continue;
 
         const index = iz * this.count + ix;
-        const claim = distance - priority;
+        const claim = distance - (distance <= half ? priority : 0);
         if (claim >= this.claim[index]!) continue; // a nearer (or higher-priority) road already owns this cell
         this.claim[index] = claim;
 
