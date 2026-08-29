@@ -149,14 +149,26 @@ export class Heightmap implements Terrain {
     for (const nodeId of allJunctions(graph).keys()) {
       const node = graph.node(nodeId);
       const radius = junctionRadius(graph, nodeId);
-      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT);
+      // Forced: an arm still samples and stamps itself right up to the node it ends at, so its
+      // (denser, more numerous) stamps land inside the junction's own disc too and would
+      // otherwise win the ordinary nearest-wins race almost everywhere except the exact centre,
+      // leaving jagged slivers of the arm's own grade poking through the disc.
+      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT, true);
     }
 
     for (const parcel of parcels) this.stampParcel(parcel);
   }
 
-  /** Levels the cells around one point of road, blending out across the embankment. */
-  private stamp(x: number, z: number, elevation: number, half: number, reach: number): void {
+  /**
+   * Levels the cells around one point of road, blending out across the embankment.
+   * `force` skips the nearest-wins check: a junction's own arms keep sampling and stamping
+   * themselves right up to the node they end at, so their stamps land inside the junction's own
+   * disc too -- and being denser (one every half a cell, against the disc's single stamp), they
+   * win the ordinary distance race almost everywhere except the exact centre. A junction's
+   * footprint has to be authoritative over its own disc regardless, so its stamp overrides
+   * whatever an arm already claimed there.
+   */
+  private stamp(x: number, z: number, elevation: number, half: number, reach: number, force = false): void {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
 
@@ -168,7 +180,7 @@ export class Heightmap implements Terrain {
         if (distance > reach) continue;
 
         const index = iz * this.count + ix;
-        if (distance >= this.claim[index]!) continue; // a nearer road already owns this cell
+        if (!force && distance >= this.claim[index]!) continue; // a nearer road already owns this cell
         this.claim[index] = distance;
 
         const bed = elevation - ROAD_BED_DROP;

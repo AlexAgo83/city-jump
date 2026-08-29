@@ -248,7 +248,10 @@ function roundaboutMeshes(
     { shape: [new Vector3(inner, 0, 0), new Vector3(outer, 0, 0)], tessellation: 40, sideOrientation: MeshClass.DOUBLESIDE },
     scene,
   );
-  ring.position.set(centre.x, centre.y + ROAD_LIFT, centre.z);
+  // A little more clearance than an ordinary road: the ring's disc is much wider than any
+  // single road is, so it has more terrain to clear underneath it, and a couple of centimetres
+  // extra here is cheap insurance against whatever the flatten still leaves imperfect.
+  ring.position.set(centre.x, centre.y + ROAD_LIFT + 0.15, centre.z);
   ring.material = onFoot ? paving : surface;
   ring.isPickable = false;
 
