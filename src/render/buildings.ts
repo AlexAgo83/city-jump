@@ -219,16 +219,18 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const cells = parcel.frontageCells * parcel.depthCells;
       const offered = ROOF_LAYOUTS.filter((layout) => layout.minCells <= cells);
       const layout = offered[roofSeed(parcel) % offered.length]!;
+      // `parcel.position` is the frontage edge, not the roof's centre -- the footprint runs
+      // back from it by its own full depth, on the building's own local -Z. A prop's small
+      // offset lands relative to the actual middle of the roof only once that run-back is
+      // added in, through the same matrix that already seats the building itself correctly.
+      const buildingMatrix = matrixFor(parcel, model.centerX);
+      const halfDepth = (parcel.depthCells * GRID.cellSize) / 2;
       for (const prop of layout.props) {
-        // Straight off the parcel's own reference point -- the same one that already proves
-        // out correct for the building itself -- by a small, fixed, unrotated offset in metres.
-        // Not scaled to the footprint and not corrected for the model's own frontage centre:
-        // both of those have each already put a prop over the street once, and a few metres
-        // in any direction is comfortably on the smallest roof any layout is offered to.
+        const local = new Vector3(prop.x + model.centerX, model.roofY, -halfDepth + prop.z);
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
-          new Vector3(parcel.position.x + prop.x, parcel.position.y + model.roofY, parcel.position.z + prop.z),
+          Vector3.TransformCoordinates(local, buildingMatrix),
         );
         const bucket = propMatrices.get(prop.kind);
         if (bucket) bucket.push(matrix);
