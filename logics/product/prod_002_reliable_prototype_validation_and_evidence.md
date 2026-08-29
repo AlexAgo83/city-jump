@@ -1,12 +1,12 @@
 ## prod_002_reliable_prototype_validation_and_evidence - Reliable prototype validation and evidence
 > Date: 2026-08-28
-> Status: Proposed
+> Status: Settled
 > Related request: `req_004_harden_project_reliability_gates_and_demo_evidence`
-> Related backlog: `item_009_include_browser_interaction_in_the_normal_validation_gate`, `item_010_make_demo_and_screenshot_scenarios_fail_loudly`, `item_011_avoid_per_car_full_graph_scans_in_traffic_updates`, `item_012_refresh_readme_feature_status_and_measured_evidence`
+> Related backlog: `item_009_include_browser_interaction_in_the_normal_validation_gate`
 > Related task: `task_003_implement_project_reliability_hardening`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-28 16:27:22
+> Indicators reviewed: 2026-08-29 10:25:30
 
 # Overview
 The city-jump prototype already has useful unit, architecture, browser, and visual checks, but the authoritative gate and docs do not yet make browser behavior and demo evidence hard to accidentally break. This product slice makes the existing checks stricter and cheaper to trust without changing gameplay scope.
@@ -49,5 +49,5 @@ flowchart TD
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_004_harden_project_reliability_gates_and_demo_evidence`
+- Product back-reference: `item_009_include_browser_interaction_in_the_normal_validation_gate`
 - Task back-reference: `task_003_implement_project_reliability_hardening`

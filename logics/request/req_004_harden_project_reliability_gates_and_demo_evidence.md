@@ -1,13 +1,13 @@
 ## req_004_harden_project_reliability_gates_and_demo_evidence - Harden project reliability gates and demo evidence
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-28 16:27:15
+> Indicators reviewed: 2026-08-29 10:25:30
 
 # AI Context
 - Summary: Scope the review findings into reliability work: make browser checks part of the normal gate, make screenshot scenarios strict, remove the traffic per-car segment scan, and refresh README evidence.

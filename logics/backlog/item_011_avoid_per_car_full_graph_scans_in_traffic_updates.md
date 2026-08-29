@@ -1,14 +1,14 @@
 ## item_011_avoid_per_car_full_graph_scans_in_traffic_updates - Avoid per-car full graph scans in traffic updates
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:14:53
+> Indicators reviewed: 2026-08-29 10:25:30
 
 # AI Context
 - Summary: Replace the per-frame `graph.allSegments().find(...)` traffic lookup with a stored segment reference or O(1) lookup prepared during traffic rebuild.
@@ -50,3 +50,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_003_implement_project_reliability_hardening`
+
+# Notes
+- Task `task_003_implement_project_reliability_hardening` was finished via `logics-manager flow finish task` on 2026-08-29.
