@@ -43,6 +43,8 @@ import { streetlightsOnAt } from "./streetlights";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
+/** A motorcycle's own, much narrower, width -- it still rides the lane a car would. */
+const MOTORCYCLE_WIDTH = 0.7;
 
 /** Bumper to bumper: how much road a car keeps between itself and the one in front. */
 const CAR_GAP = 8.5;
@@ -148,21 +150,25 @@ interface Mover {
 interface CarShape {
   readonly name: string;
   readonly length: number;
+  readonly width: number;
   /** Height of the main body, whose underside sits clear of the road on the wheels. */
   readonly hull: number;
-  /** Where the cabin sits along the car, and how long and tall it is. */
-  readonly cabin: { at: number; length: number; height: number };
+  /** Where the cabin sits along the car, and how long and tall it is; none for a motorcycle. */
+  readonly cabin: { at: number; length: number; height: number } | null;
   /** Bonnet and boot ledges, each as a length; zero for a shape that has none. */
   readonly bonnet: number;
   readonly boot: number;
   readonly wheelBase: number;
   readonly wheel: number;
+  /** One wheel per end, on the centreline, rather than a pair either side of it. */
+  readonly singleTrack?: boolean;
 }
 
 const CAR_SHAPES: CarShape[] = [
   {
     name: "saloon",
     length: 5.8,
+    width: CAR_WIDTH,
     hull: 0.8,
     cabin: { at: -0.3, length: 2.8, height: 0.52 },
     bonnet: 1.6,
@@ -174,6 +180,7 @@ const CAR_SHAPES: CarShape[] = [
     // Shorter, taller, all cabin and no boot: the small car that fills a city.
     name: "hatchback",
     length: 4.6,
+    width: CAR_WIDTH,
     hull: 0.86,
     cabin: { at: -0.5, length: 2.4, height: 0.6 },
     bonnet: 1.2,
@@ -185,12 +192,27 @@ const CAR_SHAPES: CarShape[] = [
     // A cab at the front and a box behind it: a van, and the tallest thing on the road.
     name: "van",
     length: 6.6,
+    width: CAR_WIDTH,
     hull: 1.35,
     cabin: { at: 1.5, length: 2.4, height: 0.66 },
     bonnet: 1.3,
     boot: 0,
     wheelBase: 2.2,
     wheel: 1,
+  },
+  {
+    // No ledges, one wheel per end, and a tank-and-seat hump standing in for a cabin: everything
+    // a car has, with most of it left out.
+    name: "motorcycle",
+    length: 2,
+    width: MOTORCYCLE_WIDTH,
+    hull: 0.5,
+    cabin: { at: 0.15, length: 0.8, height: 0.2 },
+    bonnet: 0,
+    boot: 0,
+    wheelBase: 0.75,
+    wheel: 0.62,
+    singleTrack: true,
   },
 ];
 
@@ -210,22 +232,25 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       material.specularColor = new Color3(0.25, 0.25, 0.25);
 
       const floor = shape.wheel / 2;
-      const parts = [
-        slab(`car_hull_${shape.name}_${i}`, CAR_WIDTH - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0),
-        // Wider than the glass under it, so the roof caps the cabin instead of sitting inside it.
-        slab(
-          `car_roof_${shape.name}_${i}`,
-          CAR_WIDTH - 0.48,
-          0.16,
-          shape.cabin.length + 0.1,
-          0,
-          floor + shape.hull + shape.cabin.height + 0.08,
-          shape.cabin.at,
-        ),
-      ];
+      const parts = [slab(`car_hull_${shape.name}_${i}`, shape.width - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0)];
+      // Wider than the glass under it, so the roof caps the cabin instead of sitting inside it.
+      // A motorcycle has no cabin to roof over -- its hull is the whole body.
+      if (shape.cabin) {
+        parts.push(
+          slab(
+            `car_roof_${shape.name}_${i}`,
+            shape.width - 0.48,
+            0.16,
+            shape.cabin.length + 0.1,
+            0,
+            floor + shape.hull + shape.cabin.height + 0.08,
+            shape.cabin.at,
+          ),
+        );
+      }
       // The ledges fore and aft, which is what tells the front of a car from its back from above.
       const ledge = (name: string, depth: number, at: number) =>
-        slab(name, CAR_WIDTH - 0.22, 0.16, depth, 0, floor + shape.hull + 0.08, at);
+        slab(name, shape.width - 0.22, 0.16, depth, 0, floor + shape.hull + 0.08, at);
       if (shape.bonnet > 0) parts.push(ledge(`car_bonnet_${shape.name}_${i}`, shape.bonnet, (shape.length - shape.bonnet) / 2));
       if (shape.boot > 0) parts.push(ledge(`car_boot_${shape.name}_${i}`, shape.boot, -(shape.length - shape.boot) / 2));
 
@@ -255,13 +280,16 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const floor = shape.wheel / 2;
     const lens = (end: "head" | "tail") => {
       const at = end === "head" ? shape.length / 2 - 0.12 : -(shape.length / 2 - 0.12);
-      const lamps = [-1, 1].map((side) =>
+      // One lamp on the centreline for a motorcycle, a pair either side for anything with a
+      // second wheel track to put them over.
+      const sides = shape.singleTrack ? [0] : [-1, 1];
+      const lamps = sides.map((side) =>
         slab(
           `car_${end}_${shape.name}_${side}`,
-          0.62,
+          shape.singleTrack ? 0.3 : 0.62,
           0.3,
           0.3,
-          side * (CAR_WIDTH / 2 - 0.55),
+          side * (shape.width / 2 - 0.55),
           floor + shape.hull * 0.72,
           at,
           0.1,
@@ -326,28 +354,48 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     dark.specularColor = new Color3(0.35, 0.35, 0.4);
 
     const floor = shape.wheel / 2;
-    const glass = slab(
-      `car_glass_${shape.name}`,
-      CAR_WIDTH - 0.58,
-      shape.cabin.height,
-      shape.cabin.length,
-      0,
-      floor + shape.hull + shape.cabin.height / 2,
-      shape.cabin.at,
-    );
-    const wheels = [-1, 1].flatMap((side) =>
+    // Its hump is a tank and seat rather than a cabin, so there's nothing to glaze -- a
+    // motorcycle rider sits in the open.
+    const glass =
+      shape.cabin && !shape.singleTrack
+        ? [
+            slab(
+              `car_glass_${shape.name}`,
+              shape.width - 0.58,
+              shape.cabin.height,
+              shape.cabin.length,
+              0,
+              floor + shape.hull + shape.cabin.height / 2,
+              shape.cabin.at,
+            ),
+          ]
+        : [];
+    const sides = shape.singleTrack ? [0] : [-1, 1];
+    const wheels = sides.flatMap((side) =>
       [shape.wheelBase, -shape.wheelBase].map((z) => {
         const wheel = MeshBuilder.CreateCylinder(
           `car_wheel_${shape.name}_${side}_${z}`,
-          { diameter: shape.wheel, height: 0.36, tessellation: 10 },
+          { diameter: shape.wheel, height: shape.singleTrack ? 0.16 : 0.36, tessellation: 10 },
           scene,
         );
         wheel.rotation.z = Math.PI / 2;
-        wheel.position.set(side * (CAR_WIDTH / 2 - 0.1), floor, z);
+        wheel.position.set(side * (shape.width / 2 - 0.1), floor, z);
         return wheel;
       }),
     );
-    const parts = Mesh.MergeMeshes([glass, ...wheels], true, true, undefined, false, false);
+    // A rider, sitting where the seat is: a body and a head, the same two primitives a
+    // pedestrian is built from, just smaller and bolted to the bike instead of walking.
+    const rider: Mesh[] = [];
+    if (shape.singleTrack) {
+      const seatY = floor + shape.hull + shape.cabin!.height;
+      const at = shape.cabin!.at - 0.35;
+      const torso = MeshBuilder.CreateCylinder(`car_rider_torso_${shape.name}`, { height: 0.58, diameter: 0.32, tessellation: 8 }, scene);
+      torso.position.set(0, seatY + 0.29, at);
+      const head = MeshBuilder.CreateSphere(`car_rider_head_${shape.name}`, { diameter: 0.28, segments: 6 }, scene);
+      head.position.set(0, seatY + 0.58 + 0.1, at);
+      rider.push(torso, head);
+    }
+    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...rider], true, true, undefined, false, false);
     if (!parts) throw new Error("car parts failed to merge");
     parts.name = `car_parts_${shape.name}`;
     parts.material = dark;
