@@ -1,0 +1,135 @@
+{
+  "title": "Stop burning CI quota on the browser interaction suite every push",
+  "references": [
+    ".github/workflows/ci.yml",
+    "package.json",
+    "scripts/with-dev-server.mjs",
+    "scripts/interact.mjs",
+    "logics/request/req_004_harden_project_reliability_gates_and_demo_evidence.md",
+    "logics/tasks/task_003_implement_project_reliability_hardening.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "The Playwright browser interaction suite now runs twice on every push: once inside `npm run ci` (via `scripts/with-dev-server.mjs`, added when the reliability gate work folded `test:e2e` into `ci`), and again in `.github/workflows/ci.yml`'s separate \"Browser interaction check\" step, which still starts its own dev server and calls `npm run test:e2e` a second time. Doubling a suite that already takes 10-25 minutes under CI's software-rendered, CPU-constrained runner doubles the wasted Actions minutes for zero added coverage.",
+      "The operator does not have enough GitHub Actions quota to run this suite automatically on every push, and has said so directly. A push-triggered job whose Playwright step alone can run 10-25 minutes (confirmed by two consecutive real CI runs, IDs 33217561001 and 33222224210, at 24m0s and 10m3s) is not sustainable at that cadence, even before the duplication above.",
+      "Independent of when the suite runs, `scripts/interact.mjs` spends real wall-clock time in dozens of fixed `page.waitForTimeout(...)` calls standing in for \"wait until the UI has settled\" -- time that is spent even on a fast, fully passing run and does not shrink on a fast machine, only grows on a slow one."
+    ],
+    "context": [
+      "This is a direct follow-up to `req_004_harden_project_reliability_gates_and_demo_evidence` / `task_003_implement_project_reliability_hardening`, both already closed (`req_004` Status: Done). That work correctly added browser coverage to the gate; this request narrows *when* that coverage runs and *how long* it costs, without undoing the coverage itself.",
+      "Duplication evidence: `package.json`'s `ci` script is `npm test && npm run test:architecture && npm run build && npm run test:e2e && npm run logics:validate` (`test:e2e` now runs `node scripts/with-dev-server.mjs scripts/interact.mjs`), while `.github/workflows/ci.yml`'s \"Browser interaction check\" step independently runs `npm run dev` in the background and then `npm run test:e2e` again after `npm run ci` has already completed -- the same ~90-check Playwright suite executes twice per push.",
+      "Runtime evidence: `scripts/interact.mjs` contains numerous `page.waitForTimeout(60|90|150|160|250|350|500)` calls used to let UI state (grid toggles, sun-hour changes, drag sequences) settle before the next assertion, rather than polling for the specific condition each one is actually waiting on.",
+      "Operator constraint, stated directly in conversation: GitHub Actions quota cannot sustain running this suite on every push; a workflow restructure is wanted, not just a faster suite."
+    ],
+    "acceptance_criteria": [
+      "AC1: The Playwright browser interaction suite runs at most once per CI job invocation -- the duplication between `npm run ci` and the separate workflow step is resolved by having exactly one of them own it, not both.",
+      "AC2: The browser interaction suite no longer runs automatically on every push to every branch. Unit tests, architecture tests, build, typecheck, and Logics validation continue to run on every push exactly as before; the browser suite runs only on an explicit trigger (`workflow_dispatch` and/or a scheduled cron), documented so the operator knows how to invoke it on demand before a risky change or a release.",
+      "AC3: The push-triggered GitHub Actions job's total runtime returns to roughly what it was before browser interaction was folded into the gate (on the order of 1-2 minutes, not 10-25).",
+      "AC4: `scripts/interact.mjs` replaces fixed `page.waitForTimeout(...)` calls that exist purely to let UI state settle with condition-based waits (poll until the expected state is true, bounded by a generous timeout), so a passing run finishes faster than today's fixed-sleep total without weakening any assertion.",
+      "AC5: This request does not remove or weaken any existing check's assertions, and does not reopen or duplicate the already-Done `req_004` / `task_003` scope (browser coverage existing, demo strictness, traffic lookup, README evidence)."
+    ]
+  },
+  "product": {
+    "title": "CI that respects a limited Actions budget",
+    "overview": "The reliability hardening work in req_004 correctly proved the browser interaction path is part of the trusted gate, but folded it into every push without accounting for how expensive that suite is on a software-rendered, CPU-constrained shared runner, or that GitHub Actions minutes are a real, limited operator resource. This product slice keeps the coverage but changes when it runs and how long it costs, so the project can keep shipping without running out of CI quota.",
+    "goals": [
+      "Every push still gets a fast, cheap gate: unit, architecture, build, typecheck, Logics validation.",
+      "The browser interaction suite stays available and trustworthy, run on demand or on a schedule instead of on every push.",
+      "The suite itself costs less wall-clock time per run, independent of when it is triggered.",
+      "The operator can tell, from the workflow file alone, how to run the full browser check before something that actually needs it."
+    ],
+    "non_goals": [
+      "Removing browser interaction coverage from the project.",
+      "Reopening the already-Done demo-strictness, traffic-lookup, or README-evidence scope from req_004.",
+      "Adding a new test framework, a self-hosted runner, or paid CI infrastructure.",
+      "Changing gameplay features."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Stop the browser interaction suite from running twice per push",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": ["AC1", "AC5"],
+      "problem": [
+        "`npm run ci` now runs `test:e2e` via `scripts/with-dev-server.mjs`, and `.github/workflows/ci.yml`'s \"Browser interaction check\" step independently starts a dev server and runs `npm run test:e2e` again -- the same suite executes twice per CI job."
+      ],
+      "scope_in": [
+        "Remove the duplicate execution so the browser suite runs exactly once per job that requests it -- either by having `npm run ci` no longer include `test:e2e` (moved to AC2's separate trigger) or by removing the workflow's redundant manual step, whichever pairs correctly with the AC2 restructure."
+      ],
+      "scope_out": [
+        "Changing what the suite asserts.",
+        "Changing the unit/architecture/build/typecheck/logics steps that already run once and are not duplicated."
+      ],
+      "acceptance_criteria": [
+        "AC1: A single CI job invocation runs `scripts/interact.mjs` at most once, verified by checking the workflow log for exactly one occurrence of the suite's checks.",
+        "AC2: No existing check's assertions changed, and req_004/task_003's already-Done scope (browser coverage, demo strictness, traffic lookup, README evidence) is not reopened or duplicated."
+      ]
+    },
+    {
+      "title": "Move the browser interaction suite off the push trigger",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": ["AC2", "AC3"],
+      "problem": [
+        "The browser suite currently runs on every push via `.github/workflows/ci.yml`, costing 10-25 minutes of GitHub Actions time the operator does not have quota for.",
+        "There is no documented way to run the full browser check on demand without pushing."
+      ],
+      "scope_in": [
+        "Split the push-triggered workflow so it only runs the fast local gate (`npm test`, architecture, build, typecheck, Logics validation) -- no dev server, no Playwright.",
+        "Add a separate, explicitly-triggered workflow (manual `workflow_dispatch`, and/or a scheduled cron) that runs the browser interaction suite.",
+        "Document (README or CONTRIBUTING) how to trigger the browser check manually and when the operator should."
+      ],
+      "scope_out": [
+        "Changing the suite's own assertions.",
+        "Self-hosted runners or any paid CI tier."
+      ],
+      "acceptance_criteria": [
+        "AC1: A push to any branch runs only the fast gate; its total job runtime is on the order of 1-2 minutes.",
+        "AC2: A separate workflow exists that runs the browser interaction suite, triggerable manually and/or on a schedule, and its name and trigger are documented for the operator."
+      ]
+    },
+    {
+      "title": "Replace fixed UI-settle sleeps with condition polling in the interaction script",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": ["AC4"],
+      "problem": [
+        "`scripts/interact.mjs` uses fixed `page.waitForTimeout(...)` calls (60-500ms each, dozens of call sites) to let UI state settle before the next assertion, spending that real time even when the condition is already true much sooner."
+      ],
+      "scope_in": [
+        "Replace `waitForTimeout` calls that exist purely to let a specific UI state settle (a value change, a toggle, a rebuild finishing) with a condition-based wait (e.g. `page.waitForFunction` or an equivalent poll) bounded by a generous timeout.",
+        "Leave in place any wait that is deliberately timing a real animation or measuring elapsed-time behavior (e.g. the sun auto-cycle, traffic movement, ocean animation checks), since those need real time to elapse by design."
+      ],
+      "scope_out": [
+        "Changing what any check asserts.",
+        "The auto-cycle timing fix already delivered in commit `cc06ca8` -- this item is about removing unnecessary fixed sleeps, not revisiting that logic again."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every `waitForTimeout` call remaining in the script is one that is deliberately timing real elapsed behavior, not standing in for a condition that could be polled instead.",
+        "AC2: A full local run of `scripts/interact.mjs` passes with the same checks and finishes in less wall-clock time than before this change, on the same machine."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement CI quota reduction for the browser interaction suite",
+    "plan": [
+      "Read this request and its three backlog slices; confirm req_004/task_003 remain untouched and Done.",
+      "Fix the duplicate execution first, since the restructure in the next step depends on knowing which invocation path owns the suite.",
+      "Split the GitHub Actions workflow: push trigger keeps the fast gate only; add the separate on-demand/scheduled workflow for the browser suite; update README/CONTRIBUTING with how to trigger it.",
+      "Replace unnecessary fixed sleeps in scripts/interact.mjs with condition-based waits, leaving real-time-dependent waits alone.",
+      "Run the fast gate locally, then run the full browser suite locally (or via the new on-demand workflow) to confirm both pass and the fast gate's job runtime is back to ~1-2 minutes.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/ci-e2e-quota.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
