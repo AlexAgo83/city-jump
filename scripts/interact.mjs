@@ -16,6 +16,13 @@ const check = (name, ok, detail = "") => {
 
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--enable-unsafe-swiftshader"] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
+// Playwright's 30s default action timeout is sized for a GPU-accelerated browser. This page
+// renders through software WebGL (swiftshader), and CI runs it on a shared, CPU-constrained
+// runner on top of that -- individual steps routinely take 10-40s there even when nothing is
+// wrong, so a click that lands a hair over 30s is the environment, not a stuck element. Two
+// separate CI runs hit this timeout on two different controls (a checkbox, then a radio input)
+// with the click itself reported as delivered each time -- the same failure mode, not two bugs.
+page.setDefaultTimeout(90_000);
 
 const noise = [];
 page.on("pageerror", (e) => noise.push(`exception: ${e.message}`));
