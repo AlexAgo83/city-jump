@@ -9,9 +9,11 @@
 terrain and the buildable plots, buildings, junctions, and shaped ground are derived
 from that road network.
 
-![A dense generated city showing roads, plots, and buildings](docs/media/city-jump.png)
+![The Demo city in Select mode showing roads, plots, and buildings](docs/media/city-jump.png)
 
-![Buildable plots following a small curved road network](docs/media/city-jump-curves.png)
+![The Demo city in Roads mode showing buildable plots and faded buildings](docs/media/city-jump-curves.png)
+
+![A roundabout in Traffic view showing lane and turn overlays](docs/media/city-jump-traffic.png)
 
 ## Product Loop
 
