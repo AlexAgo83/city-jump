@@ -149,9 +149,11 @@ const buildingFacadeEmission = () =>
   });
 const buildingLightPipeline = () =>
   page.evaluate(() => {
+    const materialIsStandard = (material) =>
+      material?.subMaterials ? material.subMaterials.every(materialIsStandard) : material?.getClassName?.() === "StandardMaterial";
     return window.cityjump._scene.meshes
       .filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled())
-      .every((mesh) => mesh.material?.getClassName?.() === "StandardMaterial");
+      .every((mesh) => materialIsStandard(mesh.material));
   });
 const streetlightFacadeLights = () =>
   page.evaluate(() => {

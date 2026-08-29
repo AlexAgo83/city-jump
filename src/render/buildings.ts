@@ -1,5 +1,4 @@
 import "@babylonjs/loaders/glTF";
-import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -17,6 +16,7 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
+const BUILDING_ASSET_VERSION = "2026-08-29-3";
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 
@@ -52,7 +52,7 @@ const ROOF_LAYOUTS: readonly RoofLayout[] = [
   // Most roofs are just a roof -- clutter on every single one reads as noise, not detail.
   { minCells: 0, props: [] },
   { minCells: 0, pitched: true, props: [] },
-  { minCells: 1, pitched: true, props: [{ kind: "chimney", x: 0.9, z: 0.75, rotationY: 0 }] },
+  { minCells: 1, pitched: true, props: [{ kind: "chimney", x: 0.9, z: 0, rotationY: 0 }] },
   { minCells: 3, props: [{ kind: "ac", x: -0.8, z: 0.6, rotationY: 0 }] },
   { minCells: 3, props: [{ kind: "chimney", x: 0.9, z: -0.7, rotationY: 0 }] },
   {
@@ -107,20 +107,28 @@ export function roofObjectLimit(cells: number): number {
   return Math.min(3, Math.max(0, cells));
 }
 
-function buildingSpec(modelId: string): { area: number; depth: number; height: number; roof: number } | null {
+function buildingSpec(modelId: string): { area: number; width: number; depth: number; height: number; roof: number } | null {
   const size = /^lot_(\d)x(\d)$/.exec(modelId);
   if (!size) return null;
   const frontage = Number(size[1]);
   const depth = Number(size[2]);
   const area = frontage * depth;
   const height = 6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + Math.min(area, 8);
-  return { area, depth: depth * GRID.cellSize - 1.5, height, roof: area <= 2 ? 2.5 : 0 };
+  return { area, width: frontage * GRID.cellSize - 1.5, depth: depth * GRID.cellSize - 1.5, height, roof: area <= 2 ? 2.5 : 0 };
 }
 
-export function roofPropY(modelId: string, localZ: number, boundsMaxY: number): number {
+export function roofPropY(modelId: string, localX: number, localZ: number, boundsMaxY: number): number {
   const spec = buildingSpec(modelId);
   if (!spec) return boundsMaxY;
-  if (spec.roof === 0) return spec.height;
+  if (spec.roof === 0) {
+    const onSetback =
+      spec.area >= 6 &&
+      localX >= spec.width * 0.12 &&
+      localX <= spec.width * 0.88 &&
+      -localZ >= spec.depth * 0.12 &&
+      -localZ <= spec.depth * 0.88;
+    return onSetback || spec.area < 6 ? spec.height : spec.height * 0.72;
+  }
   const y = Math.min(spec.depth, Math.max(0, -localZ));
   return spec.height + spec.roof * (1 - Math.abs(y - spec.depth / 2) / (spec.depth / 2));
 }
@@ -273,10 +281,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       // offset lands relative to the actual middle of the roof only once that run-back is
       // added in, through the same matrix that already seats the building itself correctly.
       const buildingMatrix = matrixFor(parcel, model.centerX);
-      const halfDepth = (parcel.depthCells * GRID.cellSize) / 2;
+      const halfDepth = (parcel.depthCells * GRID.cellSize - 1.5) / 2;
       for (const prop of layout.props) {
+        const localX = prop.x + model.centerX;
         const localZ = -halfDepth + prop.z;
-        const local = new Vector3(prop.x + model.centerX, roofPropY(model.id, localZ, model.roofY), localZ);
+        const local = new Vector3(localX, roofPropY(model.id, localX, localZ, model.roofY), localZ);
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
@@ -479,7 +488,7 @@ function takenCellsMesh(scene: Scene, cells: readonly BuildableCell[]): Mesh {
 
 async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Promise<Model | null> {
   try {
-    const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb`, scene);
+    const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb?v=${BUILDING_ASSET_VERSION}`, scene);
     const parts = result.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
     if (parts.length === 0) return null;
 
@@ -489,11 +498,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     mesh.isPickable = false;
     mesh.receiveShadows = true;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
-    mesh.enableEdgesRendering();
-    mesh.edgesWidth = 1;
-    mesh.edgesColor.set(0.08, 0.09, 0.1, 0.28);
     shadows.addShadowCaster(mesh);
-
     // The loader parents everything under a __root__ carrying glTF's handedness flip.
     // setParent(null) moves that transform into the mesh's own, and baking it into the
     // vertices leaves an identity transform for the instance matrices to replace.
