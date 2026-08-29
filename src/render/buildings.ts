@@ -217,10 +217,12 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       // The building's own matrix, local origin and all -- a prop's roof position is a point in
       // that same local space, carried into the world by the very transform already proven to
       // put the building itself in the right place, rather than a second copy of that rotation
-      // hand-rolled here and liable to disagree with it.
+      // hand-rolled here and liable to disagree with it. That matrix's translation already backs
+      // out the model's frontage centre, so a local point still in the model's own space has to
+      // add it back rather than land shifted by it a second time.
       const buildingMatrix = matrixFor(parcel, model.centerX);
       for (const prop of layout.props) {
-        const local = new Vector3(prop.x * width, model.roofY, prop.z * depth);
+        const local = new Vector3(prop.x * width + model.centerX, model.roofY, prop.z * depth);
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
