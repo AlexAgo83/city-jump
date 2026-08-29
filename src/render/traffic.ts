@@ -9,7 +9,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
-import { laneRank, pickExit, ringArc, ringEntryRadius } from "../sim/routing";
+import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "../sim/routing";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
   armPort,
@@ -88,11 +88,14 @@ interface Ride {
   travelled: number;
 }
 
-/** What a car has already decided about the roundabout its road ends at. Cars only. */
-interface RingPlan {
+/** What a car has already settled about the junction its road runs into. Cars only. */
+interface Plan {
   readonly node: NodeId;
   readonly exit: SegmentId;
-  readonly arc: number;
+  /** How far round the ring, when that junction is a roundabout. */
+  readonly arc: number | null;
+  /** The lane the turn asks for, as a rank from the kerb, or -1 when it asks for nothing. */
+  readonly rank: number;
 }
 
 /** Anything moving on the network: a car in a lane, or someone on a footway. */
@@ -119,7 +122,7 @@ interface Mover {
   /** Which way it is facing, which follows the path it is on rather than snapping to it. */
   heading: number;
   ride: Ride | null;
-  plan: RingPlan | null;
+  plan: Plan | null;
 }
 
 /**
@@ -458,35 +461,39 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   interface Entry {
     readonly lane: LaneCentre;
     readonly changing: LaneCentre | null;
-    readonly plan: RingPlan | null;
+    readonly plan: Plan | null;
   }
 
   /**
-   * Three ways to end up in a lane, in order: positioned for the roundabout this road runs into,
-   * kerb-side because the car has just come off one, or simply one of them at random -- and then
-   * half of what is left changes lane on the way, along the road's own drawn weave.
+   * Which lane to travel this road in. What the junction at the end of it asks for, first of
+   * all: a car that is turning belongs in the lane that turn is taken from, and moves over on
+   * the way if it did not come in on it. Failing that, kerb-side because it has just come off a
+   * roundabout, or one at random -- and then half of what is left drifts across anyway.
    * ponytail: one change per road, decided on entry. No overtaking, nothing to overtake.
    */
   function chooseEntry(mover: Mover, segment: Segment, direction: 1 | -1, kerbLane: boolean): Entry {
     const lanes = lanesFor(segment, direction, mover.walk);
     const fallback = { offset: 0, direction } as LaneCentre;
-    // A footway has no lane to pick and no roundabout lane to line up for: it is just a side.
+    // A footway has no lane to pick and no junction to line up for: it is just a side.
     if (mover.walk) return { lane: lanes[0] ?? fallback, changing: null, plan: null };
-    const plan = planRing(mover, segment, direction);
-    if (plan) {
-      const wanted = Math.min(plan.arc > Math.PI / 2 ? 1 : 0, lanes.length - 1);
-      // A car placed for a roundabout stays put; it has somewhere to be.
-      return { lane: lanes.find((lane) => laneRank(lanes, lane) === wanted) ?? fallback, changing: null, plan };
+
+    const plan = planAhead(mover, segment, direction);
+    const entered = kerbLane
+      ? lanes.find((lane) => laneRank(lanes, lane) === 0)
+      : lanes[Math.floor(roll(mover) * lanes.length)];
+    const start = entered ?? fallback;
+
+    if (plan && plan.rank >= 0 && lanes.length > 1) {
+      const wanted = lanes.find((lane) => laneRank(lanes, lane) === Math.min(plan.rank, lanes.length - 1)) ?? fallback;
+      // Moving over happens along the road's own drawn weave, which is well before the junction.
+      return { lane: wanted, changing: wanted.offset === start.offset ? null : start, plan };
     }
     if (lanes.length > 1 && !kerbLane && roll(mover) < 0.5) {
       // The weave is drawn from the first lane of this direction to the second; a car changing
       // lane starts in the first so it travels the line that is drawn.
-      return { lane: lanes[1]!, changing: lanes[0]!, plan: null };
+      return { lane: lanes[1]!, changing: lanes[0]!, plan };
     }
-    const lane = kerbLane
-      ? lanes.find((l) => laneRank(lanes, l) === 0)
-      : lanes[Math.floor(roll(mover) * lanes.length)];
-    return { lane: lane ?? fallback, changing: null, plan: null };
+    return { lane: start, changing: null, plan };
   }
 
   /** Puts a car on a road, at `trim` from the node it entered by. */
@@ -505,21 +512,30 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   /**
-   * One node ahead: when this road ends at a roundabout, the exit is chosen on entering the road
-   * rather than on reaching the ring, because that is what decides the lane to travel in. The
-   * next exit is taken from the kerb lane, anything further round from the lane beside the
-   * centreline -- which is exactly the ring lane each of those feeds.
+   * One node ahead. A driver knows which way they are turning before they get there, and that is
+   * what decides the lane to travel in, so the exit is picked on entering a road rather than on
+   * reaching the end of it. A right turn is the tight one and is taken from the kerb lane, a
+   * left turn crosses the oncoming traffic and is taken from the lane by the centreline. At a
+   * roundabout, anything up to the exit straight ahead is taken from the kerb lane, and only
+   * something further round than that is worth crossing to the lane by the centreline for --
+   * which are exactly the ring lanes each of those feeds.
    */
-  function planRing(mover: Mover, segment: Segment, direction: 1 | -1): RingPlan | null {
+  function planAhead(mover: Mover, segment: Segment, direction: 1 | -1): Plan | null {
     const node = direction === 1 ? segment.b : segment.a;
-    if (!graph.node(node).roundabout) return null;
     const exit = pickExit(graph, node, segment.id, roll(mover));
-    // (cars only: chooseEntry never asks for a walker's plan)
-    if (exit === null) return null;
-    const entry = armOf(node, segment.id);
-    const leave = armOf(node, exit);
-    if (!entry || !leave) return null;
-    return { node, exit, arc: ringArc(entry.angle, leave.angle) };
+    if (exit === null || exit === segment.id) return null;
+    const from = armOf(node, segment.id);
+    const to = armOf(node, exit);
+    if (!from || !to) return null;
+    if (graph.node(node).roundabout) {
+      const arc = ringArc(from.angle, to.angle);
+      // Only a ring with two lanes gives the left-hand approach lane anything to do, and only an
+      // exit beyond the one straight ahead is worth taking it for: lining up on the left to cross
+      // straight back out again is the daft thing a car should never be seen doing.
+      const inner = ringAt(node).radii.length > 1 && arc > Math.PI;
+      return { node, exit, arc, rank: inner ? 1 : 0 };
+    }
+    return { node, exit, arc: null, rank: turnLaneRank(from.outward, to.outward) };
   }
 
   /** How far across its lane change the car is, and so where it sits across the road. */

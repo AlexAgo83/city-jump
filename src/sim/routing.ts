@@ -5,6 +5,7 @@
  */
 import type { NodeId, RoadGraph, SegmentId } from "./graph";
 import { roadType, type LaneCentre } from "./roadTypes";
+import type { Vec3 } from "./vec";
 
 /**
  * Whether this segment can be used at all. A car has no business on a footpath or in a tunnel
@@ -74,4 +75,21 @@ export function laneRank(lanes: readonly LaneCentre[], lane: LaneCentre): number
  */
 export function ringEntryRadius(radii: readonly number[], rank: number): number {
   return radii[Math.max(0, radii.length - 1 - rank)]!;
+}
+
+/**
+ * The lane a turn asks to be taken from, as a rank from the kerb: a right turn is the tight one
+ * and belongs in the kerb lane, a left turn crosses the oncoming traffic and belongs in the lane
+ * by the centreline. Going more or less straight on asks for nothing, and gets -1.
+ *
+ * `arrive` and `leave` are the outward directions of the two arms, so the car comes in along the
+ * reverse of `arrive`. Right of travel is `(z, -x)` here -- the same convention `laneCentres`
+ * puts a direction-1 car on.
+ */
+export function turnLaneRank(arrive: Vec3, leave: Vec3, straightEnough = Math.PI / 6): number {
+  const into = { x: -arrive.x, z: -arrive.z };
+  const ahead = into.x * leave.x + into.z * leave.z;
+  if (ahead > Math.cos(straightEnough)) return -1;
+  const toTheRight = leave.x * into.z - leave.z * into.x;
+  return toTheRight > 0 ? 0 : 1;
 }

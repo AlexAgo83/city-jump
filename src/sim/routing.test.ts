@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
-import { exits, laneRank, pickExit, ringArc, ringEntryRadius } from "./routing";
+import { exits, laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "./routing";
 import { ringLaneRadii } from "./junction";
 import { perpXZ, v3, type Vec3 } from "./vec";
 import { laneCentres, roadType } from "./roadTypes";
@@ -99,6 +99,25 @@ describe("routing", () => {
     const oneWay = g.addSegment(hub, stub, v3(0, 0, 50), "street_oneway");
     expect(exits(g, stub, oneWay, true)).toEqual([oneWay]);
     expect(pickExit(g, stub, oneWay, 0.5)).toBe(null);
+  });
+
+  it("puts a right turn in the kerb lane and a left turn by the centreline", () => {
+    // Arms as outward directions: the car arrives along the reverse of the one it came in on.
+    const west = v3(-1, 0, 0);
+    const north = v3(0, 0, -1);
+    const south = v3(0, 0, 1);
+    const east = v3(1, 0, 0);
+
+    // Coming in from the west, heading east: right of travel is (z, -x) of that heading, which
+    // is -z, so the north arm is the right turn and the south arm the left.
+    expect(turnLaneRank(west, north)).toBe(0);
+    expect(turnLaneRank(west, south)).toBe(1);
+    // Straight on asks for nothing at all, and so does a road that only bends a little.
+    expect(turnLaneRank(west, east)).toBe(-1);
+    expect(turnLaneRank(west, v3(Math.cos(0.2), 0, Math.sin(0.2)))).toBe(-1);
+    // Mirror it: coming in from the east, the right turn is the south arm.
+    expect(turnLaneRank(east, south)).toBe(0);
+    expect(turnLaneRank(east, north)).toBe(1);
   });
 
   it("circulates the ring on the same side of the road cars already drive on", () => {
