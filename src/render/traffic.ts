@@ -6,20 +6,33 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
-import { junctionGeometry, ringElevation, ringLaneRadii } from "../sim/junction";
-import { approach, laneRank, pickExit, ringArc, ringEntryRadius, ringTargetRadius } from "../sim/routing";
+import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
+import { laneRank, pickExit, ringArc, ringEntryRadius } from "../sim/routing";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
-import { normalizeXZ, perpXZ } from "../sim/vec";
+import {
+  armPort,
+  exitAngle,
+  junctionTurnPath,
+  laneChangeOffset,
+  sampleQuadratic,
+  laneChangeSpan,
+  mergeAngle,
+  pathCumulative,
+  pointAlong,
+  ringJoinPath,
+  ringOf,
+  ringSweep,
+  type Ring,
+} from "../sim/transfers";
+import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 
 /** Matches the box mesh a car is built from below. */
 const CAR_WIDTH = 3;
 
-/** Everyone slows for a ring. */
+/** Everyone slows for a ring, and eases off a little through a plain junction. */
 const RING_PACE = 0.6;
-
-/** Metres a car slides sideways per second while changing lane: about a lane every two seconds. */
-const LANE_CHANGE_SPEED = 1.8;
+const JUNCTION_PACE = 0.8;
 
 /** A frame longer than this (a tab coming back from the background) is not driven through. */
 const MAX_STEP_S = 0.1;
@@ -53,17 +66,21 @@ interface Walker {
   readonly offset: number;
 }
 
-/** Where a car is going round a ring, and how far into that ride it is. */
-interface RingRide {
-  readonly node: NodeId;
+/**
+ * A transfer in progress: the very polyline the Traffic view draws for this movement, being
+ * driven along. When it runs out the car lands on `exit`, in `lane`, at `trim` along it.
+ */
+interface Ride {
+  readonly points: readonly Vec3[];
+  readonly cumulative: readonly number[];
   readonly exit: SegmentId;
-  readonly arc: number;
-  /** The ring lane joined on entry, decided by the lane of the arm it came off. */
-  readonly entryRadius: number;
-  angle: number;
+  readonly from: NodeId;
+  readonly lane: LaneCentre;
+  readonly changing: LaneCentre | null;
+  readonly trim: number;
+  /** Slower than the road it came off: a junction or a ring is taken at a crawl. */
+  readonly pace: number;
   travelled: number;
-  /** Where the car is across the ring, sliding between ring lanes like it does on a road. */
-  radius: number;
 }
 
 /** What a car has already decided about the roundabout its current road ends at. */
@@ -82,21 +99,13 @@ interface Car {
   direction: 1 | -1;
   /** Distance along the segment in its own a -> b sense, whichever way the car faces. */
   distance: number;
+  /** The lane it is in, or ends this road in when it is changing lane. */
   lane: LaneCentre;
-  /** Where the car actually is across the road, sliding towards `lane.offset`. */
-  offset: number;
-  /** Distance along the segment at which it moves to the other lane. Infinite when it stays. */
-  changeAt: number;
+  /** The lane it started this road in, while a lane change is still to happen or under way. */
+  changing: LaneCentre | null;
   speed: number;
-  ring: RingRide | null;
+  ride: Ride | null;
   plan: RingPlan | null;
-}
-
-/** What a roundabout node offers a car: where each arm meets the ring, and the ring itself. */
-interface Ring {
-  readonly arms: Map<SegmentId, number>;
-  readonly radii: number[];
-  readonly elevation: (angle: number) => number;
 }
 
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
@@ -132,26 +141,35 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   let walkers: Walker[] = [];
   let cars: Car[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
-  const rings = new Map<NodeId, Ring>();
+  const junctions = new Map<NodeId, JunctionGeometry>();
+  const ringsAt = new Map<NodeId, Ring>();
 
-  function ringAt(nodeId: NodeId): Ring {
-    const cached = rings.get(nodeId);
+  function junctionAt(nodeId: NodeId): JunctionGeometry {
+    const cached = junctions.get(nodeId);
     if (cached) return cached;
     const geometry = junctionGeometry(graph, nodeId);
-    const ring: Ring = {
-      arms: new Map(geometry.arms.map((arm) => [arm.segment, arm.angle])),
-      radii: ringLaneRadii(graph, nodeId, geometry.roundabout),
-      elevation: ringElevation(geometry.arms, graph.node(nodeId).pos.y),
-    };
-    rings.set(nodeId, ring);
+    junctions.set(nodeId, geometry);
+    return geometry;
+  }
+
+  function ringAt(nodeId: NodeId): Ring {
+    const cached = ringsAt.get(nodeId);
+    if (cached) return cached;
+    const geometry = junctionAt(nodeId);
+    const ring = ringOf(graph, geometry, ringLaneRadii(graph, nodeId, geometry.roundabout));
+    ringsAt.set(nodeId, ring);
     return ring;
   }
 
-  /** How far short of a node the carriageway stops: at a roundabout, the outer ring lane. */
-  function trimAt(nodeId: NodeId, segment: Segment): number {
-    if (!graph.node(nodeId).roundabout) return 0;
-    const radii = ringAt(nodeId).radii;
-    return Math.min(radii[radii.length - 1]!, segment.length * 0.45);
+  const armOf = (nodeId: NodeId, segmentId: SegmentId): JunctionArm | undefined =>
+    junctionAt(nodeId).arms.find((arm) => arm.segment === segmentId);
+
+  /**
+   * Where the carriageway stops short of a node -- the same trim the road surface and the lane
+   * lines are drawn to, so a car leaves the road exactly where the turn diagram picks it up.
+   */
+  function trimAt(nodeId: NodeId, segmentId: SegmentId): number {
+    return armOf(nodeId, segmentId)?.trim ?? 0;
   }
 
   const roll = (car: Car): number => {
@@ -162,46 +180,53 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   const lanesFor = (segment: Segment, direction: 1 | -1): LaneCentre[] =>
     laneCentres(roadType(segment.type)).filter((lane) => lane.direction === direction);
 
-  /** Puts a car at the near end of a segment, entering from `from`, in one of that way's lanes. */
-  function board(car: Car, segmentId: SegmentId, from: NodeId, entryTrim = 0, kerbLane = false): void {
-    const segment = graph.segment(segmentId);
-    const direction = segment.a === from ? 1 : -1;
-    const lanes = lanesFor(segment, direction);
-    const trim = Math.min(entryTrim, segment.length * 0.45);
-    car.segment = segment;
-    car.direction = direction;
-    car.distance = direction === 1 ? trim : segment.length - trim;
-    car.speed = roadType(segment.type).maxSpeed * car.pace;
-    car.ring = null;
-    car.plan = planRing(car, segment, direction);
-    // Three ways to end up in a lane, in order: positioned for the roundabout this road runs
-    // into, kerb-side because the car has just come off one, or simply one of them at random.
-    const wanted = car.plan ? (car.plan.arc > Math.PI / 2 ? 1 : 0) : kerbLane ? 0 : -1;
-    const chosen =
-      wanted < 0
-        ? lanes[Math.floor(roll(car) * lanes.length)]
-        : lanes.find((lane) => laneRank(lanes, lane) === Math.min(wanted, lanes.length - 1));
-    car.lane = chosen ?? { offset: 0, direction };
-    // A car already placed for a roundabout stays where it is; it has somewhere to be.
-    car.changeAt = car.plan ? never(direction) : changePoint(car, segment, direction, lanes.length);
-    // The offset is left where it was and slides to the new lane, so a turn comes out of the
-    // junction on the line it went in on rather than snapping sideways on arrival.
+  /** The lane a car should be in on a road, and the lane it starts in if it changes on the way. */
+  interface Entry {
+    readonly lane: LaneCentre;
+    readonly changing: LaneCentre | null;
+    readonly plan: RingPlan | null;
   }
 
   /**
-   * Where along this segment the car will change lane, if it does at all. Half the traffic on a
-   * road with two lanes each way moves across somewhere in its middle third -- enough to read as
-   * lanes being used rather than two fixed queues, without a car weaving every few metres.
-   * ponytail: one change per segment, decided on entry. No overtaking, nothing to overtake.
+   * Three ways to end up in a lane, in order: positioned for the roundabout this road runs into,
+   * kerb-side because the car has just come off one, or simply one of them at random -- and then
+   * half of what is left changes lane on the way, along the road's own drawn weave.
+   * ponytail: one change per road, decided on entry. No overtaking, nothing to overtake.
    */
-  function changePoint(car: Car, segment: Segment, direction: 1 | -1, lanes: number): number {
-    if (lanes < 2 || roll(car) < 0.5) return never(direction);
-    const along = (0.35 + roll(car) * 0.3) * segment.length;
-    return direction === 1 ? along : segment.length - along;
+  function chooseEntry(car: Car, segment: Segment, direction: 1 | -1, kerbLane: boolean): Entry {
+    const lanes = lanesFor(segment, direction);
+    const fallback = { offset: 0, direction } as LaneCentre;
+    const plan = planRing(car, segment, direction);
+    if (plan) {
+      const wanted = Math.min(plan.arc > Math.PI / 2 ? 1 : 0, lanes.length - 1);
+      // A car placed for a roundabout stays put; it has somewhere to be.
+      return { lane: lanes.find((lane) => laneRank(lanes, lane) === wanted) ?? fallback, changing: null, plan };
+    }
+    if (lanes.length > 1 && !kerbLane && roll(car) < 0.5) {
+      // The weave is drawn from the first lane of this direction to the second; a car changing
+      // lane starts in the first so it travels the line that is drawn.
+      return { lane: lanes[1]!, changing: lanes[0]!, plan: null };
+    }
+    const lane = kerbLane
+      ? lanes.find((l) => laneRank(lanes, l) === 0)
+      : lanes[Math.floor(roll(car) * lanes.length)];
+    return { lane: lane ?? fallback, changing: null, plan: null };
   }
 
-  /** A change point the car can never reach, whichever way it is going. */
-  const never = (direction: 1 | -1): number => (direction === 1 ? Infinity : -Infinity);
+  /** Puts a car on a road, at `trim` from the node it entered by. */
+  function board(car: Car, segmentId: SegmentId, from: NodeId, entry: Entry, trim: number): void {
+    const segment = graph.segment(segmentId);
+    const direction = segment.a === from ? 1 : -1;
+    const at = Math.min(trim, segment.length * 0.45);
+    car.segment = segment;
+    car.direction = direction;
+    car.distance = direction === 1 ? at : segment.length - at;
+    car.speed = roadType(segment.type).maxSpeed * car.pace;
+    car.lane = entry.lane;
+    car.changing = entry.changing;
+    car.plan = entry.plan;
+    car.ride = null;
+  }
 
   /**
    * One node ahead: when this road ends at a roundabout, the exit is chosen on entering the road
@@ -214,21 +239,32 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     if (!graph.node(node).roundabout) return null;
     const exit = pickExit(graph, node, segment.id, roll(car));
     if (exit === null) return null;
-    const ring = ringAt(node);
-    const entry = ring.arms.get(segment.id);
-    const leave = ring.arms.get(exit);
-    if (entry === undefined || leave === undefined) return null;
-    return { node, exit, arc: ringArc(entry, leave) };
+    const entry = armOf(node, segment.id);
+    const leave = armOf(node, exit);
+    if (!entry || !leave) return null;
+    return { node, exit, arc: ringArc(entry.angle, leave.angle) };
+  }
+
+  /** How far across its lane change the car is, and so where it sits across the road. */
+  function offsetOf(car: Car): number {
+    if (!car.changing) return car.lane.offset;
+    const seg = car.segment;
+    const span = laneChangeSpan(trimAt(seg.a, seg.id), seg.length - trimAt(seg.b, seg.id));
+    const travelled = car.direction === 1 ? car.distance - span.start : span.end - car.distance;
+    return laneChangeOffset(car.changing.offset, car.lane.offset, travelled / (span.end - span.start));
   }
 
   /** The distance along the current segment at which the car has run out of road. */
   function limitOf(car: Car): number {
     const end = car.direction === 1 ? car.segment.b : car.segment.a;
-    const trim = trimAt(end, car.segment);
+    const trim = Math.min(trimAt(end, car.segment.id), car.segment.length * 0.45);
     return car.direction === 1 ? car.segment.length - trim : trim;
   }
 
-  /** Reached the end of a segment: pick what to do at the node, ring or plain junction. */
+  /**
+   * Reached the end of a road. The car takes the drawn transfer from here to its next lane: the
+   * junction's own turn curve, or a roundabout's merge, sweep and exit joined into one.
+   */
   function arrive(car: Car): void {
     const nodeId = car.direction === 1 ? car.segment.b : car.segment.a;
     const planned = car.plan?.node === nodeId ? car.plan : null;
@@ -238,31 +274,71 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       car.direction = -car.direction as 1 | -1;
       return;
     }
-    if (!graph.node(nodeId).roundabout) {
-      board(car, next, nodeId);
-      return;
-    }
-    const ring = ringAt(nodeId);
-    const entry = ring.arms.get(car.segment.id);
-    const exit = ring.arms.get(next);
-    if (entry === undefined || exit === undefined) {
-      board(car, next, nodeId);
-      return;
-    }
-    // Which ring lane this arm's lane feeds. The car aims for it from wherever it actually is:
-    // joining the ring is a merge across the tarmac, not a jump onto a circle.
-    const entryRadius = ringEntryRadius(ring.radii, laneRank(lanesFor(car.segment, car.direction), car.lane));
-    const centre = graph.node(nodeId).pos;
-    const at = Math.hypot(car.mesh.position.x - centre.x, car.mesh.position.z - centre.z);
-    car.ring = {
-      node: nodeId,
+    const roundabout = graph.node(nodeId).roundabout;
+    const entry = chooseEntry(car, graph.segment(next), graph.segment(next).a === nodeId ? 1 : -1, roundabout);
+    const trim = trimAt(nodeId, next);
+    const from = armOf(nodeId, car.segment.id);
+    const to = armOf(nodeId, next);
+    // Landing on the exit road in the lane it will start in, which is the one it changes from.
+    const landing = entry.changing ?? entry.lane;
+
+    // A dead end has no junction and so no drawn turn: the car turns round on the spot. Same
+    // curve, bowed past the end of the road rather than towards a node's centre.
+    const points =
+      !from || !to || next === car.segment.id
+        ? uTurnPath(car, landing.offset)
+        : roundabout
+          ? ringTransfer(car, nodeId, from, to, landing.offset)
+          : junctionTurnPath(
+              graph.node(nodeId).pos,
+              armPort(graph, nodeId, from, car.lane.offset),
+              armPort(graph, nodeId, to, landing.offset),
+            );
+    car.ride = {
+      points,
+      cumulative: pathCumulative(points),
       exit: next,
-      arc: planned?.arc ?? ringArc(entry, exit),
-      entryRadius,
-      angle: entry,
+      from: nodeId,
+      lane: entry.lane,
+      changing: entry.changing,
+      trim,
+      pace: roundabout ? RING_PACE : JUNCTION_PACE,
       travelled: 0,
-      radius: Math.min(Math.max(at, ring.radii[0]!), ring.radii[ring.radii.length - 1]!),
     };
+    car.plan = entry.plan;
+  }
+
+  /** Turning round where the road simply stops: out on one lane, back on the other. */
+  function uTurnPath(car: Car, exitOffset: number): Vec3[] {
+    const { position, tangent } = graph.pointAt(car.segment.id, car.distance);
+    const n = perpXZ(normalizeXZ(tangent));
+    const port = (offset: number): Vec3 =>
+      v3(position.x + n.x * offset, position.y, position.z + n.z * offset);
+    const reach = Math.abs(car.lane.offset - exitOffset) + 4;
+    const nose = v3(
+      position.x + tangent.x * car.direction * reach,
+      position.y,
+      position.z + tangent.z * car.direction * reach,
+    );
+    return sampleQuadratic(port(car.lane.offset), nose, port(exitOffset), 12);
+  }
+
+  /** Merge on, round, and off again: the three drawn curves of a roundabout, end to end. */
+  function ringTransfer(car: Car, nodeId: NodeId, from: JunctionArm, to: JunctionArm, exitOffset: number): Vec3[] {
+    const ring = ringAt(nodeId);
+    const outer = ring.radii[ring.radii.length - 1]!;
+    // Which ring lane this arm's lane feeds: kerb-side onto the outer one, the lane beside the
+    // centreline onto the inner.
+    const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(car.segment, car.direction), car.lane));
+    const start = mergeAngle(graph, ring, from);
+    const finish = exitAngle(graph, ring, to);
+    const arc = ringArc(start, finish);
+    const steps = Math.max(8, Math.round((arc / (Math.PI / 2)) * 12));
+    return [
+      ...ringJoinPath(graph, ring, from, car.lane.offset, radius, true),
+      ...ringSweep(ring, start, radius, start + arc, outer, steps),
+      ...ringJoinPath(graph, ring, to, exitOffset, outer, false),
+    ];
   }
 
   function rebuild(): void {
@@ -270,7 +346,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     for (const car of cars) car.mesh.dispose();
     walkers = [];
     cars = [];
-    rings.clear();
+    junctions.clear();
+    ringsAt.clear();
 
     for (const [si, seg] of graph.allSegments().entries()) {
       const type = roadType(seg.type);
@@ -309,8 +386,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
       const lanes = laneCentres(type);
       const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
-      const from = trimAt(seg.a, seg);
-      const span = Math.max(1, seg.length - from - trimAt(seg.b, seg));
+      const from = trimAt(seg.a, seg.id);
+      const span = Math.max(1, seg.length - from - trimAt(seg.b, seg.id));
       for (let i = 0; i < count; i++) {
         const mesh = MeshBuilder.CreateBox(`traffic_${seg.id}_${i}`, { width: CAR_WIDTH, height: 1.2, depth: 6 }, scene);
         mesh.material = carMaterials[(si + i) % carMaterials.length]!;
@@ -325,22 +402,16 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           direction: lane.direction,
           distance: from + ((i + 0.5) / count) * span,
           lane,
-          offset: lane.offset,
-          changeAt: lane.direction === 1 ? Infinity : -Infinity,
+          changing: null,
           speed: type.maxSpeed * pace,
-          ring: null,
+          ride: null,
           plan: null,
         };
-        // A car placed mid-road gets its change point like any other, or nothing moves across
-        // until it has been round to a node and back.
-        const sameWay = lanes.filter((l) => l.direction === lane.direction);
-        car.plan = planRing(car, seg, lane.direction);
-        if (car.plan) {
-          const wanted = Math.min(car.plan.arc > Math.PI / 2 ? 1 : 0, sameWay.length - 1);
-          car.lane = sameWay.find((l) => laneRank(sameWay, l) === wanted) ?? car.lane;
-          car.offset = car.lane.offset;
-        }
-        car.changeAt = car.plan ? Infinity : changePoint(car, seg, lane.direction, sameWay.length);
+        // Placed mid-road, but otherwise entering it like any other car.
+        const entry = chooseEntry(car, seg, lane.direction, false);
+        car.lane = entry.lane;
+        car.changing = entry.changing;
+        car.plan = entry.plan;
         cars.push(car);
       }
     }
@@ -369,26 +440,16 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     }
 
     for (const car of cars) {
-      if (car.ring) {
-        const ride = car.ring;
-        const ring = ringAt(ride.node);
-        const target = ringTargetRadius(ring.radii, ride.entryRadius, ride.arc - ride.travelled);
-        // Merging onto a ring is brisker than an idle lane change on an open road.
-        ride.radius = approach(ride.radius, target, LANE_CHANGE_SPEED * 2 * dt);
-        const step = (car.speed * RING_PACE * dt) / ride.radius;
-        ride.angle += step;
-        ride.travelled += step;
-        if (ride.travelled >= ride.arc) {
-          board(car, ride.exit, ride.node, ride.radius, true);
+      if (car.ride) {
+        const ride = car.ride;
+        ride.travelled += car.speed * ride.pace * dt;
+        const total = ride.cumulative[ride.cumulative.length - 1]!;
+        if (ride.travelled >= total) {
+          board(car, ride.exit, ride.from, { lane: ride.lane, changing: ride.changing, plan: car.plan }, ride.trim);
         } else {
-          const centre = graph.node(ride.node).pos;
-          car.mesh.position.set(
-            centre.x + Math.cos(ride.angle) * ride.radius,
-            ring.elevation(ride.angle) + ROAD_LIFT + 0.75,
-            centre.z + Math.sin(ride.angle) * ride.radius,
-          );
-          // Tangent of a growing bearing, which is the way traffic goes round.
-          car.mesh.rotation.y = Math.atan2(-Math.sin(ride.angle), Math.cos(ride.angle));
+          const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);
+          car.mesh.position.set(position.x, position.y + ROAD_LIFT + 0.75, position.z);
+          car.mesh.rotation.y = Math.atan2(tangent.x, tangent.z);
           continue;
         }
       }
@@ -398,19 +459,15 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       if (car.direction === 1 ? car.distance >= limit : car.distance <= limit) {
         car.distance = limit;
         arrive(car);
-        if (car.ring) continue;
-      } else if (car.direction === 1 ? car.distance >= car.changeAt : car.distance <= car.changeAt) {
-        const lanes = lanesFor(car.segment, car.direction);
-        car.lane = lanes.find((lane) => lane.offset !== car.lane.offset) ?? car.lane;
-        car.changeAt = car.direction === 1 ? Infinity : -Infinity;
+        if (car.ride) continue;
       }
-      car.offset = approach(car.offset, car.lane.offset, LANE_CHANGE_SPEED * dt);
+      const offset = offsetOf(car);
       const { position, tangent } = graph.pointAt(car.segment.id, car.distance);
       const normal = perpXZ(normalizeXZ(tangent));
       car.mesh.position.set(
-        position.x + normal.x * car.offset,
+        position.x + normal.x * offset,
         position.y + ROAD_LIFT + 0.75,
-        position.z + normal.z * car.offset,
+        position.z + normal.z * offset,
       );
       car.mesh.rotation.y = Math.atan2(tangent.x * car.direction, tangent.z * car.direction);
     }

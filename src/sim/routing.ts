@@ -63,22 +63,3 @@ export function laneRank(lanes: readonly LaneCentre[], lane: LaneCentre): number
 export function ringEntryRadius(radii: readonly number[], rank: number): number {
   return radii[Math.max(0, radii.length - 1 - rank)]!;
 }
-
-/**
- * The ring lane to be aiming for right now: the one joined on entry while there is still ring
- * to go, and the outer lane once the exit is close, because that is the only lane you can leave
- * from. The car slides between the two the same way it changes lane on a road.
- */
-export function ringTargetRadius(radii: readonly number[], entryRadius: number, remaining: number): number {
-  return remaining > Math.PI / 2 ? entryRadius : radii[radii.length - 1]!;
-}
-
-/**
- * Moves a value toward a target at a bounded rate. A car changes lane -- on a road or between
- * the lanes of a ring -- by sliding across rather than jumping: the same lanes the overlay
- * draws, with the metres in between actually travelled.
- */
-export function approach(current: number, target: number, maxStep: number): number {
-  const delta = target - current;
-  return Math.abs(delta) <= maxStep ? target : current + Math.sign(delta) * maxStep;
-}

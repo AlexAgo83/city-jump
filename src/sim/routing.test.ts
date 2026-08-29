@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
-import { approach, exits, laneRank, pickExit, ringArc, ringEntryRadius, ringTargetRadius } from "./routing";
+import { exits, laneRank, pickExit, ringArc, ringEntryRadius } from "./routing";
 import { ringLaneRadii } from "./junction";
 import { perpXZ, v3, type Vec3 } from "./vec";
 import { laneCentres, roadType } from "./roadTypes";
@@ -75,12 +75,8 @@ describe("routing", () => {
       expect(ringEntryRadius(radii, laneRank(lanes, centreSide))).toBe(inner);
     }
 
-    // Joined on the inner lane, a car holds it until the exit is close, then aims for the outer.
-    expect(ringTargetRadius(radii, inner, Math.PI)).toBe(inner);
-    expect(ringTargetRadius(radii, inner, Math.PI / 4)).toBe(outer);
     // A one-lane ring has nothing to choose.
     expect(ringEntryRadius([12], 1)).toBe(12);
-    expect(ringTargetRadius([12], 12, Math.PI)).toBe(12);
   });
 
   it("circulates the ring on the same side of the road cars already drive on", () => {
@@ -101,13 +97,4 @@ describe("routing", () => {
     expect(right.x * inward.x + right.z * inward.z).toBeLessThan(0);
   });
 
-  it("slides across to the next lane instead of jumping", () => {
-    let offset = -6;
-    const steps: number[] = [];
-    for (let i = 0; i < 10; i++) steps.push((offset = approach(offset, -2.5, 1)));
-    // Every step is a real move of at most the cap, and it settles exactly on the lane.
-    expect(Math.max(...steps.map((s, i) => Math.abs(s - (steps[i - 1] ?? -6))))).toBeLessThanOrEqual(1);
-    expect(offset).toBe(-2.5);
-    expect(approach(-2.5, -2.5, 1)).toBe(-2.5);
-  });
 });
