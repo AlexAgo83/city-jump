@@ -1,4 +1,5 @@
 import "@babylonjs/loaders/glTF";
+import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -8,7 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
+import { Matrix, Vector3, Quaternion, Color3, Color4 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -16,7 +17,7 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
-const BUILDING_ASSET_VERSION = "2026-08-29-3";
+const BUILDING_ASSET_VERSION = "2026-08-29-19";
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 
@@ -121,10 +122,11 @@ export function roofPropY(modelId: string, localX: number, localZ: number, bound
   const spec = buildingSpec(modelId);
   if (!spec) return boundsMaxY;
   if (spec.roof === 0) {
+    const x = localX < 0 ? localX + spec.width : localX;
     const onSetback =
       spec.area >= 6 &&
-      localX >= spec.width * 0.12 &&
-      localX <= spec.width * 0.88 &&
+      x >= spec.width * 0.12 &&
+      x <= spec.width * 0.88 &&
       -localZ >= spec.depth * 0.12 &&
       -localZ <= spec.depth * 0.88;
     return onSetback || spec.area < 6 ? spec.height : spec.height * 0.72;
@@ -506,6 +508,9 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     mesh.bakeCurrentTransformIntoVertices();
     mesh.convertToFlatShadedMesh();
     mesh.refreshBoundingInfo();
+    mesh.enableEdgesRendering();
+    mesh.edgesWidth = 0.45;
+    mesh.edgesColor = new Color4(0.04, 0.05, 0.05, 0.3);
     mesh.setEnabled(false);
     for (const node of result.meshes) if (node !== mesh) node.dispose();
 
@@ -536,13 +541,42 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
   } else if (lit.albedoColor && !lit.diffuseColor) {
     const standard = new StandardMaterial(`${lit.name}_standard`, scene);
     standard.diffuseColor = lit.albedoColor.clone();
-    standard.specularColor = Color3.Black();
-    standard.maxSimultaneousLights = 32;
+    finishBuildingMaterial(standard);
     return standard;
   }
+  if (lit.name.includes("_glass") && lit.diffuseColor) {
+    lit.diffuseColor = new Color3(0.18, 0.32, 0.42);
+    lit.emissiveColor = new Color3(0.12, 0.22, 0.3);
+  }
   if (lit.ambientColor) lit.ambientColor = Color3.Black();
-  if (lit.emissiveColor) lit.emissiveColor = Color3.Black();
+  if (lit.emissiveColor && !lit.name.includes("_glass")) lit.emissiveColor = Color3.Black();
   if (typeof lit.environmentIntensity === "number") lit.environmentIntensity = 0;
   if (typeof lit.maxSimultaneousLights === "number") lit.maxSimultaneousLights = 32;
   return lit;
+}
+
+function finishBuildingMaterial(material: StandardMaterial): void {
+  if (material.name.includes("_glass")) {
+    material.diffuseColor = new Color3(0.35, 0.75, 0.95);
+    material.emissiveColor = new Color3(0.28, 0.55, 0.7);
+    material.disableLighting = true;
+  } else if (material.name.includes("_trim")) {
+    material.diffuseColor = new Color3(0.16, 0.17, 0.18);
+    material.emissiveColor = new Color3(0.07, 0.075, 0.08);
+    material.disableLighting = true;
+  } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
+    material.diffuseColor = new Color3(0.22, 0.12, 0.08);
+    material.emissiveColor = new Color3(0.06, 0.03, 0.02);
+    material.disableLighting = true;
+  } else if (material.name.includes("_sign")) {
+    material.diffuseColor = new Color3(0.95, 0.65, 0.18);
+    material.emissiveColor = new Color3(0.28, 0.16, 0.03);
+    material.disableLighting = true;
+  } else if (material.name.includes("_awning")) {
+    material.diffuseColor = new Color3(0.16, 0.28, 0.34);
+    material.emissiveColor = new Color3(0.03, 0.05, 0.06);
+    material.disableLighting = true;
+  }
+  material.specularColor = Color3.Black();
+  material.maxSimultaneousLights = 32;
 }

@@ -24,7 +24,7 @@ COLOURS = [
     (0.45, 0.52, 0.60, 1.0),
     (0.62, 0.68, 0.58, 1.0),
 ]
-GLASS = (0.08, 0.11, 0.15, 1.0)
+GLASS = (0.35, 0.75, 0.95, 1.0)
 DOOR = (0.18, 0.12, 0.08, 1.0)
 ROOF_TRIM = (0.20, 0.22, 0.24, 1.0)
 SIGN = (0.92, 0.66, 0.22, 1.0)
@@ -93,26 +93,72 @@ def material(name, colour):
     return mat
 
 
-def add_windows(parts, name, w, d, h, style):
+def front_panel(parts, name, x0, y0, z0, x1, z1):
+    parts.append((box(f"{name}_glass", x0 + 0.04, y0 - 0.5, z0 + 0.04, x1 - 0.04, y0 - 0.44, z1 - 0.04), "glass"))
+    parts.append((box(f"{name}_glass_back", x0 + 0.12, y0 - 0.12, z0 + 0.12, x1 - 0.12, y0 - 0.06, z1 - 0.12), "glass"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 - 0.42, z1, x1 + 0.06, y0 - 0.04, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 - 0.42, z0 - 0.08, x1 + 0.06, y0 - 0.04, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 - 0.42, z0 - 0.08, x0, y0 - 0.04, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x1, y0 - 0.42, z0 - 0.08, x1 + 0.08, y0 - 0.04, z1 + 0.08), "trim"))
+
+
+def back_panel(parts, name, x0, y0, z0, x1, z1):
+    parts.append((box(f"{name}_glass", x0 + 0.04, y0 + 0.44, z0 + 0.04, x1 - 0.04, y0 + 0.5, z1 - 0.04), "glass"))
+    parts.append((box(f"{name}_glass_back", x0 + 0.12, y0 + 0.06, z0 + 0.12, x1 - 0.12, y0 + 0.12, z1 - 0.12), "glass"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 + 0.04, z1, x1 + 0.06, y0 + 0.42, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 + 0.04, z0 - 0.08, x1 + 0.06, y0 + 0.42, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 + 0.04, z0 - 0.08, x0, y0 + 0.42, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x1, y0 + 0.04, z0 - 0.08, x1 + 0.08, y0 + 0.42, z1 + 0.08), "trim"))
+
+
+def left_panel(parts, name, x0, y0, z0, y1, z1):
+    parts.append((box(f"{name}_glass", x0 - 0.5, y0 + 0.04, z0 + 0.04, x0 - 0.44, y1 - 0.04, z1 - 0.04), "glass"))
+    parts.append((box(f"{name}_glass_back", x0 - 0.12, y0 + 0.12, z0 + 0.12, x0 - 0.06, y1 - 0.12, z1 - 0.12), "glass"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.42, y0 - 0.06, z1, x0 - 0.04, y1 + 0.06, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.42, y0 - 0.06, z0 - 0.08, x0 - 0.04, y1 + 0.06, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.42, y0 - 0.08, z0 - 0.08, x0 - 0.04, y0, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x0 - 0.42, y1, z0 - 0.08, x0 - 0.04, y1 + 0.08, z1 + 0.08), "trim"))
+
+
+def right_panel(parts, name, x0, y0, z0, y1, z1):
+    parts.append((box(f"{name}_glass", x0 + 0.44, y0 + 0.04, z0 + 0.04, x0 + 0.5, y1 - 0.04, z1 - 0.04), "glass"))
+    parts.append((box(f"{name}_glass_back", x0 + 0.06, y0 + 0.12, z0 + 0.12, x0 + 0.12, y1 - 0.12, z1 - 0.12), "glass"))
+    parts.append((box(f"{name}_frame_top", x0 + 0.04, y0 - 0.06, z1, x0 + 0.42, y1 + 0.06, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 + 0.04, y0 - 0.06, z0 - 0.08, x0 + 0.42, y1 + 0.06, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 + 0.04, y0 - 0.08, z0 - 0.08, x0 + 0.42, y0, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x0 + 0.04, y1, z0 - 0.08, x0 + 0.42, y1 + 0.08, z1 + 0.08), "trim"))
+
+
+def add_windows(parts, name, w, d, h, style, x0=0.0, y0=0.0, z0=0.0):
     floors = max(1, int((h - 2.5) // 3.0))
     for floor in range(floors):
-        z = 3.0 + floor * 3.0
-        if z > h - 1.2:
+        z = z0 + 3.0 + floor * 3.0
+        if z > z0 + h - 1.2:
             break
         if style == "residential":
             cols = max(1, int(w // 3.5))
             for col in range(cols):
-                x = (col + 0.5) * w / cols
-                parts.append((box(f"{name}_window_{floor}_{col}", x - 0.45, -0.1, z, x + 0.45, 0.0, z + 1.1), "glass"))
-                parts.append((box(f"{name}_balcony_{floor}_{col}", x - 0.65, -0.55, z - 0.2, x + 0.65, -0.1, z), "trim"))
+                x = x0 + (col + 0.5) * w / cols
+                front_panel(parts, f"{name}_front_window_{floor}_{col}", x - 1.0, y0, z, x + 1.0, z + 1.8)
+                back_panel(parts, f"{name}_back_window_{floor}_{col}", x - 1.0, y0 + d, z, x + 1.0, z + 1.8)
+                parts.append((box(f"{name}_front_window_fill_{floor}_{col}", x - 0.82, y0 - 0.62, z + 0.16, x + 0.82, y0 - 0.56, z + 1.64), "glass"))
+                parts.append((box(f"{name}_back_window_fill_{floor}_{col}", x - 0.82, y0 + d + 0.56, z + 0.16, x + 0.82, y0 + d + 0.62, z + 1.64), "glass"))
+                parts.append((box(f"{name}_balcony_{floor}_{col}", x - 0.65, y0 - 0.55, z - 0.2, x + 0.65, y0 - 0.1, z), "trim"))
+            rows = max(1, int(d // 3.5))
+            for row in range(rows):
+                y = y0 + (row + 0.5) * d / rows
+                left_panel(parts, f"{name}_left_window_{floor}_{row}", x0, y - 1.0, z, y + 1.0, z + 1.8)
+                right_panel(parts, f"{name}_right_window_{floor}_{row}", x0 + w, y - 1.0, z, y + 1.0, z + 1.8)
+                parts.append((box(f"{name}_left_window_fill_{floor}_{row}", x0 - 0.62, y - 0.82, z + 0.16, x0 - 0.56, y + 0.82, z + 1.64), "glass"))
+                parts.append((box(f"{name}_right_window_fill_{floor}_{row}", x0 + w + 0.56, y - 0.82, z + 0.16, x0 + w + 0.62, y + 0.82, z + 1.64), "glass"))
         else:
-            parts.append((box(f"{name}_front_windows_{floor}", 0.7, -0.08, z, w - 0.7, 0.0, z + 1.0), "glass"))
-            parts.append((box(f"{name}_back_windows_{floor}", 0.7, d, z, w - 0.7, d + 0.08, z + 1.0), "glass"))
-            parts.append((box(f"{name}_left_windows_{floor}", -0.08, 0.7, z, 0.0, d - 0.7, z + 1.0), "glass"))
-            parts.append((box(f"{name}_right_windows_{floor}", w, 0.7, z, w + 0.08, d - 0.7, z + 1.0), "glass"))
+            front_panel(parts, f"{name}_front_windows_{floor}", x0 + 0.65, y0, z, x0 + w - 0.65, z + 1.65)
+            back_panel(parts, f"{name}_back_windows_{floor}", x0 + 0.65, y0 + d, z, x0 + w - 0.65, z + 1.65)
+            left_panel(parts, f"{name}_left_windows_{floor}", x0, y0 + 0.65, z, y0 + d - 0.65, z + 1.65)
+            right_panel(parts, f"{name}_right_windows_{floor}", x0 + w, y0 + 0.65, z, y0 + d - 0.65, z + 1.65)
         if style == "office":
             for x in range(4, int(w), 4):
-                parts.append((box(f"{name}_mullion_{floor}_{x}", x - 0.05, -0.12, z - 0.1, x + 0.05, 0.02, z + 1.15), "trim"))
+                parts.append((box(f"{name}_mullion_{floor}_{x}", x0 + x - 0.05, y0 - 0.12, z - 0.1, x0 + x + 0.05, y0 + 0.02, z + 1.15), "trim"))
 
 
 def add_street_level(parts, name, w, style):
@@ -128,56 +174,81 @@ def add_street_level(parts, name, w, style):
         parts.append((box(f"{name}_door", w * 0.42, -0.06, 0.0, w * 0.58, 0.0, 2.4), "door"))
 
 
-def add_flat_roof(parts, name, w, d, h):
+def add_parapet(parts, name, w, d, h, x0=0.0, y0=0.0):
     t = 0.25
     parts.extend(
         [
-            (box(f"{name}_parapet_front", 0, -t, h, w, 0, h + 0.65), "trim"),
-            (box(f"{name}_parapet_back", 0, d, h, w, d + t, h + 0.65), "trim"),
-            (box(f"{name}_parapet_left", -t, 0, h, 0, d, h + 0.65), "trim"),
-            (box(f"{name}_parapet_right", w, 0, h, w + t, d, h + 0.65), "trim"),
-            (box(f"{name}_roof_hut", w * 0.15, d * 0.15, h, min(w * 0.15 + 1.8, w - 0.6), min(d * 0.15 + 1.5, d - 0.6), h + 1.5), "trim"),
+            (box(f"{name}_parapet_front", x0, y0 - t, h, x0 + w, y0, h + 0.65), "trim"),
+            (box(f"{name}_parapet_back", x0, y0 + d, h, x0 + w, y0 + d + t, h + 0.65), "trim"),
+            (box(f"{name}_parapet_left", x0 - t, y0, h, x0, y0 + d, h + 0.65), "trim"),
+            (box(f"{name}_parapet_right", x0 + w, y0, h, x0 + w + t, y0 + d, h + 0.65), "trim"),
         ]
     )
+
+
+def add_flat_roof(parts, name, w, d, h, x0=0.0, y0=0.0):
+    add_parapet(parts, name, w, d, h, x0, y0)
+    parts.append(
+        (
+            box(
+                f"{name}_roof_hut",
+                x0 + w * 0.15,
+                y0 + d * 0.15,
+                h,
+                x0 + min(w * 0.15 + 1.8, w - 0.6),
+                y0 + min(d * 0.15 + 1.5, d - 0.6),
+                h + 1.5,
+            ),
+            "trim",
+        )
+    )
     if w >= CELL * 2 and d >= CELL * 2:
-        parts.append((box(f"{name}_skylight", w * 0.55, d * 0.35, h + 0.06, w * 0.8, d * 0.55, h + 0.22), "glass"))
+        parts.append((box(f"{name}_skylight", x0 + w * 0.55, y0 + d * 0.35, h + 0.06, x0 + w * 0.8, y0 + d * 0.55, h + 0.22), "glass"))
 
 
-def add_facade_relief(parts, name, w, d, h):
+def add_facade_relief(parts, name, w, d, h, x0=0.0, y0=0.0, z0=0.0):
     for floor in range(1, max(1, int(h // 3.0))):
-        z = floor * 3.0
+        z = z0 + floor * 3.0
         parts.extend(
             [
-                (box(f"{name}_front_sill_{floor}", 0.0, -0.16, z, w, 0.02, z + 0.12), "trim"),
-                (box(f"{name}_back_sill_{floor}", 0.0, d - 0.02, z, w, d + 0.16, z + 0.12), "trim"),
-                (box(f"{name}_left_sill_{floor}", -0.16, 0.0, z, 0.02, d, z + 0.12), "trim"),
-                (box(f"{name}_right_sill_{floor}", w - 0.02, 0.0, z, w + 0.16, d, z + 0.12), "trim"),
+                (box(f"{name}_front_sill_{floor}", x0, y0 - 0.16, z, x0 + w, y0 + 0.02, z + 0.12), "trim"),
+                (box(f"{name}_back_sill_{floor}", x0, y0 + d - 0.02, z, x0 + w, y0 + d + 0.16, z + 0.12), "trim"),
+                (box(f"{name}_left_sill_{floor}", x0 - 0.16, y0, z, x0 + 0.02, y0 + d, z + 0.12), "trim"),
+                (box(f"{name}_right_sill_{floor}", x0 + w - 0.02, y0, z, x0 + w + 0.16, y0 + d, z + 0.12), "trim"),
             ]
         )
     parts.extend(
         [
-            (box(f"{name}_front_left_corner", -0.12, -0.12, 0.0, 0.12, 0.12, h), "trim"),
-            (box(f"{name}_front_right_corner", w - 0.12, -0.12, 0.0, w + 0.12, 0.12, h), "trim"),
-            (box(f"{name}_back_left_corner", -0.12, d - 0.12, 0.0, 0.12, d + 0.12, h), "trim"),
-            (box(f"{name}_back_right_corner", w - 0.12, d - 0.12, 0.0, w + 0.12, d + 0.12, h), "trim"),
+            (box(f"{name}_front_left_corner", x0 - 0.12, y0 - 0.12, z0, x0 + 0.12, y0 + 0.12, z0 + h), "trim"),
+            (box(f"{name}_front_right_corner", x0 + w - 0.12, y0 - 0.12, z0, x0 + w + 0.12, y0 + 0.12, z0 + h), "trim"),
+            (box(f"{name}_back_left_corner", x0 - 0.12, y0 + d - 0.12, z0, x0 + 0.12, y0 + d + 0.12, z0 + h), "trim"),
+            (box(f"{name}_back_right_corner", x0 + w - 0.12, y0 + d - 0.12, z0, x0 + w + 0.12, y0 + d + 0.12, z0 + h), "trim"),
         ]
     )
 
 
 def build(name, w, d, h, roof, colour, style):
     clear_scene()
-    parts = [(box(name, 0.0, 0.0, 0.0, w, d, h * (0.72 if roof == 0 and w * d >= CELL * CELL * 6 else 1.0)), "wall")]
-    if roof == 0 and w * d >= CELL * CELL * 6:
-        parts.append((box(f"{name}_setback", w * 0.12, d * 0.12, h * 0.72, w * 0.88, d * 0.88, h), "wall"))
+    has_setback = roof == 0 and w * d >= CELL * CELL * 6
+    body_h = h * 0.72 if has_setback else h
+    parts = [(box(name, 0.0, 0.0, 0.0, w, d, body_h), "wall")]
+    if has_setback:
+        sx, sy, sw, sd = w * 0.12, d * 0.12, w * 0.76, d * 0.76
+        parts.append((box(f"{name}_setback", sx, sy, body_h, sx + sw, sy + sd, h), "wall"))
+        add_windows(parts, f"{name}_setback", sw, sd, h - body_h, style, sx, sy, body_h)
+        add_facade_relief(parts, f"{name}_setback", sw, sd, h - body_h, sx, sy, body_h)
     if roof > 0:
         parts.append((gabled_roof(f"{name}_roof", w, d, h, roof), "trim"))
+    elif has_setback:
+        add_parapet(parts, name, w, d, body_h)
+        add_flat_roof(parts, f"{name}_setback", sw, sd, h, sx, sy)
     else:
         add_flat_roof(parts, name, w, d, h)
     if style == "industrial":
         parts.append((box(f"{name}_roof_vent", w * 0.6, d * 0.45, h + 0.1, w * 0.8, d * 0.65, h + 0.7), "trim"))
     add_street_level(parts, name, w, style)
-    add_windows(parts, name, w, d, h, style)
-    add_facade_relief(parts, name, w, d, h)
+    add_windows(parts, name, w, d, body_h, style)
+    add_facade_relief(parts, name, w, d, body_h)
 
     mats = {
         "wall": material(name, colour),
