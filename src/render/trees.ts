@@ -25,6 +25,7 @@ const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
     density: 0.45 + randomish(i, 23) * 0.35,
   };
 });
+const ROAD_MASK_CELL = 32;
 
 /** Species differ only in geometry and colour; everything else about a tree is shared. */
 const SPECIES = {
@@ -172,6 +173,7 @@ export function createTreeRenderer(
     );
     const bases: typeof treeBases = [];
     const occupied = new Set<string>();
+    const roads = roadMask(graph);
     const step = 58;
     let i = 0;
 
@@ -190,7 +192,7 @@ export function createTreeRenderer(
     const plant = (px: number, pz: number, seed: number): void => {
       const h = heightmap.heightAt(px, pz);
       const bucket = `${Math.round(px / 10)}:${Math.round(pz / 10)}`;
-      if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(graph, px, pz)) return;
+      if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(roads, px, pz)) return;
       if (plantings.isCleared(px, pz)) return;
       occupied.add(bucket);
       put(px, pz, seed, h, DEFAULT_SPECIES);
@@ -297,17 +299,37 @@ function applyInstances(mesh: Mesh, matrices: Matrix[]): void {
   mesh.thinInstanceSetBuffer("matrix", buffer, 16);
 }
 
-function nearRoad(graph: RoadGraph, x: number, z: number): boolean {
+function roadMask(graph: RoadGraph): Map<string, { x: number; z: number; reserve: number }[]> {
+  const buckets = new Map<string, { x: number; z: number; reserve: number }[]>();
   for (const segment of graph.allSegments()) {
     const type = roadType(segment.type);
     if (type.tunnelDepth) continue;
     const reserve = type.width / 2 + SLOT.setback + GRID.depth * GRID.cellSize + 4;
     for (let i = 0; i < segment.samples.length; i += 8) {
       const p = segment.samples[i]!;
-      if (Math.hypot(p.x - x, p.z - z) < reserve) return true;
+      const key = maskKey(p.x, p.z);
+      const bucket = buckets.get(key) ?? [];
+      bucket.push({ x: p.x, z: p.z, reserve });
+      buckets.set(key, bucket);
+    }
+  }
+  return buckets;
+}
+
+function nearRoad(roads: Map<string, { x: number; z: number; reserve: number }[]>, x: number, z: number): boolean {
+  // ponytail: fixed grid buckets; replace with a real spatial index only if local bucket density profiles badly.
+  for (let iz = Math.floor(z / ROAD_MASK_CELL) - 2; iz <= Math.floor(z / ROAD_MASK_CELL) + 2; iz++) {
+    for (let ix = Math.floor(x / ROAD_MASK_CELL) - 2; ix <= Math.floor(x / ROAD_MASK_CELL) + 2; ix++) {
+      for (const p of roads.get(`${ix}:${iz}`) ?? []) {
+        if (Math.hypot(p.x - x, p.z - z) < p.reserve) return true;
+      }
     }
   }
   return false;
+}
+
+function maskKey(x: number, z: number): string {
+  return `${Math.floor(x / ROAD_MASK_CELL)}:${Math.floor(z / ROAD_MASK_CELL)}`;
 }
 
 function randomish(index: number, salt: number): number {

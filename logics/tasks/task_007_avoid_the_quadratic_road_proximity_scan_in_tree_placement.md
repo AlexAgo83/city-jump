@@ -1,13 +1,15 @@
 ## task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement - Avoid the quadratic road-proximity scan in tree placement
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-29 10:35:32
 
 # AI Context
 - Summary: `nearRoad()` (`src/render/trees.ts:300-311`) re-scans every road segment's sample array for every candidate tree site, with no spatial index. Give it a per-call cost independent of segment count (e.g. a coarse occupancy grid built once per rebuild, or a spatial index over segment samples). Distinct from the already-tracked `traffic.ts` per-frame scan in `req_003`/`req_004` -- do not duplicate that work here.
