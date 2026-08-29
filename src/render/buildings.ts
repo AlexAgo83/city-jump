@@ -17,11 +17,82 @@ import { createGroundShadow } from "./groundShadow";
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
 
+type PropKind = "ac" | "tank" | "antenna" | "hut" | "solar";
+
+/** One thing standing on a roof, in fractions of the parcel's own footprint (-0.5 to 0.5). */
+interface RoofProp {
+  readonly kind: PropKind;
+  readonly x: number;
+  readonly z: number;
+  readonly rotationY: number;
+}
+
+/** A roofscape: which props, and only offered to a parcel with at least this many cells to it. */
+interface RoofLayout {
+  readonly minCells: number;
+  readonly props: readonly RoofProp[];
+}
+
+/**
+ * A handful of authored roofscapes rather than a scattering algorithm -- plausible clutter is a
+ * handful of props that don't collide, and that is easier to draw by eye a few times over than to
+ * get right in general. Every parcel is offered the ones its footprint can fit and picks between
+ * them by its own position, so the same building always rolls the same roof.
+ */
+const ROOF_LAYOUTS: readonly RoofLayout[] = [
+  // Most roofs are just a roof -- clutter on every single one reads as noise, not detail.
+  { minCells: 0, props: [] },
+  { minCells: 1, props: [{ kind: "ac", x: -0.2, z: 0.15, rotationY: 0 }] },
+  {
+    minCells: 2,
+    props: [
+      { kind: "ac", x: -0.25, z: 0.2, rotationY: 0.3 },
+      { kind: "ac", x: 0.2, z: -0.15, rotationY: -0.4 },
+    ],
+  },
+  {
+    minCells: 2,
+    props: [
+      { kind: "tank", x: 0.18, z: 0.1, rotationY: 0 },
+      { kind: "antenna", x: -0.25, z: -0.2, rotationY: 0 },
+    ],
+  },
+  { minCells: 4, props: [{ kind: "hut", x: -0.15, z: 0, rotationY: 0 }] },
+  {
+    minCells: 3,
+    props: [
+      { kind: "solar", x: 0, z: -0.25, rotationY: 0 },
+      { kind: "solar", x: 0, z: 0, rotationY: 0 },
+      { kind: "solar", x: 0, z: 0.25, rotationY: 0 },
+    ],
+  },
+  {
+    minCells: 6,
+    props: [
+      { kind: "hut", x: 0.2, z: 0.15, rotationY: 0 },
+      { kind: "ac", x: -0.2, z: -0.15, rotationY: 0.5 },
+      { kind: "antenna", x: -0.2, z: 0.25, rotationY: 0 },
+    ],
+  },
+];
+
+/** Stable per parcel, so a roof's clutter does not reshuffle every time the city rebuilds. */
+function roofSeed(parcel: BuildingParcel): number {
+  const ix = Math.round(parcel.position.x * 4);
+  const iz = Math.round(parcel.position.z * 4);
+  return (
+    (Math.imul(ix, 2654435761) ^ Math.imul(iz, 40503) ^ Math.imul(parcel.frontageCells * 4 + parcel.depthCells, 12345)) >>>
+    0
+  );
+}
+
 interface Model {
   readonly id: string;
   readonly mesh: Mesh;
   /** Local frontage centre after the loader's handedness transform has been baked. */
   readonly centerX: number;
+  /** Roof height above the parcel's own ground, for whatever stands on top of it. */
+  readonly roofY: number;
 }
 
 /**
@@ -31,6 +102,7 @@ interface Model {
 export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
   const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows)));
   const available = models.filter((m): m is Model => m !== null);
+  const roofProps = buildRoofProps(scene, shadows);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
   const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
@@ -91,6 +163,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         model.mesh.thinInstanceCount = 0;
         model.mesh.setEnabled(false);
       }
+      for (const mesh of Object.values(roofProps)) {
+        mesh.thinInstanceCount = 0;
+        mesh.setEnabled(false);
+      }
       groundShadow.setInstances([]);
       return 0;
     }
@@ -125,6 +201,46 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16);
       placed += chosen.length;
     }
+
+    // Whatever stands on each roof: picked once per parcel from `ROOF_LAYOUTS`, by its own
+    // model's roof height and its own footprint, then bucketed by kind the same way a building
+    // itself is bucketed by model.
+    const propMatrices = new Map<PropKind, Matrix[]>();
+    for (const parcel of parcels) {
+      const model = available.find((m) => m.id === `lot_${parcel.frontageCells}x${parcel.depthCells}`);
+      if (!model) continue;
+      const cells = parcel.frontageCells * parcel.depthCells;
+      const offered = ROOF_LAYOUTS.filter((layout) => layout.minCells <= cells);
+      const layout = offered[roofSeed(parcel) % offered.length]!;
+      const width = parcel.frontageCells * GRID.cellSize;
+      const depth = parcel.depthCells * GRID.cellSize;
+      // The building's own matrix, local origin and all -- a prop's roof position is a point in
+      // that same local space, carried into the world by the very transform already proven to
+      // put the building itself in the right place, rather than a second copy of that rotation
+      // hand-rolled here and liable to disagree with it.
+      const buildingMatrix = matrixFor(parcel, model.centerX);
+      for (const prop of layout.props) {
+        const local = new Vector3(prop.x * width, model.roofY, prop.z * depth);
+        const matrix = Matrix.Compose(
+          Vector3.OneReadOnly,
+          Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
+          Vector3.TransformCoordinates(local, buildingMatrix),
+        );
+        const bucket = propMatrices.get(prop.kind);
+        if (bucket) bucket.push(matrix);
+        else propMatrices.set(prop.kind, [matrix]);
+      }
+    }
+    for (const [kind, mesh] of Object.entries(roofProps) as [PropKind, Mesh][]) {
+      const list = propMatrices.get(kind) ?? [];
+      mesh.thinInstanceCount = 0;
+      mesh.setEnabled(list.length > 0);
+      if (list.length === 0) continue;
+      const buffer = new Float32Array(list.length * 16);
+      list.forEach((m, i) => m.copyToArray(buffer, i * 16));
+      mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+    }
+
     return placed;
   }
 
@@ -139,8 +255,100 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     /** Faded rather than hidden while drawing roads, so the layout underneath stays visible. */
     setFaded(faded: boolean) {
       for (const model of available) setMaterialAlpha(model.mesh.material, faded ? 0.35 : 1);
+      for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
     modelCount: available.length,
+  };
+}
+
+/** A box, positioned -- the one primitive every roof prop below is built out of. */
+function box(scene: Scene, name: string, width: number, height: number, depth: number, x: number, y: number, z: number): Mesh {
+  const mesh = MeshBuilder.CreateBox(name, { width, height, depth }, scene);
+  mesh.position.set(x, y, z);
+  return mesh;
+}
+
+/**
+ * One prototype per prop kind, built from primitives the same way a car is -- and, like a car,
+ * thin-instanced rather than loaded, since there is nothing here a box and a cylinder cannot
+ * stand in for at the distance a roof is ever seen from.
+ */
+function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind, Mesh> {
+  const material: Record<PropKind, StandardMaterial> = {
+    ac: new StandardMaterial("roofprop_ac", scene),
+    tank: new StandardMaterial("roofprop_tank", scene),
+    antenna: new StandardMaterial("roofprop_antenna", scene),
+    hut: new StandardMaterial("roofprop_hut", scene),
+    solar: new StandardMaterial("roofprop_solar", scene),
+  };
+  material.ac.diffuseColor = new Color3(0.55, 0.56, 0.58);
+  material.tank.diffuseColor = new Color3(0.55, 0.36, 0.22);
+  material.antenna.diffuseColor = material.ac.diffuseColor;
+  material.hut.diffuseColor = new Color3(0.62, 0.58, 0.5);
+  material.solar.diffuseColor = new Color3(0.08, 0.12, 0.22);
+  material.solar.specularColor = new Color3(0.4, 0.42, 0.48);
+
+  /** Baked flat, given a name and a material, and switched off until it has instances to show. */
+  const finish = (mesh: Mesh, kind: PropKind): Mesh => {
+    mesh.name = `roofprop_${kind}`;
+    mesh.material = material[kind];
+    mesh.isPickable = false;
+    mesh.receiveShadows = true;
+    mesh.alwaysSelectAsActiveMesh = true;
+    // Bakes any rotation set on the merged mesh itself into its vertices, the same way a loaded
+    // building is baked -- a thin instance's matrix is the mesh's only transform from here on.
+    mesh.bakeCurrentTransformIntoVertices();
+    mesh.setEnabled(false);
+    shadows.addShadowCaster(mesh);
+    return mesh;
+  };
+
+  const ac = Mesh.MergeMeshes(
+    [box(scene, "roofprop_ac_body", 1.1, 0.55, 0.9, 0, 0.275, 0), box(scene, "roofprop_ac_duct", 0.3, 0.4, 0.3, 0.75, 0.2, 0)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+
+  const tankLegs = [-1, 1].flatMap((sx) =>
+    [-1, 1].map((sz) => {
+      const leg = MeshBuilder.CreateCylinder(`roofprop_tank_leg_${sx}_${sz}`, { diameter: 0.12, height: 0.7, tessellation: 6 }, scene);
+      leg.position.set(sx * 0.55, 0.35, sz * 0.55);
+      return leg;
+    }),
+  );
+  const tankBody = MeshBuilder.CreateCylinder("roofprop_tank_body", { diameter: 1.6, height: 1.8, tessellation: 12 }, scene);
+  tankBody.position.y = 1.6;
+  const tank = Mesh.MergeMeshes([tankBody, ...tankLegs], true, true, undefined, false, false)!;
+
+  const pole = MeshBuilder.CreateCylinder("roofprop_antenna_pole", { diameter: 0.06, height: 2.2, tessellation: 6 }, scene);
+  pole.position.y = 1.1;
+  // A small dish, tilted to catch a signal rather than the sky.
+  const dish = MeshBuilder.CreateCylinder("roofprop_antenna_dish", { diameter: 0.5, height: 0.05, tessellation: 12 }, scene);
+  dish.position.set(0, 1.9, 0.15);
+  dish.rotation.x = Math.PI / 3;
+  const antenna = Mesh.MergeMeshes([pole, dish], true, true, undefined, false, false)!;
+
+  const hut = Mesh.MergeMeshes(
+    [box(scene, "roofprop_hut_body", 1.8, 1.6, 1.6, 0, 0.8, 0), box(scene, "roofprop_hut_lid", 1.9, 0.12, 1.7, 0, 1.66, 0)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+
+  const solar = box(scene, "roofprop_solar", 1, 0.05, 1.6, 0, 0.35, 0);
+  solar.rotation.x = Math.PI / 9;
+
+  return {
+    ac: finish(ac, "ac"),
+    tank: finish(tank, "tank"),
+    antenna: finish(antenna, "antenna"),
+    hut: finish(hut, "hut"),
+    solar: finish(solar, "solar"),
   };
 }
 
@@ -221,7 +429,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
 
     const bounds = mesh.getBoundingInfo().boundingBox;
     const centerX = (bounds.minimum.x + bounds.maximum.x) / 2;
-    return { id, mesh, centerX };
+    return { id, mesh, centerX, roofY: bounds.maximum.y };
   } catch (error) {
     console.error(`could not load building model "${id}"`, error);
     return null;
