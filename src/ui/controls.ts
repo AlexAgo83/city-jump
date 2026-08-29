@@ -1,10 +1,11 @@
 import type { CitySave } from "../sim/save";
+import { composeRoadTypeId } from "../sim/roadTypes";
 import { listSaves, readSave, writeSave, deleteSave } from "./saves";
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout"): void;
-  onRoadType(type: "street" | "avenue" | "tunnel" | "pedestrian"): void;
+  onRoadType(type: string): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
@@ -26,6 +27,7 @@ export function bindControls(handlers: {
     toolbarContent.hidden = expanded;
   });
 
+  const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
@@ -36,6 +38,7 @@ export function bindControls(handlers: {
     button.addEventListener("click", () => {
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
+      roadTypeOptions.hidden = tool !== "roads";
       roadOptions.hidden = tool !== "roads";
       natureOptions.hidden = tool !== "nature";
       handlers.onRoadMode(
@@ -76,12 +79,27 @@ export function bindControls(handlers: {
     handlers.onTreeSpecies((event.currentTarget as HTMLSelectElement).value);
   });
 
-  document.getElementById("road-type")!.addEventListener("change", (event) => {
-    const value = (event.currentTarget as HTMLSelectElement).value;
-    handlers.onRoadType(
-      value === "avenue" ? "avenue" : value === "tunnel" ? "tunnel" : value === "pedestrian" ? "pedestrian" : "street",
-    );
-  });
+  const roadLanes = document.getElementById("road-lanes") as HTMLInputElement;
+  const roadOneway = document.getElementById("road-oneway") as HTMLInputElement;
+  let roadTypeValue = "street";
+
+  /** Pedestrian paths stay exactly what they are -- one lane, two-way, no player choice. */
+  function emitRoadType(): void {
+    const isPedestrian = roadTypeValue === "pedestrian";
+    roadLanes.disabled = isPedestrian;
+    roadOneway.disabled = isPedestrian;
+    handlers.onRoadType(composeRoadTypeId(roadTypeValue, roadLanes.checked ? 2 : 1, roadOneway.checked));
+  }
+
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-type"]')) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      roadTypeValue = input.value;
+      emitRoadType();
+    });
+  }
+  roadLanes.addEventListener("change", emitRoadType);
+  roadOneway.addEventListener("change", emitRoadType);
 
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;

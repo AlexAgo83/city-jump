@@ -67,14 +67,20 @@ const MAX_TRIM_FRACTION = 0.4;
 const ROUNDABOUT_WIDTHS = 1.7;
 /** Small streets still need a ring you can see. */
 const ROUNDABOUT_MIN_RADIUS = 13;
+/** Extra ring width a second lane needs, same allowance an ordinary road's second lane gets. */
+const ROUNDABOUT_LANE_WIDTH = 3.5;
 
 /**
  * The ring a roundabout at this node would have. Sized off the widest road meeting it, which is
  * the reference the whole thing takes: a roundabout where an avenue meets two streets is an
- * avenue-sized roundabout.
+ * avenue-sized roundabout. A second lane widens the ring the same way it widens an ordinary road.
  */
 export function roundaboutRadius(graph: RoadGraph, nodeId: NodeId): number {
-  return Math.max(ROUNDABOUT_MIN_RADIUS, widestIncidentWidth(graph, nodeId) * ROUNDABOUT_WIDTHS);
+  const lanes = graph.node(nodeId).roundaboutLanes;
+  return (
+    Math.max(ROUNDABOUT_MIN_RADIUS, widestIncidentWidth(graph, nodeId) * ROUNDABOUT_WIDTHS) +
+    (lanes === 2 ? ROUNDABOUT_LANE_WIDTH : 0)
+  );
 }
 /**
  * Nor more than this many carriageway widths, however narrow the angle. Past it the

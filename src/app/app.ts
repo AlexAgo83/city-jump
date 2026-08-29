@@ -10,13 +10,13 @@ import { createTreeRenderer } from "../render/trees";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
 import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
-import { roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
 import { serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import { bindControls } from "../ui/controls";
 import { readAutosave, writeAutosave } from "../ui/saves";
-import { showRefusal } from "../ui/hud";
+import { showRefusal, showSelection } from "../ui/hud";
 
 export async function startApp(): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
@@ -100,7 +100,7 @@ export async function startApp(): Promise<void> {
       return true;
     },
     treeAt: (x, z, within) => trees.nearestTree(x, z, within),
-  });
+  }, showSelection);
 
   const controls = bindControls({
     onRoadMode(mode) {
@@ -158,8 +158,8 @@ export async function startApp(): Promise<void> {
     junctions: surfaceJunctions(),
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
     buildings: buildingCount,
-    avenues: graph.allSegments().filter((segment) => segment.type === "avenue").length,
-    tunnels: graph.allSegments().filter((segment) => segment.type === "tunnel").length,
+    avenues: graph.allSegments().filter((segment) => baseRoadTypeId(segment.type) === "avenue").length,
+    tunnels: graph.allSegments().filter((segment) => roadType(segment.type).tunnelDepth !== undefined).length,
     cars: traffic.count(),
     pedestrians: traffic.pedestrians(),
     streetlights: streetlights.count(),

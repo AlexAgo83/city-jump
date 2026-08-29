@@ -85,6 +85,19 @@
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
+  #selection-panel {
+    position: fixed; top: 12px; right: 12px; min-width: 150px; max-width: 240px;
+    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
+    border-radius: 6px; font: 12px/1.4 ui-sans-serif, system-ui; padding: 8px 12px;
+    box-sizing: border-box;
+  }
+  #selection-panel[hidden] { display: none; }
+  #selection-panel .selection-kind {
+    font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #7f8b95;
+  }
+  #selection-panel dl { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; }
+  #selection-panel dt { color: #aeb8c0; }
+  #selection-panel dd { margin: 0; text-align: right; }
   @media (max-width: 680px) {
     #toolbar { max-width: calc(100vw - 24px); }
     #sun-hour { width: 72px; }
@@ -125,20 +138,23 @@
   </button>
 </div>
 <div id="action-dock">
+  <div id="road-type-options" class="tool-options" hidden>
+    <div class="segmented" role="group" aria-label="Road type">
+      <label><input type="radio" name="road-type" value="pedestrian" /><span>Pedestrian</span></label>
+      <label><input type="radio" name="road-type" value="street" checked /><span>Street</span></label>
+      <label><input type="radio" name="road-type" value="avenue" /><span>Avenue</span></label>
+      <label><input type="radio" name="road-type" value="highway" /><span>Highway</span></label>
+      <label><input type="radio" name="road-type" value="tunnel" /><span>Tunnel</span></label>
+    </div>
+  </div>
   <div id="road-options" class="tool-options" hidden>
     <div class="segmented" role="group" aria-label="Road shape">
       <label><input type="radio" name="road-shape" value="straight" checked /><span>Straight</span></label>
       <label><input type="radio" name="road-shape" value="curve" /><span>Curve</span></label>
       <label><input type="radio" name="road-shape" value="roundabout" /><span>Roundabout</span></label>
     </div>
-    <label>Type
-      <select id="road-type">
-        <option value="street">Street</option>
-        <option value="avenue">Avenue</option>
-        <option value="tunnel">Tunnel</option>
-        <option value="pedestrian">Pedestrian</option>
-      </select>
-    </label>
+    <label><input id="road-lanes" type="checkbox" /> Two lanes</label>
+    <label><input id="road-oneway" type="checkbox" /> One-way</label>
     <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
   </div>
   <div id="nature-options" class="tool-options" hidden>
@@ -163,6 +179,10 @@
     <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>
+</div>
+<div id="selection-panel" hidden>
+  <div class="selection-kind"></div>
+  <dl></dl>
 </div>
 <div id="toast"></div>
 <script type="module" src="/src/main.ts"></script>

@@ -12,6 +12,8 @@ export interface RoadNode {
   readonly segments: Set<SegmentId>;
   /** Every arm is pulled back to the ring radius and the node is drawn as one. */
   roundabout: boolean;
+  /** Lanes around the ring. Only meaningful while `roundabout` is set. */
+  roundaboutLanes: 1 | 2;
 }
 
 export interface Segment {
@@ -112,7 +114,7 @@ export class RoadGraph {
   /** Places a node at an exact position, bypassing the terrain sample. Used to replay a save. */
   addNodeAt(pos: Vec3): NodeId {
     const id = this.nextNodeId++;
-    this.nodes.set(id, { id, pos, segments: new Set(), roundabout: false });
+    this.nodes.set(id, { id, pos, segments: new Set(), roundabout: false, roundaboutLanes: 1 });
     return id;
   }
 
@@ -138,10 +140,11 @@ export class RoadGraph {
   }
 
   /** Returns false when the node cannot carry one, which the caller reports to the player. */
-  setRoundabout(id: NodeId, on: boolean): boolean {
+  setRoundabout(id: NodeId, on: boolean, lanes: 1 | 2 = 1): boolean {
     const node = this.node(id);
     if (on && node.segments.size < 2) return false;
     node.roundabout = on;
+    if (on) node.roundaboutLanes = lanes;
     return true;
   }
 

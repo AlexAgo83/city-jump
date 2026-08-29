@@ -9,7 +9,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
-import { roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
@@ -27,6 +27,9 @@ export const ROAD_LIFT = 0.06;
 export const SIDEWALK_WIDTH = 2.6;
 /** Kerb height. Enough to read as a step, low enough that nothing has to climb it. */
 export const SIDEWALK_LIFT = ROAD_LIFT + 0.18;
+
+/** A highway's guardrail, standing where a sidewalk would otherwise go. */
+const GUARDRAIL_HEIGHT = 0.85;
 
 /** Zebra stripes: painted on the carriageway just outside the junction each arm runs into. */
 const CROSSING_DEPTH = 4;
@@ -64,6 +67,11 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const curb = new Color3(0.52, 0.55, 0.53);
   const lane = new Color3(0.86, 0.78, 0.48);
   const tunnel = new Color3(0.58, 0.55, 0.49);
+  const guardrailMaterial = new StandardMaterial("guardrail", scene);
+  guardrailMaterial.emissiveColor = new Color3(0.62, 0.64, 0.65);
+  guardrailMaterial.specularColor = Color3.Black();
+  guardrailMaterial.disableLighting = true;
+  guardrailMaterial.backFaceCulling = false;
 
   let meshes: (Mesh | LinesMesh)[] = [];
 
@@ -93,7 +101,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       }
 
       const half = type.width / 2;
-      const isAvenue = seg.type === "avenue";
+      const isAvenue = baseRoadTypeId(seg.type) === "avenue";
       // The surface stops short of each junction; the junction polygon closes the gap.
       const { start, end } = segmentTrims(junctions, graph, seg.id);
       const from = start;
@@ -118,7 +126,18 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
 
       // A footway either side, stepped up from the carriageway. A path is already all footway.
-      if (!type.pedestrian) {
+      // A highway gets no frontage to walk to, so it gets a guardrail in place of the sidewalk.
+      if (type.highway) {
+        const topLeft = left.map((p) => p.add(new Vector3(0, GUARDRAIL_HEIGHT, 0)));
+        const topRight = right.map((p) => p.add(new Vector3(0, GUARDRAIL_HEIGHT, 0)));
+        const railLeft = roadStripMesh(scene, `guardrail_l_${seg.id}`, left, topLeft);
+        const railRight = roadStripMesh(scene, `guardrail_r_${seg.id}`, right, topRight);
+        for (const rail of [railLeft, railRight]) {
+          rail.material = guardrailMaterial;
+          rail.isPickable = false;
+          meshes.push(rail);
+        }
+      } else if (!type.pedestrian) {
         const outerLeft: Vector3[] = [];
         const outerRight: Vector3[] = [];
         const innerLeft: Vector3[] = [];
@@ -142,7 +161,10 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           meshes.push(walk);
         }
       }
-      if (isAvenue) {
+      // A two-way avenue always gets a centre line (it is wide enough to read as two directions);
+      // a 2-lane two-way road gets the same line as its lane divider. One-way never draws one --
+      // there is no opposing direction to keep apart, so no lane count on a one-way road needs it.
+      if (!type.oneWay && (isAvenue || type.lanes === 2)) {
         const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT);
         meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));
       }
@@ -160,7 +182,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
 
     for (const junction of junctions.values()) {
       if (junction.roundabout > 0) {
-        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial));
+        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
         continue;
       }
       const mesh = junctionMesh(scene, junction);
@@ -234,6 +256,7 @@ function roundaboutMeshes(
   surface: StandardMaterial,
   kerb: Color3,
   paving: StandardMaterial,
+  laneColor: Color3,
 ): Mesh[] {
   const centre = graph.node(junction.node).pos;
   const outer = junction.roundabout;
@@ -261,6 +284,8 @@ function roundaboutMeshes(
       return new Vector3(centre.x + Math.cos(angle) * radius, centre.y + MARK_LIFT, centre.z + Math.sin(angle) * radius);
     });
 
+  const lanes = graph.node(junction.node).roundaboutLanes;
+
   return [
     ring,
     // A footway ring outside it, but broken where the arms come in: a full lathe would lay a band
@@ -268,6 +293,8 @@ function roundaboutMeshes(
     ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, paving)),
     styledLine(scene, `roundabout_kerb_out_${junction.node}`, circle(outer), kerb),
     styledLine(scene, `roundabout_kerb_in_${junction.node}`, circle(inner), kerb),
+    // A second lane's own divider, the same colour as a straight road's centre line.
+    ...(lanes === 2 && !onFoot ? [styledLine(scene, `roundabout_lane_${junction.node}`, circle((inner + outer) / 2), laneColor)] : []),
   ];
 }
 

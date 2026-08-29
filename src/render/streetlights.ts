@@ -10,7 +10,7 @@ import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
 import { allJunctions, segmentTrims } from "../sim/junction";
-import { roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
 import { ROAD_LIFT } from "./roadMesh";
@@ -68,17 +68,19 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
 
     for (const segment of graph.allSegments()) {
       const type = roadType(segment.type);
-      if (type.tunnelDepth) continue;
+      // A highway has guardrails, not the footway a lamp is meant to light.
+      if (type.tunnelDepth || type.highway) continue;
 
       // A junction or roundabout trims the road surface back from its node -- a lamp placed by
       // raw distance along the segment doesn't know that, and can land on ground that reads as
       // "past the road" (the junction's own disc, a roundabout's ring) rather than beside it.
       const { start: trimStart, end: trimEnd } = segmentTrims(junctions, graph, segment.id);
 
-      const spacing = segment.type === "avenue" ? 70 : 95;
+      const isAvenue = baseRoadTypeId(segment.type) === "avenue";
+      const spacing = isAvenue ? 70 : 95;
       for (let d = spacing / 2; d < segment.length - 12; d += spacing) {
         if (d < trimStart || d > segment.length - trimEnd) continue;
-        const sides: (-1 | 1)[] = segment.type === "avenue" ? [-1, 1] : [Math.floor(d / spacing) % 2 === 0 ? -1 : 1];
+        const sides: (-1 | 1)[] = isAvenue ? [-1, 1] : [Math.floor(d / spacing) % 2 === 0 ? -1 : 1];
         const { position, tangent } = graph.pointAt(segment.id, d);
         const n = perpXZ(normalizeXZ(tangent));
         for (const side of sides) {

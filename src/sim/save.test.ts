@@ -136,6 +136,38 @@ describe("city saves", () => {
     ).toBeNull();
   });
 
+  it("carries a roundabout's lane count through a save", () => {
+    const graph = new RoadGraph();
+    const a = graph.addNodeAt(v3(0, 0, 0));
+    const b = graph.addNodeAt(v3(50, 0, 0));
+    const c = graph.addNodeAt(v3(0, 0, 50));
+    graph.addSegment(a, b, v3(25, 0, 0));
+    graph.addSegment(a, c, v3(0, 0, 25));
+    graph.setRoundabout(a, true, 2);
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), "rolling", 14)));
+    const restored = new RoadGraph();
+    restoreCity(restored, new Plantings(), save!);
+    expect(restored.node(a).roundabout).toBe(true);
+    expect(restored.node(a).roundaboutLanes).toBe(2);
+  });
+
+  it("reads a roundabout saved before lanes existed as one lane", () => {
+    const v4 = JSON.stringify({
+      v: 4,
+      terrain: "rolling",
+      hour: 14,
+      nodes: [[1, 0, 0, 0, 1], [2, 50, 0, 0], [3, 0, 0, 50]],
+      segments: [[1, 2, 25, 0, 0, "street"], [1, 3, 0, 0, 25, "street"]],
+    });
+    const save = parseCity(v4);
+    expect(save).not.toBeNull();
+    const graph = new RoadGraph();
+    restoreCity(graph, new Plantings(), save!);
+    const roundabout = graph.allNodes().find((node) => node.roundabout)!;
+    expect(roundabout.roundaboutLanes).toBe(1);
+  });
+
   it("refuses a segment pointing at a node the save does not contain", () => {
     const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [] };
     expect(() => restoreCity(new RoadGraph(), new Plantings(), save)).toThrow(/missing node/);

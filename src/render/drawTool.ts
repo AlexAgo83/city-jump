@@ -18,6 +18,7 @@ import { toBabylon } from "./convert";
 
 const ACCEPTED = new Color3(0.45, 0.85, 0.5);
 const REFUSED = new Color3(0.95, 0.35, 0.25);
+const SELECTED = new Color3(0.4, 0.7, 0.95);
 const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
 
 /**
@@ -28,6 +29,12 @@ type BulldozeTarget =
   | { kind: "road"; segment: Segment }
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
+
+/** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
+export type SelectionInfo =
+  | { kind: "road"; name: string; lanes: 1 | 2; oneWay: boolean; length: number }
+  | { kind: "tree" }
+  | { kind: "roundabout"; lanes: 1 | 2; radius: number };
 
 type Stage =
   | { phase: "idle" }
@@ -46,7 +53,8 @@ export interface DrawTool {
 export type DrawMode = "straight" | "curve";
 export type PlantMode = "plant" | "spray";
 export type ToolMode = "view" | "bulldoze" | "roundabout" | DrawMode | PlantMode;
-export type RoadTypeId = "street" | "avenue" | "tunnel" | "pedestrian";
+/** Any key `ROAD_TYPES` recognizes -- a base id, or one composed with lanes/one-way. */
+export type RoadTypeId = string;
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
 const SPRAY_RADIUS = 45;
@@ -90,6 +98,7 @@ export function createDrawTool(
   onCommitted: () => void,
   onRefused: (reason: string) => void,
   nature: NatureTools,
+  onSelect: (info: SelectionInfo | null) => void,
   initialTypeId: RoadTypeId = "street",
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
@@ -135,6 +144,60 @@ export function createDrawTool(
     targetHighlight.position.set(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
     targetHighlight.scaling.set(radius, 1, radius);
     targetHighlight.setEnabled(true);
+  }
+
+  // Its own mesh, not `targetHighlight`: a selection has to survive other modes' hover logic
+  // touching that one, and stay lit until the player picks something else or clicks the terrain.
+  const selectRing = MeshBuilder.CreateLines(
+    "select-highlight",
+    { points: Array.from({ length: 49 }, (_, i) => new Vector3(Math.cos((i / 48) * Math.PI * 2), 0, Math.sin((i / 48) * Math.PI * 2))) },
+    scene,
+  );
+  selectRing.color = SELECTED;
+  selectRing.isPickable = false;
+  selectRing.setEnabled(false);
+  let selectLine: LinesMesh | null = null;
+
+  function clearSelection(): void {
+    selectRing.setEnabled(false);
+    selectLine?.dispose();
+    selectLine = null;
+    onSelect(null);
+  }
+
+  function showSelection(target: BulldozeTarget): void {
+    selectLine?.dispose();
+    selectLine = null;
+    selectRing.setEnabled(false);
+    if (target.kind === "road") {
+      selectLine = MeshBuilder.CreateLines(
+        "select-road",
+        { points: target.segment.samples.map((p) => toBabylon(p).addInPlaceFromFloats(0, PREVIEW_LIFT, 0)) },
+        scene,
+      );
+      selectLine.color = SELECTED;
+      selectLine.isPickable = false;
+      const type = roadType(target.segment.type);
+      onSelect({ kind: "road", name: type.name, lanes: type.lanes, oneWay: Boolean(type.oneWay), length: target.segment.length });
+      return;
+    }
+    if (target.kind === "tree") {
+      selectRing.position.set(target.x, terrainHeight(target.x, target.z) + PREVIEW_LIFT, target.z);
+      selectRing.scaling.set(3, 1, 3);
+      selectRing.setEnabled(true);
+      onSelect({ kind: "tree" });
+      return;
+    }
+    selectRing.position.set(target.x, terrainHeight(target.x, target.z) + PREVIEW_LIFT, target.z);
+    selectRing.scaling.set(target.radius, 1, target.radius);
+    selectRing.setEnabled(true);
+    onSelect({ kind: "roundabout", lanes: graph.node(target.node).roundaboutLanes, radius: target.radius });
+  }
+
+  function selectAt(x: number, z: number): void {
+    const target = bulldozeTarget(x, z);
+    if (!target) return clearSelection();
+    showSelection(target);
   }
 
   // The spray brush. Rebuilt in place every time the pointer moves so it lies on the terrain
@@ -247,7 +310,11 @@ export function createDrawTool(
   }
 
   function onClick(): void {
-    if (mode === "view") return;
+    if (mode === "view") {
+      const at = groundPoint();
+      if (at) selectAt(at.x, at.z);
+      return;
+    }
     const at = groundPoint();
     if (!at) return;
     if (mode === "bulldoze") {
@@ -270,7 +337,9 @@ export function createDrawTool(
     if (mode === "roundabout") {
       const node = nearestJunctionNode(at.x, at.z);
       if (!node) return onRefused("Click where two or more roads meet.");
-      graph.setRoundabout(node, !graph.node(node).roundabout);
+      // The road panel's lane choice applies here too -- a roundabout has no type of its own,
+      // so it takes lanes from whatever is currently selected to draw with.
+      graph.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
       onCommitted();
       return;
     }
@@ -320,6 +389,7 @@ export function createDrawTool(
     sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
+    clearSelection();
   }
 
   /**

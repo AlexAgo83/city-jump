@@ -87,48 +87,86 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       if (type.tunnelDepth) continue;
 
       const half = type.width / 2;
-      // Down the middle of a path, along the footway of anything else.
-      const walkOffset = type.pedestrian ? Math.max(0.7, half * 0.45) : half + SIDEWALK_WIDTH / 2;
-      const walkLift = type.pedestrian ? ROAD_LIFT + 0.58 : SIDEWALK_LIFT + 0.58;
-      // A path is all footway, so it carries more; a street gets a handful either side.
-      const walkers = type.pedestrian
-        ? Math.min(8, Math.max(2, Math.floor(seg.length / 22)))
-        : Math.min(6, Math.floor(seg.length / 45));
+      // Down the middle of a path, along the footway of anything else. A highway has a guardrail
+      // where that footway would be, so nobody walks it.
+      if (!type.highway) {
+        const walkOffset = type.pedestrian ? Math.max(0.7, half * 0.45) : half + SIDEWALK_WIDTH / 2;
+        const walkLift = type.pedestrian ? ROAD_LIFT + 0.58 : SIDEWALK_LIFT + 0.58;
+        // A path is all footway, so it carries more; a street gets a handful either side.
+        const walkers = type.pedestrian
+          ? Math.min(8, Math.max(2, Math.floor(seg.length / 22)))
+          : Math.min(6, Math.floor(seg.length / 45));
 
-      for (let i = 0; i < walkers; i++) {
-        const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
-          `pedestrian_${seg.id}_${i}`,
-        );
-        walker.isPickable = false;
-        movers.push({
-          mesh: walker,
-          segment: seg,
-          direction: i % 2 ? -1 : 1,
-          // Vary the pace a little, or a path reads as a conveyor belt.
-          speed: WALKER_SPEED * (0.75 + ((si + i * 7) % 5) * 0.12),
-          lift: walkLift,
-          stride: 0.05,
-          phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
-          offset: walkOffset,
-        });
-        walkerCount++;
+        for (let i = 0; i < walkers; i++) {
+          const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
+            `pedestrian_${seg.id}_${i}`,
+          );
+          walker.isPickable = false;
+          movers.push({
+            mesh: walker,
+            segment: seg,
+            direction: i % 2 ? -1 : 1,
+            // Vary the pace a little, or a path reads as a conveyor belt.
+            speed: WALKER_SPEED * (0.75 + ((si + i * 7) % 5) * 0.12),
+            lift: walkLift,
+            stride: 0.05,
+            phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
+            offset: walkOffset,
+          });
+          walkerCount++;
+        }
       }
       if (type.pedestrian) continue;
 
+      // One magnitude per lane, not per direction: `lane` picks which of a side's lanes a car
+      // takes, `side` picks which side of the road (always the same side on a one-way road,
+      // since there is no oncoming lane to put the other half of the cars on). Lanes === 1
+      // collapses `side` back to the original i % 2 alternation.
+      //
+      // A two-way road only owns half the carriageway per direction, so its lane(s) sit centred
+      // on that half. A one-way road owns the whole carriageway (that is exactly why it no longer
+      // widens for a second lane, see roadTypes.ts), so its lanes centre on the road itself --
+      // offsetting them as if only half the width were theirs ran cars onto the sidewalk on the
+      // narrower one-way types.
+      //
+      // Two real lanes need real spacing: a car is CAR_WIDTH wide, so two lane centres closer
+      // than LANE_PITCH apart put their bodies through each other, and an inner lane closer than
+      // CENTRE_CLEARANCE to the road's own centre lets it swing into the oncoming lane. Those are
+      // just floors, though -- on a wide avenue, holding lanes at the floor leaves them huddled by
+      // the centreline with the rest of the carriageway empty, so lanes also spread proportionally
+      // to how much half-width is actually there, capped so the outer lane still clears the curb.
+      const CAR_WIDTH = 3; // matches the box mesh below
+      const LANE_PITCH = CAR_WIDTH + 0.4;
+      const CENTRE_CLEARANCE = CAR_WIDTH / 2 + 0.3;
+      const halfWidth = type.width / 2;
+      const maxLaneOffset = halfWidth - CAR_WIDTH / 2 - 0.3; // stays clear of the sidewalk
+      const singleLaneOffset = type.oneWay ? 0 : Math.max(1.8, type.width * 0.22);
+      const innerLane = Math.max(CENTRE_CLEARANCE, halfWidth * 0.3);
+      const outerLane = Math.min(Math.max(innerLane + LANE_PITCH, halfWidth * 0.65), maxLaneOffset);
+      const oneWaySpread = Math.min(Math.max(LANE_PITCH / 2, halfWidth * 0.3), maxLaneOffset);
+      const laneOffsets =
+        type.lanes === 2
+          ? type.oneWay
+            ? [-oneWaySpread, oneWaySpread]
+            : [innerLane, outerLane]
+          : [singleLaneOffset];
+
       const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
       for (let i = 0; i < count; i++) {
-        const car = MeshBuilder.CreateBox(`traffic_${seg.id}_${i}`, { width: 3, height: 1.2, depth: 6 }, scene);
+        const car = MeshBuilder.CreateBox(`traffic_${seg.id}_${i}`, { width: CAR_WIDTH, height: 1.2, depth: 6 }, scene);
         car.material = carMaterials[(si + i) % carMaterials.length]!;
         car.isPickable = false;
+        const lane = i % type.lanes;
+        const side = type.oneWay ? 1 : Math.floor(i / type.lanes) % 2 ? -1 : 1;
         movers.push({
           mesh: car,
           segment: seg,
-          direction: i % 2 ? -1 : 1,
+          direction: side,
           speed: CAR_SPEED,
           lift: ROAD_LIFT + 0.75,
           stride: 0,
           phase: i * 35,
-          offset: Math.max(1.8, type.width * 0.22),
+          offset: laneOffsets[lane]!,
         });
         carCount++;
       }

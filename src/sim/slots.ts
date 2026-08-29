@@ -75,7 +75,8 @@ const sizeKey = (frontageCells: number, depthCells: number): string => `${fronta
 export function slotsForSegment(graph: RoadGraph, id: SegmentId): Slot[] {
   const seg = graph.segment(id);
   const type = roadType(seg.type);
-  if (type.tunnelDepth) return [];
+  // No frontage on a highway: nothing gets to build against a road with guardrails, not sidewalks.
+  if (type.tunnelDepth || type.highway) return [];
   const half = type.width / 2;
   const offset = half + SLOT.setback;
 

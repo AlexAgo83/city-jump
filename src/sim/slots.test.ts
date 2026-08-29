@@ -116,6 +116,12 @@ describe("slots", () => {
     expect(slotsForSegment(g, tunnel)).toHaveLength(0);
   });
 
+  it("does not place buildings along a highway", () => {
+    const g = new RoadGraph();
+    const highway = straight(g, 0, 0, 200, 0, "highway");
+    expect(slotsForSegment(g, highway)).toHaveLength(0);
+  });
+
   it("rejects overlapping grid cells around crossing roads", () => {
     const g = new RoadGraph();
     straight(g, -60, 0, 60, 0);

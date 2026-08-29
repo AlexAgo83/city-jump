@@ -428,13 +428,13 @@ const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
 
 await page.locator('input[name="road-shape"][value="straight"]').check();
-await page.locator("#road-type").selectOption("avenue");
+await page.locator('input[name="road-type"][value="avenue"]').check();
 await click(760, 500);
 await click(850, 430);
 const straight = await stats();
 check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
 check("the road type selector draws avenues", straight.avenues >= 1, `${straight.avenues} avenues`);
-await page.locator("#road-type").selectOption("tunnel");
+await page.locator('input[name="road-type"][value="tunnel"]').check();
 await click(220, 500);
 await click(300, 430);
 const tunneled = await stats();
@@ -443,7 +443,7 @@ check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
 
 // A pedestrian path carries people on foot and no cars at all.
-await page.locator("#road-type").selectOption("pedestrian");
+await page.locator('input[name="road-type"][value="pedestrian"]').check();
 await click(180, 300);
 await click(560, 250);
 const walked = await stats();
@@ -532,7 +532,7 @@ check(
   }),
 );
 
-await page.locator("#road-type").selectOption("street");
+await page.locator('input[name="road-type"][value="street"]').check();
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
 // A roundabout sits on a node and pulls every road back to its ring.
