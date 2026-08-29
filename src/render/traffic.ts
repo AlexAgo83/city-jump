@@ -11,18 +11,19 @@ import { laneRank, pickExit, ringArc, ringEntryRadius } from "../sim/routing";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
   armPort,
-  exitAngle,
   junctionTurnPath,
   laneChangeOffset,
   sampleQuadratic,
   laneChangeSpan,
-  mergeAngle,
   pathCumulative,
   pointAlong,
   ringArcPath,
+  ringBearing,
   ringJoinPath,
+  ringLaneAngle,
   ringOf,
   ringSweep,
+  ringWalkJoin,
   walkRingRadius,
   type Ring,
 } from "../sim/transfers";
@@ -333,10 +334,12 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   function walkRingTransfer(nodeId: NodeId, from: JunctionArm, to: JunctionArm, offset: number, exitOffset: number): Vec3[] {
     const ring = ringAt(nodeId);
     const radius = walkRingRadius(ring, SIDEWALK_WIDTH);
+    const on = ringWalkJoin(graph, ring, from, offset, radius);
+    const off = ringWalkJoin(graph, ring, to, exitOffset, radius);
     return [
-      ...ringJoinPath(graph, ring, from, offset, radius, true),
-      ...ringArcPath(ring, mergeAngle(graph, ring, from), mergeAngle(graph, ring, to), radius),
-      ...ringJoinPath(graph, ring, to, exitOffset, radius, false).slice(1).reverse(),
+      ...on,
+      ...ringArcPath(ring, ringBearing(ring, on[0]!), ringBearing(ring, off[0]!), radius),
+      ...off.slice().reverse(),
     ];
   }
 
@@ -347,8 +350,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     // Which ring lane this arm's lane feeds: kerb-side onto the outer one, the lane beside the
     // centreline onto the inner.
     const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
-    const start = mergeAngle(graph, ring, from);
-    const finish = exitAngle(graph, ring, to);
+    const start = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
+    const finish = ringLaneAngle(graph, ring, to, exitOffset, false);
     const arc = ringArc(start, finish);
     const steps = Math.max(8, Math.round((arc / (Math.PI / 2)) * 12));
     return [

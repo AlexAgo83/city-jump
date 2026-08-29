@@ -4,12 +4,12 @@ import { junctionGeometry, ringLaneRadii } from "./junction";
 import { laneCentres, roadType } from "./roadTypes";
 import {
   armPort,
-  exitAngle,
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
-  mergeAngle,
   onRing,
+  ringBearing,
+  ringLaneAngle,
   pathCumulative,
   pointAlong,
   ringCrossPath,
@@ -47,7 +47,12 @@ describe("transfers", () => {
     const merge = ringJoinPath(g, ring, arm, lane.offset, radius, true);
     const port = armPort(g, hub, arm, lane.offset);
     expect(distXZ(merge[0]!, port)).toBeLessThan(1e-6);
-    expect(distXZ(merge[merge.length - 1]!, onRing(ring, mergeAngle(g, ring, arm), radius))).toBeLessThan(1e-6);
+    expect(
+      distXZ(merge[merge.length - 1]!, onRing(ring, ringLaneAngle(g, ring, arm, lane.offset, true), radius)),
+    ).toBeLessThan(1e-6);
+    // The join starts from where that lane actually meets the ring, not from the middle of the
+    // arm: measured from the lane's own bearing, it only has to lean round by the blend.
+    expect(Math.abs(ringLaneAngle(g, ring, arm, lane.offset, true) - ringBearing(ring, port))).toBeLessThan(0.51);
     // It arrives along the circle, not across it: the last step is nearly tangential.
     const last = merge[merge.length - 1]!;
     const before = merge[merge.length - 2]!;
@@ -55,7 +60,7 @@ describe("transfers", () => {
 
     // Leaving is the same curve the other way round, off the outer lane.
     const leave = ringJoinPath(g, ring, arm, lane.offset, ring.radii[1]!, false);
-    expect(distXZ(leave[0]!, onRing(ring, exitAngle(g, ring, arm), ring.radii[1]!))).toBeLessThan(1e-6);
+    expect(distXZ(leave[0]!, onRing(ring, ringLaneAngle(g, ring, arm, lane.offset, false), ring.radii[1]!))).toBeLessThan(1e-6);
     expect(distXZ(leave[leave.length - 1]!, port)).toBeLessThan(1e-6);
   });
 
@@ -76,7 +81,7 @@ describe("transfers", () => {
     expect(radii.every((r, i) => i === 0 || r >= radii[i - 1]! - 1e-9)).toBe(true);
 
     // Which is exactly the spiral the overlay draws before that arm.
-    const drawn = ringCrossPath(g, ring, ring.arms[0]!);
+    const drawn = ringCrossPath(g, ring, ring.arms[0]!, laneCentres(roadType("avenue_2lane"))[0]!.offset);
     expect(radiusOf(ring.centre, drawn[0]!)).toBeCloseTo(inner);
     expect(radiusOf(ring.centre, drawn[drawn.length - 1]!)).toBeCloseTo(outer);
   });

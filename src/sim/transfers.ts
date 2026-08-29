@@ -94,11 +94,29 @@ export function ringBlend(graph: RoadGraph, ring: Ring, arm: JunctionArm): numbe
   return Math.min(0.5, roadType(graph.segment(arm.segment).type).width / outerOf(ring));
 }
 
-/** Traffic circulates towards a growing bearing, so a merge lands after its arm and an exit leaves before. */
-export const mergeAngle = (graph: RoadGraph, ring: Ring, arm: JunctionArm): number =>
-  arm.angle + ringBlend(graph, ring, arm);
-export const exitAngle = (graph: RoadGraph, ring: Ring, arm: JunctionArm): number =>
-  arm.angle - ringBlend(graph, ring, arm);
+/** Where a point sits around the ring, as a bearing from its centre. */
+export function ringBearing(ring: Ring, point: Vec3): number {
+  return Math.atan2(point.z - ring.centre.z, point.x - ring.centre.x);
+}
+
+/**
+ * Where a lane meets the circle. Measured from the lane's own bearing, not its arm's centreline:
+ * a lane sits to one side of the road, so it already reaches the ring a little before or after
+ * the middle of its arm does, and a join drawn from the centreline swings across the carriageway
+ * to get back. Traffic circulates towards a growing bearing, so a merge lands after its lane and
+ * an exit leaves before.
+ */
+export function ringLaneAngle(
+  graph: RoadGraph,
+  ring: Ring,
+  arm: JunctionArm,
+  laneOffset: number,
+  joining: boolean,
+): number {
+  const port = armPort(graph, ring.node, arm, laneOffset);
+  const blend = ringBlend(graph, ring, arm);
+  return ringBearing(ring, port) + (joining ? blend : -blend);
+}
 
 /**
  * The join between an arm's lane and the ring: a real fillet, its control point where the lane's
@@ -115,7 +133,7 @@ export function ringJoinPath(
   steps = 12,
 ): Vec3[] {
   const port = armPort(graph, ring.node, arm, laneOffset);
-  const angle = joining ? mergeAngle(graph, ring, arm) : exitAngle(graph, ring, arm);
+  const angle = ringLaneAngle(graph, ring, arm, laneOffset, joining);
   const point = onRing(ring, angle, radius);
   const y = Math.max(port.y, point.y);
   const inward = { x: -arm.outward.x, z: -arm.outward.z };
@@ -125,12 +143,21 @@ export function ringJoinPath(
 }
 
 /**
+ * A footway reaches the ring's own footway just by stepping out onto it -- it is a metre or so
+ * further out at the same bearing, not a merge that has to line up with anything.
+ */
+export function ringWalkJoin(graph: RoadGraph, ring: Ring, arm: JunctionArm, walkOffset: number, radius: number): Vec3[] {
+  const port = armPort(graph, ring.node, arm, walkOffset);
+  return [port, onRing(ring, ringBearing(ring, port), radius)];
+}
+
+/**
  * The lane crossing on a two-lane ring: leaving is only ever done from the outer lane, so
  * anything on the inner one has to be across before its exit. Drawn and driven as the quarter
  * turn of spiral that ends where the exit begins.
  */
-export function ringCrossPath(graph: RoadGraph, ring: Ring, arm: JunctionArm, steps = 12): Vec3[] {
-  const end = exitAngle(graph, ring, arm);
+export function ringCrossPath(graph: RoadGraph, ring: Ring, arm: JunctionArm, laneOffset: number, steps = 12): Vec3[] {
+  const end = ringLaneAngle(graph, ring, arm, laneOffset, false);
   return ringSweep(ring, end - Math.PI / 2, ring.radii[0]!, end, outerOf(ring), steps);
 }
 

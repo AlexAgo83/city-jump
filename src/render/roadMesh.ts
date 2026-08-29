@@ -32,6 +32,7 @@ import {
   ringCrossPath,
   ringJoinPath,
   ringOf,
+  ringWalkJoin,
   walkRingRadius,
 } from "../sim/transfers";
 
@@ -559,7 +560,9 @@ function roundaboutTurnLines(
     }
 
     if (radii.length > 1 && junction.arms.length > 1) {
-      const spiral = ringCrossPath(graph, ring, arm);
+      // Aimed at the kerb-side lane of this arm, which is the lane an exit is taken from.
+      const kerb = lanes.find((lane) => laneRank(lanes, lane) === 0) ?? lanes[0]!;
+      const spiral = ringCrossPath(graph, ring, arm, kerb.offset);
       lines.push(styledLine(scene, `traffic_ring_cross_${junction.node}_${arm.segment}`, lift(spiral, MARK_LIFT + 0.02), color));
     }
   }
@@ -630,7 +633,7 @@ function roundaboutWalkLines(
     const type = roadType(graph.segment(arm.segment).type);
     if (type.highway) continue; // a guardrail where the footway would be: nobody walks off it
     for (const [i, walk] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
-      const points = ringJoinPath(graph, ring, arm, walk.offset, radius, true);
+      const points = ringWalkJoin(graph, ring, arm, walk.offset, radius);
       lines.push(
         styledLine(scene, `traffic_walk_ring_join_${junction.node}_${arm.segment}_${i}`, lift(points, SIDEWALK_LIFT + 0.03), color),
       );
