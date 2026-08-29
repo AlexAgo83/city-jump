@@ -1,6 +1,6 @@
 import type { CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
-import { listSaves, readSave, writeSave, deleteSave } from "./saves";
+import { listSaves, readSave, writeSave, deleteSave, readSettings, writeSettings, type UiSettings } from "./saves";
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
@@ -63,16 +63,23 @@ export function bindControls(handlers: {
     });
   }
 
-  document.getElementById("show-grid")!.addEventListener("change", (event) => {
-    handlers.onWorldGrid((event.currentTarget as HTMLInputElement).checked);
+  const showGrid = document.getElementById("show-grid") as HTMLInputElement;
+  const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
+  const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
+
+  showGrid.addEventListener("change", () => {
+    handlers.onWorldGrid(showGrid.checked);
+    persistSettings();
   });
 
-  document.getElementById("grid-snap")!.addEventListener("change", (event) => {
-    handlers.onGridSnap((event.currentTarget as HTMLInputElement).checked);
+  gridSnap.addEventListener("change", () => {
+    handlers.onGridSnap(gridSnap.checked);
+    persistSettings();
   });
 
-  document.getElementById("show-buildings")!.addEventListener("change", (event) => {
-    handlers.onBuildings((event.currentTarget as HTMLInputElement).checked);
+  showBuildings.addEventListener("change", () => {
+    handlers.onBuildings(showBuildings.checked);
+    persistSettings();
   });
 
   document.getElementById("tree-species")!.addEventListener("change", (event) => {
@@ -141,16 +148,43 @@ export function bindControls(handlers: {
   sunAuto.addEventListener("change", () => {
     if (sunFrame) cancelAnimationFrame(sunFrame);
     sunFrame = null;
-    if (!sunAuto.checked) return;
-    autoStartHour = Number(sunHour.value);
-    autoStartedAt = performance.now();
-    sunFrame = requestAnimationFrame(tickSun);
+    if (sunAuto.checked) {
+      autoStartHour = Number(sunHour.value);
+      autoStartedAt = performance.now();
+      sunFrame = requestAnimationFrame(tickSun);
+    }
+    persistSettings();
   });
+  shortNight.addEventListener("change", persistSettings);
+
   /** Points the toolbar at a city that was just loaded, without re-firing its handlers. */
   const applyCity = (city: CitySave): void => {
     sunHour.value = String(city.hour);
     updateSun(city.hour);
   };
+
+  // The toolbar's own checkboxes, not the city -- restored once at startup so a reload comes
+  // back exactly as it was left, instead of resetting to whatever the markup defaults to.
+  function persistSettings(): void {
+    writeSettings({
+      grid: showGrid.checked,
+      buildings: showBuildings.checked,
+      gridSnap: gridSnap.checked,
+      sunAuto: sunAuto.checked,
+      shortNight: shortNight.checked,
+    });
+  }
+  function applySetting(checkbox: HTMLInputElement, value: boolean | undefined): void {
+    if (value === undefined || checkbox.checked === value) return;
+    checkbox.checked = value;
+    checkbox.dispatchEvent(new Event("change"));
+  }
+  const stored: UiSettings = readSettings();
+  applySetting(showGrid, stored.grid);
+  applySetting(showBuildings, stored.buildings);
+  applySetting(gridSnap, stored.gridSnap);
+  applySetting(shortNight, stored.shortNight);
+  applySetting(sunAuto, stored.sunAuto); // last: starting the auto-cycle reads the others' state
 
   bindSaves(handlers, applyCity);
   updateSun();

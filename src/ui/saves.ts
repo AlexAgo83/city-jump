@@ -49,6 +49,32 @@ export function readAutosave(): CitySave | null {
   return raw === null ? null : parseCity(raw);
 }
 
+/** The toolbar's own checkboxes, not the city -- so a reload comes back exactly as it was left. */
+export interface UiSettings {
+  grid?: boolean;
+  buildings?: boolean;
+  gridSnap?: boolean;
+  sunAuto?: boolean;
+  shortNight?: boolean;
+}
+
+const SETTINGS_KEY = "cityjump.settings";
+
+export function readSettings(): UiSettings {
+  const raw = read(SETTINGS_KEY);
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as UiSettings) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function writeSettings(settings: UiSettings): void {
+  write(SETTINGS_KEY, JSON.stringify(settings));
+}
+
 function read(key: string): string | null {
   try {
     return window.localStorage.getItem(key);
