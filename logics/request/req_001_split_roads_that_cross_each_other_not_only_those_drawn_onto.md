@@ -1,13 +1,13 @@
 ## req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto - Split roads that cross each other, not only those drawn onto
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 00:57:19
+> Indicators reviewed: 2026-08-29 10:28:39
 
 # AI Context
 - Summary: Most of this was delivered without going back through this request: `firstCrossing` in `src/sim/rules.ts` now splits both roads where a drawn curve crosses an existing one (AC1), built from the sample polylines rather than new curve-intersection math (AC4), reusing the existing junction geometry unchanged (AC5), and skipping tunnels on either side of the crossing (AC6, verified by the `does not split surface roads when a tunnel crosses under them` test). Re-verified 2026-08-29: still true against the current tree. Two gaps remain open: a stroke that crosses more than one existing road only splits at the first crossing found (AC2), and a crossing that lands within the node-snap radius of an existing node still creates a new node beside it instead of reusing it (AC3).
@@ -34,10 +34,10 @@
 - AC6 (delivered): Tunnels are excluded from crossing detection on both the drawn road and the existing segments it is tested against.
 
 # Definition of Ready (DoR)
-- [ ] Problem statement is explicit and user impact is clear.
-- [ ] Scope boundaries (in/out) are explicit.
-- [ ] Acceptance criteria are testable.
-- [ ] Dependencies and known risks are listed.
+- [x] Problem statement is explicit and user impact is clear.
+- [x] Scope boundaries (in/out) are explicit.
+- [x] Acceptance criteria are testable.
+- [x] Dependencies and known risks are listed.
 
 # Companion docs
 - Product brief(s): (none yet)

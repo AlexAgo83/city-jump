@@ -1,14 +1,14 @@
 ## item_013_split_roads_that_cross_each_other_not_only_those_drawn_onto - Split roads that cross each other, not only those drawn onto
 > From version: 1.0.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: High
 > Theme: Operator workflow and runtime integration
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:25:54
+> Indicators reviewed: 2026-08-29 10:28:39
 
 # AI Context
 - Summary: The single-crossing case is already delivered and tested; this slice closes the two remaining gaps -- a stroke crossing several roads only splits at the first one found, and a crossing near an existing node does not merge into it.
@@ -56,8 +56,8 @@ Already delivered and out of scope here: AC1 (single crossing splits both roads,
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md`
-- Primary task(s): (none yet)
+- Request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
+- Primary task(s): `task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 
 # Priority
 - Priority: Medium
@@ -67,6 +67,7 @@ Already delivered and out of scope here: AC1 (single crossing splits both roads,
 - Hybrid rationale: Derived from request `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto.md`.
 - Generated locally by logics-manager.
+- Task `task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto` was finished via `logics-manager flow finish task` on 2026-08-29.
 
 # Tasks
 - `task_004_split_roads_that_cross_each_other_not_only_those_drawn_onto`
