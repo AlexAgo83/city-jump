@@ -36,6 +36,7 @@ services:
   - type: web
     name: city-jump
     runtime: static
+    autoDeploy: false
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
@@ -86,7 +87,10 @@ npm run release:static
 tar -C dist -czf city-jump-v0.2.0-static.tar.gz .
 ```
 
-Then publish the archive or upload `dist/` directly to the static host.
+Render deploys are triggered by `.github/workflows/render-release-deploy.yml` when a
+GitHub release is published. Store the Render hook in the GitHub secret
+`RENDER_DEPLOY_HOOK_URL`; keep the hook URL out of the repository because it contains
+the deploy key.
 
 ## Manual smoke check
 

@@ -1,0 +1,95 @@
+name: Deploy Render on release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to deploy, for example v0.2.0.
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: render-release-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release commit
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          release_tag="${{ inputs.release_tag || github.event.release.tag_name || '' }}"
+          if [ -z "$release_tag" ]; then
+            echo "Missing release tag."
+            exit 1
+          fi
+
+          git fetch --tags --force
+          release_sha="$(git rev-list -n 1 "$release_tag")"
+
+          echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package version
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          expected="${RELEASE_TAG#v}"
+          actual="$(git show "${RELEASE_SHA}:package.json" | node -e 'let b=""; process.stdin.on("data", c => b += c); process.stdin.on("end", () => console.log(JSON.parse(b).version));')"
+          if [ "$actual" != "$expected" ]; then
+            echo "package.json version $actual does not match $RELEASE_TAG."
+            exit 1
+          fi
+
+      - name: Verify CI on release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          runs="$(gh run list --workflow ci.yml --commit "$RELEASE_SHA" --json conclusion,status,url --limit 20)"
+          success_url="$(jq -r '.[] | select(.status == "completed" and .conclusion == "success") | .url' <<< "$runs" | head -n 1)"
+          if [ -z "$success_url" ]; then
+            echo "A successful CI run is required before deploying ${RELEASE_SHA}."
+            exit 1
+          fi
+          echo "CI succeeded: $success_url"
+
+      - name: Trigger Render deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Missing RENDER_DEPLOY_HOOK_URL secret."
+            exit 1
+          fi
+
+          separator="?"
+          if [[ "$RENDER_DEPLOY_HOOK_URL" == *"?"* ]]; then
+            separator="&"
+          fi
+
+          curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error \
+            --request POST "${RENDER_DEPLOY_HOOK_URL}${separator}ref=${RELEASE_SHA}"
