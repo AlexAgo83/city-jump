@@ -864,9 +864,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       }
 
       // What has to stop this mover: the car in front, or a light against it. Easing off over
-      // the last few metres rather than stopping dead on the line, and never backing up.
-      const stop = mover.walk ? limitOf(mover) : stopFor(mover, ahead.get(mover), now);
-      const room = (stop - mover.distance) * mover.direction;
+      // the last few metres rather than stopping dead on the line, and never backing up. A
+      // walker has nothing to rear-end and always heads at the kerb itself, so it gets no ease:
+      // eased against its own exact target it would never quite arrive, and so never get asked
+      // whether the crossing is clear.
+      const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now) - mover.distance) * mover.direction;
       mover.distance += mover.direction * mover.speed * dt * Math.max(0, Math.min(1, room / BRAKING));
 
       const limit = limitOf(mover);
