@@ -678,6 +678,28 @@ check(
   `${afterFell.trees}/${beforeFell.trees} trees, ${afterFell.segments}/${beforeFell.segments} segments`,
 );
 
+// Selecting a road shows it in the panel and picks up its type like an eyedropper -- and
+// neither one cancels the other, which a prior regression did (setRoadType's own reset used to
+// clear the very selection that triggered it).
+await page.locator('[data-tool="select"]').click();
+await nextFrame();
+await click(OVER_ROAD.x, OVER_ROAD.y);
+const selected = await page.evaluate(() => ({
+  hidden: document.getElementById("selection-panel").hidden,
+  kind: document.querySelector("#selection-panel .selection-kind").textContent,
+  typeLabel: document.querySelector("#selection-panel dl dd")?.textContent ?? "",
+}));
+check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
+const pickedType = await page.evaluate(() => document.querySelector('input[name="road-type"]:checked').value);
+check(
+  "picking a road sets the Roads tab to match it (eyedropper)",
+  selected.typeLabel.toLowerCase().startsWith(pickedType),
+  `panel says "${selected.typeLabel}", Roads tab picked "${pickedType}"`,
+);
+// Back to bulldoze mode: everything from here on still expects that, same as before this check.
+await page.locator('[data-tool="bulldoze"]').click();
+await nextFrame();
+
 // And a roundabout can be taken off without touching the roads that meet it.
 const ringNode = await page.evaluate(() => {
   const graph = window.cityjump._graph;

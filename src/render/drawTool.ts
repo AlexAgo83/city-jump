@@ -388,7 +388,8 @@ export function createDrawTool(
     onCommitted();
   }
 
-  function cancel(): void {
+  /** Drawing state only -- never the selection, which an option change has no business erasing. */
+  function resetDrawing(): void {
     stage = { phase: "idle" };
     lastSprayed = null;
     pressedAt = null;
@@ -396,6 +397,10 @@ export function createDrawTool(
     sprayRing.setEnabled(false);
     nodeHighlight.setEnabled(false);
     clearPreview();
+  }
+
+  function cancel(): void {
+    resetDrawing();
     clearSelection();
   }
 
@@ -502,11 +507,11 @@ export function createDrawTool(
     },
     setGridSnap(enabled) {
       gridSnap = enabled;
-      cancel();
+      resetDrawing();
     },
     setRoadType(next) {
       typeId = next;
-      cancel();
+      resetDrawing();
     },
     setTreeSpecies(next) {
       treeSpecies = next;
