@@ -1,14 +1,25 @@
 ## prod_003_ci_that_respects_a_limited_actions_budget - CI that respects a limited Actions budget
 > Date: 2026-08-29
-> Status: Proposed
+> Status: Settled
 > Related request: `req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push`
-> Related backlog: `item_017_stop_the_browser_interaction_suite_from_running_twice_per_push`, `item_018_move_the_browser_interaction_suite_off_the_push_trigger`, `item_019_replace_fixed_ui_settle_sleeps_with_condition_polling_in_the_interaction_script`
+> Related backlog: `item_017_stop_the_browser_interaction_suite_from_running_twice_per_push`
 > Related task: `task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:47:35
 
 # Overview
 The reliability hardening work in `req_004_harden_project_reliability_gates_and_demo_evidence` correctly proved the browser interaction path is part of the trusted gate, but folded it into every push without accounting for how expensive that suite is on a software-rendered, CPU-constrained shared runner, or that GitHub Actions minutes are a real, limited operator resource. This product slice keeps the coverage but changes when it runs and how long it costs, so the project can keep shipping without running out of CI quota.
+
+```mermaid
+flowchart LR
+    Push[Push or pull request] --> Fast[Fast CI gate]
+    Fast --> Unit[Unit tests]
+    Fast --> Build[Build and typecheck]
+    Fast --> Logics[Logics validation]
+    Manual[Manual or weekly trigger] --> Browser[Browser Interaction workflow]
+    Browser --> E2E[Playwright interaction suite]
+```
 
 # Goals
 - Every push still gets a fast, cheap gate: unit, architecture, build, typecheck, Logics validation.
@@ -35,5 +46,5 @@ The reliability hardening work in `req_004_harden_project_reliability_gates_and_
 - The operator can find and run the full browser check on demand without needing to ask how.
 
 # References
-- Product back-reference: `req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push`
+- Product back-reference: `item_017_stop_the_browser_interaction_suite_from_running_twice_per_push`
 - Task back-reference: `task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite`

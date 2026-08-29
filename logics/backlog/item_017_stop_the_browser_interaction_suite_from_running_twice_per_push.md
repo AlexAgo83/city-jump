@@ -1,14 +1,14 @@
 ## item_017_stop_the_browser_interaction_suite_from_running_twice_per_push - Stop the browser interaction suite from running twice per push
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:39:44
+> Indicators reviewed: 2026-08-29 10:47:35
 
 # AI Context
 - Summary: `npm run ci` runs `test:e2e` via `scripts/with-dev-server.mjs`, and the workflow's own "Browser interaction check" step separately starts a dev server and runs `npm run test:e2e` again -- the same ~90-check suite executes twice per push. Make exactly one path own it.
@@ -47,3 +47,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite`
+
+# Notes
+- Task `task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite` was finished via `logics-manager flow finish task` on 2026-08-29.

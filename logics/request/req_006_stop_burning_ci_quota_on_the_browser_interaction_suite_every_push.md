@@ -1,12 +1,13 @@
 ## req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push - Stop burning CI quota on the browser interaction suite every push
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-29 10:47:34
 
 # AI Context
 - Summary: `test:e2e` now runs twice per CI push (once inside `npm run ci`, once in the workflow's separate step) and the operator does not have GitHub Actions quota to run a 10-25 minute browser suite on every push at all. De-duplicate the run, move it off the push trigger onto an on-demand/scheduled workflow, and cut the suite's own fixed-sleep time -- without touching the coverage `req_004` already delivered.
