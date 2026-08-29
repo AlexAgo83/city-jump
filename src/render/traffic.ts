@@ -33,7 +33,7 @@ import {
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 
-/** Matches the box mesh a car is built from below. */
+/** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
 
 /** Everyone slows for a ring, and eases off a little through a plain junction. */
@@ -109,13 +109,176 @@ interface Mover {
   plan: RingPlan | null;
 }
 
+/**
+ * A body shape, in metres. Everything a car is made of comes off these numbers, so a new kind of
+ * vehicle is a row in the table below rather than another lump of mesh-building code.
+ */
+interface CarShape {
+  readonly name: string;
+  readonly length: number;
+  /** Height of the main body, whose underside sits clear of the road on the wheels. */
+  readonly hull: number;
+  /** Where the cabin sits along the car, and how long and tall it is. */
+  readonly cabin: { at: number; length: number; height: number };
+  /** Bonnet and boot ledges, each as a length; zero for a shape that has none. */
+  readonly bonnet: number;
+  readonly boot: number;
+  readonly wheelBase: number;
+  readonly wheel: number;
+}
+
+const CAR_SHAPES: CarShape[] = [
+  {
+    name: "saloon",
+    length: 5.8,
+    hull: 0.8,
+    cabin: { at: -0.3, length: 2.8, height: 0.52 },
+    bonnet: 1.6,
+    boot: 1.1,
+    wheelBase: 1.85,
+    wheel: 0.92,
+  },
+  {
+    // Shorter, taller, all cabin and no boot: the small car that fills a city.
+    name: "hatchback",
+    length: 4.6,
+    hull: 0.86,
+    cabin: { at: -0.5, length: 2.4, height: 0.6 },
+    bonnet: 1.2,
+    boot: 0,
+    wheelBase: 1.5,
+    wheel: 0.86,
+  },
+  {
+    // A cab at the front and a box behind it: a van, and the tallest thing on the road.
+    name: "van",
+    length: 6.6,
+    hull: 1.35,
+    cabin: { at: 1.5, length: 2.4, height: 0.66 },
+    bonnet: 1.3,
+    boot: 0,
+    wheelBase: 2.2,
+    wheel: 1,
+  },
+];
+
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
-  const carMaterials = CAR_COLORS.map((color, i) => {
-    const material = new StandardMaterial(`car_${i}`, scene);
-    material.diffuseColor = color;
-    material.specularColor = Color3.Black();
-    return material;
+  /**
+   * Every shape in every colour, each built out of boxes and four wheels and merged into a
+   * single mesh, so a car on the map is one instance of one of them. Glass and wheels are a
+   * second prototype per shape in their own dark material -- a merged mesh carries one material,
+   * and two instances per car is cheaper than a multi-material one.
+   * ponytail: primitives, not a loaded model. It reads as a car at the distance a city is looked
+   * at from; swap in a glTF if the camera ever gets down to street level.
+   */
+  const carBodies = CAR_SHAPES.map((shape) =>
+    CAR_COLORS.map((color, i) => {
+      const material = new StandardMaterial(`car_${shape.name}_${i}`, scene);
+      material.diffuseColor = color;
+      material.specularColor = new Color3(0.25, 0.25, 0.25);
+
+      const floor = shape.wheel / 2;
+      const parts = [
+        slab(`car_hull_${shape.name}_${i}`, CAR_WIDTH - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0),
+        // Wider than the glass under it, so the roof caps the cabin instead of sitting inside it.
+        slab(
+          `car_roof_${shape.name}_${i}`,
+          CAR_WIDTH - 0.48,
+          0.16,
+          shape.cabin.length + 0.1,
+          0,
+          floor + shape.hull + shape.cabin.height + 0.08,
+          shape.cabin.at,
+        ),
+      ];
+      // The ledges fore and aft, which is what tells the front of a car from its back from above.
+      const ledge = (name: string, depth: number, at: number) =>
+        slab(name, CAR_WIDTH - 0.22, 0.16, depth, 0, floor + shape.hull + 0.08, at);
+      if (shape.bonnet > 0) parts.push(ledge(`car_bonnet_${shape.name}_${i}`, shape.bonnet, (shape.length - shape.bonnet) / 2));
+      if (shape.boot > 0) parts.push(ledge(`car_boot_${shape.name}_${i}`, shape.boot, -(shape.length - shape.boot) / 2));
+
+      const car = Mesh.MergeMeshes(parts, true, true, undefined, false, false);
+      if (!car) throw new Error("car failed to merge");
+      car.name = `car_body_${shape.name}_${i}`;
+      car.material = material;
+      car.isPickable = false;
+      car.isVisible = false;
+      return car;
+    }),
+  );
+
+  /** Wheels and glass for each shape: one prototype whatever colour the body it rides on is. */
+  const carParts = CAR_SHAPES.map((shape) => {
+    const dark = new StandardMaterial(`car_parts_${shape.name}`, scene);
+    dark.diffuseColor = new Color3(0.09, 0.1, 0.12);
+    dark.specularColor = new Color3(0.35, 0.35, 0.4);
+
+    const floor = shape.wheel / 2;
+    const glass = slab(
+      `car_glass_${shape.name}`,
+      CAR_WIDTH - 0.58,
+      shape.cabin.height,
+      shape.cabin.length,
+      0,
+      floor + shape.hull + shape.cabin.height / 2,
+      shape.cabin.at,
+    );
+    const wheels = [-1, 1].flatMap((side) =>
+      [shape.wheelBase, -shape.wheelBase].map((z) => {
+        const wheel = MeshBuilder.CreateCylinder(
+          `car_wheel_${shape.name}_${side}_${z}`,
+          { diameter: shape.wheel, height: 0.36, tessellation: 10 },
+          scene,
+        );
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(side * (CAR_WIDTH / 2 - 0.1), floor, z);
+        return wheel;
+      }),
+    );
+    const parts = Mesh.MergeMeshes([glass, ...wheels], true, true, undefined, false, false);
+    if (!parts) throw new Error("car parts failed to merge");
+    parts.name = `car_parts_${shape.name}`;
+    parts.material = dark;
+    parts.isPickable = false;
+    parts.isVisible = false;
+    return parts;
   });
+
+  /**
+   * A box with its corners taken off: two boxes crossed, plus a cylinder standing in each corner,
+   * merged into one. Flat sides, flat roof, soft corners. A plain box reads as a brick at this
+   * size, and rounding the whole body instead reads as a bar of soap.
+   * ponytail: built out of primitives rather than extruded, because an extrusion has to be
+   * oriented and this cannot be got wrong.
+   */
+  function slab(
+    name: string,
+    width: number,
+    height: number,
+    depth: number,
+    x: number,
+    y: number,
+    z: number,
+    corner = 0.4,
+  ): Mesh {
+    const r = Math.min(corner, width / 2 - 0.01, depth / 2 - 0.01);
+    const parts = [
+      MeshBuilder.CreateBox(`${name}_x`, { width, height, depth: depth - 2 * r }, scene),
+      MeshBuilder.CreateBox(`${name}_z`, { width: width - 2 * r, height, depth }, scene),
+    ];
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        const post = MeshBuilder.CreateCylinder(`${name}_${sx}_${sz}`, { diameter: r * 2, height, tessellation: 10 }, scene);
+        post.position.set(sx * (width / 2 - r), 0, sz * (depth / 2 - r));
+        parts.push(post);
+      }
+    }
+    const mesh = Mesh.MergeMeshes(parts, true, true, undefined, false, false);
+    if (!mesh) throw new Error(`${name} failed to merge`);
+    mesh.name = name;
+    mesh.position.set(x, y, z);
+    return mesh;
+  }
 
   /**
    * One prototype per colour, each a body and a head merged together, and every walker on the map
@@ -139,7 +302,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     return walker;
   });
 
-  /** Cars and people on foot alike: the same routing, different lanes and speeds. */
   let movers: Mover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
   const junctions = new Map<NodeId, JunctionGeometry>();
@@ -429,7 +591,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           walk,
           stride: walk ? 0.05 : 0,
           phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
-          lift: walk ? (type.pedestrian ? ROAD_LIFT : SIDEWALK_LIFT) + 0.58 : ROAD_LIFT + 0.75,
+          lift: walk ? (type.pedestrian ? ROAD_LIFT : SIDEWALK_LIFT) + 0.58 : ROAD_LIFT + 0.02,
           pace,
           seed: (si * 2654435761 + i * 40503 + (walk ? 7919 : 0)) >>> 0,
           segment: seg,
@@ -470,10 +632,15 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const lanes = laneCentres(type);
       const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
       for (let i = 0; i < count; i++) {
-        const mesh = MeshBuilder.CreateBox(`traffic_${seg.id}_${i}`, { width: CAR_WIDTH, height: 1.2, depth: 6 }, scene);
-        mesh.material = carMaterials[(si + i) % carMaterials.length]!;
-        mesh.isPickable = false;
-        place(mesh, i, count, false, lanes[i % lanes.length]!);
+        // Shape and colour picked apart from each other, so a street carries a mix of both.
+        const shape = (si * 3 + i) % CAR_SHAPES.length;
+        const body = carBodies[shape]![(si + i) % CAR_COLORS.length]!.createInstance(`traffic_${seg.id}_${i}`);
+        body.isPickable = false;
+        // Wheels and glass ride along: parented, so only the body is ever positioned.
+        const parts = carParts[shape]!.createInstance(`carparts_${seg.id}_${i}`);
+        parts.isPickable = false;
+        parts.parent = body;
+        place(body, i, count, false, lanes[i % lanes.length]!);
       }
     }
   }
