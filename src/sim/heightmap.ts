@@ -21,6 +21,14 @@ export const BUILDING_PAD_EMBANKMENT = 8;
  */
 export const TUNNEL_COVER = 12;
 export const SEA_LEVEL = 0;
+/**
+ * How much closer a junction's own stamp counts itself, so it always beats an arm's stamp
+ * landing in the same disc. Comfortably larger than any real reach (junction radii top out
+ * around 30-40m), so it never lets a junction win against another junction by anything but
+ * genuine distance -- two overlapping junctions both get this same bias and still resolve by
+ * who is actually closer.
+ */
+const JUNCTION_PRIORITY = 1000;
 
 export interface HeightmapOptions {
   /** Side of the square map, in metres. */
@@ -153,7 +161,7 @@ export class Heightmap implements Terrain {
       // (denser, more numerous) stamps land inside the junction's own disc too and would
       // otherwise win the ordinary nearest-wins race almost everywhere except the exact centre,
       // leaving jagged slivers of the arm's own grade poking through the disc.
-      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT, true);
+      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT, JUNCTION_PRIORITY);
     }
 
     for (const parcel of parcels) this.stampParcel(parcel);
@@ -161,14 +169,17 @@ export class Heightmap implements Terrain {
 
   /**
    * Levels the cells around one point of road, blending out across the embankment.
-   * `force` skips the nearest-wins check: a junction's own arms keep sampling and stamping
-   * themselves right up to the node they end at, so their stamps land inside the junction's own
-   * disc too -- and being denser (one every half a cell, against the disc's single stamp), they
-   * win the ordinary distance race almost everywhere except the exact centre. A junction's
-   * footprint has to be authoritative over its own disc regardless, so its stamp overrides
-   * whatever an arm already claimed there.
+   * `priority` biases the nearest-wins claim rather than skipping it: a junction's own arms
+   * keep sampling and stamping themselves right up to the node they end at, so their stamps
+   * land inside the junction's own disc too -- and being denser (one every half a cell,
+   * against the disc's single stamp), they win the ordinary distance race almost everywhere
+   * except the exact centre. A junction's footprint has to beat any arm regardless, so its
+   * claim is recorded as though it were `priority` metres closer than it really is -- but two
+   * junctions whose discs overlap (a dense cluster of roundabouts) still have to resolve which
+   * one actually owns a cell by real distance between them, not by whichever happened to run
+   * last, so the bias has to apply uniformly rather than skipping the check outright.
    */
-  private stamp(x: number, z: number, elevation: number, half: number, reach: number, force = false): void {
+  private stamp(x: number, z: number, elevation: number, half: number, reach: number, priority = 0): void {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
 
@@ -180,8 +191,9 @@ export class Heightmap implements Terrain {
         if (distance > reach) continue;
 
         const index = iz * this.count + ix;
-        if (!force && distance >= this.claim[index]!) continue; // a nearer road already owns this cell
-        this.claim[index] = distance;
+        const claim = distance - priority;
+        if (claim >= this.claim[index]!) continue; // a nearer (or higher-priority) road already owns this cell
+        this.claim[index] = claim;
 
         const bed = elevation - ROAD_BED_DROP;
         if (distance <= half) {
