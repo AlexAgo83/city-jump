@@ -75,6 +75,17 @@ export function writeSettings(settings: UiSettings): void {
   write(SETTINGS_KEY, JSON.stringify(settings));
 }
 
+/** Which named save the picker should show as the one currently loaded, if any. */
+const ACTIVE_SAVE_KEY = "cityjump.activeSave";
+
+export function readActiveSave(): string | null {
+  return read(ACTIVE_SAVE_KEY);
+}
+
+export function writeActiveSave(name: string | null): void {
+  write(ACTIVE_SAVE_KEY, name);
+}
+
 function read(key: string): string | null {
   try {
     return window.localStorage.getItem(key);

@@ -1,6 +1,16 @@
 import type { CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
-import { listSaves, readSave, writeSave, deleteSave, readSettings, writeSettings, type UiSettings } from "./saves";
+import {
+  listSaves,
+  readSave,
+  writeSave,
+  deleteSave,
+  readSettings,
+  writeSettings,
+  readActiveSave,
+  writeActiveSave,
+  type UiSettings,
+} from "./saves";
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
@@ -235,6 +245,7 @@ function bindSaves(
       showRefusal("Could not save: browser storage is full or unavailable.");
       return;
     }
+    writeActiveSave(name);
     refresh(name);
     showRefusal(`Saved "${name}".`);
   });
@@ -247,6 +258,7 @@ function bindSaves(
       return;
     }
     if (!handlers.onLoad(city)) return;
+    writeActiveSave(name);
     applyCity(city);
     showRefusal(`Loaded "${name}".`);
   });
@@ -255,9 +267,12 @@ function bindSaves(
     const name = slot.value;
     if (!name || !window.confirm(`Delete "${name}"?`)) return;
     deleteSave(name);
+    if (readActiveSave() === name) writeActiveSave(null);
     refresh();
     showRefusal(`Deleted "${name}".`);
   });
 
-  refresh();
+  // Picks up wherever a previous session left off, so the picker points at the city that is
+  // actually loaded instead of whichever name happens to sort first.
+  refresh(readActiveSave() ?? undefined);
 }
