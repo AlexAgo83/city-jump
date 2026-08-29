@@ -79,6 +79,28 @@ describe("routing", () => {
     expect(ringEntryRadius([12], 1)).toBe(12);
   });
 
+  it("lets people on foot use what traffic cannot, and keeps them off a highway", () => {
+    const g = new RoadGraph();
+    const hub = g.addNode(0, 0);
+    const west = g.addNode(-100, 0);
+    const east = g.addNode(100, 0);
+    const north = g.addNode(0, -100);
+    const arrive = g.addSegment(west, hub, v3(-50, 0, 0), "street");
+    const path = g.addSegment(hub, east, v3(50, 0, 0), "pedestrian");
+    const fast = g.addSegment(hub, north, v3(0, 0, -50), "highway");
+
+    // A footpath is the one way on for someone walking, and closed to traffic.
+    expect(exits(g, hub, arrive, true)).toContain(path);
+    expect(exits(g, hub, arrive, true)).not.toContain(fast);
+    expect(exits(g, hub, arrive)).toEqual([fast]);
+
+    // A one-way binds traffic, not a pavement beside it.
+    const stub = g.addNode(0, 100);
+    const oneWay = g.addSegment(hub, stub, v3(0, 0, 50), "street_oneway");
+    expect(exits(g, stub, oneWay, true)).toEqual([oneWay]);
+    expect(pickExit(g, stub, oneWay, 0.5)).toBe(null);
+  });
+
   it("circulates the ring on the same side of the road cars already drive on", () => {
     // Which way "right of travel" points in this world, read off the lane a car actually uses:
     // a direction-1 lane sits to the right, and `perpXZ` is how that offset gets applied.

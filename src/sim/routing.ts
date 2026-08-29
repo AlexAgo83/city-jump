@@ -6,28 +6,40 @@
 import type { NodeId, RoadGraph, SegmentId } from "./graph";
 import { roadType, type LaneCentre } from "./roadTypes";
 
-/** A car may use this segment at all: not a tunnel mouth, not a footpath. */
-function drivable(graph: RoadGraph, id: SegmentId): boolean {
+/**
+ * Whether this segment can be used at all. A car has no business on a footpath or in a tunnel
+ * mouth; someone on foot has none on a highway, which carries a guardrail where its footway
+ * would be.
+ */
+function usable(graph: RoadGraph, id: SegmentId, onFoot: boolean): boolean {
   const type = roadType(graph.segment(id).type);
-  return !type.tunnelDepth && !type.pedestrian;
+  if (type.tunnelDepth) return false;
+  return onFoot ? !type.highway : !type.pedestrian;
 }
 
 /**
- * Every segment a car standing at `node` may leave on, having arrived along `from`. A one-way
- * road can only be taken from its own `a` end. Doubling back is a last resort, so it is offered
- * only when the node is a dead end.
+ * Every segment someone standing at `node` may leave on, having arrived along `from`. A one-way
+ * road can only be driven from its own `a` end. Doubling back is a last resort, so it is offered
+ * only when there is nothing else.
  */
-export function exits(graph: RoadGraph, node: NodeId, from: SegmentId | null): SegmentId[] {
-  const usable = [...graph.node(node).segments].filter(
-    (id) => drivable(graph, id) && (!roadType(graph.segment(id).type).oneWay || graph.segment(id).a === node),
+export function exits(graph: RoadGraph, node: NodeId, from: SegmentId | null, onFoot = false): SegmentId[] {
+  // A one-way road binds traffic, never someone walking beside it.
+  const open = [...graph.node(node).segments].filter(
+    (id) => usable(graph, id, onFoot) && (onFoot || !roadType(graph.segment(id).type).oneWay || graph.segment(id).a === node),
   );
-  const onward = usable.filter((id) => id !== from);
-  return onward.length > 0 ? onward : usable;
+  const onward = open.filter((id) => id !== from);
+  return onward.length > 0 ? onward : open;
 }
 
 /** One of `exits`, chosen by a roll in [0, 1). Null only when there is nowhere legal to go. */
-export function pickExit(graph: RoadGraph, node: NodeId, from: SegmentId | null, roll: number): SegmentId | null {
-  const options = exits(graph, node, from);
+export function pickExit(
+  graph: RoadGraph,
+  node: NodeId,
+  from: SegmentId | null,
+  roll: number,
+  onFoot = false,
+): SegmentId | null {
+  const options = exits(graph, node, from, onFoot);
   return options[Math.min(options.length - 1, Math.floor(roll * options.length))] ?? null;
 }
 

@@ -14,8 +14,10 @@ import {
   pointAlong,
   ringCrossPath,
   ringJoinPath,
+  ringArcPath,
   ringOf,
   ringSweep,
+  walkRingRadius,
 } from "./transfers";
 import { distXZ, v3 } from "./vec";
 
@@ -103,6 +105,23 @@ describe("transfers", () => {
     // Eased, so it leaves and arrives gently rather than at a constant sidestep.
     expect(laneChangeOffset(0, 1, 0.1)).toBeLessThan(0.1);
     expect(laneChangeOffset(0, 1, 0.9)).toBeGreaterThan(0.9);
+  });
+
+  it("takes the short way round the ring on foot, either direction", () => {
+    const { g, hub } = crossroads("street", true);
+    const geometry = junctionGeometry(g, hub);
+    const ring = ringOf(g, geometry, ringLaneRadii(g, hub, geometry.roundabout));
+    const radius = walkRingRadius(ring, 2.6);
+    expect(radius).toBeGreaterThan(ring.edge); // outside the kerb, on the paving
+
+    // Three quarters of a turn one way is a quarter the other, and that is the way to walk it.
+    const back = ringArcPath(ring, 0, Math.PI * 1.5, radius, 12);
+    expect(back.length).toBeLessThan(ringArcPath(ring, 0, Math.PI, radius, 12).length + 1);
+    for (const point of back) expect(radiusOf(ring.centre, point)).toBeCloseTo(radius);
+    // It starts and ends on the bearings asked for, whichever way it went round.
+    expect(Math.atan2(back[0]!.z - ring.centre.z, back[0]!.x - ring.centre.x)).toBeCloseTo(0);
+    const last = back[back.length - 1]!;
+    expect(Math.abs(Math.atan2(last.z - ring.centre.z, last.x - ring.centre.x) + Math.PI / 2)).toBeCloseTo(0);
   });
 
   it("walks a path by ground distance", () => {

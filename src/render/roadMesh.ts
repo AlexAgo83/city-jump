@@ -28,9 +28,11 @@ import {
   junctionTurnPath,
   laneChangeOffset,
   laneChangeSpan,
+  onRing,
   ringCrossPath,
   ringJoinPath,
   ringOf,
+  walkRingRadius,
 } from "../sim/transfers";
 
 /** Lifted off the ground so the road wins the depth fight with it. */
@@ -272,6 +274,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           // How a car actually gets between an arm's lanes and that ring, drawn like the turn
           // diagram an ordinary junction gets.
           meshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
+          // And the same for people on foot: the footway circles the ring outside the kerb, and
+          // each arm's two walkways join it.
+          meshes.push(...roundaboutWalkLines(scene, graph, junction, radii, walkTurnColor));
         }
         continue;
       }
@@ -598,6 +603,38 @@ function laneChangeLines(
       return new Vector3(position.x + n.x * offset, position.y + MARK_LIFT + 0.03, position.z + n.z * offset);
     });
     lines.push(styledLine(scene, `traffic_lane_change_${seg.id}_${direction === 1 ? "out" : "in"}`, points, color));
+  }
+  return lines;
+}
+
+
+/**
+ * The footway round a roundabout, as the Traffic view shows it: the circle it follows outside
+ * the kerb, and the join from each arm's walkways onto it. Same paths the walkers take.
+ */
+function roundaboutWalkLines(
+  scene: Scene,
+  graph: RoadGraph,
+  junction: JunctionGeometry,
+  radii: readonly number[],
+  color: Color3,
+): LinesMesh[] {
+  const ring = ringOf(graph, junction, radii);
+  const radius = walkRingRadius(ring, SIDEWALK_WIDTH);
+  const lines: LinesMesh[] = [];
+
+  const circle = Array.from({ length: 65 }, (_, i) => onRing(ring, (i / 64) * Math.PI * 2, radius));
+  lines.push(styledLine(scene, `traffic_walk_ring_${junction.node}`, lift(circle, SIDEWALK_LIFT + 0.03), color));
+
+  for (const arm of junction.arms) {
+    const type = roadType(graph.segment(arm.segment).type);
+    if (type.highway) continue; // a guardrail where the footway would be: nobody walks off it
+    for (const [i, walk] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
+      const points = ringJoinPath(graph, ring, arm, walk.offset, radius, true);
+      lines.push(
+        styledLine(scene, `traffic_walk_ring_join_${junction.node}_${arm.segment}_${i}`, lift(points, SIDEWALK_LIFT + 0.03), color),
+      );
+    }
   }
   return lines;
 }

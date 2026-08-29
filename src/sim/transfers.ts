@@ -60,13 +60,22 @@ export interface Ring {
   readonly centre: Vec3;
   /** Lane radii, innermost first. */
   readonly radii: readonly number[];
+  /** The kerb: where the carriageway ends and the footway around it begins. */
+  readonly edge: number;
   readonly arms: readonly JunctionArm[];
   readonly elevation: (angle: number) => number;
 }
 
 export function ringOf(graph: RoadGraph, geometry: JunctionGeometry, radii: readonly number[]): Ring {
   const centre = graph.node(geometry.node).pos;
-  return { node: geometry.node, centre, radii, arms: geometry.arms, elevation: ringElevation(geometry.arms, centre.y) };
+  return {
+    node: geometry.node,
+    centre,
+    radii,
+    edge: geometry.roundabout,
+    arms: geometry.arms,
+    elevation: ringElevation(geometry.arms, centre.y),
+  };
 }
 
 const outerOf = (ring: Ring): number => ring.radii[ring.radii.length - 1]!;
@@ -180,4 +189,21 @@ export function pointAlong(points: readonly Vec3[], cumulative: readonly number[
     position: v3(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, a.z + (b.z - a.z) * f),
     tangent: normalizeXZ(v3(b.x - a.x, 0, b.z - a.z)),
   };
+}
+
+/** The circle the footway round a roundabout follows: the middle of the paving outside the kerb. */
+export function walkRingRadius(ring: Ring, sidewalkWidth: number): number {
+  return ring.edge + sidewalkWidth / 2;
+}
+
+/**
+ * Round the ring at one radius, the short way about. Nobody on foot walks three quarters of a
+ * roundabout to reach the arm next door, so unlike traffic this is not tied to one direction.
+ */
+export function ringArcPath(ring: Ring, from: number, to: number, radius: number, steps = 12): Vec3[] {
+  const TAU = Math.PI * 2;
+  let arc = ((to - from) % TAU + TAU) % TAU;
+  if (arc > Math.PI) arc -= TAU;
+  const count = Math.max(2, Math.round((Math.abs(arc) / (Math.PI / 2)) * steps));
+  return Array.from({ length: count + 1 }, (_, i) => onRing(ring, from + arc * (i / count), radius));
 }
