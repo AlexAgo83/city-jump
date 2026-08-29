@@ -16,6 +16,7 @@ import {
   junctionTurnPath,
   laneChangeOffset,
   sampleQuadratic,
+  approachAngle,
   laneChangeSpan,
   pathCumulative,
   pointAlong,
@@ -38,6 +39,13 @@ import { streetlightsOnAt } from "./streetlights";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
+
+/**
+ * How fast a heading can turn, in radians a second. A car has a steering wheel and cannot flick
+ * round a corner; someone on foot pivots almost freely.
+ */
+const CAR_TURN_RATE = 2.6;
+const WALKER_TURN_RATE = 7;
 
 /** Everyone slows for a ring, and eases off a little through a plain junction. */
 const RING_PACE = 0.6;
@@ -108,6 +116,8 @@ interface Mover {
   /** The lane it started this road in, while a lane change is still to happen or under way. */
   changing: LaneCentre | null;
   speed: number;
+  /** Which way it is facing, which follows the path it is on rather than snapping to it. */
+  heading: number;
   ride: Ride | null;
   plan: RingPlan | null;
 }
@@ -683,9 +693,13 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           lane,
           changing: null,
           speed: (walk ? WALKER_SPEED : type.maxSpeed) * pace,
+          heading: 0,
           ride: null,
           plan: null,
         };
+        // Facing the way the road runs from the start, rather than swinging round to it.
+        const { tangent } = graph.pointAt(seg.id, mover.distance);
+        mover.heading = Math.atan2(tangent.x * lane.direction, tangent.z * lane.direction);
         // Placed mid-road, but otherwise entering it like anyone else.
         const entry = chooseEntry(mover, seg, lane.direction, false);
         mover.lane = entry.lane;
@@ -732,6 +746,13 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     syncHeadlights(movers.filter((mover) => !mover.walk).length);
   }
 
+  /** Faces a mover along a heading, turning towards it rather than snapping onto it. */
+  function face(mover: Mover, heading: number, dt: number): void {
+    const rate = (mover.walk ? WALKER_TURN_RATE : CAR_TURN_RATE) * dt;
+    mover.heading = approachAngle(mover.heading, heading, rate);
+    mover.mesh.rotation.y = mover.heading;
+  }
+
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
@@ -751,7 +772,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         } else {
           const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);
           mover.mesh.position.set(position.x, position.y + mover.lift + bob, position.z);
-          mover.mesh.rotation.y = Math.atan2(tangent.x, tangent.z);
+          face(mover, Math.atan2(tangent.x, tangent.z), dt);
           if (beams && !mover.walk) aimBeam(beams[beam++], mover);
           continue;
         }
@@ -772,7 +793,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         position.y + mover.lift + bob,
         position.z + normal.z * offset,
       );
-      mover.mesh.rotation.y = Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction);
+      face(mover, Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction), dt);
       if (beams && !mover.walk) aimBeam(beams[beam++], mover);
     }
   });

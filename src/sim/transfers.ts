@@ -11,6 +11,20 @@ import { ringElevation, widestIncidentRoad, type JunctionArm, type JunctionGeome
 import { roadType, walkCentres } from "./roadTypes";
 import { distXZ, normalizeXZ, perpXZ, v3, type Vec3 } from "./vec";
 
+/**
+ * Turns a heading towards another at a bounded rate, the short way round. A path is a polyline,
+ * so the direction it hands back changes in steps -- at every vertex of a curve, and outright
+ * where one curve meets the next. Read straight onto a car that shows as a flick of the wheel;
+ * a car turns at a rate instead, and arrives at the new heading a moment later.
+ */
+export function approachAngle(current: number, target: number, maxStep: number): number {
+  const TAU = Math.PI * 2;
+  let delta = (((target - current) % TAU) + TAU) % TAU;
+  if (delta > Math.PI) delta -= TAU;
+  if (Math.abs(delta) <= maxStep) return target;
+  return current + Math.sign(delta) * maxStep;
+}
+
 /** Eases 0 -> 1, so a transfer leans out of one line and settles into the next. */
 export function smoothstep01(t: number): number {
   const c = Math.min(1, Math.max(0, t));

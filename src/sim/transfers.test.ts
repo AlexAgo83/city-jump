@@ -5,6 +5,7 @@ import { laneCentres, roadType } from "./roadTypes";
 import {
   CROSSING_DEPTH,
   CROSSING_GAP,
+  approachAngle,
   armPort,
   crossesRoad,
   walkLoop,
@@ -104,6 +105,18 @@ describe("transfers", () => {
     const middle = path[Math.floor(path.length / 2)]!;
     const chord = v3((a.x + b.x) / 2, 0, (a.z + b.z) / 2);
     expect(distXZ(middle, g.node(hub).pos)).toBeLessThan(distXZ(chord, g.node(hub).pos));
+  });
+
+  it("turns towards a heading the short way, at the rate given", () => {
+    // Straight to it when it is within reach, and never the long way round the circle.
+    expect(approachAngle(0, 0.3, 1)).toBeCloseTo(0.3);
+    expect(approachAngle(3.0, -3.0, 0.1)).toBeCloseTo(3.1);
+    expect(approachAngle(-3.0, 3.0, 0.1)).toBeCloseTo(-3.1);
+    // A quarter turn at a tenth of a radian a step is a quarter turn, however it is written.
+    let heading = 0;
+    for (let i = 0; i < 20; i++) heading = approachAngle(heading, Math.PI / 2, 0.1);
+    expect(heading).toBeCloseTo(Math.PI / 2, 5);
+    expect(approachAngle(1, 1, 0.1)).toBe(1);
   });
 
   it("changes lane over the middle third of a road, easing in and out", () => {
