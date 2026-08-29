@@ -1,5 +1,4 @@
 import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
-import type { Light } from "@babylonjs/core/Lights/light";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { Material } from "@babylonjs/core/Materials/material";
@@ -66,7 +65,8 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   let lamps = 0;
   let sunHour = 14;
   let lampPositions: { position: Vector3; direction: Vector3; white: boolean }[] = [];
-  let realLights: Light[] = [];
+  /** One lamp's two lights, kept and moved rather than rebuilt. */
+  let realLights: { pool: SpotLight; facade: PointLight }[] = [];
 
   function rebuild(): number {
     const poleMatrices: Matrix[] = [];
@@ -142,31 +142,44 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     glow.emissiveColor = on ? new Color3(1, 0.68, 0.24) : new Color3(0.25, 0.18, 0.08);
     glowWhite.emissiveColor = on ? new Color3(0.85, 0.92, 1) : new Color3(0.16, 0.19, 0.22);
     lightCluster.setEnabled(on);
-    for (const light of realLights) light.setEnabled(on);
+    for (const lamp of realLights) {
+      lamp.pool.setEnabled(on);
+      lamp.facade.setEnabled(on);
+    }
   }
 
   function rebuildLights(): void {
-    for (const light of realLights) {
-      lightCluster.removeLight(light);
-      light.dispose();
+    // Creating or disposing a light walks every mesh in the scene, and a city carries hundreds
+    // of lamps: churning them all on every rebuild cost seconds per road drawn. Only the
+    // difference in count is created or disposed now; every other light is simply moved.
+    while (realLights.length > lampPositions.length) {
+      const lamp = realLights.pop()!;
+      for (const light of [lamp.pool, lamp.facade]) {
+        lightCluster.removeLight(light);
+        light.dispose();
+      }
     }
-    realLights = [];
-
-    for (const { position, direction, white } of lampPositions) {
-      const pool = new SpotLight(`streetlight_pool_${realLights.length}`, position, direction, Math.PI / 2.1, 1.35, scene);
-      pool.diffuse = white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
-      pool.specular = white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
+    while (realLights.length < lampPositions.length) {
+      const i = realLights.length;
+      const pool = new SpotLight(`streetlight_pool_${i}`, Vector3.Zero(), Vector3.Down(), Math.PI / 2.1, 1.35, scene);
       pool.intensity = 7;
       pool.range = 44;
-      const facade = new PointLight(`streetlight_facade_${realLights.length}`, position, scene);
-      facade.diffuse = white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);
-      facade.specular = white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
+      const facade = new PointLight(`streetlight_facade_${i}`, Vector3.Zero(), scene);
       facade.intensity = 3.2;
       facade.range = 40;
-      for (const light of [pool, facade]) {
-        lightCluster.addLight(light);
-        realLights.push(light);
-      }
+      for (const light of [pool, facade]) lightCluster.addLight(light);
+      realLights.push({ pool, facade });
+    }
+
+    for (const [i, lamp] of lampPositions.entries()) {
+      const { pool, facade } = realLights[i]!;
+      pool.position = lamp.position;
+      pool.direction = lamp.direction;
+      pool.diffuse = lamp.white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
+      pool.specular = lamp.white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
+      facade.position = lamp.position;
+      facade.diffuse = lamp.white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);
+      facade.specular = lamp.white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
     }
   }
 
@@ -184,7 +197,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     setSunHour,
     setFaded,
     count: () => lamps,
-    realLightCount: () => (lightCluster.isEnabled() ? realLights.length : 0),
+    realLightCount: () => (lightCluster.isEnabled() ? realLights.length * 2 : 0),
   };
 }
 
