@@ -245,12 +245,15 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       }
     }
 
-    // A crossing on every arm of every junction, so there is a marked way over each road.
+    // A crossing wherever someone on foot has to walk over a carriageway to get where the
+    // footways go -- read off those transfers themselves, so the paint marks a real movement
+    // rather than every arm on principle. A highway carries no footway, so nothing crosses it.
     for (const junction of junctions.values()) {
+      const paths = walkTransferPaths(graph, junction);
       for (const arm of junction.arms) {
-        const seg = graph.segment(arm.segment);
-        const type = roadType(seg.type);
+        const type = roadType(graph.segment(arm.segment).type);
         if (type.tunnelDepth || type.pedestrian) continue;
+        if (!crossesArm(graph, junction.node, arm, type.width, paths)) continue;
         meshes.push(...crossingMeshes(scene, graph, junction.node, arm, type.width, paintMaterial));
       }
     }
@@ -277,7 +280,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           meshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
           // And the same for people on foot: the footway circles the ring outside the kerb, and
           // each arm's two walkways join it.
-          meshes.push(...roundaboutWalkLines(scene, graph, junction, radii, walkTurnColor));
+          for (const [i, path] of walkTransferPaths(graph, junction).entries()) {
+            meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
+          }
         }
         continue;
       }
@@ -290,10 +295,10 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(...junctionFootway(scene, graph, junction, pavingMaterial));
 
       if (showTraffic) {
-        meshes.push(...junctionTurnLines(scene, graph, junction, laneCentres, (t) => t.pedestrian === true, "traffic_turn", turnColor));
-        meshes.push(
-          ...junctionTurnLines(scene, graph, junction, (t) => walkCentres(t, SIDEWALK_WIDTH), (t) => t.highway === true, "traffic_walk_turn", walkTurnColor),
-        );
+        meshes.push(...junctionTurnLines(scene, graph, junction, turnColor));
+        for (const [i, path] of walkTransferPaths(graph, junction).entries()) {
+          meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, MARK_LIFT + 0.02), walkTurnColor));
+        }
       }
     }
 
@@ -612,46 +617,75 @@ function laneChangeLines(
 
 
 /**
- * The footway round a roundabout, as the Traffic view shows it: the circle it follows outside
- * the kerb, and the join from each arm's walkways onto it. Same paths the walkers take.
+ * Every way someone on foot gets across or around a node: the turn from each arm's arriving
+ * walkway to every other arm's departing one, or, at a roundabout, the footway that circles it
+ * and the step onto that footway from each arm. One list, three uses -- the Traffic view draws
+ * it, the walkers walk it, and the zebra crossings are placed where it runs over a carriageway.
  */
-function roundaboutWalkLines(
-  scene: Scene,
-  graph: RoadGraph,
-  junction: JunctionGeometry,
-  radii: readonly number[],
-  color: Color3,
-): LinesMesh[] {
-  const ring = ringOf(graph, junction, radii);
-  const radius = walkRingRadius(ring, SIDEWALK_WIDTH);
-  const lines: LinesMesh[] = [];
+function walkTransferPaths(graph: RoadGraph, junction: JunctionGeometry): Vec3[][] {
+  const onFoot = (arm: JunctionArm) => roadType(graph.segment(arm.segment).type);
+  const paths: Vec3[][] = [];
 
-  const circle = Array.from({ length: 65 }, (_, i) => onRing(ring, (i / 64) * Math.PI * 2, radius));
-  lines.push(styledLine(scene, `traffic_walk_ring_${junction.node}`, lift(circle, SIDEWALK_LIFT + 0.03), color));
+  if (junction.roundabout > 0) {
+    const ring = ringOf(graph, junction, ringLaneRadii(graph, junction.node, junction.roundabout));
+    const radius = walkRingRadius(ring, SIDEWALK_WIDTH);
+    paths.push(Array.from({ length: 65 }, (_, i) => onRing(ring, (i / 64) * Math.PI * 2, radius)));
+    for (const arm of junction.arms) {
+      if (onFoot(arm).highway) continue; // a guardrail where the footway would be
+      for (const walk of walkCentres(onFoot(arm), SIDEWALK_WIDTH)) {
+        paths.push(ringWalkJoin(graph, ring, arm, walk.offset, radius));
+      }
+    }
+    return paths;
+  }
 
+  const centre = graph.node(junction.node).pos;
+  const ports: { arm: JunctionArm; arriving: Vec3; leaving: Vec3 }[] = [];
   for (const arm of junction.arms) {
-    const type = roadType(graph.segment(arm.segment).type);
-    if (type.highway) continue; // a guardrail where the footway would be: nobody walks off it
-    for (const [i, walk] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
-      const points = ringWalkJoin(graph, ring, arm, walk.offset, radius);
-      lines.push(
-        styledLine(scene, `traffic_walk_ring_join_${junction.node}_${arm.segment}_${i}`, lift(points, SIDEWALK_LIFT + 0.03), color),
-      );
+    const type = onFoot(arm);
+    if (type.highway) continue;
+    const atStart = graph.segment(arm.segment).a === junction.node;
+    const walks = walkCentres(type, SIDEWALK_WIDTH);
+    const arriving = walks.find((walk) => (atStart ? walk.direction === -1 : walk.direction === 1))!;
+    const leaving = walks.find((walk) => walk !== arriving)!;
+    ports.push({
+      arm,
+      arriving: armPort(graph, junction.node, arm, arriving.offset),
+      leaving: armPort(graph, junction.node, arm, leaving.offset),
+    });
+  }
+  for (const from of ports) {
+    for (const to of ports) {
+      if (from.arm === to.arm) continue;
+      paths.push(junctionTurnPath(centre, from.arriving, to.leaving));
     }
   }
-  return lines;
+  return paths;
+}
+
+/** Whether any of those paths runs over this arm's carriageway, near enough the node to mark. */
+function crossesArm(
+  graph: RoadGraph,
+  nodeId: NodeId,
+  arm: JunctionArm,
+  width: number,
+  paths: readonly Vec3[][],
+): boolean {
+  const node = graph.node(nodeId);
+  const reach = arm.trim + CROSSING_GAP + CROSSING_DEPTH * 2;
+  return paths.some((path) =>
+    path.some((point) => {
+      const dx = point.x - node.pos.x;
+      const dz = point.z - node.pos.z;
+      const along = dx * arm.outward.x + dz * arm.outward.z;
+      if (along < 0 || along > reach) return false;
+      return Math.abs(dx * arm.outward.z - dz * arm.outward.x) <= width / 2;
+    }),
+  );
 }
 
 
-function junctionTurnLines(
-  scene: Scene,
-  graph: RoadGraph,
-  junction: JunctionGeometry,
-  lanesFor: (type: RoadType) => readonly LaneCentre[],
-  exclude: (type: RoadType) => boolean,
-  namePrefix: string,
-  color: Color3,
-): LinesMesh[] {
+function junctionTurnLines(scene: Scene, graph: RoadGraph, junction: JunctionGeometry, color: Color3): LinesMesh[] {
   interface Port {
     readonly position: Vec3;
     readonly armSegment: number;
@@ -662,9 +696,9 @@ function junctionTurnLines(
   for (const arm of junction.arms) {
     const seg = graph.segment(arm.segment);
     const type = roadType(seg.type);
-    if (exclude(type)) continue;
+    if (type.pedestrian) continue; // its own foot transfers are drawn, not a turn diagram
     const atStart = seg.a === junction.node;
-    for (const lane of lanesFor(type)) {
+    for (const lane of laneCentres(type)) {
       const arrivingHere = atStart ? lane.direction === -1 : lane.direction === 1;
       (arrivingHere ? incoming : outgoing).push({
         position: armPort(graph, junction.node, arm, lane.offset),
@@ -679,7 +713,7 @@ function junctionTurnLines(
     for (const [j, to] of outgoing.entries()) {
       if (from.armSegment === to.armSegment) continue; // no U-turn back onto the arm it came from
       const points = junctionTurnPath(centre, from.position, to.position);
-      lines.push(styledLine(scene, `${namePrefix}_${junction.node}_${i}_${j}`, lift(points, MARK_LIFT + 0.02), color));
+      lines.push(styledLine(scene, `traffic_turn_${junction.node}_${i}_${j}`, lift(points, MARK_LIFT + 0.02), color));
     }
   }
   return lines;

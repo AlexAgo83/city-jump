@@ -471,8 +471,29 @@ check(
   `${walked.buildings} vs ${tunneled.buildings}`,
 );
 check(
-  "junctions are marked with a crossing on each arm",
+  "a crossing is painted where someone on foot has to walk over a road",
   await page.evaluate(() => window.cityjump._scene.meshes.filter((m) => m.name.startsWith("crossing_")).length > 0),
+);
+// The other half of that rule: a road that merely bends at a node is not a place anyone crosses,
+// so it gets no paint. This used to be painted on principle, one zebra per arm. Built well clear
+// of the city under test and taken away again, so nothing else here sees it.
+check(
+  "a road that only bends at a node gets no crossing",
+  await page.evaluate(() => {
+    const api = window.cityjump;
+    const graph = api._graph;
+    const before = new Set(graph.allSegments().map((s) => s.id));
+    api.road(-2400, 1800, -2250, 1820, -2100, 1800, "street");
+    api.road(-2100, 1800, -1950, 1780, -1800, 1800, "street");
+    api.rebuild();
+    const added = graph.allSegments().filter((s) => !before.has(s.id));
+    const painted = api._scene.meshes.filter(
+      (m) => m.name.startsWith("crossing_") && added.some((s) => m.name.startsWith(`crossing_${s.id}_`)),
+    ).length;
+    for (const s of added) graph.removeSegment(s.id);
+    api.rebuild();
+    return painted === 0 && added.length === 2;
+  }),
 );
 check(
   "the footway closes around a junction instead of stopping at it",
