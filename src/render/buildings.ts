@@ -1,4 +1,5 @@
 import "@babylonjs/loaders/glTF";
+import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -17,7 +18,7 @@ import { createGroundShadow } from "./groundShadow";
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
 
-type PropKind = "ac" | "tank" | "antenna" | "hut" | "solar";
+type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 
 /**
  * One thing standing on a roof, `x`/`z` a small, fixed offset in metres off the parcel's own
@@ -37,6 +38,7 @@ interface RoofProp {
 interface RoofLayout {
   readonly minCells: number;
   readonly props: readonly RoofProp[];
+  readonly pitched?: boolean;
 }
 
 /**
@@ -49,7 +51,10 @@ interface RoofLayout {
 const ROOF_LAYOUTS: readonly RoofLayout[] = [
   // Most roofs are just a roof -- clutter on every single one reads as noise, not detail.
   { minCells: 0, props: [] },
-  { minCells: 1, props: [{ kind: "ac", x: -0.8, z: 0.6, rotationY: 0 }] },
+  { minCells: 0, pitched: true, props: [] },
+  { minCells: 1, pitched: true, props: [{ kind: "chimney", x: 0.9, z: 0.75, rotationY: 0 }] },
+  { minCells: 3, props: [{ kind: "ac", x: -0.8, z: 0.6, rotationY: 0 }] },
+  { minCells: 3, props: [{ kind: "chimney", x: 0.9, z: -0.7, rotationY: 0 }] },
   {
     minCells: 2,
     props: [
@@ -62,6 +67,13 @@ const ROOF_LAYOUTS: readonly RoofLayout[] = [
     props: [
       { kind: "tank", x: 0.7, z: 0.4, rotationY: 0 },
       { kind: "antenna", x: -1, z: -0.8, rotationY: 0 },
+    ],
+  },
+  {
+    minCells: 2,
+    props: [
+      { kind: "chimney", x: 1, z: -0.8, rotationY: 0 },
+      { kind: "antenna", x: -0.9, z: 0.7, rotationY: 0 },
     ],
   },
   { minCells: 4, props: [{ kind: "hut", x: -1, z: 0, rotationY: 0 }] },
@@ -81,7 +93,41 @@ const ROOF_LAYOUTS: readonly RoofLayout[] = [
       { kind: "antenna", x: -1.2, z: 1.4, rotationY: 0 },
     ],
   },
+  {
+    minCells: 6,
+    props: [
+      { kind: "chimney", x: 1.4, z: -1.1, rotationY: 0 },
+      { kind: "antenna", x: -1.3, z: 1.2, rotationY: 0 },
+      { kind: "ac", x: 0.1, z: 0.2, rotationY: -0.2 },
+    ],
+  },
 ];
+
+export function roofObjectLimit(cells: number): number {
+  return Math.min(3, Math.max(0, cells));
+}
+
+function buildingSpec(modelId: string): { area: number; depth: number; height: number; roof: number } | null {
+  const size = /^lot_(\d)x(\d)$/.exec(modelId);
+  if (!size) return null;
+  const frontage = Number(size[1]);
+  const depth = Number(size[2]);
+  const area = frontage * depth;
+  const height = 6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + Math.min(area, 8);
+  return { area, depth: depth * GRID.cellSize - 1.5, height, roof: area <= 2 ? 2.5 : 0 };
+}
+
+export function roofPropY(modelId: string, localZ: number, boundsMaxY: number): number {
+  const spec = buildingSpec(modelId);
+  if (!spec) return boundsMaxY;
+  if (spec.roof === 0) return spec.height;
+  const y = Math.min(spec.depth, Math.max(0, -localZ));
+  return spec.height + spec.roof * (1 - Math.abs(y - spec.depth / 2) / (spec.depth / 2));
+}
+
+function hasPitchedRoof(cells: number): boolean {
+  return cells <= 2;
+}
 
 /** Stable per parcel, so a roof's clutter does not reshuffle every time the city rebuilds. */
 function roofSeed(parcel: BuildingParcel): number {
@@ -217,7 +263,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const model = available.find((m) => m.id === `lot_${parcel.frontageCells}x${parcel.depthCells}`);
       if (!model) continue;
       const cells = parcel.frontageCells * parcel.depthCells;
-      const offered = ROOF_LAYOUTS.filter((layout) => layout.minCells <= cells);
+      const pitched = hasPitchedRoof(cells);
+      const offered = ROOF_LAYOUTS.filter(
+        (layout) => layout.minCells <= cells && layout.props.length <= roofObjectLimit(cells) && (layout.pitched ?? false) === pitched,
+      );
       const layout = offered[roofSeed(parcel) % offered.length]!;
       // `parcel.position` is the frontage edge, not the roof's centre -- the footprint runs
       // back from it by its own full depth, on the building's own local -Z. A prop's small
@@ -226,7 +275,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const buildingMatrix = matrixFor(parcel, model.centerX);
       const halfDepth = (parcel.depthCells * GRID.cellSize) / 2;
       for (const prop of layout.props) {
-        const local = new Vector3(prop.x + model.centerX, model.roofY, -halfDepth + prop.z);
+        const localZ = -halfDepth + prop.z;
+        const local = new Vector3(prop.x + model.centerX, roofPropY(model.id, localZ, model.roofY), localZ);
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
@@ -284,12 +334,14 @@ function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind
     ac: new StandardMaterial("roofprop_ac", scene),
     tank: new StandardMaterial("roofprop_tank", scene),
     antenna: new StandardMaterial("roofprop_antenna", scene),
+    chimney: new StandardMaterial("roofprop_chimney", scene),
     hut: new StandardMaterial("roofprop_hut", scene),
     solar: new StandardMaterial("roofprop_solar", scene),
   };
   material.ac.diffuseColor = new Color3(0.55, 0.56, 0.58);
   material.tank.diffuseColor = new Color3(0.55, 0.36, 0.22);
   material.antenna.diffuseColor = material.ac.diffuseColor;
+  material.chimney.diffuseColor = new Color3(0.42, 0.22, 0.16);
   material.hut.diffuseColor = new Color3(0.62, 0.58, 0.5);
   material.solar.diffuseColor = new Color3(0.08, 0.12, 0.22);
   material.solar.specularColor = new Color3(0.4, 0.42, 0.48);
@@ -303,6 +355,9 @@ function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind
     mesh.alwaysSelectAsActiveMesh = true;
     // Bakes any rotation set on the merged mesh itself into its vertices, the same way a loaded
     // building is baked -- a thin instance's matrix is the mesh's only transform from here on.
+    mesh.bakeCurrentTransformIntoVertices();
+    mesh.refreshBoundingInfo();
+    mesh.position.y = -mesh.getBoundingInfo().boundingBox.minimum.y;
     mesh.bakeCurrentTransformIntoVertices();
     mesh.setEnabled(false);
     shadows.addShadowCaster(mesh);
@@ -337,6 +392,18 @@ function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind
   dish.rotation.x = Math.PI / 3;
   const antenna = Mesh.MergeMeshes([pole, dish], true, true, undefined, false, false)!;
 
+  const chimney = Mesh.MergeMeshes(
+    [
+      box(scene, "roofprop_chimney_stack", 0.55, 1.2, 0.55, 0, 0.6, 0),
+      box(scene, "roofprop_chimney_cap", 0.75, 0.16, 0.75, 0, 1.28, 0),
+    ],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+
   const hut = Mesh.MergeMeshes(
     [box(scene, "roofprop_hut_body", 1.8, 1.6, 1.6, 0, 0.8, 0), box(scene, "roofprop_hut_lid", 1.9, 0.12, 1.7, 0, 1.66, 0)],
     true,
@@ -353,6 +420,7 @@ function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind
     ac: finish(ac, "ac"),
     tank: finish(tank, "tank"),
     antenna: finish(antenna, "antenna"),
+    chimney: finish(chimney, "chimney"),
     hut: finish(hut, "hut"),
     solar: finish(solar, "solar"),
   };
@@ -421,6 +489,9 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
     mesh.isPickable = false;
     mesh.receiveShadows = true;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
+    mesh.enableEdgesRendering();
+    mesh.edgesWidth = 1;
+    mesh.edgesColor.set(0.08, 0.09, 0.1, 0.28);
     shadows.addShadowCaster(mesh);
 
     // The loader parents everything under a __root__ carrying glTF's handedness flip.
