@@ -46,6 +46,7 @@ export async function startApp(): Promise<void> {
   const setSun = (hour: number): void => {
     setSunHour(hour);
     streetlights.setSunHour(hour);
+    traffic.setSunHour(hour);
     trees.setSunHour(hour);
   };
 

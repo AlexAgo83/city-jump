@@ -15,7 +15,8 @@ import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
 import { ROAD_LIFT } from "./roadMesh";
 
-function streetlightsOnAt(hour: number): boolean {
+/** The hours streetlights burn -- and, with them, every headlight on the road. */
+export function streetlightsOnAt(hour: number): boolean {
   return hour >= 20 || hour < 6.5;
 }
 

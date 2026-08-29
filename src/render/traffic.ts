@@ -2,8 +2,10 @@ import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
+import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3 } from "@babylonjs/core/Maths/math";
+import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
@@ -32,6 +34,7 @@ import {
 } from "../sim/transfers";
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
+import { streetlightsOnAt } from "./streetlights";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
@@ -206,6 +209,86 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       return car;
     }),
   );
+
+  /**
+   * The lamps, one prototype per shape and per end. They light themselves rather than being lit,
+   * so they read as lamps at any hour, and the shared material is dimmed by day and turned up at
+   * night with everything else.
+   */
+  const lampMaterials = {
+    head: new StandardMaterial("car_head_lamps", scene),
+    tail: new StandardMaterial("car_tail_lamps", scene),
+  };
+  lampMaterials.head.disableLighting = true;
+  lampMaterials.tail.disableLighting = true;
+
+  const carLamps = CAR_SHAPES.map((shape) => {
+    const floor = shape.wheel / 2;
+    const lens = (end: "head" | "tail") => {
+      const at = end === "head" ? shape.length / 2 - 0.12 : -(shape.length / 2 - 0.12);
+      const lamps = [-1, 1].map((side) =>
+        slab(
+          `car_${end}_${shape.name}_${side}`,
+          0.62,
+          0.3,
+          0.3,
+          side * (CAR_WIDTH / 2 - 0.55),
+          floor + shape.hull * 0.72,
+          at,
+          0.1,
+        ),
+      );
+      const merged = Mesh.MergeMeshes(lamps, true, true, undefined, false, false);
+      if (!merged) throw new Error("car lamps failed to merge");
+      merged.name = `car_${end}_${shape.name}`;
+      merged.material = lampMaterials[end];
+      merged.isPickable = false;
+      merged.isVisible = false;
+      return merged;
+    };
+    return { head: lens("head"), tail: lens("tail") };
+  });
+
+  /**
+   * A real light per car, so a headlight actually lights the road ahead rather than only looking
+   * like it does. Clustered, the way the streetlights are, and pooled the same way: creating or
+   * disposing one walks every mesh in the scene, so only the difference in count is ever built.
+   */
+  const headlightCluster = new ClusteredLightContainer("car_headlights", [], scene);
+  headlightCluster.maxRange = 42;
+  let headlights: SpotLight[] = [];
+  let sunHour = 14;
+  const lightsOn = () => streetlightsOnAt(sunHour);
+
+  function syncHeadlights(count: number): void {
+    while (headlights.length > count) {
+      const light = headlights.pop()!;
+      headlightCluster.removeLight(light);
+      light.dispose();
+    }
+    while (headlights.length < count) {
+      const beam = new SpotLight(`car_beam_${headlights.length}`, Vector3.Zero(), Vector3.Down(), 1.15, 2.4, scene);
+      beam.diffuse = new Color3(1, 0.96, 0.84);
+      beam.specular = new Color3(0.3, 0.3, 0.28);
+      beam.intensity = 9;
+      beam.range = 38;
+      headlightCluster.addLight(beam);
+      headlights.push(beam);
+    }
+    for (const light of headlights) light.setEnabled(lightsOn());
+    headlightCluster.setEnabled(lightsOn());
+  }
+
+  /** Night turns the lamps up and the beams on; by day they are just coloured glass. */
+  function setSunHour(hour: number): void {
+    sunHour = hour;
+    const on = lightsOn();
+    lampMaterials.head.emissiveColor = on ? new Color3(1, 0.97, 0.86) : new Color3(0.5, 0.49, 0.44);
+    lampMaterials.tail.emissiveColor = on ? new Color3(0.95, 0.13, 0.1) : new Color3(0.34, 0.07, 0.06);
+    for (const light of headlights) light.setEnabled(on);
+    headlightCluster.setEnabled(on);
+  }
+  setSunHour(sunHour);
 
   /** Wheels and glass for each shape: one prototype whatever colour the body it rides on is. */
   const carParts = CAR_SHAPES.map((shape) => {
@@ -637,17 +720,24 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         const body = carBodies[shape]![(si + i) % CAR_COLORS.length]!.createInstance(`traffic_${seg.id}_${i}`);
         body.isPickable = false;
         // Wheels and glass ride along: parented, so only the body is ever positioned.
-        const parts = carParts[shape]!.createInstance(`carparts_${seg.id}_${i}`);
-        parts.isPickable = false;
-        parts.parent = body;
+        for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail]) {
+          const part = source.createInstance(`carpart_${seg.id}_${i}_${source.name}`);
+          part.isPickable = false;
+          part.parent = body;
+        }
         place(body, i, count, false, lanes[i % lanes.length]!);
       }
     }
+
+    syncHeadlights(movers.filter((mover) => !mover.walk).length);
   }
 
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
+
+    const beams = lightsOn() ? headlights : null;
+    let beam = 0;
 
     for (const mover of movers) {
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
@@ -662,6 +752,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);
           mover.mesh.position.set(position.x, position.y + mover.lift + bob, position.z);
           mover.mesh.rotation.y = Math.atan2(tangent.x, tangent.z);
+          if (beams && !mover.walk) aimBeam(beams[beam++], mover);
           continue;
         }
       }
@@ -682,11 +773,26 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         position.z + normal.z * offset,
       );
       mover.mesh.rotation.y = Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction);
+      if (beams && !mover.walk) aimBeam(beams[beam++], mover);
     }
   });
 
+  /** Puts a beam at the nose of its car, pointing the way the car faces and a little down. */
+  function aimBeam(beam: SpotLight | undefined, mover: Mover): void {
+    if (!beam) return;
+    const heading = mover.mesh.rotation.y;
+    const forward = { x: Math.sin(heading), z: Math.cos(heading) };
+    beam.position.set(
+      mover.mesh.position.x + forward.x * 2.6,
+      mover.mesh.position.y + 1,
+      mover.mesh.position.z + forward.z * 2.6,
+    );
+    beam.direction.set(forward.x, -0.42, forward.z);
+  }
+
   return {
     rebuild,
+    setSunHour,
     count: () => movers.filter((mover) => !mover.walk).length,
     pedestrians: () => movers.filter((mover) => mover.walk).length,
   };

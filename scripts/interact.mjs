@@ -382,6 +382,25 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 check("streetlights switch on at 20:00", (await realStreetlightCount()) > 0);
+check(
+  "cars carry headlights that light the road, and red lamps at the back",
+  await page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const beams = () => scene.lights.find((l) => l.name === "car_headlights");
+    const lamps = scene.meshes.filter((m) => m.name.startsWith("car_head_") || m.name.startsWith("car_tail_"));
+    const slider = document.querySelector('input[type="range"]');
+    const setHour = (hour) => {
+      slider.value = String(hour);
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    setHour(14);
+    const byDay = beams()?.isEnabled();
+    setHour(22);
+    const byNight = beams()?.isEnabled();
+    // Lamps on every shape, front and back, and beams that burn only after dark.
+    return lamps.length >= 6 && byDay === false && byNight === true;
+  }),
+);
 check("streetlights include facade fill lights", await streetlightFacadeLights());
 check("streetlights reach nearby buildings", await streetlightsReachBuildings());
 check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);
