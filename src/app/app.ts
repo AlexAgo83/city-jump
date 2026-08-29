@@ -138,7 +138,7 @@ export async function startApp(): Promise<void> {
       rebuild();
     },
     onSelectView(view) {
-      // "No buildings" swaps the models for the same taken/open grid a road-draw already shows,
+      // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
       // "Traffic" hides them outright -- the lane overlay is meant to be read from above, and a
       // building in the way defeats the point.
