@@ -1,13 +1,15 @@
 ## task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell - Stamp junction ground flatten once instead of per grid cell
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-29 10:28:55
 
 # AI Context
 - Summary: The per-junction flatten loop (`src/sim/heightmap.ts:149-159`, added `aa8167e`) calls `stamp()` once per interior grid point (~111 calls/junction) instead of once at the junction's own radius, ~35-40x more work than needed for the same flatten-then-blend shape. Replace the loop with one `stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT)` call and verify against existing junction/roundabout terrain coverage.

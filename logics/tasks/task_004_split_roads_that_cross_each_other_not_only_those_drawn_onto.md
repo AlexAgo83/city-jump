@@ -2,8 +2,8 @@
 > From version: 1.0.0
 > Schema version: 1.0
 > Status: Done
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -43,6 +43,14 @@
 - command: `npm run ci; npm run test:visual; node scripts/with-dev-server.mjs scripts/shot.mjs /tmp/city-jump-city.png city` | result: passed | date: 2026-08-29
 - Finish workflow executed on 2026-08-29.
 - Linked backlog/request close verification passed.
+
+# AC Traceability
+- request-AC1 -> This task. Proof: Implemented in bd468eb; covered by `splits both roads when one crosses another in the middle` in `src/sim/rules.test.ts`; validated with `npm run ci`. Source: `bd468eb`
+- request-AC2 -> This task. Proof: Implemented in bd468eb; covered by `splits every road crossed by one stroke` in `src/sim/rules.test.ts`; validated with `npm run ci`. Source: `bd468eb`
+- request-AC3 -> This task. Proof: Implemented in bd468eb; covered by `merges a crossing into an existing node inside the snap radius` in `src/sim/rules.test.ts`; validated with `npm run ci`. Source: `bd468eb`
+- request-AC4 -> This task. Proof: Implemented in bd468eb; crossing detection still uses segment sample polylines in `src/sim/rules.ts`; validated with `npm run ci`. Source: `bd468eb`
+- request-AC5 -> This task. Proof: Implemented in bd468eb; no junction geometry code changed, and browser/visual checks passed with `npm run ci` and `npm run test:visual`. Source: `bd468eb`
+- request-AC6 -> This task. Proof: Implemented in bd468eb; covered by `does not split surface roads when a tunnel crosses under them` in `src/sim/rules.test.ts`; validated with `npm run ci`. Source: `bd468eb`
 
 # Report
 - Not started.

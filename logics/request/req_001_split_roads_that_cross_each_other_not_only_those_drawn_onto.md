@@ -2,8 +2,8 @@
 > From version: 1.0.0
 > Schema version: 1.0
 > Status: Done
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Complexity: Medium
 > Theme: General
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
@@ -26,12 +26,20 @@
 - The expensive part is still deciding what to test against, not the intersection test itself. A linear scan over every segment remains fine at the scale measured so far and matches what `nearestNode`/`nearestOnSegment` already do.
 
 # Acceptance criteria
-- AC1 (delivered): A road drawn across an existing one splits both at the crossing and leaves a single node shared by four segments.
-- AC2 (open): A road crossing several others in one stroke splits at every crossing, in order along its length -- not only the first one `firstCrossing` finds.
-- AC3 (open): A crossing that falls within the node-snap radius of an existing node attaches to that node instead of creating a second one beside it.
-- AC4 (delivered): Crossings are found from the segments' existing sample polylines, with no new curve-intersection machinery.
-- AC5 (delivered): The junction geometry a new crossing produces is the one already delivered, with no change to how it is built.
-- AC6 (delivered): Tunnels are excluded from crossing detection on both the drawn road and the existing segments it is tested against.
+- AC1: A road drawn across an existing one splits both at the crossing and leaves a single node shared by four segments.
+- AC2: A road crossing several others in one stroke splits at every crossing, in order along its length -- not only the first one `firstCrossing` finds.
+- AC3: A crossing that falls within the node-snap radius of an existing node attaches to that node instead of creating a second one beside it.
+- AC4: Crossings are found from the segments' existing sample polylines, with no new curve-intersection machinery.
+- AC5: The junction geometry a new crossing produces is the one already delivered, with no change to how it is built.
+- AC6: Tunnels are excluded from crossing detection on both the drawn road and the existing segments it is tested against.
+
+# AC Traceability
+- request-AC1 -> This task. Proof: Implemented in bd468eb; covered by `splits both roads when one crosses another in the middle` in `src/sim/rules.test.ts`; validated with `npm run ci`.
+- request-AC2 -> This task. Proof: Implemented in bd468eb; covered by `splits every road crossed by one stroke` in `src/sim/rules.test.ts`; validated with `npm run ci`.
+- request-AC3 -> This task. Proof: Implemented in bd468eb; covered by `merges a crossing into an existing node inside the snap radius` in `src/sim/rules.test.ts`; validated with `npm run ci`.
+- request-AC4 -> This task. Proof: Implemented in bd468eb; crossing detection still uses segment sample polylines in `src/sim/rules.ts`; validated with `npm run ci`.
+- request-AC5 -> This task. Proof: Implemented in bd468eb; no junction geometry code changed, and browser/visual checks passed with `npm run ci` and `npm run test:visual`.
+- request-AC6 -> This task. Proof: Implemented in bd468eb; covered by `does not split surface roads when a tunnel crosses under them` in `src/sim/rules.test.ts`; validated with `npm run ci`.
 
 # Definition of Ready (DoR)
 - [x] Problem statement is explicit and user impact is clear.

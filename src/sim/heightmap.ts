@@ -149,13 +149,7 @@ export class Heightmap implements Terrain {
     for (const nodeId of allJunctions(graph).keys()) {
       const node = graph.node(nodeId);
       const radius = junctionRadius(graph, nodeId);
-      const step = Math.max(1, this.cell / 2);
-      for (let z = -radius; z <= radius; z += step) {
-        for (let x = -radius; x <= radius; x += step) {
-          if (Math.hypot(x, z) > radius) continue;
-          this.stamp(node.pos.x + x, node.pos.z + z, node.pos.y, step, step + EMBANKMENT);
-        }
-      }
+      this.stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT);
     }
 
     for (const parcel of parcels) this.stampParcel(parcel);
