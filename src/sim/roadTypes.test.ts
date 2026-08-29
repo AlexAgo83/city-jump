@@ -49,6 +49,24 @@ describe("road type variants", () => {
     }
   });
 
+  it("gives each road category its own speed, carried by every lane/one-way variant of it", () => {
+    const bySpeed: [string, number][] = [
+      ["street", 12],
+      ["tunnel", 14],
+      ["avenue", 16],
+      ["highway", 24],
+    ];
+    for (const [base, speed] of bySpeed) {
+      for (const id of [base, `${base}_2lane`, `${base}_oneway`, `${base}_2lane_oneway`]) {
+        expect(roadType(id).maxSpeed).toBe(speed);
+      }
+    }
+    // Ordered fastest to slowest, so a highway is never accidentally the slowest road in town.
+    expect(roadType("highway").maxSpeed).toBeGreaterThan(roadType("avenue").maxSpeed);
+    expect(roadType("avenue").maxSpeed).toBeGreaterThan(roadType("tunnel").maxSpeed);
+    expect(roadType("tunnel").maxSpeed).toBeGreaterThan(roadType("street").maxSpeed);
+  });
+
   it("rejects an unknown id", () => {
     expect(() => roadType("bicycle_lane")).toThrow(/unknown road type/);
   });

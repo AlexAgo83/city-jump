@@ -24,7 +24,6 @@ const WALKER_COLORS = [
   new Color3(0.75, 0.7, 0.5),
 ];
 
-const CAR_SPEED = 12;
 /** Metres per second on foot. A car covers a block while a walker crosses it. */
 const WALKER_SPEED = 1.4;
 
@@ -162,7 +161,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           mesh: car,
           segment: seg,
           direction: side,
-          speed: CAR_SPEED,
+          speed: type.maxSpeed,
           lift: ROAD_LIFT + 0.75,
           stride: 0,
           phase: i * 35,

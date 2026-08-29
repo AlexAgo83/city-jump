@@ -31,6 +31,9 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   const arm = MeshBuilder.CreateBox("streetlight_arms", { width: 0.22, height: 0.22, depth: 3.8 }, scene);
   const head = MeshBuilder.CreateBox("streetlight_heads", { width: 0.75, height: 0.22, depth: 1.25 }, scene);
   const bulb = MeshBuilder.CreateCylinder("streetlight_bulbs", { height: 0.08, diameter: 0.58, tessellation: 16 }, scene);
+  // A highway's own lamp, lit cooler/whiter than an ordinary street's warm sodium glow -- same
+  // pole and head, its own bulb mesh only, since a material is shared across every thin instance.
+  const bulbWhite = MeshBuilder.CreateCylinder("streetlight_bulbs_white", { height: 0.08, diameter: 0.58, tessellation: 16 }, scene);
 
   const metal = new StandardMaterial("streetlight_metal", scene);
   metal.diffuseColor = new Color3(0.08, 0.085, 0.08);
@@ -46,7 +49,14 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   glow.disableLighting = true;
   bulb.material = glow;
 
-  for (const mesh of [pole, arm, head, bulb]) {
+  const glowWhite = new StandardMaterial("streetlight_glow_white", scene);
+  glowWhite.diffuseColor = new Color3(0.92, 0.95, 1);
+  glowWhite.emissiveColor = new Color3(0.85, 0.92, 1);
+  glowWhite.specularColor = Color3.Black();
+  glowWhite.disableLighting = true;
+  bulbWhite.material = glowWhite;
+
+  for (const mesh of [pole, arm, head, bulb, bulbWhite]) {
     mesh.isPickable = false;
     mesh.alwaysSelectAsActiveMesh = true;
     mesh.setEnabled(false);
@@ -54,7 +64,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
 
   let lamps = 0;
   let sunHour = 14;
-  let lampPositions: { position: Vector3; direction: Vector3 }[] = [];
+  let lampPositions: { position: Vector3; direction: Vector3; white: boolean }[] = [];
   let realLights: Light[] = [];
 
   function rebuild(): number {
@@ -62,14 +72,14 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     const armMatrices: Matrix[] = [];
     const headMatrices: Matrix[] = [];
     const bulbMatrices: Matrix[] = [];
+    const bulbWhiteMatrices: Matrix[] = [];
     const positions: typeof lampPositions = [];
     const shadowBases: { x: number; y: number; z: number; radius: number }[] = [];
     const junctions = allJunctions(graph);
 
     for (const segment of graph.allSegments()) {
       const type = roadType(segment.type);
-      // A highway has guardrails, not the footway a lamp is meant to light.
-      if (type.tunnelDepth || type.highway) continue;
+      if (type.tunnelDepth) continue;
 
       // A junction or roundabout trims the road surface back from its node -- a lamp placed by
       // raw distance along the segment doesn't know that, and can land on ground that reads as
@@ -77,10 +87,11 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
       const { start: trimStart, end: trimEnd } = segmentTrims(junctions, graph, segment.id);
 
       const isAvenue = baseRoadTypeId(segment.type) === "avenue";
-      const spacing = isAvenue ? 70 : 95;
+      const isHighway = type.highway === true;
+      const spacing = isAvenue || isHighway ? 70 : 95;
       for (let d = spacing / 2; d < segment.length - 12; d += spacing) {
         if (d < trimStart || d > segment.length - trimEnd) continue;
-        const sides: (-1 | 1)[] = isAvenue ? [-1, 1] : [Math.floor(d / spacing) % 2 === 0 ? -1 : 1];
+        const sides: (-1 | 1)[] = isAvenue || isHighway ? [-1, 1] : [Math.floor(d / spacing) % 2 === 0 ? -1 : 1];
         const { position, tangent } = graph.pointAt(segment.id, d);
         const n = perpXZ(normalizeXZ(tangent));
         for (const side of sides) {
@@ -96,8 +107,12 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
           armMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3((poleX + bulbX) / 2, y + 7.38, (poleZ + bulbZ) / 2)));
           headMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3(bulbX, y + 7.22, bulbZ)));
           const lightPosition = new Vector3(bulbX, y + 7.06, bulbZ);
-          bulbMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, lightPosition));
-          positions.push({ position: lightPosition, direction: new Vector3(n.x * side * 0.45, -1, n.z * side * 0.45).normalize() });
+          (isHighway ? bulbWhiteMatrices : bulbMatrices).push(Matrix.Compose(Vector3.OneReadOnly, armRotation, lightPosition));
+          positions.push({
+            position: lightPosition,
+            direction: new Vector3(n.x * side * 0.45, -1, n.z * side * 0.45).normalize(),
+            white: isHighway,
+          });
           shadowBases.push({ x: poleX, y, z: poleZ, radius: 0.5 });
         }
       }
@@ -107,9 +122,10 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     applyInstances(arm, armMatrices);
     applyInstances(head, headMatrices);
     applyInstances(bulb, bulbMatrices);
+    applyInstances(bulbWhite, bulbWhiteMatrices);
     groundShadow.setInstances(shadowBases);
     lampPositions = positions;
-    lamps = bulbMatrices.length;
+    lamps = bulbMatrices.length + bulbWhiteMatrices.length;
     rebuildLights();
     updateLights();
     return lamps;
@@ -123,6 +139,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   function updateLights(): void {
     const on = streetlightsOnAt(sunHour);
     glow.emissiveColor = on ? new Color3(1, 0.68, 0.24) : new Color3(0.25, 0.18, 0.08);
+    glowWhite.emissiveColor = on ? new Color3(0.85, 0.92, 1) : new Color3(0.16, 0.19, 0.22);
     lightCluster.setEnabled(on);
     for (const light of realLights) light.setEnabled(on);
   }
@@ -134,15 +151,15 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     }
     realLights = [];
 
-    for (const { position, direction } of lampPositions) {
+    for (const { position, direction, white } of lampPositions) {
       const pool = new SpotLight(`streetlight_pool_${realLights.length}`, position, direction, Math.PI / 2.1, 1.35, scene);
-      pool.diffuse = new Color3(1, 0.72, 0.4);
-      pool.specular = new Color3(0.45, 0.28, 0.1);
+      pool.diffuse = white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
+      pool.specular = white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
       pool.intensity = 7;
       pool.range = 44;
       const facade = new PointLight(`streetlight_facade_${realLights.length}`, position, scene);
-      facade.diffuse = new Color3(1, 0.66, 0.34);
-      facade.specular = new Color3(0.34, 0.2, 0.08);
+      facade.diffuse = white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);
+      facade.specular = white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
       facade.intensity = 3.2;
       facade.range = 40;
       for (const light of [pool, facade]) {

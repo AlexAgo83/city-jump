@@ -3,6 +3,8 @@ export interface RoadType {
   readonly name: string;
   /** Full carriageway width in metres. The mesh and the building setback both read it. */
   readonly width: number;
+  /** How fast traffic moves along it, in the game's own speed units (see traffic.ts). */
+  readonly maxSpeed: number;
   readonly tunnelDepth?: number;
   /** No cars: this one carries people on foot. */
   readonly pedestrian?: boolean;
@@ -18,11 +20,11 @@ export interface RoadType {
 const LANE_WIDTH = 3.5;
 
 const BASE_ROAD_TYPES = {
-  street: { id: "street", name: "Street", width: 8 },
-  avenue: { id: "avenue", name: "Avenue", width: 14 },
-  tunnel: { id: "tunnel", name: "Tunnel", width: 9, tunnelDepth: 16 },
-  highway: { id: "highway", name: "Highway", width: 20, highway: true },
-  pedestrian: { id: "pedestrian", name: "Pedestrian", width: 4, pedestrian: true },
+  street: { id: "street", name: "Street", width: 8, maxSpeed: 12 },
+  avenue: { id: "avenue", name: "Avenue", width: 14, maxSpeed: 16 },
+  tunnel: { id: "tunnel", name: "Tunnel", width: 9, tunnelDepth: 16, maxSpeed: 14 },
+  highway: { id: "highway", name: "Highway", width: 20, highway: true, maxSpeed: 24 },
+  pedestrian: { id: "pedestrian", name: "Pedestrian", width: 4, pedestrian: true, maxSpeed: 12 },
 } as const;
 
 /**
