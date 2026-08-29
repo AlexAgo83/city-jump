@@ -83,3 +83,73 @@ export function composeRoadTypeId(baseId: string, lanes: 1 | 2, oneWay: boolean)
   if (baseId === "pedestrian") return "pedestrian";
   return `${baseId}${lanes === 2 ? "_2lane" : ""}${oneWay ? "_oneway" : ""}`;
 }
+
+/**
+ * The two walkways a road carries: a path's own narrow lane down each side of its centre, or an
+ * ordinary road's actual sidewalks either side of the carriageway. On foot there is no one-way
+ * restriction -- both directions always get their own side, whatever the road's own vehicles do
+ * -- so unlike `laneCentres` this never depends on `oneWay` or `lanes`. `sidewalkWidth` is passed
+ * in rather than imported: this stays a plain function of `RoadType`, no render-layer constant.
+ * Not meaningful for a highway (guardrails, no footway) or a tunnel -- callers skip those.
+ */
+export function walkCentres(type: RoadType, sidewalkWidth: number): LaneCentre[] {
+  const half = type.width / 2;
+  const walkOffset = type.pedestrian ? Math.max(0.7, half * 0.45) : half + sidewalkWidth / 2;
+  return [
+    { offset: -walkOffset, direction: 1 },
+    { offset: walkOffset, direction: -1 },
+  ];
+}
+
+/** One physical lane: how far it sits from the centreline (signed), and which way it flows. */
+export interface LaneCentre {
+  readonly offset: number;
+  readonly direction: 1 | -1;
+}
+
+/**
+ * Every physical lane a road type has, as the sideways offset traffic in it actually uses and
+ * the direction it carries. Shared by traffic (to place cars) and the road renderer (to draw a
+ * lane-view overlay), so the two can never show a car sitting somewhere the drawn lane isn't.
+ *
+ * A two-way road only owns half the carriageway per direction, so its lane(s) sit centred on
+ * that half. A one-way road owns the whole carriageway (that is exactly why it no longer widens
+ * for a second lane), so its lanes centre on the road itself. Two real lanes need real spacing:
+ * a car is CAR_WIDTH wide, so two lane centres closer than LANE_PITCH apart put their bodies
+ * through each other, and one closer than CENTRE_CLEARANCE to the road's own centre swings into
+ * the oncoming lane. Those are floors, not fixed values -- on a wide avenue holding lanes there
+ * leaves them huddled by the centreline with the rest of the carriageway empty, so lanes also
+ * spread proportionally to how much half-width is actually there, capped so the outer lane still
+ * clears the curb.
+ */
+export function laneCentres(type: RoadType): LaneCentre[] {
+  const CAR_WIDTH = 3; // matches the car mesh in traffic.ts
+  const LANE_PITCH = CAR_WIDTH + 0.4;
+  const CENTRE_CLEARANCE = CAR_WIDTH / 2 + 0.3;
+  const halfWidth = type.width / 2;
+  const maxLaneOffset = halfWidth - CAR_WIDTH / 2 - 0.3; // stays clear of the sidewalk
+  const singleLaneOffset = type.oneWay ? 0 : Math.max(1.8, type.width * 0.22);
+  const innerLane = Math.max(CENTRE_CLEARANCE, halfWidth * 0.3);
+  const outerLane = Math.min(Math.max(innerLane + LANE_PITCH, halfWidth * 0.65), maxLaneOffset);
+  const oneWaySpread = Math.min(Math.max(LANE_PITCH / 2, halfWidth * 0.3), maxLaneOffset);
+
+  if (type.lanes === 1) {
+    return type.oneWay
+      ? [{ offset: 0, direction: 1 }]
+      : [
+          { offset: -singleLaneOffset, direction: 1 },
+          { offset: singleLaneOffset, direction: -1 },
+        ];
+  }
+  return type.oneWay
+    ? [
+        { offset: oneWaySpread, direction: 1 },
+        { offset: -oneWaySpread, direction: 1 },
+      ]
+    : [
+        { offset: -innerLane, direction: 1 },
+        { offset: -outerLane, direction: 1 },
+        { offset: innerLane, direction: -1 },
+        { offset: outerLane, direction: -1 },
+      ];
+}

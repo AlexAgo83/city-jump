@@ -2,6 +2,7 @@ import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/cluste
 import type { Light } from "@babylonjs/core/Lights/light";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { SpotLight } from "@babylonjs/core/Lights/spotLight";
+import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -169,7 +170,22 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     }
   }
 
-  return { rebuild, setSunHour, count: () => lamps, realLightCount: () => (lightCluster.isEnabled() ? realLights.length : 0) };
+  /** The Traffic view fades these back the same way it fades the road they stand beside. */
+  function setFaded(faded: boolean): void {
+    const alpha = faded ? 0.35 : 1;
+    for (const m of [metal, glow, glowWhite]) {
+      m.alpha = alpha;
+      m.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
+    }
+  }
+
+  return {
+    rebuild,
+    setSunHour,
+    setFaded,
+    count: () => lamps,
+    realLightCount: () => (lightCluster.isEnabled() ? realLights.length : 0),
+  };
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {

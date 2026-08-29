@@ -86,6 +86,36 @@ export function writeActiveSave(name: string | null): void {
   write(ACTIVE_SAVE_KEY, name);
 }
 
+/** Where the camera was looking, so a reload resumes the view instead of snapping back to it. */
+export interface CameraState {
+  targetX: number;
+  targetY: number;
+  targetZ: number;
+  alpha: number;
+  beta: number;
+  radius: number;
+}
+
+const CAMERA_KEY = "cityjump.camera";
+
+export function readCameraState(): CameraState | null {
+  const raw = read(CAMERA_KEY);
+  if (!raw) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    const s = parsed as Partial<CameraState>;
+    const fields = [s.targetX, s.targetY, s.targetZ, s.alpha, s.beta, s.radius];
+    return fields.every((f) => typeof f === "number" && Number.isFinite(f)) ? (s as CameraState) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCameraState(state: CameraState): void {
+  write(CAMERA_KEY, JSON.stringify(state));
+}
+
 function read(key: string): string | null {
   try {
     return window.localStorage.getItem(key);

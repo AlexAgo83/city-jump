@@ -15,7 +15,7 @@ import { buildingParcels, buildableCells } from "../sim/slots";
 import { serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import { bindControls } from "../ui/controls";
-import { readAutosave, writeAutosave } from "../ui/saves";
+import { readAutosave, writeAutosave, readCameraState, writeCameraState } from "../ui/saves";
 import { showRefusal, showSelection } from "../ui/hud";
 
 export async function startApp(): Promise<void> {
@@ -39,6 +39,9 @@ export async function startApp(): Promise<void> {
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
+  // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
+  // on top of that, but flipping back to "All" has to restore this, not just force them on.
+  let buildingsVisible = true;
   const setSun = (hour: number): void => {
     setSunHour(hour);
     streetlights.setSunHour(hour);
@@ -120,7 +123,22 @@ export async function startApp(): Promise<void> {
       tool.setTreeSpecies(species);
     },
     onBuildings(visible) {
+      buildingsVisible = visible;
       buildings.setVisible(visible);
+      rebuild();
+    },
+    onSelectView(view) {
+      // "No buildings" swaps the models for the same taken/open grid a road-draw already shows,
+      // so the ground itself reads as which cells are used without full 3D buildings in the way.
+      // "Traffic" hides them outright -- the lane overlay is meant to be read from above, and a
+      // building in the way defeats the point.
+      buildings.setVisible(view === "all" ? buildingsVisible : false);
+      buildings.setGridVisible(view === "no-buildings");
+      roads.setShowTraffic(view === "traffic");
+      // The road surface, sidewalks and the streetlights standing on them fade back so the lane
+      // overlay is the thing that actually reads.
+      roads.setFaded(view === "traffic");
+      streetlights.setFaded(view === "traffic");
       rebuild();
     },
     onSunHour(hour) {
@@ -152,6 +170,34 @@ export async function startApp(): Promise<void> {
   // Pick up where the last session stopped. A city the player never named is still their work.
   const resumed = readAutosave();
   if (resumed && loadCity(resumed)) controls.applyCity(resumed);
+
+  // Resumes wherever the camera was left, instead of snapping back to the default framing on
+  // every reload -- a source edit already forces one of those more often than is comfortable.
+  // Restored after the city loads: loading one reframes the camera on the fresh terrain, which
+  // would otherwise overwrite this right back to the default.
+  const savedCamera = readCameraState();
+  if (savedCamera) {
+    camera.target.set(savedCamera.targetX, savedCamera.targetY, savedCamera.targetZ);
+    camera.alpha = savedCamera.alpha;
+    camera.beta = savedCamera.beta;
+    camera.radius = savedCamera.radius;
+  }
+  let cameraSaveTimer = 0;
+  camera.onViewMatrixChangedObservable.add(() => {
+    window.clearTimeout(cameraSaveTimer);
+    cameraSaveTimer = window.setTimeout(
+      () =>
+        writeCameraState({
+          targetX: camera.target.x,
+          targetY: camera.target.y,
+          targetZ: camera.target.z,
+          alpha: camera.alpha,
+          beta: camera.beta,
+          radius: camera.radius,
+        }),
+      800,
+    );
+  });
 
   installDebugApi(scene, graph, rebuild, () => ({
     segments: graph.allSegments().length,

@@ -4,12 +4,13 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { Mesh as MeshClass } from "@babylonjs/core/Meshes/mesh";
+import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
-import { baseRoadTypeId, roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, laneCentres, roadType, walkCentres, type LaneCentre, type RoadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
@@ -37,6 +38,11 @@ const CROSSING_DEPTH = 4;
 const CROSSING_GAP = 1.6;
 const STRIPE_WIDTH = 0.9;
 const MARK_LIFT = ROAD_LIFT + 0.05;
+
+/** Every possible lane-to-lane movement through an ordinary junction, in the Traffic view. */
+const turnColor = new Color3(0.75, 0.5, 0.95);
+/** Same idea, for every possible crossing a pedestrian could make between two arms' sidewalks. */
+const walkTurnColor = new Color3(0.55, 0.85, 0.55);
 
 /**
  * Turns the graph into road surface. Every mesh here is derived: `rebuild` disposes what
@@ -68,6 +74,13 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const curb = new Color3(0.52, 0.55, 0.53);
   const lane = new Color3(0.86, 0.78, 0.48);
   const tunnel = new Color3(0.58, 0.55, 0.49);
+  // The Traffic view's own lane overlay: one colour per direction of travel, so how many lanes a
+  // road has and which way each one flows both read at a glance.
+  const laneOutbound = new Color3(0.3, 0.85, 0.95);
+  const laneInbound = new Color3(0.95, 0.45, 0.25);
+  // A distinct pair for foot traffic, so a sidewalk's lane doesn't read as one more car lane.
+  const walkOutbound = new Color3(0.55, 0.9, 0.4);
+  const walkInbound = new Color3(0.95, 0.85, 0.35);
   const guardrailMaterial = new StandardMaterial("guardrail", scene);
   guardrailMaterial.emissiveColor = new Color3(0.62, 0.64, 0.65);
   guardrailMaterial.specularColor = Color3.Black();
@@ -75,6 +88,28 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   guardrailMaterial.backFaceCulling = false;
 
   let meshes: (Mesh | LinesMesh)[] = [];
+  let faded = false;
+
+  /**
+   * The Traffic view's own use for this: the lane overlay is the thing to read, so the road
+   * surface and everything painted on it fade back rather than competing with it -- except the
+   * overlay's own lines, which are the one thing this view exists to make MORE visible, not less.
+   * The solid meshes (asphalt, paving, paint, guardrail) share one material each, so setting it
+   * once reaches every mesh built from it; a `LinesMesh` (kerbs, dividers) has no material to
+   * share, so each one already in `meshes` gets its own alpha directly.
+   */
+  function applyFade(): void {
+    const alpha = faded ? 0.35 : 1;
+    for (const m of [material, pavingMaterial, paintMaterial, guardrailMaterial]) {
+      m.alpha = alpha;
+      m.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
+    }
+    for (const mesh of meshes) {
+      if (mesh.name.startsWith("traffic_lane_") || mesh.name.startsWith("traffic_walk_")) continue;
+      if ("alpha" in mesh) (mesh as LinesMesh).alpha = alpha;
+    }
+  }
+  let showTraffic = false;
 
   function rebuild(): void {
     for (const mesh of meshes) mesh.dispose();
@@ -169,6 +204,28 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT);
         meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));
       }
+
+      // The Traffic view: every physical lane drawn at the same offset a car in it actually
+      // uses, coloured by which direction it carries. An ordinary junction gets its own proper
+      // turn diagram (below, `junctionTurnLines`), so a lane line only has to reach its own trim.
+      if (showTraffic && !type.pedestrian) {
+        for (const [i, laneCentre] of laneCentres(type).entries()) {
+          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, laneCentre.offset);
+          meshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
+        }
+      }
+      // Same idea for foot traffic: a path's own lane, or an ordinary road's sidewalks either
+      // side. A highway has no footway at all to draw one on. A path is paved at the carriageway's
+      // own height, but an ordinary road's sidewalk is a stepped-up mesh of its own -- the line has
+      // to clear that step too, or the sidewalk itself draws over it. An ordinary junction gets its
+      // own crossing diagram too (below), so a sidewalk line only has to reach its own trim.
+      if (showTraffic && !type.highway) {
+        const walkLift = type.pedestrian ? MARK_LIFT + 0.02 : SIDEWALK_LIFT + 0.03;
+        for (const [i, walkCentre] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
+          const points = pointsBetween(graph, seg.id, from, to, steps, walkLift, walkCentre.offset);
+          meshes.push(styledLine(scene, `traffic_walk_${seg.id}_${i}`, points, walkCentre.direction === 1 ? walkOutbound : walkInbound));
+        }
+      }
     }
 
     // A crossing on every arm of every junction, so there is a marked way over each road.
@@ -184,6 +241,26 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     for (const junction of junctions.values()) {
       if (junction.roundabout > 0) {
         meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
+        // The Traffic view's own lane overlay: a roundabout is always one direction, so every
+        // lane on it reads as "outbound" -- there is no opposing lane to contrast it against.
+        if (showTraffic) {
+          const centre = graph.node(junction.node).pos;
+          const elevationAt = ringElevation(junction.arms, centre.y);
+          const outer = junction.roundabout;
+          const reference = widestIncidentRoad(graph, junction.node);
+          const inner = Math.max(3, outer - Math.max(6, reference?.width ?? 0));
+          const mid = (inner + outer) / 2;
+          const lanes = graph.node(junction.node).roundaboutLanes;
+          const radii = lanes === 2 ? [(inner + mid) / 2, (mid + outer) / 2] : [mid];
+          for (const [i, radius] of radii.entries()) {
+            const points = Array.from({ length: 65 }, (_, s) => {
+              const angle = (s / 64) * Math.PI * 2;
+              const y = elevationAt(angle) + MARK_LIFT + 0.02;
+              return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
+            });
+            meshes.push(styledLine(scene, `traffic_lane_roundabout_${junction.node}_${i}`, points, laneOutbound));
+          }
+        }
         continue;
       }
       const mesh = junctionMesh(scene, junction);
@@ -193,10 +270,29 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(mesh);
       // The footways have to close around the junction too, or every sidewalk stops dead at it.
       meshes.push(...junctionFootway(scene, graph, junction, pavingMaterial));
+
+      if (showTraffic) {
+        meshes.push(...junctionTurnLines(scene, graph, junction, laneCentres, (t) => t.pedestrian === true, "traffic_turn", turnColor));
+        meshes.push(
+          ...junctionTurnLines(scene, graph, junction, (t) => walkCentres(t, SIDEWALK_WIDTH), (t) => t.highway === true, "traffic_walk_turn", walkTurnColor),
+        );
+      }
     }
+
+    applyFade();
   }
 
-  return { rebuild, material };
+  return {
+    rebuild,
+    material,
+    setShowTraffic(next: boolean) {
+      showTraffic = next;
+    },
+    setFaded(next: boolean) {
+      faded = next;
+      applyFade();
+    },
+  };
 }
 
 /**
@@ -400,6 +496,74 @@ function junctionFootway(
 }
 
 /**
+ * The Traffic view's turn diagram for an ordinary junction: every incoming lane on every arm,
+ * curved through to every outgoing lane on every OTHER arm -- the game does not model which
+ * turns a lane (or a pedestrian crossing) is actually allowed to make, so this draws every
+ * movement that is geometrically possible, the same way a real turning-movement diagram would
+ * before restrictions are applied. Shared by cars (`laneCentres`) and foot traffic
+ * (`walkCentres`): a road's sidewalks connect to the next one's exactly the same way its
+ * carriageway does, just with a different set of lanes and a different exclusion.
+ *
+ * Which lanes are "incoming" or "outgoing" depends on which end of its own segment this arm sits
+ * on: `lanesFor` labels lanes by which way distance increases along the segment, not by which
+ * way they face this particular node, so that has to be flipped at the `b` end.
+ */
+function junctionTurnLines(
+  scene: Scene,
+  graph: RoadGraph,
+  junction: JunctionGeometry,
+  lanesFor: (type: RoadType) => readonly LaneCentre[],
+  exclude: (type: RoadType) => boolean,
+  namePrefix: string,
+  color: Color3,
+): LinesMesh[] {
+  interface Port {
+    readonly position: Vector3;
+    readonly armSegment: number;
+  }
+  const incoming: Port[] = [];
+  const outgoing: Port[] = [];
+
+  for (const arm of junction.arms) {
+    const seg = graph.segment(arm.segment);
+    const type = roadType(seg.type);
+    if (exclude(type)) continue;
+    const atStart = seg.a === junction.node;
+    const { position, tangent } = graph.pointAt(arm.segment, atStart ? arm.trim : seg.length - arm.trim);
+    const n = perpXZ(normalizeXZ(tangent));
+    for (const lane of lanesFor(type)) {
+      const arrivingHere = atStart ? lane.direction === -1 : lane.direction === 1;
+      const point = new Vector3(position.x + n.x * lane.offset, position.y + MARK_LIFT + 0.02, position.z + n.z * lane.offset);
+      (arrivingHere ? incoming : outgoing).push({ position: point, armSegment: arm.segment });
+    }
+  }
+
+  const centre = graph.node(junction.node).pos;
+  const lines: LinesMesh[] = [];
+  for (const [i, from] of incoming.entries()) {
+    for (const [j, to] of outgoing.entries()) {
+      if (from.armSegment === to.armSegment) continue; // no U-turn back onto the arm it came from
+      const mid = new Vector3((from.position.x + to.position.x) / 2, Math.max(from.position.y, to.position.y), (from.position.z + to.position.z) / 2);
+      // Bows toward the node's own centre rather than cutting a straight line, so a turn reads
+      // as a turn and even a "through" movement between two not-quite-opposite arms curves.
+      const control = Vector3.Lerp(mid, new Vector3(centre.x, mid.y, centre.z), 0.4);
+      const points = sampleQuadratic(from.position, control, to.position, 16);
+      lines.push(styledLine(scene, `${namePrefix}_${junction.node}_${i}_${j}`, points, color));
+    }
+  }
+  return lines;
+}
+
+/** One quadratic Bezier, sampled into a polyline. */
+function sampleQuadratic(a: Vector3, control: Vector3, b: Vector3, steps: number): Vector3[] {
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps;
+    const u = 1 - t;
+    return a.scale(u * u).add(control.scale(2 * u * t)).add(b.scale(t * t));
+  });
+}
+
+/**
  * The gaps between the arms, each swept into a strip of footway. Each arm blocks the angle its
  * own carriageway and sidewalks subtend at the ring, so the footway meets them rather than
  * crossing them.
@@ -455,12 +619,27 @@ function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3
   return mesh;
 }
 
-function pointsBetween(graph: RoadGraph, id: number, from: number, to: number, steps: number, lift: number): Vector3[] {
+/** `offset` moves the sampled line sideways from the centreline, for a lane drawn off-centre. */
+function pointsBetween(
+  graph: RoadGraph,
+  id: number,
+  from: number,
+  to: number,
+  steps: number,
+  lift: number,
+  offset = 0,
+): Vector3[] {
   const points: Vector3[] = [];
   for (let i = 0; i <= steps; i++) {
     const d = from + ((to - from) * i) / steps;
-    const { position } = graph.pointAt(id, d);
-    points.push(new Vector3(position.x, Math.max(position.y, terrainHeight(position.x, position.z)) + lift, position.z));
+    const { position, tangent } = graph.pointAt(id, d);
+    const y = Math.max(position.y, terrainHeight(position.x, position.z)) + lift;
+    if (offset === 0) {
+      points.push(new Vector3(position.x, y, position.z));
+    } else {
+      const n = perpXZ(normalizeXZ(tangent));
+      points.push(new Vector3(position.x + n.x * offset, y, position.z + n.z * offset));
+    }
   }
   return points;
 }

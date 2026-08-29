@@ -20,6 +20,7 @@ export function bindControls(handlers: {
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onBuildings(visible: boolean): void;
+  onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
   /** Current city as data, ready to store. */
   onSave(): CitySave;
@@ -37,6 +38,7 @@ export function bindControls(handlers: {
     toolbarContent.hidden = expanded;
   });
 
+  const selectViewOptions = document.getElementById("select-view-options")!;
   const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
@@ -48,12 +50,20 @@ export function bindControls(handlers: {
     button.addEventListener("click", () => {
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
+      selectViewOptions.hidden = tool !== "select";
       roadTypeOptions.hidden = tool !== "roads";
       roadOptions.hidden = tool !== "roads";
       natureOptions.hidden = tool !== "nature";
       handlers.onRoadMode(
         tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "bulldoze" ? "bulldoze" : "view",
       );
+    });
+  }
+
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="select-view"]')) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : "all");
     });
   }
 
