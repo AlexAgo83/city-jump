@@ -83,6 +83,16 @@ export function roundaboutRadius(graph: RoadGraph, nodeId: NodeId): number {
   );
 }
 /**
+ * The ring's driving lanes as radii, innermost first. Traffic and the lane overlay both take
+ * their circle from here, so a car can never sit off the lane that is drawn under it.
+ */
+export function ringLaneRadii(graph: RoadGraph, nodeId: NodeId, outer = roundaboutRadius(graph, nodeId)): number[] {
+  const inner = Math.max(3, outer - Math.max(6, widestIncidentWidth(graph, nodeId)));
+  const mid = (inner + outer) / 2;
+  return graph.node(nodeId).roundaboutLanes === 2 ? [(inner + mid) / 2, (mid + outer) / 2] : [mid];
+}
+
+/**
  * Nor more than this many carriageway widths, however narrow the angle. Past it the
  * junction reads as a car park; the hull below copes with the overlap that is left.
  */
