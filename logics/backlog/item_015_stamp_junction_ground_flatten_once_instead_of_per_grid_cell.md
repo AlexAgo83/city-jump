@@ -1,14 +1,14 @@
 ## item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell - Stamp junction ground flatten once instead of per grid cell
 > From version: 0.1.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-29 10:28:55
+> Indicators reviewed: 2026-08-29 10:33:28
 
 # AI Context
 - Summary: The per-junction ground-flatten loop added this session (`aa8167e`) stamps ~111 small discs per junction where one `stamp()` call at the junction's own radius produces the same shape.
@@ -42,8 +42,8 @@ The per-junction ground-flatten loop should not cost far more than the flattened
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`
-- Primary task(s): (none yet)
+- Request: `req_005_review_findings_redundant_and_quadratic_rebuild_work`
+- Primary task(s): `task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell`
 
 # Priority
 - Priority: Medium
@@ -53,6 +53,7 @@ The per-junction ground-flatten loop should not cost far more than the flattened
 - Hybrid rationale: Derived from request `req_005_review_findings_redundant_and_quadratic_rebuild_work` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md`.
 - Generated locally by logics-manager.
+- Task `task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell` was finished via `logics-manager flow finish task` on 2026-08-29.
 
 # Tasks
 - `task_006_stamp_junction_ground_flatten_once_instead_of_per_grid_cell`
