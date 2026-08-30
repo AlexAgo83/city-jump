@@ -6,7 +6,7 @@
     "build": "vite build && npm run typecheck",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:architecture": "node --test tests/architecture.mjs",
+    "test:architecture": "node --test tests/*.mjs",
     "test:e2e": "node scripts/with-dev-server.mjs scripts/interact.mjs",
     "test:visual": "node scripts/with-dev-server.mjs scripts/shot.mjs",
     "typecheck": "tsc",
@@ -29,6 +29,7 @@
     "webgl"
   ],
   "author": "Alexandre Agostini",
+  "homepage": "https://city-jump.onrender.com/",
   "license": "MIT",
   "description": "A browser-based 3D city builder where roads, terrain, buildings, and traffic derive from a playable road graph.",
   "devDependencies": {

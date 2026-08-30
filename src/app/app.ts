@@ -13,11 +13,11 @@ import { Plantings } from "../sim/plantings";
 import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
-import { serializeCity, restoreCity, type CitySave } from "../sim/save";
+import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
-import { readAutosave, writeAutosave, readCameraState, writeCameraState } from "../ui/saves";
+import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { showRefusal, showSelection } from "../ui/hud";
 
 export async function startApp(): Promise<void> {
@@ -118,6 +118,8 @@ export async function startApp(): Promise<void> {
     },
     treeAt: (x, z, within) => trees.nearestTree(x, z, within),
   }, onSelect);
+
+  await seedDefaultDemoSave();
 
   controls = bindControls({
     onRoadMode(mode) {
@@ -234,5 +236,17 @@ export async function startApp(): Promise<void> {
     return graph
       .allNodes()
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
+  }
+}
+
+async function seedDefaultDemoSave(): Promise<void> {
+  if (readSave("Demo")) return;
+  try {
+    const response = await fetch("/default-demo.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const city = parseCity(await response.text());
+    if (city) writeSave("Demo", city);
+  } catch {
+    // Offline/dev-file runs still work; they just start without the bundled save.
   }
 }

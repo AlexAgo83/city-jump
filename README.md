@@ -9,6 +9,8 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)
 
+[Live demo](https://city-jump.onrender.com/)
+
 `city-jump` is a browser-based 3D city builder. Draw roads, roundabouts, paths, and
 tunnels across terrain; buildable plots, buildings, junctions, traffic, and shaped
 ground are derived from that road network.
@@ -42,6 +44,7 @@ economy, progression, zoning demand, and bridges are not implemented.
 - Rolling and rugged terrain presets exercise road shaping and ground conformance.
 - Tunnels pass under surface roads and render portals without growing buildings or traffic.
 - Named saves and autosave persist the graph, plantings, terrain, camera, and sun state.
+- New browsers get a bundled `Demo` save in the load menu by default.
 - A 24-hour sun control changes light direction, intensity, ambient light, and sky.
 - A browser debug surface drives deterministic visual and interaction checks.
 

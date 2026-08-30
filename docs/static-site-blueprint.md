@@ -7,6 +7,7 @@ loads bundled JavaScript plus static GLB assets, so it does not need a server ru
 
 - Release version: `0.2.0`
 - Tag: `v0.2.0`
+- Live demo: <https://city-jump.onrender.com/>
 - Artifact directory: `dist/`
 
 ## Build
@@ -22,7 +23,7 @@ the Vite production build. The deployable output is `dist/`.
 ## Static host contract
 
 - Serve `dist/index.html` for `/`.
-- Serve every file under `dist/assets/`, `dist/buildings/`, and the root icon/manifest
+- Serve every file under `dist/assets/`, `dist/buildings/`, and the root icon/manifest/demo
   files as immutable static assets.
 - Keep client-side storage enabled; named saves and autosave live in localStorage.
 - No server API, database, secret, or environment variable is required.
