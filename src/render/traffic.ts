@@ -511,6 +511,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   let movers: Mover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
   const junctions = new Map<NodeId, JunctionGeometry>();
+  const arms = new Map<NodeId, Map<SegmentId, JunctionArm>>();
   const ringsAt = new Map<NodeId, Ring>();
 
   function junctionAt(nodeId: NodeId): JunctionGeometry {
@@ -518,6 +519,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     if (cached) return cached;
     const geometry = junctionGeometry(graph, nodeId);
     junctions.set(nodeId, geometry);
+    arms.set(nodeId, new Map(geometry.arms.map((arm) => [arm.segment, arm])));
     return geometry;
   }
 
@@ -530,8 +532,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     return ring;
   }
 
-  const armOf = (nodeId: NodeId, segmentId: SegmentId): JunctionArm | undefined =>
-    junctionAt(nodeId).arms.find((arm) => arm.segment === segmentId);
+  const armOf = (nodeId: NodeId, segmentId: SegmentId): JunctionArm | undefined => {
+    junctionAt(nodeId);
+    return arms.get(nodeId)?.get(segmentId);
+  };
 
   const loops = new Map<NodeId, WalkLoop>();
   const cycles = new Map<NodeId, SignalCycle | null>();
@@ -621,6 +625,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
   /** Puts a car on a road, at `trim` from the node it entered by. */
   function board(mover: Mover, segmentId: SegmentId, from: NodeId, entry: Entry, trim: number): void {
+    leaveQueue(mover);
     const segment = graph.segment(segmentId);
     const direction = segment.a === from ? 1 : -1;
     const at = Math.min(trim, segment.length * 0.45);
@@ -632,6 +637,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     mover.changing = entry.changing;
     mover.plan = entry.plan;
     mover.ride = null;
+    joinQueue(mover);
   }
 
   /**
@@ -713,7 +719,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const next = planned?.exit ?? pickExit(graph, nodeId, mover.segment.id, roll(mover), mover.walk);
     if (next === null) {
       // A one-way into a dead end leaves no legal move at all. Turning round beats freezing.
+      leaveQueue(mover);
       mover.direction = -mover.direction as 1 | -1;
+      joinQueue(mover);
       return;
     }
     const roundabout = graph.node(nodeId).roundabout;
@@ -749,6 +757,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     // the walker waits at the kerb, and this is asked again on the next frame.
     if (mover.walk && !crossingIsClear(nodeId, points, now)) return;
 
+    leaveQueue(mover);
     mover.ride = {
       points,
       cumulative: pathCumulative(points),
@@ -852,14 +861,18 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const live = new Set(segments.map((segment) => segment.id));
       movers = movers.filter((mover) => {
         if (live.has(mover.segment.id) && !segmentTouchesBounds(mover.segment, dirty)) return true;
+        leaveQueue(mover);
         mover.mesh.dispose();
         return false;
       });
     } else {
       for (const mover of movers) mover.mesh.dispose();
       movers = [];
+      queues.clear();
+      queueOf.clear();
     }
     junctions.clear();
+    arms.clear();
     ringsAt.clear();
     loops.clear();
     cycles.clear();
@@ -905,6 +918,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         mover.changing = entry.changing;
         mover.plan = entry.plan;
         movers.push(mover);
+        joinQueue(mover);
       };
 
       // Down the middle of a path, along the footway of anything else. A highway has a guardrail
@@ -965,7 +979,27 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   const queues = new Map<number, Mover[]>();
+  const queueOf = new Map<Mover, Mover[]>();
   const ahead = new Map<Mover, Mover>();
+
+  function leaveQueue(mover: Mover): void {
+    const queue = queueOf.get(mover);
+    if (!queue) return;
+    const index = queue.indexOf(mover);
+    if (index >= 0) queue.splice(index, 1);
+    queueOf.delete(mover);
+  }
+
+  function joinQueue(mover: Mover): void {
+    if (mover.walk || mover.ride) return;
+    const key = laneQueueKey(mover);
+    const queue = queues.get(key) ?? [];
+    if (!queues.has(key)) queues.set(key, queue);
+    const at = mover.distance * mover.direction;
+    const index = queue.findIndex((other) => other.distance * other.direction > at);
+    queue.splice(index < 0 ? queue.length : index, 0, mover);
+    queueOf.set(mover, queue);
+  }
 
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
@@ -974,22 +1008,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const beams = lightsOn() ? headlights : null;
     let beam = 0;
 
-    // Who is in front of whom. Same road, same way, same lane: a car goes no further than the one
-    // ahead of it lets it, which is what makes a red light a queue rather than a pile.
-    for (const queue of queues.values()) queue.length = 0;
-    for (const mover of movers) {
-      if (mover.walk || mover.ride) continue;
-      const key = laneQueueKey(mover);
-      const queue = queues.get(key);
-      if (queue) queue.push(mover);
-      else queues.set(key, [mover]);
-    }
+    // Who is in front of whom. Queue membership changes only when a mover boards or leaves a
+    // lane, so the frame loop just reads the stable lane order.
     ahead.clear();
     for (const queue of queues.values()) {
-      // Sorted least progressed first, whichever way the lane runs, so the car in front of each
-      // one is simply the next entry along -- and the last, most progressed car has none: only
-      // the light or the road's own end is in front of it.
-      queue.sort((l, r) => (l.distance - r.distance) * l.direction);
       for (let i = 0; i < queue.length - 1; i++) ahead.set(queue[i]!, queue[i + 1]!);
     }
     const ringRoom = roundaboutRooms(movers);

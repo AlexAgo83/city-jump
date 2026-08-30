@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 95%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -77,6 +77,7 @@
 - 2026-08-30 traffic bookkeeping partial wave: reused the lane queue and ahead maps across frames and replaced per-mover string queue keys with numeric keys. Validated with npm run typecheck, npx vitest run src/render/traffic.test.ts, npm run test:e2e, and npm run ci.
 - 2026-08-30 first-frame model wave: createBuildingRenderer now returns before the GLB catalogue is loaded, starts model loads in the background, and rebuilds placed instances as each model arrives. Interaction check observed startupModels=0 at renderer return, all 16 parcel models loaded afterward, and save/reload building checks passed. Validated with npm run typecheck, npm run test:e2e, and npm run ci.
 - 2026-08-30 traffic rebuild wave: traffic.rebuild now accepts dirty terrain bounds, preserves movers on live segments outside the dirty region, and regenerates only movers whose segment was removed or touched. Validated with npm run typecheck, npx vitest run src/render/traffic.test.ts, npm run test:e2e, and npm run ci.
+- 2026-08-30 traffic queue wave: lane queues are now maintained across board/arrive/rebuild transitions instead of regrouped and sorted every frame, queue keys stay numeric, and armOf uses a per-junction segment lookup. Validated with npm run typecheck, npx vitest run src/render/traffic.test.ts, npm run test:e2e, and npm run ci.
 
 # Report
 - Not started.
