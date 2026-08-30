@@ -9,6 +9,7 @@
     "test:architecture": "node --test tests/*.mjs",
     "test:e2e": "node scripts/with-dev-server.mjs scripts/interact.mjs",
     "test:visual": "node scripts/with-dev-server.mjs scripts/shot.mjs",
+    "perf": "node scripts/with-dev-server.mjs scripts/perf.mjs",
     "typecheck": "tsc",
     "lint": "npm run typecheck",
     "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc",
