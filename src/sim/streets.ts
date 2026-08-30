@@ -73,6 +73,9 @@ function suffixFor(type: string): string {
   if (base === "highway") return "Expressway";
   if (base === "pedestrian") return "Walk";
   if (base === "tunnel") return "Tunnel";
+  if (base === "industrial") return "Way";
+  if (base === "dirt") return "Trail";
+  if (base === "military") return "Range";
   return "Street";
 }
 

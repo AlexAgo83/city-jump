@@ -50,6 +50,9 @@ describe("streets", () => {
     expect(streetName(1, "avenue")).toBe("Ash Avenue");
     expect(streetName(13, "street")).toBe("North Ash Street");
     expect(streetName(61, "street")).toBe("1st Street");
+    expect(streetName(1, "industrial")).toBe("Ash Way");
+    expect(streetName(1, "dirt")).toBe("Ash Trail");
+    expect(streetName(1, "military_2lane")).toBe("Ash Range");
   });
 
   it("gives parcels distinct odd and even addresses", () => {
