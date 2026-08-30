@@ -52,11 +52,21 @@ after.
 - **Both footways of a road in one mesh**, and both kerbs in one line system. Same material, same
   lifetime, half the meshes.
 
-Together: 1216 -> 867 active meshes, +5 fps overview, +6 district, rebuild 639 -> 575 ms.
+- **A junction's corners in one mesh**, and a roundabout's whole footway in one, rather than one
+  per corner and one per gap between arms.
+
+Together: 1216 -> 841 active meshes, overview 50 -> 65 fps, district 60 -> 74, street 70 -> 76, a
+full rebuild 671 -> 553 ms.
 
 Merging has to keep the name the dirty-region rebuild matches on (`sidewalk_<segmentId>`,
 `crossing_<segmentId>_<nodeId>`), see the regex in `roadMesh.ts` -- that is how an edit knows which
 meshes to throw away and which to keep.
+
+## Tried, and not kept
+
+- **`freezeWorldMatrix()` on road geometry.** Sound in theory -- the meshes are built in world
+  space and never move -- but three runs either side of the change came out inside the noise
+  (+-5 fps run to run on the same build). Not kept: it is a claim the numbers do not support.
 
 ## What is left
 

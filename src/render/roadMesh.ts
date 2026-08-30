@@ -645,7 +645,9 @@ function junctionFootway(
     });
   };
 
-  const out: Mesh[] = [];
+  // Every corner of one junction in a single mesh: same paving, same lifetime, and a junction
+  // has as many corners as it has arms.
+  const strips: [Vector3[], Vector3[]][] = [];
   for (let i = 0; i < ring.length; i++) {
     const a = ring[i]!;
     const b = ring[(i + 1) % ring.length]!;
@@ -674,12 +676,14 @@ function junctionFootway(
       new Vector3(a.x + nx * SIDEWALK_WIDTH, a.y + SIDEWALK_LIFT, a.z + nz * SIDEWALK_WIDTH),
       new Vector3(b.x + nx * SIDEWALK_WIDTH, b.y + SIDEWALK_LIFT, b.z + nz * SIDEWALK_WIDTH),
     ];
-    const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}_${i}`, outer, inner);
-    patch.material = paving;
-    patch.isPickable = false;
-    out.push(patch);
+    strips.push([outer, inner]);
   }
-  return out;
+  if (strips.length === 0) return [];
+  const [first, ...rest] = strips;
+  const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}`, first![0], first![1], ...rest);
+  patch.material = paving;
+  patch.isPickable = false;
+  return [patch];
 }
 
 /**
@@ -882,7 +886,7 @@ function footwayArcs(
     .sort((l, r) => l.angle - r.angle);
   if (blocked.length === 0) return [];
 
-  const out: Mesh[] = [];
+  const strips: [Vector3[], Vector3[]][] = [];
   for (const [i, arm] of blocked.entries()) {
     const next = blocked[(i + 1) % blocked.length]!;
     const from = arm.angle + arm.spread;
@@ -901,12 +905,14 @@ function footwayArcs(
       near.push(new Vector3(centre.x + cos * outer, y, centre.z + sin * outer));
       far.push(new Vector3(centre.x + cos * (outer + SIDEWALK_WIDTH), y, centre.z + sin * (outer + SIDEWALK_WIDTH)));
     }
-    const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}_${i}`, far, near);
-    walk.material = paving;
-    walk.isPickable = false;
-    out.push(walk);
+    strips.push([far, near]);
   }
-  return out;
+  if (strips.length === 0) return [];
+  const [first, ...rest] = strips;
+  const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}`, first![0], first![1], ...rest);
+  walk.material = paving;
+  walk.isPickable = false;
+  return [walk];
 }
 
 /** Several lines that live and die together -- both kerbs of a road, say -- as one mesh. */
