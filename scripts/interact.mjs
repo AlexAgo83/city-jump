@@ -77,6 +77,24 @@ const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
 const buildableGridVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("buildable-grid")?.isEnabled() ?? false);
+const brushRingRadius = () =>
+  page.evaluate(() => {
+    const mesh = window.cityjump._scene.getMeshByName("spray-ring");
+    const positions = mesh?.getVerticesData("position");
+    if (!mesh?.isEnabled() || !positions?.length) return 0;
+    let cx = 0;
+    let cz = 0;
+    const count = positions.length / 3;
+    for (let i = 0; i < positions.length; i += 3) {
+      cx += positions[i];
+      cz += positions[i + 2];
+    }
+    cx /= count;
+    cz /= count;
+    let max = 0;
+    for (let i = 0; i < positions.length; i += 3) max = Math.max(max, Math.hypot(positions[i] - cx, positions[i + 2] - cz));
+    return max;
+  });
 const worldGridVisible = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("world-grid")?.getTotalVertices() ?? 0) > 0);
 // Sample water near the coast: the grid stretches outwards and wave amplitude is faded out far
@@ -287,6 +305,7 @@ check(
 );
 await page.locator('[data-tool="zones"]').click();
 check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
+check("zone mode exposes a brush size slider", await page.locator("#zone-radius").isVisible());
 await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
@@ -450,6 +469,10 @@ await page.locator("#show-buildings").check();
 check("generated buildings can be restored", (await stats()).buildings === drawn.buildings);
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
+await page.locator("#zone-radius").evaluate((input) => {
+  input.value = "56";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
 await page.locator('input[name="zone-kind"][value="dense"]').check();
 await click(500, 350);
 await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
@@ -1029,6 +1052,11 @@ await page.locator("#tree-species").selectOption("fir");
 await nextFrame();
 
 await page.locator('input[name="plant-mode"][value="spray"]').check();
+check("spray mode exposes a brush size slider", await page.locator("#spray-radius").isVisible());
+await page.locator("#spray-radius").evaluate((input) => {
+  input.value = "88";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
 await nextFrame();
 await page.mouse.move(420, 430);
 await nextFrame();
@@ -1042,6 +1070,8 @@ const brush = await page.evaluate(() => {
 });
 check("the spray brush ring is shown", brush !== null);
 check("the brush ring follows the terrain instead of sitting flat", brush > 0.05, `${brush} m of relief`);
+const sprayRadius = await brushRingRadius();
+check("the spray brush ring follows the size slider", Math.abs(sprayRadius - 88) < 2, `${sprayRadius} m`);
 
 const beforeStroke = await page.evaluate(() => {
   const camera = window.cityjump._scene.activeCamera;

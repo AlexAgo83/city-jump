@@ -90,6 +90,7 @@
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
+  .tool-options input[type="range"] { width: 92px; }
   #selection-panel {
     position: fixed; top: 12px; right: 12px; min-width: 150px; max-width: 240px;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
@@ -197,6 +198,7 @@
         <option value="palm">Palm</option>
       </select>
     </label>
+    <label>Brush <input id="spray-radius" type="range" min="16" max="96" step="8" value="45" aria-label="Spray brush size" /></label>
   </div>
   <div id="zone-options" class="tool-options" hidden>
     <div class="segmented" role="group" aria-label="Zone kind">
@@ -204,6 +206,7 @@
       <label><input type="radio" name="zone-kind" value="dense" /><span>Dense</span></label>
       <label><input type="radio" name="zone-kind" value="clear" /><span>Clear</span></label>
     </div>
+    <label>Brush <input id="zone-radius" type="range" min="8" max="96" step="8" value="45" aria-label="Zone brush size" /></label>
   </div>
   <div id="action-palette" role="toolbar" aria-label="Build tools">
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>

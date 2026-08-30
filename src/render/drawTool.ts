@@ -62,7 +62,9 @@ export interface DrawTool {
   setGridSnap(enabled: boolean): void;
   setRoadType(type: RoadTypeId): void;
   setTreeSpecies(species: string): void;
+  setSprayRadius(radius: number): void;
   setZoneKind(kind: ZoneKind | "clear"): void;
+  setZoneRadius(radius: number): void;
 }
 
 export type DrawMode = "straight" | "curve";
@@ -134,6 +136,8 @@ export function createDrawTool(
   let typeId = initialTypeId;
   let treeSpecies = "fir";
   let zoneKind: ZoneKind | "clear" = "low";
+  let sprayRadius = SPRAY_RADIUS;
+  let zoneRadius = ZONE_RADIUS;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
@@ -259,7 +263,7 @@ export function createDrawTool(
   // rather than cutting through it. ponytail: an updatable line loop, not a decal or a projector.
   let sprayRing = MeshBuilder.CreateLines(
     "spray-ring",
-    { points: ringPoints(0, 0), updatable: true },
+    { points: ringPoints(0, 0, sprayRadius), updatable: true },
     scene,
   );
   sprayRing.color = ACCEPTED;
@@ -267,21 +271,21 @@ export function createDrawTool(
   sprayRing.alwaysSelectAsActiveMesh = true;
   sprayRing.setEnabled(false);
 
-  function ringPoints(cx: number, cz: number): Vector3[] {
+  function ringPoints(cx: number, cz: number, radius: number): Vector3[] {
     return Array.from({ length: SPRAY_RING_POINTS + 1 }, (_, i) => {
       const angle = (i / SPRAY_RING_POINTS) * Math.PI * 2;
-      const x = cx + Math.cos(angle) * SPRAY_RADIUS;
-      const z = cz + Math.sin(angle) * SPRAY_RADIUS;
+      const x = cx + Math.cos(angle) * radius;
+      const z = cz + Math.sin(angle) * radius;
       return new Vector3(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
     });
   }
 
-  function moveSprayRing(centre: { x: number; z: number } | null): void {
+  function moveSprayRing(centre: { x: number; z: number } | null, radius: number): void {
     if (!centre) {
       sprayRing.setEnabled(false);
       return;
     }
-    sprayRing = MeshBuilder.CreateLines("spray-ring", { points: ringPoints(centre.x, centre.z), instance: sprayRing });
+    sprayRing = MeshBuilder.CreateLines("spray-ring", { points: ringPoints(centre.x, centre.z, radius), instance: sprayRing });
     sprayRing.setEnabled(true);
   }
 
@@ -289,7 +293,7 @@ export function createDrawTool(
   function sprayBurst(centre: { x: number; z: number }): void {
     for (let i = 0; i < SPRAY_PER_BURST; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const distance = Math.sqrt(Math.random()) * SPRAY_RADIUS;
+      const distance = Math.sqrt(Math.random()) * sprayRadius;
       nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance, treeSpecies);
     }
   }
@@ -319,21 +323,21 @@ export function createDrawTool(
 
   function onSprayMove(painting: boolean): void {
     const at = groundPoint();
-    moveSprayRing(at);
+    moveSprayRing(at, sprayRadius);
     if (!at || !painting) return;
     // Wait until the brush has moved half its width before laying down another burst.
-    if (lastSprayed && Math.hypot(at.x - lastSprayed.x, at.z - lastSprayed.z) < SPRAY_RADIUS / 2) return;
+    if (lastSprayed && Math.hypot(at.x - lastSprayed.x, at.z - lastSprayed.z) < sprayRadius / 2) return;
     sprayBurst(at);
     lastSprayed = at;
   }
 
   function onZoneMove(painting: boolean): void {
     const at = groundPoint();
-    moveSprayRing(at);
+    moveSprayRing(at, zoneRadius);
     if (!at || !painting) return;
-    zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
+    zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
     lastSprayed = at;
-    onCommitted(expandBounds({ minX: at.x - ZONE_RADIUS, maxX: at.x + ZONE_RADIUS, minZ: at.z - ZONE_RADIUS, maxZ: at.z + ZONE_RADIUS }, TERRAIN_DIRTY_PAD));
+    onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
   }
 
   function onMove(): void {
@@ -422,8 +426,8 @@ export function createDrawTool(
       return;
     }
     if (mode === "zone") {
-      zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
-      onCommitted(expandBounds({ minX: at.x - ZONE_RADIUS, maxX: at.x + ZONE_RADIUS, minZ: at.z - ZONE_RADIUS, maxZ: at.z + ZONE_RADIUS }, TERRAIN_DIRTY_PAD));
+      zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
+      onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
       return;
     }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
@@ -585,8 +589,16 @@ export function createDrawTool(
     setTreeSpecies(next) {
       treeSpecies = next;
     },
+    setSprayRadius(next) {
+      sprayRadius = next;
+      resetDrawing();
+    },
     setZoneKind(next) {
       zoneKind = next;
+      resetDrawing();
+    },
+    setZoneRadius(next) {
+      zoneRadius = next;
       resetDrawing();
     },
   };

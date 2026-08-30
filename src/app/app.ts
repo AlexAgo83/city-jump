@@ -14,7 +14,7 @@ import { Plantings } from "../sim/plantings";
 import { Zones } from "../sim/zones";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { buildingParcels, buildableCells } from "../sim/slots";
+import { buildingParcels, buildableCells, GRID, type BuildableCell } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
@@ -69,6 +69,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
     const cells = buildableCells(graph, zones);
+    currentBuildableCells = cells;
     const parcels = buildingParcels(cells, zones);
     heightmap.conformToRoads(graph, parcels, dirty);
     ground.refresh(dirty);
@@ -86,6 +87,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // No longer chosen in the UI, but still carried by saves and honoured on load, so a city built
   // on the rugged map comes back on the rugged map.
   let terrainPreset = "rolling";
+  let currentBuildableCells: readonly BuildableCell[] = [];
   let sunHour = 14;
   const applyTerrain = (preset: string): void => {
     terrainPreset = preset;
@@ -146,7 +148,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     {
       paint(x, z, radius, kind) {
-        zones.paint(x, z, radius, kind);
+        for (const cell of currentBuildableCells) {
+          const centre = cellCentre(cell);
+          if (Math.hypot(centre.x - x, centre.z - z) <= radius) zones.paint(centre.x, centre.z, GRID.cellSize / Math.SQRT2, kind);
+        }
       },
     },
     {
@@ -179,8 +184,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onTreeSpecies(species) {
       tool.setTreeSpecies(species);
     },
+    onSprayRadius(radius) {
+      tool.setSprayRadius(radius);
+    },
     onZoneKind(kind) {
       tool.setZoneKind(kind);
+    },
+    onZoneRadius(radius) {
+      tool.setZoneRadius(radius);
     },
     onBuildings(visible) {
       buildingsVisible = visible;
@@ -314,6 +325,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       .allNodes()
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
   }
+}
+
+function cellCentre(cell: BuildableCell): { x: number; z: number } {
+  return {
+    x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
+    z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
+  };
 }
 
 async function seedDefaultDemoSave(): Promise<void> {

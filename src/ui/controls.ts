@@ -21,7 +21,9 @@ export function bindControls(handlers: {
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
+  onSprayRadius(radius: number): void;
   onZoneKind(kind: ZoneKind | "clear"): void;
+  onZoneRadius(radius: number): void;
   onBuildings(visible: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
@@ -121,11 +123,17 @@ export function bindControls(handlers: {
   document.getElementById("tree-species")!.addEventListener("change", (event) => {
     handlers.onTreeSpecies((event.currentTarget as HTMLSelectElement).value);
   });
+  document.getElementById("spray-radius")!.addEventListener("input", (event) => {
+    handlers.onSprayRadius(Number((event.currentTarget as HTMLInputElement).value));
+  });
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
     input.addEventListener("change", () => {
       if (input.checked) handlers.onZoneKind(input.value === "dense" ? "dense" : input.value === "clear" ? "clear" : "low");
     });
   }
+  document.getElementById("zone-radius")!.addEventListener("input", (event) => {
+    handlers.onZoneRadius(Number((event.currentTarget as HTMLInputElement).value));
+  });
 
   const roadLanes = document.getElementById("road-lanes") as HTMLInputElement;
   const roadOneway = document.getElementById("road-oneway") as HTMLInputElement;
