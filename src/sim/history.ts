@@ -33,6 +33,7 @@ export function createCityHistory<T>(limit = 20): CityHistory<T> {
       const snapshot = redo.pop();
       if (snapshot === undefined) return false;
       undo.push(current);
+      if (undo.length > limit) undo.shift();
       restore(snapshot);
       return true;
     },

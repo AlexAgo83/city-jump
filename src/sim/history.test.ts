@@ -43,4 +43,26 @@ describe("city history", () => {
     expect(value).toBe(1);
     expect(history.undo(value, restore)).toBe(false);
   });
+
+  it("keeps the undo stack bounded while redoing", () => {
+    const history = createCityHistory<number>(2);
+    let value = 3;
+    const restore = (next: number) => {
+      value = next;
+    };
+
+    history.record(0);
+    history.record(1);
+    history.record(2);
+    history.undo(value, restore);
+    history.undo(value, restore);
+
+    expect(history.redo(value, restore)).toBe(true);
+    expect(history.redo(value, restore)).toBe(true);
+    expect(history.undo(value, restore)).toBe(true);
+    expect(value).toBe(2);
+    expect(history.undo(value, restore)).toBe(true);
+    expect(value).toBe(1);
+    expect(history.undo(value, restore)).toBe(false);
+  });
 });
