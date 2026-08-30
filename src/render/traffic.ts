@@ -1035,6 +1035,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       for (let i = 0; i < queue.length - 1; i++) ahead.set(queue[i]!, queue[i + 1]!);
     }
     const ringRoom = roundaboutRooms(movers);
+    const staleMovers = new Set<Mover>();
 
     for (const mover of movers) {
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
@@ -1080,7 +1081,17 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         if (mover.ride) continue;
       }
       const offset = offsetOf(mover);
-      const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
+      let sample: ReturnType<RoadGraph["pointAt"]>;
+      try {
+        sample = graph.pointAt(mover.segment.id, mover.distance);
+      } catch (error) {
+        if (!(error instanceof Error) || !error.message.startsWith("unknown segment:")) throw error;
+        staleMovers.add(mover);
+        leaveQueue(mover);
+        mover.mesh.dispose();
+        continue;
+      }
+      const { position, tangent } = sample;
       const normal = perpXZ(normalizeXZ(tangent));
       mover.mesh.position.set(
         position.x + normal.x * offset,
@@ -1090,6 +1101,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       face(mover, Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction), dt);
       if (beams && !mover.walk) aimBeam(beams[beam++], mover);
     }
+    if (staleMovers.size > 0) movers = movers.filter((mover) => !staleMovers.has(mover));
   });
 
   /** Puts a beam at the nose of its car, pointing the way the car faces and a little down. */
