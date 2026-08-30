@@ -201,11 +201,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   groundPadMaterial.backFaceCulling = false;
   groundPad.material = groundPadMaterial;
   const takenMaterial = new StandardMaterial("buildable-grid-taken", scene);
-  // disableLighting means diffuseColor is lit by (black) ambient and never shows -- every other
-  // unlit material in this codebase (streetlight glow, tunnel tube) drives its visible color
-  // through emissiveColor instead, and this one follows the same convention.
-  takenMaterial.diffuseColor = Color3.Black();
-  takenMaterial.emissiveColor = new Color3(0.95, 0.55, 0.2);
+  // Each filled cell carries its parcel's kind as a vertex colour, so the grid reads as the same
+  // zoning the buildings do. Unlit, that colour comes through the diffuse path (white here, so the
+  // vertex colour is what shows) rather than emissiveColor, which vertex colours never reach.
+  takenMaterial.diffuseColor = Color3.White();
+  takenMaterial.emissiveColor = Color3.Black();
   takenMaterial.specularColor = Color3.Black();
   takenMaterial.disableLighting = true;
   takenMaterial.alpha = 0.3;
@@ -261,8 +261,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     // shows which grid squares are taken and which are still open, instead of leaving the grid a
     // uniform outline that gives no hint why a building isn't sitting in some of its cells.
     taken?.dispose();
-    const takenCells = parcels.flatMap((parcel) => parcel.cells);
-    taken = takenCells.length ? takenCellsMesh(scene, takenCells) : null;
+    taken = parcels.length ? takenCellsMesh(scene, parcels) : null;
     if (taken) {
       taken.material = takenMaterial;
       taken.isPickable = false;
@@ -946,18 +945,26 @@ function buildingGroundPadMesh(scene: Scene): Mesh {
 }
 
 /** One quad per taken cell, merged into a single mesh -- a highlight, not a hundred draw calls. */
-function takenCellsMesh(scene: Scene, cells: readonly BuildableCell[]): Mesh {
+function takenCellsMesh(scene: Scene, parcels: readonly BuildingParcel[]): Mesh {
   const positions: number[] = [];
   const indices: number[] = [];
-  for (const cell of cells) {
-    const base = positions.length / 3;
-    for (const corner of cell.corners) positions.push(corner.x, corner.y + 0.1, corner.z);
-    indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  const colors: number[] = [];
+  for (const parcel of parcels) {
+    const [r, g, b] = BUILDING_KIND_COLOR[parcel.kind];
+    for (const cell of parcel.cells) {
+      const base = positions.length / 3;
+      for (const corner of cell.corners) {
+        positions.push(corner.x, corner.y + 0.1, corner.z);
+        colors.push(r, g, b, 1);
+      }
+      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    }
   }
   const mesh = new Mesh("buildable-grid-taken", scene);
   const data = new VertexData();
   data.positions = positions;
   data.indices = indices;
+  data.colors = colors;
   data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
   data.applyToMesh(mesh);
   return mesh;
