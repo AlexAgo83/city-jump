@@ -196,6 +196,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let taken: Mesh | null = null;
   let visible = true;
   let gridVisible = false;
+  // Roof props are created already opaque (see buildRoofProps), so this starts in sync with that
+  // -- the very first setFaded(false) is then correctly a no-op too, not just repeats of it.
+  let lastFaded = false;
   let lastPlaced = 0;
   let lastCells: readonly BuildableCell[] = [];
   let lastParcels: readonly BuildingParcel[] = [];
@@ -271,7 +274,12 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       for (const [i, parcel] of chosen.entries()) {
         matrixFor(parcel, model.centerX).copyToArray(matrices, i * 16);
       }
-      model.mesh.thinInstanceSetBuffer("matrix", matrices, 16);
+      // Non-static: this buffer's instance count changes on every rebuild, and Babylon's
+      // default (staticBuffer: true) left the GPU-side buffer sized for whichever rebuild
+      // created it first -- a later, bigger count then drew past the end of that buffer
+      // (a real "vertex buffer not big enough" GL error, silently dropping the draw for
+      // that model, which is what read as buildings losing their roof/trim on a tool switch).
+      model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
       model.mesh.thinInstanceCount = chosen.length;
       placed += chosen.length;
     }
@@ -316,7 +324,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       if (list.length === 0) continue;
       const buffer = new Float32Array(list.length * 16);
       list.forEach((m, i) => m.copyToArray(buffer, i * 16));
-      mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+      mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: count changes every rebuild
       mesh.thinInstanceCount = list.length;
     }
 
@@ -325,11 +333,18 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     return visible ? placed : 0;
   }
 
+  // The 16 lot models resolve over a few frames, and each used to trigger its own full rebuild --
+  // parcel bucketing, roof props and shadows over the *whole* city, once per model. On a small
+  // demo city that's unnoticeable; on a real, built-up one it stacked into a multi-second freeze
+  // as new models kept restarting the same city-wide pass. Debounced so the burst of arrivals
+  // collapses into one rebuild after they settle, the same pattern the dirty-edit path already uses.
+  let modelLoadRebuildTimer = 0;
   for (const id of BUILDING_MODELS) {
     void loadModel(scene, id, shadows, manifest.models[id]).then((model) => {
       if (!model) return;
       available.push(model);
-      rebuild(lastCells, lastParcels);
+      clearTimeout(modelLoadRebuildTimer);
+      modelLoadRebuildTimer = window.setTimeout(() => rebuild(lastCells, lastParcels), 50);
     });
   }
   const startupModelCount = available.length;
@@ -346,7 +361,13 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       taken?.setEnabled(next);
     },
     setFaded(faded: boolean) {
-      for (const model of available) setMaterialAlpha(model.mesh.material, 1);
+      // Buildings themselves stay permanently opaque (fading them briefly showed their trim as
+      // wireframe) -- only the roof props still fade. Every tool-bar click calls this, including
+      // repeats of the same faded value; reassigning transparencyMode even to the value it already
+      // has was enough to corrupt the thin-instance draw state on unrelated building meshes
+      // (buildings losing their roof/trim until a reload). Skip the no-op case entirely.
+      if (faded === lastFaded) return;
+      lastFaded = faded;
       for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
     count: () => (visible ? lastPlaced : 0),
@@ -623,6 +644,10 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
   } else if (lit.name.includes("_trim")) {
     lit.alpha = 1;
     lit.transparencyMode = Material.MATERIAL_OPAQUE;
+    // The trim sits a few centimetres from the wall/glass behind it -- close enough that depth
+    // precision flickers between them at distance or a grazing angle. Nudging trim toward the
+    // camera in the depth buffer settles which one wins instead of leaving it to flicker.
+    lit.zOffset = -2;
   }
   if (lit.ambientColor) lit.ambientColor = Color3.Black();
   if (lit.emissiveColor) lit.emissiveColor = Color3.Black();
@@ -650,6 +675,7 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.diffuseColor = new Color3(0.12, 0.15, 0.16);
     material.alpha = 1;
     material.transparencyMode = Material.MATERIAL_OPAQUE;
+    material.zOffset = -2;
   }
   if (!material.name.includes("_glass")) material.specularColor = Color3.Black();
   material.maxSimultaneousLights = 32;

@@ -332,6 +332,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       rebuild();
     },
     setFaded(next: boolean) {
+      // See buildings.ts's setFaded: reassigning transparencyMode to the value it already has,
+      // on every tool-bar click, was enough to corrupt unrelated thin-instanced meshes' draw state.
+      if (next === faded) return;
       faded = next;
       applyFade();
     },

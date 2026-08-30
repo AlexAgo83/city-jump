@@ -60,7 +60,7 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
         .multiply(Matrix.Translation(base.x, base.y + 0.03, base.z))
         .copyToArray(buffer, i * 16);
     }
-    mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+    mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: count changes every rebuild
     mesh.thinInstanceCount = bases.length;
   }
 

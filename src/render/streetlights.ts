@@ -183,7 +183,12 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   /** The Traffic view fades these back the same way it fades the road they stand beside. */
+  let lastFaded = false;
   function setFaded(faded: boolean): void {
+    // See buildings.ts's setFaded: reassigning transparencyMode to the value it already has, on
+    // every tool-bar click, was enough to corrupt unrelated thin-instanced meshes' draw state.
+    if (faded === lastFaded) return;
+    lastFaded = faded;
     const alpha = faded ? 0.35 : 1;
     for (const m of [metal, glow, glowWhite]) {
       m.alpha = alpha;
@@ -207,6 +212,6 @@ function applyInstances(mesh: Mesh, matrices: Matrix[]): void {
 
   const buffer = new Float32Array(matrices.length * 16);
   for (const [i, matrix] of matrices.entries()) matrix.copyToArray(buffer, i * 16);
-  mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+  mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: count changes every rebuild
   mesh.thinInstanceCount = matrices.length;
 }

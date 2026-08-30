@@ -178,7 +178,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.setMode(mode);
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
       const zoning = mode === "zone";
-      buildings.setVisible(zoning ? false : buildingsVisible);
+      buildings.setVisible(drawingRoads || zoning ? false : buildingsVisible);
       buildings.setGridVisible(drawingRoads || zoning);
       buildings.setFaded(drawingRoads);
       zoneOverlay.setVisible(zoning);
