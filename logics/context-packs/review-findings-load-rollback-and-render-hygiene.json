@@ -1,0 +1,440 @@
+{
+  "budgets": {
+    "max_docs": 24,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches item_023_one_node_version_and_an_autosave_that_admits_it_failed task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "sections": {
+        "Goals": [
+          "- A failed load is a no-op, not a destructive one.",
+          "- A storage failure is visible to the player at the moment it happens.",
+          "- Toggling what is visible costs what a visibility toggle should cost.",
+          "- The largest rendering files have unit coverage that runs on every push, not only in the on-demand browser suite.",
+          "- One Node version, resolved identically by CI and by the deploy."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted."
+        ],
+        "References": [
+          "- Product back-reference: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`",
+          "- Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that never loses the city on screen"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "review, findings, half, destroyed, city, failed, load, rebuild, config, test, hygiene",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ]
+      },
+      "path": "logics/request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md",
+      "ref": "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A load that fails part way through leaves the city exactly as it was before the load was attempted -- same graph, same plantings, same terrain, same rendered scene -- with the refusal message shown, and the failure is covered by an automated test that asserts the pre-load state survives.",
+          "- AC2: Toggling the buildings checkbox or switching the select view no longer triggers the parcel solve, terrain conformance, or a rebuild of renderers whose input has not changed; the visible result of each toggle is unchanged.",
+          "- AC3: The pure geometric decisions currently locked inside `src/render/` are exported as scene-free functions and covered by vitest unit tests, adding meaningful coverage to the largest untested files without introducing a Babylon dependency into the test run.",
+          "- AC4: The Node version has exactly one source of truth in the repository, and CI and the Render deploy demonstrably resolve to the same major version.",
+          "- AC5: A refused localStorage write during autosave is surfaced to the player rather than silently dropped.",
+          "- AC6: The existing layering constraints in `tests/architecture.mjs` still pass, and no existing check's assertions are weakened by this work."
+        ],
+        "Needs": [
+          "- A load that fails half way through destroys the city already on screen. `restoreCity` (`src/sim/save.ts`) clears the plantings and removes every existing segment BEFORE replaying the saved ones, and throws when the current rules refuse a segment or a node reference is missing. `loadCity` (`src/app/app.ts:168`) catches that throw, shows a refusal and returns `false` -- but the graph has already been emptied and the terrain already regenerated by `applyTerrain`. The player sees a refusal message over stale meshes, and the next edit autosaves the emptied graph over what they had.",
+          "- Toggling a checkbox pays for a full city resolve. `onBuildings` (`src/app/app.ts:141`) and `onSelectView` (`src/app/app.ts:146`) both call `rebuild()`, which runs `buildableCells` + `buildingParcels` (the app's own comment calls the parcel solve the most expensive step in there), `heightmap.conformToRoads`, and a rebuild of the ground, trees, world grid, roads, streetlights, traffic, signals and buildings -- when the only thing that changed is which meshes are visible.",
+          "- The rendering layer is ~3,500 lines with 37 lines of unit tests. `src/render/traffic.ts` (1,039 lines), `roadMesh.ts` (1,031) and `drawTool.ts` (533) are only exercised by the Playwright interaction suite and the visual shot script, both of which now run off the push trigger. The pure geometry inside them -- lane offsets, portal placement, snapping decisions -- is testable the same way `roofPropY` already is in `src/render/buildings.test.ts`, without a Babylon scene.",
+          "- The Node version has already drifted between its two sources of truth: `.nvmrc` says 22, `render.yaml` sets `NODE_VERSION` to 20. CI builds on 22, Render deploys on 20.",
+          "- `writeAutosave` (`src/ui/saves.ts:43`) returns `void` and swallows a refused localStorage write, unlike `writeSave` which returns a boolean the UI can act on. A full or disabled store means the player silently loses their session resume with nothing on screen saying so."
+        ]
+      },
+      "status": "Draft",
+      "title": "Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene"
+    },
+    {
+      "ai_context": {
+        "keywords": "review, findings, rebuild performance, redundant computation, quadratic scan, heightmap, tree placement",
+        "skip when": "implementing the browser-gate/demo-strictness/traffic-lookup/README work already captured in `req_003_review_findings_project_reliability` and `req_004_harden_project_reliability_gates_and_demo_evidence`, or the road-crossing behavior in `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`.",
+        "summary": "Code review of `rebuild()` and its downstream calls found one fully wasted computation (`conformToRoads` runs twice), one recent change that does the right thing at far more than the necessary cost (the per-junction ground-flatten loop added in `aa8167e`), and one quadratic tree-placement scan with no spatial index. None overlap the reliability findings already captured in `req_003`/`req_004`.",
+        "use when": "improving `rebuild()` cost, heightmap flattening cost, or tree-placement cost."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_014_stop_computing_conformtoroads_twice_per_rebuild",
+          "item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell",
+          "item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement"
+        ],
+        "req": [
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_003_review_findings_project_reliability",
+          "req_004_harden_project_reliability_gates_and_demo_evidence",
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work"
+        ]
+      },
+      "path": "logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md",
+      "ref": "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `rebuild()` computes the road/parcel-conformed heightmap exactly once per rebuild, not twice.",
+          "- AC2: The per-junction ground flatten produces the same visible result (verified against the existing e2e/unit coverage that exercises junction and roundabout terrain) while making a bounded number of `stamp()` calls per junction rather than one per interior grid point.",
+          "- AC3: Tree placement's road-proximity check does not re-scan every segment's sample array for every candidate site; the chosen approach (e.g. a spatial index, or a coarser precomputed occupancy grid) keeps `nearRoad`'s per-call cost independent of segment count as the map grows.",
+          "- AC4: This request does not duplicate or widen `req_001`, `req_003`, or `req_004`."
+        ],
+        "Needs": [
+          "- `rebuild()` should not compute the same expensive answer twice for no reason. `src/app/app.ts:53-54` calls `heightmap.conformToRoads(graph)` and then immediately `heightmap.conformToRoads(graph, parcels)`. `Heightmap.conformToRoads` (`src/sim/heightmap.ts:120-122`) starts by resetting `this.current` from `this.base` and `this.claim` to `Infinity`, then re-stamps every segment and junction from scratch -- the second call fully overwrites everything the first call produced, and nothing reads `heightmap` in between. `buildableCells`/`buildingParcels` (`src/sim/slots.ts`) do not read the heightmap at all, so there is no ordering reason for the first call either. The comment directly above these two lines (`src/app/app.ts:49-50`) calls this \"the most expensive step in here\" -- the code runs it twice anyway.",
+          "- The per-junction ground-flatten loop should not cost far more than the flattened shape needs. `src/sim/heightmap.ts:149-159` (added in `aa8167e`, this session) stamps a junction's disc by looping over every grid point inside `radius` and calling `stamp()` once per point with `half = step` (`step = max(1, cell/2)`), each `stamp()` call re-scanning its own bounding box. One `stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT)` call produces the same flatten-then-blend shape (`stamp`'s own `distance <= half` / smoothstep logic, `src/sim/heightmap.ts:180-186`, composes correctly across overlapping calls via `this.claim`) at a fraction of the cost. With this repo's actual constants (`GROUND_CELL = 8` in `src/render/ground.ts:14` so `cell/2 = 4`; `EMBANKMENT = 10`; avenue width 14 in `src/sim/roadTypes.ts` giving `roundaboutRadius = 14 * 1.7 = 23.8`), the current loop runs roughly 111 `stamp()` calls per junction touching roughly 25 cells each, versus one call touching roughly 75 cells directly -- about 35-40x more work than necessary, on every `rebuild()`, for every junction on the map.",
+          "- Tree placement should not re-scan every road segment's full sample array for every candidate site. `nearRoad()` (`src/render/trees.ts:300-311`) loops `graph.allSegments()` and, for each, steps through `segment.samples` to test proximity. It is called once per candidate tree position from `plant()` (`src/render/trees.ts:190-197`), itself driven by two nested grid loops over the whole map plus every forest-patch cell (`src/render/trees.ts:199-222`) -- thousands of candidate sites on a map sized `GROUND_SIZE = 5400` at grid step 58. There is no spatial index (grid/quadtree) caching road proximity, so this is a real per-`rebuild()` cost distinct from the already-tracked `traffic.ts` per-car-per-frame `find()` in `req_003`/`req_004` (that one runs every frame at runtime; this one runs once per `rebuild()` at edit time, but scales the same way as the map grows)."
+        ]
+      },
+      "status": "Done",
+      "title": "Review findings: redundant and quadratic rebuild work"
+    },
+    {
+      "ai_context": {
+        "keywords": "failed, city, load, instead, destructive",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one.md",
+      "ref": "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: After a load that throws mid-replay, the graph, plantings and terrain preset are identical to their pre-load values, and the refusal message is still shown.",
+          "- AC2: An automated test reproduces the mid-replay failure and asserts the pre-load state survives it."
+        ],
+        "Problem": [
+          "- `restoreCity` clears plantings and removes every segment before replaying the saved ones, then throws on a segment the current rules refuse or a missing node reference.",
+          "- `loadCity` catches the throw and returns false, but the graph is already emptied and `applyTerrain` has already regenerated the terrain -- the refusal is shown over a city that no longer exists in the model, and the next edit autosaves the emptied graph."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make a failed city load a no-op instead of a destructive one"
+    },
+    {
+      "ai_context": {
+        "keywords": "rebuilding, whole, city, visibility, toggle",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle.md",
+      "ref": "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Toggling buildings or switching the select view no longer runs `buildableCells`, `buildingParcels` or `conformToRoads`.",
+          "- AC2: Every select view and the buildings checkbox produce the same visible result as before the change, verified in the browser interaction or visual check."
+        ],
+        "Problem": [
+          "- `onBuildings` and `onSelectView` in `src/app/app.ts` call the full `rebuild()`, running the parcel solve, `conformToRoads` and every renderer's rebuild, when only mesh visibility and fading changed.",
+          "- The cost scales with city size, so the toggles get slower exactly on the cities where they matter most."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop rebuilding the whole city for a visibility toggle"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, load, rollback, rendering, hygiene, review, findings",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md",
+      "ref": "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement the load-rollback and rendering hygiene review findings"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city builder that never loses the city on screen"
+    },
+    {
+      "ai_context": {
+        "keywords": "unit, test, rendering, geometry, only, browser, suite, touches",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches.md",
+      "ref": "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Pure geometry from each of `traffic.ts`, `roadMesh.ts` and `drawTool.ts` is exported and covered by vitest tests that construct no Babylon scene.",
+          "- AC2: `npm test` still runs without a browser or GPU, and `tests/architecture.mjs` still passes."
+        ],
+        "Problem": [
+          "- `traffic.ts`, `roadMesh.ts` and `drawTool.ts` total ~2,600 lines and are covered only by the Playwright interaction suite and the visual shot script, neither of which runs on push any more.",
+          "- The geometric decisions inside them -- lane offsets, tunnel portal placement, snap target choice -- are pure maths that need no scene, exactly like `roofPropY` which is already unit-tested."
+        ]
+      },
+      "status": "Ready",
+      "title": "Unit-test the rendering geometry that only the browser suite touches"
+    },
+    {
+      "ai_context": {
+        "keywords": "node, version, autosave, admits, failed",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_023_one_node_version_and_an_autosave_that_admits_it_failed.md",
+      "ref": "item_023_one_node_version_and_an_autosave_that_admits_it_failed",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The repository declares the Node version in exactly one place, and both CI and the Render deploy use that major.",
+          "- AC2: A refused autosave write is surfaced to the player once, and a working store behaves exactly as before."
+        ],
+        "Problem": [
+          "- `.nvmrc` pins Node 22 while `render.yaml` sets `NODE_VERSION` to 20: CI builds on one major version and the deploy builds on another.",
+          "- `writeAutosave` returns void and swallows a refused localStorage write, so a full, disabled or private-mode store silently costs the player their session resume."
+        ]
+      },
+      "status": "Ready",
+      "title": "One Node version, and an autosave that admits it failed"
+    }
+  ],
+  "estimates": {
+    "char_count": 20738,
+    "companion_doc_count": 1,
+    "doc_count": 8
+  },
+  "generated_at": "2026-08-30T09:01:56Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+      "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+      "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+      "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+      "item_023_one_node_version_and_an_autosave_that_admits_it_failed",
+      "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene,item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one,item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle,item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches,item_023_one_node_version_and_an_autosave_that_admits_it_failed,task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings",
+  "refs": [
+    "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+    "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+    "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+    "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+    "item_023_one_node_version_and_an_autosave_that_admits_it_failed",
+    "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md",
+      "ref": "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+    }
+  ]
+}
