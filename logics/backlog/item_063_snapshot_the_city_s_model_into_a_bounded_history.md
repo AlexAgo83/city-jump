@@ -1,14 +1,14 @@
 ## item_063_snapshot_the_city_s_model_into_a_bounded_history - Snapshot the city's model into a bounded history
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:05:09
+> Indicators reviewed: 2026-08-30 18:17:01
 
 # AI Context
 - Summary: A bounded history of `CitySave` snapshots in `src/sim`, built on the existing serialize/restore rather than a second representation of a city. Snapshots before an operation log: less code, and the memory ceiling gets measured and marked with a `ponytail:` comment naming the upgrade path rather than assumed either way.
@@ -58,3 +58,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_021_let_the_player_take_back_the_last_thing_they_did`
+
+# Notes
+- Task `task_021_let_the_player_take_back_the_last_thing_they_did` was finished via `logics-manager flow finish task` on 2026-08-30.

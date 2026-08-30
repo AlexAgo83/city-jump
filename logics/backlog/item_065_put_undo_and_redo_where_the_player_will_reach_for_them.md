@@ -1,14 +1,14 @@
 ## item_065_put_undo_and_redo_where_the_player_will_reach_for_them - Put undo and redo where the player will reach for them
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:05:09
+> Indicators reviewed: 2026-08-30 18:17:01
 
 # AI Context
 - Summary: Toolbar controls plus Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z, joining the one existing `keydown` handler in `src/app/app.ts`, inert while a text field or browser prompt has focus. Nothing to undo says so through `showRefusal` rather than failing silently.
@@ -57,3 +57,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_021_let_the_player_take_back_the_last_thing_they_did`
+
+# Notes
+- Task `task_021_let_the_player_take_back_the_last_thing_they_did` was finished via `logics-manager flow finish task` on 2026-08-30.

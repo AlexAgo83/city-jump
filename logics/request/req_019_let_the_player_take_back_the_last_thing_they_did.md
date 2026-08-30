@@ -1,12 +1,13 @@
 ## req_019_let_the_player_take_back_the_last_thing_they_did - Let the player take back the last thing they did
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:17:00
 
 # AI Context
 - Summary: There is no undo: one bulldoze and five minutes of hand-shaped road is gone. The model already snapshots and restores itself all-or-nothing through `serializeCity`/`restoreCity`, so the machinery is nearly free. The work is deciding what one step is -- a spray burst and a zone stroke must each undo in one press -- and clearing every holder of a node or segment id, because `replayCity` renumbers on every restore.
