@@ -6,6 +6,7 @@
 > Related backlog: (none yet)
 > Related task: (none yet)
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:21:15
 
 # Trigger
 - A feature is implemented, the counters say it exists, and it is not on screen.
@@ -39,6 +40,6 @@ Once it is understood, prefer the fix that removes the class of bug over the one
 
 # References
 - `src/render/roadMesh.ts` -- the paving material's `backFaceCulling` comment and `MARK_LIFT`.
-- `src/sim/transfers.ts` -- `walkTransferPaths`, the single list the Traffic view draws, the pedestrians walk, and the paint is derived from.
+- `src/render/roadMesh.ts:659` -- `walkTransferPaths`, the single list the Traffic view draws, the pedestrians walk, and the crossing paint is derived from.
 - `src/render/debugApi.ts` -- the counters that separate "not computed" from "not rendered".
 - [[run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street]]
