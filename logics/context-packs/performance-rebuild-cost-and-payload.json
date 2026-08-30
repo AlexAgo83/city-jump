@@ -1,0 +1,674 @@
+{
+  "budgets": {
+    "max_docs": 36,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched item_027_ship_only_the_gltf_loader_features_the_models_actually_use item_028_draw_the_first_frame_without_waiting_on_all_20_building_models item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "sections": {
+        "Goals": [
+          "- Placing a road costs what that road changed, not what the whole city contains.",
+          "- The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+          "- The first load ships only the engine features the game actually uses.",
+          "- The first frame arrives without waiting on every building model in the catalogue.",
+          "- The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+          "- Rebuild and startup cost are measurable, so a regression is visible."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees."
+        ],
+        "References": [
+          "- Product back-reference: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`",
+          "- Task back-reference: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that stays responsive as the city grows"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "sections": {
+        "Goals": [
+          "- A failed load is a no-op, not a destructive one.",
+          "- A storage failure is visible to the player at the moment it happens.",
+          "- Toggling what is visible costs what a visibility toggle should cost.",
+          "- The largest rendering files have unit coverage that runs on every push, not only in the on-demand browser suite.",
+          "- One Node version, resolved identically by CI and by the deploy."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted.",
+          "```mermaid",
+          "flowchart LR",
+          "    Player[Player action] --> Load[Load a saved city]",
+          "    Player --> Toggle[Visibility toggle]",
+          "    Player --> Edit[Edit the road graph]"
+        ],
+        "References": [
+          "- Product back-reference: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`",
+          "- Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that never loses the city on screen"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "performance, road, placed, rebuilds, whole, city, first, load, ships, never, uses",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ]
+      },
+      "path": "logics/request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md",
+      "ref": "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Placing a road on a large city costs work proportional to what that placement actually changed, not to the size of the whole city -- the heightmap re-stamp, the ground refresh and the road mesh rebuild are all bounded to the affected region or the affected segments.",
+          "- AC2: A ground refresh no longer allocates a fresh multi-million-element array for normals, and no longer allocates constant colour objects per vertex; the terrain renders exactly as it does today.",
+          "- AC3: The eager first-load JavaScript payload no longer includes the gaussian splatting implementation or the other glTF extensions the project's models do not use, and every building model still loads and renders as it does today.",
+          "- AC4: The first frame no longer waits on all 20 building models being downloaded and post-processed; a restored city still shows the right building for every parcel.",
+          "- AC5: The traffic frame loop no longer rebuilds its queue grouping, string keys and sort order from scratch on every frame, and traffic behaves as it does today (queueing behind the car in front, stopping at lights, taking roundabouts).",
+          "- AC6: There is a repeatable way to see whether these costs regress -- a measurement captured against a known city, so a later change that puts the whole-city rebuild back is visible rather than invisible."
+        ],
+        "Needs": [
+          "- Placing one road costs a whole-city rebuild. `createDrawTool`'s `onCommitted` (`src/render/drawTool.ts:341`) runs `rebuild()` in `src/app/app.ts`, which resets and re-stamps the entire heightmap (`conformToRoads` starts with `current.set(this.base)` and `claim.fill(Infinity)`, then re-samples every segment in the graph), refreshes the whole ground mesh, disposes and recreates every road mesh (`roadMesh.ts:133`), disposes and re-instantiates every traffic mover, and rebuilds the buildable-grid line system. The cost of each placement scales with the size of the city already built, so a session's total cost grows quadratically with the number of placements.",
+          "- The ground refresh is the single heaviest step in that rebuild. `GROUND_SIZE 5400 / GROUND_CELL 8 + 1` gives a 676x676 grid: 456,976 vertices and 911,250 triangles, all re-walked on every rebuild. Normals are recomputed into a freshly allocated plain `number[]` of 1.37 million entries (measured at 15-30 ms per call under a warm V8, before any browser or GPU cost), and the two `updateVerticesData` calls re-upload roughly 5.5 MB of positions and 7.3 MB of colours each time.",
+          "- `terrainColor` (`src/render/ground.ts:249`) allocates four constant `Color4` objects plus two `Color4.Lerp` results on every call, and it is called once per vertex during `refresh` -- around 2.7 million short-lived objects per ground refresh, from four colours that never change.",
+          "- The first load ships 561 KB of gzipped JavaScript, 93 KB of which (17%) is the gaussian splatting mesh implementation the app never uses. `import \"@babylonjs/loaders/glTF\"` (`src/render/buildings.ts:1`) registers every glTF extension, pulling `gaussianSplattingMesh` (93 KB gz), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR material adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool` into the eager import graph. The project's own models are static, unanimated and untextured.",
+          "- The first frame waits on every building model. `createBuildingRenderer` (`src/render/buildings.ts:171`) `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, no Draco or meshopt, up to 250 KB for a single lot -- and `startApp` awaits it, then each model pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before anything renders.",
+          "- The traffic frame loop allocates per frame at 60 fps. `scene.registerBeforeRender` (`src/render/traffic.ts:937`) builds a queue `Map` keyed by a freshly interpolated string (`` `${segment.id}:${direction}:${lane.offset}` ``) for every car every frame, a second `ahead` Map, a sort per queue, and then `roundaboutRooms` which allocates another flatMap, Map and sort. Queue order only changes when a mover boards or arrives -- the model has no overtaking, as the code's own comment states."
+        ]
+      },
+      "status": "Draft",
+      "title": "Performance: every road placed rebuilds the whole city, and the first load ships what it never uses"
+    },
+    {
+      "ai_context": {
+        "keywords": "review, findings, rebuild performance, redundant computation, quadratic scan, heightmap, tree placement",
+        "skip when": "implementing the browser-gate/demo-strictness/traffic-lookup/README work already captured in `req_003_review_findings_project_reliability` and `req_004_harden_project_reliability_gates_and_demo_evidence`, or the road-crossing behavior in `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`.",
+        "summary": "Code review of `rebuild()` and its downstream calls found one fully wasted computation (`conformToRoads` runs twice), one recent change that does the right thing at far more than the necessary cost (the per-junction ground-flatten loop added in `aa8167e`), and one quadratic tree-placement scan with no spatial index. None overlap the reliability findings already captured in `req_003`/`req_004`.",
+        "use when": "improving `rebuild()` cost, heightmap flattening cost, or tree-placement cost."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_014_stop_computing_conformtoroads_twice_per_rebuild",
+          "item_015_stamp_junction_ground_flatten_once_instead_of_per_grid_cell",
+          "item_016_avoid_the_quadratic_road_proximity_scan_in_tree_placement"
+        ],
+        "req": [
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_003_review_findings_project_reliability",
+          "req_004_harden_project_reliability_gates_and_demo_evidence",
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work"
+        ]
+      },
+      "path": "logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md",
+      "ref": "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `rebuild()` computes the road/parcel-conformed heightmap exactly once per rebuild, not twice.",
+          "- AC2: The per-junction ground flatten produces the same visible result (verified against the existing e2e/unit coverage that exercises junction and roundabout terrain) while making a bounded number of `stamp()` calls per junction rather than one per interior grid point.",
+          "- AC3: Tree placement's road-proximity check does not re-scan every segment's sample array for every candidate site; the chosen approach (e.g. a spatial index, or a coarser precomputed occupancy grid) keeps `nearRoad`'s per-call cost independent of segment count as the map grows.",
+          "- AC4: This request does not duplicate or widen `req_001`, `req_003`, or `req_004`."
+        ],
+        "Needs": [
+          "- `rebuild()` should not compute the same expensive answer twice for no reason. `src/app/app.ts:53-54` calls `heightmap.conformToRoads(graph)` and then immediately `heightmap.conformToRoads(graph, parcels)`. `Heightmap.conformToRoads` (`src/sim/heightmap.ts:120-122`) starts by resetting `this.current` from `this.base` and `this.claim` to `Infinity`, then re-stamps every segment and junction from scratch -- the second call fully overwrites everything the first call produced, and nothing reads `heightmap` in between. `buildableCells`/`buildingParcels` (`src/sim/slots.ts`) do not read the heightmap at all, so there is no ordering reason for the first call either. The comment directly above these two lines (`src/app/app.ts:49-50`) calls this \"the most expensive step in here\" -- the code runs it twice anyway.",
+          "- The per-junction ground-flatten loop should not cost far more than the flattened shape needs. `src/sim/heightmap.ts:149-159` (added in `aa8167e`, this session) stamps a junction's disc by looping over every grid point inside `radius` and calling `stamp()` once per point with `half = step` (`step = max(1, cell/2)`), each `stamp()` call re-scanning its own bounding box. One `stamp(node.pos.x, node.pos.z, node.pos.y, radius, radius + EMBANKMENT)` call produces the same flatten-then-blend shape (`stamp`'s own `distance <= half` / smoothstep logic, `src/sim/heightmap.ts:180-186`, composes correctly across overlapping calls via `this.claim`) at a fraction of the cost. With this repo's actual constants (`GROUND_CELL = 8` in `src/render/ground.ts:14` so `cell/2 = 4`; `EMBANKMENT = 10`; avenue width 14 in `src/sim/roadTypes.ts` giving `roundaboutRadius = 14 * 1.7 = 23.8`), the current loop runs roughly 111 `stamp()` calls per junction touching roughly 25 cells each, versus one call touching roughly 75 cells directly -- about 35-40x more work than necessary, on every `rebuild()`, for every junction on the map.",
+          "- Tree placement should not re-scan every road segment's full sample array for every candidate site. `nearRoad()` (`src/render/trees.ts:300-311`) loops `graph.allSegments()` and, for each, steps through `segment.samples` to test proximity. It is called once per candidate tree position from `plant()` (`src/render/trees.ts:190-197`), itself driven by two nested grid loops over the whole map plus every forest-patch cell (`src/render/trees.ts:199-222`) -- thousands of candidate sites on a map sized `GROUND_SIZE = 5400` at grid step 58. There is no spatial index (grid/quadtree) caching road proximity, so this is a real per-`rebuild()` cost distinct from the already-tracked `traffic.ts` per-car-per-frame `find()` in `req_003`/`req_004` (that one runs every frame at runtime; this one runs once per `rebuild()` at edit time, but scales the same way as the map grows)."
+        ]
+      },
+      "status": "Done",
+      "title": "Review findings: redundant and quadratic rebuild work"
+    },
+    {
+      "ai_context": {
+        "keywords": "review, findings, half, destroyed, city, failed, load, rebuild, config, test, hygiene",
+        "skip when": "The work is about redundant computation inside `rebuild()` itself (that is req_005, Done), the save format or `parseCity` validation rules, or gameplay and visual behaviour.",
+        "summary": "Five findings from a repo review of city-jump 0.2.0: a failed load empties the graph it was meant to replace, visibility toggles trigger a full city resolve, the three largest render files have no unit coverage, `.nvmrc` and `render.yaml` disagree on the Node major, and a refused autosave write is swallowed.",
+        "use when": "Working on save/load durability, the cost of a UI toggle in `src/app/app.ts`, unit coverage for `src/render/`, or the Node version pinned for CI and the Render deploy."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ]
+      },
+      "path": "logics/request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md",
+      "ref": "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A load that fails part way through leaves the city exactly as it was before the load was attempted -- same graph, same plantings, same terrain, same rendered scene -- with the refusal message shown, and the failure is covered by an automated test that asserts the pre-load state survives.",
+          "- AC2: Toggling the buildings checkbox or switching the select view no longer triggers the parcel solve, terrain conformance, or a rebuild of renderers whose input has not changed; the visible result of each toggle is unchanged.",
+          "- AC3: The pure geometric decisions currently locked inside `src/render/` are exported as scene-free functions and covered by vitest unit tests, adding meaningful coverage to the largest untested files without introducing a Babylon dependency into the test run.",
+          "- AC4: The Node version has exactly one source of truth in the repository, and CI and the Render deploy demonstrably resolve to the same major version.",
+          "- AC5: A refused localStorage write during autosave is surfaced to the player rather than silently dropped.",
+          "- AC6: The existing layering constraints in `tests/architecture.mjs` still pass, and no existing check's assertions are weakened by this work."
+        ],
+        "Needs": [
+          "- A load that fails half way through destroys the city already on screen. `restoreCity` (`src/sim/save.ts`) clears the plantings and removes every existing segment BEFORE replaying the saved ones, and throws when the current rules refuse a segment or a node reference is missing. `loadCity` (`src/app/app.ts:168`) catches that throw, shows a refusal and returns `false` -- but the graph has already been emptied and the terrain already regenerated by `applyTerrain`. The player sees a refusal message over stale meshes, and the next edit autosaves the emptied graph over what they had.",
+          "- Toggling a checkbox pays for a full city resolve. `onBuildings` (`src/app/app.ts:141`) and `onSelectView` (`src/app/app.ts:146`) both call `rebuild()`, which runs `buildableCells` + `buildingParcels` (the app's own comment calls the parcel solve the most expensive step in there), `heightmap.conformToRoads`, and a rebuild of the ground, trees, world grid, roads, streetlights, traffic, signals and buildings -- when the only thing that changed is which meshes are visible.",
+          "- The rendering layer is ~3,500 lines with 37 lines of unit tests. `src/render/traffic.ts` (1,039 lines), `roadMesh.ts` (1,031) and `drawTool.ts` (533) are only exercised by the Playwright interaction suite and the visual shot script, both of which now run off the push trigger. The pure geometry inside them -- lane offsets, portal placement, snapping decisions -- is testable the same way `roofPropY` already is in `src/render/buildings.test.ts`, without a Babylon scene.",
+          "- The Node version has already drifted between its two sources of truth: `.nvmrc` says 22, `render.yaml` sets `NODE_VERSION` to 20. CI builds on 22, Render deploys on 20.",
+          "- `writeAutosave` (`src/ui/saves.ts:43`) returns `void` and swallows a refused localStorage write, unlike `writeSave` which returns a boolean the UI can act on. A full or disabled store means the player silently loses their session resume with nothing on screen saying so."
+        ]
+      },
+      "status": "Draft",
+      "title": "Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene"
+    },
+    {
+      "ai_context": {
+        "keywords": "ground, refresh, allocating, per, vertex, rebuild",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild.md",
+      "ref": "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `terrainColor` allocates no constant colour objects per call, and `refresh` reuses a preallocated buffer for normals rather than allocating one per call.",
+          "- AC2: The rendered terrain is visually unchanged, confirmed by the visual shot check."
+        ],
+        "Problem": [
+          "- `terrainColor` builds four constant `Color4` objects and two `Color4.Lerp` results on every call, and `refresh` calls it once per vertex across 456,976 vertices -- roughly 2.7 million throwaway objects per rebuild, from colours that never change.",
+          "- `refresh` allocates a fresh `number[]` for `VertexData.ComputeNormals` on every call: 1.37 million entries, benchmarked at 15-30 ms under a warm V8 before any browser or GPU cost."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop the ground refresh allocating per vertex and per rebuild"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, rebuild, granularity, startup, payload, performance, work",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md",
+      "ref": "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement the rebuild-granularity and startup-payload performance work"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city builder that stays responsive as the city grows"
+    },
+    {
+      "ai_context": {
+        "keywords": "bound, terrain, stamp, ground, refresh, region, placement, changed",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed.md",
+      "ref": "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Placing one road re-stamps and re-uploads only the affected region; a full-map path still exists and runs for terrain regeneration, city load and initial build.",
+          "- AC2: A test asserts the incrementally conformed heightmap matches a full `conformToRoads` for the same city, so the shortcut cannot silently diverge.",
+          "- AC3: The terrain is visually unchanged, confirmed by the visual shot check."
+        ],
+        "Problem": [
+          "- `conformToRoads` resets the whole heightmap (`current.set(this.base)`, `claim.fill(Infinity)`) and re-samples every segment in the graph on every rebuild.",
+          "- `ground.refresh` re-walks all 456,976 vertices and re-uploads ~5.5 MB of positions and ~7.3 MB of colours, even when a single short road changed a few hundred cells.",
+          "- Together they make one placement cost O(city size), so a session's total cost grows quadratically with the number of placements."
+        ]
+      },
+      "status": "Ready",
+      "title": "Bound the terrain re-stamp and ground refresh to the region a placement changed"
+    },
+    {
+      "ai_context": {
+        "keywords": "rebuild, only, road, meshes, movers, placement, touched",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched.md",
+      "ref": "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Placing or removing a road rebuilds only the affected segments' meshes and movers, plus the neighbours whose junction geometry changed.",
+          "- AC2: Roads, junctions and traffic look and behave as they do today, confirmed by the browser interaction and visual checks."
+        ],
+        "Problem": [
+          "- `roadMesh.rebuild` disposes every road mesh and recreates the lot on each rebuild, so drawing the Nth segment redraws N segments.",
+          "- `traffic.rebuild` disposes every mover and re-instantiates the whole population for the same reason, discarding cars that were mid-journey on roads nothing touched."
+        ]
+      },
+      "status": "Ready",
+      "title": "Rebuild only the road meshes and movers a placement touched"
+    },
+    {
+      "ai_context": {
+        "keywords": "ship, only, gltf, loader, features, models, actually",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_027_ship_only_the_gltf_loader_features_the_models_actually_use.md",
+      "ref": "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The eager first-load payload no longer contains the gaussian splatting implementation or the other unused glTF extensions, and the before/after gzipped sizes are recorded.",
+          "- AC2: All 20 building models still load and render correctly, confirmed by the visual and interaction checks."
+        ],
+        "Problem": [
+          "- `import \"@babylonjs/loaders/glTF\"` registers every glTF extension, so the eager bundle carries `gaussianSplattingMesh` (93 KB gz, 17% of the 561 KB gz first load), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool`.",
+          "- The project's own models are static, unanimated and untextured, so none of that is reachable at runtime."
+        ]
+      },
+      "status": "Ready",
+      "title": "Ship only the glTF loader features the models actually use"
+    },
+    {
+      "ai_context": {
+        "keywords": "draw, first, frame, waiting, all, building, models",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_028_draw_the_first_frame_without_waiting_on_all_20_building_models.md",
+      "ref": "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The first frame renders without waiting on all 20 models, and the models appear as they become available.",
+          "- AC2: A city loaded from a save ends up with the correct building on every parcel, confirmed by the interaction check."
+        ],
+        "Problem": [
+          "- `createBuildingRenderer` `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, up to 250 KB for one lot, no Draco or meshopt -- and `startApp` awaits it before anything renders.",
+          "- Each model then pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before the first frame."
+        ]
+      },
+      "status": "Ready",
+      "title": "Draw the first frame without waiting on all 20 building models"
+    },
+    {
+      "ai_context": {
+        "keywords": "rebuilding, traffic, queue, bookkeeping, frame",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame.md",
+      "ref": "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The frame loop no longer regroups and re-sorts every lane queue from scratch on each frame, and allocates no per-mover string key per frame.",
+          "- AC2: Traffic behaves as it does today -- cars queue behind the car in front, hold at red lights, and take roundabouts -- confirmed by the browser interaction check."
+        ],
+        "Problem": [
+          "- The `registerBeforeRender` loop builds a queue `Map` keyed by an interpolated string per car per frame, a second `ahead` Map, a sort per queue, and a further flatMap/Map/sort inside `roundaboutRooms` -- at 60 fps.",
+          "- Queue order only changes when a mover boards or arrives; the model has no overtaking, so almost all of that work reproduces the previous frame's answer.",
+          "- `armOf` does a linear `find` over a junction's arms and is called several times per car per frame through `limitOf`, `stopFor` and `stopLineOf`."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop rebuilding the traffic queue bookkeeping every frame"
+    },
+    {
+      "ai_context": {
+        "keywords": "rebuild, startup, cost, measurable, against, known, city",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/backlog/item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city.md",
+      "ref": "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A repeatable measurement of one road placement's cost and of time to first frame can be taken against the bundled Demo save through the existing debug surface.",
+          "- AC2: A baseline is recorded before the other items land, so their effect and any later regression are both visible.",
+          "- AC3: The measurement is off by default and costs nothing in a normal session."
+        ],
+        "Problem": [
+          "- There is no way to see whether a change made a rebuild cheaper or put the whole-city cost back; the findings in this request had to be derived by reading the code and benchmarking by hand.",
+          "- The debug surface already reports scene counts, but nothing reports what a placement costs."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make rebuild and startup cost measurable against a known city"
+    }
+  ],
+  "estimates": {
+    "char_count": 36080,
+    "companion_doc_count": 2,
+    "doc_count": 12
+  },
+  "generated_at": "2026-08-30T09:08:39Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+      "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+      "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+      "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+      "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+      "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+      "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+      "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city",
+      "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses,item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild,item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed,item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched,item_027_ship_only_the_gltf_loader_features_the_models_actually_use,item_028_draw_the_first_frame_without_waiting_on_all_20_building_models,item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame,item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city,task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work",
+  "refs": [
+    "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+    "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+    "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+    "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+    "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+    "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+    "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+    "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city",
+    "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md",
+      "ref": "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+    }
+  ]
+}

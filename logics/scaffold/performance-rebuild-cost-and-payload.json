@@ -1,0 +1,257 @@
+{
+  "title": "Performance: every road placed rebuilds the whole city, and the first load ships what it never uses",
+  "references": [
+    "src/render/ground.ts",
+    "src/render/roadMesh.ts",
+    "src/render/traffic.ts",
+    "src/render/buildings.ts",
+    "src/render/drawTool.ts",
+    "src/sim/heightmap.ts",
+    "src/app/app.ts",
+    "logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md",
+    "logics/request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "Performance",
+    "needs": [
+      "Placing one road costs a whole-city rebuild. `createDrawTool`'s `onCommitted` (`src/render/drawTool.ts:341`) runs `rebuild()` in `src/app/app.ts`, which resets and re-stamps the entire heightmap (`conformToRoads` starts with `current.set(this.base)` and `claim.fill(Infinity)`, then re-samples every segment in the graph), refreshes the whole ground mesh, disposes and recreates every road mesh (`roadMesh.ts:133`), disposes and re-instantiates every traffic mover, and rebuilds the buildable-grid line system. The cost of each placement scales with the size of the city already built, so a session's total cost grows quadratically with the number of placements.",
+      "The ground refresh is the single heaviest step in that rebuild. `GROUND_SIZE 5400 / GROUND_CELL 8 + 1` gives a 676x676 grid: 456,976 vertices and 911,250 triangles, all re-walked on every rebuild. Normals are recomputed into a freshly allocated plain `number[]` of 1.37 million entries (measured at 15-30 ms per call under a warm V8, before any browser or GPU cost), and the two `updateVerticesData` calls re-upload roughly 5.5 MB of positions and 7.3 MB of colours each time.",
+      "`terrainColor` (`src/render/ground.ts:249`) allocates four constant `Color4` objects plus two `Color4.Lerp` results on every call, and it is called once per vertex during `refresh` -- around 2.7 million short-lived objects per ground refresh, from four colours that never change.",
+      "The first load ships 561 KB of gzipped JavaScript, 93 KB of which (17%) is the gaussian splatting mesh implementation the app never uses. `import \"@babylonjs/loaders/glTF\"` (`src/render/buildings.ts:1`) registers every glTF extension, pulling `gaussianSplattingMesh` (93 KB gz), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR material adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool` into the eager import graph. The project's own models are static, unanimated and untextured.",
+      "The first frame waits on every building model. `createBuildingRenderer` (`src/render/buildings.ts:171`) `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, no Draco or meshopt, up to 250 KB for a single lot -- and `startApp` awaits it, then each model pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before anything renders.",
+      "The traffic frame loop allocates per frame at 60 fps. `scene.registerBeforeRender` (`src/render/traffic.ts:937`) builds a queue `Map` keyed by a freshly interpolated string (`` `${segment.id}:${direction}:${lane.offset}` ``) for every car every frame, a second `ahead` Map, a sort per queue, and then `roundaboutRooms` which allocates another flatMap, Map and sort. Queue order only changes when a mover boards or arrives -- the model has no overtaking, as the code's own comment states."
+    ],
+    "context": [
+      "These findings come from a performance-focused review of city-jump 0.2.0, measured against the repository: vertex and triangle counts derived from `GROUND_SIZE`/`GROUND_CELL`, normal-recompute timing benchmarked directly, and bundle attribution taken chunk by chunk from a real `npm run build` output.",
+      "`req_005_review_findings_redundant_and_quadratic_rebuild_work` (Done) removed redundant and quadratic work from inside `rebuild()`. This request is about the granularity of the rebuild itself -- how much of the city a single placement should touch -- and about payload and per-frame cost, none of which req_005 covered.",
+      "`req_007`'s `item_021` stops visibility toggles from calling `rebuild()` at all. That is a different trigger: this request is about what `rebuild()` costs when it genuinely does need to run, after a road is actually placed. The two are complementary and neither supersedes the other.",
+      "The rendering layer already does the expensive things well: thin instances for buildings, trees and ground shadows; a `ClusteredLightContainer` for headlights and streetlights; junction geometry, rings and signal cycles memoised per node; `alwaysSelectAsActiveMesh` where frustum culling cannot help; a 1024 CSM at QUALITY_LOW. The problem is rebuild granularity and startup payload, not the rendering approach.",
+      "Any change here has to keep the visual result identical -- the terrain conformance, road surfaces, traffic and buildings must look the same as they do today, which the visual shot script and the browser interaction suite are the tools for confirming."
+    ],
+    "acceptance_criteria": [
+      "AC1: Placing a road on a large city costs work proportional to what that placement actually changed, not to the size of the whole city -- the heightmap re-stamp, the ground refresh and the road mesh rebuild are all bounded to the affected region or the affected segments.",
+      "AC2: A ground refresh no longer allocates a fresh multi-million-element array for normals, and no longer allocates constant colour objects per vertex; the terrain renders exactly as it does today.",
+      "AC3: The eager first-load JavaScript payload no longer includes the gaussian splatting implementation or the other glTF extensions the project's models do not use, and every building model still loads and renders as it does today.",
+      "AC4: The first frame no longer waits on all 20 building models being downloaded and post-processed; a restored city still shows the right building for every parcel.",
+      "AC5: The traffic frame loop no longer rebuilds its queue grouping, string keys and sort order from scratch on every frame, and traffic behaves as it does today (queueing behind the car in front, stopping at lights, taking roundabouts).",
+      "AC6: There is a repeatable way to see whether these costs regress -- a measurement captured against a known city, so a later change that puts the whole-city rebuild back is visible rather than invisible.",
+      "AC7: The existing checks still pass unchanged: unit tests, architecture tests, typecheck, build, and the browser interaction and visual checks confirming the city looks the same."
+    ]
+  },
+  "product": {
+    "title": "A city builder that stays responsive as the city grows",
+    "overview": "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees.",
+    "goals": [
+      "Placing a road costs what that road changed, not what the whole city contains.",
+      "The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+      "The first load ships only the engine features the game actually uses.",
+      "The first frame arrives without waiting on every building model in the catalogue.",
+      "The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+      "Rebuild and startup cost are measurable, so a regression is visible."
+    ],
+    "non_goals": [
+      "Changing how the city looks: terrain, roads, traffic and buildings must render identically.",
+      "Reopening req_005's work inside `rebuild()`, or req_007's visibility-toggle and load-rollback scope.",
+      "Lowering terrain resolution, shadow quality, traffic density or model detail to buy speed.",
+      "Introducing a web worker, a new rendering engine, or a level-of-detail system.",
+      "Chasing a benchmark number for its own sake beyond the regression signal in AC6."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Stop the ground refresh allocating per vertex and per rebuild",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Performance",
+      "request_acs": ["AC2", "AC7"],
+      "problem": [
+        "`terrainColor` builds four constant `Color4` objects and two `Color4.Lerp` results on every call, and `refresh` calls it once per vertex across 456,976 vertices -- roughly 2.7 million throwaway objects per rebuild, from colours that never change.",
+        "`refresh` allocates a fresh `number[]` for `VertexData.ComputeNormals` on every call: 1.37 million entries, benchmarked at 15-30 ms under a warm V8 before any browser or GPU cost."
+      ],
+      "scope_in": [
+        "Hoist the constant colours in `terrainColor` to module scope and write the result into the existing colour buffer without allocating intermediates per vertex.",
+        "Reuse a preallocated typed array for the normals instead of a new plain array per refresh.",
+        "Confirm the terrain renders identically with the visual check."
+      ],
+      "scope_out": [
+        "Narrowing which vertices are refreshed -- that is the dirty-region item.",
+        "Changing the terrain palette, the heightmap resolution, or the shading."
+      ],
+      "acceptance_criteria": [
+        "AC1: `terrainColor` allocates no constant colour objects per call, and `refresh` reuses a preallocated buffer for normals rather than allocating one per call.",
+        "AC2: The rendered terrain is visually unchanged, confirmed by the visual shot check."
+      ]
+    },
+    {
+      "title": "Bound the terrain re-stamp and ground refresh to the region a placement changed",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": ["AC1", "AC6", "AC7"],
+      "problem": [
+        "`conformToRoads` resets the whole heightmap (`current.set(this.base)`, `claim.fill(Infinity)`) and re-samples every segment in the graph on every rebuild.",
+        "`ground.refresh` re-walks all 456,976 vertices and re-uploads ~5.5 MB of positions and ~7.3 MB of colours, even when a single short road changed a few hundred cells.",
+        "Together they make one placement cost O(city size), so a session's total cost grows quadratically with the number of placements."
+      ],
+      "scope_in": [
+        "Track the region a rebuild actually invalidated (the placed or removed segments' bounds plus the embankment and junction reach) and restrict the heightmap re-stamp and the ground vertex/colour refresh to it.",
+        "Keep a whole-map path for the cases that genuinely need one: terrain regeneration, loading a city, and the initial build.",
+        "Confirm the conformed terrain is identical to what a full re-stamp produces for the same city, with a test that compares the two."
+      ],
+      "scope_out": [
+        "Reducing the heightmap resolution or the ground mesh size.",
+        "A level-of-detail or chunked terrain system.",
+        "Moving terrain work off the main thread."
+      ],
+      "acceptance_criteria": [
+        "AC1: Placing one road re-stamps and re-uploads only the affected region; a full-map path still exists and runs for terrain regeneration, city load and initial build.",
+        "AC2: A test asserts the incrementally conformed heightmap matches a full `conformToRoads` for the same city, so the shortcut cannot silently diverge.",
+        "AC3: The terrain is visually unchanged, confirmed by the visual shot check."
+      ]
+    },
+    {
+      "title": "Rebuild only the road meshes and movers a placement touched",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": ["AC1", "AC7"],
+      "problem": [
+        "`roadMesh.rebuild` disposes every road mesh and recreates the lot on each rebuild, so drawing the Nth segment redraws N segments.",
+        "`traffic.rebuild` disposes every mover and re-instantiates the whole population for the same reason, discarding cars that were mid-journey on roads nothing touched."
+      ],
+      "scope_in": [
+        "Keep per-segment meshes keyed by segment id and rebuild only the segments whose geometry changed, including the neighbours whose junction trims moved.",
+        "Do the same for traffic movers: preserve the movers on untouched segments rather than disposing the population wholesale.",
+        "Keep the full-rebuild path for loading a city and for terrain regeneration."
+      ],
+      "scope_out": [
+        "Changing road or vehicle appearance, lane geometry, or traffic behaviour.",
+        "The per-frame traffic loop, which is its own item."
+      ],
+      "acceptance_criteria": [
+        "AC1: Placing or removing a road rebuilds only the affected segments' meshes and movers, plus the neighbours whose junction geometry changed.",
+        "AC2: Roads, junctions and traffic look and behave as they do today, confirmed by the browser interaction and visual checks."
+      ]
+    },
+    {
+      "title": "Ship only the glTF loader features the models actually use",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": ["AC3", "AC7"],
+      "problem": [
+        "`import \"@babylonjs/loaders/glTF\"` registers every glTF extension, so the eager bundle carries `gaussianSplattingMesh` (93 KB gz, 17% of the 561 KB gz first load), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool`.",
+        "The project's own models are static, unanimated and untextured, so none of that is reachable at runtime."
+      ],
+      "scope_in": [
+        "Import the glTF 2.0 loader directly and register only the extensions the project's GLBs actually declare.",
+        "Verify against the shipped models that nothing needed was dropped -- every building still loads and renders.",
+        "Record the before and after eager gzipped payload."
+      ],
+      "scope_out": [
+        "Switching model format, or re-authoring the GLBs.",
+        "Adding Draco or meshopt compression, which belongs with the startup item."
+      ],
+      "acceptance_criteria": [
+        "AC1: The eager first-load payload no longer contains the gaussian splatting implementation or the other unused glTF extensions, and the before/after gzipped sizes are recorded.",
+        "AC2: All 20 building models still load and render correctly, confirmed by the visual and interaction checks."
+      ]
+    },
+    {
+      "title": "Draw the first frame without waiting on all 20 building models",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": ["AC4", "AC7"],
+      "problem": [
+        "`createBuildingRenderer` `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, up to 250 KB for one lot, no Draco or meshopt -- and `startApp` awaits it before anything renders.",
+        "Each model then pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before the first frame."
+      ],
+      "scope_in": [
+        "Let the scene render before every model is ready: load models so the first frame is not gated on the full catalogue, and fill in buildings as their model arrives.",
+        "Consider compressing the models, or at least confirm the largest ones are not carrying geometry the game never shows.",
+        "Keep a restored city correct: every parcel ends up with the building it should have."
+      ],
+      "scope_out": [
+        "Reducing model detail or replacing the models.",
+        "A loading screen or progress UI as a substitute for actually loading less."
+      ],
+      "acceptance_criteria": [
+        "AC1: The first frame renders without waiting on all 20 models, and the models appear as they become available.",
+        "AC2: A city loaded from a save ends up with the correct building on every parcel, confirmed by the interaction check."
+      ]
+    },
+    {
+      "title": "Stop rebuilding the traffic queue bookkeeping every frame",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": ["AC5", "AC7"],
+      "problem": [
+        "The `registerBeforeRender` loop builds a queue `Map` keyed by an interpolated string per car per frame, a second `ahead` Map, a sort per queue, and a further flatMap/Map/sort inside `roundaboutRooms` -- at 60 fps.",
+        "Queue order only changes when a mover boards or arrives; the model has no overtaking, so almost all of that work reproduces the previous frame's answer.",
+        "`armOf` does a linear `find` over a junction's arms and is called several times per car per frame through `limitOf`, `stopFor` and `stopLineOf`."
+      ],
+      "scope_in": [
+        "Maintain the lane queues incrementally, updating them when a mover boards or arrives rather than regrouping and re-sorting every frame.",
+        "Replace the per-frame string keys with something that does not allocate.",
+        "Give `armOf` a per-junction lookup by segment id instead of a linear scan."
+      ],
+      "scope_out": [
+        "Changing traffic behaviour: queueing, light obedience, roundabout entry and lane changes must be unchanged.",
+        "Changing traffic density or the vehicle meshes."
+      ],
+      "acceptance_criteria": [
+        "AC1: The frame loop no longer regroups and re-sorts every lane queue from scratch on each frame, and allocates no per-mover string key per frame.",
+        "AC2: Traffic behaves as it does today -- cars queue behind the car in front, hold at red lights, and take roundabouts -- confirmed by the browser interaction check."
+      ]
+    },
+    {
+      "title": "Make rebuild and startup cost measurable against a known city",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": ["AC6", "AC7"],
+      "problem": [
+        "There is no way to see whether a change made a rebuild cheaper or put the whole-city cost back; the findings in this request had to be derived by reading the code and benchmarking by hand.",
+        "The debug surface already reports scene counts, but nothing reports what a placement costs."
+      ],
+      "scope_in": [
+        "Capture a repeatable measurement against a known city -- the bundled Demo save is the obvious subject -- covering the cost of one road placement and the time to first frame.",
+        "Expose it through the existing browser debug surface rather than a new tool, and record a baseline the other items in this request can be compared against.",
+        "Keep it cheap enough to leave switched off by default."
+      ],
+      "scope_out": [
+        "A CI performance gate that fails a build on a timing threshold -- shared runners are too noisy for that.",
+        "A profiling UI, a flamegraph viewer, or a new dependency."
+      ],
+      "acceptance_criteria": [
+        "AC1: A repeatable measurement of one road placement's cost and of time to first frame can be taken against the bundled Demo save through the existing debug surface.",
+        "AC2: A baseline is recorded before the other items land, so their effect and any later regression are both visible.",
+        "AC3: The measurement is off by default and costs nothing in a normal session."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement the rebuild-granularity and startup-payload performance work",
+    "plan": [
+      "Read this request and its seven backlog slices; confirm req_005's rebuild internals and req_007's toggle/load scope stay closed and untouched.",
+      "Build the measurement first, and record the baseline -- every item after this one is judged against it.",
+      "Take the two cheap allocation fixes in the ground refresh, and re-measure.",
+      "Bound the heightmap re-stamp and ground refresh to the changed region, with the test that pins it to the full-map result.",
+      "Narrow the road mesh and traffic rebuilds to the segments a placement touched.",
+      "Trim the glTF loader to the extensions the models use, and record the before/after payload.",
+      "Unblock the first frame from the full model catalogue.",
+      "Make the traffic frame loop stop rebuilding its queue bookkeeping every frame.",
+      "Run the fast gate, then the browser interaction and visual checks, and confirm the city is visually identical throughout.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/performance-rebuild-cost-and-payload.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

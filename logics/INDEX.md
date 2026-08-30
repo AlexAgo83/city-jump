@@ -16,6 +16,7 @@
 | [prod_002_reliable_prototype_validation_and_evidence](product/prod_002_reliable_prototype_validation_and_evidence.md) | Reliable prototype validation and evidence | Settled |  |  | product/prod_002_reliable_prototype_validation_and_evidence.md |
 | [prod_003_ci_that_respects_a_limited_actions_budget](product/prod_003_ci_that_respects_a_limited_actions_budget.md) | CI that respects a limited Actions budget | Settled |  |  | product/prod_003_ci_that_respects_a_limited_actions_budget.md |
 | [prod_004_a_city_builder_that_never_loses_the_city_on_screen](product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md) | A city builder that never loses the city on screen | Proposed |  |  | product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md |
+| [prod_005_a_city_builder_that_stays_responsive_as_the_city_grows](product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md) | A city builder that stays responsive as the city grows | Proposed |  |  | product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md |
 
 ## Roadmaps
 
@@ -35,6 +36,7 @@
 | [req_005_review_findings_redundant_and_quadratic_rebuild_work](request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md) | Review findings: redundant and quadratic rebuild work | Done |  |  | request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md |
 | [req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push](request/req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push.md) | Stop burning CI quota on the browser interaction suite every push | Done |  |  | request/req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push.md |
 | [req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene](request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md) | Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene | Draft |  |  | request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md |
+| [req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses](request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md) | Performance: every road placed rebuilds the whole city, and the first load ships what it never uses | Draft |  |  | request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md |
 
 ## Backlog
 
@@ -63,6 +65,13 @@
 | [item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle](backlog/item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle.md) | Stop rebuilding the whole city for a visibility toggle | Ready |  | 0% | backlog/item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle.md |
 | [item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches](backlog/item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches.md) | Unit-test the rendering geometry that only the browser suite touches | Ready |  | 0% | backlog/item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches.md |
 | [item_023_one_node_version_and_an_autosave_that_admits_it_failed](backlog/item_023_one_node_version_and_an_autosave_that_admits_it_failed.md) | One Node version, and an autosave that admits it failed | Ready |  | 0% | backlog/item_023_one_node_version_and_an_autosave_that_admits_it_failed.md |
+| [item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild](backlog/item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild.md) | Stop the ground refresh allocating per vertex and per rebuild | Ready |  | 0% | backlog/item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild.md |
+| [item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed](backlog/item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed.md) | Bound the terrain re-stamp and ground refresh to the region a placement changed | Ready |  | 0% | backlog/item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed.md |
+| [item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched](backlog/item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched.md) | Rebuild only the road meshes and movers a placement touched | Ready |  | 0% | backlog/item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched.md |
+| [item_027_ship_only_the_gltf_loader_features_the_models_actually_use](backlog/item_027_ship_only_the_gltf_loader_features_the_models_actually_use.md) | Ship only the glTF loader features the models actually use | Ready |  | 0% | backlog/item_027_ship_only_the_gltf_loader_features_the_models_actually_use.md |
+| [item_028_draw_the_first_frame_without_waiting_on_all_20_building_models](backlog/item_028_draw_the_first_frame_without_waiting_on_all_20_building_models.md) | Draw the first frame without waiting on all 20 building models | Ready |  | 0% | backlog/item_028_draw_the_first_frame_without_waiting_on_all_20_building_models.md |
+| [item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame](backlog/item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame.md) | Stop rebuilding the traffic queue bookkeeping every frame | Ready |  | 0% | backlog/item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame.md |
+| [item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city](backlog/item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city.md) | Make rebuild and startup cost measurable against a known city | Ready |  | 0% | backlog/item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city.md |
 
 ## Tasks
 
@@ -77,6 +86,7 @@
 | [task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement](tasks/task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md) | Avoid the quadratic road-proximity scan in tree placement | Done | Codex | 100% | tasks/task_007_avoid_the_quadratic_road_proximity_scan_in_tree_placement.md |
 | [task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite](tasks/task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite.md) | Implement CI quota reduction for the browser interaction suite | Done | Codex | 100% | tasks/task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite.md |
 | [task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings](tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md) | Implement the load-rollback and rendering hygiene review findings | Ready |  | 0% | tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md |
+| [task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work](tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md) | Implement the rebuild-granularity and startup-payload performance work | Ready |  | 0% | tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md |
 
 ## Runbooks
 
