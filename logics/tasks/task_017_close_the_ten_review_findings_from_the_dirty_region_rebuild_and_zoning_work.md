@@ -1,13 +1,15 @@
 ## task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work - Close the ten review findings from the dirty-region rebuild and zoning work
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-30 14:42:38
 
 # AI Context
 - Summary: Orchestration for req_015: fix the road-mesh dispose/recreate asymmetry first because the predicate it settles on constrains the rest, then the zone-brush throttle, then the overlay and statistics fixes, then the queue, invariant, share-guard and centroid cleanups.

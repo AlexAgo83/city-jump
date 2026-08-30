@@ -1,13 +1,14 @@
 ## item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying - Stop the overlay state and the debug statistics from lying
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:42:38
 
 # AI Context
 - Summary: Three things report something untrue: `onRoadMode` kills the traffic overlay while its radio still reads Traffic, `startupModelCount` is a constant zero by construction, and the reported building count is an app-local copy the renderer updates behind its back.

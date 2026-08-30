@@ -1,13 +1,14 @@
 ## item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs - Make the zoning brush cost what the tree brush costs
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:42:38
 
 # AI Context
 - Summary: `onZoneMove` writes `lastSprayed` but never reads it, so unlike its tree-spray twin it runs a full world rebuild on every pointer-move event of a drag. Also nulls the disposed overlay mesh in `src/render/zones.ts`.
