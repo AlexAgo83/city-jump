@@ -345,9 +345,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       grid?.setEnabled(next);
       taken?.setEnabled(next);
     },
-    /** Faded rather than hidden while drawing roads, so the layout underneath stays visible. */
     setFaded(faded: boolean) {
-      for (const model of available) setMaterialAlpha(model.mesh.material, faded ? 0.35 : 1);
+      for (const model of available) setMaterialAlpha(model.mesh.material, 1);
       for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
     count: () => (visible ? lastPlaced : 0),
@@ -616,9 +615,14 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
   }
   if (lit.name.includes("_glass") && lit.diffuseColor) {
     lit.diffuseColor = new Color3(0.28, 0.38, 0.44);
+    lit.alpha = 1;
+    lit.transparencyMode = Material.MATERIAL_OPAQUE;
     lit.reflectionTexture = mirrorGlassReflection(scene);
     if (lit.specularColor) lit.specularColor = new Color3(0.8, 0.9, 1);
     if (typeof lit.specularPower === "number") lit.specularPower = 96;
+  } else if (lit.name.includes("_trim")) {
+    lit.alpha = 1;
+    lit.transparencyMode = Material.MATERIAL_OPAQUE;
   }
   if (lit.ambientColor) lit.ambientColor = Color3.Black();
   if (lit.emissiveColor) lit.emissiveColor = Color3.Black();
@@ -631,6 +635,8 @@ function finishBuildingMaterial(material: StandardMaterial): void {
   if (material.name.includes("_glass")) {
     material.diffuseColor = new Color3(0.28, 0.38, 0.44);
     material.emissiveColor = Color3.Black();
+    material.alpha = 1;
+    material.transparencyMode = Material.MATERIAL_OPAQUE;
     material.reflectionTexture = mirrorGlassReflection(material.getScene());
     material.specularColor = new Color3(0.8, 0.9, 1);
     material.specularPower = 96;
@@ -642,6 +648,8 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.diffuseColor = new Color3(0.16, 0.28, 0.34);
   } else if (material.name.includes("_trim")) {
     material.diffuseColor = new Color3(0.12, 0.15, 0.16);
+    material.alpha = 1;
+    material.transparencyMode = Material.MATERIAL_OPAQUE;
   }
   if (!material.name.includes("_glass")) material.specularColor = Color3.Black();
   material.maxSimultaneousLights = 32;
