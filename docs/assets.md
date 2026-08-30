@@ -24,8 +24,10 @@ glTF is Y-up. In the exported file:
 - No transform on the root node: the geometry is baked, not posed.
 
 The renderer reads each model's bounding box after loading and centres it on the slot's
-frontage, so `width` and `depth` do not have to be declared anywhere — but they do have to
-be honest, which is what the origin rule is for.
+frontage, so footprint dimensions come from the mesh. Roof facts that the bounding box
+cannot say honestly are declared in `public/buildings/manifest.json`: flat deck height,
+pitched ridge height, or setback deck bounds. If a model has no manifest entry, it still
+loads; roof props use the mesh's top as a flat fallback.
 
 ## Fitting a slot
 
@@ -36,7 +38,7 @@ parcel. `buildingParcels` packs the free cells and the renderer loads the matchi
 ## Authoring with Blender
 
 `scripts/gen_buildings.py` generates the placeholder library and is the reference for the
-coordinate mapping:
+coordinate mapping. It writes both the `.glb` files and `public/buildings/manifest.json`:
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/gen_buildings.py

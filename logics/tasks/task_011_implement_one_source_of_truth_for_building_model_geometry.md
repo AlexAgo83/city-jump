@@ -1,14 +1,15 @@
 ## task_011_implement_one_source_of_truth_for_building_model_geometry - Implement one source of truth for building model geometry
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:25:12
+> Indicators reviewed: 2026-08-30 12:36:50
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_009: inventory what `buildingSpec` derives, move each fact to the mesh or to one generator-emitted declaration, delete the duplicates, gate drift in the fast CI, and correct the contract docs.

@@ -11,6 +11,7 @@ the front-left footprint corner, extending to +X, up +Y and back into -Z.
 
 import os
 import sys
+import json
 
 import bpy
 
@@ -286,8 +287,28 @@ def build(name, w, d, h, roof, colour, style):
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    manifest = {"models": {}}
     for spec in building_specs():
+        name, w, d, h, roof, *_ = spec
+        if roof > 0:
+            manifest["models"][name] = {"kind": "pitched", "deckY": h, "ridgeY": h + roof, "ridgeZ": -d / 2}
+        elif w * d >= CELL * CELL * 6:
+            manifest["models"][name] = {
+                "kind": "setback",
+                "lowerDeckY": round(h * 0.72, 5),
+                "upperDeckY": h,
+                "width": w,
+                "minX": round(w * 0.12, 5),
+                "maxX": round(w * 0.88, 5),
+                "minZ": round(-d * 0.88, 5),
+                "maxZ": round(-d * 0.12, 5),
+            }
+        else:
+            manifest["models"][name] = {"kind": "flat", "deckY": h}
         build(*spec)
+    with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
 
 
 if __name__ == "__main__":

@@ -1,13 +1,14 @@
 ## item_032_fail_the_build_when_the_generator_and_the_renderer_disagree - Fail the build when the generator and the renderer disagree
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:36:50
 
 # AI Context
 - Summary: Nothing compares what the Python generator and the TypeScript renderer believe about a building; the only current signal is a misplaced roof object in a screenshot.

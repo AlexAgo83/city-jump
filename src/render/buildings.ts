@@ -24,6 +24,29 @@ export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) 
 const BUILDING_ASSET_VERSION = "2026-08-29-23";
 let glassReflectionTexture: RawCubeTexture | null = null;
 
+type RoofGeometry =
+  | { readonly kind: "flat"; readonly deckY: number }
+  | {
+      readonly kind: "pitched";
+      readonly deckY: number;
+      readonly ridgeY: number;
+      readonly ridgeZ: number;
+    }
+  | {
+      readonly kind: "setback";
+      readonly lowerDeckY: number;
+      readonly upperDeckY: number;
+      readonly width: number;
+      readonly minX: number;
+      readonly maxX: number;
+      readonly minZ: number;
+      readonly maxZ: number;
+    };
+
+interface BuildingManifest {
+  readonly models: Record<string, RoofGeometry | undefined>;
+}
+
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 
 /**
@@ -113,35 +136,19 @@ export function roofObjectLimit(cells: number): number {
   return Math.min(3, Math.max(0, cells));
 }
 
-function buildingSpec(modelId: string): { area: number; width: number; depth: number; height: number; roof: number } | null {
-  const size = /^lot_(\d)x(\d)$/.exec(modelId);
-  if (!size) return null;
-  const frontage = Number(size[1]);
-  const depth = Number(size[2]);
-  const area = frontage * depth;
-  const height = 6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + Math.min(area, 8);
-  return { area, width: frontage * GRID.cellSize - 1.5, depth: depth * GRID.cellSize - 1.5, height, roof: area <= 2 ? 2.5 : 0 };
-}
-
-export function roofPropY(modelId: string, localX: number, localZ: number, boundsMaxY: number): number {
-  const spec = buildingSpec(modelId);
-  if (!spec) return boundsMaxY;
-  if (spec.roof === 0) {
-    const x = localX < 0 ? localX + spec.width : localX;
-    const onSetback =
-      spec.area >= 6 &&
-      x >= spec.width * 0.12 &&
-      x <= spec.width * 0.88 &&
-      -localZ >= spec.depth * 0.12 &&
-      -localZ <= spec.depth * 0.88;
-    return onSetback || spec.area < 6 ? spec.height : spec.height * 0.72;
+export function roofPropY(roof: RoofGeometry | undefined, localX: number, localZ: number, boundsMaxY: number): number {
+  if (!roof) return boundsMaxY;
+  if (roof.kind === "flat") return roof.deckY;
+  if (roof.kind === "setback") {
+    const x = localX < 0 ? localX + roof.width : localX;
+    return x >= roof.minX && x <= roof.maxX && localZ >= roof.minZ && localZ <= roof.maxZ ? roof.upperDeckY : roof.lowerDeckY;
   }
-  const y = Math.min(spec.depth, Math.max(0, -localZ));
-  return spec.height + spec.roof * (1 - Math.abs(y - spec.depth / 2) / (spec.depth / 2));
+  const z = Math.min(0, Math.max(roof.ridgeZ * 2, localZ));
+  return roof.deckY + (roof.ridgeY - roof.deckY) * (1 - Math.abs(z - roof.ridgeZ) / Math.abs(roof.ridgeZ));
 }
 
-function hasPitchedRoof(cells: number): boolean {
-  return cells <= 2;
+function hasPitchedRoof(roof: RoofGeometry | undefined): boolean {
+  return roof?.kind === "pitched";
 }
 
 /** Stable per parcel, so a roof's clutter does not reshuffle every time the city rebuilds. */
@@ -161,6 +168,7 @@ interface Model {
   readonly centerX: number;
   /** Roof height above the parcel's own ground, for whatever stands on top of it. */
   readonly roofY: number;
+  readonly roof: RoofGeometry | undefined;
 }
 
 /**
@@ -168,7 +176,8 @@ interface Model {
  * draw call each does not render; thin instances make the count irrelevant.
  */
 export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
-  const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows)));
+  const manifest = await loadManifest();
+  const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows, manifest.models[id])));
   const available = models.filter((m): m is Model => m !== null);
   const roofProps = buildRoofProps(scene, shadows);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
@@ -272,7 +281,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const model = available.find((m) => m.id === `lot_${parcel.frontageCells}x${parcel.depthCells}`);
       if (!model) continue;
       const cells = parcel.frontageCells * parcel.depthCells;
-      const pitched = hasPitchedRoof(cells);
+      const pitched = hasPitchedRoof(model.roof);
       const offered = ROOF_LAYOUTS.filter(
         (layout) => layout.minCells <= cells && layout.props.length <= roofObjectLimit(cells) && (layout.pitched ?? false) === pitched,
       );
@@ -286,7 +295,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       for (const prop of layout.props) {
         const localX = prop.x + model.centerX;
         const localZ = -halfDepth + prop.z;
-        const local = new Vector3(localX, roofPropY(model.id, localX, localZ, model.roofY), localZ);
+        const local = new Vector3(localX, roofPropY(model.roof, localX, localZ, model.roofY), localZ);
         const matrix = Matrix.Compose(
           Vector3.OneReadOnly,
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
@@ -494,7 +503,18 @@ function takenCellsMesh(scene: Scene, cells: readonly BuildableCell[]): Mesh {
   return mesh;
 }
 
-async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Promise<Model | null> {
+async function loadManifest(): Promise<BuildingManifest> {
+  try {
+    const response = await fetch(`/buildings/manifest.json?v=${BUILDING_ASSET_VERSION}`);
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    return await response.json() as BuildingManifest;
+  } catch (error) {
+    console.error("could not load building manifest", error);
+    return { models: {} };
+  }
+}
+
+async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roof: RoofGeometry | undefined): Promise<Model | null> {
   try {
     const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb?v=${BUILDING_ASSET_VERSION}`, scene);
     const parts = result.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
@@ -522,7 +542,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator): Pr
 
     const bounds = mesh.getBoundingInfo().boundingBox;
     const centerX = (bounds.minimum.x + bounds.maximum.x) / 2;
-    return { id, mesh, centerX, roofY: bounds.maximum.y };
+    return { id, mesh, centerX, roofY: bounds.maximum.y, roof };
   } catch (error) {
     console.error(`could not load building model "${id}"`, error);
     return null;

@@ -6,7 +6,7 @@
 > Related backlog: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`
 > Related task: `task_011_implement_one_source_of_truth_for_building_model_geometry`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:24:40
+> Indicators reviewed: 2026-08-30 12:37:04
 
 # Trigger
 - Placing anything on or against a building: roof clutter, a sign, an aerial, a balcony, a rooftop light.
@@ -22,7 +22,7 @@
 2. **Know what the anchor means.** `parcel.position` is the **frontage edge facing the road**, not the centre of the roof. The footprint runs backward from it by the parcel's full depth along the building's local `-Z`. A "small offset from the parcel position" therefore lands on the street-facing wall, which is exactly what kept appearing in the screenshots. Reach the actual middle with `localZ = -halfDepth + offset`, where `halfDepth = (depthCells * 8 - 1.5) / 2`.
 3. **Add `centerX` back on the local point.** `matrixFor`'s translation subtracts the model's own frontage centre (`centerX`), because a baked building vertex is still in that uncorrected local space. A point you author yourself is not — so `localX = offset + centerX`. Forget this and the object is displaced by `centerX`: unnoticeable on a 1x1 lot, a couple of car lengths on a 4-wide one.
 4. **Keep the offsets small enough to be right by size, not by formula.** Every authored offset stays well under the 4 m half-width of the smallest lot it is offered to. A footprint-scaled, rotation-corrected offset is a formula that can be wrong; a small constant cannot be.
-5. **Get the height from the model's own spec, not the bounding box alone.** `roofPropY` accounts for parapets, roof huts and pitched roofs; `boundsMaxY` alone puts objects on top of the parapet rather than on the deck.
+5. **Get the height from the model's manifest entry, not the bounding box alone.** `roofPropY` accounts for parapets, roof huts and pitched roofs; `boundsMaxY` alone puts objects on top of the parapet rather than on the deck.
 6. **Seed layout choice off the parcel's own position** so a roof's clutter is stable across rebuilds, and leave most roofs bare — clutter everywhere reads as noise, not detail.
 
 # Verification
