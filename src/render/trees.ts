@@ -7,9 +7,9 @@ import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math"
 import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
-import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
+import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap";
 import type { Plantings } from "../sim/plantings";
-import { roadType } from "../sim/roadTypes";
+import { ROAD_TYPES, roadType } from "../sim/roadTypes";
 import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
 import { createGroundShadow } from "./groundShadow";
@@ -26,6 +26,17 @@ const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
   };
 });
 const ROAD_MASK_CELL = 32;
+const ROAD_MASK_REACH = Math.max(...Object.values(ROAD_TYPES).map((type) => type.width / 2 + SLOT.setback + GRID.depth * GRID.cellSize + 4));
+
+interface TreeBase {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly scale: number;
+  readonly spread: number;
+  readonly yaw: number;
+  readonly species: TreeSpeciesId;
+}
 
 /** Species differ only in geometry and colour; everything else about a tree is shared. */
 const SPECIES = {
@@ -164,28 +175,33 @@ export function createTreeRenderer(
   });
 
   let treeCount = 0;
-  let treeBases: { x: number; y: number; z: number; scale: number; spread: number }[] = [];
+  let treeBases: TreeBase[] = [];
   let sunHour = 14;
 
-  function rebuild(): number {
+  function rebuild(dirty?: TerrainBounds): number {
+    const region = dirty ? expandBounds(dirty, ROAD_MASK_REACH) : null;
     const matrices = new Map<TreeSpeciesId, { trunks: Matrix[]; canopies: Matrix[] }>(
       TREE_SPECIES.map((id) => [id, { trunks: [], canopies: [] }]),
     );
-    const bases: typeof treeBases = [];
+    const bases: TreeBase[] = [];
     const occupied = new Set<string>();
     const roads = roadMask(graph);
     const step = 58;
-    let i = 0;
+
+    const putBase = (base: TreeBase): void => {
+      const look = SPECIES[base.species];
+      const into = matrices.get(base.species)!;
+      const size = new Vector3(base.scale, base.scale, base.scale);
+      const rotation = Quaternion.FromEulerAngles(0, base.yaw, 0);
+      into.trunks.push(Matrix.Compose(size, rotation, new Vector3(base.x, base.y + look.trunkLift * base.scale, base.z)));
+      into.canopies.push(Matrix.Compose(size, rotation, new Vector3(base.x, base.y + look.canopyLift * base.scale, base.z)));
+      bases.push(base);
+    };
 
     const put = (px: number, pz: number, seed: number, h: number, id: TreeSpeciesId): void => {
       const look = SPECIES[id];
-      const into = matrices.get(id)!;
       const scale = 0.75 + randomish(seed, 4) * 0.55;
-      const size = new Vector3(scale, scale, scale);
-      const rotation = Quaternion.FromEulerAngles(0, randomish(seed, 5) * Math.PI * 2, 0);
-      into.trunks.push(Matrix.Compose(size, rotation, new Vector3(px, h + look.trunkLift * scale, pz)));
-      into.canopies.push(Matrix.Compose(size, rotation, new Vector3(px, h + look.canopyLift * scale, pz)));
-      bases.push({ x: px, y: h, z: pz, scale, spread: look.spread });
+      putBase({ x: px, y: h, z: pz, scale, spread: look.spread, yaw: randomish(seed, 5) * Math.PI * 2, species: id });
     };
 
     /** Scenery: skips water, peaks, roads, its own neighbours, and anything cleared by hand. */
@@ -198,34 +214,62 @@ export function createTreeRenderer(
       put(px, pz, seed, h, DEFAULT_SPECIES);
     };
 
-    for (let z = -GROUND_SIZE / 2 + step; z < GROUND_SIZE / 2; z += step) {
-      for (let x = -GROUND_SIZE / 2 + step; x < GROUND_SIZE / 2; x += step) {
+    if (region) {
+      for (const base of treeBases) {
+        const bucket = `${Math.round(base.x / 10)}:${Math.round(base.z / 10)}`;
+        occupied.add(bucket);
+        if (!treeTouchesBounds(base, region)) putBase(base);
+      }
+    }
+
+    const start = -GROUND_SIZE / 2 + step;
+    const gridCols = Math.ceil((GROUND_SIZE - step) / step);
+    const minCol = region ? Math.max(0, Math.floor((region.minX - start) / step)) : 0;
+    const maxCol = region ? Math.min(gridCols - 1, Math.ceil((region.maxX - start) / step)) : gridCols - 1;
+    const minRow = region ? Math.max(0, Math.floor((region.minZ - start) / step)) : 0;
+    const maxRow = region ? Math.min(gridCols - 1, Math.ceil((region.maxZ - start) / step)) : gridCols - 1;
+    for (let row = minRow; row <= maxRow; row++) {
+      const z = start + row * step;
+      for (let col = minCol; col <= maxCol; col++) {
+        const x = start + col * step;
+        const i = row * gridCols + col;
         const jx = (randomish(i, 1) - 0.5) * step * 0.75;
         const jz = (randomish(i, 2) - 0.5) * step * 0.75;
         const px = x + jx;
         const pz = z + jz;
-        if (randomish(i, 3) <= 0.36) plant(px, pz, i);
-        i++;
+        if ((!region || pointTouchesBounds(px, pz, region)) && randomish(i, 3) <= 0.36) plant(px, pz, i);
       }
     }
 
     const forestStep = 16;
+    let seedOffset = gridCols * gridCols;
     for (const patch of FOREST_PATCHES) {
-      for (let z = patch.z - patch.radius; z <= patch.z + patch.radius; z += forestStep) {
-        for (let x = patch.x - patch.radius; x <= patch.x + patch.radius; x += forestStep) {
-          const seed = i++;
+      const minX = patch.x - patch.radius;
+      const minZ = patch.z - patch.radius;
+      const cols = Math.floor((patch.radius * 2) / forestStep) + 1;
+      const minPatchCol = region ? Math.max(0, Math.floor((region.minX - minX) / forestStep)) : 0;
+      const maxPatchCol = region ? Math.min(cols - 1, Math.ceil((region.maxX - minX) / forestStep)) : cols - 1;
+      const minPatchRow = region ? Math.max(0, Math.floor((region.minZ - minZ) / forestStep)) : 0;
+      const maxPatchRow = region ? Math.min(cols - 1, Math.ceil((region.maxZ - minZ) / forestStep)) : cols - 1;
+      for (let row = minPatchRow; row <= maxPatchRow; row++) {
+        const z = minZ + row * forestStep;
+        for (let col = minPatchCol; col <= maxPatchCol; col++) {
+          const x = minX + col * forestStep;
+          const seed = seedOffset + row * cols + col;
           const px = x + (randomish(seed, 6) - 0.5) * forestStep * 0.65;
           const pz = z + (randomish(seed, 7) - 0.5) * forestStep * 0.65;
           const distance = Math.hypot(px - patch.x, pz - patch.z) / patch.radius;
           const density = patch.density * Math.max(0, 1 - distance * distance);
-          if (randomish(seed, 8) <= density) plant(px, pz, seed);
+          if ((!region || pointTouchesBounds(px, pz, region)) && randomish(seed, 8) <= density) plant(px, pz, seed);
         }
       }
+      seedOffset += cols * cols;
     }
 
     // Hand-planted trees go in last and answer to none of the scenery rules: the player put them
     // there deliberately. Only the sea is off limits, and the tool refuses that before we get here.
     for (const [index, tree] of plantings.plantedTrees.entries()) {
+      if (region && !pointTouchesBounds(tree.x, tree.z, region)) continue;
       put(tree.x, tree.z, index + 7919, heightmap.heightAt(tree.x, tree.z), speciesOf(tree.species));
     }
 
@@ -287,6 +331,18 @@ export function createTreeRenderer(
   }
 
   return { rebuild, setSunHour, nearestTree, count: () => treeCount };
+}
+
+function expandBounds(bounds: TerrainBounds, by: number): TerrainBounds {
+  return { minX: bounds.minX - by, maxX: bounds.maxX + by, minZ: bounds.minZ - by, maxZ: bounds.maxZ + by };
+}
+
+export function treeTouchesBounds(tree: Pick<TreeBase, "x" | "z">, bounds: TerrainBounds): boolean {
+  return pointTouchesBounds(tree.x, tree.z, bounds);
+}
+
+function pointTouchesBounds(x: number, z: number, bounds: TerrainBounds): boolean {
+  return x >= bounds.minX && x <= bounds.maxX && z >= bounds.minZ && z <= bounds.maxZ;
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {

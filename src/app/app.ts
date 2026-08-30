@@ -65,25 +65,38 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees.setSunHour(hour);
   };
 
-  const rebuild = (dirty?: TerrainBounds): void => {
+  const rebuild = (dirty?: TerrainBounds, timings?: Record<string, number>): void => {
+    const measure = (name: string, work: () => void): void => {
+      if (!timings) {
+        work();
+        return;
+      }
+      const started = performance.now();
+      work();
+      timings[name] = performance.now() - started;
+    };
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
-    if (!dirty) {
+    if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
       currentParcels = buildingParcels(currentBuildableCells, zones);
-    }
-    const junctions = allJunctions(graph);
-    heightmap.conformToRoads(graph, currentParcels, dirty, junctions);
-    ground.refresh(dirty);
-    if (!dirty) trees.rebuild();
-    worldGrid.rebuild(dirty);
-    roads.rebuild(dirty, junctions);
-    streetlights.rebuild(junctions);
-    traffic.rebuild(dirty);
-    signals.rebuild(junctions);
-    zoneOverlay.rebuild(zones);
+    });
+    let junctions: ReturnType<typeof allJunctions>;
+    measure("allJunctions", () => {
+      junctions = allJunctions(graph);
+      if (timings) timings.allJunctionsCalls = 1;
+    });
+    measure("heightmap", () => heightmap.conformToRoads(graph, currentParcels, dirty, junctions));
+    measure("ground", () => ground.refresh(dirty));
+    measure("trees", () => trees.rebuild(dirty));
+    measure("worldGrid", () => worldGrid.rebuild(dirty));
+    measure("roads", () => roads.rebuild(dirty, junctions));
+    measure("streetlights", () => streetlights.rebuild(junctions));
+    measure("traffic", () => traffic.rebuild(dirty));
+    measure("signals", () => signals.rebuild(junctions));
+    measure("zones", () => zoneOverlay.rebuild(zones));
     if (dirty) scheduleBuildingRebuild();
-    else buildings.rebuild(currentBuildableCells, currentParcels);
+    else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));
     scheduleAutosave();
   };
 
@@ -323,7 +336,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
-  }));
+  }), { setWorldGridVisible: worldGrid.setVisible });
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),

@@ -15,7 +15,15 @@ export interface DebugApi {
   stats(): Record<string, number>;
   camera(radius: number, beta?: number, alpha?: number): void;
   cameraState(): { targetX: number; targetY: number; targetZ: number; alpha: number; beta: number; radius: number };
-  measureCosts(): { startupMs: number; demoBuildMs: number; placementMs: number; segments: number };
+  measureCosts(): {
+    startupMs: number;
+    demoBuildMs: number;
+    placementMs: number;
+    segments: number;
+    fullHiddenMs: Record<string, number>;
+    fullVisibleMs: Record<string, number>;
+    placementRenderersMs: Record<string, number>;
+  };
   measureFps(ms: number): Promise<number>;
 }
 
@@ -26,9 +34,10 @@ export interface DebugApi {
 export function installDebugApi(
   scene: Scene,
   graph: RoadGraph,
-  rebuild: (dirty?: TerrainBounds) => void,
+  rebuild: (dirty?: TerrainBounds, timings?: Record<string, number>) => void,
   startedAt: number,
   stats: () => Record<string, number>,
+  options: { setWorldGridVisible?: (visible: boolean) => void } = {},
 ): void {
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
     const from = resolveSnap(graph, x0, z0);
@@ -136,14 +145,24 @@ export function installDebugApi(
       const buildStarted = performance.now();
       api.demoCity();
       const demoBuildMs = performance.now() - buildStarted;
+      const fullHiddenMs: Record<string, number> = {};
+      rebuild(undefined, fullHiddenMs);
+      options.setWorldGridVisible?.(true);
+      const fullVisibleMs: Record<string, number> = {};
+      rebuild(undefined, fullVisibleMs);
+      options.setWorldGridVisible?.(false);
       const placementStarted = performance.now();
       if (!api.road(700, 650, 780, 650, 860, 650, "street")) throw new Error("measurement road was refused");
-      rebuild({ minX: 560, maxX: 1000, minZ: 510, maxZ: 790 });
+      const placementRenderersMs: Record<string, number> = {};
+      rebuild({ minX: 560, maxX: 1000, minZ: 510, maxZ: 790 }, placementRenderersMs);
       return {
         startupMs: performance.now() - startedAt,
         demoBuildMs,
         placementMs: performance.now() - placementStarted,
         segments: graph.allSegments().length,
+        fullHiddenMs,
+        fullVisibleMs,
+        placementRenderersMs,
       };
     },
     measureFps(ms) {
