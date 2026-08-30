@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:40:20
 
 # AI Context
 - Summary: The saves panel has Save, Load and Delete and no way to hand a city to anyone; a city over the link ceiling must refuse rather than emit a link that breaks for the receiver.
@@ -37,7 +38,7 @@
 # AC Traceability
 - request-AC1 -> This backlog slice. Proof: AC1: Sharing the selected city puts a working link on the clipboard and says so; Save, Load and Delete are unchanged.
 - request-AC2 -> This backlog slice. Proof: AC2: A city over the ceiling produces an explanation and no link.
-- request-AC7 -> This backlog slice. Proof: AC2: A city over the ceiling produces an explanation and no link.
+- request-AC7 -> This backlog slice. Proof: AC1: Sharing the selected city puts a working link on the clipboard and says so; Save, Load and Delete are unchanged. (The suite's share-arrive-import round trip is proved by item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.)
 
 # Decision framing
 - Product framing: Not needed
