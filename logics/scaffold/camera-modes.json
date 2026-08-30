@@ -1,0 +1,182 @@
+{
+  "title": "Give the camera three target policies: free, orbit, and follow",
+  "references": [
+    "src/render/scene.ts",
+    "src/render/drawTool.ts",
+    "src/ui/controls.ts",
+    "src/ui/saves.ts",
+    "src/app/app.ts",
+    "index.html",
+    "logics/request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md",
+    "logics/request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "The camera has exactly one behaviour and no way to change it. `createScene` builds an `ArcRotateCamera` and `attachKeyboardPan` walks its target across the map; there is no Camera section in the settings panel, which currently offers World, Sun and City rows only.",
+      "There is no way to watch the city rather than operate it. The player can orbit by dragging, but nothing turns by itself, so seeing a junction from every angle means holding the mouse down, and there is no way to sit and watch the light change over a roundabout.",
+      "There is no way to ride along with anything that moves. Cars and pedestrians are the most alive part of the scene and the camera cannot follow one, so a player who wants to see how a car actually takes a roundabout has to chase it by hand and loses it.",
+      "Camera state persistence will actively misbehave under either new mode. `writeCameraState` is debounced 800 ms off `onViewMatrixChangedObservable`; a camera that turns every frame never lets that debounce fire, and a camera locked to a moving car would persist a vehicle's position as the point a session resumes at."
+    ],
+    "context": [
+      "This is not three cameras. The scene already uses an `ArcRotateCamera`, which orbits its target by design -- so the three modes are three rules for what `camera.target` does each frame, over one unchanged camera. Free leaves the target where the player put it, orbit locks it to the selection and advances `alpha` slowly, follow tracks a moving thing's position. Keeping the same camera is what lets the player still zoom and change angle while orbiting or following; a Babylon `FollowCamera` would discard the framing and impose its own controls.",
+      "Following depends on cars being selectable, which they are not today. That is delivered by the detail-panel slice of `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`, so the follow mode cannot land before it.",
+      "A followed vehicle does not currently survive an edit: `traffic.rebuild()` disposes every mover and re-instantiates the population, so the car being followed ceases to exist the moment a road is drawn. The rebuild-granularity work in `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses` stops that wholesale disposal. Rather than wait, follow should end gracefully and say so when its subject disappears -- and it then becomes durable for free once that work lands.",
+      "The settings panel is built from plain rows of labelled checkboxes in `index.html`, wired in `bindControls`, with player-facing toggles persisted through `UiSettings` in `src/ui/saves.ts` alongside `sunAuto` and `shortNight`. A Camera section follows that pattern; it introduces no new UI machinery.",
+      "`drawTool` already arbitrates camera dragging through `setCameraDrag`, which is the existing seam for deciding when the camera should stay out of the way of a tool."
+    ],
+    "acceptance_criteria": [
+      "AC1: The settings panel has a Camera section offering Free, Orbit and Follow, and the chosen mode is remembered across sessions the way the other toggles are.",
+      "AC2: Free behaves exactly as the camera does today -- same panning, same dragging, same zoom, same limits.",
+      "AC3: Orbit turns the camera slowly around its target on its own, at a pace that reads as cinematic rather than dizzying, while the player keeps full control of zoom and angle; with something selected it orbits that, otherwise it orbits the point already being looked at.",
+      "AC4: Follow keeps a selected moving thing framed while it travels, leaving the player free to change angle and distance around it, and ends gracefully with an explanation when its subject stops existing.",
+      "AC5: Panning the camera -- by drag or by arrow key -- returns the camera to Free, so the player is never fighting a mode they did not mean to be in.",
+      "AC6: A mode that turns the camera by itself does not corrupt the resumed view: the camera position persisted between sessions is a place the player chose, never a moving target or a never-fired debounce.",
+      "AC7: No mode interferes with drawing: the camera does not turn by itself while a tool is mid-stroke.",
+      "AC8: Existing checks still pass, and the browser interaction suite covers each mode doing what it claims."
+    ]
+  },
+  "product": {
+    "title": "A camera that can watch, not only be aimed",
+    "overview": "city-jump's camera is a tool for operating the city: the player points it and it stays pointed. That is right for building, and wrong for everything else -- seeing a junction from all sides, sitting with the light as it changes, or watching one car actually take a roundabout. This slice keeps that camera exactly as it is and adds two more things it can do with its target: turn around it, or let it move. One camera, three policies, and touching the controls always gives the player back the one they already know.",
+    "goals": [
+      "The player can watch the city instead of only aiming at it.",
+      "Following a car is possible without losing zoom and angle control.",
+      "The mode is always escapable: touch the camera and you are back to Free.",
+      "Nothing about the existing camera changes for a player who never opens the section."
+    ],
+    "non_goals": [
+      "A second camera type, a cinematic path editor, or recorded fly-throughs.",
+      "First-person or driver's-seat views.",
+      "Changing the existing pan, zoom, drag or limit behaviour.",
+      "Selecting cars, which the detail-panel work delivers.",
+      "Making a followed vehicle survive a city edit, which the rebuild-granularity work delivers."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Make the camera's target policy switchable, with Free unchanged",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC5", "AC7"],
+      "problem": [
+        "`createScene` hard-wires one behaviour: an `ArcRotateCamera` whose target only moves when the player pans it.",
+        "Any mode that moves the camera on its own has to be escapable, or the player ends up fighting it."
+      ],
+      "scope_in": [
+        "Introduce a target policy the scene applies each frame, with Free as the existing behaviour, expressed so that a player who never changes mode sees no difference at all.",
+        "Any pan -- drag or arrow key -- drops the policy back to Free.",
+        "A mode that moves the camera by itself is suspended while a drawing tool is mid-stroke, using the existing `setCameraDrag` seam rather than a new one.",
+        "Unit-test what can be tested without a scene: the policy state machine and the escape rule."
+      ],
+      "scope_out": [
+        "The orbit and follow behaviours themselves, which are their own slices.",
+        "Any UI.",
+        "Changing pan speed, zoom limits, beta limits or inertia."
+      ],
+      "acceptance_criteria": [
+        "AC1: With Free selected the camera behaves identically to today, verified by the existing interaction checks.",
+        "AC2: Panning by drag or arrow key returns the camera to Free from any other mode.",
+        "AC3: A self-moving mode does not turn the camera while a tool is mid-stroke."
+      ]
+    },
+    {
+      "title": "Orbit the camera around what the player is looking at",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC3"],
+      "problem": [
+        "Seeing something from every side means holding the mouse down and dragging, and there is no way to sit and watch the light change over one place."
+      ],
+      "scope_in": [
+        "Advance the camera's `alpha` on its own at a pace that reads as cinematic -- a full revolution measured in tens of seconds, not seconds -- scaled by frame time so it turns at the same rate whatever the frame rate.",
+        "Orbit the selection when there is one, snapping the target to it on entry; otherwise orbit the point already being looked at, so the mode is always available rather than a disabled control.",
+        "Leave zoom and angle under the player's control throughout."
+      ],
+      "scope_out": [
+        "Following anything that moves.",
+        "Configurable orbit speed or direction.",
+        "Automatic framing, distance fitting, or path animation."
+      ],
+      "acceptance_criteria": [
+        "AC1: Orbit turns the camera continuously around its target at a steady rate independent of frame rate, and the player can still zoom and change angle.",
+        "AC2: Entering Orbit with a selection centres on it; entering with none orbits the current target rather than refusing."
+      ]
+    },
+    {
+      "title": "Follow something that moves, and stop cleanly when it is gone",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC4"],
+      "problem": [
+        "The camera cannot ride along with a car or a pedestrian, so watching how one actually behaves means chasing it by hand and losing it.",
+        "A followed vehicle does not survive a city edit today, because the traffic renderer disposes and re-instantiates its whole population on every rebuild."
+      ],
+      "scope_in": [
+        "Track the selected moving thing's position as the camera target each frame, keeping the player's zoom and angle around it.",
+        "Detect that the subject no longer exists, return to Free, and say why through the existing toast rather than silently drifting or freezing.",
+        "Smooth the target so the camera is not jittering on a per-frame position.",
+        "Depends on cars and pedestrians being selectable; do not start this slice before that exists."
+      ],
+      "scope_out": [
+        "Keeping a vehicle alive across a rebuild, which belongs to the rebuild-granularity work.",
+        "A driver's-seat or chase-cam framing with its own angle rules.",
+        "Following a building, a road, or anything that does not move."
+      ],
+      "acceptance_criteria": [
+        "AC1: With a moving thing selected, Follow keeps it framed while it travels, and zoom and angle stay under the player's control.",
+        "AC2: When the followed subject stops existing, the camera returns to Free and the player is told why.",
+        "AC3: The camera does not visibly jitter while following."
+      ]
+    },
+    {
+      "title": "Add the Camera section, and keep it from corrupting the resumed view",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC6", "AC8"],
+      "problem": [
+        "There is no Camera section in the settings panel, which offers World, Sun and City rows only.",
+        "`writeCameraState` is debounced 800 ms off `onViewMatrixChangedObservable`: a camera that turns every frame never lets that debounce fire, and a camera locked to a moving car would persist a vehicle's position as the point the next session resumes at."
+      ],
+      "scope_in": [
+        "A Camera row in `index.html` with Free, Orbit and Follow, wired in `bindControls`, following the panel's existing plain-label pattern.",
+        "Persist the chosen mode through `UiSettings` in `src/ui/saves.ts`, alongside `sunAuto` and `shortNight`.",
+        "Suspend camera-position persistence outside Free, so the resumed view is always somewhere the player chose.",
+        "Extend the browser interaction suite to cover each mode doing what it claims, and returning to Free on a pan."
+      ],
+      "scope_out": [
+        "Persisting what was being followed or orbited across sessions.",
+        "Redesigning the settings panel or its markup beyond the new row.",
+        "A keyboard shortcut for switching mode."
+      ],
+      "acceptance_criteria": [
+        "AC1: The Camera section offers the three modes and the choice survives a reload.",
+        "AC2: The persisted camera position is never a moving target and never a position produced by self-motion; a session resumed after orbiting or following comes back somewhere the player chose.",
+        "AC3: The browser interaction suite covers each mode and the escape-to-Free rule."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement the camera target policies and the Camera settings section",
+    "plan": [
+      "Read this request and its four backlog slices; note that the follow slice depends on cars being selectable and must not start before that exists.",
+      "Introduce the switchable target policy with Free unchanged, and the escape-to-Free rule -- everything else builds on it.",
+      "Add Orbit, and tune its pace by looking at it rather than by picking a number.",
+      "Add the Camera section and the persistence rules, so the modes are reachable and cannot corrupt the resumed view.",
+      "Add Follow once selection covers cars and pedestrians, including its graceful end when the subject disappears.",
+      "Extend the browser interaction suite, then run the fast gate and the visual check; confirm a player who never opens the section sees no change.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/camera-modes.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

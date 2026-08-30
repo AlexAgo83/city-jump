@@ -20,6 +20,7 @@
 | [prod_006_one_source_of_truth_for_what_a_building_model_is](product/prod_006_one_source_of_truth_for_what_a_building_model_is.md) | One source of truth for what a building model is | Proposed |  |  | product/prod_006_one_source_of_truth_for_what_a_building_model_is.md |
 | [prod_007_a_city_you_can_point_at_and_name](product/prod_007_a_city_you_can_point_at_and_name.md) | A city you can point at and name | Proposed |  |  | product/prod_007_a_city_you_can_point_at_and_name.md |
 | [prod_008_a_city_you_can_hand_to_someone_else](product/prod_008_a_city_you_can_hand_to_someone_else.md) | A city you can hand to someone else | Proposed |  |  | product/prod_008_a_city_you_can_hand_to_someone_else.md |
+| [prod_009_a_camera_that_can_watch_not_only_be_aimed](product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md) | A camera that can watch, not only be aimed | Proposed |  |  | product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md |
 
 ## Roadmaps
 
@@ -43,6 +44,7 @@
 | [req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together](request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md) | Building geometry facts are written twice, in two languages, with nothing tying them together | Draft |  |  | request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md |
 | [req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click](request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md) | Name the streets, number the buildings, and open a detail panel on anything you click | Draft |  |  | request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md |
 | [req_011_share_a_city_as_a_link_that_needs_no_server](request/req_011_share_a_city_as_a_link_that_needs_no_server.md) | Share a city as a link that needs no server | Draft |  |  | request/req_011_share_a_city_as_a_link_that_needs_no_server.md |
+| [req_012_give_the_camera_three_target_policies_free_orbit_and_follow](request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md) | Give the camera three target policies: free, orbit, and follow | Draft |  |  | request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md |
 
 ## Backlog
 
@@ -89,6 +91,10 @@
 | [item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely](backlog/item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely.md) | Turn a city into a link-sized payload and read one back safely | Ready |  | 0% | backlog/item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely.md |
 | [item_040_add_the_share_button_to_the_saves_panel](backlog/item_040_add_the_share_button_to_the_saves_panel.md) | Add the Share button to the saves panel | Ready |  | 0% | backlog/item_040_add_the_share_button_to_the_saves_panel.md |
 | [item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link](backlog/item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.md) | Offer to import the city when someone arrives on a share link | Ready |  | 0% | backlog/item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.md |
+| [item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged](backlog/item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged.md) | Make the camera's target policy switchable, with Free unchanged | Ready |  | 0% | backlog/item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged.md |
+| [item_043_orbit_the_camera_around_what_the_player_is_looking_at](backlog/item_043_orbit_the_camera_around_what_the_player_is_looking_at.md) | Orbit the camera around what the player is looking at | Ready |  | 0% | backlog/item_043_orbit_the_camera_around_what_the_player_is_looking_at.md |
+| [item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone](backlog/item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone.md) | Follow something that moves, and stop cleanly when it is gone | Ready |  | 0% | backlog/item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone.md |
+| [item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view](backlog/item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view.md) | Add the Camera section, and keep it from corrupting the resumed view | Ready |  | 0% | backlog/item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view.md |
 
 ## Tasks
 
@@ -107,6 +113,7 @@
 | [task_011_implement_one_source_of_truth_for_building_model_geometry](tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md) | Implement one source of truth for building model geometry | Ready |  | 0% | tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md |
 | [task_012_implement_street_names_building_addresses_and_the_extended_detail_panel](tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md) | Implement street names, building addresses, and the extended detail panel | Ready |  | 0% | tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md |
 | [task_013_implement_sharing_a_city_by_link](tasks/task_013_implement_sharing_a_city_by_link.md) | Implement sharing a city by link | Ready |  | 0% | tasks/task_013_implement_sharing_a_city_by_link.md |
+| [task_014_implement_the_camera_target_policies_and_the_camera_settings_section](tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md) | Implement the camera target policies and the Camera settings section | Ready |  | 0% | tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md |
 
 ## Runbooks
 

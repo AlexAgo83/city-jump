@@ -1,0 +1,646 @@
+{
+  "budgets": {
+    "max_docs": 24,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_012_give_the_camera_three_target_policies_free_orbit_and_follow item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged item_043_orbit_the_camera_around_what_the_player_is_looking_at item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view task_014_implement_the_camera_target_policies_and_the_camera_settings_section --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+          "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+          "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+          "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md",
+      "ref": "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+      "sections": {
+        "Goals": [
+          "- The player can watch the city instead of only aiming at it.",
+          "- Following a car is possible without losing zoom and angle control.",
+          "- The mode is always escapable: touch the camera and you are back to Free.",
+          "- Nothing about the existing camera changes for a player who never opens the section."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump's camera is a tool for operating the city: the player points it and it stays pointed. That is right for building, and wrong for everything else -- seeing a junction from all sides, sitting with the light as it changes, or watching one car actually take a roundabout. This slice keeps that camera exactly as it is and adds two more things it can do with its target: turn around it, or let it move. One camera, three policies, and touching the controls always gives the player back the one they already know."
+        ],
+        "References": [
+          "- Product back-reference: `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`",
+          "- Task back-reference: `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A camera that can watch, not only be aimed"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "sections": {
+        "Goals": [
+          "- Placing a road costs what that road changed, not what the whole city contains.",
+          "- The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+          "- The first load ships only the engine features the game actually uses.",
+          "- The first frame arrives without waiting on every building model in the catalogue.",
+          "- The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+          "- Rebuild and startup cost are measurable, so a regression is visible."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees.",
+          "```mermaid",
+          "flowchart LR",
+          "    Place[Road placed] --> Dirty[Changed region only]",
+          "    Dirty --> Terrain[Heightmap re-stamp]",
+          "    Dirty --> Ground[Ground vertices refreshed]"
+        ],
+        "References": [
+          "- Product back-reference: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`",
+          "- Task back-reference: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that stays responsive as the city grows"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md",
+      "ref": "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+      "sections": {
+        "Overview": [
+          "After a graph edit, rebuild disposable terrain and rendering projections in a fixed order",
+          "instead of synchronizing mutable copies of city geometry.",
+          "```mermaid",
+          "flowchart LR",
+          "  edit[Graph edit] --> conform[Conform heightmap]",
+          "  conform --> ground[Refresh ground and grid]"
+        ],
+        "References": [
+          "- Related request: `req_002_establish_modular_repository_foundations`",
+          "- Related backlog: (none yet)",
+          "- Related task: (none yet)"
+        ]
+      },
+      "status": "Settled",
+      "title": "Rebuild terrain roads plots and buildings as derived views"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "sections": {
+        "Goals": [
+          "- A road drawn through several junctions is one named street, not three anonymous curves.",
+          "- Every building has an address a player can read and repeat.",
+          "- Clicking anything visible -- road, roundabout, tree, building, car -- opens the same panel and answers the question.",
+          "- Names never run out, and never change under the player.",
+          "- Cities saved before any of this existed keep loading, and get names."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing.",
+          "```mermaid",
+          "flowchart LR",
+          "    Seg[Road segments] -->|facing rule| Street[Street]",
+          "    Street --> Name[Generated English name]",
+          "    Street --> Along[Distance along street]"
+        ],
+        "References": [
+          "- Product back-reference: `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`",
+          "- Task back-reference: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can point at and name"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "camera, three, target, policies, free, orbit, follow",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+          "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+          "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+          "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ]
+      },
+      "path": "logics/request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md",
+      "ref": "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The settings panel has a Camera section offering Free, Orbit and Follow, and the chosen mode is remembered across sessions the way the other toggles are.",
+          "- AC2: Free behaves exactly as the camera does today -- same panning, same dragging, same zoom, same limits.",
+          "- AC3: Orbit turns the camera slowly around its target on its own, at a pace that reads as cinematic rather than dizzying, while the player keeps full control of zoom and angle; with something selected it orbits that, otherwise it orbits the point already being looked at.",
+          "- AC4: Follow keeps a selected moving thing framed while it travels, leaving the player free to change angle and distance around it, and ends gracefully with an explanation when its subject stops existing.",
+          "- AC5: Panning the camera -- by drag or by arrow key -- returns the camera to Free, so the player is never fighting a mode they did not mean to be in.",
+          "- AC6: A mode that turns the camera by itself does not corrupt the resumed view: the camera position persisted between sessions is a place the player chose, never a moving target or a never-fired debounce."
+        ],
+        "Needs": [
+          "- The camera has exactly one behaviour and no way to change it. `createScene` builds an `ArcRotateCamera` and `attachKeyboardPan` walks its target across the map; there is no Camera section in the settings panel, which currently offers World, Sun and City rows only.",
+          "- There is no way to watch the city rather than operate it. The player can orbit by dragging, but nothing turns by itself, so seeing a junction from every angle means holding the mouse down, and there is no way to sit and watch the light change over a roundabout.",
+          "- There is no way to ride along with anything that moves. Cars and pedestrians are the most alive part of the scene and the camera cannot follow one, so a player who wants to see how a car actually takes a roundabout has to chase it by hand and loses it.",
+          "- Camera state persistence will actively misbehave under either new mode. `writeCameraState` is debounced 800 ms off `onViewMatrixChangedObservable`; a camera that turns every frame never lets that debounce fire, and a camera locked to a moving car would persist a vehicle's position as the point a session resumes at."
+        ]
+      },
+      "status": "Draft",
+      "title": "Give the camera three target policies: free, orbit, and follow"
+    },
+    {
+      "ai_context": {
+        "keywords": "performance, road, placed, rebuilds, whole, city, first, load, ships, never, uses",
+        "skip when": "The work is about what `rebuild()` computes internally (req_005, Done), about when it is triggered by a visibility toggle (the visibility-toggle slice under req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene), or about changing how the city looks.",
+        "summary": "A road placement costs a whole-city rebuild (full heightmap re-stamp, a 456,976-vertex ground refresh allocating ~2.7M colour objects and a 1.37M-entry normals array, every road mesh and mover disposed), while the first load ships 561 KB gz of JS including 93 KB of unused gaussian splatting and blocks the first frame on 1.8 MB of building models.",
+        "use when": "Working on the cost of `rebuild()` in `src/app/app.ts`, `conformToRoads`, `ground.refresh`, the road/traffic rebuild granularity, the glTF loader import, model loading at startup, or the traffic `registerBeforeRender` loop."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
+        ],
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "run": [
+          "run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through",
+          "run_005_add_lights_to_the_scene_without_freezing_the_rebuild"
+        ]
+      },
+      "path": "logics/request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md",
+      "ref": "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Placing a road on a large city costs work proportional to what that placement actually changed, not to the size of the whole city -- the heightmap re-stamp, the ground refresh and the road mesh rebuild are all bounded to the affected region or the affected segments.",
+          "- AC2: A ground refresh no longer allocates a fresh multi-million-element array for normals, and no longer allocates constant colour objects per vertex; the terrain renders exactly as it does today.",
+          "- AC3: The eager first-load JavaScript payload no longer includes the gaussian splatting implementation or the other glTF extensions the project's models do not use, and every building model still loads and renders as it does today.",
+          "- AC4: The first frame no longer waits on all 20 building models being downloaded and post-processed; a restored city still shows the right building for every parcel.",
+          "- AC5: The traffic frame loop no longer rebuilds its queue grouping, string keys and sort order from scratch on every frame, and traffic behaves as it does today (queueing behind the car in front, stopping at lights, taking roundabouts).",
+          "- AC6: There is a repeatable way to see whether these costs regress -- a measurement captured against a known city, so a later change that puts the whole-city rebuild back is visible rather than invisible."
+        ],
+        "Needs": [
+          "- Placing one road costs a whole-city rebuild. `createDrawTool`'s `onCommitted` (`src/render/drawTool.ts:341`) runs `rebuild()` in `src/app/app.ts`, which resets and re-stamps the entire heightmap (`conformToRoads` starts with `current.set(this.base)` and `claim.fill(Infinity)`, then re-samples every segment in the graph), refreshes the whole ground mesh, disposes and recreates every road mesh (`roadMesh.ts:133`), disposes and re-instantiates every traffic mover, and rebuilds the buildable-grid line system. The cost of each placement scales with the size of the city already built, so a session's total cost grows quadratically with the number of placements.",
+          "- The ground refresh is the single heaviest step in that rebuild. `GROUND_SIZE 5400 / GROUND_CELL 8 + 1` gives a 676x676 grid: 456,976 vertices and 911,250 triangles, all re-walked on every rebuild. Normals are recomputed into a freshly allocated plain `number[]` of 1.37 million entries (measured at 15-30 ms per call under a warm V8, before any browser or GPU cost), and the two `updateVerticesData` calls re-upload roughly 5.5 MB of positions and 7.3 MB of colours each time.",
+          "- `terrainColor` (`src/render/ground.ts:249`) allocates four constant `Color4` objects plus two `Color4.Lerp` results on every call, and it is called once per vertex during `refresh` -- around 2.7 million short-lived objects per ground refresh, from four colours that never change.",
+          "- The first load ships 561 KB of gzipped JavaScript, 93 KB of which (17%) is the gaussian splatting mesh implementation the app never uses. `import \"@babylonjs/loaders/glTF\"` (`src/render/buildings.ts:1`) registers every glTF extension, pulling `gaussianSplattingMesh` (93 KB gz), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR material adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool` into the eager import graph. The project's own models are static, unanimated and untextured.",
+          "- The first frame waits on every building model. `createBuildingRenderer` (`src/render/buildings.ts:171`) `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, no Draco or meshopt, up to 250 KB for a single lot -- and `startApp` awaits it, then each model pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before anything renders.",
+          "- The traffic frame loop allocates per frame at 60 fps. `scene.registerBeforeRender` (`src/render/traffic.ts:937`) builds a queue `Map` keyed by a freshly interpolated string (`` `${segment.id}:${direction}:${lane.offset}` ``) for every car every frame, a second `ahead` Map, a sort per queue, and then `roundaboutRooms` which allocates another flatMap, Map and sort. Queue order only changes when a mover boards or arrives -- the model has no overtaking, as the code's own comment states."
+        ]
+      },
+      "status": "Draft",
+      "title": "Performance: every road placed rebuilds the whole city, and the first load ships what it never uses"
+    },
+    {
+      "ai_context": {
+        "keywords": "name, streets, number, buildings, open, detail, panel, anything, you, click",
+        "skip when": "The work is about editing names by hand, in-scene labels or a map view, districts or postcodes, or making addresses drive simulation.",
+        "summary": "The city has no streets, only unrelated Bezier segments, so nothing can be named or addressed; buildings and cars are also unselectable. Adds street chaining (reusing the signal phases' facing rule), an English naming scheme with an unbounded escalation ladder, odd/even house numbers from existing parcel data, and the two missing detail-panel cases.",
+        "use when": "Working on street identity, road or building naming, addresses, the selection panel in `src/ui/hud.ts`, or the selection resolver in `src/render/drawTool.ts`."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md",
+      "ref": "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Connected road segments that continue through a junction are recognised as one street, using the same facing rule the signal phases already use, and a street's identity survives a segment being split.",
+          "- AC2: Every street carries a generated English name, drawn once and stable for the life of that street; the scheme cannot run out of names, and a name that would collide still reads as a plausible street name.",
+          "- AC3: Every building has an address: a number and its street name, with odd numbers on one side of the street and even on the other, growing with distance from the street's origin.",
+          "- AC4: Clicking a building opens the existing detail panel showing at least its address; clicking a car opens it for that vehicle.",
+          "- AC5: Street names survive a save and reload unchanged, and a city saved before this feature existed loads successfully and is given generated names.",
+          "- AC6: The street chaining, the name generation and the address arithmetic are pure functions in `src/sim`, unit-tested without a Babylon scene, and `tests/architecture.mjs` still passes."
+        ],
+        "Needs": [
+          "- Clicking a building or a car tells the player nothing. The select tool already opens a detail panel for a road, a roundabout and a tree (`showSelection` in `src/ui/hud.ts`, fed by `SelectionInfo` from `src/render/drawTool.ts`), but a building and a vehicle -- the two things a player looks at most -- are not selectable at all.",
+          "- A building has no address, because the city has no streets to have an address on. Roads exist only as individual Bezier segments: a road drawn through three junctions is three unrelated segments, and no part of the model says they are the same street. `12 Lilac Street` means twelve along the whole street, so an address cannot be derived until a street exists as a thing.",
+          "- Nothing names a road. Every road is shown by its type (`Street`, `Avenue`, `Highway`), never by a name, so two roads of the same type are indistinguishable in the panel and unreferenceable in conversation.",
+          "- A naming scheme that runs out is not acceptable. The operator asked explicitly for one that is not limited by its number of combinations, so a fixed word list on its own will not do -- there has to be a way past exhaustion that still reads as a real street name."
+        ]
+      },
+      "status": "Draft",
+      "title": "Name the streets, number the buildings, and open a detail panel on anything you click"
+    },
+    {
+      "ai_context": {
+        "keywords": "camera, target, policy, switchable, free, unchanged",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/backlog/item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged.md",
+      "ref": "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: With Free selected the camera behaves identically to today, verified by the existing interaction checks.",
+          "- AC2: Panning by drag or arrow key returns the camera to Free from any other mode.",
+          "- AC3: A self-moving mode does not turn the camera while a tool is mid-stroke."
+        ],
+        "Problem": [
+          "- `createScene` hard-wires one behaviour: an `ArcRotateCamera` whose target only moves when the player pans it.",
+          "- Any mode that moves the camera on its own has to be escapable, or the player ends up fighting it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the camera's target policy switchable, with Free unchanged"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, camera, target, policies, settings, section",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+          "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+          "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+          "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md",
+      "ref": "task_014_implement_the_camera_target_policies_and_the_camera_settings_section",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement the camera target policies and the Camera settings section"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+          "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+          "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+          "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md",
+      "ref": "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A camera that can watch, not only be aimed"
+    },
+    {
+      "ai_context": {
+        "keywords": "orbit, camera, around, player, looking",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_043_orbit_the_camera_around_what_the_player_is_looking_at"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/backlog/item_043_orbit_the_camera_around_what_the_player_is_looking_at.md",
+      "ref": "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Orbit turns the camera continuously around its target at a steady rate independent of frame rate, and the player can still zoom and change angle.",
+          "- AC2: Entering Orbit with a selection centres on it; entering with none orbits the current target rather than refusing."
+        ],
+        "Problem": [
+          "- Seeing something from every side means holding the mouse down and dragging, and there is no way to sit and watch the light change over one place."
+        ]
+      },
+      "status": "Ready",
+      "title": "Orbit the camera around what the player is looking at"
+    },
+    {
+      "ai_context": {
+        "keywords": "follow, something, moves, cleanly, gone",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/backlog/item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone.md",
+      "ref": "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: With a moving thing selected, Follow keeps it framed while it travels, and zoom and angle stay under the player's control.",
+          "- AC2: When the followed subject stops existing, the camera returns to Free and the player is told why.",
+          "- AC3: The camera does not visibly jitter while following."
+        ],
+        "Problem": [
+          "- The camera cannot ride along with a car or a pedestrian, so watching how one actually behaves means chasing it by hand and losing it.",
+          "- A followed vehicle does not survive a city edit today, because the traffic renderer disposes and re-instantiates its whole population on every rebuild."
+        ]
+      },
+      "status": "Ready",
+      "title": "Follow something that moves, and stop cleanly when it is gone"
+    },
+    {
+      "ai_context": {
+        "keywords": "add, camera, section, corrupting, resumed, view",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/backlog/item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view.md",
+      "ref": "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The Camera section offers the three modes and the choice survives a reload.",
+          "- AC2: The persisted camera position is never a moving target and never a position produced by self-motion; a session resumed after orbiting or following comes back somewhere the player chose.",
+          "- AC3: The browser interaction suite covers each mode and the escape-to-Free rule."
+        ],
+        "Problem": [
+          "- There is no Camera section in the settings panel, which offers World, Sun and City rows only.",
+          "- `writeCameraState` is debounced 800 ms off `onViewMatrixChangedObservable`: a camera that turns every frame never lets that debounce fire, and a camera locked to a moving car would persist a vehicle's position as the point the next session resumes at."
+        ]
+      },
+      "status": "Ready",
+      "title": "Add the Camera section, and keep it from corrupting the resumed view"
+    }
+  ],
+  "estimates": {
+    "char_count": 30794,
+    "companion_doc_count": 4,
+    "doc_count": 9
+  },
+  "generated_at": "2026-08-30T09:49:24Z",
+  "handoff": {
+    "companion_doc_count": 4,
+    "enabled": true,
+    "source_refs": [
+      "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+      "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+      "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+      "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+      "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view",
+      "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_012_give_the_camera_three_target_policies_free_orbit_and_follow,item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged,item_043_orbit_the_camera_around_what_the_player_is_looking_at,item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone,item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view,task_014_implement_the_camera_target_policies_and_the_camera_settings_section",
+  "refs": [
+    "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+    "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged",
+    "item_043_orbit_the_camera_around_what_the_player_is_looking_at",
+    "item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone",
+    "item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view",
+    "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md",
+      "ref": "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+    }
+  ]
+}

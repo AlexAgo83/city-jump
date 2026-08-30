@@ -50,7 +50,9 @@ them is ever "finished" and closed.
 ## E4 - Reading the city
 - Holds: the select tool, the detail panel, the zone and traffic views, the buildable grid.
 - Standing: advancing. `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`
-  gives the city streets, names and addresses, and extends the panel to buildings and cars.
+  gives the city streets, names and addresses, and extends the panel to buildings and cars;
+  `req_012_give_the_camera_three_target_policies_free_orbit_and_follow` lets the player watch the
+  city rather than only aim at it.
 - Open questions: everything above the street -- districts, neighbourhoods, a map view.
 
 ## E5 - Keeping and sharing a city
@@ -106,7 +108,8 @@ them is ever "finished" and closed.
   `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`,
   `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`,
   `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`,
-  `req_011_share_a_city_as_a_link_that_needs_no_server`
+  `req_011_share_a_city_as_a_link_that_needs_no_server`,
+  `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,
