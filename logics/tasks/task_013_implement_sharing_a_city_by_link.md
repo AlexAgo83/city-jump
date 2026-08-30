@@ -1,14 +1,15 @@
 ## task_013_implement_sharing_a_city_by_link - Implement sharing a city by link
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 85%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:05:05
+> Indicators reviewed: 2026-08-30 13:07:40
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_011: take the shared-link threat-model review as the encoder's specification, build the quantising encoder and the capped decoder, then the Share button and its refusal, then the arrival flow, then the round trip in the browser suite.

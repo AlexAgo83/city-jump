@@ -1,14 +1,14 @@
 ## item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely - Turn a city into a link-sized payload and read one back safely
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:05:04
+> Indicators reviewed: 2026-08-30 13:07:40
 
 # AI Context
 - Summary: The Demo save encodes to ~22,900 characters raw and ~8,850 once elevations are rounded to 10 cm; the decoder also needs a fragment size cap and a cap enforced while decompressing, since neither exists.

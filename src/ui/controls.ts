@@ -1,5 +1,6 @@
 import type { CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
+import { decodeShare, encodeShare } from "../sim/share";
 import type { ZoneKind } from "../sim/zones";
 import {
   listSaves,
@@ -260,6 +261,7 @@ function bindSaves(
   const slot = document.getElementById("save-slot") as HTMLSelectElement;
   const store = document.getElementById("save-store") as HTMLButtonElement;
   const load = document.getElementById("save-load") as HTMLButtonElement;
+  const share = document.getElementById("save-share") as HTMLButtonElement;
   const remove = document.getElementById("save-delete") as HTMLButtonElement;
 
   const refresh = (selected?: string): void => {
@@ -310,6 +312,20 @@ function bindSaves(
     showRefusal(`Loaded "${name}".`);
   });
 
+  share.addEventListener("click", async () => {
+    const name = window.prompt("Name this shared city:", readActiveSave() ?? "Shared city")?.trim();
+    if (!name) return;
+    const fragment = await encodeShare({ name, city: handlers.onSave() });
+    if (!fragment) return showRefusal("This city is too large to share as a link.");
+    const link = `${location.origin}${location.pathname}#${fragment}`;
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(link);
+      showRefusal("Share link copied.");
+    } else {
+      window.prompt("Share link:", link);
+    }
+  });
+
   remove.addEventListener("click", () => {
     const name = slot.value;
     if (!name || !window.confirm(`Delete "${name}"?`)) return;
@@ -322,4 +338,35 @@ function bindSaves(
   // Picks up wherever a previous session left off, so the picker points at the city that is
   // actually loaded instead of whichever name happens to sort first.
   refresh(readActiveSave() ?? undefined);
+  void importSharedCity(handlers, applyCity, refresh);
+}
+
+async function importSharedCity(
+  handlers: { onLoad(city: CitySave): boolean },
+  applyCity: (city: CitySave) => void,
+  refresh: (selected?: string) => void,
+): Promise<void> {
+  if (!location.hash.startsWith("#city=")) return;
+  const hash = location.hash;
+  const url = new URL(location.href);
+  url.hash = "";
+  history.replaceState(null, "", url);
+  let shared;
+  try {
+    shared = await decodeShare(hash);
+  } catch (error) {
+    showRefusal(`This share link could not be used: ${(error as Error).message}.`);
+    return;
+  }
+  if (!window.confirm(`Import "${shared.name}"?`)) return;
+  let name = shared.name;
+  if (listSaves().includes(name) && !window.confirm(`Replace "${name}"?`)) {
+    name = window.prompt("Save shared city as:", `${name} copy`)?.trim() ?? "";
+    if (!name) return;
+  }
+  if (!writeSave(name, shared.city)) return showRefusal("Shared city could not be saved. Browser storage may be full or disabled.");
+  writeActiveSave(name);
+  refresh(name);
+  if (window.confirm(`Load "${name}" now?`) && handlers.onLoad(shared.city)) applyCity(shared.city);
+  history.replaceState(null, "", url);
 }

@@ -1,13 +1,14 @@
 ## item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link - Offer to import the city when someone arrives on a share link
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:07:40
 
 # AI Context
 - Summary: Arriving on a share link must offer an import rather than overwrite what the receiver already has, handle a name collision, and strip the fragment so a reload does not re-prompt.

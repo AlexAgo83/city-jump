@@ -1050,6 +1050,31 @@ await page.locator("#save-store").click();
 await nextFrame();
 const slotNames = await page.locator("#save-slot option").allTextContents();
 check("a saved city appears in the picker", slotNames.includes("Testville"));
+await page.evaluate(() => {
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: async (text) => (window.__shareLink = text) },
+  });
+});
+page.once("dialog", (dialog) => dialog.accept("Sharedville"));
+await page.locator("#save-share").click();
+await nextFrame();
+const shareLink = await page.evaluate(() => window.__shareLink ?? "");
+check("a share link is copied", shareLink.includes("#city="), shareLink.slice(0, 80));
+page.on("dialog", (dialog) => dialog.accept());
+await page.evaluate(() => {
+  for (const key of Object.keys(localStorage)) {
+    if (key.startsWith("cityjump.")) localStorage.removeItem(key);
+  }
+});
+await page.goto("about:blank");
+await page.goto(shareLink, { waitUntil: "load" });
+await waitForApp();
+await page.waitForFunction((segments) => window.cityjump.stats().segments === segments, built.segments, { timeout: 5_000 });
+check("arriving on a share link imports and loads the city", (await stats()).segments === built.segments, `${(await stats()).segments}/${built.segments}`);
+await page.waitForFunction(() => location.hash === "", null, { timeout: 5_000 });
+check("the share fragment is removed after handling", await page.evaluate(() => location.hash === ""));
+check("the imported city appears in the picker", (await page.locator("#save-slot option").allTextContents()).includes("Sharedville"));
 
 await page.evaluate(() => window.cityjump.reset());
 await nextFrame();

@@ -1,14 +1,14 @@
 ## item_040_add_the_share_button_to_the_saves_panel - Add the Share button to the saves panel
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:40:20
+> Indicators reviewed: 2026-08-30 13:07:40
 
 # AI Context
 - Summary: The saves panel has Save, Load and Delete and no way to hand a city to anyone; a city over the link ceiling must refuse rather than emit a link that breaks for the receiver.
