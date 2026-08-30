@@ -28,6 +28,8 @@
 | [prod_013_a_city_that_tells_you_what_it_costs_to_draw](product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md) | A city that tells you what it costs to draw | Proposed |  |  | product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md |
 | [prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine](product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md) | A city that can be made to run on a weaker machine | Proposed |  |  | product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md |
 | [prod_015_a_city_whose_traffic_is_the_player_s_to_dial](product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md) | A city whose traffic is the player's to dial | Proposed |  |  | product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md |
+| [prod_016_a_city_you_can_change_your_mind_about](product/prod_016_a_city_you_can_change_your_mind_about.md) | A city you can change your mind about | Proposed |  |  | product/prod_016_a_city_you_can_change_your_mind_about.md |
+| [prod_017_an_edit_that_costs_what_it_changed_everywhere](product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md) | An edit that costs what it changed, everywhere | Proposed |  |  | product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md |
 
 ## Roadmaps
 
@@ -58,6 +60,8 @@
 | [req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen, and let the player turn it off | Draft |  |  | request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 | [req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off](request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Draft |  |  | request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
 | [req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is](request/req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md) | Let the player turn the traffic simulation off, and set how busy the city is | Draft |  |  | request/req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md |
+| [req_019_let_the_player_take_back_the_last_thing_they_did](request/req_019_let_the_player_take_back_the_last_thing_they_did.md) | Let the player take back the last thing they did | Draft |  |  | request/req_019_let_the_player_take_back_the_last_thing_they_did.md |
+| [req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit](request/req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit.md) | Four renderers still rebuild the whole world on every edit | Draft |  |  | request/req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit.md |
 
 ## Backlog
 
@@ -125,6 +129,13 @@
 | [item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black](backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md) | Make the city's own lights a switch, without turning the night black | Ready |  | 0% | backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md |
 | [item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it](backlog/item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it.md) | Make traffic a switch that stops the simulation rather than hiding it | Ready |  | 0% | backlog/item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it.md |
 | [item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel](backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md) | Let the player set how busy the city is, without respawning on every pixel | Ready |  | 0% | backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md |
+| [item_063_snapshot_the_city_s_model_into_a_bounded_history](backlog/item_063_snapshot_the_city_s_model_into_a_bounded_history.md) | Snapshot the city's model into a bounded history | Ready |  | 0% | backlog/item_063_snapshot_the_city_s_model_into_a_bounded_history.md |
+| [item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone](backlog/item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone.md) | Make one gesture one step, and leave nothing pointing at what is gone | Ready |  | 0% | backlog/item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone.md |
+| [item_065_put_undo_and_redo_where_the_player_will_reach_for_them](backlog/item_065_put_undo_and_redo_where_the_player_will_reach_for_them.md) | Put undo and redo where the player will reach for them | Ready |  | 0% | backlog/item_065_put_undo_and_redo_where_the_player_will_reach_for_them.md |
+| [item_066_measure_what_each_full_rebuild_renderer_actually_costs](backlog/item_066_measure_what_each_full_rebuild_renderer_actually_costs.md) | Measure what each full-rebuild renderer actually costs | Ready |  | 0% | backlog/item_066_measure_what_each_full_rebuild_renderer_actually_costs.md |
+| [item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times](backlog/item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times.md) | Solve the junction geometry once per rebuild instead of five times | Ready |  | 0% | backlog/item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times.md |
+| [item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed](backlog/item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed.md) | Stop rescanning the whole island for trees that cannot have changed | Ready |  | 0% | backlog/item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed.md |
+| [item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers](backlog/item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers.md) | Decide the world grid, the streetlights and the signals on their numbers | Ready |  | 0% | backlog/item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers.md |
 
 ## Tasks
 
@@ -150,6 +161,8 @@
 | [task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen and let the player turn it off | Ready |  | 0% | tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 | [task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off](tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Ready |  | 0% | tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
 | [task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is](tasks/task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md) | Let the player turn the traffic simulation off and set how busy the city is | Ready |  | 0% | tasks/task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md |
+| [task_021_let_the_player_take_back_the_last_thing_they_did](tasks/task_021_let_the_player_take_back_the_last_thing_they_did.md) | Let the player take back the last thing they did | Ready |  | 0% | tasks/task_021_let_the_player_take_back_the_last_thing_they_did.md |
+| [task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world](tasks/task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world.md) | Finish bounding the renderers that still rebuild the whole world | Ready |  | 0% | tasks/task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world.md |
 
 ## Runbooks
 

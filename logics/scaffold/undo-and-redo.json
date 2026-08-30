@@ -1,0 +1,180 @@
+{
+  "title": "Let the player take back the last thing they did",
+  "references": [
+    "src/sim/save.ts",
+    "src/sim/graph.ts",
+    "src/render/drawTool.ts",
+    "src/app/app.ts",
+    "src/ui/controls.ts",
+    "src/ui/hud.ts",
+    "index.html",
+    "scripts/interact.mjs",
+    "logics/runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md",
+    "logics/architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md",
+    "logics/roadmap/road_001_city_jump_playable_city.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "There is no undo. Bulldoze a road the player spent five minutes shaping and it is gone -- the only recovery is to draw it again from memory, or reload and lose everything since the last autosave.",
+      "Every other tool a person builds with has this, and its absence is felt hardest exactly where the game is strongest: the roads are careful, hand-shaped work, and the bulldozer is one click.",
+      "The refusal messages already tell the player when something *cannot* be done. Nothing helps them when something could be done and should not have been -- which is the more common mistake.",
+      "The autosave makes this worse rather than better: it writes two seconds after a mistake, so the wrong city is the saved city before the player has finished regretting it."
+    ],
+    "context": [
+      "The graph is the source of truth (`adr_001_keep_the_road_graph_as_the_source_of_truth`) and everything on screen is derived from it, so the thing to undo is a change to the model -- graph, plantings and zones -- and never a change to the meshes.",
+      "The whole of that model already serialises and restores. `serializeCity(graph, plantings, zones, terrain, hour)` produces a `CitySave` and `restoreCity(graph, plantings, zones, save)` replays one all-or-nothing, dry-running into throwaway state first. A stack of snapshots is therefore almost no new code, and it is the shape to try before anything cleverer. The alternative -- a log of invertible operations -- is less memory and considerably more code, and every new kind of edit has to teach it a new inverse. Start with snapshots, measure, and record the ceiling with a `ponytail:` comment naming the upgrade path.",
+      "The trap is identity. `replayCity` renumbers as it replays: it builds an `ids` map from saved node id to newly allocated node id, so **every `NodeId` and `SegmentId` in the program is stale after a restore**. Anything holding one across an undo has to be dropped or re-resolved -- the selection in `src/render/drawTool.ts`, the follow-camera target in `src/app/app.ts`, and any pending draw stage.",
+      "What counts as one step is a design decision, not an implementation detail. A road placed, a segment bulldozed, a roundabout toggled and a tree planted are each obviously one. A spray burst plants eight trees, and a zone brush stroke fires many paint events across one drag -- both must coalesce into a single undoable step, or the player presses undo eleven times to take back one gesture. This is the same coalescing problem the brushes already solve for cost.",
+      "An undo is a full model replacement, so it forces a full rebuild -- `rebuild()` with no dirty box. That is correct and it is the expensive path. Whether the affected region can be derived from the difference between two snapshots is worth asking, but correctness comes first and a full rebuild is always right.",
+      "Undo changes the city, not the view. The sun hour, the camera, the World toggles and the select view are settings, not city data, and pressing undo must not move them. The terrain preset sits on the boundary: it is carried in the save but is not chosen in the UI any more, so it changes only on load.",
+      "The autosave has to follow. `scheduleAutosave` runs at the end of every rebuild, so an undo that goes through the normal rebuild path is persisted for free -- but a state restored by undo must not itself become a new undo entry, or the stack never unwinds.",
+      "There is no keyboard shortcut infrastructure. `src/app/app.ts` registers one `keydown` listener for the camera's arrow keys; `Esc` is handled in `src/render/drawTool.ts`. A `Ctrl`/`Cmd+Z` binding joins that, and must not fire while the player is typing into a prompt or a save-name field."
+    ],
+    "acceptance_criteria": [
+      "AC1: The player can undo the last change they made to the city, and redo it again, from the toolbar and from the keyboard.",
+      "AC2: Undo covers every way the city can change: a road drawn, a road bulldozed, a roundabout toggled, a tree planted or cleared, a spray burst, and a zone painted or cleared.",
+      "AC3: One gesture is one step -- a spray burst and a single zone-brush stroke each undo in one press, not once per tree or per pointer event.",
+      "AC4: Undo never leaves a stale reference behind: the selection, the follow camera and any pending draw survive an undo or are cleared, and never point at something that no longer exists.",
+      "AC5: Redo is available only until the player makes a new change, at which point the redo branch is discarded.",
+      "AC6: Undo and redo change the city and nothing else -- the sun hour, the camera and the settings are untouched.",
+      "AC7: The history has a stated bound, and the memory it costs at that bound is measured rather than assumed.",
+      "AC8: The undo and redo controls say when there is nothing to undo or redo, rather than doing nothing silently.",
+      "AC9: The browser interaction suite covers drawing, undoing, redoing, and undoing a brush stroke in one press; `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass."
+    ]
+  },
+  "product": {
+    "title": "A city you can change your mind about",
+    "overview": "city-jump is careful, hand-shaped work -- a curve takes three considered clicks -- and it has no undo. One misplaced bulldoze and the only recovery is to redraw from memory or reload and lose everything since the last autosave. The model already knows how to snapshot and restore itself all-or-nothing, so the machinery is nearly free; the work is deciding what one step is, and making sure nothing in the program is still pointing at a road that stopped existing.",
+    "goals": [
+      "A mistake costs one keystroke, not five minutes of redrawing.",
+      "One gesture undoes in one press, whatever that gesture planted or painted.",
+      "Nothing in the program survives an undo still pointing at something that is gone.",
+      "The simplest thing that works ships first, with its ceiling written down.",
+      "Undo touches the city and leaves the view alone."
+    ],
+    "non_goals": [
+      "A named or browsable history, a timeline, or restore points.",
+      "Undoing settings, camera moves, the sun hour, or view switches.",
+      "Undo across a page reload, or history carried in a save or a share link.",
+      "Collaborative or multi-user editing history.",
+      "An operation log with per-edit inverses, unless snapshots are measured and found wanting.",
+      "Changing what any of the build tools do."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Snapshot the city's model into a bounded history",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC5", "AC7"],
+      "problem": [
+        "Nothing records what the city was a moment ago. The graph, the plantings and the zones are mutated in place by every tool, and the previous state is simply overwritten.",
+        "The obvious cheap answer -- keep `CitySave` snapshots -- has a cost nobody has measured: a large city is a large payload, and an unbounded stack of them is a memory leak with a friendly name.",
+        "The obvious clever answer -- a log of invertible operations -- is a lot more code and a standing tax on every future edit, which has to arrive with its own inverse."
+      ],
+      "scope_in": [
+        "A history in `src/sim` holding snapshots of the city model, with undo and redo as pure operations over it, unit-tested with no scene.",
+        "Build it on `serializeCity` and `restoreCity` rather than a parallel representation, so it inherits the all-or-nothing replay and cannot introduce a second definition of what a city is.",
+        "A stated bound on the history depth, and a measurement of what that bound costs in memory on a city the size of the bundled Demo -- recorded, not guessed.",
+        "Discard the redo branch when a new change arrives, so the history is a line and not a tree.",
+        "Mark the snapshot approach with a `ponytail:` comment naming its ceiling and the operation-log upgrade path, so the next person meets the reasoning rather than the surprise.",
+        "Unit tests: undo returns the previous city exactly, redo returns the one after it, a new change discards the redo branch, and the history never exceeds its bound."
+      ],
+      "scope_out": [
+        "Wiring the history to the tools, which is the next slice.",
+        "Any UI or keyboard binding.",
+        "Persisting history across a reload."
+      ],
+      "acceptance_criteria": [
+        "AC1: Undo and redo are pure operations over a bounded history, unit-tested without a scene.",
+        "AC2: The history is built on the existing serialize and restore rather than a second representation of a city.",
+        "AC3: A new change discards the redo branch.",
+        "AC4: The depth bound is stated and the memory it costs at that bound is measured on a Demo-sized city."
+      ]
+    },
+    {
+      "title": "Make one gesture one step, and leave nothing pointing at what is gone",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC3", "AC4", "AC6"],
+      "problem": [
+        "`replayCity` renumbers nodes as it replays, so every `NodeId` and `SegmentId` held anywhere in the program is stale the moment a restore happens. The selection in `src/render/drawTool.ts` holds a segment, the follow camera in `src/app/app.ts` holds a closure over a mover, and a half-drawn curve holds two snapped nodes.",
+        "A spray burst plants eight trees in one press and a zone-brush stroke fires paint after paint across one drag. Recorded naively, taking back one gesture costs the player eleven presses.",
+        "Undo has to record before the change, not after, and only for changes that actually happened -- a refused segment must not leave an entry behind."
+      ],
+      "scope_in": [
+        "Record a history entry at every point the city model changes: `commitSegment`, bulldoze, roundabout toggle, plant, clear, spray, zone paint and zone clear -- all of which already funnel through `onCommitted` or the nature callbacks in `src/render/drawTool.ts`.",
+        "Coalesce a continuous gesture into one entry: a spray burst and a zone stroke each open on press and close on release, following the same `lastSprayed` / pointer-up boundary the brushes already have.",
+        "Record nothing when a change was refused, so a rejected road leaves no entry.",
+        "On undo or redo, clear or re-resolve everything holding an id: the selection, the follow-camera target, and any pending draw stage.",
+        "Route undo through the existing rebuild and autosave path, and make sure a restored state does not itself push a new history entry.",
+        "Leave the view alone: sun hour, camera, World settings and select view are untouched by undo.",
+        "Extend `scripts/interact.mjs`: draw and undo, spray and undo once, paint a zone stroke and undo once, and select a road then undo the road that carried the selection."
+      ],
+      "scope_out": [
+        "The history structure itself, which is the previous slice.",
+        "The toolbar and keyboard controls, which are the next one.",
+        "Deriving a dirty region from the difference between two snapshots -- a full rebuild is correct, and this slice takes it."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every way the city can change produces exactly one history entry, and a refused change produces none.",
+        "AC2: A spray burst and a single zone-brush stroke each undo in one press.",
+        "AC3: After an undo nothing holds a stale node or segment id -- the selection, the follow camera and any pending draw are cleared or re-resolved, proven by undoing the road a selection was standing on.",
+        "AC4: Undo leaves the sun hour, the camera and the settings exactly as they were."
+      ]
+    },
+    {
+      "title": "Put undo and redo where the player will reach for them",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC8", "AC9"],
+      "problem": [
+        "There is nowhere to press. The toolbar holds tools and settings, and the only keyboard bindings in the app are the camera's arrow keys in `src/app/app.ts` and `Esc` in `src/render/drawTool.ts`.",
+        "A control that does nothing when there is nothing to undo is indistinguishable from a broken one, which is the same class of silence `run_007_the_code_says_it_drew_it_and_the_screen_disagrees` is about.",
+        "A global `Ctrl+Z` that fires while someone is typing a save name or answering a prompt takes back a road instead of a character."
+      ],
+      "scope_in": [
+        "Undo and redo controls in the toolbar in `index.html`, wired through `src/ui/controls.ts` like every other control.",
+        "`Ctrl+Z` and `Ctrl+Shift+Z`, with the `Cmd` equivalents on macOS, joining the existing `keydown` handling -- and inert while a text field or a browser prompt has focus.",
+        "Disable or refuse clearly when there is nothing to undo or redo, using the existing `showRefusal` path rather than a silent no-op.",
+        "Extend `scripts/interact.mjs` for the button and the shortcut, both directions.",
+        "Check the toolbar still lays out at the narrow widths the existing media query covers."
+      ],
+      "scope_out": [
+        "A visible history list, a timeline, or restore points.",
+        "Rebinding, a shortcuts screen, or any other keyboard shortcut.",
+        "Changing the toolbar's structure beyond adding the two controls."
+      ],
+      "acceptance_criteria": [
+        "AC1: Undo and redo are reachable from the toolbar and from `Ctrl`/`Cmd+Z` and `Ctrl`/`Cmd+Shift+Z`.",
+        "AC2: The shortcut does not fire while a text field or a browser prompt has focus.",
+        "AC3: With nothing to undo or redo the controls say so rather than doing nothing silently.",
+        "AC4: The browser interaction suite covers both controls and both shortcuts, and the toolbar still lays out at narrow widths."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Let the player take back the last thing they did",
+    "plan": [
+      "Read this request and its three backlog slices, and `run_006_change_what_a_save_contains_without_losing_the_player_s_city` before touching serialize or restore.",
+      "Take the snapshot approach first and measure it. Only if the measurement is bad does the operation log become worth its cost -- and that conclusion is a finding, not a licence to grow this chain.",
+      "Build the bounded history in `src/sim` on top of `serializeCity` and `restoreCity`, unit-tested with no scene.",
+      "Then wire it to the tools, deciding gesture boundaries explicitly and clearing every holder of a node or segment id -- `replayCity` renumbers, so a stale id is guaranteed, not hypothetical.",
+      "Then the toolbar controls and the keyboard shortcuts, inert while a text field has focus.",
+      "Measure the memory the history costs at its bound on a Demo-sized city, and record it in the closeout.",
+      "Extend the browser interaction suite, then run the fast gate and the visual check.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. If snapshots were kept, the ceiling belongs in a `ponytail:` comment naming the upgrade path.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/undo-and-redo.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

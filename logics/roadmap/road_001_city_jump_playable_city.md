@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:26:58
+> Indicators reviewed: 2026-08-30 14:33:07
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -60,11 +60,18 @@ them is ever "finished" and closed.
   carry a name across the segments that continue each other, building addresses, a detail panel
   that opens on a road, a building, a car, a tree or a roundabout, and free, orbit and follow
   cameras.
-- Standing: the city can be read and watched. `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
+- Standing: the city can be read and watched, and -- once
+  `req_019_let_the_player_take_back_the_last_thing_they_did` lands -- changed back. There is no
+  undo today, which is felt hardest where the game is strongest: a curve is three considered
+  clicks and the bulldozer is one. `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
   adds the one readout the player has no way to see today, and
   `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`,
-  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` and
-  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` give them
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`,
+  `req_019_let_the_player_take_back_the_last_thing_they_did`,
+  `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit` and
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`,
+  `req_019_let_the_player_take_back_the_last_thing_they_did`,
+  `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit` give them
   the switches that make that number worth looking at -- showing someone a cost they cannot act
   on is worse than not showing it. The traffic pair is the largest of the three and the only one
   a player would also want for its own sake.
@@ -95,8 +102,13 @@ them is ever "finished" and closed.
   `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`
   closes them and leaves behind the checks that would have caught them. This is the strand's
   standing lesson: moving correctness from one place into four buys speed and costs proof.
-- Open questions: whether the dirty-region rebuild should reach the renderers that still rebuild
-  in full -- trees, world grid, streetlights, signals -- or whether their cost never justified it.
+- Standing, second front: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
+  takes the strand's own open question and puts a measurement behind it. Trees rescan 5,400 m of
+  island on every road placed, the world grid allocates on the order of 900,000 vectors whenever
+  it is showing, and `allJunctions` solves the same geometry five times per rebuild. The chain is
+  written to allow the answer "leave it, here is the number".
+- Open questions: none outstanding for the rebuild; the next one is the main bundle, still 963 kB
+  and warned about on every build, which no chain covers.
 
 # Sequencing
 - Advance whichever strand the moment calls for. There is no prescribed order between them and
@@ -119,9 +131,15 @@ them; the next chain is chosen when this one closes.
 3. `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off` -- after the counter
    exists: these switches are the answer to the number it shows, and the counter is how their
    effect is measured rather than asserted.
-4. `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` -- last,
-   because it shares the headlight cluster with step 3 and inherits the World-toggle pattern from
-   both steps above.
+4. `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` --
+   after step 3, because it shares the headlight cluster with it and inherits the World-toggle
+   pattern from both steps above.
+5. `task_021_let_the_player_take_back_the_last_thing_they_did` -- independent of the four above and
+   the largest player-visible gap left; it needs only step 1's predicate work not to be in flight
+   in the same files.
+6. `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world` -- after step 1 and
+   not before: that chain settles the dispose-and-recreate predicate this one would otherwise copy
+   wrong four more times.
 
 - A strand with an open question that blocks a player-visible decision earns priority over one
   that only carries internal work -- but only when the decision is actually blocked, not merely
@@ -150,7 +168,9 @@ them; the next chain is chosen when this one closes.
   `prod_012_a_city_that_keeps_drawing_itself_correctly`,
   `prod_013_a_city_that_tells_you_what_it_costs_to_draw`,
   `prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine`,
-  `prod_015_a_city_whose_traffic_is_the_player_s_to_dial`
+  `prod_015_a_city_whose_traffic_is_the_player_s_to_dial`,
+  `prod_016_a_city_you_can_change_your_mind_about`,
+  `prod_017_an_edit_that_costs_what_it_changed_everywhere`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -165,7 +185,9 @@ them; the next chain is chosen when this one closes.
   `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`,
   `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`,
   `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`,
-  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`,
+  `req_019_let_the_player_take_back_the_last_thing_they_did`,
+  `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

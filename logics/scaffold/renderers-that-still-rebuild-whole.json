@@ -1,0 +1,211 @@
+{
+  "title": "Four renderers still rebuild the whole world on every edit",
+  "references": [
+    "src/render/trees.ts",
+    "src/render/ground.ts",
+    "src/render/streetlights.ts",
+    "src/render/signals.ts",
+    "src/render/roadMesh.ts",
+    "src/sim/junction.ts",
+    "src/sim/heightmap.ts",
+    "src/app/app.ts",
+    "src/render/debugApi.ts",
+    "logics/runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md",
+    "logics/request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md",
+    "logics/request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "`req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses` taught the heightmap, the ground, the road meshes and the traffic to repaint only the region an edit touched. Four renderers were left out and still rebuild whole on every edit: trees, the world grid, the streetlights and the signals. `rebuild` in `src/app/app.ts` calls all four with no dirty box at all.",
+      "The trees are the largest of them and the least justified. `trees.rebuild` rebuilds a road mask over every segment and then rescans the entire 5400 m island for scenery on a 58 m step -- roughly 8,600 candidate points -- plus a denser pass inside every forest patch, on every road placed. None of that work depends on what the edit changed: the scenery is a deterministic function of the heightmap, the road mask and the plantings, and the heightmap only changes inside the dirty region.",
+      "The world grid is worse per rebuild and cheaper in practice. When it is visible it allocates two `Vector3` per cell per axis across a 676 x 676 grid -- on the order of 900,000 objects -- and builds a fresh line system, every rebuild. When it is hidden it returns immediately, which is the default, so it costs nothing most of the time and a great deal exactly when someone is using it to line a road up.",
+      "There is also work duplicated across renderers that has nothing to do with dirty regions. `allJunctions(graph)` walks every node and computes the junction geometry for each, and it is called four times per rebuild -- in `src/sim/heightmap.ts`, `src/render/roadMesh.ts`, `src/render/streetlights.ts` and `src/render/signals.ts` -- while `src/render/traffic.ts` keeps a fifth copy in its own lazy cache. The same city geometry is solved five times to draw one frame.",
+      "The roadmap records this as an open question with an honest either-or: extend the optimisation to these four, or find their cost never justified it. That question has never been measured, and it should be answered with numbers rather than closed by assumption in either direction."
+    ],
+    "context": [
+      "`run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint` is the procedure and it is not optional reading here. Its rung 3 -- dispose and recreate on the same predicate -- is the defect `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work` exists to fix, and it is exactly the mistake this chain is positioned to repeat four more times.",
+      "The precedent for the duplicated junction work already exists in this codebase. `src/app/app.ts` solves `buildableCells` and `buildingParcels` once per rebuild and hands the same answer to both the terrain and the building renderer, with a comment saying why. `allJunctions` is the same shape of problem and has not had the same treatment.",
+      "The tree scenery is deterministic and that is what makes it boundable: `randomish` seeded per candidate index, the heightmap, the road mask, and the player's own plantings. A tree far from an edit cannot have changed, because nothing it depends on changed. Its trunks and canopies are thin instances applied through `applyInstances`, so preserving the ones outside the region means preserving their matrices rather than recomputing them.",
+      "The streetlights already learned this lesson once, in the small. `rebuildLights` carries a comment recording that creating or disposing a light walks every mesh in the scene and that churning hundreds of lamps cost seconds per road drawn -- so only the difference in count is created or disposed and every other light is moved. The lamp *meshes* did not get the same treatment.",
+      "The signals rebuild disposes every mast and recreates it, and runs `signalCycle` for every junction in the city. Both are proportional to the junction count rather than to the edit.",
+      "`measureCosts()` in `src/render/debugApi.ts` already times startup, the demo build and one road placement against a known city. It reports those three totals and nothing per-renderer, so it cannot currently say which of these four is worth touching.",
+      "Not every answer here is a dirty region. The duplicated junction geometry is solved by computing it once and passing it down; the world grid may be solved by not rebuilding it when the heightmap did not change under it; and one or more of these renderers may turn out to cost little enough that the right answer is a recorded measurement and no code at all."
+    ],
+    "acceptance_criteria": [
+      "AC1: The cost of each of the four full-rebuild renderers is measured individually against a known city, so the decision about each one rests on a number.",
+      "AC2: The junction geometry is computed once per rebuild and shared, rather than solved separately by the heightmap, the road meshes, the streetlights and the signals.",
+      "AC3: An edit no longer rescans the whole island for scenery trees: trees outside the region an edit touched are preserved rather than recomputed.",
+      "AC4: Each of the world grid, the streetlights and the signals is either bounded to the region an edit touched, or left whole with the measurement that justifies leaving it recorded.",
+      "AC5: Nothing this chain touches can dispose geometry it does not recreate -- every renderer it changes disposes and recreates on one predicate, per `run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint`.",
+      "AC6: A partial rebuild produces the same scene as a full one, proven for each renderer changed rather than assumed.",
+      "AC7: The bundled Demo city is visually unchanged, and the before-and-after placement cost is recorded.",
+      "AC8: `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass, and each renderer bounded leaves behind a check that fails without its fix."
+    ]
+  },
+  "product": {
+    "title": "An edit that costs what it changed, everywhere",
+    "overview": "The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.",
+    "goals": [
+      "The decision about each renderer rests on its measured cost, not on its position in a list.",
+      "The same city geometry stops being solved five times to draw one frame.",
+      "An edit stops rescanning the whole island for trees that cannot have changed.",
+      "Every renderer this touches disposes and recreates on one predicate.",
+      "A renderer left rebuilding whole is left there on purpose, with the measurement written down."
+    ],
+    "non_goals": [
+      "Changing what any of these renderers draw -- the scene after this is pixel-identical to the scene before it.",
+      "Reworking the tree scenery rules, the lamp spacing, or the signal cycle model.",
+      "A general dirty-region framework the renderers all implement.",
+      "Extending region-based rebuilds to anything outside these four.",
+      "Reducing detail, density or counts to go faster -- that bargain belongs to the player's settings, not to this chain.",
+      "Startup or bundle cost, which is a different question."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Measure what each full-rebuild renderer actually costs",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC1"],
+      "problem": [
+        "`measureCosts()` reports startup, the demo build and one placement as three totals. It cannot say whether the trees, the world grid, the streetlights or the signals are where a placement's time goes.",
+        "Without that, this chain is four optimisations chosen by how expensive they look in the source, which is how effort gets spent on the cheap one.",
+        "The roadmap's open question is explicitly either-or -- bound them, or find their cost never justified it -- and only a measurement can answer it in the second direction."
+      ],
+      "scope_in": [
+        "Extend `measureCosts()` in `src/render/debugApi.ts` to report the cost of each renderer's rebuild individually, against the same known city it already builds.",
+        "Measure both shapes of edit: a placement with a dirty box, and a full rebuild, so the gap between them is visible per renderer.",
+        "Measure the world grid both hidden and visible, since it returns immediately when hidden and is the most expensive thing here when not.",
+        "Count how many times `allJunctions` runs per rebuild, so the duplication is a number rather than a claim.",
+        "Record the figures on a Demo-sized city in the closeout, and again after each later slice, so every following decision cites one."
+      ],
+      "scope_out": [
+        "Changing any renderer.",
+        "A profiling UI, or exposing these figures to the player.",
+        "Continuous performance regression gating in CI."
+      ],
+      "acceptance_criteria": [
+        "AC1: `measureCosts()` reports per-renderer rebuild cost for trees, world grid, streetlights and signals.",
+        "AC2: The figures distinguish a bounded placement from a full rebuild, and the world grid hidden from visible.",
+        "AC3: The number of `allJunctions` calls per rebuild is reported.",
+        "AC4: Baseline figures on a Demo-sized city are recorded in the closeout."
+      ]
+    },
+    {
+      "title": "Solve the junction geometry once per rebuild instead of five times",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC6", "AC7"],
+      "problem": [
+        "`allJunctions(graph)` walks every node and computes `junctionGeometry` for each. It is called from `src/sim/heightmap.ts`, `src/render/roadMesh.ts`, `src/render/streetlights.ts` and `src/render/signals.ts` -- four full solves per rebuild -- and `src/render/traffic.ts` keeps a fifth in its own lazy `junctionAt` cache.",
+        "Every one of those solves the same thing from the same graph and throws it away. This has nothing to do with dirty regions: it is duplicated work that a full rebuild pays five times over.",
+        "The codebase already knows the answer to this shape of problem. `src/app/app.ts` solves the parcel layout once and hands it to both the terrain and the buildings, with a comment saying why -- the junctions never got the same treatment."
+      ],
+      "scope_in": [
+        "Solve the junction geometry once per rebuild in `src/app/app.ts`, alongside `buildableCells` and `buildingParcels`, and hand the same map to the heightmap, the road meshes, the streetlights and the signals.",
+        "Fold the traffic renderer's own `junctionAt` cache into the same answer, or record why it must stay separate -- it is populated lazily during the frame step rather than at rebuild time, which may be a real reason.",
+        "Keep `allJunctions` usable on its own for tests and for callers outside a rebuild; this is about who calls it, not about deleting it.",
+        "Confirm the shared map is not mutated by any consumer, since four of them now hold the same object.",
+        "Report the before-and-after placement cost from the previous slice's measurement."
+      ],
+      "scope_out": [
+        "Caching junction geometry across rebuilds, which is a different and riskier claim.",
+        "Changing `junctionGeometry` itself, or what a junction is.",
+        "Bounding any renderer to a region."
+      ],
+      "acceptance_criteria": [
+        "AC1: Junction geometry is solved once per rebuild and shared by every consumer that runs at rebuild time.",
+        "AC2: No consumer mutates the shared map, verified rather than assumed.",
+        "AC3: The traffic renderer either shares the same answer or the reason it cannot is recorded.",
+        "AC4: The scene is unchanged and the measured placement cost is lower."
+      ]
+    },
+    {
+      "title": "Stop rescanning the whole island for trees that cannot have changed",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC3", "AC5", "AC6", "AC7"],
+      "problem": [
+        "`trees.rebuild` rebuilds a road mask across every segment and then scans the entire 5400 m island on a 58 m step -- roughly 8,600 candidate points -- plus a denser pass over every forest patch, on every single road placed.",
+        "None of that depends on the edit. The scenery is a deterministic function of a seeded index, the heightmap, the road mask and the player's plantings, and the heightmap only changes inside the dirty region -- so a tree on the far side of the island cannot have changed.",
+        "The trap is `run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint` rung 3, and the trees are more exposed to it than the roads were: a tree is drawn as an instance whose position is inside the region while the road that suppresses it is outside, or the reverse. Preserving by one test and recomputing by another loses trees, and a missing tree is much harder to notice than a missing road."
+      ],
+      "scope_in": [
+        "Bound the scenery scan to the region an edit touched, preserving the instances outside it rather than recomputing them.",
+        "One predicate for preserve and recompute, per `run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint` rung 3, and pad the region by whatever reach a road's suppression has -- the road mask reserves `width / 2 + setback + grid depth + 4`, which is well beyond the road itself.",
+        "Keep the road mask bounded too, or establish that rebuilding it whole is cheap enough to leave -- with the number, not the impression.",
+        "Hand-planted trees answer to none of the scenery rules and must survive untouched wherever they are.",
+        "Prove equivalence: a bounded rebuild and a full rebuild must produce the same set of trees, which is testable as a pure comparison over the deterministic scenery rather than by looking at the screen.",
+        "Report the before-and-after placement cost."
+      ],
+      "scope_out": [
+        "Changing the scenery rules, the species mix, the forest patches or the spacing.",
+        "Changing how trees are instanced or shadowed.",
+        "The other three renderers."
+      ],
+      "acceptance_criteria": [
+        "AC1: An edit no longer rescans the whole island; trees outside the affected region are preserved.",
+        "AC2: A bounded rebuild and a full rebuild produce the same trees, proven by comparison rather than inspection.",
+        "AC3: Preserve and recompute use one predicate, and the region is padded by the road mask's own reach.",
+        "AC4: Hand-planted trees are never lost, wherever they stand, and the measured placement cost is lower."
+      ]
+    },
+    {
+      "title": "Decide the world grid, the streetlights and the signals on their numbers",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC4", "AC5", "AC6", "AC8"],
+      "problem": [
+        "The world grid allocates on the order of 900,000 `Vector3` and rebuilds a whole line system every rebuild while it is visible, and returns immediately while it is not. It is therefore free almost always and very expensive exactly when a player is using it to line a road up.",
+        "The streetlights walk every segment, compute per-segment trims and place every lamp on every rebuild. The lights themselves already avoid churn -- `rebuildLights` only creates or disposes the difference in count, after that cost seconds per road drawn -- but the lamp meshes never got the same treatment.",
+        "The signals dispose every mast and re-run `signalCycle` for every junction in the city, both proportional to the junction count rather than to the edit.",
+        "All three are cheaper than the trees, and at least one of them may be cheap enough that changing it is not worth the risk of rung 3. Deciding that by feel is how this chain would go wrong."
+      ],
+      "scope_in": [
+        "Take each of the three separately, and let the first slice's measurement decide: bound it to the region, or leave it whole and record the number that justifies leaving it.",
+        "For the world grid, consider whether it needs rebuilding at all when the heightmap under it did not change -- it is a function of the heightmap alone, and an edit outside its visible extent changes nothing.",
+        "For the streetlights, the lamp meshes are the target; the light objects already have their answer and it must not be disturbed.",
+        "For the signals, note that a cycle depends on the arms meeting a junction, so an edit that adds an arm changes a junction the edit's box may not obviously contain -- the padding has to account for that.",
+        "Anything bounded uses one predicate for dispose and recreate, and leaves behind a check that fails without the fix.",
+        "Anything left whole is recorded as a decision with its measurement, in the closeout and as a comment where the next reader will meet it."
+      ],
+      "scope_out": [
+        "Changing lamp spacing, signal timing, the cycle model, or the grid's appearance.",
+        "Extending this to any renderer outside these three.",
+        "Optimising by drawing less."
+      ],
+      "acceptance_criteria": [
+        "AC1: Each of the three is either bounded to the region an edit touched or left whole with a recorded measurement justifying it.",
+        "AC2: Anything bounded disposes and recreates on one predicate and has a check that fails without the fix.",
+        "AC3: A partial rebuild matches a full rebuild for every renderer changed.",
+        "AC4: The Demo city is visually unchanged, the final placement cost is recorded, and the full gate passes."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Finish bounding the renderers that still rebuild the whole world",
+    "plan": [
+      "Read this request, its four backlog slices, and `run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint` in full. This chain is positioned to repeat that runbook's rung 3 four more times, and a lost tree is far harder to notice than a lost road.",
+      "Run after task_017. That chain fixes the dispose/recreate asymmetry in the road mesh and settles the predicate every renderer here has to follow; starting before it means copying the defect.",
+      "Measure first. The first slice gates the third and fourth, and the honest outcome for at least one renderer is a number and no code.",
+      "Then the junction geometry, which needs no measurement to justify: it is the same work solved five times, and the codebase already applies the fix to the parcel layout one line away.",
+      "Then the trees, which the measurement is expected to show as the largest -- but take the measurement's answer, not this sentence's.",
+      "Then the world grid, streetlights and signals, each decided on its own number.",
+      "Re-measure after every slice and record the figures; the closeout should show the placement cost falling slice by slice.",
+      "Confirm the Demo city is pixel-identical throughout, and run the fast gate and the visual check.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. Anything deliberately left rebuilding whole gets a `ponytail:` comment with its measurement.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/renderers-that-still-rebuild-whole.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

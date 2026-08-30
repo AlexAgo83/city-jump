@@ -1,0 +1,480 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_019_let_the_player_take_back_the_last_thing_they_did item_063_snapshot_the_city_s_model_into_a_bounded_history item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone item_065_put_undo_and_redo_where_the_player_will_reach_for_them task_021_let_the_player_take_back_the_last_thing_they_did --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/product/prod_016_a_city_you_can_change_your_mind_about.md",
+      "ref": "prod_016_a_city_you_can_change_your_mind_about",
+      "sections": {
+        "Goals": [
+          "- A mistake costs one keystroke, not five minutes of redrawing.",
+          "- One gesture undoes in one press, whatever that gesture planted or painted.",
+          "- Nothing in the program survives an undo still pointing at something that is gone.",
+          "- The simplest thing that works ships first, with its ceiling written down.",
+          "- Undo touches the city and leaves the view alone."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is careful, hand-shaped work -- a curve takes three considered clicks -- and it has no undo. One misplaced bulldoze and the only recovery is to redraw from memory or reload and lose everything since the last autosave. The model already knows how to snapshot and restore itself all-or-nothing, so the machinery is nearly free; the work is deciding what one step is, and making sure nothing in the program is still pointing at a road that stopped existing."
+        ],
+        "References": [
+          "- Product back-reference: `req_019_let_the_player_take_back_the_last_thing_they_did`",
+          "- Task back-reference: `task_021_let_the_player_take_back_the_last_thing_they_did`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can change your mind about"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Active",
+      "title": "city-jump playable city"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md",
+      "ref": "adr_001_keep_the_road_graph_as_the_source_of_truth",
+      "sections": {
+        "Overview": [
+          "The authored shape of a city is its road graph; every spatial city feature derives from",
+          "that graph or attaches simulation state to its stable identifiers.",
+          "```mermaid",
+          "flowchart LR",
+          "  input[Road drawing] --> graph[(Road graph)]",
+          "  graph --> roads[Roads and junctions]"
+        ],
+        "References": [
+          "- Related request: `req_002_establish_modular_repository_foundations`",
+          "- Related backlog: (none yet)",
+          "- Related task: (none yet)"
+        ]
+      },
+      "status": "Settled",
+      "title": "Keep the road graph as the source of truth"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "let, player, take, back, last, thing, they, did",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_019_let_the_player_take_back_the_last_thing_they_did.md",
+      "ref": "req_019_let_the_player_take_back_the_last_thing_they_did",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The player can undo the last change they made to the city, and redo it again, from the toolbar and from the keyboard.",
+          "- AC2: Undo covers every way the city can change: a road drawn, a road bulldozed, a roundabout toggled, a tree planted or cleared, a spray burst, and a zone painted or cleared.",
+          "- AC3: One gesture is one step -- a spray burst and a single zone-brush stroke each undo in one press, not once per tree or per pointer event.",
+          "- AC4: Undo never leaves a stale reference behind: the selection, the follow camera and any pending draw survive an undo or are cleared, and never point at something that no longer exists.",
+          "- AC5: Redo is available only until the player makes a new change, at which point the redo branch is discarded.",
+          "- AC6: Undo and redo change the city and nothing else -- the sun hour, the camera and the settings are untouched."
+        ],
+        "Needs": [
+          "- There is no undo. Bulldoze a road the player spent five minutes shaping and it is gone -- the only recovery is to draw it again from memory, or reload and lose everything since the last autosave.",
+          "- Every other tool a person builds with has this, and its absence is felt hardest exactly where the game is strongest: the roads are careful, hand-shaped work, and the bulldozer is one click.",
+          "- The refusal messages already tell the player when something *cannot* be done. Nothing helps them when something could be done and should not have been -- which is the more common mistake.",
+          "- The autosave makes this worse rather than better: it writes two seconds after a mistake, so the wrong city is the saved city before the player has finished regretting it."
+        ]
+      },
+      "status": "Draft",
+      "title": "Let the player take back the last thing they did"
+    },
+    {
+      "ai_context": {
+        "keywords": "snapshot, city, model, bounded, history",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/backlog/item_063_snapshot_the_city_s_model_into_a_bounded_history.md",
+      "ref": "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Undo and redo are pure operations over a bounded history, unit-tested without a scene.",
+          "- AC2: The history is built on the existing serialize and restore rather than a second representation of a city.",
+          "- AC3: A new change discards the redo branch.",
+          "- AC4: The depth bound is stated and the memory it costs at that bound is measured on a Demo-sized city."
+        ],
+        "Problem": [
+          "- Nothing records what the city was a moment ago. The graph, the plantings and the zones are mutated in place by every tool, and the previous state is simply overwritten.",
+          "- The obvious cheap answer -- keep `CitySave` snapshots -- has a cost nobody has measured: a large city is a large payload, and an unbounded stack of them is a memory leak with a friendly name.",
+          "- The obvious clever answer -- a log of invertible operations -- is a lot more code and a standing tax on every future edit, which has to arrive with its own inverse."
+        ]
+      },
+      "status": "Ready",
+      "title": "Snapshot the city's model into a bounded history"
+    },
+    {
+      "ai_context": {
+        "keywords": "gesture, step, leave, nothing, pointing, gone",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/backlog/item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone.md",
+      "ref": "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every way the city can change produces exactly one history entry, and a refused change produces none.",
+          "- AC2: A spray burst and a single zone-brush stroke each undo in one press.",
+          "- AC3: After an undo nothing holds a stale node or segment id -- the selection, the follow camera and any pending draw are cleared or re-resolved, proven by undoing the road a selection was standing on.",
+          "- AC4: Undo leaves the sun hour, the camera and the settings exactly as they were."
+        ],
+        "Problem": [
+          "- `replayCity` renumbers nodes as it replays, so every `NodeId` and `SegmentId` held anywhere in the program is stale the moment a restore happens. The selection in `src/render/drawTool.ts` holds a segment, the follow camera in `src/app/app.ts` holds a closure over a mover, and a half-drawn curve holds two snapped nodes.",
+          "- A spray burst plants eight trees in one press and a zone-brush stroke fires paint after paint across one drag. Recorded naively, taking back one gesture costs the player eleven presses.",
+          "- Undo has to record before the change, not after, and only for changes that actually happened -- a refused segment must not leave an entry behind."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make one gesture one step, and leave nothing pointing at what is gone"
+    },
+    {
+      "ai_context": {
+        "keywords": "put, undo, redo, player, reach, them",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "run": [
+          "run_007_the_code_says_it_drew_it_and_the_screen_disagrees"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/backlog/item_065_put_undo_and_redo_where_the_player_will_reach_for_them.md",
+      "ref": "item_065_put_undo_and_redo_where_the_player_will_reach_for_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Undo and redo are reachable from the toolbar and from `Ctrl`/`Cmd+Z` and `Ctrl`/`Cmd+Shift+Z`.",
+          "- AC2: The shortcut does not fire while a text field or a browser prompt has focus.",
+          "- AC3: With nothing to undo or redo the controls say so rather than doing nothing silently.",
+          "- AC4: The browser interaction suite covers both controls and both shortcuts, and the toolbar still lays out at narrow widths."
+        ],
+        "Problem": [
+          "- There is nowhere to press. The toolbar holds tools and settings, and the only keyboard bindings in the app are the camera's arrow keys in `src/app/app.ts` and `Esc` in `src/render/drawTool.ts`.",
+          "- A control that does nothing when there is nothing to undo is indistinguishable from a broken one, which is the same class of silence `run_007_the_code_says_it_drew_it_and_the_screen_disagrees` is about.",
+          "- A global `Ctrl+Z` that fires while someone is typing a save name or answering a prompt takes back a road instead of a character."
+        ]
+      },
+      "status": "Ready",
+      "title": "Put undo and redo where the player will reach for them"
+    },
+    {
+      "ai_context": {
+        "keywords": "let, player, take, back, last, thing, they, did",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/tasks/task_021_let_the_player_take_back_the_last_thing_they_did.md",
+      "ref": "task_021_let_the_player_take_back_the_last_thing_they_did",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the player take back the last thing they did"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/product/prod_016_a_city_you_can_change_your_mind_about.md",
+      "ref": "prod_016_a_city_you_can_change_your_mind_about",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city you can change your mind about"
+    }
+  ],
+  "estimates": {
+    "char_count": 16588,
+    "companion_doc_count": 3,
+    "doc_count": 6
+  },
+  "generated_at": "2026-08-30T12:30:34Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_019_let_the_player_take_back_the_last_thing_they_did",
+      "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+      "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+      "item_065_put_undo_and_redo_where_the_player_will_reach_for_them",
+      "task_021_let_the_player_take_back_the_last_thing_they_did"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_019_let_the_player_take_back_the_last_thing_they_did,item_063_snapshot_the_city_s_model_into_a_bounded_history,item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone,item_065_put_undo_and_redo_where_the_player_will_reach_for_them,task_021_let_the_player_take_back_the_last_thing_they_did",
+  "refs": [
+    "req_019_let_the_player_take_back_the_last_thing_they_did",
+    "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+    "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+    "item_065_put_undo_and_redo_where_the_player_will_reach_for_them",
+    "task_021_let_the_player_take_back_the_last_thing_they_did"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_021_let_the_player_take_back_the_last_thing_they_did.md",
+      "ref": "task_021_let_the_player_take_back_the_last_thing_they_did"
+    }
+  ]
+}
