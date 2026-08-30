@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:04:01
 
 # AI Context
 - Summary: The camera cannot ride along with a car; and a followed vehicle does not survive a rebuild today, since `traffic.rebuild()` disposes the whole mover population — so follow must end gracefully rather than freeze.
@@ -24,6 +25,7 @@
   - Track the selected moving thing's position as the camera target each frame, keeping the player's zoom and angle around it.
   - Detect that the subject no longer exists, return to Free, and say why through the existing toast rather than silently drifting or freezing.
   - Smooth the target so the camera is not jittering on a per-frame position.
+  - Add the Follow option to the Camera row as part of this slice -- the section ships without it, and this is what makes it appear.
   - Depends on cars and pedestrians being selectable; do not start this slice before that exists.
 - Out:
   - Keeping a vehicle alive across a rebuild, which belongs to the rebuild-granularity work.

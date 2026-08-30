@@ -23,6 +23,7 @@
 | [prod_008_a_city_you_can_hand_to_someone_else](product/prod_008_a_city_you_can_hand_to_someone_else.md) | A city you can hand to someone else | Proposed |  |  | product/prod_008_a_city_you_can_hand_to_someone_else.md |
 | [prod_009_a_camera_that_can_watch_not_only_be_aimed](product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md) | A camera that can watch, not only be aimed | Proposed |  |  | product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md |
 | [prod_010_a_published_game_whose_documents_tell_the_truth](product/prod_010_a_published_game_whose_documents_tell_the_truth.md) | A published game whose documents tell the truth | Proposed |  |  | product/prod_010_a_published_game_whose_documents_tell_the_truth.md |
+| [prod_011_a_city_that_is_built_on_purpose](product/prod_011_a_city_that_is_built_on_purpose.md) | A city that is built on purpose | Proposed |  |  | product/prod_011_a_city_that_is_built_on_purpose.md |
 
 ## Roadmaps
 
@@ -48,6 +49,7 @@
 | [req_011_share_a_city_as_a_link_that_needs_no_server](request/req_011_share_a_city_as_a_link_that_needs_no_server.md) | Share a city as a link that needs no server | Draft |  |  | request/req_011_share_a_city_as_a_link_that_needs_no_server.md |
 | [req_012_give_the_camera_three_target_policies_free_orbit_and_follow](request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md) | Give the camera three target policies: free, orbit, and follow | Draft |  |  | request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md |
 | [req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy](request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md) | The game is deployed in public while its documents and its input model still describe a local dev toy | Draft |  |  | request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md |
+| [req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them](request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md) | Let the player decide what gets built, instead of the geometry deciding for them | Draft |  |  | request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md |
 
 ## Backlog
 
@@ -101,6 +103,9 @@
 | [item_046_make_security_md_describe_the_deployment_that_exists](backlog/item_046_make_security_md_describe_the_deployment_that_exists.md) | Make SECURITY.md describe the deployment that exists | Ready |  | 0% | backlog/item_046_make_security_md_describe_the_deployment_that_exists.md |
 | [item_047_record_the_threat_model_review_that_shared_links_require](backlog/item_047_record_the_threat_model_review_that_shared_links_require.md) | Record the threat-model review that shared links require | Ready |  | 0% | backlog/item_047_record_the_threat_model_review_that_shared_links_require.md |
 | [item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen](backlog/item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen.md) | Take a position on the visitors arriving with a touchscreen | Ready |  | 0% | backlog/item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen.md |
+| [item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing](backlog/item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing.md) | Model a zone as authored land that survives the roads changing | Ready |  | 0% | backlog/item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing.md |
+| [item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped](backlog/item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped.md) | Let the zone decide what is built, using the models already shipped | Ready |  | 0% | backlog/item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped.md |
+| [item_051_paint_zones_and_make_the_zones_view_show_them](backlog/item_051_paint_zones_and_make_the_zones_view_show_them.md) | Paint zones, and make the Zones view show them | Ready |  | 0% | backlog/item_051_paint_zones_and_make_the_zones_view_show_them.md |
 
 ## Tasks
 
@@ -121,6 +126,7 @@
 | [task_013_implement_sharing_a_city_by_link](tasks/task_013_implement_sharing_a_city_by_link.md) | Implement sharing a city by link | Ready |  | 0% | tasks/task_013_implement_sharing_a_city_by_link.md |
 | [task_014_implement_the_camera_target_policies_and_the_camera_settings_section](tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md) | Implement the camera target policies and the Camera settings section | Ready |  | 0% | tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md |
 | [task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment](tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md) | Make the project's documents and input model match the public deployment | Ready |  | 0% | tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md |
+| [task_016_implement_zoning_as_the_player_s_second_decision](tasks/task_016_implement_zoning_as_the_player_s_second_decision.md) | Implement zoning as the player's second decision | Ready |  | 0% | tasks/task_016_implement_zoning_as_the_player_s_second_decision.md |
 
 ## Runbooks
 

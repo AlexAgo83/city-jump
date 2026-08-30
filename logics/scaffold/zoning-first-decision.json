@@ -1,0 +1,160 @@
+{
+  "title": "Let the player decide what gets built, instead of the geometry deciding for them",
+  "references": [
+    "src/sim/slots.ts",
+    "src/render/buildings.ts",
+    "src/sim/save.ts",
+    "src/render/drawTool.ts",
+    "src/ui/controls.ts",
+    "index.html",
+    "scripts/gen_buildings.py",
+    "logics/roadmap/road_001_city_jump_playable_city.md",
+    "logics/request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "City legibility",
+    "needs": [
+      "The player has no say in what appears on their land. A building exists because `buildingParcels` packed a valid rectangle into free buildable cells and the renderer loaded the model matching its size -- nothing anywhere expresses an intention. The only building decision in the game today is where to put a road.",
+      "This is the largest unbuilt part of the project. The roadmap's own land strand records it plainly: mature for geometry, absent for meaning. Every other open request improves something that already works; none of them changes what the player is actually deciding.",
+      "The `Zones` view already promises something the game does not have. Selecting `Zones` shows which buildable cells are taken and which are open -- a readout of geometry, under a name that suggests the player zoned something. Once real zones exist that view has to show them, or the name has to go.",
+      "The seam for this already exists and is unused. `buildingParcels` narrows the sizes a block may use through `LOW_RISE_SIZES` when its road is pedestrian -- a road type already constrains what may be built. A zone is the same mechanism driven by the player instead of by the road."
+    ],
+    "context": [
+      "This request deliberately stops short of a simulation. No demand, no growth, no economy, no population, no progression. The one thing it changes is that a building appears because the player asked for that kind of building there. Demand and growth become possible afterwards, on a model that exists; they are not prerequisites for the decision itself.",
+      "There are two ways to make a zone visible, and the cheap one should be tried first. The model library is one family of `lot_<frontage>x<depth>` shapes, so a zone can constrain which footprints and heights a block may use -- exactly as `LOW_RISE_SIZES` already does -- and that changes silhouette and density visibly without a single new asset. The expensive alternative is giving the generator a style dimension and tripling the library, which also drags in `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together` as a prerequisite, since model identity would stop being size alone.",
+      "`scripts/gen_buildings.py` already assigns each model a style -- office, industrial, commercial, residential -- derived from its footprint. That styling is real and visible in the meshes; it is simply not addressable, because nothing outside the generator knows a model has a style.",
+      "Zones are authored data, not derived: unlike plots and buildings, a zone cannot be recomputed from the graph, so it has to be persisted and it has to survive roads being redrawn underneath it. `run_006_change_what_a_save_contains_without_losing_the_player_s_city` is the procedure for adding it to the save.",
+      "The build tools already have a mode that paints over ground rather than placing on it -- the tree spray -- so a zone brush has a precedent in the same tool."
+    ],
+    "acceptance_criteria": [
+      "AC1: The player can mark an area of the city as a kind of zone, and can change or clear that marking afterwards.",
+      "AC2: What gets built on zoned land follows the zone: two areas zoned differently produce visibly different buildings, and the difference is legible from a normal playing camera without switching views.",
+      "AC3: Land the player has not zoned keeps behaving exactly as it does today, so an existing city is unchanged until its owner touches it.",
+      "AC4: Zones survive a save and a reload, and survive the roads under them being edited -- redrawing a street does not silently erase what the player zoned around it.",
+      "AC5: The `Zones` view shows the player's zones rather than only the buildable grid, so the view and its name mean the same thing.",
+      "AC6: The zone model and the rules that turn a zone into a choice of building are pure functions in `src/sim`, unit-tested without a scene, and `tests/architecture.mjs` still passes.",
+      "AC7: No new building assets are required to satisfy AC2; if the work concludes that new assets are unavoidable, that is recorded as a finding rather than absorbed into this request."
+    ]
+  },
+  "product": {
+    "title": "A city that is built on purpose",
+    "overview": "city-jump lets a player draw roads beautifully and then watches buildings appear on their own, sized by whatever rectangle happened to fit. The city is a consequence, not a plan. This slice gives the player the second decision the game has been missing: not only where the road goes, but what belongs beside it. It stops deliberately short of demand, growth and economy -- those need something to act on, and this is that something.",
+    "goals": [
+      "The player decides what kind of place they are building, not only where the roads run.",
+      "The difference between two zones is visible while playing, not only in a debug view.",
+      "An existing city is untouched until its owner chooses to zone it.",
+      "The Zones view finally shows zones.",
+      "Demand, growth and economy become possible later without redoing this."
+    ],
+    "non_goals": [
+      "Demand, growth over time, population, jobs, an economy, or progression.",
+      "Buildings being replaced or upgraded as conditions change.",
+      "Services, utilities, or coverage models.",
+      "New building assets, unless the work proves they are unavoidable and records that separately.",
+      "Land value, taxes, or any number the player has to manage."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Model a zone as authored land that survives the roads changing",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC4", "AC6"],
+      "problem": [
+        "Everything the city renders today is derived from the graph and can be thrown away and recomputed. A zone cannot: it is what the player meant, and nothing else in the model can reproduce it.",
+        "Roads move. A zone anchored to a parcel or a cell index would be erased the moment a street under it is redrawn, which is exactly when the player would least expect to lose it."
+      ],
+      "scope_in": [
+        "A pure zone model in `src/sim`: what kinds exist, what area a zone covers, and how a zone is resolved for a given piece of buildable land.",
+        "Anchor a zone to something that survives the graph changing -- ground, not parcels -- so redrawing a street re-derives which parcels are affected rather than losing the intent.",
+        "Persist zones through `serializeCity` and `restoreCity`, following `run_006_change_what_a_save_contains_without_losing_the_player_s_city`; a city saved without zones loads with none and behaves as it does today.",
+        "Unit tests: a zone survives a road being split, moved and deleted under it; clearing a zone returns the land to unzoned; an old save loads unzoned."
+      ],
+      "scope_out": [
+        "Painting a zone in the UI, and anything visual.",
+        "What a zone causes to be built.",
+        "Any simulation over zones."
+      ],
+      "acceptance_criteria": [
+        "AC1: A zone survives the roads under it being redrawn, proven by tests that split, move and delete a road beneath one.",
+        "AC2: Zones round-trip through a save, and a city saved before zones existed loads unzoned and unchanged.",
+        "AC3: The model is pure, in `src/sim`, and its tests run with no scene."
+      ]
+    },
+    {
+      "title": "Let the zone decide what is built, using the models already shipped",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC3", "AC7"],
+      "problem": [
+        "`buildingParcels` chooses a footprint from `PARCEL_SIZES` by what fits, and the renderer loads the model matching that size; the player's intention has no way in.",
+        "The mechanism to constrain it already exists and is driven by the wrong thing: `LOW_RISE_SIZES` narrows the allowed sizes when the road is pedestrian."
+      ],
+      "scope_in": [
+        "Extend that same constraint so a block's allowed footprints and heights come from its zone when it has one -- dense and tall where the player asked for that, low and sparse where they did not.",
+        "Try this with the existing library first: silhouette and density are what read from a playing camera, and the shipped models already vary in both.",
+        "Leave unzoned land on exactly today's behaviour, so an existing city is untouched.",
+        "If the existing models genuinely cannot make two zones look different from a normal camera, stop and record that as a finding rather than growing this slice into an asset project.",
+        "Unit tests: a zoned block draws only from its zone's allowed sizes; an unzoned block behaves as before."
+      ],
+      "scope_out": [
+        "Generating new building models or adding a style dimension to the generator.",
+        "Buildings changing after they are placed.",
+        "Any notion of demand deciding whether a plot fills at all."
+      ],
+      "acceptance_criteria": [
+        "AC1: Two areas zoned differently produce visibly different buildings from a normal playing camera, with no new assets.",
+        "AC2: Unzoned land produces exactly what it produces today, verified against the bundled Demo save.",
+        "AC3: If new assets prove unavoidable, that conclusion is recorded as a finding with its evidence, and this slice stops there."
+      ]
+    },
+    {
+      "title": "Paint zones, and make the Zones view show them",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC5"],
+      "problem": [
+        "There is no way to express a zone: the build tools place roads and trees, and nothing paints an area.",
+        "The `Zones` view shows which buildable cells are taken and which are open -- a geometry readout under a name that promises player intent."
+      ],
+      "scope_in": [
+        "A zoning tool in the existing toolbar that paints an area with a zone kind and can clear it, following the tree spray's precedent for a brush that paints ground rather than placing an object.",
+        "Make the `Zones` view show the player's zones, keeping the taken-and-open grid readable underneath rather than replacing it.",
+        "Colours that are distinguishable without relying on hue alone, and that keep working across the day cycle.",
+        "Extend the browser interaction suite: paint a zone, see the buildings change, clear it, see them return."
+      ],
+      "scope_out": [
+        "A separate zoning screen or a map mode.",
+        "Zone statistics, counters, or any readout beyond seeing the zones themselves.",
+        "Renaming or restructuring the other views."
+      ],
+      "acceptance_criteria": [
+        "AC1: A zone can be painted and cleared from the toolbar, and the result is visible immediately.",
+        "AC2: The Zones view shows the player's zones, with the buildable grid still readable.",
+        "AC3: The browser interaction suite covers painting a zone, the buildings changing, and clearing it."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement zoning as the player's second decision",
+    "plan": [
+      "Read this request and its three backlog slices, plus run_006_change_what_a_save_contains_without_losing_the_player_s_city before touching the save format.",
+      "Model the zone first, including what it is anchored to -- everything else depends on that choice, and it is the one decision that is expensive to change later.",
+      "Make the zone drive what is built, reusing the constraint mechanism that already narrows sizes for pedestrian roads, and with the shipped models only.",
+      "Add the painting tool and make the Zones view show zones.",
+      "Extend the browser interaction suite, then run the fast gate and the visual check.",
+      "Confirm the Demo save is visually unchanged until something is zoned.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/zoning-first-decision.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

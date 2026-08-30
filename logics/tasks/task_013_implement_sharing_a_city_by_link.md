@@ -8,10 +8,10 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:55:17
+> Indicators reviewed: 2026-08-30 12:05:05
 
 # AI Context
-- Summary: Orchestration for req_011: build the quantising encoder and the capped decoder first, then the Share button and its refusal, then the arrival flow, then the round trip in the browser suite.
+- Summary: Orchestration for req_011: take the shared-link threat-model review as the encoder's specification, build the quantising encoder and the capped decoder, then the Share button and its refusal, then the arrival flow, then the round trip in the browser suite.
 - Keywords: implement, sharing, city, link
 - Use when: Implementing any of the three backlog slices under req_011, in the plan's order — the encoder comes first.
 - Skip when: The change needs a server, alters the local save format, or is about exporting a file rather than a link.
@@ -25,7 +25,8 @@
 
 # Plan
 - [ ] 1. Read this request and its three backlog slices, plus run_006_change_what_a_save_contains_without_losing_the_player_s_city -- a shared payload is the same untrusted JSON as a save, and the same version rules apply.
-- [ ] 2. Build the encoder and decoder first, with the size caps and the quantisation, and prove against `public/default-demo.json` that a Demo-sized city fits.
+- [ ] 2. Take the threat-model review from `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment` as this task's input: its cap list and refusal rules are the encoder's specification. Do not start the encoder before it exists.
+- [ ] 3. Build the encoder and decoder against that review, with the size caps and the quantisation, and prove against `public/default-demo.json` that a Demo-sized city fits.
 - [ ] 3. Add the Share button and its refusal path.
 - [ ] 4. Add the arrival flow: import prompt, collision handling, load offer, fragment cleanup.
 - [ ] 5. Extend the browser interaction suite with the share-arrive-import round trip.

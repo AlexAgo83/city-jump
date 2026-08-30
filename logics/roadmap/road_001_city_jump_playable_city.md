@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:54:58
+> Indicators reviewed: 2026-08-30 12:07:14
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -38,8 +38,11 @@ them is ever "finished" and closed.
   packing, the building model library, trees and plantings.
 - Standing: mature for geometry, absent for meaning. Buildings appear because a plot is valid,
   not because anyone wanted them there.
-- Open questions: zoning and demand -- the largest unbuilt strand in the project, and the one
-  that turns a city model into a game.
+- Standing: advancing at last. `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
+  gives the player the second decision the game has been missing -- what belongs beside the road,
+  not only where the road runs -- deliberately stopping short of demand and economy.
+- Open questions: demand, growth over time, and economy, all of which need something to act on.
+  That something is what the zoning chain builds.
 
 ## E3 - Life on the network
 - Holds: cars and pedestrians, lanes and lane changes, junction transfers, traffic signals,
@@ -84,6 +87,26 @@ them is ever "finished" and closed.
 - One request chain at a time per strand, so each increment stays independently reviewable and
   linked to concrete workflow docs.
 - Where two chains touch the same files, the ordering lives in the orchestration tasks, not here.
+
+The order the open chains are currently expected to run in, which is a working plan and not a
+commitment -- each task's own Context carries the constraint that produced its position:
+
+1. `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings` -- unblocks three
+   others and needs nothing itself.
+2. `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment` --
+   independent, and its threat-model review is the specification the share encoder is built from.
+3. `task_011_implement_one_source_of_truth_for_building_model_geometry` -- settles where a model's
+   geometry comes from before anything else restructures `src/render/buildings.ts`.
+4. `task_016_implement_zoning_as_the_player_s_second_decision` -- the only open chain that changes
+   what the player decides.
+5. `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel` -- also
+   unblocks the camera's follow mode.
+6. `task_014_implement_the_camera_target_policies_and_the_camera_settings_section` -- its first
+   three slices can run earlier; follow needs step 5.
+7. `task_013_implement_sharing_a_city_by_link` -- with the review from step 2 already in hand.
+8. `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work` -- last on
+   purpose: it benefits from every step above, and polish before the game is a game is the trap
+   named in the risks below.
 - A strand with an open question that blocks a player-visible decision earns priority over one
   that only carries internal work -- but only when the decision is actually blocked, not merely
   imagined.
@@ -106,7 +129,8 @@ them is ever "finished" and closed.
   `prod_007_a_city_you_can_point_at_and_name`,
   `prod_008_a_city_you_can_hand_to_someone_else`,
   `prod_009_a_camera_that_can_watch_not_only_be_aimed`,
-  `prod_010_a_published_game_whose_documents_tell_the_truth`
+  `prod_010_a_published_game_whose_documents_tell_the_truth`,
+  `prod_011_a_city_that_is_built_on_purpose`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -116,7 +140,8 @@ them is ever "finished" and closed.
   `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`,
   `req_011_share_a_city_as_a_link_that_needs_no_server`,
   `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`,
-  `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
+  `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`,
+  `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

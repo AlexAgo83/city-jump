@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:55:17
+> Indicators reviewed: 2026-08-30 12:05:05
 
 # AI Context
 - Summary: Orchestration for req_013: correct SECURITY.md against the real deployment, record the shared-link threat-model review before the share feature ships, and take a written position on touch devices.
@@ -22,7 +22,7 @@
 # Plan
 - [ ] 1. Read this request and its three backlog slices, plus adr_004_stay_a_static_client_with_no_server_of_its_own, which is what the corrected security policy should point at.
 - [ ] 2. Correct SECURITY.md first: it is the document most likely to be read by someone deciding whether a finding matters.
-- [ ] 3. Write the threat-model review for shared links, and link it from both the policy and the share request. It must land before the share feature is released.
+- [ ] 3. Write the threat-model review for shared links, and link it from both the policy and the share request. It must land before the share feature is *started*, not merely before release: its cap list and refusal rules are the specification the share encoder is built against.
 - [ ] 4. Take the touch decision, write it down, and put it where a visitor meets it before failing.
 - [ ] 5. Run the fast gate; confirm no accessibility markup was lost if the touch work touched the UI.
 - [ ] 6. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.

@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:52:56
+> Indicators reviewed: 2026-08-30 12:05:04
 
 # AI Context
 - Summary: The Demo save encodes to ~22,900 characters raw and ~8,850 once elevations are rounded to 10 cm; the decoder also needs a fragment size cap and a cap enforced while decompressing, since neither exists.
@@ -23,10 +23,11 @@
 
 # Scope
 - In:
-  - Pick the ceiling against evidence, not a guess. Verified August 2026: browsers are not the constraint (Chrome and Edge accept roughly 32,000 characters, Firefox roughly 65,000, Safari roughly 80,000), and because the city rides in the fragment it never meets a CDN or load-balancer limit at all. The binding constraint is the sharing channel: roughly 2,048 characters is the length that survives every mail client, chat app and QR code intact, and beyond that truncation risk rises with no hard cliff. The Demo city needs about 8,850. The ceiling is therefore a judgement between reach and how large a city may be shared, and it has to be recorded with its reasoning rather than left as a constant.
+  - Pick the ceiling against evidence, not a guess. Verified August 2026: browsers are not the constraint (Chrome and Edge accept roughly 32,000 characters, Firefox roughly 65,000, Safari roughly 80,000), and because the city rides in the fragment it never meets a CDN or load-balancer limit at all. The binding constraint is the sharing channel: roughly 2,048 characters is the length that survives every mail client, chat app and QR code intact, and beyond that truncation risk rises with no hard cliff. The Demo city needs about 8,850. The ceiling is therefore a judgement between reach and how large a city may be shared. **It is set at roughly 12,000 characters**: 2,048 would refuse the bundled Demo city itself, which makes the feature pointless, while 12,000 clears Demo with headroom and stays far below every browser limit. What breaks below 2,048 is mostly QR codes and legacy mail clients.
   - A pure module in `src/sim`: an envelope carrying the city and its name, quantisation of node and control-point coordinates to the precision the save's own header shows is safe, and the size rules -- a maximum encoded length and a maximum decoded length.
   - The browser-side transport in `src/ui`: gzip through `CompressionStream`, base64url, and the reverse, with the decompression cap enforced while the stream is consumed rather than after.
   - Feed the decoded result through the existing `parseCity` rather than adding a second validator.
+  - Make the refusal message actionable. Measured on the Demo save, hand-planted trees are **58% of the raw JSON** (20,008 bytes without them against 48,175 with) and **71% of the gzipped payload**, so a city that is too large is almost always a city with many planted trees. That is the one thing a player can act on, so the message should say it.
   - Unit tests: a round trip returns an equivalent city, quantisation stays within tolerance, an over-long payload is refused, a payload that expands past the cap is refused mid-stream, and a payload claiming a newer version is refused as such.
 - Out:
   - Changing the local save format, or applying quantisation to locally saved cities.

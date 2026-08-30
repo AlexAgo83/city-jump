@@ -1,0 +1,519 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped item_051_paint_zones_and_make_the_zones_view_show_them task_016_implement_zoning_as_the_player_s_second_decision --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+          "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+          "item_051_paint_zones_and_make_the_zones_view_show_them"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/product/prod_011_a_city_that_is_built_on_purpose.md",
+      "ref": "prod_011_a_city_that_is_built_on_purpose",
+      "sections": {
+        "Goals": [
+          "- The player decides what kind of place they are building, not only where the roads run.",
+          "- The difference between two zones is visible while playing, not only in a debug view.",
+          "- An existing city is untouched until its owner chooses to zone it.",
+          "- The Zones view finally shows zones.",
+          "- Demand, growth and economy become possible later without redoing this."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump lets a player draw roads beautifully and then watches buildings appear on their own, sized by whatever rectangle happened to fit. The city is a consequence, not a plan. This slice gives the player the second decision the game has been missing: not only where the road goes, but what belongs beside it. It stops deliberately short of demand, growth and economy -- those need something to act on, and this is that something."
+        ],
+        "References": [
+          "- Product back-reference: `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`",
+          "- Task back-reference: `task_016_implement_zoning_as_the_player_s_second_decision`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that is built on purpose"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Proposed",
+      "title": "city-jump playable city"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/product/prod_006_one_source_of_truth_for_what_a_building_model_is.md",
+      "ref": "prod_006_one_source_of_truth_for_what_a_building_model_is",
+      "sections": {
+        "Goals": [
+          "- The renderer asks the model what it is, instead of guessing from its filename.",
+          "- A disagreement between generator and renderer fails a check, not a screenshot.",
+          "- The authoring contract in docs/assets.md matches what the code actually does.",
+          "- Hand-authored models remain possible under the same contract as generated ones."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city.",
+          "```mermaid",
+          "flowchart LR",
+          "    Gen[gen_buildings.py] --> GLB[(Building GLB)]",
+          "    Gen --> Decl[Declaration beside it]",
+          "    GLB --> Mesh[Mesh extents read at load]"
+        ],
+        "References": [
+          "- Product back-reference: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`",
+          "- Task back-reference: `task_011_implement_one_source_of_truth_for_building_model_geometry`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "One source of truth for what a building model is"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "let, player, decide, gets, built, instead, geometry, deciding, them",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+          "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+          "item_051_paint_zones_and_make_the_zones_view_show_them"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md",
+      "ref": "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The player can mark an area of the city as a kind of zone, and can change or clear that marking afterwards.",
+          "- AC2: What gets built on zoned land follows the zone: two areas zoned differently produce visibly different buildings, and the difference is legible from a normal playing camera without switching views.",
+          "- AC3: Land the player has not zoned keeps behaving exactly as it does today, so an existing city is unchanged until its owner touches it.",
+          "- AC4: Zones survive a save and a reload, and survive the roads under them being edited -- redrawing a street does not silently erase what the player zoned around it.",
+          "- AC5: The `Zones` view shows the player's zones rather than only the buildable grid, so the view and its name mean the same thing.",
+          "- AC6: The zone model and the rules that turn a zone into a choice of building are pure functions in `src/sim`, unit-tested without a scene, and `tests/architecture.mjs` still passes."
+        ],
+        "Needs": [
+          "- The player has no say in what appears on their land. A building exists because `buildingParcels` packed a valid rectangle into free buildable cells and the renderer loaded the model matching its size -- nothing anywhere expresses an intention. The only building decision in the game today is where to put a road.",
+          "- This is the largest unbuilt part of the project. The roadmap's own land strand records it plainly: mature for geometry, absent for meaning. Every other open request improves something that already works; none of them changes what the player is actually deciding.",
+          "- The `Zones` view already promises something the game does not have. Selecting `Zones` shows which buildable cells are taken and which are open -- a readout of geometry, under a name that suggests the player zoned something. Once real zones exist that view has to show them, or the name has to go.",
+          "- The seam for this already exists and is unused. `buildingParcels` narrows the sizes a block may use through `LOW_RISE_SIZES` when its road is pedestrian -- a road type already constrains what may be built. A zone is the same mechanism driven by the player instead of by the road."
+        ]
+      },
+      "status": "Draft",
+      "title": "Let the player decide what gets built, instead of the geometry deciding for them"
+    },
+    {
+      "ai_context": {
+        "keywords": "building, geometry, facts, written, twice, two, languages, nothing, tying, them, together",
+        "skip when": "The work is about model loading performance (req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses), parcel packing in `src/sim/slots.ts`, or how any building looks.",
+        "summary": "`buildingSpec` in `src/render/buildings.ts` re-derives seven geometry facts from a model's filename that `scripts/gen_buildings.py` already decided in Python when it authored the mesh, with no test, manifest or assertion tying the two copies together.",
+        "use when": "Touching `buildingSpec`, `roofPropY` or `loadModel` in `src/render/buildings.ts`, the specs in `scripts/gen_buildings.py`, or the authoring contract in `docs/assets.md`."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel",
+          "run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street"
+        ]
+      },
+      "path": "logics/request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md",
+      "ref": "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Each geometry fact the renderer needs about a building model has exactly one source of truth, and the renderer reads it rather than re-deriving it from the model id.",
+          "- AC2: A check fails when the generator and the renderer disagree about a model, so drift is caught by the project's own gate rather than by a screenshot.",
+          "- AC3: Facts the loaded mesh already knows are taken from the mesh rather than from any declaration.",
+          "- AC4: A model whose id does not match `lot_<frontage>x<depth>`, or that arrives without whatever declaration the solution introduces, still loads and renders sensibly rather than falling back to wrong numbers.",
+          "- AC5: `docs/assets.md` and `run_001_author_a_building_model_that_lands_on_its_parcel` describe the resulting contract, and the manual mirror-the-formula instruction is removed once it is no longer the mechanism.",
+          "- AC6: Buildings and roof objects render exactly as they do today, confirmed by the visual and interaction checks, and `roofPropY`'s existing unit tests still pass."
+        ],
+        "Needs": [
+          "- The renderer re-derives a model's geometry from its filename instead of reading it from the model. `buildingSpec` in `src/render/buildings.ts` parses `lot_<frontage>x<depth>` and rebuilds, in TypeScript, seven facts that `scripts/gen_buildings.py` decided in Python when it authored the mesh: the height formula `6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + min(area, 8)`, the footprint `cells * 8 - 1.5`, the pitched-roof rule (`2.5` when `area <= 2`), the setback rule (`area >= 6`, matching the generator's `w * d >= CELL * CELL * 6`), the setback inset `0.12`/`0.88` (the generator's `sx = w * 0.12`, `sw = w * 0.76`), the body-height factor `0.72` (the generator's `body_h = h * 0.72`), and the gabled ridge running at half depth.",
+          "- Nothing enforces that the two copies agree. There is no test, no generated manifest, and no assertion comparing either side against the actual mesh. Editing the Python generator -- a different language, a different directory, a script most changes never open -- silently invalidates the TypeScript, and vice versa.",
+          "- The failure is silent and geometric, not a crash. `roofPropY` uses these numbers to decide whether a roof object sits on the main deck, on a setback, or on a pitched roof. A drifted formula does not throw; it puts objects inside a parapet, floating above a roof, or on the wrong tier, which is exactly the class of bug that took four consecutive attempts to fix in the roof-prop work and is now written up in `run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street`.",
+          "- The information is already in the file. `loadModel` reads the mesh's bounding box and keeps `roofY = bounds.maximum.y` and `centerX`, but the derived spec overrides it for everything except the unparseable-id fallback -- so the authoritative source is present at runtime and deliberately not used."
+        ]
+      },
+      "status": "Draft",
+      "title": "Building geometry facts are written twice, in two languages, with nothing tying them together"
+    },
+    {
+      "ai_context": {
+        "keywords": "model, zone, authored, land, survives, roads, changing",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/backlog/item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing.md",
+      "ref": "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A zone survives the roads under it being redrawn, proven by tests that split, move and delete a road beneath one.",
+          "- AC2: Zones round-trip through a save, and a city saved before zones existed loads unzoned and unchanged.",
+          "- AC3: The model is pure, in `src/sim`, and its tests run with no scene."
+        ],
+        "Problem": [
+          "- Everything the city renders today is derived from the graph and can be thrown away and recomputed. A zone cannot: it is what the player meant, and nothing else in the model can reproduce it.",
+          "- Roads move. A zone anchored to a parcel or a cell index would be erased the moment a street under it is redrawn, which is exactly when the player would least expect to lose it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Model a zone as authored land that survives the roads changing"
+    },
+    {
+      "ai_context": {
+        "keywords": "let, zone, decide, built, models, already, shipped",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/backlog/item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped.md",
+      "ref": "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Two areas zoned differently produce visibly different buildings from a normal playing camera, with no new assets.",
+          "- AC2: Unzoned land produces exactly what it produces today, verified against the bundled Demo save.",
+          "- AC3: If new assets prove unavoidable, that conclusion is recorded as a finding with its evidence, and this slice stops there."
+        ],
+        "Problem": [
+          "- `buildingParcels` chooses a footprint from `PARCEL_SIZES` by what fits, and the renderer loads the model matching that size; the player's intention has no way in.",
+          "- The mechanism to constrain it already exists and is driven by the wrong thing: `LOW_RISE_SIZES` narrows the allowed sizes when the road is pedestrian."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the zone decide what is built, using the models already shipped"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, zoning, player, second, decision",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+          "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+          "item_051_paint_zones_and_make_the_zones_view_show_them"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/tasks/task_016_implement_zoning_as_the_player_s_second_decision.md",
+      "ref": "task_016_implement_zoning_as_the_player_s_second_decision",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement zoning as the player's second decision"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+          "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+          "item_051_paint_zones_and_make_the_zones_view_show_them"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/product/prod_011_a_city_that_is_built_on_purpose.md",
+      "ref": "prod_011_a_city_that_is_built_on_purpose",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that is built on purpose"
+    },
+    {
+      "ai_context": {
+        "keywords": "paint, zones, view, show, them",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_051_paint_zones_and_make_the_zones_view_show_them"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/backlog/item_051_paint_zones_and_make_the_zones_view_show_them.md",
+      "ref": "item_051_paint_zones_and_make_the_zones_view_show_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A zone can be painted and cleared from the toolbar, and the result is visible immediately.",
+          "- AC2: The Zones view shows the player's zones, with the buildable grid still readable.",
+          "- AC3: The browser interaction suite covers painting a zone, the buildings changing, and clearing it."
+        ],
+        "Problem": [
+          "- There is no way to express a zone: the build tools place roads and trees, and nothing paints an area.",
+          "- The `Zones` view shows which buildable cells are taken and which are open -- a geometry readout under a name that promises player intent."
+        ]
+      },
+      "status": "Ready",
+      "title": "Paint zones, and make the Zones view show them"
+    }
+  ],
+  "estimates": {
+    "char_count": 21577,
+    "companion_doc_count": 3,
+    "doc_count": 7
+  },
+  "generated_at": "2026-08-30T10:06:32Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+      "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+      "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+      "item_051_paint_zones_and_make_the_zones_view_show_them",
+      "task_016_implement_zoning_as_the_player_s_second_decision"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them,item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing,item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped,item_051_paint_zones_and_make_the_zones_view_show_them,task_016_implement_zoning_as_the_player_s_second_decision",
+  "refs": [
+    "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+    "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing",
+    "item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped",
+    "item_051_paint_zones_and_make_the_zones_view_show_them",
+    "task_016_implement_zoning_as_the_player_s_second_decision"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_016_implement_zoning_as_the_player_s_second_decision.md",
+      "ref": "task_016_implement_zoning_as_the_player_s_second_decision"
+    }
+  ]
+}

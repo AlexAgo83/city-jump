@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:05:05
 
 # AI Context
 - Summary: The build loop needs a hover preview and a right-click to cancel, and tests `event.button === 0`; the README links a public demo that phone visitors cannot build anything in, with nothing telling them why.
@@ -21,9 +22,10 @@
 
 # Scope
 - In:
-  - Decide, and write the decision down: either make the build flow usable without hover and without a right-click, or state that the game is desktop-only.
-  - Whichever way it goes, a visitor on a touch device must learn it before they have tried and failed -- a line in the README is the minimum, a message in the app is better.
-  - If it goes the usable way, scope it to the build loop -- placing, cancelling, and the camera -- not to a mobile redesign.
+  - The decision is taken: **the game is desktop-only for now**, and says so. Making the build loop touch-usable is not an adaptation but a redesign of the input model -- the hover preview *is* the snap feedback before placement, the right-click cancel has no obvious gesture equivalent, and drag is already taken by the camera orbit, so a touch drag would be ambiguous between drawing and turning. The honest alternative costs a few lines.
+  - Implement it as a coarse-pointer notice: detect `matchMedia('(pointer: coarse)')` and show one line -- the build tools need a mouse because they use hover and right-click. Leave the visitor able to look at the city and move the camera; they simply learn why they cannot build.
+  - Say the same thing in the README, so it is known before the demo is even opened.
+  - Revisit touch support the day it becomes a goal, not as a repair. Nothing here forecloses it.
   - Leave the existing ARIA markup on the toolbar intact.
 - Out:
   - A responsive layout, a mobile-specific UI, or a separate build.
@@ -32,7 +34,7 @@
 
 # Acceptance criteria
 - AC1: The project has a written position on touch devices, and a visitor on one encounters it before they try to build.
-- AC2: If touch support was chosen, a road can be placed and cancelled on a touchscreen; if desktop-only was chosen, that is stated where a visitor sees it.
+- AC2: A visitor on a coarse pointer sees the notice in the app and can still look at the city and move the camera; the README states the same thing.
 - AC3: The toolbar's existing roles and labels are unchanged.
 
 # AC Traceability

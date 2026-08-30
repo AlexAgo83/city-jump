@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:55:23
+> Indicators reviewed: 2026-08-30 12:04:32
 
 # AI Context
 - Summary: The policy commits the project to a threat-model review before user-generated asset work ships, and cities arriving from a stranger's link are exactly that; no review exists.
@@ -24,7 +24,7 @@
 - In:
   - Write the review: what a share link can carry, what the client validates before acting on it, what resource limits stop a hostile payload, and what is deliberately accepted.
   - State plainly what a malicious link can and cannot do -- it is parsed data, not code, and it cannot reach any other player's stored cities.
-  - Land it before the share feature ships, and link it from the share request so the dependency is visible from both sides.
+  - Write it **before** the share encoder, not after. Its output -- the cap list, what is refused, what is knowingly accepted -- is then the specification the encoder is built against, rather than a stamp applied to code that already exists. A review done afterwards that finds something means rewriting.
 - Out:
   - Designing the share encoding or its caps, which the share-by-link request owns.
   - A general threat model for features that do not exist yet.

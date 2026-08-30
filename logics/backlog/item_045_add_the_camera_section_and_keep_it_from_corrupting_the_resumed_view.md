@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:04:01
 
 # AI Context
 - Summary: There is no Camera row in the settings panel, and `writeCameraState`'s 800 ms debounce off the view-matrix observable never fires under a self-turning camera and would persist a moving car's position under follow.
@@ -21,7 +22,8 @@
 
 # Scope
 - In:
-  - A Camera row in `index.html` with Free, Orbit and Follow, wired in `bindControls`, following the panel's existing plain-label pattern.
+  - A Camera row in `index.html` wired in `bindControls`, following the panel's existing plain-label pattern.
+  - Ship the row with Free and Orbit only. **Follow is not shown until it works** -- an option that appears later surprises nobody, while a disabled control with no explanation is a defect the player has to interpret. The follow slice adds it when selection covers cars.
   - Persist the chosen mode through `UiSettings` in `src/ui/saves.ts`, alongside `sunAuto` and `shortNight`.
   - Suspend camera-position persistence outside Free, so the resumed view is always somewhere the player chose.
   - Extend the browser interaction suite to cover each mode doing what it claims, and returning to Free on a pan.
@@ -31,7 +33,7 @@
   - A keyboard shortcut for switching mode.
 
 # Acceptance criteria
-- AC1: The Camera section offers the three modes and the choice survives a reload.
+- AC1: The Camera section offers the modes that currently work and the choice survives a reload; no mode is shown in a state where choosing it does nothing.
 - AC2: The persisted camera position is never a moving target and never a position produced by self-motion; a session resumed after orbiting or following comes back somewhere the player chose.
 - AC3: The browser interaction suite covers each mode and the escape-to-Free rule.
 
