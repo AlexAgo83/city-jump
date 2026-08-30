@@ -37,13 +37,14 @@ describe("roof props", () => {
   });
 
   it("scales foot decorations by building slots on each face", () => {
-    const placements = buildingFootDecorMatrices({
+    const parcel = {
       position: { x: 10, y: 2, z: 20 },
       rotationY: 0,
       frontageCells: 2,
       depthCells: 3,
       cells: [],
-    });
+    };
+    const placements = buildingFootDecorMatrices(parcel, () => parcel.position.y);
     expect(placements).toHaveLength(10);
     expect(placements.filter((placement) => placement.kind === "planter").length).toBeGreaterThan(0);
     expect(placements.some((placement) => placement.kind === "bench")).toBe(true);
@@ -54,14 +55,32 @@ describe("roof props", () => {
     expect(placements[0]!.matrix.m[14]).toBeCloseTo(20.8);
   });
 
+  it("puts foot decorations on the terrain height at their own position", () => {
+    const placements = buildingFootDecorMatrices(
+      {
+        position: { x: 10, y: 2, z: 20 },
+        rotationY: 0,
+        frontageCells: 2,
+        depthCells: 1,
+        cells: [],
+      },
+      (x, z) => x * 0.1 + z * 0.01,
+    );
+    const first = placements[0]!.matrix.m;
+    expect(first[13]).toBeCloseTo(first[12]! * 0.1 + first[14]! * 0.01 + 0.08);
+  });
+
   it("leaves the street-facing side clear on one-slot-wide buildings", () => {
-    const placements = buildingFootDecorMatrices({
-      position: { x: 10, y: 2, z: 20 },
-      rotationY: 0,
-      frontageCells: 1,
-      depthCells: 3,
-      cells: [],
-    });
+    const placements = buildingFootDecorMatrices(
+      {
+        position: { x: 10, y: 2, z: 20 },
+        rotationY: 0,
+        frontageCells: 1,
+        depthCells: 3,
+        cells: [],
+      },
+      () => 2,
+    );
     expect(placements).toHaveLength(7);
     expect(placements.some((placement) => placement.matrix.m[14]! > 20)).toBe(false);
   });

@@ -16,6 +16,7 @@ import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math"
 
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { terrainHeight } from "../sim/terrain";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
@@ -650,7 +651,7 @@ export function buildingGroundPadMatrix(parcel: BuildingParcel): Matrix {
   );
 }
 
-export function buildingFootDecorMatrices(parcel: BuildingParcel): FootDecorPlacement[] {
+export function buildingFootDecorMatrices(parcel: BuildingParcel, heightAt = terrainHeight): FootDecorPlacement[] {
   const width = parcel.frontageCells * GRID.cellSize;
   const depth = parcel.depthCells * GRID.cellSize;
   const halfWidth = width / 2;
@@ -660,9 +661,10 @@ export function buildingFootDecorMatrices(parcel: BuildingParcel): FootDecorPlac
   const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {
     const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
     const position = Vector3.TransformCoordinates(
-      new Vector3(localX, 0.08, localZ),
+      new Vector3(localX, 0, localZ),
       Matrix.Compose(Vector3.OneReadOnly, rotation, new Vector3(parcel.position.x, parcel.position.y, parcel.position.z)),
     );
+    position.y = heightAt(position.x, position.z) + 0.08;
     placements.push({
       kind,
       matrix: Matrix.Compose(Vector3.OneReadOnly, Quaternion.FromEulerAngles(0, parcel.rotationY + rotationY, 0), position),
