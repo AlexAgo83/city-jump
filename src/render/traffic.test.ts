@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { circularQueueRooms, joinLaneQueue, laneQueueIsOrdered, leaveLaneQueue, scaledTrafficCount, trafficLaneOffset } from "./traffic";
+import { circularQueueRooms, joinLaneQueue, laneQueueIsOrdered, leaveLaneQueue, roundaboutEntryBlocked, scaledTrafficCount, trafficLaneOffset } from "./traffic";
 
 describe("traffic queues", () => {
   it("scales traffic counts without changing the default or making non-empty roads empty", () => {
@@ -20,6 +20,12 @@ describe("traffic queues", () => {
     expect(rooms.get(a)).toBeCloseTo(1 * 10 - 8.5);
     expect(rooms.get(b)).toBeCloseTo(4 * 10 - 8.5);
     expect(rooms.get(c)).toBeCloseTo((Math.PI * 2 - 5) * 10 - 8.5);
+  });
+
+  it("makes roundabout entrants yield to cars already on the ring", () => {
+    expect(roundaboutEntryBlocked(0, [{ at: Math.PI * 2 - 0.08, radius: 20 }])).toBe(true);
+    expect(roundaboutEntryBlocked(0, [{ at: 0.08, radius: 20 }])).toBe(false);
+    expect(roundaboutEntryBlocked(0, [{ at: Math.PI, radius: 20 }])).toBe(false);
   });
 
   it("uses the same lane-change offset in both travel directions", () => {

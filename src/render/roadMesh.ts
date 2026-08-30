@@ -449,6 +449,7 @@ function roundaboutMeshes(
 
   return [
     ring,
+    ...roundaboutArmPatches(scene, graph, junction, outer, surface, paving),
     // A footway ring outside it, but broken where the arms come in: a full lathe would lay a band
     // straight across every road meeting the roundabout. A path is all footway already.
     ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, elevationAt, paving)),
@@ -457,6 +458,46 @@ function roundaboutMeshes(
     // A second lane's own divider, the same colour as a straight road's centre line.
     ...(lanes === 2 && !onFoot ? [styledLine(scene, `roundabout_lane_${junction.node}`, circle((inner + outer) / 2), laneColor)] : []),
   ];
+}
+
+function roundaboutArmPatches(
+  scene: Scene,
+  graph: RoadGraph,
+  junction: JunctionGeometry,
+  outer: number,
+  surface: StandardMaterial,
+  paving: StandardMaterial,
+): Mesh[] {
+  const centre = graph.node(junction.node).pos;
+  return junction.arms.flatMap((arm) => {
+    const type = roadType(graph.segment(arm.segment).type);
+    if (type.pedestrian) return [];
+    const n = normalizeXZ(perpXZ(arm.outward));
+    const half = type.width / 2;
+    const end = (side: number) => {
+      const x = centre.x + arm.outward.x * outer + n.x * half * side;
+      const z = centre.z + arm.outward.z * outer + n.z * half * side;
+      return new Vector3(x, terrainHeight(x, z) + ROAD_LIFT + 0.16, z);
+    };
+    const asphalt = roadStripMesh(
+      scene,
+      `roundabout_gap_${arm.segment}_${junction.node}`,
+      [new Vector3(arm.cornerHigh.x, arm.cornerHigh.y + ROAD_LIFT + 0.18, arm.cornerHigh.z), end(1)],
+      [new Vector3(arm.cornerLow.x, arm.cornerLow.y + ROAD_LIFT + 0.18, arm.cornerLow.z), end(-1)],
+    );
+    asphalt.material = surface;
+    asphalt.isPickable = false;
+
+    const island = roadStripMesh(
+      scene,
+      `roundabout_splitter_${arm.segment}_${junction.node}`,
+      [end(-0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
+      [end(0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
+    );
+    island.material = paving;
+    island.isPickable = false;
+    return [asphalt, island];
+  });
 }
 
 
@@ -840,7 +881,7 @@ function linesIntersect(a: Vec3, b: Vec3, c: Vec3, d: Vec3): boolean {
 }
 
 function segmentIdFromMeshName(name: string): number | null {
-  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel)_(\d+)/.exec(name);
+  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
   return match ? Number(match[1]) : null;
 }
 

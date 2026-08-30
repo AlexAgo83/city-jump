@@ -205,7 +205,16 @@ export class RoadGraph {
     const span = seg.cumulative[i]! - prev;
     const f = span < 1e-9 ? 0 : (d - prev) / span;
     const position = lerp(seg.samples[i - 1]!, seg.samples[i]!, f);
-    const tangent = normalizeXZ(sub(seg.samples[i]!, seg.samples[i - 1]!));
+    const t = seg.ts[i - 1]! + (seg.ts[i]! - seg.ts[i - 1]!) * f;
+    const u = 1 - t;
+    const a = this.node(seg.a).pos;
+    const b = this.node(seg.b).pos;
+    const tangent = normalizeXZ(v3(
+      2 * (u * (seg.control.x - a.x) + t * (b.x - seg.control.x)),
+      0,
+      2 * (u * (seg.control.z - a.z) + t * (b.z - seg.control.z)),
+    ));
+    if (tangent.x === 0 && tangent.z === 0) return { position, tangent: normalizeXZ(sub(seg.samples[i]!, seg.samples[i - 1]!)) };
     return { position, tangent };
   }
 

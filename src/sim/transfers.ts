@@ -9,7 +9,7 @@
 import type { NodeId, RoadGraph, SegmentId } from "./graph";
 import { ringElevation, widestIncidentRoad, type JunctionArm, type JunctionGeometry } from "./junction";
 import { roadType, walkCentres } from "./roadTypes";
-import { distXZ, normalizeXZ, perpXZ, v3, type Vec3 } from "./vec";
+import { distXZ, normalizeXZ, perpXZ, sub, v3, type Vec3 } from "./vec";
 
 /**
  * Turns a heading towards another at a bounded rate, the short way round. A path is a polyline,
@@ -228,6 +228,17 @@ export function pathCumulative(points: readonly Vec3[]): number[] {
 export function pointAlong(points: readonly Vec3[], cumulative: readonly number[], distance: number): { position: Vec3; tangent: Vec3 } {
   const total = cumulative[cumulative.length - 1]!;
   const d = Math.min(Math.max(distance, 0), total);
+  const at = (next: number): Vec3 => {
+    const clamped = Math.min(Math.max(next, 0), total);
+    let j = 1;
+    while (j < cumulative.length - 1 && cumulative[j]! < clamped) j++;
+    const before = cumulative[j - 1]!;
+    const part = cumulative[j]! - before;
+    const k = part < 1e-9 ? 0 : (clamped - before) / part;
+    const from = points[j - 1]!;
+    const to = points[j]!;
+    return v3(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k, from.z + (to.z - from.z) * k);
+  };
   let i = 1;
   while (i < cumulative.length - 1 && cumulative[i]! < d) i++;
   const prev = cumulative[i - 1]!;
@@ -237,7 +248,7 @@ export function pointAlong(points: readonly Vec3[], cumulative: readonly number[
   const b = points[i]!;
   return {
     position: v3(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, a.z + (b.z - a.z) * f),
-    tangent: normalizeXZ(v3(b.x - a.x, 0, b.z - a.z)),
+    tangent: normalizeXZ(sub(at(d + 0.75), at(d - 0.75))),
   };
 }
 

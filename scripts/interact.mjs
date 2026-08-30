@@ -821,6 +821,15 @@ check(
   "the roundabout is drawn as a ring",
   await page.evaluate((id) => Boolean(window.cityjump._scene.getMeshByName(`roundabout_${id}`)), junctionScreen.id),
 );
+check(
+  "roundabout arms have asphalt gap fillers and splitter islands",
+  await page.evaluate((id) => {
+    const scene = window.cityjump._scene;
+    const gaps = scene.meshes.filter((m) => m.name.endsWith(`_${id}`) && m.name.startsWith("roundabout_gap_"));
+    const splitters = scene.meshes.filter((m) => m.name.endsWith(`_${id}`) && m.name.startsWith("roundabout_splitter_"));
+    return gaps.length > 0 && gaps.length === splitters.length;
+  }, junctionScreen.id),
+);
 // The drawn surface stops at the ring, while the road geometry still reaches the node.
 const trims = await page.evaluate((id) => {
   const graph = window.cityjump._graph;

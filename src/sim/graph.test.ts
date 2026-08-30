@@ -100,6 +100,14 @@ describe("arc-length parameterisation", () => {
     expect(t.x).toBeCloseTo(1, 3);
     expect(t.z).toBeCloseTo(0, 3);
   });
+
+  it("points curve tangents from the curve, not the sampled chord", () => {
+    const g = new RoadGraph();
+    const { id } = curved(g);
+    const t = g.pointAt(id, g.segment(id).length / 2).tangent;
+    expect(t.x).toBeCloseTo(Math.SQRT1_2, 3);
+    expect(t.z).toBeCloseTo(Math.SQRT1_2, 3);
+  });
 });
 
 describe("split", () => {

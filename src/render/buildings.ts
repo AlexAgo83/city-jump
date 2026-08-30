@@ -605,6 +605,10 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     [
       box(scene, "footdecor_bench_seat", 2.6, 0.22, 0.7, 0, 0.48, 0),
       box(scene, "footdecor_bench_back", 2.6, 0.68, 0.18, 0, 0.82, -0.36),
+      box(scene, "footdecor_bench_leg_l", 0.16, 0.48, 0.16, -0.9, 0.24, 0.2),
+      box(scene, "footdecor_bench_leg_r", 0.16, 0.48, 0.16, 0.9, 0.24, 0.2),
+      box(scene, "footdecor_bench_arm_l", 0.12, 0.5, 0.8, -1.36, 0.62, 0),
+      box(scene, "footdecor_bench_arm_r", 0.12, 0.5, 0.8, 1.36, 0.62, 0),
     ],
     true,
     true,
@@ -612,14 +616,48 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     false,
     false,
   )!;
-  const bollard = MeshBuilder.CreateCylinder("footdecor_bollard", { diameter: 0.42, height: 1, tessellation: 8 }, scene);
-  bollard.position.y = 0.5;
-  const planter = box(scene, "footdecor_planter", 2.2, 0.55, 0.75, 0, 0.275, 0);
-  const utility = box(scene, "footdecor_utility", 1.15, 1.05, 0.7, 0, 0.525, 0);
-  const trash = MeshBuilder.CreateCylinder("footdecor_trash", { diameter: 0.75, height: 1, tessellation: 10 }, scene);
-  trash.position.y = 0.5;
+  const bollardPost = MeshBuilder.CreateCylinder("footdecor_bollard_post", { diameter: 0.42, height: 0.9, tessellation: 8 }, scene);
+  bollardPost.position.y = 0.55;
+  const bollardCap = MeshBuilder.CreateCylinder("footdecor_bollard_cap", { diameter: 0.5, height: 0.12, tessellation: 8 }, scene);
+  bollardCap.position.y = 1.06;
+  const bollard = Mesh.MergeMeshes([bollardPost, bollardCap, box(scene, "footdecor_bollard_base", 0.68, 0.12, 0.68, 0, 0.06, 0)], true, true, undefined, false, false)!;
+  const planter = Mesh.MergeMeshes(
+    [
+      box(scene, "footdecor_planter_box", 2.2, 0.55, 0.75, 0, 0.275, 0),
+      box(scene, "footdecor_planter_lip", 2.35, 0.12, 0.9, 0, 0.61, 0),
+      box(scene, "footdecor_planter_soil", 1.85, 0.08, 0.5, 0, 0.71, 0),
+    ],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const utility = Mesh.MergeMeshes(
+    [
+      box(scene, "footdecor_utility_body", 1.15, 1.05, 0.7, 0, 0.525, 0),
+      box(scene, "footdecor_utility_door", 0.78, 0.72, 0.05, 0, 0.56, -0.38),
+      box(scene, "footdecor_utility_vent", 0.7, 0.08, 0.06, 0, 0.9, -0.4),
+      box(scene, "footdecor_utility_handle", 0.08, 0.18, 0.08, 0.36, 0.55, -0.43),
+    ],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const trashBody = MeshBuilder.CreateCylinder("footdecor_trash_body", { diameterTop: 0.68, diameterBottom: 0.78, height: 1, tessellation: 10 }, scene);
+  trashBody.position.y = 0.5;
+  const trashLid = MeshBuilder.CreateCylinder("footdecor_trash_lid", { diameter: 0.82, height: 0.12, tessellation: 10 }, scene);
+  trashLid.position.y = 1.06;
+  const trash = Mesh.MergeMeshes([trashBody, trashLid, box(scene, "footdecor_trash_handle", 0.42, 0.08, 0.12, 0, 1.18, 0)], true, true, undefined, false, false)!;
   const mail = Mesh.MergeMeshes(
-    [box(scene, "footdecor_mail_post", 0.16, 0.8, 0.16, 0, 0.4, 0), box(scene, "footdecor_mail_box", 0.9, 0.42, 0.55, 0, 0.95, 0)],
+    [
+      box(scene, "footdecor_mail_post", 0.16, 0.8, 0.16, 0, 0.4, 0),
+      box(scene, "footdecor_mail_box", 0.9, 0.42, 0.55, 0, 0.95, 0),
+      box(scene, "footdecor_mail_door", 0.08, 0.35, 0.45, 0.5, 0.95, 0),
+      box(scene, "footdecor_mail_flag", 0.08, 0.42, 0.3, -0.5, 1.08, 0),
+    ],
     true,
     true,
     undefined,
@@ -627,7 +665,13 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     false,
   )!;
   const sign = Mesh.MergeMeshes(
-    [box(scene, "footdecor_sign_board", 1, 0.72, 0.08, 0, 0.78, 0), box(scene, "footdecor_sign_feet", 1.1, 0.12, 0.5, 0, 0.06, 0)],
+    [
+      box(scene, "footdecor_sign_board", 1, 0.72, 0.08, 0, 0.78, 0),
+      box(scene, "footdecor_sign_trim", 1.12, 0.08, 0.1, 0, 1.18, 0),
+      box(scene, "footdecor_sign_leg_l", 0.1, 0.58, 0.08, -0.32, 0.35, 0),
+      box(scene, "footdecor_sign_leg_r", 0.1, 0.58, 0.08, 0.32, 0.35, 0),
+      box(scene, "footdecor_sign_feet", 1.1, 0.12, 0.5, 0, 0.06, 0),
+    ],
     true,
     true,
     undefined,
@@ -636,9 +680,16 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
   )!;
   const shrubTop = MeshBuilder.CreateSphere("footdecor_shrub_top", { diameter: 1.15, segments: 8 }, scene);
   shrubTop.position.y = 0.95;
-  const shrub = Mesh.MergeMeshes([box(scene, "footdecor_shrub_pot", 0.8, 0.45, 0.8, 0, 0.225, 0), shrubTop], true, true, undefined, false, false)!;
+  const shrubSide = MeshBuilder.CreateSphere("footdecor_shrub_side", { diameter: 0.75, segments: 8 }, scene);
+  shrubSide.position.set(0.35, 0.78, 0.08);
+  const shrub = Mesh.MergeMeshes([box(scene, "footdecor_shrub_pot", 0.8, 0.45, 0.8, 0, 0.225, 0), box(scene, "footdecor_shrub_lip", 0.95, 0.12, 0.95, 0, 0.5, 0), shrubTop, shrubSide], true, true, undefined, false, false)!;
   const bikeRack = Mesh.MergeMeshes(
-    [-0.45, 0, 0.45].map((x) => box(scene, `footdecor_bikeRack_${x}`, 0.08, 0.75, 0.55, x, 0.375, 0)),
+    [
+      ...[-0.45, 0, 0.45].map((x) => box(scene, `footdecor_bikeRack_${x}`, 0.08, 0.75, 0.55, x, 0.375, 0)),
+      box(scene, "footdecor_bikeRack_bar_f", 1.05, 0.08, 0.08, 0, 0.75, -0.25),
+      box(scene, "footdecor_bikeRack_bar_b", 1.05, 0.08, 0.08, 0, 0.75, 0.25),
+      box(scene, "footdecor_bikeRack_rail", 1.3, 0.08, 0.08, 0, 0.08, 0),
+    ],
     true,
     true,
     undefined,
@@ -646,7 +697,13 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     false,
   )!;
   const crate = Mesh.MergeMeshes(
-    [box(scene, "footdecor_crate_a", 0.85, 0.55, 0.75, -0.25, 0.275, 0), box(scene, "footdecor_crate_b", 0.7, 0.45, 0.65, 0.45, 0.225, 0.05)],
+    [
+      box(scene, "footdecor_crate_a", 0.85, 0.55, 0.75, -0.25, 0.275, 0),
+      box(scene, "footdecor_crate_b", 0.7, 0.45, 0.65, 0.45, 0.225, 0.05),
+      box(scene, "footdecor_crate_slat_a", 1.75, 0.08, 0.08, 0.1, 0.58, -0.36),
+      box(scene, "footdecor_crate_slat_b", 1.55, 0.08, 0.08, 0.05, 0.3, -0.38),
+      box(scene, "footdecor_crate_top", 0.72, 0.08, 0.62, 0.45, 0.49, 0.05),
+    ],
     true,
     true,
     undefined,
@@ -654,7 +711,14 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     false,
   )!;
   const barrier = Mesh.MergeMeshes(
-    [box(scene, "footdecor_barrier_bar", 1.6, 0.18, 0.12, 0, 0.7, 0), box(scene, "footdecor_barrier_l", 0.14, 0.9, 0.14, -0.65, 0.45, 0), box(scene, "footdecor_barrier_r", 0.14, 0.9, 0.14, 0.65, 0.45, 0)],
+    [
+      box(scene, "footdecor_barrier_bar", 1.6, 0.18, 0.12, 0, 0.7, 0),
+      box(scene, "footdecor_barrier_lower", 1.35, 0.14, 0.1, 0, 0.38, 0),
+      box(scene, "footdecor_barrier_l", 0.14, 0.9, 0.14, -0.65, 0.45, 0),
+      box(scene, "footdecor_barrier_r", 0.14, 0.9, 0.14, 0.65, 0.45, 0),
+      box(scene, "footdecor_barrier_foot_l", 0.55, 0.1, 0.28, -0.65, 0.05, 0),
+      box(scene, "footdecor_barrier_foot_r", 0.55, 0.1, 0.28, 0.65, 0.05, 0),
+    ],
     true,
     true,
     undefined,
@@ -663,8 +727,27 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
   )!;
   const wallLightGlobe = MeshBuilder.CreateSphere("footdecor_wallLight_globe", { diameter: 0.45, segments: 8 }, scene);
   wallLightGlobe.position.y = 1;
-  const wallLight = Mesh.MergeMeshes([box(scene, "footdecor_wallLight_stem", 0.14, 0.8, 0.14, 0, 0.4, 0), wallLightGlobe], true, true, undefined, false, false)!;
-  const vending = box(scene, "footdecor_vending", 0.95, 1.8, 0.65, 0, 0.9, 0);
+  const wallLight = Mesh.MergeMeshes(
+    [box(scene, "footdecor_wallLight_stem", 0.14, 0.8, 0.14, 0, 0.4, 0), box(scene, "footdecor_wallLight_plate", 0.55, 0.85, 0.08, 0, 0.58, 0.12), wallLightGlobe],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const vending = Mesh.MergeMeshes(
+    [
+      box(scene, "footdecor_vending_body", 0.95, 1.8, 0.65, 0, 0.9, 0),
+      box(scene, "footdecor_vending_screen", 0.32, 0.34, 0.05, 0.2, 1.15, -0.36),
+      box(scene, "footdecor_vending_slot", 0.55, 0.16, 0.05, -0.08, 0.52, -0.36),
+      box(scene, "footdecor_vending_top", 1.05, 0.12, 0.72, 0, 1.86, 0),
+    ],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
 
   return {
     bench: finish(bench, "bench"),

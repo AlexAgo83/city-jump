@@ -169,6 +169,14 @@ export function circularQueueRooms<T>(
   return out;
 }
 
+export function roundaboutEntryBlocked(
+  entry: number,
+  occupied: readonly { readonly at: number; readonly radius: number }[],
+): boolean {
+  const TAU = Math.PI * 2;
+  return occupied.some(({ at, radius }) => (((entry - at) % TAU) + TAU) % TAU * radius < CAR_GAP * 1.4);
+}
+
 export function trafficLaneOffset(
   lane: LaneCentre,
   changing: LaneCentre | null,
@@ -721,7 +729,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * light is against it. Whichever comes first in the direction it is going.
    */
   function stopFor(mover: Mover, ahead: Mover | undefined, time: number): number {
-    const line = heldAtLights(mover, time) ? stopLineOf(mover) : limitOf(mover) + mover.direction * BRAKING * 2;
+    const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover) ? stopLineOf(mover) : limitOf(mover) + mover.direction * BRAKING * 2;
     if (!ahead) return line;
     const behind = ahead.distance - mover.direction * CAR_GAP;
     return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
@@ -773,6 +781,17 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const to = armOf(nodeId, next);
     // Landing on the exit road in the lane it will start in, which is the one it changes from.
     const landing = entry.changing ?? entry.lane;
+    if (roundabout && !mover.walk && from && to) {
+      const ring = ringAt(nodeId);
+      const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
+      const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
+      const occupied = movers.flatMap((other) => {
+        if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
+        const { position } = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled);
+        return [{ at: ringBearing(ring, position), radius: other.ride.roundabout.radius }];
+      });
+      if (roundaboutEntryBlocked(entryAngle, occupied)) return;
+    }
 
     // A dead end has no junction and so no drawn turn: the car turns round on the spot. Same
     // curve, bowed past the end of the road rather than towards a node's centre.
@@ -842,6 +861,20 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const reach = arm.trim + CROSSING_DEPTH * 3;
       if (!crossesRoad(centre, arm.outward, reach, [path])) return true;
       return !canGo(signalAt(cycle, arm.segment, time));
+    });
+  }
+
+  function crossingOccupiedByWalker(mover: Mover): boolean {
+    const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
+    const arm = armOf(nodeId, mover.segment.id);
+    if (!arm) return false;
+    const centre = graph.node(nodeId).pos;
+    const reach = arm.trim + CROSSING_DEPTH * 3;
+    return movers.some((other) => {
+      if (!other.walk || other.ride?.from !== nodeId) return false;
+      const a = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled - 0.5).position;
+      const b = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled + 0.5).position;
+      return crossesRoad(centre, arm.outward, reach, [[a, b]]);
     });
   }
 
@@ -1110,6 +1143,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       if (atEnd && (mover.walk || !heldAtLights(mover, now))) {
         mover.distance = limit;
         arrive(mover, now);
+        if (mover.walk && !mover.ride) mover.currentSpeed = 0;
         if (mover.ride) continue;
       }
       const offset = offsetOf(mover);
