@@ -47,6 +47,12 @@ interface BuildingManifest {
 }
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
+type FootDecorKind = "bench" | "bollard" | "planter" | "utility";
+
+interface FootDecorPlacement {
+  readonly kind: FootDecorKind;
+  readonly matrix: Matrix;
+}
 
 /**
  * One thing standing on a roof, `x`/`z` a small, fixed offset in metres off the parcel's own
@@ -178,6 +184,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   const manifest = await loadManifest();
   const available: Model[] = [];
   const roofProps = buildRoofProps(scene, shadows);
+  const footDecor = buildFootDecor(scene);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
   const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
@@ -215,6 +222,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   function applyBuildingVisibility(): void {
     for (const model of available) model.mesh.setEnabled(visible && model.mesh.thinInstanceCount > 0);
     for (const mesh of Object.values(roofProps)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
+    for (const mesh of Object.values(footDecor)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     groundShadow.mesh.setEnabled(visible && groundShadow.mesh.thinInstanceCount > 0);
     groundPad.setEnabled(visible && groundPad.thinInstanceCount > 0);
   }
@@ -274,6 +282,14 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     for (const [i, parcel] of parcels.entries()) buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
     groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
     groundPad.thinInstanceCount = parcels.length;
+    const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
+    for (const parcel of parcels) {
+      for (const placement of buildingFootDecorMatrices(parcel)) {
+        const bucket = footDecorMatrices.get(placement.kind);
+        if (bucket) bucket.push(placement.matrix);
+        else footDecorMatrices.set(placement.kind, [placement.matrix]);
+      }
+    }
 
     let placed = 0;
     for (const model of available) {
@@ -339,6 +355,16 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const buffer = new Float32Array(list.length * 16);
       list.forEach((m, i) => m.copyToArray(buffer, i * 16));
       mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: count changes every rebuild
+      mesh.thinInstanceCount = list.length;
+    }
+    for (const [kind, mesh] of Object.entries(footDecor) as [FootDecorKind, Mesh][]) {
+      const list = footDecorMatrices.get(kind) ?? [];
+      mesh.thinInstanceCount = 0;
+      mesh.setEnabled(visible && list.length > 0);
+      if (list.length === 0) continue;
+      const buffer = new Float32Array(list.length * 16);
+      list.forEach((m, i) => m.copyToArray(buffer, i * 16));
+      mesh.thinInstanceSetBuffer("matrix", buffer, 16, false);
       mesh.thinInstanceCount = list.length;
     }
 
@@ -530,6 +556,53 @@ function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<PropKind
   };
 }
 
+function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
+  const material: Record<FootDecorKind, StandardMaterial> = {
+    bench: new StandardMaterial("footdecor_bench", scene),
+    bollard: new StandardMaterial("footdecor_bollard", scene),
+    planter: new StandardMaterial("footdecor_planter", scene),
+    utility: new StandardMaterial("footdecor_utility", scene),
+  };
+  material.bench.diffuseColor = new Color3(0.34, 0.2, 0.12);
+  material.bollard.diffuseColor = new Color3(0.82, 0.72, 0.42);
+  material.planter.diffuseColor = new Color3(0.18, 0.38, 0.2);
+  material.utility.diffuseColor = new Color3(0.32, 0.34, 0.34);
+  for (const mat of Object.values(material)) mat.specularColor = Color3.Black();
+
+  const finish = (mesh: Mesh, kind: FootDecorKind): Mesh => {
+    mesh.name = `footdecor_${kind}`;
+    mesh.material = material[kind];
+    mesh.isPickable = false;
+    mesh.receiveShadows = true;
+    mesh.alwaysSelectAsActiveMesh = true;
+    mesh.setEnabled(false);
+    return mesh;
+  };
+
+  const bench = Mesh.MergeMeshes(
+    [
+      box(scene, "footdecor_bench_seat", 2.6, 0.22, 0.7, 0, 0.48, 0),
+      box(scene, "footdecor_bench_back", 2.6, 0.68, 0.18, 0, 0.82, -0.36),
+    ],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const bollard = MeshBuilder.CreateCylinder("footdecor_bollard", { diameter: 0.42, height: 1, tessellation: 8 }, scene);
+  bollard.position.y = 0.5;
+  const planter = box(scene, "footdecor_planter", 2.2, 0.55, 0.75, 0, 0.275, 0);
+  const utility = box(scene, "footdecor_utility", 1.15, 1.05, 0.7, 0, 0.525, 0);
+
+  return {
+    bench: finish(bench, "bench"),
+    bollard: finish(bollard, "bollard"),
+    planter: finish(planter, "planter"),
+    utility: finish(utility, "utility"),
+  };
+}
+
 /**
  * A building's material can be a plain StandardMaterial, a converted-in-place PBRMaterial, or
  * a MultiMaterial with either as a sub-material -- recurse the same way normalizeBuildingMaterial
@@ -575,6 +648,39 @@ export function buildingGroundPadMatrix(parcel: BuildingParcel): Matrix {
     rotation,
     new Vector3(parcel.position.x + outX * (depth / 2 - margin / 2), parcel.position.y + 0.035, parcel.position.z + outZ * (depth / 2 - margin / 2)),
   );
+}
+
+export function buildingFootDecorMatrices(parcel: BuildingParcel): FootDecorPlacement[] {
+  const width = parcel.frontageCells * GRID.cellSize;
+  const depth = parcel.depthCells * GRID.cellSize;
+  const halfWidth = width / 2;
+  const gap = 1.5;
+  const placements: FootDecorPlacement[] = [];
+
+  const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {
+    const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
+    const position = Vector3.TransformCoordinates(
+      new Vector3(localX, 0.08, localZ),
+      Matrix.Compose(Vector3.OneReadOnly, rotation, new Vector3(parcel.position.x, parcel.position.y, parcel.position.z)),
+    );
+    placements.push({
+      kind,
+      matrix: Matrix.Compose(Vector3.OneReadOnly, Quaternion.FromEulerAngles(0, parcel.rotationY + rotationY, 0), position),
+    });
+  };
+
+  for (let i = 0; i < parcel.frontageCells; i++) {
+    const x = -halfWidth + (i + 0.5) * GRID.cellSize;
+    add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
+    add(i % 4 === 0 ? "utility" : "planter", x, -depth - gap, Math.PI);
+  }
+  for (let i = 0; i < parcel.depthCells; i++) {
+    const z = -(i + 0.5) * GRID.cellSize;
+    add(i % 2 === 0 ? "bollard" : "planter", -halfWidth - gap, z, Math.PI / 2);
+    add(i % 2 === 0 ? "planter" : "bollard", halfWidth + gap, z, -Math.PI / 2);
+  }
+
+  return placements;
 }
 
 function buildingGroundPadMesh(scene: Scene): Mesh {

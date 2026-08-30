@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
+import { buildingFootDecorMatrices, buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -34,5 +34,23 @@ describe("roof props", () => {
     expect(matrix.m[12]).toBeCloseTo(10);
     expect(matrix.m[13]).toBeCloseTo(2.035);
     expect(matrix.m[14]).toBeCloseTo(8);
+  });
+
+  it("scales foot decorations by building slots on each face", () => {
+    const placements = buildingFootDecorMatrices({
+      position: { x: 10, y: 2, z: 20 },
+      rotationY: 0,
+      frontageCells: 2,
+      depthCells: 3,
+      cells: [],
+    });
+    expect(placements).toHaveLength(10);
+    expect(placements.filter((placement) => placement.kind === "planter").length).toBeGreaterThan(0);
+    expect(placements.some((placement) => placement.kind === "bench")).toBe(true);
+    expect(placements.some((placement) => placement.kind === "bollard")).toBe(true);
+    expect(placements.some((placement) => placement.kind === "utility")).toBe(true);
+    expect(placements[0]!.matrix.m[12]).toBeCloseTo(6);
+    expect(placements[0]!.matrix.m[13]).toBeCloseTo(2.08);
+    expect(placements[0]!.matrix.m[14]).toBeCloseTo(21.5);
   });
 });

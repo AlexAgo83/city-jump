@@ -608,7 +608,14 @@ await page.locator("#traffic-density").evaluate((input) => {
 });
 await page.waitForFunction((cars) => window.cityjump.stats().cars === cars, drawn.cars, { timeout: 5_000 });
 const beforeTraffic = await trafficPositions();
-await realTime(250);
+await page.waitForFunction(
+  (before) =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("traffic_"))
+      .some((mesh, i) => Math.hypot(mesh.position.x - before[i]?.[0], mesh.position.z - before[i]?.[1]) > 0.5),
+  beforeTraffic,
+  { timeout: 5_000 },
+);
 const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 await page.locator('[data-tool="select"]').click();
