@@ -25,12 +25,13 @@
 | [prod_010_a_published_game_whose_documents_tell_the_truth](product/prod_010_a_published_game_whose_documents_tell_the_truth.md) | A published game whose documents tell the truth | Settled |  |  | product/prod_010_a_published_game_whose_documents_tell_the_truth.md |
 | [prod_011_a_city_that_is_built_on_purpose](product/prod_011_a_city_that_is_built_on_purpose.md) | A city that is built on purpose | Settled |  |  | product/prod_011_a_city_that_is_built_on_purpose.md |
 | [prod_012_a_city_that_keeps_drawing_itself_correctly](product/prod_012_a_city_that_keeps_drawing_itself_correctly.md) | A city that keeps drawing itself correctly | Proposed |  |  | product/prod_012_a_city_that_keeps_drawing_itself_correctly.md |
+| [prod_013_a_city_that_tells_you_what_it_costs_to_draw](product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md) | A city that tells you what it costs to draw | Proposed |  |  | product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md |
 
 ## Roadmaps
 
 | Doc | Title | Status | Owner | Progress | Path |
 |---|---|---|---|---|---|
-| [road_001_city_jump_playable_city](roadmap/road_001_city_jump_playable_city.md) | city-jump playable city | Proposed |  |  | roadmap/road_001_city_jump_playable_city.md |
+| [road_001_city_jump_playable_city](roadmap/road_001_city_jump_playable_city.md) | city-jump playable city | Active |  |  | roadmap/road_001_city_jump_playable_city.md |
 
 ## Requests
 
@@ -52,6 +53,7 @@
 | [req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy](request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md) | The game is deployed in public while its documents and its input model still describe a local dev toy | Done |  |  | request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md |
 | [req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them](request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md) | Let the player decide what gets built, instead of the geometry deciding for them | Done |  |  | request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md |
 | [req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work](request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md) | Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work | Draft |  |  | request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md |
+| [req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen, and let the player turn it off | Draft |  |  | request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 
 ## Backlog
 
@@ -112,6 +114,9 @@
 | [item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs](backlog/item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs.md) | Make the zoning brush cost what the tree brush costs | Ready |  | 0% | backlog/item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs.md |
 | [item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying](backlog/item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying.md) | Stop the overlay state and the debug statistics from lying | Ready |  | 0% | backlog/item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying.md |
 | [item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris](backlog/item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris.md) | Prune the traffic queues, assert the ordering they rely on, and clear the small debris | Ready |  | 0% | backlog/item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris.md |
+| [item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching](backlog/item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching.md) | Measure the frame rate once, and only while someone is watching | Ready |  | 0% | backlog/item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching.md |
+| [item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel](backlog/item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel.md) | Put the counter in the top-right without evicting the selection panel | Ready |  | 0% | backlog/item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel.md |
+| [item_058_add_show_fps_to_settings_world_and_remember_it](backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md) | Add Show FPS to Settings > World and remember it | Ready |  | 0% | backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md |
 
 ## Tasks
 
@@ -134,6 +139,7 @@
 | [task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment](tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md) | Make the project's documents and input model match the public deployment | Done | codex | 100% | tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md |
 | [task_016_implement_zoning_as_the_player_s_second_decision](tasks/task_016_implement_zoning_as_the_player_s_second_decision.md) | Implement zoning as the player's second decision | Done | codex | 100% | tasks/task_016_implement_zoning_as_the_player_s_second_decision.md |
 | [task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work](tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md) | Close the ten review findings from the dirty-region rebuild and zoning work | Ready |  | 0% | tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md |
+| [task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen and let the player turn it off | Ready |  | 0% | tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 
 ## Runbooks
 
@@ -144,5 +150,6 @@
 | [run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through](runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md) | Cut terrain under a road or a junction without raw ground poking through | Active | other | 2026-08-30 against `src/sim/heightmap.ts` and commits `aa8167e`, `1b45ae4`, `69d448c`, `70a112a`, `17ebabb` | runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md |
 | [run_004_make_the_island_edge_vanish_into_an_ocean_horizon](runbook/run_004_make_the_island_edge_vanish_into_an_ocean_horizon.md) | Make the island edge vanish into an ocean horizon | Active | other | 2026-08-30 against `src/render/ground.ts` and `src/render/scene.ts` as shipped | runbook/run_004_make_the_island_edge_vanish_into_an_ocean_horizon.md |
 | [run_005_add_lights_to_the_scene_without_freezing_the_rebuild](runbook/run_005_add_lights_to_the_scene_without_freezing_the_rebuild.md) | Add lights to the scene without freezing the rebuild | Active | other | 2026-08-30 against `src/render/streetlights.ts` and `src/render/traffic.ts` as shipped | runbook/run_005_add_lights_to_the_scene_without_freezing_the_rebuild.md |
-| [run_006_change_what_a_save_contains_without_losing_the_player_s_city](runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md) | Change what a save contains without losing the player's city | Active | other | 2026-08-30 against `src/sim/save.ts`, `src/ui/saves.ts`, `src/sim/save.test.ts` and the older-build check in `scripts/interact.mjs` | runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md |
-| [run_007_the_code_says_it_drew_it_and_the_screen_disagrees](runbook/run_007_the_code_says_it_drew_it_and_the_screen_disagrees.md) | The code says it drew it and the screen disagrees | Active | other | 2026-08-30 against the crossing-paint work in `src/render/roadMesh.ts` and `src/sim/transfers.ts` | runbook/run_007_the_code_says_it_drew_it_and_the_screen_disagrees.md |
+| [run_006_change_what_a_save_contains_without_losing_the_player_s_city](runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md) | Change what a save contains without losing the player's city | Active | other | 2026-08-30 against `src/sim/save.ts` at SAVE_VERSION 6, `src/ui/saves.ts`, `src/sim/save.test.ts` and the older-build check in `scripts/interact.mjs` | runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md |
+| [run_007_the_code_says_it_drew_it_and_the_screen_disagrees](runbook/run_007_the_code_says_it_drew_it_and_the_screen_disagrees.md) | The code says it drew it and the screen disagrees | Active | other | 2026-08-30 against the crossing-paint work in `src/render/roadMesh.ts` and `src/sim/transfers.ts`, and the dirty-region rebuild review of `src/render/roadMesh.ts` | runbook/run_007_the_code_says_it_drew_it_and_the_screen_disagrees.md |
+| [run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint](runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md) | Repaint only part of the world without losing what you did not repaint | Active | other | 2026-08-30 against `src/app/app.ts`, `src/sim/heightmap.ts`, `src/render/ground.ts`, `src/render/roadMesh.ts`, `src/render/traffic.ts` and `src/render/drawTool.ts` | runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md |

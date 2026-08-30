@@ -1,0 +1,167 @@
+{
+  "title": "Show the frame rate on screen, and let the player turn it off",
+  "references": [
+    "index.html",
+    "src/ui/hud.ts",
+    "src/ui/controls.ts",
+    "src/ui/saves.ts",
+    "src/app/app.ts",
+    "src/render/debugApi.ts",
+    "scripts/interact.mjs",
+    "logics/roadmap/road_001_city_jump_playable_city.md",
+    "logics/request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md"
+  ],
+  "request": {
+    "complexity": "Low",
+    "theme": "City legibility",
+    "needs": [
+      "The frame rate is the one thing the player can feel and cannot see. Draw enough roads and the city slows down; nothing on screen says by how much, or when it started, or whether the last thing they built is what did it.",
+      "The figure already exists and is already measured -- `measureFps` in `src/render/debugApi.ts` counts frames over a window and resolves a number -- but it is reachable only from a script driving the page from outside. The player has no way to ask for it.",
+      "This is also the instrument the project argues performance with. The README quotes a frame rate, the visual and interaction suites check one, and the dirty-region rebuild work was justified by cost measurements -- all of it invisible to the person actually playing.",
+      "It has to be optional. A permanent number in the corner is clutter for someone who only wants to build a city, so it belongs behind a setting that is off by default and remembered like every other setting."
+    ],
+    "context": [
+      "The top-right corner is already taken. `#selection-panel` is `position: fixed; top: 12px; right: 12px` in `index.html`, and it appears whenever the player selects a road, a building, a car, a tree or a roundabout. The two have to coexist -- stacked, offset, or with the counter above the panel -- rather than one covering the other.",
+      "`Settings > World` is the row that holds `Grid` and `Buildings` in `index.html` (around line 125), each an `<input type=\"checkbox\">` wired in `src/ui/controls.ts` and persisted through `UiSettings` in `src/ui/saves.ts` via `applySetting` and `persistSettings`. A `Show FPS` checkbox is the same shape as the two beside it, and following them exactly is the whole of the UI work.",
+      "The HUD already owns the on-screen overlays: `src/ui/hud.ts` exports `showSelection` and `showRefusal`, both of which write into elements declared in `index.html`. The counter belongs there rather than in `src/app/app.ts`.",
+      "Frame timing lives on the Babylon engine. `scene.registerBeforeRender` already runs each frame for the camera modes and the traffic step, and `scene.getEngine().getDeltaTime()` is already read there. A raw per-frame reciprocal is unreadable -- it jitters far faster than anyone can read a number -- so the displayed figure has to be smoothed and updated on a slower cadence than it is sampled.",
+      "Nothing about this changes what is rendered, so it costs nothing when the setting is off. Whatever measures the rate should not run at all when the counter is hidden.",
+      "`src/render/debugApi.ts` already exposes `measureFps` and `stats()`. The counter should read the same underlying measurement rather than inventing a second one that can disagree with the figure the test suite asserts."
+    ],
+    "acceptance_criteria": [
+      "AC1: When the setting is on, the current frame rate is shown in the top-right of the view, legible over both a bright and a dark scene.",
+      "AC2: The counter and the selection panel are both usable at once -- neither hides or overlaps the other, whichever appears first.",
+      "AC3: `Settings > World` carries a `Show FPS` checkbox alongside `Grid` and `Buildings`, off by default, which turns the counter on and off immediately.",
+      "AC4: The choice is remembered across a reload, through the same settings storage the other World toggles use.",
+      "AC5: The displayed figure is smoothed and updated on a human-readable cadence rather than recomputed and redrawn every frame.",
+      "AC6: With the setting off, nothing measures and nothing draws -- the counter costs nothing when it is not wanted.",
+      "AC7: The figure the counter shows and the figure `measureFps` reports come from the same measurement and do not disagree.",
+      "AC8: The browser interaction suite covers turning the setting on, reading a plausible figure, and turning it off again; `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass."
+    ]
+  },
+  "product": {
+    "title": "A city that tells you what it costs to draw",
+    "overview": "city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.",
+    "goals": [
+      "The player can see what the city costs to draw, while they are drawing it.",
+      "The figure on screen is the same one the test suite argues with.",
+      "Someone who does not want a number in the corner never sees one.",
+      "Nothing measures when nobody is looking."
+    ],
+    "non_goals": [
+      "A profiler, a frame-time graph, a memory readout, or per-renderer timings.",
+      "Exposing the rest of the debug statistics to the player.",
+      "Any performance optimisation -- this slice measures, it does not improve.",
+      "Warnings, thresholds, or the game reacting to a low frame rate.",
+      "A quality or detail setting the counter would feed."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Measure the frame rate once, and only while someone is watching",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC5", "AC6", "AC7"],
+      "problem": [
+        "The frame rate is measured today only inside `measureFps` in `src/render/debugApi.ts`, which counts frames over a fixed window at the request of a script and then stops. There is nothing a continuously displayed counter can read.",
+        "A number recomputed as the reciprocal of each frame's delta is unreadable: it changes faster than the eye can settle and turns a steady 60 into flicker.",
+        "A counter that keeps sampling while it is switched off is a cost with no reader, in exactly the part of the code the project has just spent a request making cheaper."
+      ],
+      "scope_in": [
+        "One frame-rate measurement, smoothed, that both the on-screen counter and `measureFps` read -- so the figure the player sees and the figure the suite asserts cannot disagree.",
+        "Update the displayed value on a slower cadence than it is sampled, chosen so the number is readable rather than twitching.",
+        "Start and stop the sampling with the setting, so nothing runs while the counter is hidden.",
+        "Keep the smoothing pure and unit-tested: feeding a sequence of frame deltas to a function and asserting the value it settles on needs no scene, and belongs beside the other `src/` unit tests.",
+        "Confirm `measureFps` still returns what `scripts/interact.mjs` and the visual suite expect."
+      ],
+      "scope_out": [
+        "Anything drawn on screen, and any settings UI.",
+        "Frame-time history, percentiles, or a graph.",
+        "Changing what the existing performance checks assert."
+      ],
+      "acceptance_criteria": [
+        "AC1: One measurement feeds both the counter and `measureFps`, proven by them agreeing.",
+        "AC2: The smoothing is a pure function with unit tests over a sequence of frame deltas.",
+        "AC3: With the counter off, no per-frame sampling work runs.",
+        "AC4: The existing performance checks in the interaction and visual suites still pass unchanged."
+      ]
+    },
+    {
+      "title": "Put the counter in the top-right without evicting the selection panel",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC2"],
+      "problem": [
+        "The top-right corner already belongs to `#selection-panel`, which is `position: fixed; top: 12px; right: 12px` and appears whenever anything is selected. A second fixed element placed at the same coordinates covers it or is covered by it.",
+        "A frame-rate figure has to stay legible over whatever the scene happens to be behind it -- bright terrain at midday and dark water at night are both underneath the same corner."
+      ],
+      "scope_in": [
+        "A counter element in `index.html` and its rendering in `src/ui/hud.ts`, alongside the existing `showSelection` and `showRefusal`, rather than in `src/app/app.ts`.",
+        "A layout in which the counter and the selection panel coexist -- stacked in the same corner, or the counter above the panel -- and both stay readable when both are shown.",
+        "The same visual treatment the existing panels use, so it reads as part of the HUD and not as a debug overlay.",
+        "Contrast that holds over a bright scene and a dark one, verified against the day cycle rather than assumed.",
+        "A tabular or fixed-width figure, so the number does not shift the layout as it changes."
+      ],
+      "scope_out": [
+        "Moving or restyling the selection panel beyond what coexistence requires.",
+        "A draggable, resizable or repositionable counter.",
+        "Any readout other than the frame rate."
+      ],
+      "acceptance_criteria": [
+        "AC1: The counter is in the top-right and legible over both a bright and a dark scene.",
+        "AC2: Selecting something while the counter is shown leaves both fully readable, in either order of appearance.",
+        "AC3: The counter is drawn from `src/ui/hud.ts` and its markup lives in `index.html`, consistent with the other HUD elements.",
+        "AC4: The number does not shift the layout as its width changes."
+      ]
+    },
+    {
+      "title": "Add Show FPS to Settings > World and remember it",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC3", "AC4", "AC8"],
+      "problem": [
+        "There is no way to ask for the counter. `Settings > World` holds `Grid` and `Buildings`; a third toggle beside them is where a player would look for it.",
+        "A setting the player has to set again on every visit is worse than no setting. The other World toggles are already persisted through `UiSettings` in `src/ui/saves.ts`, and a new one that is not would be the odd one out."
+      ],
+      "scope_in": [
+        "A `Show FPS` checkbox in the `World` row of `index.html`, off by default, following `show-grid` and `show-buildings` exactly in markup and in wiring.",
+        "A handler in `src/ui/controls.ts` that turns the counter on and off immediately, and a `showFps` field in `UiSettings` persisted and restored by the existing `persistSettings` / `applySetting` pair.",
+        "Extend `scripts/interact.mjs`: turn the setting on, assert the counter appears and reads a plausible figure, turn it off, assert it is gone.",
+        "Check the toolbar still lays out correctly at the narrow widths the existing media query covers."
+      ],
+      "scope_out": [
+        "Restructuring the settings toolbar or its rows.",
+        "A settings screen, or grouping the existing toggles differently.",
+        "Exposing any other debug statistic through the UI."
+      ],
+      "acceptance_criteria": [
+        "AC1: `Settings > World` shows `Show FPS` beside `Grid` and `Buildings`, off by default, taking effect immediately.",
+        "AC2: The choice survives a reload, through the same storage as the other World toggles.",
+        "AC3: The browser interaction suite covers switching it on, reading a plausible figure, and switching it off.",
+        "AC4: The toolbar still lays out correctly at the narrow widths the existing media query covers."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Show the frame rate on screen and let the player turn it off",
+    "plan": [
+      "Read this request and its three backlog slices. This is a small chain; the risk in it is not difficulty but scope creep towards a profiler.",
+      "Run after task_017. An FPS readout is only worth trusting once a partial rebuild is known not to be silently dropping geometry, and task_017 touches the same renderers.",
+      "Measure first: one smoothed frame-rate value that both the counter and `measureFps` read, sampling only while the counter is on, with the smoothing unit-tested as a pure function.",
+      "Then the HUD element, solving the top-right collision with `#selection-panel` explicitly rather than hoping the two never appear together.",
+      "Then the `Show FPS` toggle in `Settings > World`, persisted through `UiSettings` exactly as `Grid` and `Buildings` are.",
+      "Extend the browser interaction suite, then run the fast gate and the visual check.",
+      "Confirm the figure the counter shows agrees with what `measureFps` reports on the same scene.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/show-the-frame-rate.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

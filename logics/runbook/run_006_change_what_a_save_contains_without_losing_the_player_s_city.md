@@ -1,7 +1,7 @@
 ## run_006_change_what_a_save_contains_without_losing_the_player_s_city - Change what a save contains without losing the player's city
 > Status: Active
 > Category: other
-> Verified: 2026-08-30 against `src/sim/save.ts`, `src/ui/saves.ts`, `src/sim/save.test.ts` and the older-build check in `scripts/interact.mjs`
+> Verified: 2026-08-30 against `src/sim/save.ts` at SAVE_VERSION 6, `src/ui/saves.ts`, `src/sim/save.test.ts` and the older-build check in `scripts/interact.mjs`
 > Related request: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
 > Related backlog: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`
 > Related task: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`
@@ -19,11 +19,13 @@
 
 # Procedure
 1. **Old saves must keep loading. Any version up to the current one is readable.** `parseCity` accepts `v >= 1 && v <= SAVE_VERSION`, and refuses only saves from a *newer* build, which may carry state this build would silently drop. Bumping `SAVE_VERSION` while requiring an exact match rejected every existing save at once — the data sat untouched in `localStorage`, only the read refused it, and the save picker looked empty.
-2. **Make every new field optional and defaulting to empty**, so an older city loads as itself. That is what makes rule 1 cheap: the planting species is absent in old saves and defaults to firs; the roundabout flag is absent and means an ordinary node.
+2. **Make every new field optional and defaulting to empty**, so an older city loads as itself. That is what makes rule 1 cheap: the planting species is absent in old saves and defaults to firs; the roundabout flag is absent and means an ordinary node; `zones` is absent and `readZones` returns `[]`; a segment's `streetId` is absent and the graph re-infers one from the roads it continues. Extend the *tuple* rather than the object where the field is per-node or per-segment -- `SavedSegment` accepts both a 6-tuple and a 7-tuple for exactly this reason, and `parseCity` validates both lengths.
 3. **Store only what cannot be recomputed.** Segment samples, `ts`, `cumulative` and `length` all come back out of `buildSamples`; persisting them would multiply the payload and force a migration on every change to the curve maths. Node elevations are the deliberate exception — replaying onto pristine terrain would otherwise land junctions at different heights.
 4. **Keep save → load → save a fixed point.** If a round trip is not idempotent, something is being recomputed differently on the way back in.
 5. **Leave two guards behind, every time.** Both already exist and both must keep passing: a unit test in `src/sim/save.test.ts` that parses a hand-written v1 payload, and the check in `scripts/interact.mjs` that takes the *current* autosave, strips the fields added since, stamps it version 1, reloads the page and demands the city back. A new field means extending the second one's strip list.
-6. **A refused write is not a refused save.** `writeSave` returns a boolean for a full, disabled or private-mode store; `writeAutosave` currently does not (tracked in `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`). Do not add a new write path that swallows the failure.
+6. **A refused write is not a refused save.** `writeSave` and `writeAutosave` both return a boolean for a full, disabled or private-mode store, and both callers surface a refusal -- the autosave says so once per session rather than on every debounced attempt. Do not add a new write path that swallows the failure.
+7. **A failed load must change nothing.** `restoreCity` replays the save into a throwaway `RoadGraph`, `Plantings` and `Zones` first, and only replays into the live ones once that succeeded. It costs a second replay and it is worth it: `replayCity` clears the graph before it adds anything, so a save that throws halfway through -- a segment the current rules now reject, a node that went missing -- would otherwise leave the player with the wreckage of two cities. Any new state added to a save has to join both replays, or the dry run stops proving anything.
+8. **A share link is a save that travelled.** `src/sim/share.ts` gzips a `CitySave` into a URL fragment and parses it back through the same `parseCity`, so every rule above applies to it unchanged -- plus two of its own: the fragment is refused over `MAX_SHARE_FRAGMENT`, and the decompressed JSON is capped at `MAX_SHARE_JSON` so a hostile link cannot expand without bound. A new field that grows the payload can push existing cities over the share limit even though they still save fine.
 
 # Verification
 Before concluding anything is lost, rule out the two causes that were both mistaken for data loss:
@@ -41,4 +43,5 @@ Then: `npm test` for the v1 unit test, `npm run test:e2e` for the older-build re
 - `src/ui/saves.ts` -- the localStorage layer, one key per city plus an index key.
 - `src/sim/save.test.ts` -- the hand-written v1 payload test.
 - `scripts/interact.mjs` -- "a city saved by an older build still loads".
-- `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene` -- the failed-load rollback and the autosave quota gap, both open.
+- `src/sim/share.ts`, `docs/shared-link-threat-model.md` -- the same save carried in a URL fragment, and what that costs.
+- `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene` -- the failed-load rollback and the autosave quota gap, both now closed; procedure steps 6 and 7 are what they left behind.

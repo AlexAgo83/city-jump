@@ -1,6 +1,6 @@
 ## road_001_city_jump_playable_city - city-jump playable city
 > Date: 2026-08-27
-> Status: Proposed
+> Status: Active
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
@@ -36,13 +36,15 @@ them is ever "finished" and closed.
 ## E2 - The land and what grows on it
 - Holds: the heightmap, terrain conformance under roads and junctions, buildable plots, parcel
   packing, the building model library, trees and plantings.
-- Standing: mature for geometry, absent for meaning. Buildings appear because a plot is valid,
-  not because anyone wanted them there.
-- Standing: advancing at last. `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
-  gives the player the second decision the game has been missing -- what belongs beside the road,
-  not only where the road runs -- deliberately stopping short of demand and economy.
-- Open questions: demand, growth over time, and economy, all of which need something to act on.
-  That something is what the zoning chain builds.
+- Holds, since `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
+  shipped: zones the player paints, persisted in the save, constraining which footprints a block
+  may use through the same seam that already narrowed sizes for pedestrian roads.
+- Standing: the second decision exists. A building now appears because someone asked for that
+  kind of building there, not only because a rectangle fit. Demand and economy still do not
+  exist, and that was deliberate -- they needed something to act on, and this is it.
+- Open questions: demand, growth over time, and economy, all of which now have a model to act on.
+  Whether zones should also carry a style dimension rather than only a footprint constraint,
+  which would drag the model library with it.
 
 ## E3 - Life on the network
 - Holds: cars and pedestrians, lanes and lane changes, junction transfers, traffic signals,
@@ -53,33 +55,42 @@ them is ever "finished" and closed.
 
 ## E4 - Reading the city
 - Holds: the select tool, the detail panel, the zone and traffic views, the buildable grid.
-- Standing: advancing. `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`
-  gives the city streets, names and addresses, and extends the panel to buildings and cars;
-  `req_012_give_the_camera_three_target_policies_free_orbit_and_follow` lets the player watch the
-  city rather than only aim at it.
+- Holds, since `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`
+  and `req_012_give_the_camera_three_target_policies_free_orbit_and_follow` shipped: streets that
+  carry a name across the segments that continue each other, building addresses, a detail panel
+  that opens on a road, a building, a car, a tree or a roundabout, and free, orbit and follow
+  cameras.
+- Standing: the city can be read and watched. `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
+  adds the one readout the player has no way to see today.
 - Open questions: everything above the street -- districts, neighbourhoods, a map view.
 
 ## E5 - Keeping and sharing a city
 - Holds: named saves, autosave, session resume, the bundled Demo city, camera and settings
   persistence.
-- Standing: advancing. `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
-  closes the paths where a city can be lost;
-  `req_011_share_a_city_as_a_link_that_needs_no_server` lets one leave the browser that built it.
+- Holds, since `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
+  and `req_011_share_a_city_as_a_link_that_needs_no_server` shipped: a failed load that changes
+  nothing, an autosave that says when it could not write, and a city that travels as a gzipped
+  URL fragment with no server behind it.
+- Standing: a city is safe and it can leave the browser that built it.
 - Open questions: whether a city is ever worth more than a link -- galleries, remixing, any of
   which would need infrastructure this project deliberately does not have.
 
 ## E6 - The craft underneath
 - Holds: the layering the architecture test enforces, the test suite, the CI budget, the
   performance of a rebuild, the runbooks, and this corpus.
-- Standing: advancing.
-  `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
-  makes an action cost what it changed;
+- Holds, since `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`,
   `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
-  removes a duplicated source of truth.
-  `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
-  catches up the documents and the input model with a deployment that went public.
-- Open questions: whether the game has anything to say to a visitor arriving on a phone, which
-  that request forces into a written answer either way.
+  and `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
+  shipped: an edit that repaints the region it touched rather than the world, a building manifest
+  that is the single source of a model's geometry, and documents that describe the deployment
+  that actually exists.
+- Standing: the bill for that speed is now due. A code review of the whole range found ten
+  defects the green suite cannot see, two of them player-visible;
+  `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`
+  closes them and leaves behind the checks that would have caught them. This is the strand's
+  standing lesson: moving correctness from one place into four buys speed and costs proof.
+- Open questions: whether the dirty-region rebuild should reach the renderers that still rebuild
+  in full -- trees, world grid, streetlights, signals -- or whether their cost never justified it.
 
 # Sequencing
 - Advance whichever strand the moment calls for. There is no prescribed order between them and
@@ -88,25 +99,18 @@ them is ever "finished" and closed.
   linked to concrete workflow docs.
 - Where two chains touch the same files, the ordering lives in the orchestration tasks, not here.
 
-The order the open chains are currently expected to run in, which is a working plan and not a
-commitment -- each task's own Context carries the constraint that produced its position:
+Every chain listed above has shipped except the two that are open now. There is no queue behind
+them; the next chain is chosen when this one closes.
 
-1. `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings` -- unblocks three
-   others and needs nothing itself.
-2. `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment` --
-   independent, and its threat-model review is the specification the share encoder is built from.
-3. `task_011_implement_one_source_of_truth_for_building_model_geometry` -- settles where a model's
-   geometry comes from before anything else restructures `src/render/buildings.ts`.
-4. `task_016_implement_zoning_as_the_player_s_second_decision` -- the only open chain that changes
-   what the player decides.
-5. `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel` -- also
-   unblocks the camera's follow mode.
-6. `task_014_implement_the_camera_target_policies_and_the_camera_settings_section` -- its first
-   three slices can run earlier; follow needs step 5.
-7. `task_013_implement_sharing_a_city_by_link` -- with the review from step 2 already in hand.
-8. `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work` -- last on
-   purpose: it benefits from every step above, and polish before the game is a game is the trap
-   named in the risks below.
+1. `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work` --
+   first, because two of its findings are player-visible and both were introduced by work that
+   is already closed. Its own plan carries the internal ordering: the road-mesh predicate is
+   settled before anything else depends on it.
+2. `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off` -- after it, and
+   deliberately so: an FPS readout is only worth trusting once a partial rebuild is known not to
+   be silently dropping geometry, and it is the instrument the next performance question will be
+   argued with.
+
 - A strand with an open question that blocks a player-visible decision earns priority over one
   that only carries internal work -- but only when the decision is actually blocked, not merely
   imagined.
@@ -130,7 +134,9 @@ commitment -- each task's own Context carries the constraint that produced its p
   `prod_008_a_city_you_can_hand_to_someone_else`,
   `prod_009_a_camera_that_can_watch_not_only_be_aimed`,
   `prod_010_a_published_game_whose_documents_tell_the_truth`,
-  `prod_011_a_city_that_is_built_on_purpose`
+  `prod_011_a_city_that_is_built_on_purpose`,
+  `prod_012_a_city_that_keeps_drawing_itself_correctly`,
+  `prod_013_a_city_that_tells_you_what_it_costs_to_draw`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -141,7 +147,9 @@ commitment -- each task's own Context carries the constraint that produced its p
   `req_011_share_a_city_as_a_link_that_needs_no_server`,
   `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`,
   `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`,
-  `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
+  `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`,
+  `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`,
+  `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

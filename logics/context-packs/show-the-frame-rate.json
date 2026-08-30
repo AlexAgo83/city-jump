@@ -1,0 +1,520 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel item_058_add_show_fps_to_settings_world_and_remember_it task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+      "ref": "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+      "sections": {
+        "Goals": [
+          "- The player can see what the city costs to draw, while they are drawing it.",
+          "- The figure on screen is the same one the test suite argues with.",
+          "- Someone who does not want a number in the corner never sees one.",
+          "- Nothing measures when nobody is looking."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows."
+        ],
+        "References": [
+          "- Product back-reference: `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`",
+          "- Task back-reference: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Proposed",
+      "title": "city-jump playable city"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/product/prod_012_a_city_that_keeps_drawing_itself_correctly.md",
+      "ref": "prod_012_a_city_that_keeps_drawing_itself_correctly",
+      "sections": {
+        "Goals": [
+          "- A partial rebuild is indistinguishable from a full one, except in cost.",
+          "- Painting zones feels like painting trees, because it does the same amount of work.",
+          "- The debug statistics can be trusted as evidence in the next performance investigation.",
+          "- The invariants the fast paths depend on are asserted, not commented.",
+          "- Nothing in the renderers holds a disposed object or grows without bound."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[An edit: road, bulldoze, zone brush] --> Box[TerrainBounds box, padded 140m]",
+          "    Box --> HM[Heightmap: clips stamps to grid indices]",
+          "    Box --> GR[Ground: rewrites and uploads rows]"
+        ],
+        "References": [
+          "- Product back-reference: `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`",
+          "- Task back-reference: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that keeps drawing itself correctly"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "show, frame, rate, screen, let, player, turn, off",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ]
+      },
+      "path": "logics/request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md",
+      "ref": "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: When the setting is on, the current frame rate is shown in the top-right of the view, legible over both a bright and a dark scene.",
+          "- AC2: The counter and the selection panel are both usable at once -- neither hides or overlaps the other, whichever appears first.",
+          "- AC3: `Settings > World` carries a `Show FPS` checkbox alongside `Grid` and `Buildings`, off by default, which turns the counter on and off immediately.",
+          "- AC4: The choice is remembered across a reload, through the same settings storage the other World toggles use.",
+          "- AC5: The displayed figure is smoothed and updated on a human-readable cadence rather than recomputed and redrawn every frame.",
+          "- AC6: With the setting off, nothing measures and nothing draws -- the counter costs nothing when it is not wanted."
+        ],
+        "Needs": [
+          "- The frame rate is the one thing the player can feel and cannot see. Draw enough roads and the city slows down; nothing on screen says by how much, or when it started, or whether the last thing they built is what did it.",
+          "- The figure already exists and is already measured -- `measureFps` in `src/render/debugApi.ts` counts frames over a window and resolves a number -- but it is reachable only from a script driving the page from outside. The player has no way to ask for it.",
+          "- This is also the instrument the project argues performance with. The README quotes a frame rate, the visual and interaction suites check one, and the dirty-region rebuild work was justified by cost measurements -- all of it invisible to the person actually playing.",
+          "- It has to be optional. A permanent number in the corner is clutter for someone who only wants to build a city, so it belongs behind a setting that is off by default and remembered like every other setting."
+        ]
+      },
+      "status": "Draft",
+      "title": "Show the frame rate on screen, and let the player turn it off"
+    },
+    {
+      "ai_context": {
+        "keywords": "close, ten, defects, review, found, dirty, region, rebuild, zoning, sharing, work",
+        "skip when": "The work adds gameplay, new zone kinds or building assets; extends dirty-region rebuilds to trees, world grid, streetlights or signals; or reworks the share-link format, the camera modes or the street-naming scheme.",
+        "summary": "A review of the whole 068aceb..HEAD range found ten defects that the green suite cannot see. Two are player-visible: the road renderer disposes meshes by world AABB but recreates them by centreline samples, so roads vanish; and the zoning brush skips the move-throttle its tree-spray twin has, costing one full world rebuild per pointer event. Eight smaller ones follow: a disposed mesh left reachable, a traffic overlay contradicting its own radio, two wrong debug statistics, an unpruned map, an unasserted lane-order invariant, an unguarded `CompressionStream` call, and a centroid written three times.",
+        "use when": "Working on the dirty-region rebuild in `src/render/roadMesh.ts`, `src/render/traffic.ts`, `src/render/ground.ts` or `src/sim/heightmap.ts`; on the zoning brush in `src/render/drawTool.ts` and `src/render/zones.ts`; or on the debug statistics and overlay state in `src/app/app.ts`."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ]
+      },
+      "path": "logics/request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md",
+      "ref": "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A dirty-region rebuild never leaves the scene missing geometry that a full rebuild would have drawn -- whatever a renderer disposes because the region touches it, it recreates.",
+          "- AC2: Dragging the zoning brush costs work proportional to the distance dragged, not to the number of pointer events the browser happens to deliver, and matches the throttling the tree spray already applies.",
+          "- AC3: No renderer holds a reference to a mesh it has disposed.",
+          "- AC4: The traffic overlay's state and the Select view control agree with each other at all times; neither can silently contradict the other.",
+          "- AC5: Every number reported by the debug statistics is the current value, including while building models are still arriving asynchronously.",
+          "- AC6: Long-running play does not grow a collection that is never pruned."
+        ],
+        "Needs": [
+          "- A code review of the whole development range 068aceb..HEAD -- the dirty-region rebuild, authored zoning, street names and addresses, camera target modes, and static share links -- found ten defects. The suite is green (155 unit tests, 4 architecture tests, a clean build and typecheck), so none of them is caught by anything that runs today.",
+          "- Two of them are player-visible and reachable in ordinary play. One makes a road disappear from the screen while it is still in the graph; the other turns a single drag of the zoning brush into one full world rebuild per pointer-move event.",
+          "- The rest are smaller: a dangling reference to a disposed mesh, a traffic overlay that switches itself off while the UI still says it is on, two debug statistics that report the wrong number, an unbounded map, an unenforced invariant with no assertion behind it, an unguarded async path that fails silently on older browsers, and a near-dead helper with its formula copied into three files.",
+          "- These were all introduced by work that has already been closed out, so no open Logics doc covers them. Left alone they become the baseline nobody questions."
+        ]
+      },
+      "status": "Draft",
+      "title": "Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work"
+    },
+    {
+      "ai_context": {
+        "keywords": "measure, frame, rate, once, only, while, someone, watching",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/backlog/item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching.md",
+      "ref": "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: One measurement feeds both the counter and `measureFps`, proven by them agreeing.",
+          "- AC2: The smoothing is a pure function with unit tests over a sequence of frame deltas.",
+          "- AC3: With the counter off, no per-frame sampling work runs.",
+          "- AC4: The existing performance checks in the interaction and visual suites still pass unchanged."
+        ],
+        "Problem": [
+          "- The frame rate is measured today only inside `measureFps` in `src/render/debugApi.ts`, which counts frames over a fixed window at the request of a script and then stops. There is nothing a continuously displayed counter can read.",
+          "- A number recomputed as the reciprocal of each frame's delta is unreadable: it changes faster than the eye can settle and turns a steady 60 into flicker.",
+          "- A counter that keeps sampling while it is switched off is a cost with no reader, in exactly the part of the code the project has just spent a request making cheaper."
+        ]
+      },
+      "status": "Ready",
+      "title": "Measure the frame rate once, and only while someone is watching"
+    },
+    {
+      "ai_context": {
+        "keywords": "put, counter, top, right, evicting, selection, panel",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/backlog/item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel.md",
+      "ref": "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The counter is in the top-right and legible over both a bright and a dark scene.",
+          "- AC2: Selecting something while the counter is shown leaves both fully readable, in either order of appearance.",
+          "- AC3: The counter is drawn from `src/ui/hud.ts` and its markup lives in `index.html`, consistent with the other HUD elements.",
+          "- AC4: The number does not shift the layout as its width changes."
+        ],
+        "Problem": [
+          "- The top-right corner already belongs to `#selection-panel`, which is `position: fixed; top: 12px; right: 12px` and appears whenever anything is selected. A second fixed element placed at the same coordinates covers it or is covered by it.",
+          "- A frame-rate figure has to stay legible over whatever the scene happens to be behind it -- bright terrain at midday and dark water at night are both underneath the same corner."
+        ]
+      },
+      "status": "Ready",
+      "title": "Put the counter in the top-right without evicting the selection panel"
+    },
+    {
+      "ai_context": {
+        "keywords": "show, frame, rate, screen, let, player, turn, off",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md",
+      "ref": "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Show the frame rate on screen and let the player turn it off"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+      "ref": "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "ai_context": {
+        "keywords": "add, show, fps, settings, world, remember",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md",
+      "ref": "item_058_add_show_fps_to_settings_world_and_remember_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `Settings > World` shows `Show FPS` beside `Grid` and `Buildings`, off by default, taking effect immediately.",
+          "- AC2: The choice survives a reload, through the same storage as the other World toggles.",
+          "- AC3: The browser interaction suite covers switching it on, reading a plausible figure, and switching it off.",
+          "- AC4: The toolbar still lays out correctly at the narrow widths the existing media query covers."
+        ],
+        "Problem": [
+          "- There is no way to ask for the counter. `Settings > World` holds `Grid` and `Buildings`; a third toggle beside them is where a player would look for it.",
+          "- A setting the player has to set again on every visit is worse than no setting. The other World toggles are already persisted through `UiSettings` in `src/ui/saves.ts`, and a new one that is not would be the odd one out."
+        ]
+      },
+      "status": "Ready",
+      "title": "Add Show FPS to Settings > World and remember it"
+    }
+  ],
+  "estimates": {
+    "char_count": 21644,
+    "companion_doc_count": 3,
+    "doc_count": 7
+  },
+  "generated_at": "2026-08-30T12:18:40Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+      "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+      "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+      "item_058_add_show_fps_to_settings_world_and_remember_it",
+      "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off,item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching,item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel,item_058_add_show_fps_to_settings_world_and_remember_it,task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+  "refs": [
+    "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+    "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+    "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+    "item_058_add_show_fps_to_settings_world_and_remember_it",
+    "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md",
+      "ref": "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+    }
+  ]
+}

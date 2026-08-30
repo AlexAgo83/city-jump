@@ -50,23 +50,39 @@ above the waterline and clear of the road.
 take roundabouts properly. Pedestrians walk the pavements, go round corners rather than through
 them, and cross at the crossings.
 
-**Read it.** Switch to Zones to see which plots are taken and which are open. Switch to Traffic
-to watch the lanes and turns from above, with the buildings out of the way.
+**Zone it.** Paint an area low or dense and what gets built there follows — different footprints,
+different silhouettes, visible from a normal playing camera. Land you never zone keeps behaving
+exactly as it always did.
+
+**Read it.** Switch to Zones to see what you zoned, over the grid of which plots are taken and
+which are open. Switch to Traffic to watch the lanes and turns from above, with the buildings out
+of the way.
+
+**Point at anything.** Click a road and it tells you its street name, its type and its length.
+Click a building and it gives you a street address. Click a car and you get the street it is on.
+Streets carry one name across every segment that continues them, and buildings are numbered along
+their frontage.
+
+**Watch it.** The camera has three modes: free, orbit — which turns slowly around whatever you
+are looking at — and follow, which rides along with a car you picked. Any pan or arrow key hands
+control straight back to you.
 
 **Set the hour.** Drag through a full 24 hours and watch the light move: the sun's angle, the
 colour of the sky, the streetlights, the headlights.
 
-**Keep it.** Name your cities and load them back. An autosave catches what you were doing even
-if you never pressed anything, and the view comes back where you left it.
+**Keep it, and hand it on.** Name your cities and load them back. An autosave catches what you
+were doing even if you never pressed anything, and the view comes back where you left it. Share
+copies the whole city into a link — no server, no upload, the city travels inside the URL.
 
 ![The saved Demo city in Traffic view, framed on the same roundabout](docs/media/city-jump-traffic.png)
 
 ## Where it's going
 
 city-jump is a prototype, and an honest one. Everything above works today. What isn't there yet:
-zoning and demand, an economy, services, progression, bridges. Buildings currently appear
-because a plot is valid, not because anyone wanted them there — turning that into a decision
-the player makes is the next real step.
+demand, an economy, services, progression, bridges. Zoning has landed, so a building can now
+appear because someone asked for that kind of building there — but nothing yet decides whether a
+plot fills at all, or changes what stands on it over time. That is the next real step, and it has
+something to act on for the first time.
 
 The plan lives in [`logics/roadmap/`](logics/roadmap/), as long-running strands rather than
 dated releases.
