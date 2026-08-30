@@ -80,6 +80,17 @@ await page.waitForFunction(
 await page.waitForTimeout(2000);
 
 const stats = await page.evaluate(() => window.cityjump.stats());
+// What the scene is actually made of: a city is slow in draw calls, and a draw call is a mesh.
+// Grouped by name prefix, because that is one renderer's output each.
+const meshes = await page.evaluate(() => {
+  const counts = {};
+  for (const mesh of window.cityjump._scene.meshes) {
+    if (!mesh.isEnabled() || !mesh.isVisible) continue;
+    const group = mesh.name.replace(/[_\d].*$/, "") || mesh.name;
+    counts[group] = (counts[group] ?? 0) + 1;
+  }
+  return Object.fromEntries(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8));
+});
 const rebuildMs = await page.evaluate(() => {
   const started = performance.now();
   window.cityjump.rebuild();
@@ -100,6 +111,7 @@ const run = {
   dirty: execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0,
   fps,
   rebuildMs,
+  meshes,
   city: {
     segments: stats.segments,
     buildings: stats.buildings,
@@ -129,4 +141,5 @@ for (const framing of FRAMINGS) {
   console.log(`  ${framing.name.padEnd(11)} ${fps[framing.name]} fps${delta(fps[framing.name], previous?.fps?.[framing.name])}`);
 }
 console.log(`  rebuild     ${rebuildMs} ms${delta(rebuildMs, previous?.rebuildMs)}`);
+console.log(`  meshes      ${Object.entries(meshes).map(([group, count]) => `${group} ${count}${delta(count, previous?.meshes?.[group]).trim()}`).join(", ")}`);
 console.log(previous ? `  compared with ${previous.at.slice(0, 16).replace("T", " ")} (${previous.commit})\n` : "  first run for this label\n");
