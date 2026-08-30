@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:23:35
+> Indicators reviewed: 2026-08-30 14:26:58
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -62,9 +62,12 @@ them is ever "finished" and closed.
   cameras.
 - Standing: the city can be read and watched. `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
   adds the one readout the player has no way to see today, and
-  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off` gives them the two switches
-  that make that number worth looking at -- showing someone a cost they cannot act on is worse
-  than not showing it.
+  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`,
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` and
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` give them
+  the switches that make that number worth looking at -- showing someone a cost they cannot act
+  on is worse than not showing it. The traffic pair is the largest of the three and the only one
+  a player would also want for its own sake.
 - Open questions: everything above the street -- districts, neighbourhoods, a map view.
 
 ## E5 - Keeping and sharing a city
@@ -113,9 +116,12 @@ them; the next chain is chosen when this one closes.
    deliberately so: an FPS readout is only worth trusting once a partial rebuild is known not to
    be silently dropping geometry, and it is the instrument the next performance question will be
    argued with.
-3. `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off` -- last of the three, and
-   only after the counter exists: these two switches are the answer to the number it shows, and
-   the counter is how their effect is measured rather than asserted.
+3. `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off` -- after the counter
+   exists: these switches are the answer to the number it shows, and the counter is how their
+   effect is measured rather than asserted.
+4. `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` -- last,
+   because it shares the headlight cluster with step 3 and inherits the World-toggle pattern from
+   both steps above.
 
 - A strand with an open question that blocks a player-visible decision earns priority over one
   that only carries internal work -- but only when the decision is actually blocked, not merely
@@ -143,7 +149,8 @@ them; the next chain is chosen when this one closes.
   `prod_011_a_city_that_is_built_on_purpose`,
   `prod_012_a_city_that_keeps_drawing_itself_correctly`,
   `prod_013_a_city_that_tells_you_what_it_costs_to_draw`,
-  `prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine`
+  `prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine`,
+  `prod_015_a_city_whose_traffic_is_the_player_s_to_dial`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -157,7 +164,8 @@ them; the next chain is chosen when this one closes.
   `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`,
   `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`,
   `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`,
-  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
+  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`,
+  `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

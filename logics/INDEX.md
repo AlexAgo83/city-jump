@@ -27,6 +27,7 @@
 | [prod_012_a_city_that_keeps_drawing_itself_correctly](product/prod_012_a_city_that_keeps_drawing_itself_correctly.md) | A city that keeps drawing itself correctly | Proposed |  |  | product/prod_012_a_city_that_keeps_drawing_itself_correctly.md |
 | [prod_013_a_city_that_tells_you_what_it_costs_to_draw](product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md) | A city that tells you what it costs to draw | Proposed |  |  | product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md |
 | [prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine](product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md) | A city that can be made to run on a weaker machine | Proposed |  |  | product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md |
+| [prod_015_a_city_whose_traffic_is_the_player_s_to_dial](product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md) | A city whose traffic is the player's to dial | Proposed |  |  | product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md |
 
 ## Roadmaps
 
@@ -56,6 +57,7 @@
 | [req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work](request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md) | Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work | Draft |  |  | request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md |
 | [req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen, and let the player turn it off | Draft |  |  | request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 | [req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off](request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Draft |  |  | request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
+| [req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is](request/req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md) | Let the player turn the traffic simulation off, and set how busy the city is | Draft |  |  | request/req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md |
 
 ## Backlog
 
@@ -121,6 +123,8 @@
 | [item_058_add_show_fps_to_settings_world_and_remember_it](backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md) | Add Show FPS to Settings > World and remember it | Ready |  | 0% | backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md |
 | [item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh](backlog/item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh.md) | Make shadows a switch, on the light rather than on every mesh | Ready |  | 0% | backlog/item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh.md |
 | [item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black](backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md) | Make the city's own lights a switch, without turning the night black | Ready |  | 0% | backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md |
+| [item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it](backlog/item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it.md) | Make traffic a switch that stops the simulation rather than hiding it | Ready |  | 0% | backlog/item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it.md |
+| [item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel](backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md) | Let the player set how busy the city is, without respawning on every pixel | Ready |  | 0% | backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md |
 
 ## Tasks
 
@@ -145,6 +149,7 @@
 | [task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work](tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md) | Close the ten review findings from the dirty-region rebuild and zoning work | Ready |  | 0% | tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md |
 | [task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen and let the player turn it off | Ready |  | 0% | tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
 | [task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off](tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Ready |  | 0% | tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
+| [task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is](tasks/task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md) | Let the player turn the traffic simulation off and set how busy the city is | Ready |  | 0% | tasks/task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is.md |
 
 ## Runbooks
 
