@@ -202,10 +202,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   groundPad.material = groundPadMaterial;
   const takenMaterial = new StandardMaterial("buildable-grid-taken", scene);
   // Each filled cell carries its parcel's kind as a vertex colour, so the grid reads as the same
-  // zoning the buildings do. Unlit, that colour comes through the diffuse path (white here, so the
-  // vertex colour is what shows) rather than emissiveColor, which vertex colours never reach.
-  takenMaterial.diffuseColor = Color3.White();
-  takenMaterial.emissiveColor = Color3.Black();
+  // zoning the buildings do. disableLighting leaves the diffuse term at zero (that is why this was
+  // always an emissive material), and the vertex colour multiplies that emissive white -- driving
+  // it through diffuseColor instead just renders black.
+  takenMaterial.diffuseColor = Color3.Black();
+  takenMaterial.emissiveColor = Color3.White();
   takenMaterial.specularColor = Color3.Black();
   takenMaterial.disableLighting = true;
   takenMaterial.alpha = 0.3;
