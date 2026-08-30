@@ -4,6 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:50:03
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
