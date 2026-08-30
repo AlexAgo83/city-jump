@@ -368,7 +368,9 @@ export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
   let visible = false;
   let mesh: LinesMesh | null = null;
 
-  function rebuild(): void {
+  function rebuild(dirty?: TerrainBounds): void {
+    // ponytail: leave dirty-height nudges stale; rebuild the visible 900k-vector grid on full refresh or toggle.
+    if (dirty) return;
     mesh?.dispose();
     mesh = null;
     if (!visible) return;

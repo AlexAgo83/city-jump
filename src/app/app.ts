@@ -73,7 +73,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     heightmap.conformToRoads(graph, parcels, dirty);
     ground.refresh(dirty);
     trees.rebuild();
-    worldGrid.rebuild();
+    worldGrid.rebuild(dirty);
     roads.rebuild(dirty);
     streetlights.rebuild();
     traffic.rebuild(dirty);
