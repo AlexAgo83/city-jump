@@ -10,7 +10,7 @@
  * and `conformToRoads` reshapes the ground under them anyway.
  */
 import { RoadGraph, type NodeId } from "./graph";
-import { DEFAULT_TREE_SPECIES, type Planting, type Plantings } from "./plantings";
+import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { v3 } from "./vec";
 
 export const SAVE_VERSION = 4;
@@ -66,6 +66,11 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: s
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
 export function restoreCity(graph: RoadGraph, plantings: Plantings, save: CitySave): void {
+  replayCity(new RoadGraph(), new Plantings(), save);
+  replayCity(graph, plantings, save);
+}
+
+function replayCity(graph: RoadGraph, plantings: Plantings, save: CitySave): void {
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();

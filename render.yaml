@@ -6,9 +6,6 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
-    envVars:
-      - key: NODE_VERSION
-        value: "20"
     routes:
       - type: rewrite
         source: /*

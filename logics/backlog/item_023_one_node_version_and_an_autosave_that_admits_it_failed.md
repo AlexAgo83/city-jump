@@ -1,13 +1,14 @@
 ## item_023_one_node_version_and_an_autosave_that_admits_it_failed - One Node version, and an autosave that admits it failed
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 50%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:20:20
 
 # AI Context
 - Summary: `.nvmrc` pins Node 22 while `render.yaml` sets `NODE_VERSION` to 20, and `writeAutosave` swallows a refused localStorage write that `writeSave` would have reported.

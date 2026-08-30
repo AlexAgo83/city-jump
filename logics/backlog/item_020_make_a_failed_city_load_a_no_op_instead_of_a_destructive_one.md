@@ -1,13 +1,14 @@
 ## item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one - Make a failed city load a no-op instead of a destructive one
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:20:20
 
 # AI Context
 - Summary: `restoreCity` empties the graph and plantings before replaying a save, so a segment the rules refuse leaves the player with a refusal message over a city that no longer exists in the model.

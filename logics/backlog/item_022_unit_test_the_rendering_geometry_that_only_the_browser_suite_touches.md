@@ -1,13 +1,14 @@
 ## item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches - Unit-test the rendering geometry that only the browser suite touches
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:20:20
 
 # AI Context
 - Summary: `traffic.ts`, `roadMesh.ts` and `drawTool.ts` total ~2,600 lines covered only by the browser suite; their pure geometry is testable without a scene, as `roofPropY` already is.

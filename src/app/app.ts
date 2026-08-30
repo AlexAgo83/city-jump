@@ -82,9 +82,14 @@ export async function startApp(): Promise<void> {
   // Debounced, so dragging a long road writes once rather than on every rebuild.
   // ponytail: a timer, not a dirty-flag scheduler.
   let autosaveTimer = 0;
+  let autosaveRefusedShown = false;
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
-    autosaveTimer = window.setTimeout(() => writeAutosave(serializeCity(graph, plantings, terrainPreset, sunHour)), 2000);
+    autosaveTimer = window.setTimeout(() => {
+      if (writeAutosave(serializeCity(graph, plantings, terrainPreset, sunHour)) || autosaveRefusedShown) return;
+      autosaveRefusedShown = true;
+      showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
+    }, 2000);
   };
 
   /** A tree changes no road, so only the scenery is rebuilt. */
@@ -141,7 +146,6 @@ export async function startApp(): Promise<void> {
     onBuildings(visible) {
       buildingsVisible = visible;
       buildings.setVisible(visible);
-      rebuild();
     },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
@@ -155,7 +159,6 @@ export async function startApp(): Promise<void> {
       // overlay is the thing that actually reads.
       roads.setFaded(view === "traffic");
       streetlights.setFaded(view === "traffic");
-      rebuild();
     },
     onSunHour(hour) {
       sunHour = hour;

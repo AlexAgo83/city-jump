@@ -1,14 +1,15 @@
 ## task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings - Implement the load-rollback and rendering hygiene review findings
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:24:44
+> Indicators reviewed: 2026-08-30 12:20:20
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_007: restore the pre-load state on a failed load, narrow the visibility toggles, unit-test the render geometry, and collapse the Node version while surfacing refused autosave writes.

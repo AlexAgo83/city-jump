@@ -40,8 +40,8 @@ export function deleteSave(name: string): void {
   write(INDEX_KEY, JSON.stringify(listSaves().filter((candidate) => candidate !== name)));
 }
 
-export function writeAutosave(city: CitySave): void {
-  write(AUTOSAVE_KEY, JSON.stringify(city));
+export function writeAutosave(city: CitySave): boolean {
+  return write(AUTOSAVE_KEY, JSON.stringify(city));
 }
 
 export function readAutosave(): CitySave | null {

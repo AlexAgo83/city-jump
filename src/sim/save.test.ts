@@ -172,4 +172,23 @@ describe("city saves", () => {
     const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [] };
     expect(() => restoreCity(new RoadGraph(), new Plantings(), save)).toThrow(/missing node/);
   });
+
+  it("leaves the current city untouched when replaying a bad save fails", () => {
+    const graph = city();
+    const plantings = new Plantings();
+    plantings.plant(10, 20, "oak");
+    const before = serializeCity(graph, plantings, "rolling", 14);
+    const bad: CitySave = {
+      v: SAVE_VERSION,
+      terrain: "rolling",
+      hour: 14,
+      nodes: [[1, 0, 0, 0]],
+      segments: [[1, 2, 0, 0, 0, "street"]],
+      planted: [],
+      cleared: [],
+    };
+
+    expect(() => restoreCity(graph, plantings, bad)).toThrow(/missing node/);
+    expect(serializeCity(graph, plantings, "rolling", 14)).toEqual(before);
+  });
 });

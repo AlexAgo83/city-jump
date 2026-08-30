@@ -1,13 +1,14 @@
 ## item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle - Stop rebuilding the whole city for a visibility toggle
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:20:20
 
 # AI Context
 - Summary: `onBuildings` and `onSelectView` call the full `rebuild()` -- parcel solve, `conformToRoads` and every renderer -- when only mesh visibility and fading changed.
