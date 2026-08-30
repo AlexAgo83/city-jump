@@ -57,6 +57,7 @@ export interface UiSettings {
   fps?: boolean;
   shadows?: boolean;
   lights?: boolean;
+  settingsOpen?: boolean;
   sunAuto?: boolean;
   shortNight?: boolean;
   cameraMode?: "free" | "orbit" | "follow";

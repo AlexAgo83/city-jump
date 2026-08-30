@@ -305,6 +305,9 @@ const expandedToolbarWidth = (await page.locator("#toolbar").boundingBox()).widt
 await page.locator("#toolbar-toggle").click();
 const collapsedToolbarWidth = (await page.locator("#toolbar").boundingBox()).width;
 check("the settings toolbar collapses into its right chevron", collapsedToolbarWidth < 50 && collapsedToolbarWidth < expandedToolbarWidth);
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("the settings toolbar remembers being collapsed", await page.locator("#toolbar-content").isHidden());
 await page.locator("#toolbar-toggle").click();
 check("the settings toolbar expands again", await page.locator("#toolbar-content").isVisible());
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
@@ -357,8 +360,7 @@ await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
 await page.locator("#grid-snap").check();
-await page.locator('[data-tool="power"]').click();
-check("empty categories do not show road options", !(await page.locator("#road-options").isVisible()));
+check("unfinished power and water categories are disabled", await page.locator('[data-tool="power"]').isDisabled() && await page.locator('[data-tool="water"]').isDisabled());
 await page.locator('[data-tool="select"]').click();
 
 const afternoonSun = await sunState();
@@ -1058,6 +1060,43 @@ const terrainRelief = await page.evaluate(() => {
 });
 check("a city saved on the rugged map loads back onto it", terrainRelief > 20, `${terrainRelief.toFixed(1)} m of relief`);
 check("a save restores its hour of day", (await page.locator("#sun-time").textContent()).startsWith("22:"));
+await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  window.localStorage.setItem(
+    "cityjump.save.Camera",
+    JSON.stringify({
+      v: 7,
+      terrain: "rolling",
+      hour: 22,
+      camera: { targetX: 12, targetY: 3, targetZ: -45, alpha: -1.1, beta: 0.8, radius: 333 },
+      nodes: [],
+      segments: [],
+      planted: [],
+      cleared: [],
+      zones: [],
+    }),
+  );
+  window.localStorage.setItem("cityjump.saves", JSON.stringify(["Camera", "Rugged"]));
+  camera.target.set(0, 0, 0);
+  camera.alpha = -2;
+  camera.beta = 1;
+  camera.radius = 111;
+});
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+await page.locator("#save-slot").selectOption("Camera");
+await page.locator("#save-load").click();
+const loadedCamera = await page.evaluate(() => window.cityjump.cameraState());
+check(
+  "a save restores its camera",
+  Math.abs(loadedCamera.targetX - 12) < 0.01 &&
+    Math.abs(loadedCamera.targetY - 3) < 0.01 &&
+    Math.abs(loadedCamera.targetZ + 45) < 0.01 &&
+    Math.abs(loadedCamera.alpha + 1.1) < 0.01 &&
+    Math.abs(loadedCamera.beta - 0.8) < 0.01 &&
+    Math.abs(loadedCamera.radius - 333) < 0.01,
+  JSON.stringify(loadedCamera),
+);
 await page.evaluate(() => window.cityjump.demoNetwork());
 await nextFrame();
 const ruggedNetwork = await stats();

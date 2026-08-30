@@ -43,12 +43,15 @@ export function bindControls(handlers: {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
+  const setToolbarOpen = (open: boolean): void => {
+    toolbarToggle.setAttribute("aria-expanded", String(open));
+    toolbarToggle.title = open ? "Collapse settings" : "Expand settings";
+    toolbar.classList.toggle("collapsed", !open);
+    toolbarContent.hidden = !open;
+  };
   toolbarToggle.addEventListener("click", () => {
-    const expanded = toolbarToggle.getAttribute("aria-expanded") === "true";
-    toolbarToggle.setAttribute("aria-expanded", String(!expanded));
-    toolbarToggle.title = expanded ? "Expand settings" : "Collapse settings";
-    toolbar.classList.toggle("collapsed", expanded);
-    toolbarContent.hidden = expanded;
+    setToolbarOpen(toolbarToggle.getAttribute("aria-expanded") !== "true");
+    persistSettings();
   });
 
   const selectViewOptions = document.getElementById("select-view-options")!;
@@ -285,6 +288,7 @@ export function bindControls(handlers: {
       fps: showFps.checked,
       shadows: showShadows.checked,
       lights: showLights.checked,
+      settingsOpen: !toolbarContent.hidden,
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
@@ -296,6 +300,7 @@ export function bindControls(handlers: {
     checkbox.dispatchEvent(new Event("change"));
   }
   const stored: UiSettings = readSettings();
+  if (stored.settingsOpen !== undefined) setToolbarOpen(stored.settingsOpen);
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showFps, stored.fps);

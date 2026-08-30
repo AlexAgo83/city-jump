@@ -109,6 +109,13 @@ describe("city saves", () => {
     expect(parseCity(JSON.stringify({ ...JSON.parse(bare), planted: "nope" }))).toBeNull();
   });
 
+  it("carries the camera when a save includes it", () => {
+    const camera = { targetX: 1, targetY: 2, targetZ: 3, alpha: -1, beta: 0.8, radius: 320 };
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, camera)));
+    expect(save?.camera).toEqual(camera);
+    expect(parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, camera: { targetX: 1 }, nodes: [], segments: [] }))).toBeNull();
+  });
+
   it("replays onto a graph whose ids no longer start at 1", () => {
     const graph = city();
     graph.removeSegment(graph.allSegments()[0]!.id);

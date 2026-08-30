@@ -14,7 +14,7 @@ import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { v3 } from "./vec";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
 /**
@@ -28,11 +28,20 @@ export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: nu
  * there was a choice still load; they were all firs.
  */
 export type SavedPlanting = [x: number, z: number, species?: string];
+export interface SavedCamera {
+  readonly targetX: number;
+  readonly targetY: number;
+  readonly targetZ: number;
+  readonly alpha: number;
+  readonly beta: number;
+  readonly radius: number;
+}
 
 export interface CitySave {
   readonly v: number;
   readonly terrain: string;
   readonly hour: number;
+  readonly camera?: SavedCamera;
   readonly nodes: readonly SavedNode[];
   readonly segments: readonly SavedSegment[];
   readonly planted: readonly SavedPlanting[];
@@ -40,11 +49,12 @@ export interface CitySave {
   readonly zones: readonly SavedZone[];
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
+    ...(camera ? { camera } : {}),
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
     zones: zones.toJSON(),
@@ -114,6 +124,7 @@ export function parseCity(text: string): CitySave | null {
   const planted = readPlantings(value.planted);
   const cleared = readPlantings(value.cleared);
   const zones = readZones(value.zones);
+  const camera = readCamera(value.camera);
   if (planted === null || cleared === null || zones === null) return null;
 
   const nodes = value.nodes.filter(
@@ -130,7 +141,8 @@ export function parseCity(text: string): CitySave | null {
   );
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones };
+  if (camera === null) return null;
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones, ...(camera ? { camera } : {}) };
 }
 
 function toPlantings(points: readonly SavedPlanting[]): Planting[] {
@@ -163,6 +175,15 @@ function readZones(value: unknown): SavedZone[] | null {
       (zone[2] === "low" || zone[2] === "dense"),
   );
   return zones.length === value.length ? zones : null;
+}
+
+function readCamera(value: unknown): SavedCamera | undefined | null {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) return null;
+  const camera = value as Partial<SavedCamera>;
+  return [camera.targetX, camera.targetY, camera.targetZ, camera.alpha, camera.beta, camera.radius].every(Number.isFinite)
+    ? (camera as SavedCamera)
+    : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

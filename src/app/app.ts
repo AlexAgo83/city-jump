@@ -18,7 +18,7 @@ import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
-import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
+import { parseCity, serializeCity, restoreCity, type CitySave, type SavedCamera } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
@@ -127,10 +127,24 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // ponytail: a timer, not a dirty-flag scheduler.
   let autosaveTimer = 0;
   let autosaveRefusedShown = false;
+  const cameraSnapshot = (): SavedCamera => ({
+    targetX: camera.target.x,
+    targetY: camera.target.y,
+    targetZ: camera.target.z,
+    alpha: camera.alpha,
+    beta: camera.beta,
+    radius: camera.radius,
+  });
+  const applyCamera = (state: SavedCamera): void => {
+    camera.target.set(state.targetX, state.targetY, state.targetZ);
+    camera.alpha = state.alpha;
+    camera.beta = state.beta;
+    camera.radius = state.radius;
+  };
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot())) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -141,7 +155,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees.rebuild();
     scheduleAutosave();
   };
-  const snapshot = (): CitySave => serializeCity(graph, plantings, zones, terrainPreset, sunHour);
+  const snapshot = (withCamera = false): CitySave =>
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
@@ -307,7 +322,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onRedo: redo,
     canUndo: () => history.canUndo,
     canRedo: () => history.canRedo,
-    onSave: snapshot,
+    onSave: () => snapshot(true),
     onLoad: loadCity,
   });
   updateUndoRedo = controls.updateUndoRedo;
@@ -328,6 +343,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     pendingHistorySnapshot = null;
     sunHour = city.hour;
     rebuild();
+    if (city.camera) applyCamera(city.camera);
     updateUndoRedo();
     return true;
   }
@@ -343,12 +359,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // Restored after the city loads: loading one reframes the camera on the fresh terrain, which
   // would otherwise overwrite this right back to the default.
   const savedCamera = readCameraState();
-  if (savedCamera) {
-    camera.target.set(savedCamera.targetX, savedCamera.targetY, savedCamera.targetZ);
-    camera.alpha = savedCamera.alpha;
-    camera.beta = savedCamera.beta;
-    camera.radius = savedCamera.radius;
-  }
+  if (savedCamera) applyCamera(savedCamera);
   scene.registerBeforeRender(() => {
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     if (cameraMode === "orbit") {
@@ -375,14 +386,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     window.clearTimeout(cameraSaveTimer);
     cameraSaveTimer = window.setTimeout(
       () =>
-        writeCameraState({
-          targetX: camera.target.x,
-          targetY: camera.target.y,
-          targetZ: camera.target.z,
-          alpha: camera.alpha,
-          beta: camera.beta,
-          radius: camera.radius,
-        }),
+        writeCameraState(cameraSnapshot()),
       800,
     );
   });

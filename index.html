@@ -80,6 +80,7 @@
   }
   .tool-button:last-child { border-right: 0; }
   .tool-button[aria-pressed="true"] { color: #fff; background: #3c5965; }
+  .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
   .tool-button:hover { color: #fff; background: #2b343b; }
   .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   .tool-options {
@@ -231,8 +232,8 @@
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
     <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
     <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
-    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
-    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
+    <button class="tool-button" type="button" data-tool="power" aria-pressed="false" disabled>Power</button>
+    <button class="tool-button" type="button" data-tool="water" aria-pressed="false" disabled>Water</button>
     <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>

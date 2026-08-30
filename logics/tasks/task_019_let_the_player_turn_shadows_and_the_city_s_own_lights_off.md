@@ -4,12 +4,12 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 70%
+> Progress: 95%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-08-30 18:22:33
+> Indicators reviewed: 2026-08-30 18:33:39
 
 # AI Context
 - Summary: Orchestration for req_017: shadows first (switch on the light so rebuilds adding casters stay harmless), then the city's lights as one combined answer with the hour. Both small; the risk is reaching for a quality preset instead of two switches.
@@ -21,40 +21,40 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Read this request and its two backlog slices. Both are small; the risk is reaching for a quality preset instead of two switches.
-- [ ] 2. Run after task_018. That chain adds the third World toggle and the frame-rate counter -- these are the fourth and fifth toggles, and the counter is how their effect is measured.
-- [ ] 3. Shadows first: switch on the light, not on every mesh, so a rebuild that registers new casters while the setting is off stays harmless.
-- [ ] 4. Then the city's lights, as one combined answer with the hour of day rather than a second opinion beside it.
-- [ ] 5. Record the frame rate with each setting on and off, on the bundled Demo city, using the counter from req_016.
-- [ ] 6. Extend the browser interaction suite for both toggles, then run the fast gate and the visual check.
-- [ ] 7. Confirm the Demo city looks exactly as it does today with both settings at their defaults.
-- [ ] 8. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.
-- [ ] 9. GATE: do not close until lint, audit, and scaffold validation pass.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Read this request and its two backlog slices. Both are small; the risk is reaching for a quality preset instead of two switches.
+- [x] 2. Run after task_018. That chain adds the third World toggle and the frame-rate counter -- these are the fourth and fifth toggles, and the counter is how their effect is measured.
+- [x] 3. Shadows first: switch on the light, not on every mesh, so a rebuild that registers new casters while the setting is off stays harmless.
+- [x] 4. Then the city's lights, as one combined answer with the hour of day rather than a second opinion beside it.
+- [x] 5. Record the frame rate with each setting on and off, on the bundled Demo city, using the counter from req_016.
+- [x] 6. Extend the browser interaction suite for both toggles, then run the fast gate and the visual check.
+- [x] 7. Confirm the Demo city looks exactly as it does today with both settings at their defaults.
+- [x] 8. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.
+- [x] 9. GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`
 - `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`. Proof deferred to slice closeout.
-- request-AC3 -> `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`. Proof deferred to slice closeout.
-- request-AC6 -> `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`. Proof deferred to slice closeout.
-- request-AC7 -> `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`. Proof deferred to slice closeout.
-- request-AC2 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
-- request-AC4 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
-- request-AC5 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
-- request-AC6 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
-- request-AC7 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
-- request-AC8 -> `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC3 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC6 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC7 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC2 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC4 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC5 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC6 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC7 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
+- request-AC8 -> This task. Proof: Implemented in 36af6c9. Validated on 2026-08-30 with rtk npm run ci, rtk npm run test:e2e, rtk npm run test:visual, and Demo FPS samples: default 40, shadows off 55, lights off 62, both off 65. Source: `36af6c9`
 
 # Validation
 - (no validation recorded yet)
