@@ -155,6 +155,7 @@ export class Heightmap implements Terrain {
     }
 
     for (const seg of graph.allSegments()) {
+      if (seg.elevated) continue;
       const type = roadType(seg.type);
       const half = type.width / 2;
       const reach = half + EMBANKMENT;

@@ -46,6 +46,17 @@ describe("heightmap", () => {
     }
   });
 
+  it("does not raise the terrain under an elevated segment", () => {
+    const h = new Heightmap({ size: 600, cell: 4, generator: () => 0 });
+    const g = new RoadGraph();
+    const id = g.addElevatedSegment(g.addNodeAt(v3(-200, 20, 0)), g.addNodeAt(v3(200, 20, 0)), v3(0, 30, 0), "highway_2lane");
+    h.conformToRoads(g);
+
+    const p = g.pointAt(id, g.segment(id).length / 2).position;
+    expect(p.y).toBeGreaterThan(20);
+    expect(h.heightAt(p.x, p.z)).toBe(0);
+  });
+
   it("blends back to the untouched ground across the embankment", () => {
     const h = map();
     setTerrain(h);

@@ -1,7 +1,7 @@
 import { createBuildingRenderer } from "../render/buildings";
 import { installDebugApi } from "../render/debugApi";
 import { createDrawTool, TREE_REACH } from "../render/drawTool";
-import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE } from "../render/ground";
+import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
 import { createFpsMeter } from "../render/fps";
@@ -22,6 +22,7 @@ import { parseCity, serializeCity, restoreCity, type CitySave, type SavedCamera 
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
+import { v3 } from "../sim/vec";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
@@ -71,6 +72,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     streetlights.setSunHour(hour);
     traffic.setSunHour(hour);
     trees.setSunHour(hour);
+  };
+  const addOffshoreBridge = (): void => {
+    for (const segment of graph.allSegments()) {
+      if (segment.type === "highway_2lane" && Math.max(graph.node(segment.a).pos.z, graph.node(segment.b).pos.z) > GROUND_SIZE / 2) graph.removeSegment(segment.id);
+    }
+    const islandZ = OFFSHORE_ISLAND_Z - OFFSHORE_ISLAND_RADIUS * 0.72;
+    const main = graph.addNodeAt(v3(-360, heightmap.baseHeightAt(-360, 1500) + 14, 1500));
+    const island = graph.addNodeAt(v3(620, Math.max(22, offshoreIslandHeight(620, islandZ) + 14), islandZ));
+    graph.addElevatedSegment(main, island, v3(980, 82, (1500 + islandZ) / 2), "highway_2lane");
   };
 
   const rebuild = (dirty?: TerrainBounds, timings?: Record<string, number>): void => {
@@ -164,6 +174,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     tool.cancel();
     followTarget = null;
     restoreCity(graph, plantings, zones, city);
+    addOffshoreBridge();
     rebuild();
     updateUndoRedo();
   };
@@ -349,12 +360,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     history.clear();
     pendingHistorySnapshot = null;
     sunHour = city.hour;
+    addOffshoreBridge();
     rebuild();
     if (city.camera) applyCamera(city.camera);
     updateUndoRedo();
     return true;
   }
 
+  addOffshoreBridge();
   rebuild();
 
   // Pick up where the last session stopped. A city the player never named is still their work.

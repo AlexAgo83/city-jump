@@ -44,6 +44,15 @@ describe("city saves", () => {
     expect(serializeCity(restoredGraph, restoredPlantings, new Zones(), "rolling", 14)).toEqual(once);
   });
 
+  it("does not persist generated elevated scenery roads", () => {
+    const graph = city();
+    const a = graph.addNodeAt(v3(-200, 20, 5000));
+    const b = graph.addNodeAt(v3(200, 20, 5000));
+    graph.addElevatedSegment(a, b, v3(0, 60, 5000), "highway_2lane");
+
+    expect(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14).segments).toHaveLength(2);
+  });
+
   it("carries hand-planted and cleared trees through a save", () => {
     const plantings = new Plantings();
     plantings.plant(10, 20, "oak");

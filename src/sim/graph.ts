@@ -32,6 +32,8 @@ export interface Segment {
   /** Cumulative ground distance at each sample; last entry is the segment length. */
   readonly cumulative: readonly number[];
   readonly length: number;
+  /** A rendered road deck that must not reshape the terrain below it. */
+  readonly elevated?: boolean;
 }
 
 export interface PointOnSegment {
@@ -59,7 +61,7 @@ const MAX_SAMPLES = 512;
  * ponytail: two passes (shape, then elevation) rather than solving arc length in closed
  * form -- the table is what every consumer wants anyway.
  */
-function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE) {
+function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE, elevated = false) {
   const spec = roadType(type);
   const chord = distXZ(a, b) + distXZ(a, control) + distXZ(control, b);
   const count = Math.min(MAX_SAMPLES, Math.max(MIN_SAMPLES, Math.ceil(chord / 2 / SAMPLE_SPACING_M)));
@@ -78,7 +80,12 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE)
   }
   const length = cumulative[cumulative.length - 1]!;
 
-  const heights = spec.tunnelDepth
+  const heights = elevated
+    ? ts.map((t) => {
+        const u = 1 - t;
+        return a.y * u * u + control.y * 2 * u * t + b.y * t * t;
+      })
+    : spec.tunnelDepth
     ? flat.map((_, i) => a.y + (b.y - a.y) * (i / count) - tunnelDrop(i / count, spec.tunnelDepth!))
     : smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
   heights[0] = a.y;
@@ -129,6 +136,15 @@ export class RoadGraph {
     return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type));
   }
 
+  addElevatedSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number): SegmentId {
+    const na = this.node(a);
+    const nb = this.node(b);
+    roadType(type);
+    const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
+    this.nextStreetId = Math.max(this.nextStreetId, id + 1);
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type, true), true);
+  }
+
   private nextStreetId = 1;
 
   private addBuiltSegment(
@@ -138,9 +154,10 @@ export class RoadGraph {
     type: string,
     streetId: number,
     built: Pick<Segment, "samples" | "ts" | "cumulative" | "length">,
+    elevated = false,
   ): SegmentId {
     const id = this.nextSegmentId++;
-    this.segments.set(id, { id, a, b, control, type, streetId, ...built });
+    this.segments.set(id, { id, a, b, control, type, streetId, ...built, ...(elevated ? { elevated } : {}) });
     this.node(a).segments.add(id);
     this.node(b).segments.add(id);
     return id;
@@ -266,8 +283,8 @@ export class RoadGraph {
     const midId = this.addNodeAt(mid);
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left);
-    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left, !!seg.elevated);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right, !!seg.elevated);
     this.removeSegment(id);
     return midId;
   }

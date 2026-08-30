@@ -282,11 +282,12 @@ const densestTreeCluster = () =>
     return densest;
   });
 
-// Nothing has been drawn, so generated scenery is allowed but authored city state is not.
+// Nothing has been drawn, so generated scenery and the fixed offshore bridge are allowed,
+// but authored city growth is not.
 const fresh = await stats();
 check(
-  "a fresh map draws terrain and trees only",
-  fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments === 0 && fresh.buildings === 0,
+  "a fresh map draws terrain, trees and the offshore bridge only",
+  fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments === 1 && fresh.buildings === 0 && fresh.cars > 0,
   `${JSON.stringify(fresh)}`,
 );
 const localTerrainVariation = await terrainColorVariation();
@@ -302,6 +303,23 @@ check(
   "the offshore island is scenery beyond the playable map",
   offshoreIsland && !offshoreIsland.pickable && offshoreIsland.centerZ > 2700 && offshoreIsland.width > 4000,
   JSON.stringify(offshoreIsland),
+);
+const offshoreBridge = await page.evaluate(() => {
+  const segment = window.cityjump._graph.allSegments().find((s) => s.type === "highway_2lane" && Math.max(window.cityjump._graph.node(s.a).pos.z, window.cityjump._graph.node(s.b).pos.z) > 2700);
+  const pylons = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("bridge_pylon_")).length;
+  if (!segment) return null;
+  const graph = window.cityjump._graph;
+  const a = graph.node(segment.a).pos;
+  const b = graph.node(segment.b).pos;
+  const middle = graph.pointAt(segment.id, segment.length / 2).position;
+  const piers = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("bridge_pier_")).length;
+  const ramps = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("bridge_ramp_")).length;
+  return { type: segment.type, length: segment.length, pylons, piers, ramps, bend: Math.abs(middle.x - (a.x + b.x) / 2) };
+});
+check(
+  "the offshore bridge is a curved two-way two-lane highway with pylons",
+  offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.ramps === 2 && offshoreBridge.bend > 200,
+  JSON.stringify(offshoreBridge),
 );
 check("startup does not wait for all parcel models", fresh.startupModels < 16, `${fresh.startupModels} models ready at renderer return`);
 await page.waitForFunction(() => window.cityjump.stats().models === 16, null, { timeout: 20_000 });
@@ -471,7 +489,7 @@ const click = async (x, y) => {
 };
 
 await click(260, 320);
-check("select mode leaves left-click to the camera", (await stats()).segments === 0);
+check("select mode leaves left-click to the camera", (await stats()).segments === fresh.segments);
 const oceanBefore = await oceanSampleY();
 await realTime(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
@@ -479,7 +497,7 @@ await page.locator('[data-tool="roads"]').click();
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
 await page.mouse.click(360, 360, { button: "right" });
-check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === 0);
+check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === fresh.segments);
 
 await click(300, 340);
 await page.mouse.move(400, 330);
@@ -494,7 +512,7 @@ await click(700, 360);
 await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 5_000 });
 
 const drawn = await stats();
-check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
+check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
@@ -562,14 +580,14 @@ check("generated buildings can be restored", (await stats()).buildings === drawn
 const shortcut = process.platform === "darwin" ? "Meta" : "Control";
 const hourBeforeUndo = await page.locator("#sun-hour").inputValue();
 await page.locator("#undo-city").click();
-check("undo button removes the last city change", (await stats()).segments === 0);
+check("undo button removes the last city change", (await stats()).segments === fresh.segments);
 check("undo leaves the sun hour alone", (await page.locator("#sun-hour").inputValue()) === hourBeforeUndo);
 await page.locator("#undo-city").click();
 check("empty undo says so", /Nothing to undo/.test(await toast()));
 await page.locator("#redo-city").click();
 check("redo button restores the city change", (await stats()).segments === drawn.segments);
 await page.keyboard.press(`${shortcut}+Z`);
-check("undo shortcut removes the last city change", (await stats()).segments === 0);
+check("undo shortcut removes the last city change", (await stats()).segments === fresh.segments);
 await page.keyboard.press(`${shortcut}+Shift+Z`);
 check("redo shortcut restores the city change", (await stats()).segments === drawn.segments);
 await page.locator("#save-slot").focus();
@@ -1350,6 +1368,10 @@ await nextFrame();
 await page.evaluate(() => window.cityjump.demoNetwork());
 await nextFrame();
 const built = await stats();
+const builtHasOffshoreBridge = await page.evaluate(() =>
+  window.cityjump._graph.allSegments().some((s) => s.type === "highway_2lane" && Math.max(window.cityjump._graph.node(s.a).pos.z, window.cityjump._graph.node(s.b).pos.z) > 2700),
+);
+const loadedSegmentCount = built.segments + (builtHasOffshoreBridge ? 0 : 1);
 page.once("dialog", (dialog) => dialog.accept("Testville"));
 await page.locator("#save-store").click();
 await nextFrame();
@@ -1375,8 +1397,15 @@ await page.evaluate(() => {
 await page.goto("about:blank");
 await page.goto(shareLink, { waitUntil: "load" });
 await waitForApp();
-await page.waitForFunction((segments) => window.cityjump.stats().segments === segments, built.segments, { timeout: 5_000 });
-check("arriving on a share link imports and loads the city", (await stats()).segments === built.segments, `${(await stats()).segments}/${built.segments}`);
+await page.waitForFunction(() => location.hash === "", null, { timeout: 5_000 });
+const imported = await stats();
+const importState = await page.evaluate(() => ({
+  hash: location.hash,
+  saves: localStorage.getItem("cityjump.saves"),
+  active: localStorage.getItem("cityjump.activeSave"),
+  toast: document.getElementById("toast")?.textContent,
+}));
+check("arriving on a share link imports and loads the city", imported.segments === loadedSegmentCount, JSON.stringify({ imported: imported.segments, expected: loadedSegmentCount, importState }));
 await page.waitForFunction(() => location.hash === "", null, { timeout: 5_000 });
 check("the share fragment is removed after handling", await page.evaluate(() => location.hash === ""));
 check("the imported city appears in the picker", (await page.locator("#save-slot option").allTextContents()).includes("Sharedville"));
@@ -1386,7 +1415,7 @@ await nextFrame();
 await page.locator("#save-load").click();
 await nextFrame();
 const loaded = await stats();
-check("loading restores every segment", loaded.segments === built.segments, `${loaded.segments}/${built.segments}`);
+check("loading restores every segment", loaded.segments === loadedSegmentCount, `${loaded.segments}/${loadedSegmentCount}`);
 await page.locator("#undo-city").click();
 check("loading clears undo history", /Nothing to undo/.test(await toast()) && (await stats()).segments === loaded.segments);
 // Replaying onto pristine terrain shifts road heights slightly, so parcel counts move a little.
@@ -1436,7 +1465,7 @@ check(
 await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
 await page.reload({ waitUntil: "load" });
 await waitForApp();
-check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === 0);
+check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === fresh.segments);
 const costs = await page.evaluate(() => window.cityjump.measureCosts());
 check(
   "debug performance measurement reports startup and placement cost",

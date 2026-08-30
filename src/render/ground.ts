@@ -14,8 +14,8 @@ import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap"
 
 export const GROUND_SIZE = 5400;
 export const GROUND_CELL = 8;
-const OFFSHORE_ISLAND_Z = 6200;
-const OFFSHORE_ISLAND_RADIUS = 2500;
+export const OFFSHORE_ISLAND_Z = 6200;
+export const OFFSHORE_ISLAND_RADIUS = 2500;
 
 /**
  * The pickable ground, one vertex per heightmap cell. `refresh` re-uploads the positions
@@ -126,7 +126,7 @@ function createOffshoreIsland(scene: Scene, material: StandardMaterial): Mesh {
   return mesh;
 }
 
-function offshoreIslandHeight(x: number, z: number): number {
+export function offshoreIslandHeight(x: number, z: number): number {
   const dx = x;
   const dz = z - OFFSHORE_ISLAND_Z;
   const angle = Math.atan2(dz, dx);

@@ -64,6 +64,18 @@ describe("graph basics", () => {
     expect(seg.samples[Math.floor(seg.samples.length * 0.2)]!.y).toBeLessThan(terrainHeight(20, 0) - 25);
     expect(seg.samples[Math.floor(seg.samples.length / 2)]!.y).toBeLessThan(terrainHeight(50, 0) - 30);
   });
+
+  it("keeps an elevated segment above terrain between its endpoints", () => {
+    const g = new RoadGraph();
+    const a = g.addNodeAt(v3(0, 12, 0));
+    const b = g.addNodeAt(v3(0, 24, 100));
+    const id = g.addElevatedSegment(a, b, v3(0, 40, 50), "highway_2lane");
+    const middle = g.segment(id).samples[Math.floor(g.segment(id).samples.length / 2)]!;
+
+    expect(middle.y).toBeGreaterThan(24);
+    expect(g.segment(id).elevated).toBe(true);
+    expect(g.segment(id).type).toBe("highway_2lane");
+  });
 });
 
 describe("arc-length parameterisation", () => {

@@ -69,6 +69,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
       ),
     segments: graph
       .allSegments()
+      .filter((segment) => !segment.elevated)
       .map((segment) => [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId]),
   };
 }
