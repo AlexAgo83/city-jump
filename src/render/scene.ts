@@ -26,7 +26,9 @@ export function sunAzimuthAt(hour: number): number {
 
 /** Engine, scene, camera and lights. Nothing here knows about roads. */
 export function createScene(canvas: HTMLCanvasElement) {
-  const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false });
+  // adaptToDeviceRatio: without it the canvas renders at CSS pixels and a retina screen shows the
+  // result upscaled -- which is what "pixelated" looks like.
+  const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false }, true);
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
   scene.imageProcessingConfiguration.contrast = 1.12;

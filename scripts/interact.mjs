@@ -370,6 +370,25 @@ await waitForApp();
 check("the settings toolbar remembers being collapsed", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#needs-panel").isVisible());
 await page.locator("#toolbar-toggle").click();
 check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#show-fps").isVisible());
+check(
+  "the look settings offer the screen-space effects",
+  (await page.locator("#fx-antialias").count()) === 1 && (await page.locator("#fx-bloom").count()) === 1 && (await page.locator("#fx-ao").count()) === 1 && (await page.locator("#fx-tilt").count()) === 1,
+);
+// Each one attaches or drops a real post-process, which is the part that can throw.
+for (const id of ["fx-ao", "fx-tilt"]) {
+  await page.locator(`#${id}`).setChecked(true);
+  await nextFrame();
+  await nextFrame();
+}
+check("the heavier effects can be switched on", (await stats()).segments > 0 && noise.length === 0, noise.join(" | "));
+await page.locator("#fx-ao").setChecked(false);
+await page.locator("#fx-tilt").setChecked(false);
+await nextFrame();
+await page.locator("#fx-antialias").setChecked(false);
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
+await page.locator("#fx-antialias").setChecked(true);
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });

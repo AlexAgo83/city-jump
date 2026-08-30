@@ -28,6 +28,8 @@ import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
+import { createPostFx } from "../render/postFx";
+import { streetlightsOnAt } from "../render/streetlights";
 import { showCityStats, showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
@@ -36,6 +38,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
   const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows } = createScene(canvas);
   const detail = createDetailCuller(scene, camera);
+  const postFx = createPostFx(scene, camera);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
   setTerrain(heightmap);
   const frameTerrain = (): void => {
@@ -75,6 +78,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     streetlights.setSunHour(hour);
     traffic.setSunHour(hour);
     trees.setSunHour(hour);
+    postFx.setNight(streetlightsOnAt(hour));
   };
   const addOffshoreBridge = (): void => {
     for (const segment of graph.allSegments()) {
@@ -295,6 +299,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       streetlights.setLightsEnabled(visible);
       traffic.setLightsEnabled(visible);
     },
+    onLook: postFx.setLook,
     onTraffic: traffic.setEnabled,
     onTrafficDensity: traffic.setDensity,
     onGridSnap(enabled) {
@@ -389,6 +394,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
     detail.update();
+    postFx.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     showCompass(camera.alpha);
     const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;

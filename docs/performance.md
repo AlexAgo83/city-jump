@@ -122,6 +122,29 @@ meshes to throw away and which to keep.
   space and never move -- but three runs either side of the change came out inside the noise
   (+-5 fps run to run on the same build). Not kept: it is a claim the numbers do not support.
 
+## The look settings
+
+`render/postFx.ts` adds the screen-space passes, all of them switchable from the Look row because
+they cost fill rate rather than draw calls -- the one budget a city of thin instances still has to
+spare, and the player's to spend:
+
+- **Smooth** (FXAA) on top of 4x multisampling. The pipeline renders the scene into its own target,
+  which does not inherit the canvas's multisampling: leaving `samples` at 1 made every edge
+  stepped, which is worse than having no pipeline at all.
+- **Glow** (bloom), which follows the clock rather than a second switch -- a bloom that costs a
+  pass at noon and shows nothing is waste.
+- **Depth** (SSAO, half resolution). The strongest of the four on a city of boxes: it is what puts
+  a building on the ground rather than in front of it.
+- **Miniature** (depth of field). Focused on what the camera is pointed at, so the middle of the
+  screen stays sharp. The focal length is derived rather than chosen: an ordinary lens focused
+  hundreds of metres out holds a whole city in focus, so `f = sqrt(8.7 * D * N)` keeps the blur the
+  same strength at every height.
+
+Tone mapping, a little contrast and a vignette are always on: they are a shader constant each.
+
+The engine now also renders at the device pixel ratio. On a retina screen that is four times the
+pixels -- and the difference between a sharp city and an upscaled one.
+
 ## What is left
 
 - **A repeatable measurement, before anything else.** Every remaining idea is a trade, and this

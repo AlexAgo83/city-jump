@@ -22,6 +22,7 @@ export function bindControls(handlers: {
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
+  onLook(look: { antialias: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
   onTraffic(enabled: boolean): void;
   onTrafficDensity(density: number): void;
   onGridSnap(enabled: boolean): void;
@@ -324,6 +325,10 @@ export function bindControls(handlers: {
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
+      fxAntialias: fxAntialias.checked,
+      fxBloom: fxBloom.checked,
+      fxAo: fxAo.checked,
+      fxTilt: fxTilt.checked,
     });
   }
   function applySetting(checkbox: HTMLInputElement, value: boolean | undefined): void {
@@ -331,6 +336,16 @@ export function bindControls(handlers: {
     checkbox.checked = value;
     checkbox.dispatchEvent(new Event("change"));
   }
+  const fxAntialias = document.getElementById("fx-antialias") as HTMLInputElement;
+  const fxBloom = document.getElementById("fx-bloom") as HTMLInputElement;
+  const fxAo = document.getElementById("fx-ao") as HTMLInputElement;
+  const fxTilt = document.getElementById("fx-tilt") as HTMLInputElement;
+  const emitLook = (): void => {
+    handlers.onLook({ antialias: fxAntialias.checked, bloom: fxBloom.checked, ao: fxAo.checked, tiltShift: fxTilt.checked });
+    persistSettings();
+  };
+  for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) box.addEventListener("change", emitLook);
+
   const stored: UiSettings = readSettings();
   if (stored.settingsOpen !== undefined) setToolbarOpen(stored.settingsOpen);
   applySetting(showGrid, stored.grid);
@@ -338,6 +353,10 @@ export function bindControls(handlers: {
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
+  for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt]] as const) {
+    if (value !== undefined) box.checked = value;
+  }
+  emitLook();
   applySetting(showTraffic, stored.traffic);
   if (stored.trafficDensity !== undefined && Number.isFinite(stored.trafficDensity)) {
     trafficDensity.value = String(stored.trafficDensity);

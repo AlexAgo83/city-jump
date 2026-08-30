@@ -64,6 +64,10 @@ export interface UiSettings {
   sunAuto?: boolean;
   shortNight?: boolean;
   cameraMode?: "free" | "orbit" | "follow";
+  fxAntialias?: boolean;
+  fxBloom?: boolean;
+  fxAo?: boolean;
+  fxTilt?: boolean;
 }
 
 const SETTINGS_KEY = "cityjump.settings";
