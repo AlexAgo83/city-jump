@@ -19,6 +19,7 @@ export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone"): void;
   onRoadType(type: string): void;
   onWorldGrid(visible: boolean): void;
+  onFps(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onSprayRadius(radius: number): void;
@@ -125,6 +126,7 @@ export function bindControls(handlers: {
   const showGrid = document.getElementById("show-grid") as HTMLInputElement;
   const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
   const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
+  const showFps = document.getElementById("show-fps") as HTMLInputElement;
 
   showGrid.addEventListener("change", () => {
     handlers.onWorldGrid(showGrid.checked);
@@ -138,6 +140,11 @@ export function bindControls(handlers: {
 
   showBuildings.addEventListener("change", () => {
     handlers.onBuildings(showBuildings.checked);
+    persistSettings();
+  });
+
+  showFps.addEventListener("change", () => {
+    handlers.onFps(showFps.checked);
     persistSettings();
   });
 
@@ -261,6 +268,7 @@ export function bindControls(handlers: {
       grid: showGrid.checked,
       buildings: showBuildings.checked,
       gridSnap: gridSnap.checked,
+      fps: showFps.checked,
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
@@ -274,6 +282,7 @@ export function bindControls(handlers: {
   const stored: UiSettings = readSettings();
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
+  applySetting(showFps, stored.fps);
   applySetting(gridSnap, stored.gridSnap);
   applySetting(shortNight, stored.shortNight);
   const cameraMode = stored.cameraMode && document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${stored.cameraMode}"]`);

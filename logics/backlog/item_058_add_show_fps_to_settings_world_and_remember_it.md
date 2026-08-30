@@ -1,13 +1,14 @@
 ## item_058_add_show_fps_to_settings_world_and_remember_it - Add Show FPS to Settings > World and remember it
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:17:23
 
 # AI Context
 - Summary: A third checkbox in the `World` row of `index.html`, off by default, wired in `src/ui/controls.ts` and persisted through `UiSettings` in `src/ui/saves.ts` exactly as `show-grid` and `show-buildings` are. Following those two precisely is the whole of the work.

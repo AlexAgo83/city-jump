@@ -4,6 +4,7 @@ import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE } from "../render/ground";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
+import { createFpsMeter } from "../render/fps";
 import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createSignalRenderer } from "../render/signals";
@@ -22,7 +23,7 @@ import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
-import { showRefusal, showSelection } from "../ui/hud";
+import { showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 
@@ -45,6 +46,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
   const traffic = createTrafficRenderer(scene, graph);
+  const fps = createFpsMeter();
   const signals = createSignalRenderer(scene, graph);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
@@ -162,6 +164,28 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const redo = (): void => {
     if (!history.redo(snapshot(), restoreSnapshot)) showRefusal("Nothing to redo.");
   };
+  let stopFpsHud: (() => void) | null = null;
+  const setFpsVisible = (visible: boolean): void => {
+    if (visible === Boolean(stopFpsHud)) return;
+    if (visible) {
+      stopFpsHud = fps.watch();
+      showFps(fps.display);
+      return;
+    }
+    stopFpsHud?.();
+    stopFpsHud = null;
+    showFps(null);
+  };
+  const measureFps = (ms: number): Promise<number> => {
+    const stop = fps.watch();
+    return new Promise((resolve) => {
+      window.setTimeout(() => {
+        const measured = fps.display;
+        stop();
+        resolve(measured);
+      }, ms);
+    });
+  };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
   // that exists, but the callback itself only ever fires later, once the player actually clicks.
@@ -228,6 +252,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.setRoadType(type);
     },
     onWorldGrid: worldGrid.setVisible,
+    onFps: setFpsVisible,
     onGridSnap(enabled) {
       tool.setGridSnap(enabled);
     },
@@ -320,6 +345,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     camera.radius = savedCamera.radius;
   }
   scene.registerBeforeRender(() => {
+    if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     if (cameraMode === "orbit") {
       camera.alpha += (scene.getEngine().getDeltaTime() / 1000) * 0.22;
       return;
@@ -373,7 +399,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
-  }), { setWorldGridVisible: worldGrid.setVisible });
+  }), { setWorldGridVisible: worldGrid.setVisible, measureFps });
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),

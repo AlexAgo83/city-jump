@@ -97,6 +97,14 @@
     border-radius: 6px; font: 12px/1.4 ui-sans-serif, system-ui; padding: 8px 12px;
     box-sizing: border-box;
   }
+  #fps-counter {
+    position: fixed; top: 12px; right: 12px; min-width: 60px; box-sizing: border-box;
+    color: #f4fbff; background: #171b20e8; border: 1px solid #ffffff2b;
+    border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
+    padding: 7px 9px; text-align: right; text-shadow: 0 1px 2px #000;
+  }
+  #fps-counter[hidden] { display: none; }
+  #fps-counter:not([hidden]) ~ #selection-panel { top: 48px; }
   #selection-panel[hidden] { display: none; }
   #selection-panel .selection-kind {
     font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #7f8b95;
@@ -125,6 +133,7 @@
       <span class="row-label">World</span>
       <label><input id="show-grid" type="checkbox" /> Grid</label>
       <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
+      <label><input id="show-fps" type="checkbox" /> Show FPS</label>
     </div>
     <div class="toolbar-row">
       <span class="row-label">Sun</span>
@@ -223,6 +232,7 @@
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>
 </div>
+<div id="fps-counter" hidden></div>
 <div id="selection-panel" hidden>
   <div class="selection-kind"></div>
   <dl></dl>

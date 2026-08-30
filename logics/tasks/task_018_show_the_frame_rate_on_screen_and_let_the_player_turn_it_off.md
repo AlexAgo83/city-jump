@@ -1,13 +1,15 @@
 ## task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off - Show the frame rate on screen and let the player turn it off
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-30 18:17:23
 
 # AI Context
 - Summary: Orchestration for req_016: measure once and only while watching, then place the counter without evicting the selection panel, then add the persisted `Show FPS` toggle. Small chain; the risk is scope creep towards a profiler, not difficulty.

@@ -37,7 +37,7 @@ export function installDebugApi(
   rebuild: (dirty?: TerrainBounds, timings?: Record<string, number>) => void,
   startedAt: number,
   stats: () => Record<string, number>,
-  options: { setWorldGridVisible?: (visible: boolean) => void } = {},
+  options: { setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number> } = {},
 ): void {
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
     const from = resolveSnap(graph, x0, z0);
@@ -166,6 +166,7 @@ export function installDebugApi(
       };
     },
     measureFps(ms) {
+      if (options.measureFps) return options.measureFps(ms);
       return new Promise<number>((resolve) => {
         let frames = 0;
         const started = performance.now();

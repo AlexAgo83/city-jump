@@ -1,13 +1,14 @@
 ## item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching - Measure the frame rate once, and only while someone is watching
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:17:23
 
 # AI Context
 - Summary: One smoothed frame-rate value that both the on-screen counter and `measureFps` read, sampled only while the counter is on. A per-frame reciprocal is unreadable, so the display cadence is slower than the sample cadence, and the smoothing is a pure function with unit tests.

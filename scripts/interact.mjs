@@ -292,6 +292,24 @@ const collapsedToolbarWidth = (await page.locator("#toolbar").boundingBox()).wid
 check("the settings toolbar collapses into its right chevron", collapsedToolbarWidth < 50 && collapsedToolbarWidth < expandedToolbarWidth);
 await page.locator("#toolbar-toggle").click();
 check("the settings toolbar expands again", await page.locator("#toolbar-content").isVisible());
+check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
+await page.locator("#show-fps").check();
+await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
+const fpsSample = await page.evaluate(async () => {
+  const measured = await window.cityjump.measureFps(800);
+  const displayed = Number.parseInt(document.getElementById("fps-counter").textContent, 10);
+  return { measured, displayed };
+});
+check(
+  "fps counter shows the shared frame-rate measurement",
+  fpsSample.displayed > 0 && Math.abs(fpsSample.displayed - fpsSample.measured) <= 1,
+  `${JSON.stringify(fpsSample)}`,
+);
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("fps setting is remembered across reload", await page.locator("#show-fps").isChecked() && await page.locator("#fps-counter").isVisible());
+await page.locator("#show-fps").uncheck();
+check("fps counter turns off immediately", await page.locator("#fps-counter").isHidden());
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
@@ -858,6 +876,14 @@ const selected = await page.evaluate(() => ({
 }));
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
 check("a road panel shows its street name", selected.rows.Street?.endsWith("Street") || selected.rows.Street?.endsWith("Avenue"), JSON.stringify(selected.rows));
+await page.locator("#show-fps").check();
+const hudOverlap = await page.evaluate(() => {
+  const fps = document.getElementById("fps-counter").getBoundingClientRect();
+  const panel = document.getElementById("selection-panel").getBoundingClientRect();
+  return !(fps.right <= panel.left || panel.right <= fps.left || fps.bottom <= panel.top || panel.bottom <= fps.top);
+});
+check("fps counter and selection panel do not overlap", !hudOverlap);
+await page.locator("#show-fps").uncheck();
 const pickedType = await page.evaluate(() => document.querySelector('input[name="road-type"]:checked').value);
 check(
   "picking a road sets the Roads tab to match it (eyedropper)",

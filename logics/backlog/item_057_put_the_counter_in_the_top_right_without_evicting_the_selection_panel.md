@@ -1,13 +1,14 @@
 ## item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel - Put the counter in the top-right without evicting the selection panel
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:17:23
 
 # AI Context
 - Summary: `#selection-panel` is already `position: fixed; top: 12px; right: 12px`, so the counter has to share that corner rather than take it. Markup in `index.html`, rendering in `src/ui/hud.ts` beside `showSelection` and `showRefusal`, contrast that survives both midday terrain and night water, and a fixed-width figure that does not shift the layout.
