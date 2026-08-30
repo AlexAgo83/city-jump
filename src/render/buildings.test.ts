@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { buildingFootDecorMatrices, buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
+import type { BuildableCell, BuildingParcel } from "../sim/slots";
+import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -84,4 +85,43 @@ describe("roof props", () => {
     expect(placements).toHaveLength(7);
     expect(placements.some((placement) => placement.matrix.m[14]! > 20)).toBe(false);
   });
+
+  it("skips foot decorations on faces touching another building cell", () => {
+    const first = parcel(0, 0, 2, 2);
+    const second = parcel(2, 0, 1, 2);
+    const occupied = new Set([...first.cells, ...second.cells].map((cell) => `${cell.segment}:${cell.side}:${cell.block}:${cell.column}:${cell.row}`));
+    const blocked = buildingBlockedDecorFaces(first, occupied);
+    const placements = buildingFootDecorMatrices(first, () => 0, blocked);
+    expect(blocked.has("right")).toBe(true);
+    expect(placements).toHaveLength(6);
+    expect(placements.some((placement) => placement.matrix.m[12]! > 26)).toBe(false);
+  });
 });
+
+function parcel(column: number, row: number, frontageCells: number, depthCells: number): BuildingParcel {
+  return {
+    position: { x: 10 + column * 8 + frontageCells * 4, y: 2, z: 20 - row * 8 },
+    rotationY: 0,
+    frontageCells,
+    depthCells,
+    cells: Array.from({ length: frontageCells * depthCells }, (_, i) => cell(column + (i % frontageCells), row + Math.floor(i / frontageCells))),
+  };
+}
+
+function cell(column: number, row: number): BuildableCell {
+  return {
+    lowRise: false,
+    segment: 1,
+    side: 1,
+    block: 0,
+    column,
+    row,
+    rotationY: 0,
+    corners: [
+      { x: 0, y: 0, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 0, y: 0, z: 0 },
+      { x: 0, y: 0, z: 0 },
+    ],
+  };
+}

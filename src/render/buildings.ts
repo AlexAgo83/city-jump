@@ -49,6 +49,7 @@ interface BuildingManifest {
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 type FootDecorKind = "bench" | "bollard" | "planter" | "utility";
+type FootDecorFace = "front" | "back" | "left" | "right";
 
 interface FootDecorPlacement {
   readonly kind: FootDecorKind;
@@ -283,9 +284,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     for (const [i, parcel] of parcels.entries()) buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
     groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
     groundPad.thinInstanceCount = parcels.length;
+    const occupiedCells = buildingCellSet(parcels);
     const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
     for (const parcel of parcels) {
-      for (const placement of buildingFootDecorMatrices(parcel)) {
+      for (const placement of buildingFootDecorMatrices(parcel, terrainHeight, buildingBlockedDecorFaces(parcel, occupiedCells))) {
         const bucket = footDecorMatrices.get(placement.kind);
         if (bucket) bucket.push(placement.matrix);
         else footDecorMatrices.set(placement.kind, [placement.matrix]);
@@ -651,7 +653,11 @@ export function buildingGroundPadMatrix(parcel: BuildingParcel): Matrix {
   );
 }
 
-export function buildingFootDecorMatrices(parcel: BuildingParcel, heightAt = terrainHeight): FootDecorPlacement[] {
+export function buildingFootDecorMatrices(
+  parcel: BuildingParcel,
+  heightAt = terrainHeight,
+  blockedFaces: ReadonlySet<FootDecorFace> = new Set(),
+): FootDecorPlacement[] {
   const width = parcel.frontageCells * GRID.cellSize;
   const depth = parcel.depthCells * GRID.cellSize;
   const halfWidth = width / 2;
@@ -673,16 +679,42 @@ export function buildingFootDecorMatrices(parcel: BuildingParcel, heightAt = ter
 
   for (let i = 0; i < parcel.frontageCells; i++) {
     const x = -halfWidth + (i + 0.5) * GRID.cellSize;
-    if (parcel.frontageCells > 1) add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
-    add(i % 4 === 0 ? "utility" : "planter", x, -depth - gap, Math.PI);
+    if (parcel.frontageCells > 1 && !blockedFaces.has("front")) add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
+    if (!blockedFaces.has("back")) add(i % 4 === 0 ? "utility" : "planter", x, -depth - gap, Math.PI);
   }
   for (let i = 0; i < parcel.depthCells; i++) {
     const z = -(i + 0.5) * GRID.cellSize;
-    add(i % 2 === 0 ? "bollard" : "planter", -halfWidth - gap, z, Math.PI / 2);
-    add(i % 2 === 0 ? "planter" : "bollard", halfWidth + gap, z, -Math.PI / 2);
+    if (!blockedFaces.has("left")) add(i % 2 === 0 ? "bollard" : "planter", -halfWidth - gap, z, Math.PI / 2);
+    if (!blockedFaces.has("right")) add(i % 2 === 0 ? "planter" : "bollard", halfWidth + gap, z, -Math.PI / 2);
   }
 
   return placements;
+}
+
+export function buildingBlockedDecorFaces(parcel: BuildingParcel, occupiedCells: ReadonlySet<string>): ReadonlySet<FootDecorFace> {
+  if (parcel.cells.length === 0) return new Set();
+  const rows = parcel.cells.map((cell) => cell.row);
+  const columns = parcel.cells.map((cell) => cell.column);
+  const minRow = Math.min(...rows);
+  const maxRow = Math.max(...rows);
+  const minColumn = Math.min(...columns);
+  const maxColumn = Math.max(...columns);
+  const first = parcel.cells[0]!;
+  const has = (column: number, row: number) => occupiedCells.has(buildingCellKey(first, column, row));
+  const blocked = new Set<FootDecorFace>();
+  if (Array.from({ length: parcel.frontageCells }, (_, i) => minColumn + i).some((column) => has(column, minRow - 1))) blocked.add("front");
+  if (Array.from({ length: parcel.frontageCells }, (_, i) => minColumn + i).some((column) => has(column, maxRow + 1))) blocked.add("back");
+  if (Array.from({ length: parcel.depthCells }, (_, i) => minRow + i).some((row) => has(minColumn - 1, row))) blocked.add("left");
+  if (Array.from({ length: parcel.depthCells }, (_, i) => minRow + i).some((row) => has(maxColumn + 1, row))) blocked.add("right");
+  return blocked;
+}
+
+function buildingCellSet(parcels: readonly BuildingParcel[]): Set<string> {
+  return new Set(parcels.flatMap((parcel) => parcel.cells.map((cell) => buildingCellKey(cell, cell.column, cell.row))));
+}
+
+function buildingCellKey(cell: BuildableCell, column: number, row: number): string {
+  return `${cell.segment}:${cell.side}:${cell.block}:${column}:${row}`;
 }
 
 function buildingGroundPadMesh(scene: Scene): Mesh {
