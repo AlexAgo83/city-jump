@@ -41,7 +41,7 @@ export function bindControls(handlers: {
   onSave(): CitySave;
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
-}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; updateUndoRedo(): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setPaused(paused: boolean): void; updateUndoRedo(): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -266,6 +266,15 @@ export function bindControls(handlers: {
     }
     persistSettings();
   });
+  const setPaused = (paused: boolean): void => {
+    if (sunFrame) cancelAnimationFrame(sunFrame);
+    sunFrame = null;
+    if (!paused && sunAuto.checked) {
+      autoStartHour = Number(sunHour.value);
+      autoStartedAt = performance.now();
+      sunFrame = requestAnimationFrame(tickSun);
+    }
+  };
   shortNight.addEventListener("change", persistSettings);
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="camera-mode"]')) {
     input.addEventListener("change", () => {
@@ -342,7 +351,7 @@ export function bindControls(handlers: {
 
   bindSaves(handlers, applyCity);
   updateSun();
-  return { applyCity, applyRoadType, updateUndoRedo };
+  return { applyCity, applyRoadType, setPaused, updateUndoRedo };
 }
 
 /**

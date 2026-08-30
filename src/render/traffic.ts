@@ -38,6 +38,7 @@ import {
   type Ring,
 } from "../sim/transfers";
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
+import { terrainHeight } from "../sim/terrain";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 import { streetlightsOnAt } from "./streetlights";
 import type { TerrainBounds } from "../sim/heightmap";
@@ -46,6 +47,7 @@ import type { TerrainBounds } from "../sim/heightmap";
 const CAR_WIDTH = 3;
 /** A motorcycle's own, much narrower, width -- it still rides the lane a car would. */
 const MOTORCYCLE_WIDTH = 0.7;
+const CAR_VISUAL_SCALE = 0.81;
 
 /** Bumper to bumper: how much road a car keeps between itself and the one in front. */
 const CAR_GAP = 8.5;
@@ -141,6 +143,7 @@ interface Mover {
   currentSpeed: number;
   /** Which way it is facing, which follows the path it is on rather than snapping to it. */
   heading: number;
+  pitch: number;
   ride: Ride | null;
   plan: Plan | null;
 }
@@ -255,38 +258,38 @@ interface CarShape {
 const CAR_SHAPES: CarShape[] = [
   {
     name: "saloon",
-    length: 5.8,
-    width: CAR_WIDTH,
-    hull: 0.8,
-    cabin: { at: -0.3, length: 2.8, height: 0.52 },
-    bonnet: 1.6,
-    boot: 1.1,
-    wheelBase: 1.85,
-    wheel: 0.92,
+    length: 5.8 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 0.8 * CAR_VISUAL_SCALE,
+    cabin: { at: -0.3 * CAR_VISUAL_SCALE, length: 2.8 * CAR_VISUAL_SCALE, height: 0.52 * CAR_VISUAL_SCALE },
+    bonnet: 1.6 * CAR_VISUAL_SCALE,
+    boot: 1.1 * CAR_VISUAL_SCALE,
+    wheelBase: 1.85 * CAR_VISUAL_SCALE,
+    wheel: 0.92 * CAR_VISUAL_SCALE,
   },
   {
     // Shorter, taller, all cabin and no boot: the small car that fills a city.
     name: "hatchback",
-    length: 4.6,
-    width: CAR_WIDTH,
-    hull: 0.86,
-    cabin: { at: -0.5, length: 2.4, height: 0.6 },
-    bonnet: 1.2,
+    length: 4.6 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 0.86 * CAR_VISUAL_SCALE,
+    cabin: { at: -0.5 * CAR_VISUAL_SCALE, length: 2.4 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
+    bonnet: 1.2 * CAR_VISUAL_SCALE,
     boot: 0,
-    wheelBase: 1.5,
-    wheel: 0.86,
+    wheelBase: 1.5 * CAR_VISUAL_SCALE,
+    wheel: 0.86 * CAR_VISUAL_SCALE,
   },
   {
     // A cab at the front and a box behind it: a van, and the tallest thing on the road.
     name: "van",
-    length: 6.6,
-    width: CAR_WIDTH,
-    hull: 1.35,
-    cabin: { at: 1.5, length: 2.4, height: 0.66 },
-    bonnet: 1.3,
+    length: 6.6 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 1.35 * CAR_VISUAL_SCALE,
+    cabin: { at: 1.5 * CAR_VISUAL_SCALE, length: 2.4 * CAR_VISUAL_SCALE, height: 0.66 * CAR_VISUAL_SCALE },
+    bonnet: 1.3 * CAR_VISUAL_SCALE,
     boot: 0,
-    wheelBase: 2.2,
-    wheel: 1,
+    wheelBase: 2.2 * CAR_VISUAL_SCALE,
+    wheel: 1 * CAR_VISUAL_SCALE,
   },
   {
     // No ledges, one wheel per end, and a tank-and-seat hump standing in for a cabin: everything
@@ -320,10 +323,17 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       material.specularColor = new Color3(0.25, 0.25, 0.25);
 
       const floor = shape.wheel / 2;
-      const parts = [slab(`car_hull_${shape.name}_${i}`, shape.width - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0)];
+      const parts = shape.singleTrack
+        ? [
+            slab(`bike_tank_${shape.name}_${i}`, shape.width * 0.92, shape.hull * 0.42, shape.length * 0.34, 0, floor + shape.hull * 0.78, 0.18, 0.16),
+            slab(`bike_tail_${shape.name}_${i}`, shape.width * 0.7, shape.hull * 0.22, shape.length * 0.28, 0, floor + shape.hull * 0.62, -0.45, 0.1),
+            slab(`bike_front_fender_${shape.name}_${i}`, shape.width * 0.6, shape.hull * 0.16, shape.length * 0.2, 0, floor + shape.hull * 0.34, shape.wheelBase, 0.08),
+            slab(`bike_rear_fender_${shape.name}_${i}`, shape.width * 0.68, shape.hull * 0.16, shape.length * 0.24, 0, floor + shape.hull * 0.34, -shape.wheelBase, 0.08),
+          ]
+        : [slab(`car_hull_${shape.name}_${i}`, shape.width - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0)];
       // Wider than the glass under it, so the roof caps the cabin instead of sitting inside it.
       // A motorcycle has no cabin to roof over -- its hull is the whole body.
-      if (shape.cabin) {
+      if (shape.cabin && !shape.singleTrack) {
         parts.push(
           slab(
             `car_roof_${shape.name}_${i}`,
@@ -405,6 +415,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   let sunHour = 14;
   let lightsEnabled = true;
   let trafficEnabled = true;
+  let paused = false;
   let density = 1;
   const lightsOn = () => trafficEnabled && lightsEnabled && streetlightsOnAt(sunHour);
 
@@ -456,13 +467,34 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       shape.cabin && !shape.singleTrack
         ? [
             slab(
-              `car_glass_${shape.name}`,
-              shape.width - 0.58,
-              shape.cabin.height,
-              shape.cabin.length,
+              `car_glass_${shape.name}_side`,
+              shape.width - 0.62,
+              shape.cabin.height * 0.74,
+              shape.cabin.length * 0.72,
               0,
-              floor + shape.hull + shape.cabin.height / 2,
+              floor + shape.hull + shape.cabin.height * 0.37,
               shape.cabin.at,
+              0.08,
+            ),
+            slab(
+              `car_glass_${shape.name}_front`,
+              shape.width - 0.78,
+              shape.cabin.height * 0.55,
+              0.18,
+              0,
+              floor + shape.hull + shape.cabin.height * 0.36,
+              shape.cabin.at + shape.cabin.length * 0.43,
+              0.05,
+            ),
+            slab(
+              `car_glass_${shape.name}_rear`,
+              shape.width - 0.84,
+              shape.cabin.height * 0.46,
+              0.16,
+              0,
+              floor + shape.hull + shape.cabin.height * 0.34,
+              shape.cabin.at - shape.cabin.length * 0.42,
+              0.05,
             ),
           ]
         : [];
@@ -479,19 +511,60 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         return wheel;
       }),
     );
+    const trim =
+      shape.singleTrack
+        ? []
+        : [
+            slab(`car_front_bumper_${shape.name}`, shape.width - 0.4, 0.18, 0.16, 0, floor + shape.hull * 0.26, shape.length / 2 - 0.08, 0.05),
+            slab(`car_rear_bumper_${shape.name}`, shape.width - 0.4, 0.18, 0.16, 0, floor + shape.hull * 0.26, -shape.length / 2 + 0.08, 0.05),
+            ...sides.flatMap((side) =>
+              [shape.wheelBase, -shape.wheelBase].map((z) =>
+                slab(
+                  `car_arch_${shape.name}_${side}_${z}`,
+                  0.16,
+                  0.24,
+                  shape.wheel * 0.9,
+                  side * (shape.width / 2 - 0.03),
+                  floor + shape.hull * 0.36,
+                  z,
+                  0.05,
+                ),
+              ),
+            ),
+            ...sides.map((side) =>
+              slab(
+                `car_mirror_${shape.name}_${side}`,
+                0.16,
+                0.1,
+                0.28,
+                side * (shape.width / 2 + 0.03),
+                floor + shape.hull + shape.cabin!.height * 0.42,
+                shape.cabin!.at + shape.cabin!.length * 0.22,
+                0.04,
+              ),
+            ),
+          ];
     // A rider, sitting where the seat is: a body and a head, the same two primitives a
     // pedestrian is built from, just smaller and bolted to the bike instead of walking.
     const rider: Mesh[] = [];
     if (shape.singleTrack) {
       const seatY = floor + shape.hull + shape.cabin!.height;
       const at = shape.cabin!.at - 0.35;
+      rider.push(
+        slab(`bike_seat_${shape.name}`, 0.44, 0.14, 0.72, 0, seatY - 0.06, at, 0.08),
+        slab(`bike_handlebar_${shape.name}`, 0.82, 0.08, 0.08, 0, seatY + 0.22, shape.wheelBase - 0.18, 0.03),
+        slab(`bike_front_fork_${shape.name}`, 0.12, 0.62, 0.12, -0.16, floor + 0.42, shape.wheelBase - 0.06, 0.03),
+        slab(`bike_front_fork_2_${shape.name}`, 0.12, 0.62, 0.12, 0.16, floor + 0.42, shape.wheelBase - 0.06, 0.03),
+        slab(`bike_frame_${shape.name}`, 0.14, 0.18, 1.18, 0, floor + 0.42, 0, 0.04),
+        slab(`bike_exhaust_${shape.name}`, 0.14, 0.14, 0.84, shape.width * 0.48, floor + 0.24, -0.28, 0.04),
+      );
       const torso = MeshBuilder.CreateCylinder(`car_rider_torso_${shape.name}`, { height: 0.58, diameter: 0.32, tessellation: 8 }, scene);
       torso.position.set(0, seatY + 0.29, at);
       const head = MeshBuilder.CreateSphere(`car_rider_head_${shape.name}`, { diameter: 0.28, segments: 6 }, scene);
       head.position.set(0, seatY + 0.58 + 0.1, at);
       rider.push(torso, head);
     }
-    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...rider], true, true, undefined, false, false);
+    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...trim, ...rider], true, true, undefined, false, false);
     if (!parts) throw new Error("car parts failed to merge");
     parts.name = `car_parts_${shape.name}`;
     parts.material = dark;
@@ -993,6 +1066,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           // Placed already moving, mid-road -- a city does not load with everyone stalled.
           currentSpeed: (walk ? WALKER_SPEED : type.maxSpeed) * pace,
           heading: 0,
+          pitch: 0,
           ride: null,
           plan: null,
         };
@@ -1051,7 +1125,23 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   function face(mover: Mover, heading: number, dt: number): void {
     const rate = (mover.walk ? WALKER_TURN_RATE : CAR_TURN_RATE) * dt;
     mover.heading = approachAngle(mover.heading, heading, rate);
+    if (mover.walk) {
+      mover.pitch = 0;
+    } else {
+      const targetPitch = vehicleTerrainPitch(mover.mesh.position, mover.heading);
+      mover.pitch += (targetPitch - mover.pitch) * Math.min(1, dt * 5);
+    }
+    mover.mesh.rotationQuaternion = null;
+    mover.mesh.rotation.x = mover.pitch;
     mover.mesh.rotation.y = mover.heading;
+  }
+
+  function vehicleTerrainPitch(position: Vector3, heading: number): number {
+    const forwardX = Math.sin(heading);
+    const forwardZ = Math.cos(heading);
+    const reach = 2;
+    const rise = terrainHeight(position.x + forwardX * reach, position.z + forwardZ * reach) - terrainHeight(position.x - forwardX * reach, position.z - forwardZ * reach);
+    return -Math.atan2(rise, reach * 2);
   }
 
   function roundaboutRooms(movers: readonly Mover[]): Map<Mover, number> {
@@ -1080,7 +1170,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   scene.registerBeforeRender(() => {
-    if (!trafficEnabled || movers.length === 0) return;
+    if (!trafficEnabled || paused || movers.length === 0) return;
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
 
@@ -1163,8 +1253,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   /** Puts a beam at the nose of its car, pointing the way the car faces and a little down. */
   function aimBeam(beam: SpotLight | undefined, mover: Mover): void {
     if (!beam) return;
-    const heading = mover.mesh.rotation.y;
-    const forward = { x: Math.sin(heading), z: Math.cos(heading) };
+    const forward = { x: Math.sin(mover.heading), z: Math.cos(mover.heading) };
     beam.position.set(
       mover.mesh.position.x + forward.x * 2.6,
       mover.mesh.position.y + 1,
@@ -1177,6 +1266,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     rebuild,
     setSunHour,
     setLightsEnabled,
+    setPaused(next: boolean) {
+      paused = next;
+    },
     setEnabled(enabled: boolean) {
       if (trafficEnabled === enabled) return;
       trafficEnabled = enabled;
@@ -1205,7 +1297,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
             kind: "Car",
             target: () =>
               movers.includes(best!) && !best!.walk
-                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z, heading: best!.mesh.rotation.y, segment: best!.segment }
+                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z, heading: best!.heading, segment: best!.segment }
                 : null,
           }
         : null;

@@ -607,6 +607,7 @@ await page.locator("#traffic-density").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.waitForFunction((cars) => window.cityjump.stats().cars === cars, drawn.cars, { timeout: 5_000 });
+await realTime(300);
 const beforeTraffic = await trafficPositions();
 await page.waitForFunction(
   (before) =>
@@ -618,6 +619,23 @@ await page.waitForFunction(
 );
 const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
+await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+await page.keyboard.press("Space");
+await page.waitForFunction(() => window.cityjump.paused(), null, { timeout: 1_000 });
+const pausedTraffic = await trafficPositions();
+await realTime(500);
+const stillTraffic = await trafficPositions();
+check("space pauses the simulation", pausedTraffic.every((p, i) => Math.hypot(p[0] - stillTraffic[i][0], p[1] - stillTraffic[i][1]) < 0.05));
+await page.keyboard.press("Space");
+await page.waitForFunction(() => !window.cityjump.paused(), null, { timeout: 1_000 });
+await page.waitForFunction(
+  (before) =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("traffic_"))
+      .some((mesh, i) => Math.hypot(mesh.position.x - before[i]?.[0], mesh.position.z - before[i]?.[1]) > 0.5),
+  stillTraffic,
+  { timeout: 5_000 },
+);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await nextFrame();

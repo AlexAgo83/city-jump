@@ -248,7 +248,7 @@ export function pointAlong(points: readonly Vec3[], cumulative: readonly number[
   const b = points[i]!;
   return {
     position: v3(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, a.z + (b.z - a.z) * f),
-    tangent: normalizeXZ(sub(at(d + 0.75), at(d - 0.75))),
+    tangent: normalizeXZ(sub(at(d + 2), at(d - 2))),
   };
 }
 
@@ -265,7 +265,7 @@ export function walkRingRadius(ring: Ring, sidewalkWidth: number): number {
  * Round the ring at one radius, the short way about. Nobody on foot walks three quarters of a
  * roundabout to reach the arm next door, so unlike traffic this is not tied to one direction.
  */
-export function ringArcPath(ring: Ring, from: number, to: number, radius: number, steps = 12): Vec3[] {
+export function ringArcPath(ring: Ring, from: number, to: number, radius: number, steps = 24): Vec3[] {
   const TAU = Math.PI * 2;
   let arc = ((to - from) % TAU + TAU) % TAU;
   if (arc > Math.PI) arc -= TAU;

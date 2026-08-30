@@ -59,6 +59,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let buildingsVisible = true;
   let cameraMode: CameraMode = "free";
   let followTarget: FollowTarget | null = null;
+  let simPaused = false;
   let pendingHistorySnapshot: CitySave | null = null;
   const setCameraMode = (mode: CameraMode): void => {
     cameraMode = mode;
@@ -390,9 +391,20 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     camera.target.z += (target.z - camera.target.z) * 0.14;
     camera.alpha = approachAngle(camera.alpha, -target.heading - Math.PI / 2, dt * 3);
   });
+  const setPaused = (paused: boolean): void => {
+    simPaused = paused;
+    traffic.setPaused(paused);
+    signals.setPaused(paused);
+    controls?.setPaused(paused);
+  };
   window.addEventListener("keydown", (event) => {
+    if (!(event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']") && event.code === "Space") {
+      event.preventDefault();
+      setPaused(!simPaused);
+      return;
+    }
     if (cameraMode !== "free" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
-  });
+  }, true);
   let cameraSaveTimer = 0;
   camera.onViewMatrixChangedObservable.add(() => {
     if (cameraMode !== "free") return;
@@ -425,6 +437,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),
+    paused: () => simPaused,
   });
 
   function surfaceJunctions(): number {

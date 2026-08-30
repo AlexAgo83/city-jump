@@ -76,6 +76,7 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   let masts: Mast[] = [];
   let meshes: (Mesh | InstancedMesh)[] = [];
   const cycles = new Map<NodeId, SignalCycle>();
+  let paused = false;
 
   function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph), dirty?: TerrainBounds): void {
     if (dirty) {
@@ -173,9 +174,11 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   // Driven from the same clock the traffic reads, so the lamp and the car agree on the moment.
-  scene.registerBeforeRender(() => update(performance.now() / 1000));
+  scene.registerBeforeRender(() => {
+    if (!paused) update(performance.now() / 1000);
+  });
 
-  return { rebuild, count: () => masts.length };
+  return { rebuild, setPaused: (next: boolean) => { paused = next; }, count: () => masts.length };
 }
 
 export function signalMastTouchesBounds(mast: Pick<Mast, "x" | "z">, bounds: TerrainBounds): boolean {
