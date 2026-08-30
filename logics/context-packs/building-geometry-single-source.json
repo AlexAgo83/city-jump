@@ -1,0 +1,568 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry item_032_fail_the_build_when_the_generator_and_the_renderer_disagree item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does task_011_implement_one_source_of_truth_for_building_model_geometry --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/product/prod_006_one_source_of_truth_for_what_a_building_model_is.md",
+      "ref": "prod_006_one_source_of_truth_for_what_a_building_model_is",
+      "sections": {
+        "Goals": [
+          "- The renderer asks the model what it is, instead of guessing from its filename.",
+          "- A disagreement between generator and renderer fails a check, not a screenshot.",
+          "- The authoring contract in docs/assets.md matches what the code actually does.",
+          "- Hand-authored models remain possible under the same contract as generated ones."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city."
+        ],
+        "References": [
+          "- Product back-reference: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`",
+          "- Task back-reference: `task_011_implement_one_source_of_truth_for_building_model_geometry`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "One source of truth for what a building model is"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "sections": {
+        "Goals": [
+          "- A failed load is a no-op, not a destructive one.",
+          "- A storage failure is visible to the player at the moment it happens.",
+          "- Toggling what is visible costs what a visibility toggle should cost.",
+          "- The largest rendering files have unit coverage that runs on every push, not only in the on-demand browser suite.",
+          "- One Node version, resolved identically by CI and by the deploy."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted.",
+          "```mermaid",
+          "flowchart LR",
+          "    Player[Player action] --> Load[Load a saved city]",
+          "    Player --> Toggle[Visibility toggle]",
+          "    Player --> Edit[Edit the road graph]"
+        ],
+        "References": [
+          "- Product back-reference: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`",
+          "- Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that never loses the city on screen"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "sections": {
+        "Goals": [
+          "- Placing a road costs what that road changed, not what the whole city contains.",
+          "- The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+          "- The first load ships only the engine features the game actually uses.",
+          "- The first frame arrives without waiting on every building model in the catalogue.",
+          "- The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+          "- Rebuild and startup cost are measurable, so a regression is visible."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees.",
+          "```mermaid",
+          "flowchart LR",
+          "    Place[Road placed] --> Dirty[Changed region only]",
+          "    Dirty --> Terrain[Heightmap re-stamp]",
+          "    Dirty --> Ground[Ground vertices refreshed]"
+        ],
+        "References": [
+          "- Product back-reference: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`",
+          "- Task back-reference: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city builder that stays responsive as the city grows"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "building, geometry, facts, written, twice, two, languages, nothing, tying, them, together",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel",
+          "run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street"
+        ]
+      },
+      "path": "logics/request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md",
+      "ref": "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Each geometry fact the renderer needs about a building model has exactly one source of truth, and the renderer reads it rather than re-deriving it from the model id.",
+          "- AC2: A check fails when the generator and the renderer disagree about a model, so drift is caught by the project's own gate rather than by a screenshot.",
+          "- AC3: Facts the loaded mesh already knows are taken from the mesh rather than from any declaration.",
+          "- AC4: A model whose id does not match `lot_<frontage>x<depth>`, or that arrives without whatever declaration the solution introduces, still loads and renders sensibly rather than falling back to wrong numbers.",
+          "- AC5: `docs/assets.md` and `run_001_author_a_building_model_that_lands_on_its_parcel` describe the resulting contract, and the manual mirror-the-formula instruction is removed once it is no longer the mechanism.",
+          "- AC6: Buildings and roof objects render exactly as they do today, confirmed by the visual and interaction checks, and `roofPropY`'s existing unit tests still pass."
+        ],
+        "Needs": [
+          "- The renderer re-derives a model's geometry from its filename instead of reading it from the model. `buildingSpec` in `src/render/buildings.ts` parses `lot_<frontage>x<depth>` and rebuilds, in TypeScript, seven facts that `scripts/gen_buildings.py` decided in Python when it authored the mesh: the height formula `6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + min(area, 8)`, the footprint `cells * 8 - 1.5`, the pitched-roof rule (`2.5` when `area <= 2`), the setback rule (`area >= 6`, matching the generator's `w * d >= CELL * CELL * 6`), the setback inset `0.12`/`0.88` (the generator's `sx = w * 0.12`, `sw = w * 0.76`), the body-height factor `0.72` (the generator's `body_h = h * 0.72`), and the gabled ridge running at half depth.",
+          "- Nothing enforces that the two copies agree. There is no test, no generated manifest, and no assertion comparing either side against the actual mesh. Editing the Python generator -- a different language, a different directory, a script most changes never open -- silently invalidates the TypeScript, and vice versa.",
+          "- The failure is silent and geometric, not a crash. `roofPropY` uses these numbers to decide whether a roof object sits on the main deck, on a setback, or on a pitched roof. A drifted formula does not throw; it puts objects inside a parapet, floating above a roof, or on the wrong tier, which is exactly the class of bug that took four consecutive attempts to fix in the roof-prop work and is now written up in `run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street`.",
+          "- The information is already in the file. `loadModel` reads the mesh's bounding box and keeps `roofY = bounds.maximum.y` and `centerX`, but the derived spec overrides it for everything except the unparseable-id fallback -- so the authoritative source is present at runtime and deliberately not used."
+        ]
+      },
+      "status": "Draft",
+      "title": "Building geometry facts are written twice, in two languages, with nothing tying them together"
+    },
+    {
+      "ai_context": {
+        "keywords": "review, findings, half, destroyed, city, failed, load, rebuild, config, test, hygiene",
+        "skip when": "The work is about redundant computation inside `rebuild()` itself (that is req_005, Done), the save format or `parseCity` validation rules, or gameplay and visual behaviour.",
+        "summary": "Five findings from a repo review of city-jump 0.2.0: a failed load empties the graph it was meant to replace, visibility toggles trigger a full city resolve, the three largest render files have no unit coverage, `.nvmrc` and `render.yaml` disagree on the Node major, and a refused autosave write is swallowed.",
+        "use when": "Working on save/load durability, the cost of a UI toggle in `src/app/app.ts`, unit coverage for `src/render/`, or the Node version pinned for CI and the Render deploy."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one",
+          "item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle",
+          "item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches",
+          "item_023_one_node_version_and_an_autosave_that_admits_it_failed"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ]
+      },
+      "path": "logics/request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md",
+      "ref": "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A load that fails part way through leaves the city exactly as it was before the load was attempted -- same graph, same plantings, same terrain, same rendered scene -- with the refusal message shown, and the failure is covered by an automated test that asserts the pre-load state survives.",
+          "- AC2: Toggling the buildings checkbox or switching the select view no longer triggers the parcel solve, terrain conformance, or a rebuild of renderers whose input has not changed; the visible result of each toggle is unchanged.",
+          "- AC3: The pure geometric decisions currently locked inside `src/render/` are exported as scene-free functions and covered by vitest unit tests, adding meaningful coverage to the largest untested files without introducing a Babylon dependency into the test run.",
+          "- AC4: The Node version has exactly one source of truth in the repository, and CI and the Render deploy demonstrably resolve to the same major version.",
+          "- AC5: A refused localStorage write during autosave is surfaced to the player rather than silently dropped.",
+          "- AC6: The existing layering constraints in `tests/architecture.mjs` still pass, and no existing check's assertions are weakened by this work."
+        ],
+        "Needs": [
+          "- A load that fails half way through destroys the city already on screen. `restoreCity` (`src/sim/save.ts`) clears the plantings and removes every existing segment BEFORE replaying the saved ones, and throws when the current rules refuse a segment or a node reference is missing. `loadCity` (`src/app/app.ts:168`) catches that throw, shows a refusal and returns `false` -- but the graph has already been emptied and the terrain already regenerated by `applyTerrain`. The player sees a refusal message over stale meshes, and the next edit autosaves the emptied graph over what they had.",
+          "- Toggling a checkbox pays for a full city resolve. `onBuildings` (`src/app/app.ts:141`) and `onSelectView` (`src/app/app.ts:146`) both call `rebuild()`, which runs `buildableCells` + `buildingParcels` (the app's own comment calls the parcel solve the most expensive step in there), `heightmap.conformToRoads`, and a rebuild of the ground, trees, world grid, roads, streetlights, traffic, signals and buildings -- when the only thing that changed is which meshes are visible.",
+          "- The rendering layer is ~3,500 lines with 37 lines of unit tests. `src/render/traffic.ts` (1,039 lines), `roadMesh.ts` (1,031) and `drawTool.ts` (533) are only exercised by the Playwright interaction suite and the visual shot script, both of which now run off the push trigger. The pure geometry inside them -- lane offsets, portal placement, snapping decisions -- is testable the same way `roofPropY` already is in `src/render/buildings.test.ts`, without a Babylon scene.",
+          "- The Node version has already drifted between its two sources of truth: `.nvmrc` says 22, `render.yaml` sets `NODE_VERSION` to 20. CI builds on 22, Render deploys on 20.",
+          "- `writeAutosave` (`src/ui/saves.ts:43`) returns `void` and swallows a refused localStorage write, unlike `writeSave` which returns a boolean the UI can act on. A full or disabled store means the player silently loses their session resume with nothing on screen saying so."
+        ]
+      },
+      "status": "Draft",
+      "title": "Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene"
+    },
+    {
+      "ai_context": {
+        "keywords": "performance, road, placed, rebuilds, whole, city, first, load, ships, never, uses",
+        "skip when": "The work is about what `rebuild()` computes internally (req_005, Done), about when it is triggered by a visibility toggle (the visibility-toggle slice under req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene), or about changing how the city looks.",
+        "summary": "A road placement costs a whole-city rebuild (full heightmap re-stamp, a 456,976-vertex ground refresh allocating ~2.7M colour objects and a 1.37M-entry normals array, every road mesh and mover disposed), while the first load ships 561 KB gz of JS including 93 KB of unused gaussian splatting and blocks the first frame on 1.8 MB of building models.",
+        "use when": "Working on the cost of `rebuild()` in `src/app/app.ts`, `conformToRoads`, `ground.refresh`, the road/traffic rebuild granularity, the glTF loader import, model loading at startup, or the traffic `registerBeforeRender` loop."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild",
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed",
+          "item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched",
+          "item_027_ship_only_the_gltf_loader_features_the_models_actually_use",
+          "item_028_draw_the_first_frame_without_waiting_on_all_20_building_models",
+          "item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame",
+          "item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_005_review_findings_redundant_and_quadratic_rebuild_work",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ]
+      },
+      "path": "logics/request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md",
+      "ref": "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Placing a road on a large city costs work proportional to what that placement actually changed, not to the size of the whole city -- the heightmap re-stamp, the ground refresh and the road mesh rebuild are all bounded to the affected region or the affected segments.",
+          "- AC2: A ground refresh no longer allocates a fresh multi-million-element array for normals, and no longer allocates constant colour objects per vertex; the terrain renders exactly as it does today.",
+          "- AC3: The eager first-load JavaScript payload no longer includes the gaussian splatting implementation or the other glTF extensions the project's models do not use, and every building model still loads and renders as it does today.",
+          "- AC4: The first frame no longer waits on all 20 building models being downloaded and post-processed; a restored city still shows the right building for every parcel.",
+          "- AC5: The traffic frame loop no longer rebuilds its queue grouping, string keys and sort order from scratch on every frame, and traffic behaves as it does today (queueing behind the car in front, stopping at lights, taking roundabouts).",
+          "- AC6: There is a repeatable way to see whether these costs regress -- a measurement captured against a known city, so a later change that puts the whole-city rebuild back is visible rather than invisible."
+        ],
+        "Needs": [
+          "- Placing one road costs a whole-city rebuild. `createDrawTool`'s `onCommitted` (`src/render/drawTool.ts:341`) runs `rebuild()` in `src/app/app.ts`, which resets and re-stamps the entire heightmap (`conformToRoads` starts with `current.set(this.base)` and `claim.fill(Infinity)`, then re-samples every segment in the graph), refreshes the whole ground mesh, disposes and recreates every road mesh (`roadMesh.ts:133`), disposes and re-instantiates every traffic mover, and rebuilds the buildable-grid line system. The cost of each placement scales with the size of the city already built, so a session's total cost grows quadratically with the number of placements.",
+          "- The ground refresh is the single heaviest step in that rebuild. `GROUND_SIZE 5400 / GROUND_CELL 8 + 1` gives a 676x676 grid: 456,976 vertices and 911,250 triangles, all re-walked on every rebuild. Normals are recomputed into a freshly allocated plain `number[]` of 1.37 million entries (measured at 15-30 ms per call under a warm V8, before any browser or GPU cost), and the two `updateVerticesData` calls re-upload roughly 5.5 MB of positions and 7.3 MB of colours each time.",
+          "- `terrainColor` (`src/render/ground.ts:249`) allocates four constant `Color4` objects plus two `Color4.Lerp` results on every call, and it is called once per vertex during `refresh` -- around 2.7 million short-lived objects per ground refresh, from four colours that never change.",
+          "- The first load ships 561 KB of gzipped JavaScript, 93 KB of which (17%) is the gaussian splatting mesh implementation the app never uses. `import \"@babylonjs/loaders/glTF\"` (`src/render/buildings.ts:1`) registers every glTF extension, pulling `gaussianSplattingMesh` (93 KB gz), ten `flowGraph` chunks for KHR_interactivity (13 KB gz), `glTFLoaderAnimation` (10 KB gz), the OpenPBR material adapter (7 KB gz), `bone`, `environmentTextureTools` and `workerPool` into the eager import graph. The project's own models are static, unanimated and untextured.",
+          "- The first frame waits on every building model. `createBuildingRenderer` (`src/render/buildings.ts:171`) `Promise.all`s all 20 GLBs -- 1.8 MB uncompressed, no Draco or meshopt, up to 250 KB for a single lot -- and `startApp` awaits it, then each model pays a main-thread `convertToFlatShadedMesh` and `enableEdgesRendering` before anything renders.",
+          "- The traffic frame loop allocates per frame at 60 fps. `scene.registerBeforeRender` (`src/render/traffic.ts:937`) builds a queue `Map` keyed by a freshly interpolated string (`` `${segment.id}:${direction}:${lane.offset}` ``) for every car every frame, a second `ahead` Map, a sort per queue, and then `roundaboutRooms` which allocates another flatMap, Map and sort. Queue order only changes when a mover boards or arrives -- the model has no overtaking, as the code's own comment states."
+        ]
+      },
+      "status": "Draft",
+      "title": "Performance: every road placed rebuilds the whole city, and the first load ships what it never uses"
+    },
+    {
+      "ai_context": {
+        "keywords": "renderer, place, learn, model, geometry",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/backlog/item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry.md",
+      "ref": "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: No geometry fact about a model is computed from its filename in `src/render/buildings.ts`.",
+          "- AC2: A model with an unrecognised id or no declaration loads and renders sensibly, with the fallback documented.",
+          "- AC3: Buildings and roof objects are visually unchanged, and `roofPropY`'s unit tests still pass."
+        ],
+        "Problem": [
+          "- `buildingSpec` re-derives height, footprint, roof style, setback bounds and body-height factor from the model id, duplicating decisions `scripts/gen_buildings.py` already made.",
+          "- `loadModel` already reads the mesh's bounding box but the derived spec overrides it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give the renderer one place to learn a model's geometry"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, source, truth, building, model, geometry",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel",
+          "run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md",
+      "ref": "task_011_implement_one_source_of_truth_for_building_model_geometry",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement one source of truth for building model geometry"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/product/prod_006_one_source_of_truth_for_what_a_building_model_is.md",
+      "ref": "prod_006_one_source_of_truth_for_what_a_building_model_is",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "One source of truth for what a building model is"
+    },
+    {
+      "ai_context": {
+        "keywords": "fail, build, generator, renderer, disagree",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/backlog/item_032_fail_the_build_when_the_generator_and_the_renderer_disagree.md",
+      "ref": "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A deliberate edit to either side's geometry numbers makes the check fail, verified by making it fail before restoring the correct value.",
+          "- AC2: The check runs in the fast gate and names the model and the quantity that disagreed."
+        ],
+        "Problem": [
+          "- Nothing checks that the Python generator and the TypeScript renderer describe the same building; the only signal today is a misplaced roof object in a screenshot.",
+          "- The generator runs on a developer's machine in Blender, so it cannot be re-run in CI to compare outputs directly."
+        ]
+      },
+      "status": "Ready",
+      "title": "Fail the build when the generator and the renderer disagree"
+    },
+    {
+      "ai_context": {
+        "keywords": "docs, assets, authoring, runbook, describe, code, actually, does",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/backlog/item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does.md",
+      "ref": "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `docs/assets.md` describes the contract as implemented, with no statement that the code contradicts.",
+          "- AC2: The manual mirror-the-formula instruction is gone from the runbook, replaced by the mechanism that made it unnecessary, and the runbook's verification line is updated."
+        ],
+        "Problem": [
+          "- `docs/assets.md` says the renderer reads each model's bounding box so dimensions need not be declared, which is only half true today: height, roof style and setback geometry are re-derived from the filename instead.",
+          "- `run_001_author_a_building_model_that_lands_on_its_parcel` carries a manual instruction to mirror any formula change across both languages -- a workaround that should not outlive the fix."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make docs/assets.md and the authoring runbook describe what the code actually does"
+    }
+  ],
+  "estimates": {
+    "char_count": 30542,
+    "companion_doc_count": 3,
+    "doc_count": 8
+  },
+  "generated_at": "2026-08-30T09:18:10Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+      "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+      "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+      "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does",
+      "task_011_implement_one_source_of_truth_for_building_model_geometry"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together,item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry,item_032_fail_the_build_when_the_generator_and_the_renderer_disagree,item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does,task_011_implement_one_source_of_truth_for_building_model_geometry",
+  "refs": [
+    "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+    "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry",
+    "item_032_fail_the_build_when_the_generator_and_the_renderer_disagree",
+    "item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does",
+    "task_011_implement_one_source_of_truth_for_building_model_geometry"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md",
+      "ref": "task_011_implement_one_source_of_truth_for_building_model_geometry"
+    }
+  ]
+}

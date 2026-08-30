@@ -1,0 +1,146 @@
+{
+  "title": "Building geometry facts are written twice, in two languages, with nothing tying them together",
+  "references": [
+    "scripts/gen_buildings.py",
+    "src/render/buildings.ts",
+    "src/sim/slots.ts",
+    "docs/assets.md",
+    "logics/runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md",
+    "logics/runbook/run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "The renderer re-derives a model's geometry from its filename instead of reading it from the model. `buildingSpec` in `src/render/buildings.ts` parses `lot_<frontage>x<depth>` and rebuilds, in TypeScript, seven facts that `scripts/gen_buildings.py` decided in Python when it authored the mesh: the height formula `6 + ((frontage * 7 + depth * 3) % 5) * 3.5 + min(area, 8)`, the footprint `cells * 8 - 1.5`, the pitched-roof rule (`2.5` when `area <= 2`), the setback rule (`area >= 6`, matching the generator's `w * d >= CELL * CELL * 6`), the setback inset `0.12`/`0.88` (the generator's `sx = w * 0.12`, `sw = w * 0.76`), the body-height factor `0.72` (the generator's `body_h = h * 0.72`), and the gabled ridge running at half depth.",
+      "Nothing enforces that the two copies agree. There is no test, no generated manifest, and no assertion comparing either side against the actual mesh. Editing the Python generator -- a different language, a different directory, a script most changes never open -- silently invalidates the TypeScript, and vice versa.",
+      "The failure is silent and geometric, not a crash. `roofPropY` uses these numbers to decide whether a roof object sits on the main deck, on a setback, or on a pitched roof. A drifted formula does not throw; it puts objects inside a parapet, floating above a roof, or on the wrong tier, which is exactly the class of bug that took four consecutive attempts to fix in the roof-prop work and is now written up in `run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street`.",
+      "The information is already in the file. `loadModel` reads the mesh's bounding box and keeps `roofY = bounds.maximum.y` and `centerX`, but the derived spec overrides it for everything except the unparseable-id fallback -- so the authoritative source is present at runtime and deliberately not used."
+    ],
+    "context": [
+      "Found during a repository review of city-jump 0.2.0 and while writing the 3D authoring runbooks; `run_001_author_a_building_model_that_lands_on_its_parcel` currently carries a manual instruction to mirror any formula change on both sides, which is a documented workaround, not a fix.",
+      "`docs/assets.md` is deliberately fixed as the authoring contract and says the renderer reads each model's bounding box after loading, so `width` and `depth` do not have to be declared anywhere. The duplicated spec in `buildings.ts` quietly contradicts that, because height, roof style and setback geometry are not read from the mesh at all.",
+      "The 20-model library is generated, so a manifest emitted next to the GLBs is available at no authoring cost; a hand-authored model would have to declare the same facts, which is a question this request has to answer rather than assume.",
+      "This is a correctness and maintainability problem, not a performance one, and is independent of `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene` and `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`."
+    ],
+    "acceptance_criteria": [
+      "AC1: Each geometry fact the renderer needs about a building model has exactly one source of truth, and the renderer reads it rather than re-deriving it from the model id.",
+      "AC2: A check fails when the generator and the renderer disagree about a model, so drift is caught by the project's own gate rather than by a screenshot.",
+      "AC3: Facts the loaded mesh already knows are taken from the mesh rather than from any declaration.",
+      "AC4: A model whose id does not match `lot_<frontage>x<depth>`, or that arrives without whatever declaration the solution introduces, still loads and renders sensibly rather than falling back to wrong numbers.",
+      "AC5: `docs/assets.md` and `run_001_author_a_building_model_that_lands_on_its_parcel` describe the resulting contract, and the manual mirror-the-formula instruction is removed once it is no longer the mechanism.",
+      "AC6: Buildings and roof objects render exactly as they do today, confirmed by the visual and interaction checks, and `roofPropY`'s existing unit tests still pass."
+    ]
+  },
+  "product": {
+    "title": "One source of truth for what a building model is",
+    "overview": "city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city.",
+    "goals": [
+      "The renderer asks the model what it is, instead of guessing from its filename.",
+      "A disagreement between generator and renderer fails a check, not a screenshot.",
+      "The authoring contract in docs/assets.md matches what the code actually does.",
+      "Hand-authored models remain possible under the same contract as generated ones."
+    ],
+    "non_goals": [
+      "Changing how any building looks, or regenerating the model library for its own sake.",
+      "Replacing Blender or the generation script.",
+      "Adding a runtime schema validation framework or a new dependency.",
+      "Reworking parcel packing, `slots.ts`, or how models are matched to parcels.",
+      "Performance work on model loading, which belongs to req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Give the renderer one place to learn a model's geometry",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": ["AC1", "AC3", "AC4"],
+      "problem": [
+        "`buildingSpec` re-derives height, footprint, roof style, setback bounds and body-height factor from the model id, duplicating decisions `scripts/gen_buildings.py` already made.",
+        "`loadModel` already reads the mesh's bounding box but the derived spec overrides it."
+      ],
+      "scope_in": [
+        "Take from the loaded mesh whatever the mesh already knows (footprint extents, overall height, roof deck height where the bounding box gives it honestly).",
+        "For what a bounding box cannot express -- roof style, setback tier bounds -- introduce one declaration emitted by the generator alongside the GLBs, and have the renderer read it.",
+        "Decide and document what happens for a model that arrives without that declaration, so a hand-authored `.glb` is still usable.",
+        "Delete the duplicated formulas from `buildings.ts` once nothing reads them."
+      ],
+      "scope_out": [
+        "Changing the models themselves or how they look.",
+        "Changing how parcels choose a model."
+      ],
+      "acceptance_criteria": [
+        "AC1: No geometry fact about a model is computed from its filename in `src/render/buildings.ts`.",
+        "AC2: A model with an unrecognised id or no declaration loads and renders sensibly, with the fallback documented.",
+        "AC3: Buildings and roof objects are visually unchanged, and `roofPropY`'s unit tests still pass."
+      ]
+    },
+    {
+      "title": "Fail the build when the generator and the renderer disagree",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": ["AC2", "AC6"],
+      "problem": [
+        "Nothing checks that the Python generator and the TypeScript renderer describe the same building; the only signal today is a misplaced roof object in a screenshot.",
+        "The generator runs on a developer's machine in Blender, so it cannot be re-run in CI to compare outputs directly."
+      ],
+      "scope_in": [
+        "Add a check that compares what the renderer believes about each shipped model against the model itself -- the mesh's own extents are the ground truth that neither side authored.",
+        "Run it in the existing fast gate, not only in the browser suite, so drift is caught on every push.",
+        "Make the failure message name the model and the disagreeing quantity."
+      ],
+      "scope_out": [
+        "Running Blender in CI.",
+        "A performance threshold or any other kind of gate."
+      ],
+      "acceptance_criteria": [
+        "AC1: A deliberate edit to either side's geometry numbers makes the check fail, verified by making it fail before restoring the correct value.",
+        "AC2: The check runs in the fast gate and names the model and the quantity that disagreed."
+      ]
+    },
+    {
+      "title": "Make docs/assets.md and the authoring runbook describe what the code actually does",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": ["AC5"],
+      "problem": [
+        "`docs/assets.md` says the renderer reads each model's bounding box so dimensions need not be declared, which is only half true today: height, roof style and setback geometry are re-derived from the filename instead.",
+        "`run_001_author_a_building_model_that_lands_on_its_parcel` carries a manual instruction to mirror any formula change across both languages -- a workaround that should not outlive the fix."
+      ],
+      "scope_in": [
+        "Update `docs/assets.md` to state the real contract once it exists, including whatever a model must declare and what happens if it declares nothing.",
+        "Update `run_001_author_a_building_model_that_lands_on_its_parcel`: replace the mirror-the-formula step with the new mechanism and its check.",
+        "Keep both documents short; this is a correction, not an expansion."
+      ],
+      "scope_out": [
+        "Rewriting the rest of the asset convention, which is deliberately fixed.",
+        "Documenting anything the code does not yet do."
+      ],
+      "acceptance_criteria": [
+        "AC1: `docs/assets.md` describes the contract as implemented, with no statement that the code contradicts.",
+        "AC2: The manual mirror-the-formula instruction is gone from the runbook, replaced by the mechanism that made it unnecessary, and the runbook's verification line is updated."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement one source of truth for building model geometry",
+    "plan": [
+      "Read this request and its three backlog slices, plus run_001_author_a_building_model_that_lands_on_its_parcel and run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street for why this matters geometrically.",
+      "Inventory every fact `buildingSpec` derives and decide, per fact, whether the mesh already knows it or whether it has to be declared.",
+      "Move the renderer onto that single source and delete the duplicated formulas.",
+      "Add the drift check to the fast gate, and prove it fails against a deliberately wrong value before restoring it.",
+      "Correct docs/assets.md and the authoring runbook.",
+      "Run the fast gate, then the visual and browser interaction checks, and confirm buildings and roof objects are pixel-identical to before.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/building-geometry-single-source.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
