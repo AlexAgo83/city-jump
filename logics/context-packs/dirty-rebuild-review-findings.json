@@ -1,0 +1,481 @@
+{
+  "budgets": {
+    "max_docs": 24,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work item_052_make_a_partial_rebuild_unable_to_lose_geometry item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/product/prod_012_a_city_that_keeps_drawing_itself_correctly.md",
+      "ref": "prod_012_a_city_that_keeps_drawing_itself_correctly",
+      "sections": {
+        "Goals": [
+          "- A partial rebuild is indistinguishable from a full one, except in cost.",
+          "- Painting zones feels like painting trees, because it does the same amount of work.",
+          "- The debug statistics can be trusted as evidence in the next performance investigation.",
+          "- The invariants the fast paths depend on are asserted, not commented.",
+          "- Nothing in the renderers holds a disposed object or grows without bound."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline."
+        ],
+        "References": [
+          "- Product back-reference: `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`",
+          "- Task back-reference: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that keeps drawing itself correctly"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings",
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work",
+          "task_011_implement_one_source_of_truth_for_building_model_geometry",
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel",
+          "task_013_implement_sharing_a_city_by_link",
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section",
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment",
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Proposed",
+      "title": "city-jump playable city"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "close, ten, defects, review, found, dirty, region, rebuild, zoning, sharing, work",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ]
+      },
+      "path": "logics/request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md",
+      "ref": "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A dirty-region rebuild never leaves the scene missing geometry that a full rebuild would have drawn -- whatever a renderer disposes because the region touches it, it recreates.",
+          "- AC2: Dragging the zoning brush costs work proportional to the distance dragged, not to the number of pointer events the browser happens to deliver, and matches the throttling the tree spray already applies.",
+          "- AC3: No renderer holds a reference to a mesh it has disposed.",
+          "- AC4: The traffic overlay's state and the Select view control agree with each other at all times; neither can silently contradict the other.",
+          "- AC5: Every number reported by the debug statistics is the current value, including while building models are still arriving asynchronously.",
+          "- AC6: Long-running play does not grow a collection that is never pruned."
+        ],
+        "Needs": [
+          "- A code review of the whole development range 068aceb..HEAD -- the dirty-region rebuild, authored zoning, street names and addresses, camera target modes, and static share links -- found ten defects. The suite is green (155 unit tests, 4 architecture tests, a clean build and typecheck), so none of them is caught by anything that runs today.",
+          "- Two of them are player-visible and reachable in ordinary play. One makes a road disappear from the screen while it is still in the graph; the other turns a single drag of the zoning brush into one full world rebuild per pointer-move event.",
+          "- The rest are smaller: a dangling reference to a disposed mesh, a traffic overlay that switches itself off while the UI still says it is on, two debug statistics that report the wrong number, an unbounded map, an unenforced invariant with no assertion behind it, an unguarded async path that fails silently on older browsers, and a near-dead helper with its formula copied into three files.",
+          "- These were all introduced by work that has already been closed out, so no open Logics doc covers them. Left alone they become the baseline nobody questions."
+        ]
+      },
+      "status": "Draft",
+      "title": "Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work"
+    },
+    {
+      "ai_context": {
+        "keywords": "partial, rebuild, unable, lose, geometry",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/backlog/item_052_make_a_partial_rebuild_unable_to_lose_geometry.md",
+      "ref": "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Disposal and recreation in the road renderer are driven by a single predicate, and a test proves the two decisions cannot disagree for a long diagonal segment.",
+          "- AC2: A dirty rebuild whose box overlaps a segment's bounding box but not the segment leaves that segment drawn.",
+          "- AC3: The predicate is a pure function unit-tested with no scene.",
+          "- AC4: The traffic renderer's equivalent decision is confirmed symmetric, and the confirmation is recorded."
+        ],
+        "Problem": [
+          "- In `src/render/roadMesh.ts`, `rebuild(dirty)` decides what to throw away and what to draw again using two different tests, and the first is more generous than the second. Disposal (around line 136) calls `meshTouchesBounds`, which tests the rendered mesh's world axis-aligned bounding box against the dirty box. Recreation (around line 148) calls `pointsTouchBounds(seg.samples, dirty)`, which asks whether any point of the segment's centreline falls inside the dirty box.",
+          "- The AABB of a long diagonal segment is a large square that the centreline crosses only along one diagonal. A dirty box landing in an empty corner of that square intersects the AABB while containing no centreline sample. The segment's meshes are disposed and then skipped by the recreation loop, so the road vanishes from the screen while remaining in the graph, until something forces a full rebuild.",
+          "- The same asymmetry applies to junctions: disposal is by mesh bounds, recreation is gated on `junctionTouchesBounds`, which tests the junction ring and arm corners.",
+          "- `src/render/traffic.ts` uses `segmentTouchesBounds` -- also centreline samples -- to decide which movers to dispose and which segments to repopulate. Both sides of that decision use the same predicate, so traffic is self-consistent; it is worth confirming rather than assuming while the road mesh is being fixed.",
+          "- A road that is wide, or carries sidewalks and lane paint, also renders beyond its centreline, so even a short segment can have geometry inside a dirty box its samples never enter."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make a partial rebuild unable to lose geometry"
+    },
+    {
+      "ai_context": {
+        "keywords": "zoning, brush, cost, tree, costs",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/backlog/item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs.md",
+      "ref": "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A drag of the zoning brush triggers rebuilds proportional to distance travelled, matching the tree spray's rule, proven by a check that fails without the fix.",
+          "- AC2: No code path in `src/render/zones.ts` leaves `mesh` pointing at a disposed mesh.",
+          "- AC3: Before-and-after cost numbers from `measureCosts` are recorded at closeout.",
+          "- AC4: Painting and clearing zones still behaves exactly as it does today from the player's side."
+        ],
+        "Problem": [
+          "- `onZoneMove` in `src/render/drawTool.ts` (around lines 334-341) runs on every `POINTERMOVE` while the button is held. Each call paints the zone and then calls `onCommitted(...)`, which in `src/app/app.ts` recomputes `buildableCells`, re-solves `buildingParcels`, reconforms the heightmap, refreshes the ground, and rebuilds trees, world grid, roads, streetlights, signals, the zone overlay and every building thin-instance buffer.",
+          "- The neighbouring `onSprayMove`, which the zone path was copied from, guards exactly this: it returns early unless the brush has moved at least half its own radius since the last burst. `onZoneMove` assigns `lastSprayed` but never reads it, so the guard is present in effect and absent in fact.",
+          "- The paint callback in `src/app/app.ts` compounds it: it scans every entry of `currentBuildableCells` and calls `zones.paint` once per cell inside the brush, so the per-event cost also scales with the size of the city.",
+          "- In `src/render/zones.ts`, `rebuild` disposes and rebuilds the entire overlay mesh from `zones.toJSON()` each time, so the overlay is rebuilt from scratch on every one of those events too.",
+          "- Separately, that same function disposes the mesh and then returns early at line 38 when there is nothing to draw, without clearing the `mesh` variable. Clearing every zone therefore leaves a disposed mesh reachable, and a later `setVisible` calls `setEnabled` on it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the zoning brush cost what the tree brush costs"
+    },
+    {
+      "ai_context": {
+        "keywords": "overlay, state, debug, statistics, lying",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/backlog/item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying.md",
+      "ref": "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Changing the road tool mode cannot leave the traffic overlay and the Select view radio in disagreement.",
+          "- AC2: `startupModelCount` either reports something that can vary, or is gone.",
+          "- AC3: The reported building count is correct while models are still arriving, sourced from the renderer rather than an app-local copy.",
+          "- AC4: The browser interaction suite still passes."
+        ],
+        "Problem": [
+          "- `src/app/app.ts` around line 175, inside `onRoadMode`, runs `if (!zoning) roads.setShowTraffic(false)`. Any change of road tool mode therefore switches the traffic lane overlay off, while the `select-view` radio in the UI still reads `Traffic`. The control and the thing it controls disagree, and nothing puts them back in step.",
+          "- `src/ui/controls.ts` already has the right primitive for this: `currentSelectView()` reads the checked radio, and the tool-button handler calls `handlers.onSelectView(currentSelectView())` when the select tool is chosen. The road-mode path does not.",
+          "- `src/render/buildings.ts` around line 334 computes `const startupModelCount = available.length` immediately after firing the `loadModel` promises, so it is always 0. Whatever it was meant to report -- probably that no model blocked startup -- it does not report it, because a constant that cannot be anything but zero proves nothing.",
+          "- `src/app/app.ts` around line 304 reports `buildings: buildingCount` from a variable the app updates only in its own `rebuild` and in the visibility handlers. The building renderer also calls its own `rebuild` from each model-load callback, which updates `lastPlaced` without the app seeing it, so the reported count is stale while models are still arriving. The renderer already exposes a `count()` accessor for exactly this, and nothing calls it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop the overlay state and the debug statistics from lying"
+    },
+    {
+      "ai_context": {
+        "keywords": "close, ten, review, findings, dirty, region, rebuild, zoning, work",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md",
+      "ref": "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Close the ten review findings from the dirty-region rebuild and zoning work"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/product/prod_012_a_city_that_keeps_drawing_itself_correctly.md",
+      "ref": "prod_012_a_city_that_keeps_drawing_itself_correctly",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that keeps drawing itself correctly"
+    },
+    {
+      "ai_context": {
+        "keywords": "prune, traffic, queues, assert, ordering, they, rely, clear, small, debris",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/backlog/item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris.md",
+      "ref": "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Emptied lane queues are removed from the map, and a test covers a mover joining and then leaving a lane.",
+          "- AC2: The lane-ordering invariant is asserted by a test in `src/render/traffic.test.ts`.",
+          "- AC3: A share attempt on a browser without `CompressionStream` produces a refusal message, not an unhandled rejection.",
+          "- AC4: The buildable-cell centroid exists once, and `zoneForCell` is either removed or documented as to when it is reached."
+        ],
+        "Problem": [
+          "- The traffic renderer moved queue bookkeeping out of the frame loop: `queues` is now a persistent `Map` keyed by lane, maintained by `joinQueue` and `leaveQueue` in `src/render/traffic.ts` (around line 997). `leaveQueue` splices a mover out of its array but never removes the map entry when the array empties, so lanes that no longer carry anyone accumulate as empty arrays and the frame loop iterates them forever.",
+          "- That same change replaced a per-frame sort with the claim, stated only in a comment, that queue membership changes solely when a mover boards or leaves a lane, so the stored order stays correct. It is true today because car-following prevents overtaking within a lane, but nothing asserts it, and if it ever stops holding, the `ahead` chain is wrong silently -- cars pass through each other rather than crashing.",
+          "- The share button handler in `src/ui/controls.ts` awaits `encodeShare` with no `try`/`catch`. `encodeShare` uses `CompressionStream`, which older Safari does not implement, so on those browsers the click produces an unhandled rejection and no feedback -- the one path in that file that does not report a refusal.",
+          "- `zoneForCell` in `src/sim/slots.ts` is close to dead: `cellsForBlock` already stamps `cell.zone` using the identical centroid formula, so `origin.zone ?? zoneForCell(zones, origin)` only reaches the fallback when cells were built without zones and parcels were solved with them. That same four-corner centroid is written out three times -- twice in `src/sim/slots.ts` and once as `cellCentre` in `src/app/app.ts`."
+        ]
+      },
+      "status": "Ready",
+      "title": "Prune the traffic queues, assert the ordering they rely on, and clear the small debris"
+    }
+  ],
+  "estimates": {
+    "char_count": 22361,
+    "companion_doc_count": 2,
+    "doc_count": 7
+  },
+  "generated_at": "2026-08-30T12:11:28Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+      "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+      "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+      "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+      "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris",
+      "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work,item_052_make_a_partial_rebuild_unable_to_lose_geometry,item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs,item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying,item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris,task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+  "refs": [
+    "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+    "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+    "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+    "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+    "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris",
+    "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md",
+      "ref": "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+    }
+  ]
+}

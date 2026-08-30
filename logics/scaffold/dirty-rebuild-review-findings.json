@@ -1,0 +1,212 @@
+{
+  "title": "Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work",
+  "references": [
+    "src/render/roadMesh.ts",
+    "src/render/drawTool.ts",
+    "src/render/zones.ts",
+    "src/render/traffic.ts",
+    "src/render/buildings.ts",
+    "src/app/app.ts",
+    "src/ui/controls.ts",
+    "src/sim/slots.ts",
+    "src/sim/heightmap.ts",
+    "src/render/traffic.test.ts",
+    "logics/roadmap/road_001_city_jump_playable_city.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "A code review of the whole development range 068aceb..HEAD -- the dirty-region rebuild, authored zoning, street names and addresses, camera target modes, and static share links -- found ten defects. The suite is green (155 unit tests, 4 architecture tests, a clean build and typecheck), so none of them is caught by anything that runs today.",
+      "Two of them are player-visible and reachable in ordinary play. One makes a road disappear from the screen while it is still in the graph; the other turns a single drag of the zoning brush into one full world rebuild per pointer-move event.",
+      "The rest are smaller: a dangling reference to a disposed mesh, a traffic overlay that switches itself off while the UI still says it is on, two debug statistics that report the wrong number, an unbounded map, an unenforced invariant with no assertion behind it, an unguarded async path that fails silently on older browsers, and a near-dead helper with its formula copied into three files.",
+      "These were all introduced by work that has already been closed out, so no open Logics doc covers them. Left alone they become the baseline nobody questions."
+    ],
+    "context": [
+      "The dirty-region rebuild is the shared root of the two serious defects. `rebuild(dirty?: TerrainBounds)` in `src/app/app.ts` threads an optional bounding box into the heightmap, ground, road mesh and traffic renderers so an edit repaints a region instead of the world. Each renderer decides for itself which of its objects the region touches, and those decisions have to agree with each other -- where they do not, geometry is destroyed and not recreated.",
+      "`TerrainBounds` is a plain XZ box: `{ minX, maxX, minZ, maxZ }`. Callers in `src/render/drawTool.ts` build one from the affected geometry and pad it by `TERRAIN_DIRTY_PAD` (140m) so the embankment around a road is covered. Passing no box at all means a full rebuild, which is always correct and always slow.",
+      "The zone brush and the tree spray brush are the same interaction in the same file, written twice. The tree path (`onSprayMove`) waits until the brush has moved half its own width before doing any work; the zone path (`onZoneMove`) does not, even though it sets the same `lastSprayed` variable the tree path reads. The zone path is also far more expensive per event, because it triggers `onCommitted` and therefore a whole rebuild.",
+      "Nothing in the current suite can see any of this: the unit tests do not construct a Babylon scene, and the browser interaction suite (`npm run test:e2e`) does not exercise a dirty rebuild against a road that is outside the dirty box, nor does it drag the zone brush. Any regression test for the first two findings belongs in that browser suite or in a new pure helper extracted out of the renderer.",
+      "The findings are stated below with file and line references taken at commit 25d5121. Lines will drift; the mechanism described is what identifies each one."
+    ],
+    "acceptance_criteria": [
+      "AC1: A dirty-region rebuild never leaves the scene missing geometry that a full rebuild would have drawn -- whatever a renderer disposes because the region touches it, it recreates.",
+      "AC2: Dragging the zoning brush costs work proportional to the distance dragged, not to the number of pointer events the browser happens to deliver, and matches the throttling the tree spray already applies.",
+      "AC3: No renderer holds a reference to a mesh it has disposed.",
+      "AC4: The traffic overlay's state and the Select view control agree with each other at all times; neither can silently contradict the other.",
+      "AC5: Every number reported by the debug statistics is the current value, including while building models are still arriving asynchronously.",
+      "AC6: Long-running play does not grow a collection that is never pruned.",
+      "AC7: The traffic lane-ordering invariant is asserted by a test rather than only described in a comment.",
+      "AC8: A browser that lacks `CompressionStream` gets a refusal message from the share button instead of an unhandled rejection.",
+      "AC9: The buildable-cell centroid is computed in one place, and dead branches around zone resolution are removed.",
+      "AC10: `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass, and the two player-visible defects each have a check that fails without the fix."
+    ]
+  },
+  "product": {
+    "title": "A city that keeps drawing itself correctly",
+    "overview": "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.",
+    "goals": [
+      "A partial rebuild is indistinguishable from a full one, except in cost.",
+      "Painting zones feels like painting trees, because it does the same amount of work.",
+      "The debug statistics can be trusted as evidence in the next performance investigation.",
+      "The invariants the fast paths depend on are asserted, not commented.",
+      "Nothing in the renderers holds a disposed object or grows without bound."
+    ],
+    "non_goals": [
+      "Widening the dirty-region optimisation to the renderers that still rebuild in full -- trees, world grid, streetlights and signals.",
+      "New gameplay, new zone kinds, or new building assets.",
+      "Reworking the share-link format, the camera modes, or the street-naming scheme.",
+      "A general performance push beyond restoring the throttling the zone brush was supposed to have.",
+      "Refactoring the renderers into a shared dirty-region framework."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Make a partial rebuild unable to lose geometry",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC10"],
+      "problem": [
+        "In `src/render/roadMesh.ts`, `rebuild(dirty)` decides what to throw away and what to draw again using two different tests, and the first is more generous than the second. Disposal (around line 136) calls `meshTouchesBounds`, which tests the rendered mesh's world axis-aligned bounding box against the dirty box. Recreation (around line 148) calls `pointsTouchBounds(seg.samples, dirty)`, which asks whether any point of the segment's centreline falls inside the dirty box.",
+        "The AABB of a long diagonal segment is a large square that the centreline crosses only along one diagonal. A dirty box landing in an empty corner of that square intersects the AABB while containing no centreline sample. The segment's meshes are disposed and then skipped by the recreation loop, so the road vanishes from the screen while remaining in the graph, until something forces a full rebuild.",
+        "The same asymmetry applies to junctions: disposal is by mesh bounds, recreation is gated on `junctionTouchesBounds`, which tests the junction ring and arm corners.",
+        "`src/render/traffic.ts` uses `segmentTouchesBounds` -- also centreline samples -- to decide which movers to dispose and which segments to repopulate. Both sides of that decision use the same predicate, so traffic is self-consistent; it is worth confirming rather than assuming while the road mesh is being fixed.",
+        "A road that is wide, or carries sidewalks and lane paint, also renders beyond its centreline, so even a short segment can have geometry inside a dirty box its samples never enter."
+      ],
+      "scope_in": [
+        "Make disposal and recreation in `roadMesh.rebuild` use one predicate, evaluated per segment and per junction, so anything removed is necessarily redrawn. Deriving the segment's own extent -- its sample bounds grown by the widest thing drawn from it -- and testing that against the dirty box satisfies both sides.",
+        "Apply the same treatment to the junction loops, which currently gate on ring and arm-corner points.",
+        "Extract whatever predicate the fix settles on into a pure function that takes plain bounds and plain points, so it can be unit-tested in `src/render/roadMesh.test.ts` without a Babylon scene -- that file already tests exported helpers from this module.",
+        "Unit tests for the failing shape: a long diagonal segment, and a dirty box positioned inside its bounding box but away from its centreline. Assert the predicate answers the same way for the dispose decision and the recreate decision.",
+        "Confirm `src/render/traffic.ts` has no equivalent gap, and note the finding either way.",
+        "A browser-level check in `scripts/interact.mjs` if one can be written cheaply: draw a long diagonal road, make an edit near a corner of its bounding box but far from the road, and assert the road is still rendered."
+      ],
+      "scope_out": [
+        "Changing what `TerrainBounds` is or how callers build one.",
+        "Extending dirty-region rebuilds to trees, world grid, streetlights or signals.",
+        "Any change to the heightmap or ground clipping, which are index-space and already symmetric."
+      ],
+      "acceptance_criteria": [
+        "AC1: Disposal and recreation in the road renderer are driven by a single predicate, and a test proves the two decisions cannot disagree for a long diagonal segment.",
+        "AC2: A dirty rebuild whose box overlaps a segment's bounding box but not the segment leaves that segment drawn.",
+        "AC3: The predicate is a pure function unit-tested with no scene.",
+        "AC4: The traffic renderer's equivalent decision is confirmed symmetric, and the confirmation is recorded."
+      ]
+    },
+    {
+      "title": "Make the zoning brush cost what the tree brush costs",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC3", "AC10"],
+      "problem": [
+        "`onZoneMove` in `src/render/drawTool.ts` (around lines 334-341) runs on every `POINTERMOVE` while the button is held. Each call paints the zone and then calls `onCommitted(...)`, which in `src/app/app.ts` recomputes `buildableCells`, re-solves `buildingParcels`, reconforms the heightmap, refreshes the ground, and rebuilds trees, world grid, roads, streetlights, signals, the zone overlay and every building thin-instance buffer.",
+        "The neighbouring `onSprayMove`, which the zone path was copied from, guards exactly this: it returns early unless the brush has moved at least half its own radius since the last burst. `onZoneMove` assigns `lastSprayed` but never reads it, so the guard is present in effect and absent in fact.",
+        "The paint callback in `src/app/app.ts` compounds it: it scans every entry of `currentBuildableCells` and calls `zones.paint` once per cell inside the brush, so the per-event cost also scales with the size of the city.",
+        "In `src/render/zones.ts`, `rebuild` disposes and rebuilds the entire overlay mesh from `zones.toJSON()` each time, so the overlay is rebuilt from scratch on every one of those events too.",
+        "Separately, that same function disposes the mesh and then returns early at line 38 when there is nothing to draw, without clearing the `mesh` variable. Clearing every zone therefore leaves a disposed mesh reachable, and a later `setVisible` calls `setEnabled` on it."
+      ],
+      "scope_in": [
+        "Throttle `onZoneMove` the way `onSprayMove` is throttled: no work until the brush has travelled a meaningful fraction of its own radius since the last paint, reading the `lastSprayed` value it already writes.",
+        "Set `mesh = null` after disposing it in `src/render/zones.ts`, on every path including the early return.",
+        "Look at the paint callback in `src/app/app.ts`: painting a circular brush should not require a linear scan of every buildable cell in the city. `Zones.paint` already walks its own grid over the brush radius, so the cell scan may be removable outright -- confirm what it contributes before changing it.",
+        "Measure before and after with the existing `measureCosts` debug hook, and record the numbers in the closeout.",
+        "A check that fails without the throttle: either a pure helper for the move-throttle decision unit-tested in `src/render/drawTool.test.ts`, or a browser-level count of rebuilds during a simulated drag."
+      ],
+      "scope_out": [
+        "Incremental updates to the zone overlay mesh -- rebuilding it whole is fine once it happens per brush step rather than per pointer event.",
+        "Changing the zone data model, the save format, or the zone cell size.",
+        "Changing the tree spray."
+      ],
+      "acceptance_criteria": [
+        "AC1: A drag of the zoning brush triggers rebuilds proportional to distance travelled, matching the tree spray's rule, proven by a check that fails without the fix.",
+        "AC2: No code path in `src/render/zones.ts` leaves `mesh` pointing at a disposed mesh.",
+        "AC3: Before-and-after cost numbers from `measureCosts` are recorded at closeout.",
+        "AC4: Painting and clearing zones still behaves exactly as it does today from the player's side."
+      ]
+    },
+    {
+      "title": "Stop the overlay state and the debug statistics from lying",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC4", "AC5", "AC10"],
+      "problem": [
+        "`src/app/app.ts` around line 175, inside `onRoadMode`, runs `if (!zoning) roads.setShowTraffic(false)`. Any change of road tool mode therefore switches the traffic lane overlay off, while the `select-view` radio in the UI still reads `Traffic`. The control and the thing it controls disagree, and nothing puts them back in step.",
+        "`src/ui/controls.ts` already has the right primitive for this: `currentSelectView()` reads the checked radio, and the tool-button handler calls `handlers.onSelectView(currentSelectView())` when the select tool is chosen. The road-mode path does not.",
+        "`src/render/buildings.ts` around line 334 computes `const startupModelCount = available.length` immediately after firing the `loadModel` promises, so it is always 0. Whatever it was meant to report -- probably that no model blocked startup -- it does not report it, because a constant that cannot be anything but zero proves nothing.",
+        "`src/app/app.ts` around line 304 reports `buildings: buildingCount` from a variable the app updates only in its own `rebuild` and in the visibility handlers. The building renderer also calls its own `rebuild` from each model-load callback, which updates `lastPlaced` without the app seeing it, so the reported count is stale while models are still arriving. The renderer already exposes a `count()` accessor for exactly this, and nothing calls it."
+      ],
+      "scope_in": [
+        "Make the traffic overlay derive from one source of truth. Either drop the line in `onRoadMode` or re-apply the current select view after a mode change, so the radio and the overlay cannot disagree.",
+        "Fix or remove `startupModelCount`. If the intent is an assertion that startup does not block on models, express it as something that could fail; if it is not needed, delete it and its reporting.",
+        "Report `buildings` through `buildings.count()` rather than the app-local `buildingCount`, and remove the local variable if nothing else needs it.",
+        "Check the other entries of the statistics object for the same staleness pattern while in there.",
+        "Whatever the browser interaction suite already asserts about these statistics must keep passing, and should be extended if the fix makes a previously untestable claim testable."
+      ],
+      "scope_out": [
+        "Redesigning the debug API or the statistics it exposes.",
+        "Changing how building models are loaded, or making loading synchronous again.",
+        "Reworking the Select view or the toolbar layout."
+      ],
+      "acceptance_criteria": [
+        "AC1: Changing the road tool mode cannot leave the traffic overlay and the Select view radio in disagreement.",
+        "AC2: `startupModelCount` either reports something that can vary, or is gone.",
+        "AC3: The reported building count is correct while models are still arriving, sourced from the renderer rather than an app-local copy.",
+        "AC4: The browser interaction suite still passes."
+      ]
+    },
+    {
+      "title": "Prune the traffic queues, assert the ordering they rely on, and clear the small debris",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC6", "AC7", "AC8", "AC9", "AC10"],
+      "problem": [
+        "The traffic renderer moved queue bookkeeping out of the frame loop: `queues` is now a persistent `Map` keyed by lane, maintained by `joinQueue` and `leaveQueue` in `src/render/traffic.ts` (around line 997). `leaveQueue` splices a mover out of its array but never removes the map entry when the array empties, so lanes that no longer carry anyone accumulate as empty arrays and the frame loop iterates them forever.",
+        "That same change replaced a per-frame sort with the claim, stated only in a comment, that queue membership changes solely when a mover boards or leaves a lane, so the stored order stays correct. It is true today because car-following prevents overtaking within a lane, but nothing asserts it, and if it ever stops holding, the `ahead` chain is wrong silently -- cars pass through each other rather than crashing.",
+        "The share button handler in `src/ui/controls.ts` awaits `encodeShare` with no `try`/`catch`. `encodeShare` uses `CompressionStream`, which older Safari does not implement, so on those browsers the click produces an unhandled rejection and no feedback -- the one path in that file that does not report a refusal.",
+        "`zoneForCell` in `src/sim/slots.ts` is close to dead: `cellsForBlock` already stamps `cell.zone` using the identical centroid formula, so `origin.zone ?? zoneForCell(zones, origin)` only reaches the fallback when cells were built without zones and parcels were solved with them. That same four-corner centroid is written out three times -- twice in `src/sim/slots.ts` and once as `cellCentre` in `src/app/app.ts`."
+      ],
+      "scope_in": [
+        "Delete the map entry in `leaveQueue` when the queue it drained is empty, and confirm no other collection in the traffic renderer grows without bound over a long session.",
+        "Add an assertion to `src/render/traffic.test.ts` that pins the lane-ordering invariant: after a sequence of boards and leaves, each queue is still ordered by progress along the lane. Keep it in the existing test file and style -- no new framework.",
+        "Wrap the share handler's async work so a browser without `CompressionStream` gets the same refusal treatment every other failure in that file gets. Check `decodeShare` on the import path for the same exposure.",
+        "Give the buildable-cell centroid one home -- exported from `src/sim/slots.ts` alongside the cell type -- and have `cellsForBlock`, `zoneForCell` and `app.ts`'s `cellCentre` all use it.",
+        "Decide `zoneForCell`'s fate on evidence: if the fallback is genuinely unreachable, remove it and the `??`; if it is reachable, say when, in a comment."
+      ],
+      "scope_out": [
+        "Reworking the car-following model or the queue data structure.",
+        "Changing the share-link format or its size limits.",
+        "Broader deduplication across the renderers."
+      ],
+      "acceptance_criteria": [
+        "AC1: Emptied lane queues are removed from the map, and a test covers a mover joining and then leaving a lane.",
+        "AC2: The lane-ordering invariant is asserted by a test in `src/render/traffic.test.ts`.",
+        "AC3: A share attempt on a browser without `CompressionStream` produces a refusal message, not an unhandled rejection.",
+        "AC4: The buildable-cell centroid exists once, and `zoneForCell` is either removed or documented as to when it is reached."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Close the ten review findings from the dirty-region rebuild and zoning work",
+    "plan": [
+      "Read this request and its four backlog slices before touching code. The findings carry file and line references taken at commit 25d5121; lines drift, the described mechanism is what identifies each one.",
+      "Establish the baseline first: `npm test`, `npm run test:architecture`, `npm run build`. All are green today, which is the point -- nothing that runs catches any of these.",
+      "Start with the road-mesh dispose/recreate asymmetry. It is the only finding that destroys player-visible geometry, and the predicate it settles on is what the rest of the dirty-region reasoning has to match.",
+      "Then the zoning brush throttle and the disposed-mesh reference, measuring with the `measureCosts` debug hook before and after.",
+      "Then the overlay-state and statistics fixes, which are small and independent.",
+      "Then the queue pruning, the lane-order assertion, the share-button guard and the centroid deduplication.",
+      "Each of the two player-visible defects leaves behind one check that fails without its fix -- a pure unit test where a helper can be extracted, otherwise a browser-level check in the interaction suite. The smaller findings do not each need a test; the ones listed in the slices do.",
+      "Run the fast gate and the visual check, and confirm the bundled Demo save still renders as it does today.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/dirty-rebuild-review-findings.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
