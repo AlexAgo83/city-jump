@@ -1,14 +1,15 @@
 ## task_021_let_the_player_take_back_the_last_thing_they_did - Let the player take back the last thing they did
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:13
+> Indicators reviewed: 2026-08-30 18:05:09
+> Owner: Codex
 
 # AI Context
 - Summary: Orchestration for req_019: bounded snapshot history in `src/sim` first, then gesture boundaries and stale-id clearing, then the controls. Take snapshots and measure; only a bad measurement justifies an operation log, and that conclusion is a finding rather than licence to grow the chain.

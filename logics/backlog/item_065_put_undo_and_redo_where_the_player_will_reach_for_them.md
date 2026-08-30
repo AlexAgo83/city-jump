@@ -1,14 +1,14 @@
 ## item_065_put_undo_and_redo_where_the_player_will_reach_for_them - Put undo and redo where the player will reach for them
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:13
+> Indicators reviewed: 2026-08-30 18:05:09
 
 # AI Context
 - Summary: Toolbar controls plus Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z, joining the one existing `keydown` handler in `src/app/app.ts`, inert while a text field or browser prompt has focus. Nothing to undo says so through `showRefusal` rather than failing silently.

@@ -1,13 +1,14 @@
 ## item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone - Make one gesture one step, and leave nothing pointing at what is gone
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:05:09
 
 # AI Context
 - Summary: `replayCity` renumbers nodes on every restore, so every `NodeId`/`SegmentId` in the program is stale after an undo -- the selection, the follow-camera target and any pending draw all have to be cleared or re-resolved. And a spray burst is eight trees while a zone stroke is many paint events: both coalesce into one entry on the press/release boundary the brushes already have.
