@@ -25,7 +25,7 @@ import { approachAngle } from "../sim/transfers";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
-import { showFps, showRefusal, showSelection } from "../ui/hud";
+import { showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 
@@ -367,8 +367,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // would otherwise overwrite this right back to the default.
   const savedCamera = readCameraState();
   if (savedCamera) applyCamera(savedCamera);
+  showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
+    showCompass(camera.alpha);
     const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;
     if (selectedInfo?.kind === "vehicle" && selectedTarget) {
       const street = streetForSegment(graph, selectedTarget.segment.id).name;

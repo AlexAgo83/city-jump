@@ -1219,6 +1219,7 @@ const holdKey = async (key) => {
 // alpha = -PI/2 puts the camera at -Z looking towards +Z, so "forward" has to be +Z.
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, -Math.PI / 2));
 await nextFrame();
+check("compass points north when the camera looks north", await page.locator(".compass-direction").textContent() === "N");
 const panStart = await cameraTarget();
 await holdKey("ArrowUp");
 const panForward = await cameraTarget();
@@ -1231,6 +1232,7 @@ check("arrow right strafes sideways", panStrafe.x > panForward.x + 50, `x ${panS
 // Turn the camera a quarter turn: "forward" must follow it onto another world axis.
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, 0));
 await nextFrame();
+check("compass points west when the camera looks west", await page.locator(".compass-direction").textContent() === "W");
 const turnedStart = await cameraTarget();
 await holdKey("ArrowUp");
 const turnedForward = await cameraTarget();

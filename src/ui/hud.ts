@@ -3,6 +3,9 @@ import type { SelectionInfo } from "../render/drawTool";
 const toast = document.getElementById("toast") as HTMLDivElement;
 let toastTimer = 0;
 const fpsCounter = document.getElementById("fps-counter") as HTMLDivElement;
+const compass = document.getElementById("compass") as HTMLDivElement;
+const compassNeedle = compass.querySelector(".compass-needle") as HTMLSpanElement;
+const compassDirection = compass.querySelector(".compass-direction") as HTMLSpanElement;
 
 export function showRefusal(reason: string): void {
   toast.textContent = reason;
@@ -15,6 +18,13 @@ export function showFps(fps: number | null): void {
   fpsCounter.hidden = fps === null;
   if (fps === null) return;
   fpsCounter.textContent = `${fps} FPS`;
+}
+
+export function showCompass(alpha: number): void {
+  const heading = (-alpha - Math.PI / 2 + Math.PI * 2) % (Math.PI * 2);
+  const names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  compassNeedle.style.transform = `rotate(${heading}rad)`;
+  compassDirection.textContent = names[Math.round(heading / (Math.PI / 4)) % names.length]!;
 }
 
 const selectionPanel = document.getElementById("selection-panel") as HTMLDivElement;
