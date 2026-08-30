@@ -26,6 +26,13 @@ page.on("pageerror", (e) => console.log("[page exception]", e.message));
 
 await page.goto(url, { waitUntil: "load" });
 await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+if (scenario === "rugged") {
+  await page.evaluate(() => {
+    localStorage.setItem("cityjump.autosave", JSON.stringify({ v: 7, terrain: "rugged", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [] }));
+  });
+  await page.reload({ waitUntil: "load" });
+  await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 20_000 });
+}
 
 const report = await page.evaluate(async (which) => {
   const api = window.cityjump;
@@ -34,9 +41,6 @@ const report = await page.evaluate(async (which) => {
     api.demoCity();
     api.camera(1400, Math.PI / 3.2);
   } else if (which === "rugged") {
-    document.querySelector("#terrain").value = "rugged";
-    document.querySelector("#terrain").dispatchEvent(new Event("change", { bubbles: true }));
-    await new Promise((resolve) => setTimeout(resolve, 300));
     api.reset();
     api.demoNetwork();
     api._scene.getMeshByName("buildable-grid")?.setEnabled(false);

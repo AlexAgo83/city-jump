@@ -37,8 +37,8 @@ describe("ground terrain color", () => {
     writeTerrainColor(flatPeak, 0, 150, 150, 0.04, 420, -560);
     writeTerrainColor(steepPeak, 0, 150, 150, 0.9, 420, -560);
 
-    expect(flatPeak[0]).toBeGreaterThan(steepPeak[0]!);
-    expect(flatPeak[1]).toBeGreaterThan(steepPeak[1]!);
-    expect(flatPeak[2]).toBeGreaterThan(steepPeak[2]!);
+    expect(flatPeak[0]! - steepPeak[0]!).toBeGreaterThan(0.08);
+    expect(flatPeak[1]! - steepPeak[1]!).toBeGreaterThan(0.08);
+    expect(flatPeak[2]! - steepPeak[2]!).toBeGreaterThan(0.08);
   });
 });
