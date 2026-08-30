@@ -1,14 +1,14 @@
 ## item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it - Make traffic a switch that stops the simulation rather than hiding it
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 70%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:38:12
+> Indicators reviewed: 2026-08-30 18:43:24
 
 # AI Context
 - Summary: Off must mean the movers do not exist and the `registerBeforeRender` step is not entered -- hiding the meshes leaves the whole cost running and the frame rate unmoved, which is the worst outcome for a setting whose only purpose is cost. Headlights answer to this and to `Lights` as one combined answer, so no beams survive their cars.
@@ -61,3 +61,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
+
+# Notes
+- Task `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is` was finished via `logics-manager flow finish task` on 2026-08-30.

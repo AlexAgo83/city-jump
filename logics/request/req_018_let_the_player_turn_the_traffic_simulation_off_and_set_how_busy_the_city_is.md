@@ -1,12 +1,13 @@
 ## req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is - Let the player turn the traffic simulation off, and set how busy the city is
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:43:23
 
 # AI Context
 - Summary: How busy a city is lives in three frozen expressions in `src/render/traffic.ts` -- cars `min(4, max(1, floor(len/80)))`, pedestrians `min(8, max(2, floor(len/22)))` on pedestrian ways and `min(6, floor(len/45))` elsewhere -- and the simulation runs whether the machine can afford it or not. A `Traffic` toggle that removes the movers and the per-frame step, plus a density slider scaling those three counts, with the default reproducing today's city exactly.

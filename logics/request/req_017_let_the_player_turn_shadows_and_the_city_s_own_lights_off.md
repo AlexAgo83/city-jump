@@ -7,7 +7,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:37:32
+> Indicators reviewed: 2026-08-30 18:43:23
 
 # AI Context
 - Summary: The two most expensive things the scene does -- a cascaded shadow map every frame, and a clustered spotlight plus point light per streetlight and per headlight after dark -- are the two the player cannot switch off. Both already have their seam: `sun.shadowEnabled` on the light, and the `setEnabled` the two `ClusteredLightContainer`s already take from the hour of day. Two positive-sense World toggles, on by default.

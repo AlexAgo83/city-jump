@@ -1,12 +1,12 @@
 ## prod_015_a_city_whose_traffic_is_the_player_s_to_dial - A city whose traffic is the player's to dial
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
-> Related backlog: `item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it`, `item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel`
+> Related backlog: `item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it`
 > Related task: `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:54
+> Indicators reviewed: 2026-08-30 18:43:24
 
 # Overview
 city-jump decides how busy a city is with three integer expressions nobody has revisited since they were written, and it runs that simulation whether the machine can afford it or not. This slice hands both ends of that to the player: a switch that stops the simulation outright for someone whose hardware cannot carry it, and a slider that lets someone whose hardware can turn a quiet town into rush hour. It is the largest of the three performance switches and the only one a player would also want for its own sake.
@@ -56,5 +56,5 @@ flowchart TB
 - A drag from end to end costs a handful of rebuilds, not hundreds.
 
 # References
-- Product back-reference: `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
+- Product back-reference: `item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it`
 - Task back-reference: `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`
