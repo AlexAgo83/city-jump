@@ -1,13 +1,13 @@
 ## req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses - Performance: every road placed rebuilds the whole city, and the first load ships what it never uses
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:24:45
+> Indicators reviewed: 2026-08-30 13:52:51
 
 # AI Context
 - Summary: A road placement costs a whole-city rebuild (full heightmap re-stamp, a 456,976-vertex ground refresh allocating ~2.7M colour objects and a 1.37M-entry normals array, every road mesh and mover disposed), while the first load ships 561 KB gz of JS including 93 KB of unused gaussian splatting and blocks the first frame on 1.8 MB of building models.

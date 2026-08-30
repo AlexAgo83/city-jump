@@ -1,14 +1,14 @@
 ## item_028_draw_the_first_frame_without_waiting_on_all_20_building_models - Draw the first frame without waiting on all 20 building models
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:19:50
+> Indicators reviewed: 2026-08-30 13:52:52
 
 # AI Context
 - Summary: `createBuildingRenderer` awaits all 20 GLBs (1.8 MB, uncompressed) plus a flat-shade conversion and edge-rendering pass each, before `startApp` draws anything.
@@ -50,3 +50,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
+
+# Notes
+- Task `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work` was finished via `logics-manager flow finish task` on 2026-08-30.

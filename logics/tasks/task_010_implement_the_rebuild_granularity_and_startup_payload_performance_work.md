@@ -1,14 +1,14 @@
 ## task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work - Implement the rebuild-granularity and startup-payload performance work
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:19:50
+> Indicators reviewed: 2026-08-30 13:52:51
 > Owner: codex
 
 # AI Context
@@ -25,20 +25,20 @@
   - `task_011_implement_one_source_of_truth_for_building_model_geometry` restructures where `src/render/buildings.ts` gets a model's geometry, and this task's first-frame slice restructures how the same file loads models. Do not run them in parallel; take task_011 first, since it decides what the loading change then has to preserve.
 
 # Plan
-- [ ] 1. Read this request and its seven backlog slices; confirm req_005's rebuild internals and req_007's toggle/load scope stay closed and untouched.
-- [ ] 2. Build the measurement first, and record the baseline -- every item after this one is judged against it.
-- [ ] 3. Take the two cheap allocation fixes in the ground refresh, and re-measure.
-- [ ] 4. Bound the heightmap re-stamp and ground refresh to the changed region, with the test that pins it to the full-map result.
-- [ ] 5. Narrow the road mesh and traffic rebuilds to the segments a placement touched.
-- [ ] 6. Trim the glTF loader to the extensions the models use, and record the before/after payload.
-- [ ] 7. Unblock the first frame from the full model catalogue.
-- [ ] 8. Make the traffic frame loop stop rebuilding its queue bookkeeping every frame.
-- [ ] 9. Run the fast gate, then the browser interaction and visual checks, and confirm the city is visually identical throughout.
-- [ ] 10. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.
-- [ ] 11. GATE: do not close until lint, audit, and scaffold validation pass.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Read this request and its seven backlog slices; confirm req_005's rebuild internals and req_007's toggle/load scope stay closed and untouched.
+- [x] 2. Build the measurement first, and record the baseline -- every item after this one is judged against it.
+- [x] 3. Take the two cheap allocation fixes in the ground refresh, and re-measure.
+- [x] 4. Bound the heightmap re-stamp and ground refresh to the changed region, with the test that pins it to the full-map result.
+- [x] 5. Narrow the road mesh and traffic rebuilds to the segments a placement touched.
+- [x] 6. Trim the glTF loader to the extensions the models use, and record the before/after payload.
+- [x] 7. Unblock the first frame from the full model catalogue.
+- [x] 8. Make the traffic frame loop stop rebuilding its queue bookkeeping every frame.
+- [x] 9. Run the fast gate, then the browser interaction and visual checks, and confirm the city is visually identical throughout.
+- [x] 10. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.
+- [x] 11. GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`
@@ -50,27 +50,27 @@
 - `item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC2 -> `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`. Proof deferred to slice closeout.
-- request-AC7 -> `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`. Proof deferred to slice closeout.
-- request-AC1 -> `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`. Proof deferred to slice closeout.
-- request-AC6 -> `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`. Proof deferred to slice closeout.
-- request-AC7 -> `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`. Proof deferred to slice closeout.
-- request-AC1 -> `item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched`. Proof deferred to slice closeout.
-- request-AC7 -> `item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched`. Proof deferred to slice closeout.
-- request-AC3 -> `item_027_ship_only_the_gltf_loader_features_the_models_actually_use`. Proof deferred to slice closeout.
-- request-AC7 -> `item_027_ship_only_the_gltf_loader_features_the_models_actually_use`. Proof deferred to slice closeout.
-- request-AC4 -> `item_028_draw_the_first_frame_without_waiting_on_all_20_building_models`. Proof deferred to slice closeout.
-- request-AC7 -> `item_028_draw_the_first_frame_without_waiting_on_all_20_building_models`. Proof deferred to slice closeout.
-- request-AC5 -> `item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame`. Proof deferred to slice closeout.
-- request-AC7 -> `item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame`. Proof deferred to slice closeout.
-- request-AC6 -> `item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city`. Proof deferred to slice closeout.
-- request-AC7 -> `item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city`. Proof deferred to slice closeout.
+- request-AC2 -> This task. Proof: date: 2026-08-30 | command: `npm run ci` | result: passed on 2026-08-30: vitest, architecture tests, build/typecheck, logics lint/audit passed | Ground refresh no longer creates Color4 constants/Lerp results per terrain vertex and reuses its normal Float32Array for recomputation. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC1 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC6 -> This task. Proof: date: 2026-08-30 | command: `npm run test:e2e` | result: passed on 2026-08-30; sample startupms=6816.2, demobuildms=5490.5, placementms=581.3, segments=238 | Debug surface exposes window.cityjump.measureCosts() for startup, demo build, and one placement cost against the existing demo-city path. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC1 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC3 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC4 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC5 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
+- request-AC6 -> This task. Proof: date: 2026-08-30 | command: `npm run test:e2e` | result: passed on 2026-08-30; sample startupms=6816.2, demobuildms=5490.5, placementms=581.3, segments=238 | Debug surface exposes window.cityjump.measureCosts() for startup, demo build, and one placement cost against the existing demo-city path. Source: `ff9043e`
+- request-AC7 -> This task. Proof: Implemented across commits 1cb2078, 1d1cfb2, 624bffa, ee24256, 55cf77e, bb746d9, and ff9043e; validated with npm run typecheck, targeted vitest, npm run test:e2e, and npm run ci. Measurement proof includes reduced placementMs in debug measureCosts and payload reduction from 1,007.93 kB to about 962 kB index chunk. Source: `ff9043e`
 
 # Validation
 - 2026-08-30 payload wave: npm run build passed with index chunk 961.73 kB / 250.42 kB gzip, down from 1,007.93 kB / 251.27 kB gzip before the loader import change; rg found no KHR_gaussian_splatting, KHR_interactivity, or large gaussianSplattingMesh payload in dist; npm run test:e2e and npm run ci passed.
@@ -78,9 +78,15 @@
 - 2026-08-30 first-frame model wave: createBuildingRenderer now returns before the GLB catalogue is loaded, starts model loads in the background, and rebuilds placed instances as each model arrives. Interaction check observed startupModels=0 at renderer return, all 16 parcel models loaded afterward, and save/reload building checks passed. Validated with npm run typecheck, npm run test:e2e, and npm run ci.
 - 2026-08-30 traffic rebuild wave: traffic.rebuild now accepts dirty terrain bounds, preserves movers on live segments outside the dirty region, and regenerates only movers whose segment was removed or touched. Validated with npm run typecheck, npx vitest run src/render/traffic.test.ts, npm run test:e2e, and npm run ci.
 - 2026-08-30 traffic queue wave: lane queues are now maintained across board/arrive/rebuild transitions instead of regrouped and sorted every frame, queue keys stay numeric, and armOf uses a per-junction segment lookup. Validated with npm run typecheck, npx vitest run src/render/traffic.test.ts, npm run test:e2e, and npm run ci.
+- command: `npm run typecheck; npx vitest run src/render/traffic.test.ts; npm run test:e2e; npm run ci` | result: passed | date: 2026-08-30
+- Finish workflow executed on 2026-08-30.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-08-30.
+- Linked backlog item(s): `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`, `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`, `item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched`, `item_027_ship_only_the_gltf_loader_features_the_models_actually_use`, `item_028_draw_the_first_frame_without_waiting_on_all_20_building_models`, `item_029_stop_rebuilding_the_traffic_queue_bookkeeping_every_frame`, `item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city`
+- Related request(s): `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
 
 # Links
 - Request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`

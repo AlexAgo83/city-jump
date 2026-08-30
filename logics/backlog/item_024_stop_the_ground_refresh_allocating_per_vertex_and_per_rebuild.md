@@ -1,14 +1,14 @@
 ## item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild - Stop the ground refresh allocating per vertex and per rebuild
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:19:50
+> Indicators reviewed: 2026-08-30 13:52:52
 
 # AI Context
 - Summary: `terrainColor` allocates four constant Color4s plus two Lerps per vertex across 456,976 vertices, and `refresh` allocates a fresh 1.37M-entry `number[]` for normals on every call.
@@ -50,3 +50,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
+
+# Notes
+- Task `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work` was finished via `logics-manager flow finish task` on 2026-08-30.
