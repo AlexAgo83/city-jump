@@ -14,6 +14,8 @@ import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap"
 
 export const GROUND_SIZE = 5400;
 export const GROUND_CELL = 8;
+const OFFSHORE_ISLAND_Z = 6200;
+const OFFSHORE_ISLAND_RADIUS = 2500;
 
 /**
  * The pickable ground, one vertex per heightmap cell. `refresh` re-uploads the positions
@@ -82,7 +84,65 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   }
 
   refresh();
+  createOffshoreIsland(scene, material);
   return { mesh, refresh };
+}
+
+function createOffshoreIsland(scene: Scene, material: StandardMaterial): Mesh {
+  const cells = 126;
+  const size = OFFSHORE_ISLAND_RADIUS * 2.25;
+  const positions = new Float32Array((cells + 1) * (cells + 1) * 3);
+  const normals = new Float32Array((cells + 1) * (cells + 1) * 3);
+  const colors = new Float32Array((cells + 1) * (cells + 1) * 4);
+  const indices: number[] = [];
+
+  for (let z = 0; z <= cells; z++) {
+    for (let x = 0; x <= cells; x++) {
+      const i = z * (cells + 1) + x;
+      const wx = ((x / cells) - 0.5) * size;
+      const wz = OFFSHORE_ISLAND_Z + ((z / cells) - 0.5) * size;
+      const h = offshoreIslandHeight(wx, wz);
+      positions[i * 3] = wx;
+      positions[i * 3 + 1] = h;
+      positions[i * 3 + 2] = wz;
+      writeTerrainColor(colors, i * 4, h, h, 0.35, wx, wz);
+      if (x < cells && z < cells && offshoreIslandHeight(wx, wz) > SEA_LEVEL - 10) {
+        indices.push(i, i + 1, i + cells + 1, i + 1, i + cells + 2, i + cells + 1);
+      }
+    }
+  }
+
+  const mesh = new Mesh("offshore-island", scene);
+  const data = new VertexData();
+  data.positions = positions as unknown as number[];
+  data.indices = indices;
+  VertexData.ComputeNormals(positions, indices, normals as unknown as number[]);
+  data.normals = normals as unknown as number[];
+  data.colors = colors as unknown as number[];
+  data.applyToMesh(mesh, true);
+  mesh.material = material;
+  mesh.receiveShadows = true;
+  mesh.isPickable = false;
+  return mesh;
+}
+
+function offshoreIslandHeight(x: number, z: number): number {
+  const dx = x;
+  const dz = z - OFFSHORE_ISLAND_Z;
+  const angle = Math.atan2(dz, dx);
+  const d = Math.hypot(dx, dz) / offshoreRadiusAt(angle);
+  const land = 1 - smoothstep((d - 0.76) / 0.32);
+  const peak = (cx: number, cz: number, height: number, radius: number) =>
+    height * Math.exp(-((x - cx) ** 2 + (z - cz) ** 2) / (2 * radius * radius));
+  const lobes =
+    peak(-980, OFFSHORE_ISLAND_Z - 320, 34, 520) +
+    peak(820, OFFSHORE_ISLAND_Z + 420, 30, 560) -
+    peak(760, OFFSHORE_ISLAND_Z - 600, 42, 430);
+  const mountains =
+    peak(-260, OFFSHORE_ISLAND_Z - 140, 150, 340) +
+    peak(280, OFFSHORE_ISLAND_Z + 40, 128, 410) +
+    peak(10, OFFSHORE_ISLAND_Z + 360, 96, 500);
+  return SEA_LEVEL - 42 + land * (58 + lobes + mountains + valueNoise(x, z, 360) * 22);
 }
 
 function terrainBumpTexture(scene: Scene): DynamicTexture {
@@ -305,7 +365,10 @@ function stretch(t: number, half: number): number {
 }
 
 function oceanDepth(x: number, z: number): number {
-  return smoothstep((Math.hypot(x, z) - 1440) / 1040);
+  return Math.min(
+    smoothstep((Math.hypot(x, z) - 1440) / 1040),
+    smoothstep((offshoreWaterDepthShape(x, z) - 0.78) / 0.34),
+  );
 }
 
 function oceanColor(depth: number, noise: number): Color4 {
@@ -317,7 +380,24 @@ function oceanColor(depth: number, noise: number): Color4 {
 }
 
 function distanceFromIsland(x: number, z: number): number {
-  return smoothstep((Math.hypot(x, z) - 1520) / 1000);
+  return Math.min(
+    smoothstep((Math.hypot(x, z) - 1520) / 1000),
+    smoothstep((offshoreDistance(x, z) - OFFSHORE_ISLAND_RADIUS) / 820),
+  );
+}
+
+function offshoreDistance(x: number, z: number): number {
+  return Math.hypot(x, z - OFFSHORE_ISLAND_Z);
+}
+
+function offshoreWaterDepthShape(x: number, z: number): number {
+  const dx = x;
+  const dz = z - OFFSHORE_ISLAND_Z;
+  return Math.hypot(dx, dz) / offshoreRadiusAt(Math.atan2(dz, dx));
+}
+
+function offshoreRadiusAt(angle: number): number {
+  return OFFSHORE_ISLAND_RADIUS * (1 + Math.sin(angle * 3 + 0.7) * 0.16 + Math.sin(angle * 5 - 1.1) * 0.1);
 }
 
 function waveNoise(x: number, z: number): number {

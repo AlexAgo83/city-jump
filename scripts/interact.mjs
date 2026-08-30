@@ -293,6 +293,16 @@ const localTerrainVariation = await terrainColorVariation();
 check("terrain colors have natural local variation", localTerrainVariation > 0.002, localTerrainVariation.toFixed(4));
 const forestDensity = await densestTreeCluster();
 check("some areas grow as dense forest", forestDensity >= 20, `${forestDensity} trees within 120 m`);
+const offshoreIsland = await page.evaluate(() => {
+  const mesh = window.cityjump._scene.getMeshByName("offshore-island");
+  const bounds = mesh?.getBoundingInfo().boundingBox;
+  return mesh && bounds ? { pickable: mesh.isPickable, centerZ: mesh.getBoundingInfo().boundingSphere.centerWorld.z, width: bounds.maximumWorld.x - bounds.minimumWorld.x } : null;
+});
+check(
+  "the offshore island is scenery beyond the playable map",
+  offshoreIsland && !offshoreIsland.pickable && offshoreIsland.centerZ > 2700 && offshoreIsland.width > 4000,
+  JSON.stringify(offshoreIsland),
+);
 check("startup does not wait for all parcel models", fresh.startupModels < 16, `${fresh.startupModels} models ready at renderer return`);
 await page.waitForFunction(() => window.cityjump.stats().models === 16, null, { timeout: 20_000 });
 check("all sixteen parcel models load", (await stats()).models === 16, `${(await stats()).models} models`);
