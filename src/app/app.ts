@@ -27,6 +27,7 @@ import { v3 } from "../sim/vec";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
+import { createDetailCuller } from "../render/detail";
 import { showCityStats, showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
@@ -34,6 +35,7 @@ type CameraMode = "free" | "orbit" | "follow";
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
   const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows } = createScene(canvas);
+  const detail = createDetailCuller(scene, camera);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
   setTerrain(heightmap);
   const frameTerrain = (): void => {
@@ -118,6 +120,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));
     invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
+    detail.invalidate(); // and the new meshes have not been through the zoom rules yet
     scheduleAutosave();
   };
 
@@ -385,6 +388,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   if (savedCamera) applyCamera(savedCamera);
   showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
+    detail.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     showCompass(camera.alpha);
     const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;

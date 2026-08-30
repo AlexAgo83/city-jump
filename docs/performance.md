@@ -99,7 +99,12 @@ indistinguishable in a screenshot.
   renders in 457 frames instead of 457. Worth about +12 fps at street level: what is left of the
   shadow cost is the main pass sampling the map, not drawing it.
 
-Meshes: 1216 -> 841. Frame rates moved with them, but see the warning above about believing any
+- **Detail stops being drawn as the camera pulls out** (`render/detail.ts`): street furniture and
+  car parts beyond 420 m, roof clutter beyond 700, people beyond 900. Cars stay at every height --
+  they are what makes a city look alive from up there. Overview 88 -> 107 fps, 841 -> 709 active
+  meshes. The rules are keyed on mesh-name prefixes, so a renderer opts in by naming its output.
+
+Meshes: 1216 -> 709. Frame rates moved with them, but see the warning above about believing any
 single pair of numbers.
 
 Merging has to keep the name the dirty-region rebuild matches on (`sidewalk_<segmentId>`,
@@ -125,6 +130,10 @@ meshes to throw away and which to keep.
 - **Road surface per tile rather than per segment** -- `road` 184 + `roundabout` 182 + `junction`
   90 + `lane` 55 are still one mesh each. Tried once (above) and reverted; it also needs a
   tile-level dirty region to stop an edit rebuilding whole tiles.
+- **Distance, not just zoom.** The detail rules read the camera's own distance, which is right for
+  a city builder looking down at a district, and wrong for a low camera looking across one: the
+  near kerb and the far skyline get the same treatment. Per-object distance would fix that, and
+  costs a per-frame pass over the meshes it applies to.
 - **Traffic as thin instances** -- ~1700 meshes for cars, their parts and pedestrians. They batch
   already, so this buys scene traversal, not draw calls, and costs a per-frame matrix buffer
   rewrite. Measure before doing it.
