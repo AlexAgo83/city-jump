@@ -65,8 +65,8 @@ const CAR_STOP_SETBACK = 3;
 const CAR_TURN_RATE = 2.6;
 const WALKER_TURN_RATE = 7;
 
-/** Everyone slows for a ring, and eases off a little through a plain junction. */
-const RING_PACE = 0.6;
+/** A ring keeps traffic moving; a plain junction still eases off a little. */
+const RING_PACE = 1.1;
 const JUNCTION_PACE = 0.8;
 
 /** A frame longer than this (a tab coming back from the background) is not driven through. */
@@ -180,6 +180,13 @@ export function roundaboutEntryBlocked(
   return occupied.some(({ at, radius }) => (((entry - at) % TAU) + TAU) % TAU * radius < CAR_GAP * 1.4);
 }
 
+export function roundaboutExitBlocked(
+  exiting: readonly { readonly exit: SegmentId; readonly travelled: number; readonly total: number }[],
+  segmentId: SegmentId,
+): boolean {
+  return exiting.some((ride) => ride.exit === segmentId && ride.total - ride.travelled < CAR_GAP * 2);
+}
+
 export function trafficLaneOffset(
   lane: LaneCentre,
   changing: LaneCentre | null,
@@ -192,8 +199,12 @@ export function trafficLaneOffset(
   return laneChangeOffset(changing.offset, lane.offset, travelled / (span.end - span.start));
 }
 
+function laneQueueKeyFor(segmentId: SegmentId, direction: 1 | -1, lane: LaneCentre): number {
+  return segmentId * 10000 + (direction === 1 ? 5000 : 0) + Math.round((lane.offset + 100) * 10);
+}
+
 function laneQueueKey(mover: Mover): number {
-  return mover.segment.id * 10000 + (mover.direction === 1 ? 5000 : 0) + Math.round((mover.lane.offset + 100) * 10);
+  return laneQueueKeyFor(mover.segment.id, mover.direction, mover.lane);
 }
 
 interface QueuedMover {
@@ -224,6 +235,13 @@ export function leaveLaneQueue<T extends QueuedMover>(queues: Map<number, T[]>, 
 
 export function laneQueueIsOrdered<T extends QueuedMover>(queue: readonly T[]): boolean {
   return queue.every((mover, i) => i === 0 || queue[i - 1]!.distance * queue[i - 1]!.direction <= mover.distance * mover.direction);
+}
+
+export function laneStartBlocked<T extends QueuedMover>(queue: readonly T[] | undefined, distance: number, direction: 1 | -1): boolean {
+  return queue?.some((other) => {
+    const ahead = (other.distance - distance) * direction;
+    return ahead >= 0 && ahead < CAR_GAP;
+  }) ?? false;
 }
 
 export function scaledTrafficCount(base: number, density: number): number {
@@ -746,15 +764,32 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     return { lane: start, changing: null, plan };
   }
 
+  function landingDistance(segment: Segment, direction: 1 | -1, trim: number): number {
+    const at = Math.min(trim, segment.length * 0.45);
+    return direction === 1 ? at : segment.length - at;
+  }
+
+  function laneHasEntryRoom(segmentId: SegmentId, from: NodeId, lane: LaneCentre, trim: number): boolean {
+    const segment = graph.segment(segmentId);
+    const direction = segment.a === from ? 1 : -1;
+    const distance = landingDistance(segment, direction, trim);
+    return !laneStartBlocked(queues.get(laneQueueKeyFor(segment.id, direction, lane)), distance, direction);
+  }
+
+  function kerbLaneFrom(segment: Segment, from: NodeId): LaneCentre {
+    const direction = segment.a === from ? 1 : -1;
+    const lanes = lanesFor(segment, direction, false);
+    return lanes.find((lane) => laneRank(lanes, lane) === 0) ?? lanes[0] ?? ({ offset: 0, direction } as LaneCentre);
+  }
+
   /** Puts a car on a road, at `trim` from the node it entered by. */
   function board(mover: Mover, segmentId: SegmentId, from: NodeId, entry: Entry, trim: number): void {
     leaveQueue(mover);
     const segment = graph.segment(segmentId);
     const direction = segment.a === from ? 1 : -1;
-    const at = Math.min(trim, segment.length * 0.45);
     mover.segment = segment;
     mover.direction = direction;
-    mover.distance = direction === 1 ? at : segment.length - at;
+    mover.distance = landingDistance(segment, direction, trim);
     mover.speed = (mover.walk ? WALKER_SPEED : roadType(segment.type).maxSpeed) * mover.pace;
     mover.lane = entry.lane;
     mover.changing = entry.changing;
@@ -802,10 +837,40 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * light is against it. Whichever comes first in the direction it is going.
    */
   function stopFor(mover: Mover, ahead: Mover | undefined, time: number): number {
-    const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover) ? stopLineOf(mover) : limitOf(mover) + mover.direction * BRAKING * 2;
+    const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover) || roundaboutYieldBlocked(mover)
+      ? stopLineOf(mover)
+      : limitOf(mover) + mover.direction * BRAKING * 2;
     if (!ahead) return line;
     const behind = ahead.distance - mover.direction * CAR_GAP;
     return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
+  }
+
+  function roundaboutYieldBlocked(mover: Mover): boolean {
+    const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
+    if (!graph.node(nodeId).roundabout) return false;
+    const planned = mover.plan?.node === nodeId ? mover.plan : null;
+    if (!planned) return false;
+    const from = armOf(nodeId, mover.segment.id);
+    const to = armOf(nodeId, planned.exit);
+    if (!from || !to) return false;
+
+    const ring = ringAt(nodeId);
+    const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
+    const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
+    const occupied = movers.flatMap((other) => {
+      if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
+      const { position } = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled);
+      return [{ at: ringBearing(ring, position), radius: other.ride.roundabout.radius }];
+    });
+    const exiting = movers.flatMap((other) => {
+      if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
+      return [{ exit: other.ride.exit, travelled: other.ride.travelled, total: other.ride.cumulative[other.ride.cumulative.length - 1]! }];
+    });
+    return (
+      !laneHasEntryRoom(planned.exit, nodeId, kerbLaneFrom(graph.segment(planned.exit), nodeId), trimAt(nodeId, planned.exit)) ||
+      roundaboutExitBlocked(exiting, mover.segment.id) ||
+      roundaboutEntryBlocked(entryAngle, occupied)
+    );
   }
 
   /** The distance along the current segment at which the car has run out of road. */
@@ -854,6 +919,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     const to = armOf(nodeId, next);
     // Landing on the exit road in the lane it will start in, which is the one it changes from.
     const landing = entry.changing ?? entry.lane;
+    if (!mover.walk && !laneHasEntryRoom(next, nodeId, landing, trim)) return;
     if (roundabout && !mover.walk && from && to) {
       const ring = ringAt(nodeId);
       const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
@@ -863,6 +929,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         const { position } = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled);
         return [{ at: ringBearing(ring, position), radius: other.ride.roundabout.radius }];
       });
+      const exiting = movers.flatMap((other) => {
+        if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
+        return [{ exit: other.ride.exit, travelled: other.ride.travelled, total: other.ride.cumulative[other.ride.cumulative.length - 1]! }];
+      });
+      if (roundaboutExitBlocked(exiting, mover.segment.id)) return;
       if (roundaboutEntryBlocked(entryAngle, occupied)) return;
     }
 
@@ -1205,6 +1276,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         ride.travelled += mover.currentSpeed * dt;
         const total = ride.cumulative[ride.cumulative.length - 1]!;
         if (ride.travelled >= total) {
+          if (!mover.walk && !laneHasEntryRoom(ride.exit, ride.from, ride.changing ?? ride.lane, ride.trim)) {
+            ride.travelled = total;
+            mover.currentSpeed = 0;
+            continue;
+          }
           board(mover, ride.exit, ride.from, { lane: ride.lane, changing: ride.changing, plan: mover.plan }, ride.trim);
         } else {
           const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);

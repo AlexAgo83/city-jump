@@ -128,7 +128,7 @@ export function laneCentres(type: RoadType): LaneCentre[] {
   const CENTRE_CLEARANCE = CAR_WIDTH / 2 + 0.3;
   const halfWidth = type.width / 2;
   const maxLaneOffset = halfWidth - CAR_WIDTH / 2 - 0.3; // stays clear of the sidewalk
-  const singleLaneOffset = type.oneWay ? 0 : Math.max(1.8, type.width * 0.22);
+  const singleLaneOffset = type.oneWay ? 0 : Math.min(Math.max(CENTRE_CLEARANCE, halfWidth * 0.5), maxLaneOffset);
   const innerLane = Math.max(CENTRE_CLEARANCE, halfWidth * 0.3);
   const outerLane = Math.min(Math.max(innerLane + LANE_PITCH, halfWidth * 0.65), maxLaneOffset);
   const oneWaySpread = Math.min(Math.max(LANE_PITCH / 2, halfWidth * 0.3), maxLaneOffset);

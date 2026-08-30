@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { circularQueueRooms, joinLaneQueue, laneQueueIsOrdered, leaveLaneQueue, roundaboutEntryBlocked, scaledTrafficCount, trafficLaneOffset } from "./traffic";
+import {
+  circularQueueRooms,
+  joinLaneQueue,
+  laneQueueIsOrdered,
+  laneStartBlocked,
+  leaveLaneQueue,
+  roundaboutEntryBlocked,
+  roundaboutExitBlocked,
+  scaledTrafficCount,
+  trafficLaneOffset,
+} from "./traffic";
 
 describe("traffic queues", () => {
   it("scales traffic counts without changing the default or making non-empty roads empty", () => {
@@ -26,6 +36,12 @@ describe("traffic queues", () => {
     expect(roundaboutEntryBlocked(0, [{ at: Math.PI * 2 - 0.08, radius: 20 }])).toBe(true);
     expect(roundaboutEntryBlocked(0, [{ at: 0.08, radius: 20 }])).toBe(false);
     expect(roundaboutEntryBlocked(0, [{ at: Math.PI, radius: 20 }])).toBe(false);
+  });
+
+  it("makes roundabout entrants yield to cars about to exit through their arm", () => {
+    expect(roundaboutExitBlocked([{ exit: 4, travelled: 92, total: 100 }], 4)).toBe(true);
+    expect(roundaboutExitBlocked([{ exit: 4, travelled: 70, total: 100 }], 4)).toBe(false);
+    expect(roundaboutExitBlocked([{ exit: 5, travelled: 92, total: 100 }], 4)).toBe(false);
   });
 
   it("uses the same lane-change offset in both travel directions", () => {
@@ -66,5 +82,12 @@ describe("traffic queues", () => {
 
     expect(queues.get(3)).toEqual([near, far]);
     expect(laneQueueIsOrdered(queues.get(3)!)).toBe(true);
+  });
+
+  it("blocks entering a lane when the next car is still at its mouth", () => {
+    expect(laneStartBlocked([{ distance: 14, direction: 1 }], 10, 1)).toBe(true);
+    expect(laneStartBlocked([{ distance: 2, direction: 1 }], 10, 1)).toBe(false);
+    expect(laneStartBlocked([{ distance: 86, direction: -1 }], 90, -1)).toBe(true);
+    expect(laneStartBlocked([{ distance: 98, direction: -1 }], 90, -1)).toBe(false);
   });
 });

@@ -75,6 +75,7 @@ describe("road type variants", () => {
       expect(lanes).toHaveLength(2);
       const [a, b] = lanes;
       expect(a!.offset).toBeCloseTo(-b!.offset, 6);
+      expect(Math.abs(a!.offset)).toBeCloseTo(roadType("street").width / 4);
       expect(a!.direction).not.toBe(b!.direction);
     });
 
