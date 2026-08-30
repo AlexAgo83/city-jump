@@ -1,12 +1,13 @@
 ## req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy - The game is deployed in public while its documents and its input model still describe a local dev toy
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:32:32
 
 # AI Context
 - Summary: 0.2.0 went public on a static site and the surrounding documents did not follow: `SECURITY.md` still describes a Vite dev server and a 0.1.x support line, the threat-model review it demands for user-generated content is missing while the share feature is being scoped, and the build flow needs hover and a right-click that no touchscreen has.

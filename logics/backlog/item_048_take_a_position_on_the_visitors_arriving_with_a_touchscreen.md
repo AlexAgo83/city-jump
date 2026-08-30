@@ -1,14 +1,14 @@
 ## item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen - Take a position on the visitors arriving with a touchscreen
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 40%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:28:52
+> Indicators reviewed: 2026-08-30 12:32:33
 
 # AI Context
 - Summary: The build loop needs a hover preview and a right-click to cancel, and tests `event.button === 0`; the README links a public demo that phone visitors cannot build anything in, with nothing telling them why.
@@ -54,3 +54,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`
+
+# Notes
+- Task `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment` was finished via `logics-manager flow finish task` on 2026-08-30.

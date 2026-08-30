@@ -1,11 +1,12 @@
 ## prod_010_a_published_game_whose_documents_tell_the_truth - A published game whose documents tell the truth
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
-> Related backlog: `item_046_make_security_md_describe_the_deployment_that_exists`, `item_047_record_the_threat_model_review_that_shared_links_require`, `item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen`
+> Related backlog: `item_046_make_security_md_describe_the_deployment_that_exists`
 > Related task: `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:32:33
 
 # Overview
 city-jump stopped being a thing on one machine and became a link anyone can open, and its documents did not notice. The security policy describes a dev server, the supported-versions table names a version that is no longer current, and the game itself cannot be played by anyone who arrives on a phone. None of this is a bug in the game; all of it is the gap between what the project is and what it says about itself. This slice closes that gap and makes the project take a written position on the visitors it currently ignores.
@@ -47,5 +48,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
+- Product back-reference: `item_046_make_security_md_describe_the_deployment_that_exists`
 - Task back-reference: `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`
