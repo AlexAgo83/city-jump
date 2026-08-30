@@ -7,6 +7,7 @@
 | [adr_001_keep_the_road_graph_as_the_source_of_truth](architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md) | Keep the road graph as the source of truth | Settled |  |  | architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md |
 | [adr_002_keep_simulation_independent_from_babylon_and_the_browser](architecture/adr_002_keep_simulation_independent_from_babylon_and_the_browser.md) | Keep simulation independent from Babylon and the browser | Settled |  |  | architecture/adr_002_keep_simulation_independent_from_babylon_and_the_browser.md |
 | [adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views](architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md) | Rebuild terrain roads plots and buildings as derived views | Settled |  |  | architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md |
+| [adr_004_stay_a_static_client_with_no_server_of_its_own](architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md) | Stay a static client with no server of its own | Settled |  |  | architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md |
 
 ## Product briefs
 
@@ -21,6 +22,7 @@
 | [prod_007_a_city_you_can_point_at_and_name](product/prod_007_a_city_you_can_point_at_and_name.md) | A city you can point at and name | Proposed |  |  | product/prod_007_a_city_you_can_point_at_and_name.md |
 | [prod_008_a_city_you_can_hand_to_someone_else](product/prod_008_a_city_you_can_hand_to_someone_else.md) | A city you can hand to someone else | Proposed |  |  | product/prod_008_a_city_you_can_hand_to_someone_else.md |
 | [prod_009_a_camera_that_can_watch_not_only_be_aimed](product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md) | A camera that can watch, not only be aimed | Proposed |  |  | product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md |
+| [prod_010_a_published_game_whose_documents_tell_the_truth](product/prod_010_a_published_game_whose_documents_tell_the_truth.md) | A published game whose documents tell the truth | Proposed |  |  | product/prod_010_a_published_game_whose_documents_tell_the_truth.md |
 
 ## Roadmaps
 
@@ -45,6 +47,7 @@
 | [req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click](request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md) | Name the streets, number the buildings, and open a detail panel on anything you click | Draft |  |  | request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md |
 | [req_011_share_a_city_as_a_link_that_needs_no_server](request/req_011_share_a_city_as_a_link_that_needs_no_server.md) | Share a city as a link that needs no server | Draft |  |  | request/req_011_share_a_city_as_a_link_that_needs_no_server.md |
 | [req_012_give_the_camera_three_target_policies_free_orbit_and_follow](request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md) | Give the camera three target policies: free, orbit, and follow | Draft |  |  | request/req_012_give_the_camera_three_target_policies_free_orbit_and_follow.md |
+| [req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy](request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md) | The game is deployed in public while its documents and its input model still describe a local dev toy | Draft |  |  | request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md |
 
 ## Backlog
 
@@ -95,6 +98,9 @@
 | [item_043_orbit_the_camera_around_what_the_player_is_looking_at](backlog/item_043_orbit_the_camera_around_what_the_player_is_looking_at.md) | Orbit the camera around what the player is looking at | Ready |  | 0% | backlog/item_043_orbit_the_camera_around_what_the_player_is_looking_at.md |
 | [item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone](backlog/item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone.md) | Follow something that moves, and stop cleanly when it is gone | Ready |  | 0% | backlog/item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone.md |
 | [item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view](backlog/item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view.md) | Add the Camera section, and keep it from corrupting the resumed view | Ready |  | 0% | backlog/item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view.md |
+| [item_046_make_security_md_describe_the_deployment_that_exists](backlog/item_046_make_security_md_describe_the_deployment_that_exists.md) | Make SECURITY.md describe the deployment that exists | Ready |  | 0% | backlog/item_046_make_security_md_describe_the_deployment_that_exists.md |
+| [item_047_record_the_threat_model_review_that_shared_links_require](backlog/item_047_record_the_threat_model_review_that_shared_links_require.md) | Record the threat-model review that shared links require | Ready |  | 0% | backlog/item_047_record_the_threat_model_review_that_shared_links_require.md |
+| [item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen](backlog/item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen.md) | Take a position on the visitors arriving with a touchscreen | Ready |  | 0% | backlog/item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen.md |
 
 ## Tasks
 
@@ -114,6 +120,7 @@
 | [task_012_implement_street_names_building_addresses_and_the_extended_detail_panel](tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md) | Implement street names, building addresses, and the extended detail panel | Ready |  | 0% | tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md |
 | [task_013_implement_sharing_a_city_by_link](tasks/task_013_implement_sharing_a_city_by_link.md) | Implement sharing a city by link | Ready |  | 0% | tasks/task_013_implement_sharing_a_city_by_link.md |
 | [task_014_implement_the_camera_target_policies_and_the_camera_settings_section](tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md) | Implement the camera target policies and the Camera settings section | Ready |  | 0% | tasks/task_014_implement_the_camera_target_policies_and_the_camera_settings_section.md |
+| [task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment](tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md) | Make the project's documents and input model match the public deployment | Ready |  | 0% | tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md |
 
 ## Runbooks
 

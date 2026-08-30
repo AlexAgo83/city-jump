@@ -8,6 +8,7 @@
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:52:56
 
 # AI Context
 - Summary: The Demo save encodes to ~22,900 characters raw and ~8,850 once elevations are rounded to 10 cm; the decoder also needs a fragment size cap and a cap enforced while decompressing, since neither exists.
@@ -22,6 +23,7 @@
 
 # Scope
 - In:
+  - Pick the ceiling against evidence, not a guess. Verified August 2026: browsers are not the constraint (Chrome and Edge accept roughly 32,000 characters, Firefox roughly 65,000, Safari roughly 80,000), and because the city rides in the fragment it never meets a CDN or load-balancer limit at all. The binding constraint is the sharing channel: roughly 2,048 characters is the length that survives every mail client, chat app and QR code intact, and beyond that truncation risk rises with no hard cliff. The Demo city needs about 8,850. The ceiling is therefore a judgement between reach and how large a city may be shared, and it has to be recorded with its reasoning rather than left as a constant.
   - A pure module in `src/sim`: an envelope carrying the city and its name, quantisation of node and control-point coordinates to the precision the save's own header shows is safe, and the size rules -- a maximum encoded length and a maximum decoded length.
   - The browser-side transport in `src/ui`: gzip through `CompressionStream`, base64url, and the reverse, with the decompression cap enforced while the stream is consumed rather than after.
   - Feed the decoded result through the existing `parseCity` rather than adding a second validator.

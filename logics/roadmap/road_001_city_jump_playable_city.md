@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:50:12
+> Indicators reviewed: 2026-08-30 11:54:58
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -73,7 +73,10 @@ them is ever "finished" and closed.
   makes an action cost what it changed;
   `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
   removes a duplicated source of truth.
-- Open questions: none standing. This strand is fed by review, and reviews keep finding work.
+  `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
+  catches up the documents and the input model with a deployment that went public.
+- Open questions: whether the game has anything to say to a visitor arriving on a phone, which
+  that request forces into a written answer either way.
 
 # Sequencing
 - Advance whichever strand the moment calls for. There is no prescribed order between them and
@@ -102,7 +105,8 @@ them is ever "finished" and closed.
   `prod_006_one_source_of_truth_for_what_a_building_model_is`,
   `prod_007_a_city_you_can_point_at_and_name`,
   `prod_008_a_city_you_can_hand_to_someone_else`,
-  `prod_009_a_camera_that_can_watch_not_only_be_aimed`
+  `prod_009_a_camera_that_can_watch_not_only_be_aimed`,
+  `prod_010_a_published_game_whose_documents_tell_the_truth`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -111,7 +115,8 @@ them is ever "finished" and closed.
   `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`,
   `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`,
   `req_011_share_a_city_as_a_link_that_needs_no_server`,
-  `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`
+  `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`,
+  `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

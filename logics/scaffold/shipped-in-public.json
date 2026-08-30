@@ -1,0 +1,150 @@
+{
+  "title": "The game is deployed in public while its documents and its input model still describe a local dev toy",
+  "references": [
+    "SECURITY.md",
+    "render.yaml",
+    "README.md",
+    "index.html",
+    "src/render/drawTool.ts",
+    "package.json",
+    "logics/architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md",
+    "logics/request/req_011_share_a_city_as_a_link_that_needs_no_server.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "`SECURITY.md` describes an application that no longer exists. It states that city-jump is \"a static client application served by Vite during development\", lists the local Vite dev server among its main surfaces, and advises not exposing that server to an untrusted network -- while version 0.2.0 is published at a public URL through `render.yaml`'s static site and linked from the README as a live demo. Anyone reading the policy to decide whether a finding matters is reading about a different deployment.",
+      "The supported-versions table is stale: it covers `0.1.x` and `< 0.1` and does not mention 0.2.0, which is the released line.",
+      "The policy already commits the project to work it has not done. It states that \"any backend, cloud save, mod support, multiplayer, or user-generated asset work requires a new threat-model review before release\", and `req_011_share_a_city_as_a_link_that_needs_no_server` introduces cities travelling between strangers -- user-generated content by any reading -- with no such review recorded anywhere.",
+      "The game cannot be played on a touch device, and it is published on a URL people will open on a phone. Drawing depends on a hover preview that a finger cannot produce, cancelling depends on a right-click that a touchscreen does not have, and the pointer handling tests `event.button === 0`. Nothing in the code or the corpus acknowledges this, so a visitor on a phone gets a scene they can look at and no way to build anything."
+    ],
+    "context": [
+      "This was found by reviewing the corpus against the repository rather than by a failure: the deployment moved from local development to a public static site during the 0.2.0 release work, and the surrounding documents were not revisited.",
+      "The accessibility basics that do exist are decent and should not be undone: the toolbar carries `role=\"group\"`, `role=\"toolbar\"` and `aria-label` on its controls, and the sun slider and save picker are labelled. The gap is the pointer model, not the markup.",
+      "`adr_004_stay_a_static_client_with_no_server_of_its_own` now records the deployment as a decision, which gives the security policy something stable to describe rather than restating it.",
+      "Whether touch input is worth building is a product call, not a defect to be fixed silently. This request captures it with evidence; deciding to build it, defer it, or say plainly that the game is desktop-only is the point of capturing it.",
+      "Nothing here blocks the tasks already open. It is documentation and one product decision, and it can be picked up between other work."
+    ],
+    "acceptance_criteria": [
+      "AC1: `SECURITY.md` describes the deployment as it is -- a public static site with no backend -- rather than a local development server, and its supported-versions table names the current line.",
+      "AC2: The threat-model review the policy demands for user-generated content is recorded before the share feature ships, covering what arrives from a link, what the client validates, and what it refuses.",
+      "AC3: The policy states where a player's data actually lives and what leaves the browser, so a reader can tell what a vulnerability in this project could expose.",
+      "AC4: The project takes an explicit, written position on touch devices: either the input model is made usable without hover and without a right-click, or the game states that it is desktop-only and says so where a visitor will see it before they try.",
+      "AC5: The existing accessibility markup is not weakened by any of this work."
+    ]
+  },
+  "product": {
+    "title": "A published game whose documents tell the truth",
+    "overview": "city-jump stopped being a thing on one machine and became a link anyone can open, and its documents did not notice. The security policy describes a dev server, the supported-versions table names a version that is no longer current, and the game itself cannot be played by anyone who arrives on a phone. None of this is a bug in the game; all of it is the gap between what the project is and what it says about itself. This slice closes that gap and makes the project take a written position on the visitors it currently ignores.",
+    "goals": [
+      "A reader of SECURITY.md learns about the deployment that actually exists.",
+      "The threat-model review the policy demands is done before the feature that triggers it ships.",
+      "A visitor on a phone is either able to play or told plainly that they cannot, before they try.",
+      "The project's documents stay honest as the deployment changes again."
+    ],
+    "non_goals": [
+      "Adding a backend, an account system, or telemetry, which adr_004_stay_a_static_client_with_no_server_of_its_own rules out.",
+      "A full accessibility audit or a WCAG conformance claim.",
+      "A mobile-specific UI, a responsive redesign, or a separate touch build.",
+      "Rewriting the README, which was rewritten for players in this same period.",
+      "Changing the desktop input model that works today."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Make SECURITY.md describe the deployment that exists",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": ["AC1", "AC3"],
+      "problem": [
+        "The policy describes \"a static client application served by Vite during development\" and warns about exposing the dev server, while 0.2.0 is served publicly from a static site declared in `render.yaml`.",
+        "The supported-versions table lists `0.1.x` and `< 0.1` only.",
+        "A reader cannot tell from the policy where a player's cities live or what could be exposed by a flaw."
+      ],
+      "scope_in": [
+        "Rewrite the current-security-model section around the real deployment: static files on a CDN, no backend, player data in the reader's own `localStorage`, referring to `adr_004_stay_a_static_client_with_no_server_of_its_own` rather than restating it.",
+        "Correct the supported-versions table.",
+        "Keep the local development surfaces that are still true, including the debug API, and keep the existing reporting instructions."
+      ],
+      "scope_out": [
+        "The threat-model review for shared links, which is its own slice.",
+        "Changing the reporting process or adding a disclosure timeline.",
+        "Any code change."
+      ],
+      "acceptance_criteria": [
+        "AC1: The policy describes the public static deployment and names the current supported line.",
+        "AC2: A reader can tell from it where player data lives and what leaves the browser."
+      ]
+    },
+    {
+      "title": "Record the threat-model review that shared links require",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": ["AC2"],
+      "problem": [
+        "`SECURITY.md` requires a new threat-model review before user-generated asset work ships, and cities arriving from a stranger's link are user-generated content.",
+        "No such review exists, so the share work would ship against a commitment the project made to itself."
+      ],
+      "scope_in": [
+        "Write the review: what a share link can carry, what the client validates before acting on it, what resource limits stop a hostile payload, and what is deliberately accepted.",
+        "State plainly what a malicious link can and cannot do -- it is parsed data, not code, and it cannot reach any other player's stored cities.",
+        "Land it before the share feature ships, and link it from the share request so the dependency is visible from both sides."
+      ],
+      "scope_out": [
+        "Designing the share encoding or its caps, which `req_011_share_a_city_as_a_link_that_needs_no_server` owns.",
+        "A general threat model for features that do not exist yet."
+      ],
+      "acceptance_criteria": [
+        "AC1: The review exists, is linked from both the security policy and the share request, and names the specific defences rather than asserting the feature is safe.",
+        "AC2: It is recorded before the share feature is released."
+      ]
+    },
+    {
+      "title": "Take a position on the visitors arriving with a touchscreen",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Project reliability",
+      "request_acs": ["AC4", "AC5"],
+      "problem": [
+        "Drawing depends on a hover preview a finger cannot produce, cancelling depends on a right-click a touchscreen does not have, and the pointer handling tests `event.button === 0`.",
+        "The README links a public demo, so visitors arrive on phones and get a scene they cannot build anything in, with nothing telling them why."
+      ],
+      "scope_in": [
+        "Decide, and write the decision down: either make the build flow usable without hover and without a right-click, or state that the game is desktop-only.",
+        "Whichever way it goes, a visitor on a touch device must learn it before they have tried and failed -- a line in the README is the minimum, a message in the app is better.",
+        "If it goes the usable way, scope it to the build loop -- placing, cancelling, and the camera -- not to a mobile redesign.",
+        "Leave the existing ARIA markup on the toolbar intact."
+      ],
+      "scope_out": [
+        "A responsive layout, a mobile-specific UI, or a separate build.",
+        "A full accessibility audit or a conformance claim.",
+        "Changing the desktop input model that works today."
+      ],
+      "acceptance_criteria": [
+        "AC1: The project has a written position on touch devices, and a visitor on one encounters it before they try to build.",
+        "AC2: If touch support was chosen, a road can be placed and cancelled on a touchscreen; if desktop-only was chosen, that is stated where a visitor sees it.",
+        "AC3: The toolbar's existing roles and labels are unchanged."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Make the project's documents and input model match the public deployment",
+    "plan": [
+      "Read this request and its three backlog slices, plus adr_004_stay_a_static_client_with_no_server_of_its_own, which is what the corrected security policy should point at.",
+      "Correct SECURITY.md first: it is the document most likely to be read by someone deciding whether a finding matters.",
+      "Write the threat-model review for shared links, and link it from both the policy and the share request. It must land before the share feature is released.",
+      "Take the touch decision, write it down, and put it where a visitor meets it before failing.",
+      "Run the fast gate; confirm no accessibility markup was lost if the touch work touched the UI.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/shipped-in-public.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

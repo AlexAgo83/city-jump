@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:52:56
 
 # AI Context
 - Summary: The select tool covers roads, roundabouts and trees but not buildings or cars; both resolve through the existing ground-pick nearest-match rather than by making meshes pickable.
@@ -17,7 +18,7 @@
 
 # Problem
 - The select tool covers roads, roundabouts and trees; the two things a player looks at most are not selectable.
-- Buildings are thin instances with `isPickable = false` and cars move every frame, so mesh picking is the expensive route.
+- Buildings are thin instances with `isPickable = false` and cars move every frame, so mesh picking is the expensive route. Babylon does support it -- `thinInstanceEnablePicking` and `pickingInfo.thinInstanceIndex` -- but it iterates the mesh's faces, which is why picking slows measurably once thin instances are enabled, and it is reported unreliable on merged meshes, which is exactly what `loadModel` produces via `Mesh.MergeMeshes`. Verified against the Babylon documentation and forum reports, August 2026. Do not turn it on as an improvement later.
 
 # Scope
 - In:

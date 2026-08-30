@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:40:03
+> Indicators reviewed: 2026-08-30 11:55:17
 
 # AI Context
 - Summary: Orchestration for req_011: build the quantising encoder and the capped decoder first, then the Share button and its refusal, then the arrival flow, then the round trip in the browser suite.
@@ -68,4 +68,4 @@
 # Links
 - Request: `req_011_share_a_city_as_a_link_that_needs_no_server`
 - Product brief(s): `prod_008_a_city_you_can_hand_to_someone_else`
-- Architecture decision(s): (none yet)
+- Architecture decision(s): `adr_004_stay_a_static_client_with_no_server_of_its_own`

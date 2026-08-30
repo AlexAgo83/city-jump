@@ -1,0 +1,504 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy item_046_make_security_md_describe_the_deployment_that_exists item_047_record_the_threat_model_review_that_shared_links_require item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists",
+          "item_047_record_the_threat_model_review_that_shared_links_require",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/product/prod_010_a_published_game_whose_documents_tell_the_truth.md",
+      "ref": "prod_010_a_published_game_whose_documents_tell_the_truth",
+      "sections": {
+        "Goals": [
+          "- A reader of SECURITY.md learns about the deployment that actually exists.",
+          "- The threat-model review the policy demands is done before the feature that triggers it ships.",
+          "- A visitor on a phone is either able to play or told plainly that they cannot, before they try.",
+          "- The project's documents stay honest as the deployment changes again."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump stopped being a thing on one machine and became a link anyone can open, and its documents did not notice. The security policy describes a dev server, the supported-versions table names a version that is no longer current, and the game itself cannot be played by anyone who arrives on a phone. None of this is a bug in the game; all of it is the gap between what the project is and what it says about itself. This slice closes that gap and makes the project take a written position on the visitors it currently ignores."
+        ],
+        "References": [
+          "- Product back-reference: `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`",
+          "- Task back-reference: `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A published game whose documents tell the truth"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md",
+      "ref": "adr_004_stay_a_static_client_with_no_server_of_its_own",
+      "sections": {
+        "Overview": [
+          "city-jump ships as files on a CDN. Features are designed to fit that, rather than the deployment",
+          "being changed to fit a feature.",
+          "```mermaid",
+          "flowchart LR",
+          "    Build[vite build] --> Files[Static files in dist]",
+          "    Files --> CDN[Render static site]"
+        ],
+        "References": [
+          "- Related request: `req_011_share_a_city_as_a_link_that_needs_no_server`",
+          "- Related backlog: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`",
+          "- Related task: `task_013_implement_sharing_a_city_by_link`",
+          "- `render.yaml` -- the static site blueprint this records.",
+          "- `SECURITY.md` -- the threat-model review this decision defers to."
+        ]
+      },
+      "status": "Settled",
+      "title": "Stay a static client with no server of its own"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/product/prod_008_a_city_you_can_hand_to_someone_else.md",
+      "ref": "prod_008_a_city_you_can_hand_to_someone_else",
+      "sections": {
+        "Goals": [
+          "- A player can give their city to someone with one button and a paste.",
+          "- No city is ever uploaded anywhere, and none appears in any server log.",
+          "- A city the size of the bundled Demo fits in a link people can actually send.",
+          "- Receiving a city is an offer, never a surprise overwrite.",
+          "- A malicious link cannot do more than be refused."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "Every city built in city-jump is trapped in the browser that made it. This slice lets a player hand one to somebody with a link and nothing else -- no account, no upload, no server, because the game is a static site and should stay one. The city rides in the URL fragment, compressed and coarsened just enough to fit, and arrives as an offer to import rather than something that overwrites what the receiver already has.",
+          "```mermaid",
+          "flowchart LR",
+          "    City[(Saved city)] --> Quant[Round elevations]",
+          "    Quant --> Gzip[gzip and base64url]",
+          "    Gzip --> Frag[URL fragment]"
+        ],
+        "References": [
+          "- Product back-reference: `req_011_share_a_city_as_a_link_that_needs_no_server`",
+          "- Task back-reference: `task_013_implement_sharing_a_city_by_link`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can hand to someone else"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "game, deployed, public, while, documents, input, model, still, describe, local, dev, toy",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists",
+          "item_047_record_the_threat_model_review_that_shared_links_require",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ]
+      },
+      "path": "logics/request/req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy.md",
+      "ref": "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `SECURITY.md` describes the deployment as it is -- a public static site with no backend -- rather than a local development server, and its supported-versions table names the current line.",
+          "- AC2: The threat-model review the policy demands for user-generated content is recorded before the share feature ships, covering what arrives from a link, what the client validates, and what it refuses.",
+          "- AC3: The policy states where a player's data actually lives and what leaves the browser, so a reader can tell what a vulnerability in this project could expose.",
+          "- AC4: The project takes an explicit, written position on touch devices: either the input model is made usable without hover and without a right-click, or the game states that it is desktop-only and says so where a visitor will see it before they try.",
+          "- AC5: The existing accessibility markup is not weakened by any of this work."
+        ],
+        "Needs": [
+          "- `SECURITY.md` describes an application that no longer exists. It states that city-jump is \"a static client application served by Vite during development\", lists the local Vite dev server among its main surfaces, and advises not exposing that server to an untrusted network -- while version 0.2.0 is published at a public URL through `render.yaml`'s static site and linked from the README as a live demo. Anyone reading the policy to decide whether a finding matters is reading about a different deployment.",
+          "- The supported-versions table is stale: it covers `0.1.x` and `< 0.1` and does not mention 0.2.0, which is the released line.",
+          "- The policy already commits the project to work it has not done. It states that \"any backend, cloud save, mod support, multiplayer, or user-generated asset work requires a new threat-model review before release\", and `req_011_share_a_city_as_a_link_that_needs_no_server` introduces cities travelling between strangers -- user-generated content by any reading -- with no such review recorded anywhere.",
+          "- The game cannot be played on a touch device, and it is published on a URL people will open on a phone. Drawing depends on a hover preview that a finger cannot produce, cancelling depends on a right-click that a touchscreen does not have, and the pointer handling tests `event.button === 0`. Nothing in the code or the corpus acknowledges this, so a visitor on a phone gets a scene they can look at and no way to build anything."
+        ]
+      },
+      "status": "Draft",
+      "title": "The game is deployed in public while its documents and its input model still describe a local dev toy"
+    },
+    {
+      "ai_context": {
+        "keywords": "share, city, link, needs, server",
+        "skip when": "The work needs a server, a link shortener, accounts or a gallery; changes the local save format; or exports a city as a downloadable file.",
+        "summary": "Sharing a city with no server, by carrying it in the URL fragment. The Demo save is 48 KB and encodes to ~22,900 characters raw, ~8,850 once node elevations are rounded to 10 cm, so quantisation is what makes the feature possible; the fragment is untrusted input needing a size cap and a decompression cap that do not exist yet.",
+        "use when": "Working on the saves panel in `src/ui/controls.ts`, share links, the URL fragment, or encoding a `CitySave` for transport."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_011_share_a_city_as_a_link_that_needs_no_server.md",
+      "ref": "req_011_share_a_city_as_a_link_that_needs_no_server",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A Share button in the saves panel turns the selected city into a link and puts it on the clipboard, telling the player it was copied.",
+          "- AC2: The payload is quantised and compressed so that a city the size of the bundled Demo produces a usable link; above a documented ceiling the button refuses with an explanation instead of emitting a link that will break for the receiver.",
+          "- AC3: The city travels in the URL fragment, never in a query string, and carries its name.",
+          "- AC4: Opening a share link offers to import the city; if a city of that name already exists the player can overwrite it or keep both; after importing, the link is offered for loading and the fragment is removed from the address bar so a reload does not ask again.",
+          "- AC5: A hostile or malformed link is refused safely: the fragment is size-capped before parsing, decompression is capped while it streams so a compression bomb cannot exhaust memory, `parseCity` validates the result, and a city from a newer build is refused with a message that says so rather than calling the link invalid.",
+          "- AC6: Quantisation, the envelope, and the size rules are pure functions in `src/sim`, unit-tested without a browser, and `tests/architecture.mjs` still passes."
+        ],
+        "Needs": [
+          "- A city cannot leave the browser it was built in. Saves live in `localStorage` under one key per city (`src/ui/saves.ts`), and the settings panel offers Save, Load and Delete but no way to give a city to anyone else. The operator wants a Share button next to them that produces a link.",
+          "- There is no server to share through, and there should not be one. `render.yaml` declares `runtime: static` with `staticPublishPath: dist`; the whole application is files on a CDN. Any design that needs to store a city somewhere to hand out a short link contradicts the deployment and puts other people's cities on infrastructure that does not exist.",
+          "- The naive encoding does not fit in a link. Measured against the bundled Demo save (48,175 bytes of JSON; 68 segments, 427 nodes, 605 hand-planted trees): gzip plus base64url gives roughly 22,900 characters. Rounding node elevations to 10 cm before compressing brings the same city to roughly 8,850 characters, because the save stores them at full float precision -- `[1, -802, 9.54109501838684, -884]` is a real line from the file. Without that step the feature does not work on a city anyone would want to share.",
+          "- A shared link is untrusted input from a stranger, and two of the three defences are missing. `parseCity` already validates the JSON at that boundary and already refuses a save from a newer build, but nothing caps how large a fragment may be before it is parsed, and nothing caps how far a compressed payload may expand while it is being decompressed -- a few kilobytes of crafted gzip can unfold into gigabytes.",
+          "- The city's name does not travel with it. A save's name is its `localStorage` key, not a field of `CitySave`, so a shared payload carries an unnamed city and the receiver has nothing to call it."
+        ]
+      },
+      "status": "Draft",
+      "title": "Share a city as a link that needs no server"
+    },
+    {
+      "ai_context": {
+        "keywords": "security, describe, deployment, exists",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/backlog/item_046_make_security_md_describe_the_deployment_that_exists.md",
+      "ref": "item_046_make_security_md_describe_the_deployment_that_exists",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The policy describes the public static deployment and names the current supported line.",
+          "- AC2: A reader can tell from it where player data lives and what leaves the browser."
+        ],
+        "Problem": [
+          "- The policy describes \"a static client application served by Vite during development\" and warns about exposing the dev server, while 0.2.0 is served publicly from a static site declared in `render.yaml`.",
+          "- The supported-versions table lists `0.1.x` and `< 0.1` only.",
+          "- A reader cannot tell from the policy where a player's cities live or what could be exposed by a flaw."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make SECURITY.md describe the deployment that exists"
+    },
+    {
+      "ai_context": {
+        "keywords": "record, threat, model, review, shared, links, require",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_047_record_the_threat_model_review_that_shared_links_require"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/backlog/item_047_record_the_threat_model_review_that_shared_links_require.md",
+      "ref": "item_047_record_the_threat_model_review_that_shared_links_require",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The review exists, is linked from both the security policy and the share request, and names the specific defences rather than asserting the feature is safe.",
+          "- AC2: It is recorded before the share feature is released."
+        ],
+        "Problem": [
+          "- `SECURITY.md` requires a new threat-model review before user-generated asset work ships, and cities arriving from a stranger's link are user-generated content.",
+          "- No such review exists, so the share work would ship against a commitment the project made to itself."
+        ]
+      },
+      "status": "Ready",
+      "title": "Record the threat-model review that shared links require"
+    },
+    {
+      "ai_context": {
+        "keywords": "project, documents, input, model, match, public, deployment",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists",
+          "item_047_record_the_threat_model_review_that_shared_links_require",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md",
+      "ref": "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the project's documents and input model match the public deployment"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists",
+          "item_047_record_the_threat_model_review_that_shared_links_require",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/product/prod_010_a_published_game_whose_documents_tell_the_truth.md",
+      "ref": "prod_010_a_published_game_whose_documents_tell_the_truth",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A published game whose documents tell the truth"
+    },
+    {
+      "ai_context": {
+        "keywords": "take, position, visitors, arriving, touchscreen",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/backlog/item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen.md",
+      "ref": "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The project has a written position on touch devices, and a visitor on one encounters it before they try to build.",
+          "- AC2: If touch support was chosen, a road can be placed and cancelled on a touchscreen; if desktop-only was chosen, that is stated where a visitor sees it.",
+          "- AC3: The toolbar's existing roles and labels are unchanged."
+        ],
+        "Problem": [
+          "- Drawing depends on a hover preview a finger cannot produce, cancelling depends on a right-click a touchscreen does not have, and the pointer handling tests `event.button === 0`.",
+          "- The README links a public demo, so visitors arrive on phones and get a scene they cannot build anything in, with nothing telling them why."
+        ]
+      },
+      "status": "Ready",
+      "title": "Take a position on the visitors arriving with a touchscreen"
+    }
+  ],
+  "estimates": {
+    "char_count": 20624,
+    "companion_doc_count": 3,
+    "doc_count": 7
+  },
+  "generated_at": "2026-08-30T09:54:23Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+      "item_046_make_security_md_describe_the_deployment_that_exists",
+      "item_047_record_the_threat_model_review_that_shared_links_require",
+      "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen",
+      "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy,item_046_make_security_md_describe_the_deployment_that_exists,item_047_record_the_threat_model_review_that_shared_links_require,item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen,task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment",
+  "refs": [
+    "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+    "item_046_make_security_md_describe_the_deployment_that_exists",
+    "item_047_record_the_threat_model_review_that_shared_links_require",
+    "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen",
+    "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment.md",
+      "ref": "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:54:57
 
 # AI Context
 - Summary: Sharing a city with no server, by carrying it in the URL fragment. The Demo save is 48 KB and encodes to ~22,900 characters raw, ~8,850 once node elevations are rounded to 10 cm, so quantisation is what makes the feature possible; the fragment is untrusted input needing a size cap and a decompression cap that do not exist yet.
@@ -22,8 +23,10 @@
 - The city's name does not travel with it. A save's name is its `localStorage` key, not a field of `CitySave`, so a shared payload carries an unnamed city and the receiver has nothing to call it.
 
 # Context
+- `SECURITY.md` requires a threat-model review before user-generated asset work ships, and a city arriving from a stranger's link is user-generated content. That review is the threat-model slice of `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`, and it has to land before this feature is released.
+- `adr_004_stay_a_static_client_with_no_server_of_its_own` records why this cannot be a short link: the deployment has no server to store a city in, deliberately.
 - The link must use the URL **fragment** (`#city=...`), not a query string. A fragment is never sent to the server, so a shared city never reaches Render, its logs, or any CDN in between; a query string would put someone's city in request logs it has no business being in.
-- Compression is available natively. the browser's own gzip CompressionStream and DecompressionStream APIs are supported by every browser that can run this application's WebGL rendering, so this needs no new dependency.
+- Compression is available natively. the browser's own gzip CompressionStream and DecompressionStream APIs reached all three engines in May 2023 (Chrome 80, Safari 16.4, Firefox 113) and are Baseline, verified August 2026, so this needs no new dependency.
 - The 10 cm rounding applies to the shared payload only, never to the local save. `src/sim/save.ts`'s own header explains why that is safe: node elevations are stored so a reload is deterministic, only the heights *between* two nodes can differ slightly from the original session, and `conformToRoads` reshapes the ground under them anyway.
 - Browsers handle a nine-thousand-character URL comfortably, but the channels people share links through do not always: chat clients, mail clients, link crawlers and QR codes degrade well before that. The size ceiling is therefore about the sharing channel, not the browser, and it has to be a refusal with an explanation rather than a link that silently breaks for the receiver.
 - The existing save UI is built from `window.prompt` and `window.confirm` (see `bindSaves` in `src/ui/controls.ts`), deliberately -- a modal is a lot of markup for one string. The import and overwrite prompts should follow that, not introduce a dialog system.
