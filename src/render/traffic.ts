@@ -42,6 +42,7 @@ import { terrainHeight } from "../sim/terrain";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 import { streetlightsOnAt } from "./streetlights";
 import type { TerrainBounds } from "../sim/heightmap";
+import type { BuildingKind } from "../sim/buildingKinds";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
@@ -278,6 +279,10 @@ interface CarShape {
   readonly wheel: number;
   /** One wheel per end, on the centreline, rather than a pair either side of it. */
   readonly singleTrack?: boolean;
+  /** The frontage this vehicle belongs to, so a dirt road carries tractors and not saloons. */
+  readonly theme?: BuildingKind;
+  /** Its own paint, when the ordinary car colours would be wrong (a pink tractor, say). */
+  readonly colors?: Color3[];
 }
 
 const CAR_SHAPES: CarShape[] = [
@@ -330,7 +335,100 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 0.62,
     singleTrack: true,
   },
+  {
+    // Short, tall and narrow, sitting high on big wheels: a tractor, with the cab over the axle.
+    name: "tractor",
+    length: 4.4 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * 0.85 * CAR_VISUAL_SCALE,
+    hull: 1.1 * CAR_VISUAL_SCALE,
+    cabin: { at: -0.7 * CAR_VISUAL_SCALE, length: 1.6 * CAR_VISUAL_SCALE, height: 0.85 * CAR_VISUAL_SCALE },
+    bonnet: 1.8 * CAR_VISUAL_SCALE,
+    boot: 0,
+    wheelBase: 1.5 * CAR_VISUAL_SCALE,
+    wheel: 1.25 * CAR_VISUAL_SCALE,
+    theme: "agricultural",
+    colors: [new Color3(0.16, 0.42, 0.2), new Color3(0.85, 0.5, 0.12)],
+  },
+  {
+    // Long, low and open: the trailer a tractor tows, hauling the harvest.
+    name: "farm trailer",
+    length: 7.4 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 1 * CAR_VISUAL_SCALE,
+    cabin: { at: 2.2 * CAR_VISUAL_SCALE, length: 1.5 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
+    bonnet: 1 * CAR_VISUAL_SCALE,
+    boot: 3.4 * CAR_VISUAL_SCALE,
+    wheelBase: 2.4 * CAR_VISUAL_SCALE,
+    wheel: 1 * CAR_VISUAL_SCALE,
+    theme: "agricultural",
+    colors: [new Color3(0.62, 0.55, 0.35), new Color3(0.5, 0.42, 0.28)],
+  },
+  {
+    // A cab and a long drum behind it: the tanker that feeds a works.
+    name: "tanker",
+    length: 9 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 1.6 * CAR_VISUAL_SCALE,
+    cabin: { at: 3 * CAR_VISUAL_SCALE, length: 2 * CAR_VISUAL_SCALE, height: 0.7 * CAR_VISUAL_SCALE },
+    bonnet: 0.9 * CAR_VISUAL_SCALE,
+    boot: 0,
+    wheelBase: 3 * CAR_VISUAL_SCALE,
+    wheel: 1.05 * CAR_VISUAL_SCALE,
+    theme: "industrial",
+    colors: [new Color3(0.82, 0.83, 0.8), new Color3(0.75, 0.55, 0.2)],
+  },
+  {
+    // Cab forward, flat deck behind: the truck that carries everything else.
+    name: "flatbed",
+    length: 8 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 1.15 * CAR_VISUAL_SCALE,
+    cabin: { at: 2.6 * CAR_VISUAL_SCALE, length: 2.2 * CAR_VISUAL_SCALE, height: 0.75 * CAR_VISUAL_SCALE },
+    bonnet: 1 * CAR_VISUAL_SCALE,
+    boot: 0,
+    wheelBase: 2.8 * CAR_VISUAL_SCALE,
+    wheel: 1 * CAR_VISUAL_SCALE,
+    theme: "industrial",
+    colors: [new Color3(0.3, 0.42, 0.55), new Color3(0.55, 0.28, 0.16)],
+  },
+  {
+    // Low, wide and blunt, with a squat turret-sized cabin: the armour.
+    name: "apc",
+    length: 7 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * 1.1 * CAR_VISUAL_SCALE,
+    hull: 1.2 * CAR_VISUAL_SCALE,
+    cabin: { at: -0.4 * CAR_VISUAL_SCALE, length: 1.8 * CAR_VISUAL_SCALE, height: 0.45 * CAR_VISUAL_SCALE },
+    bonnet: 2.2 * CAR_VISUAL_SCALE,
+    boot: 1.4 * CAR_VISUAL_SCALE,
+    wheelBase: 2.4 * CAR_VISUAL_SCALE,
+    wheel: 1 * CAR_VISUAL_SCALE,
+    theme: "military",
+    colors: [new Color3(0.3, 0.34, 0.24), new Color3(0.36, 0.36, 0.3)],
+  },
+  {
+    // Canvas-backed troop truck: tall box behind a short cab.
+    name: "troop truck",
+    length: 7.6 * CAR_VISUAL_SCALE,
+    width: CAR_WIDTH * CAR_VISUAL_SCALE,
+    hull: 1.7 * CAR_VISUAL_SCALE,
+    cabin: { at: 2.4 * CAR_VISUAL_SCALE, length: 1.8 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
+    bonnet: 1.1 * CAR_VISUAL_SCALE,
+    boot: 0,
+    wheelBase: 2.7 * CAR_VISUAL_SCALE,
+    wheel: 1.05 * CAR_VISUAL_SCALE,
+    theme: "military",
+    colors: [new Color3(0.26, 0.3, 0.2), new Color3(0.4, 0.42, 0.3)],
+  },
 ];
+
+/** The shapes a road's own frontage puts on it, by kind; anything else draws from all of them. */
+const THEMED_SHAPES = new Map<BuildingKind, number[]>();
+CAR_SHAPES.forEach((shape, index) => {
+  if (!shape.theme) return;
+  THEMED_SHAPES.set(shape.theme, [...(THEMED_SHAPES.get(shape.theme) ?? []), index]);
+});
+/** Ordinary traffic never gets handed a tanker or an APC. */
+const PLAIN_SHAPES = CAR_SHAPES.map((_, index) => index).filter((index) => !CAR_SHAPES[index]!.theme);
 
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   /**
@@ -342,7 +440,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * at from; swap in a glTF if the camera ever gets down to street level.
    */
   const carBodies = CAR_SHAPES.map((shape) =>
-    CAR_COLORS.map((color, i) => {
+    (shape.colors ?? CAR_COLORS).map((color, i) => {
       const material = new StandardMaterial(`car_${shape.name}_${i}`, scene);
       material.diffuseColor = color;
       material.specularColor = new Color3(0.25, 0.25, 0.25);
@@ -1181,9 +1279,14 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const lanes = laneCentres(type);
       const count = scaledTrafficCount(Math.min(4, Math.max(1, Math.floor(seg.length / 80))), density);
       for (let i = 0; i < count; i++) {
-        // Shape and colour picked apart from each other, so a street carries a mix of both.
-        const shape = (si * 3 + i) % CAR_SHAPES.length;
-        const body = carBodies[shape]![(si + i) % CAR_COLORS.length]!.createInstance(`traffic_${seg.id}_${i}`);
+        // Shape and colour picked apart from each other, so a street carries a mix of both. A road
+        // with a business of its own mostly carries that business's vehicles -- tractors down a
+        // dirt track, tankers past a works -- but never only them: something still passes through.
+        const themed = type.frontageKind ? THEMED_SHAPES.get(type.frontageKind) ?? [] : [];
+        const pool = themed.length && (si + i) % 4 !== 3 ? themed : PLAIN_SHAPES;
+        const shape = pool[(si * 3 + i) % pool.length]!;
+        const palette = carBodies[shape]!;
+        const body = palette[(si + i) % palette.length]!.createInstance(`traffic_${seg.id}_${i}`);
         body.isPickable = false;
         // Wheels and glass ride along: parented, so only the body is ever positioned.
         for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail]) {

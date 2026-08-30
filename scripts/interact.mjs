@@ -213,10 +213,11 @@ const buildingModelCounts = () =>
         .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0]),
     ),
   );
+// A works stands up its own model, not a tinted lot.
 const industrialBuildingCount = () =>
   page.evaluate(() =>
     window.cityjump._scene.meshes
-      .filter((mesh) => /^building_lot_\dx4$/.test(mesh.name))
+      .filter((mesh) => /^building_industrial_\dx4$/.test(mesh.name))
       .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0),
   );
 const zonesOverlayVisible = () =>
@@ -779,10 +780,21 @@ await page.evaluate(() => {
   window.cityjump.rebuild();
 });
 await page.waitForFunction((before) => window.cityjump._scene.meshes
-  .filter((mesh) => /^building_lot_\dx4$/.test(mesh.name))
+  .filter((mesh) => /^building_industrial_\dx4$/.test(mesh.name))
   .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0) > before, industrialBefore, { timeout: 5_000 });
 const industrial = await page.evaluate(() => window.cityjump._graph.allSegments().filter((segment) => segment.type === "industrial").length);
 check("industrial roads generate industrial buildings", industrial >= 1 && (await industrialBuildingCount()) > industrialBefore, `${industrial} industrial roads`);
+const worksTraffic = await page.evaluate(() => {
+  const road = window.cityjump._graph.allSegments().find((segment) => segment.type === "industrial");
+  return window.cityjump._scene.meshes
+    .filter((mesh) => mesh.name.startsWith(`traffic_${road.id}_`))
+    .map((mesh) => mesh.sourceMesh?.name ?? "");
+});
+check(
+  "an industrial road mostly carries works vehicles",
+  worksTraffic.length > 0 && worksTraffic.some((name) => name.includes("tanker") || name.includes("flatbed")),
+  JSON.stringify(worksTraffic),
+);
 check(
   "industrial roads have their own road markings",
   await page.evaluate(() => {
