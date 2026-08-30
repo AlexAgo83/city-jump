@@ -53,7 +53,12 @@ export function createScene(canvas: HTMLCanvasElement) {
   ambient.groundColor = new Color3(0.18, 0.2, 0.22);
 
   const sun = new DirectionalLight("sun", new Vector3(-0.5, -1, -0.35), scene);
-  const shadows = new CascadedShadowGenerator(1024, sun);
+  // Two cascades, not the default four: the shadow map redraws every caster in the city once per
+  // cascade, and at four that pass alone was costing a third of the frame (measured -- see
+  // docs/performance.md). Two of them at 2048 run as fast as two at 1024 (the cost is the geometry
+  // pass, not the fill) and resolve nearer shadows better than four at 1024 did.
+  const shadows = new CascadedShadowGenerator(2048, sun);
+  shadows.numCascades = 2;
   shadows.shadowMaxZ = 1600;
   shadows.stabilizeCascades = true;
   shadows.bias = 0.002;

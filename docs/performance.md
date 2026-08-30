@@ -54,6 +54,29 @@ Instanced meshes (traffic, pedestrians, signals, lamps) already batch into one d
 prototype, so their count costs CPU traversal, not draw calls. The unique geometry is what to go
 after.
 
+## What costs the frame rate
+
+`npm run ablate` switches one thing off at a time and measures, re-measuring the full scene
+between every ablation so the answer is a ratio taken minutes apart at most. On the reference
+city, at 1024 x 4 cascades:
+
+| off        | overview | street |
+| ---------- | -------: | -----: |
+| buildings  |    x2.10 |  x2.55 |
+| shadows    |    x2.03 |  x2.48 |
+| lights     |    x1.18 |  x1.07 |
+| traffic    |    x1.00 |  x1.07 |
+
+Traffic is free. Buildings and shadows are each worth half the frame -- and they are the same
+cost twice, because what was expensive was **drawing every building into the shadow map, once per
+cascade**. Emptying the caster list bought as much as switching shadows off altogether; dropping
+only the buildings from it bought nearly all of that.
+
+So the fix was the cascade count, not the buildings: two cascades instead of four halves that
+pass. Two at 2048 measure the same as two at 1024 (the cost is the geometry pass, not the fill)
+and resolve near shadows better than four at 1024 did -- the same city, framed the same way, is
+indistinguishable in a screenshot.
+
 ## What was done
 
 - **A crossing is one mesh, not one per stripe.** The stripes are four vertices each and never
@@ -64,8 +87,11 @@ after.
 - **A junction's corners in one mesh**, and a roundabout's whole footway in one, rather than one
   per corner and one per gap between arms.
 
-Together: 1216 -> 841 active meshes, overview 50 -> 65 fps, district 60 -> 74, street 70 -> 76, a
-full rebuild 671 -> 553 ms.
+- **Two shadow cascades at 2048, not four at 1024.** Measured back to back on the same session:
+  overview 65 -> 81 fps, street 78 -> 103.
+
+Meshes: 1216 -> 841. Frame rates moved with them, but see the warning above about believing any
+single pair of numbers.
 
 Merging has to keep the name the dirty-region rebuild matches on (`sidewalk_<segmentId>`,
 `crossing_<segmentId>_<nodeId>`), see the regex in `roadMesh.ts` -- that is how an edit knows which
