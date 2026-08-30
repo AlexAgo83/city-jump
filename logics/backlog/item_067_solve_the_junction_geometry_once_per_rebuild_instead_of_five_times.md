@@ -1,13 +1,14 @@
 ## item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times - Solve the junction geometry once per rebuild instead of five times
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:56:54
 
 # AI Context
 - Summary: `allJunctions(graph)` is called from `heightmap.ts`, `roadMesh.ts`, `streetlights.ts` and `signals.ts` -- four full solves per rebuild -- with a fifth in `traffic.ts`'s lazy cache. Nothing to do with dirty regions: solve it once in `app.ts` beside `buildableCells`/`buildingParcels`, which already got exactly this treatment one line away.

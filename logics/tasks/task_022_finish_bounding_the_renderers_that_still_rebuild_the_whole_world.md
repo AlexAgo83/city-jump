@@ -1,14 +1,15 @@
 ## task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world - Finish bounding the renderers that still rebuild the whole world
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:13
+> Indicators reviewed: 2026-08-30 14:56:54
+> Owner: Codex
 
 # AI Context
 - Summary: Orchestration for req_020: measure, then the duplicated junction geometry, then the trees, then the remaining three on their numbers. Runs after task_017 -- that chain settles the dispose/recreate predicate this one would otherwise copy wrong four more times.

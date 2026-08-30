@@ -1,13 +1,14 @@
 ## item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers - Decide the world grid, the streetlights and the signals on their numbers
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:56:54
 
 # AI Context
 - Summary: Three renderers, three separate decisions, each made on the measurement rather than on how expensive the source looks. The world grid is free when hidden and ~900,000 vectors when not; the streetlights already solved light churn but never the lamp meshes; signals re-run every cycle and remake every mast. Leaving one whole is a valid outcome if the number says so -- recorded, with a comment where the next reader meets it.

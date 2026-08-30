@@ -1,13 +1,14 @@
 ## item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed - Stop rescanning the whole island for trees that cannot have changed
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:56:54
 
 # AI Context
 - Summary: The scenery is deterministic from a seeded index, the heightmap, the road mask and the plantings -- so a tree far from an edit cannot have changed, yet every road placed rescans ~8,600 candidate points plus every forest patch. Rung 3 exposure is worse here than for roads: a tree's position can be inside the region while the road suppressing it is outside, and a missing tree is far harder to notice than a missing road.
