@@ -173,6 +173,14 @@ const buildingModelCounts = () =>
   );
 const zonesOverlayVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("zones-overlay")?.isEnabled() ?? false);
+const trafficOverlayCounts = () =>
+  page.evaluate(() => {
+    const visible = (prefix) => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(prefix) && mesh.isEnabled()).length;
+    return {
+      lanes: visible("traffic_lane_"),
+      turns: visible("traffic_turn_") + visible("traffic_ring_turn_") + visible("traffic_walk_turn_"),
+    };
+  });
 const streetlightFacadeLights = () =>
   page.evaluate(() => {
     const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
@@ -456,6 +464,13 @@ const beforeTraffic = await trafficPositions();
 await realTime(250);
 const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="traffic"]').check();
+await nextFrame();
+const trafficView = await trafficOverlayCounts();
+check("the Traffic view draws lane overlays", trafficView.lanes > 0, JSON.stringify(trafficView));
+await page.locator('input[name="select-view"][value="all"]').check();
+await page.locator('[data-tool="roads"]').click();
 const gridCells = await buildableGridCells();
 check("the buildable grid reaches up to four cells from the road", gridCells > 0 && gridCells <= drawn.buildings * 16, `${gridCells} cells`);
 check("the buildable grid is visible while drawing roads", await buildableGridVisible());
@@ -487,6 +502,13 @@ await click(500, 420);
 await click(500, 318);
 const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="traffic"]').check();
+await nextFrame();
+const trafficJunctionView = await trafficOverlayCounts();
+check("the Traffic view draws junction overlays", trafficJunctionView.turns > 0, JSON.stringify(trafficJunctionView));
+await page.locator('input[name="select-view"][value="all"]').check();
+await page.locator('[data-tool="roads"]').click();
 
 await page.locator('input[name="road-shape"][value="straight"]').check();
 await page.locator('input[name="road-type"][value="avenue"]').check();

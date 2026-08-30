@@ -1,14 +1,15 @@
 ## task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work - Implement the rebuild-granularity and startup-payload performance work
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 5%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:25:12
+> Indicators reviewed: 2026-08-30 13:19:50
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_008: measure first, then cut the ground-refresh allocations, bound the terrain and ground work to the changed region, narrow the road and traffic rebuilds, trim the glTF loader, unblock the first frame, and stop the per-frame queue rebuild.

@@ -1,13 +1,14 @@
 ## item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city - Make rebuild and startup cost measurable against a known city
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 5%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:19:50
 
 # AI Context
 - Summary: Nothing in the repo reports what a road placement or a cold start costs, so the numbers in req_008 had to be derived by hand and a regression would be invisible.

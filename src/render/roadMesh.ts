@@ -316,7 +316,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     rebuild,
     material,
     setShowTraffic(next: boolean) {
+      if (showTraffic === next) return;
       showTraffic = next;
+      rebuild();
     },
     setFaded(next: boolean) {
       faded = next;

@@ -1,13 +1,14 @@
 ## item_027_ship_only_the_gltf_loader_features_the_models_actually_use - Ship only the glTF loader features the models actually use
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 5%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:19:50
 
 # AI Context
 - Summary: `import "@babylonjs/loaders/glTF"` registers every glTF extension, putting 93 KB gz of gaussian splatting and ~30 KB gz of other unused extensions into the eager 561 KB gz first load.

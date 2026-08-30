@@ -1,13 +1,14 @@
 ## item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched - Rebuild only the road meshes and movers a placement touched
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 5%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:19:50
 
 # AI Context
 - Summary: `roadMesh.rebuild` disposes and recreates every road mesh and `traffic.rebuild` disposes the whole mover population, so placing the Nth segment redraws N segments.

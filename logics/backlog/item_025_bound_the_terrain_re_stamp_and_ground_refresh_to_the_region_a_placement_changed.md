@@ -1,13 +1,14 @@
 ## item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed - Bound the terrain re-stamp and ground refresh to the region a placement changed
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 5%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:19:50
 
 # AI Context
 - Summary: `conformToRoads` resets and re-stamps the whole heightmap and `ground.refresh` re-walks and re-uploads all 456,976 vertices, whatever the placement actually changed.
