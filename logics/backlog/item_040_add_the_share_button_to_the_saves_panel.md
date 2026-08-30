@@ -1,14 +1,14 @@
 ## item_040_add_the_share_button_to_the_saves_panel - Add the Share button to the saves panel
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:07:40
+> Indicators reviewed: 2026-08-30 13:17:40
 
 # AI Context
 - Summary: The saves panel has Save, Load and Delete and no way to hand a city to anyone; a city over the link ceiling must refuse rather than emit a link that breaks for the receiver.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_013_implement_sharing_a_city_by_link`
+
+# Notes
+- Task `task_013_implement_sharing_a_city_by_link` was finished via `logics-manager flow finish task` on 2026-08-30.

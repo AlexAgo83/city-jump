@@ -1,14 +1,14 @@
 ## item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely - Turn a city into a link-sized payload and read one back safely
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:07:40
+> Indicators reviewed: 2026-08-30 13:17:40
 
 # AI Context
 - Summary: The Demo save encodes to ~22,900 characters raw and ~8,850 once elevations are rounded to 10 cm; the decoder also needs a fragment size cap and a cap enforced while decompressing, since neither exists.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_013_implement_sharing_a_city_by_link`
+
+# Notes
+- Task `task_013_implement_sharing_a_city_by_link` was finished via `logics-manager flow finish task` on 2026-08-30.

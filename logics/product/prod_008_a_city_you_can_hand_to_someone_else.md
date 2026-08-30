@@ -1,11 +1,12 @@
 ## prod_008_a_city_you_can_hand_to_someone_else - A city you can hand to someone else
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_011_share_a_city_as_a_link_that_needs_no_server`
-> Related backlog: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`, `item_040_add_the_share_button_to_the_saves_panel`, `item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link`
+> Related backlog: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`
 > Related task: `task_013_implement_sharing_a_city_by_link`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:17:40
 
 # Overview
 Every city built in city-jump is trapped in the browser that made it. This slice lets a player hand one to somebody with a link and nothing else -- no account, no upload, no server, because the game is a static site and should stay one. The city rides in the URL fragment, compressed and coarsened just enough to fit, and arrives as an offer to import rather than something that overwrites what the receiver already has.
@@ -51,5 +52,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_011_share_a_city_as_a_link_that_needs_no_server`
+- Product back-reference: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`
 - Task back-reference: `task_013_implement_sharing_a_city_by_link`

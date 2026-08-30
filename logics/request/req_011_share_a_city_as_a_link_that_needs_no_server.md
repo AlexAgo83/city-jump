@@ -1,13 +1,13 @@
 ## req_011_share_a_city_as_a_link_that_needs_no_server - Share a city as a link that needs no server
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:30:56
+> Indicators reviewed: 2026-08-30 13:17:39
 
 # AI Context
 - Summary: Sharing a city with no server, by carrying it in the URL fragment. The Demo save is 48 KB and encodes to ~22,900 characters raw, ~8,850 once node elevations are rounded to 10 cm, so quantisation is what makes the feature possible; the fragment is untrusted input needing a size cap and a decompression cap that do not exist yet.
