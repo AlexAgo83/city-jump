@@ -9,46 +9,87 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)
 
-[Live demo](https://city-jump.onrender.com/)
+**Draw a road. Watch a city appear along it.**
 
-`city-jump` is a browser-based 3D city builder. Draw roads, roundabouts, paths, and
-tunnels across terrain; buildable plots, buildings, junctions, traffic, and shaped
-ground are derived from that road network.
+### ▶ [Play it in your browser](https://city-jump.onrender.com/)
+
+No install, no account, no download. It runs on the page.
 
 ![The saved Demo city in Select mode, framed on a roundabout](docs/media/city-jump.png)
 
+---
+
+## Every city starts with one line
+
+You draw a street. Plots appear along both sides of it, sized to the space you left. Buildings
+fill the ones that fit. Cars find their way onto the tarmac, people onto the pavement, and the
+lights come on when the sun goes down.
+
+Draw another street across the first and the two split into a proper junction — with signals,
+crossings, and traffic that waits its turn. Drop a roundabout on it instead and the cars circle
+it. Take a road under a hill and it becomes a tunnel, portals and all.
+
+Nothing here is placed by hand except the roads. Everything else is what the roads imply.
+
 ![The saved Demo city in Roads mode, framed on the same roundabout](docs/media/city-jump-curves.png)
+
+## What you can do
+
+**Build.** Straight roads, curves, avenues, one-ways, dual carriageways, highways, footpaths,
+tunnels and roundabouts. Everything snaps to the grid, to existing junctions, and to roads
+already drawn — so a network stays a network.
+
+**Shape the ground.** Roads cut into the hills they cross and the terrain grades back around
+them. Junctions flatten to their real footprint. A tunnel digs its approach trench and leaves
+the hill whole over the middle.
+
+**Plant.** Trees one at a time or by the spray, in any of four species, anywhere the ground is
+above the waterline and clear of the road.
+
+**Watch it run.** Cars queue behind each other, stop at red, change lane before their turn, and
+take roundabouts properly. Pedestrians walk the pavements, go round corners rather than through
+them, and cross at the crossings.
+
+**Read it.** Switch to Zones to see which plots are taken and which are open. Switch to Traffic
+to watch the lanes and turns from above, with the buildings out of the way.
+
+**Set the hour.** Drag through a full 24 hours and watch the light move: the sun's angle, the
+colour of the sky, the streetlights, the headlights.
+
+**Keep it.** Name your cities and load them back. An autosave catches what you were doing even
+if you never pressed anything, and the view comes back where you left it.
 
 ![The saved Demo city in Traffic view, framed on the same roundabout](docs/media/city-jump-traffic.png)
 
-## Product Loop
+## Where it's going
 
-1. Shape a road network with straight, curved, and roundabout tools.
-2. Read the buildable grid generated along each road.
-3. Let buildings occupy valid, non-overlapping plots.
-4. Inspect zones, traffic, terrain, saves, and daylight from the same city.
+city-jump is a prototype, and an honest one. Everything above works today. What isn't there yet:
+zoning and demand, an economy, services, progression, bridges. Buildings currently appear
+because a plot is valid, not because anyone wanted them there — turning that into a decision
+the player makes is the next real step.
 
-The current prototype focuses on road construction, spatial legibility, terrain shaping,
-traffic, persistence, pedestrian paths, roundabouts, and tunnel rendering. Services,
-economy, progression, zoning demand, and bridges are not implemented.
+The plan lives in [`logics/roadmap/`](logics/roadmap/), as long-running strands rather than
+dated releases.
 
-## Current State
+## Get started
 
-- Roads snap to the 2 m world grid, existing nodes, and existing segments.
-- Hovered snap nodes are highlighted before placement.
-- Roads can be straight, curved, one-way, two-lane, highway, pedestrian, or tunnel.
-- Roundabouts sit on existing junction nodes, carry lane overlays, and survive saves.
-- Buildable plots extend up to five 8 m cells perpendicular to a road and never overlap.
-- Curved roads regroup nearby cells into usable blocks where geometry permits.
-- Select mode switches between all buildings, zone/buildable-grid reading, and traffic overlays.
-- Rolling and rugged terrain presets exercise road shaping and ground conformance.
-- Tunnels pass under surface roads and render portals without growing buildings or traffic.
-- Named saves and autosave persist the graph, plantings, terrain, camera, and sun state.
-- New browsers get a bundled `Demo` save in the load menu by default.
-- A 24-hour sun control changes light direction, intensity, ambient light, and sky.
-- A browser debug surface drives deterministic visual and interaction checks.
+Open the [live demo](https://city-jump.onrender.com/) — a `Demo` city is already in the load
+menu. **Straight** takes two clicks, **Curve** takes start, bend and end, **Roundabout** toggles
+an existing junction. Right-click or `Esc` cancels.
 
-## Architecture
+To run it yourself (Node.js 22):
+
+```bash
+npm ci
+npm run dev
+```
+
+## Under the hood
+
+The road graph is the source of truth. Everything visible — terrain, road surfaces, plots,
+buildings, traffic — is a derived view, rebuilt after an edit. The simulation imports neither
+Babylon nor the DOM, so the geometry and rules run headless in Vitest, and a test enforces that
+boundary rather than trusting it.
 
 ```mermaid
 flowchart LR
@@ -60,10 +101,6 @@ flowchart LR
     RENDER --> VIEW[Terrain, roads, plots, buildings]
 ```
 
-The road graph is the source of truth. Babylon meshes are derived views and are rebuilt
-after an edit. Simulation modules contain no Babylon or DOM imports, so geometry and
-rules run headless in Vitest.
-
 | Path | Responsibility |
 | --- | --- |
 | `src/app/` | Composition and rebuild lifecycle. |
@@ -71,59 +108,21 @@ rules run headless in Vitest.
 | `src/sim/` | Deterministic graph, road rules, terrain, and plot generation. |
 | `src/render/` | Babylon scene, meshes, picking, and visual debug API. |
 | `scripts/` | Browser interaction and visual checks. |
-| `logics/` | Product, roadmap, decisions, specifications, and delivery corpus. |
+| `logics/` | Product, roadmap, decisions, runbooks, and delivery corpus. |
 
-## Quick Start
+A last measured run: 237 roads, 126 junctions, 1,688 buildings, 237 cars and 474 pedestrians at
+50 fps on an Apple M3 Pro.
 
-Requires Node.js 22.
+`npm run ci` is the push gate — types, unit tests, the architecture test, the build, and Logics
+validation. The browser interaction and visual suites run on demand.
+[`CONTRIBUTING.md`](CONTRIBUTING.md) has the full list and when to reach for each.
 
-```bash
-npm ci
-npm run dev
-```
+## More
 
-Open `http://localhost:5173`. **Straight** roads take two clicks; **Curve** roads take
-start, bend, and end; **Roundabout** toggles an existing junction. Right-click or `Esc`
-cancels.
-
-## Validation
-
-```bash
-npm run typecheck
-npm test
-npm run test:architecture
-npm run build
-npm run test:e2e
-npm run test:visual
-npm run logics:validate
-npm run ci
-```
-
-`ci` is the fast push gate. `test:e2e` and `test:visual` start or reuse the local Vite
-server. GitHub Actions runs the browser interaction suite in the separate
-`Browser Interaction` workflow, manually with `workflow_dispatch` or on its weekly
-schedule. On 2026-08-29,
-`node scripts/with-dev-server.mjs scripts/shot.mjs /tmp/city-jump-city.png city` rendered
-237 roads, 126 junctions, 1,688 buildings, 237 cars, and 474 pedestrians at 50 fps on an
-Apple M3 Pro using ANGLE Metal.
-
-## Static Release
-
-`npm run release:static` validates the project and writes the static app to `dist/`.
-The output is plain files from Vite: `index.html`, hashed assets, the app icons, the
-manifest, and the building GLBs copied from `public/`. Tag releases as `v0.2.0` for this
-baseline.
-
-## Assets
-
-Building GLBs live under `public/buildings/` and render as thin instances. Their
-authoring contract is documented in [`docs/assets.md`](docs/assets.md).
-
-## Project Documents
-
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) describes collaboration and validation.
-- [`SECURITY.md`](SECURITY.md) describes the current local-client threat model.
-- [`changelogs/`](changelogs/README.md) contains versioned release notes.
-- [`LOGICS.md`](LOGICS.md) explains the repository-local product corpus.
+- [`docs/assets.md`](docs/assets.md) — the building model authoring contract.
+- [`logics/runbook/`](logics/runbook/) — how the hard parts actually work, and what went wrong first.
+- [`SECURITY.md`](SECURITY.md) — the current local-client threat model.
+- [`changelogs/`](changelogs/README.md) — release notes.
+- [`LOGICS.md`](LOGICS.md) — the repository-local product corpus.
 
 Licensed under the [MIT License](LICENSE).
