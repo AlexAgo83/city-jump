@@ -1,7 +1,7 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
-import { allJunctions, ringElevation } from "./junction";
+import { allJunctions, ringElevation, type JunctionGeometry } from "./junction";
 import type { BuildingParcel } from "./slots";
 import type { Vec3 } from "./vec";
 
@@ -133,7 +133,12 @@ export class Heightmap implements Terrain {
    * ground each time. A road that has been removed simply is not cut, and the ground
    * beneath it comes back.
    */
-  conformToRoads(graph: RoadGraph, parcels: readonly BuildingParcel[] = [], dirty?: TerrainBounds): void {
+  conformToRoads(
+    graph: RoadGraph,
+    parcels: readonly BuildingParcel[] = [],
+    dirty?: TerrainBounds,
+    junctions: Map<number, JunctionGeometry> = allJunctions(graph),
+  ): void {
     const region = dirty ? this.gridBounds(dirty) : null;
     if (region) {
       for (let iz = region.minIz; iz <= region.maxIz; iz++) {
@@ -175,7 +180,7 @@ export class Heightmap implements Terrain {
     // means the ground can never disagree with the surface drawn over it, whatever angle the
     // roads meet at. A roundabout has no filler polygon (it is drawn as a ring, not a hull), so it
     // keeps the circular stamp -- which already matches its perfectly circular render.
-    for (const [nodeId, junction] of allJunctions(graph)) {
+    for (const [nodeId, junction] of junctions) {
       const node = graph.node(nodeId);
       if (junction.ring.length >= 3) {
         // Forced: an arm still samples and stamps itself right up to the node it ends at, so its

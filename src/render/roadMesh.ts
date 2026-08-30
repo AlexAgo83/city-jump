@@ -130,7 +130,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   }
   let showTraffic = false;
 
-  function rebuild(dirty?: TerrainBounds): void {
+  function rebuild(dirty?: TerrainBounds, junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph)): void {
     if (dirty) {
       const segmentsById = new Map(graph.allSegments().map((segment) => [segment.id, segment]));
       meshes = meshes.filter((mesh) => {
@@ -142,8 +142,6 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       for (const mesh of meshes) mesh.dispose();
       meshes = [];
     }
-
-    const junctions = allJunctions(graph);
 
     for (const seg of graph.allSegments()) {
       const type = roadType(seg.type);

@@ -7,7 +7,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 
 import type { NodeId, RoadGraph, SegmentId } from "../sim/graph";
-import { allJunctions, type JunctionArm } from "../sim/junction";
+import { allJunctions, type JunctionArm, type JunctionGeometry } from "../sim/junction";
 import { roadType } from "../sim/roadTypes";
 import { signalAt, signalCycle, type SignalCycle, type SignalState } from "../sim/signals";
 import { armPoint, CROSSING_DEPTH, crossingNear } from "../sim/transfers";
@@ -73,13 +73,12 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   let meshes: (Mesh | InstancedMesh)[] = [];
   const cycles = new Map<NodeId, SignalCycle>();
 
-  function rebuild(): void {
+  function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph)): void {
     for (const mesh of meshes) mesh.dispose();
     meshes = [];
     masts = [];
     cycles.clear();
 
-    const junctions = allJunctions(graph);
     for (const junction of junctions.values()) {
       const cycle = signalCycle(graph, junction.node, junction);
       if (!cycle) continue;

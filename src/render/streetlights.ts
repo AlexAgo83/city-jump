@@ -9,7 +9,7 @@ import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math"
 import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
-import { allJunctions, segmentTrims } from "../sim/junction";
+import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
@@ -69,7 +69,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   /** One lamp's two lights, kept and moved rather than rebuilt. */
   let realLights: { pool: SpotLight; facade: PointLight }[] = [];
 
-  function rebuild(): number {
+  function rebuild(junctions: Map<number, JunctionGeometry> = allJunctions(graph)): number {
     const poleMatrices: Matrix[] = [];
     const armMatrices: Matrix[] = [];
     const headMatrices: Matrix[] = [];
@@ -77,8 +77,6 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     const bulbWhiteMatrices: Matrix[] = [];
     const positions: typeof lampPositions = [];
     const shadowBases: { x: number; y: number; z: number; radius: number }[] = [];
-    const junctions = allJunctions(graph);
-
     for (const segment of graph.allSegments()) {
       const type = roadType(segment.type);
       if (type.tunnelDepth) continue;
