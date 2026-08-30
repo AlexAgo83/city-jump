@@ -16,6 +16,13 @@ const check = (name, ok, detail = "") => {
 
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--enable-unsafe-swiftshader"] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
+await page.addInitScript(() => {
+  const nativeMatchMedia = window.matchMedia.bind(window);
+  window.matchMedia = (query) =>
+    query === "(pointer: coarse)"
+      ? { matches: true, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }
+      : nativeMatchMedia(query);
+});
 // Playwright's 30s default action timeout is sized for a GPU-accelerated browser. This page
 // renders through software WebGL (swiftshader), and CI runs it on a shared, CPU-constrained
 // runner on top of that -- individual steps routinely take 10-40s there even when nothing is
@@ -56,6 +63,7 @@ const realTime = (ms) => page.waitForTimeout(ms);
 
 await page.goto(url, { waitUntil: "load" });
 await waitForApp();
+check("coarse pointer visitors see the desktop input notice", await page.locator("#touch-notice").isVisible());
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);

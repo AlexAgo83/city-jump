@@ -1,14 +1,14 @@
 ## item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen - Take a position on the visitors arriving with a touchscreen
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:05:05
+> Indicators reviewed: 2026-08-30 12:28:52
 
 # AI Context
 - Summary: The build loop needs a hover preview and a right-click to cancel, and tests `event.button === 0`; the README links a public demo that phone visitors cannot build anything in, with nothing telling them why.

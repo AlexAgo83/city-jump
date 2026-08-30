@@ -7,7 +7,7 @@
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:54:57
+> Indicators reviewed: 2026-08-30 12:30:56
 
 # AI Context
 - Summary: Sharing a city with no server, by carrying it in the URL fragment. The Demo save is 48 KB and encodes to ~22,900 characters raw, ~8,850 once node elevations are rounded to 10 cm, so quantisation is what makes the feature possible; the fragment is untrusted input needing a size cap and a decompression cap that do not exist yet.
@@ -24,6 +24,7 @@
 
 # Context
 - `SECURITY.md` requires a threat-model review before user-generated asset work ships, and a city arriving from a stranger's link is user-generated content. That review is the threat-model slice of `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`, and it has to land before this feature is released.
+- The current review is `docs/shared-link-threat-model.md`; its cap list and refusal rules are the input to the encoder and decoder in this request.
 - `adr_004_stay_a_static_client_with_no_server_of_its_own` records why this cannot be a short link: the deployment has no server to store a city in, deliberately.
 - The link must use the URL **fragment** (`#city=...`), not a query string. A fragment is never sent to the server, so a shared city never reaches Render, its logs, or any CDN in between; a query string would put someone's city in request logs it has no business being in.
 - Compression is available natively. the browser's own gzip CompressionStream and DecompressionStream APIs reached all three engines in May 2023 (Chrome 80, Safari 16.4, Firefox 113) and are Baseline, verified August 2026, so this needs no new dependency.

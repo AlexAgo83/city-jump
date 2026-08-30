@@ -77,6 +77,10 @@ Open the [live demo](https://city-jump.onrender.com/) — a `Demo` city is alrea
 menu. **Straight** takes two clicks, **Curve** takes start, bend and end, **Roundabout** toggles
 an existing junction. Right-click or `Esc` cancels.
 
+The build tools are desktop-only for now. They need a mouse because hover previews show what
+will be placed, right-click cancels, and drag already moves the camera. Touch visitors can still
+open the city and look around.
+
 To run it yourself (Node.js 22):
 
 ```bash
@@ -121,7 +125,8 @@ validation. The browser interaction and visual suites run on demand.
 
 - [`docs/assets.md`](docs/assets.md) — the building model authoring contract.
 - [`logics/runbook/`](logics/runbook/) — how the hard parts actually work, and what went wrong first.
-- [`SECURITY.md`](SECURITY.md) — the current local-client threat model.
+- [`SECURITY.md`](SECURITY.md) — the current static-client security model.
+- [`docs/shared-link-threat-model.md`](docs/shared-link-threat-model.md) — the share-link review.
 - [`changelogs/`](changelogs/README.md) — release notes.
 - [`LOGICS.md`](LOGICS.md) — the repository-local product corpus.
 

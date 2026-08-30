@@ -103,6 +103,14 @@
   #selection-panel dl { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; }
   #selection-panel dt { color: #aeb8c0; }
   #selection-panel dd { margin: 0; text-align: right; }
+  #touch-notice {
+    position: fixed; left: 50%; top: 12px; transform: translateX(-50%);
+    max-width: min(520px, calc(100vw - 24px)); box-sizing: border-box;
+    color: #f1e6c8; background: #463a20e8; border: 1px solid #ffffff26;
+    border-radius: 6px; font: 12px/1.35 ui-sans-serif, system-ui; padding: 8px 12px;
+    pointer-events: none;
+  }
+  #touch-notice[hidden] { display: none; }
   @media (max-width: 680px) {
     #toolbar { max-width: calc(100vw - 24px); }
     #sun-hour { width: 72px; }
@@ -196,5 +204,9 @@
   <div class="selection-kind"></div>
   <dl></dl>
 </div>
+<div id="touch-notice" hidden>The build tools need a mouse: hover previews show placement, and right-click cancels. You can still look around the city.</div>
 <div id="toast"></div>
+<script>
+  if (matchMedia("(pointer: coarse)").matches) document.getElementById("touch-notice").hidden = false;
+</script>
 <script type="module" src="/src/main.ts"></script>

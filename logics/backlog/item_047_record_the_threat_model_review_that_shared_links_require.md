@@ -1,14 +1,14 @@
 ## item_047_record_the_threat_model_review_that_shared_links_require - Record the threat-model review that shared links require
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:04:32
+> Indicators reviewed: 2026-08-30 12:28:52
 
 # AI Context
 - Summary: The policy commits the project to a threat-model review before user-generated asset work ships, and cities arriving from a stranger's link are exactly that; no review exists.

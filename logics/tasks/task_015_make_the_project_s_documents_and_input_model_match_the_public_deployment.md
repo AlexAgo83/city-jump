@@ -1,14 +1,15 @@
 ## task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment - Make the project's documents and input model match the public deployment
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:05:05
+> Indicators reviewed: 2026-08-30 12:28:52
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_013: correct SECURITY.md against the real deployment, record the shared-link threat-model review before the share feature ships, and take a written position on touch devices.

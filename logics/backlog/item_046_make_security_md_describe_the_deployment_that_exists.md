@@ -1,14 +1,14 @@
 ## item_046_make_security_md_describe_the_deployment_that_exists - Make SECURITY.md describe the deployment that exists
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 40%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:55:17
+> Indicators reviewed: 2026-08-30 12:28:52
 
 # AI Context
 - Summary: `SECURITY.md` describes "a static client application served by Vite during development" and a 0.1.x support line, while 0.2.0 is served publicly from the static site in `render.yaml`.
