@@ -468,6 +468,22 @@ await page.locator("#show-buildings").uncheck();
 check("generated buildings can be hidden", (await stats()).buildings === 0);
 await page.locator("#show-buildings").check();
 check("generated buildings can be restored", (await stats()).buildings === drawn.buildings);
+const shortcut = process.platform === "darwin" ? "Meta" : "Control";
+const hourBeforeUndo = await page.locator("#sun-hour").inputValue();
+await page.locator("#undo-city").click();
+check("undo button removes the last city change", (await stats()).segments === 0);
+check("undo leaves the sun hour alone", (await page.locator("#sun-hour").inputValue()) === hourBeforeUndo);
+await page.locator("#undo-city").click();
+check("empty undo says so", /Nothing to undo/.test(await toast()));
+await page.locator("#redo-city").click();
+check("redo button restores the city change", (await stats()).segments === drawn.segments);
+await page.keyboard.press(`${shortcut}+Z`);
+check("undo shortcut removes the last city change", (await stats()).segments === 0);
+await page.keyboard.press(`${shortcut}+Shift+Z`);
+check("redo shortcut restores the city change", (await stats()).segments === drawn.segments);
+await page.locator("#save-slot").focus();
+await page.keyboard.press(`${shortcut}+Z`);
+check("undo shortcut is inert while a field has focus", (await stats()).segments === drawn.segments);
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
 await page.locator("#zone-radius").evaluate((input) => {
@@ -1153,6 +1169,8 @@ await page.locator("#save-load").click();
 await nextFrame();
 const loaded = await stats();
 check("loading restores every segment", loaded.segments === built.segments, `${loaded.segments}/${built.segments}`);
+await page.locator("#undo-city").click();
+check("loading clears undo history", /Nothing to undo/.test(await toast()) && (await stats()).segments === loaded.segments);
 // Replaying onto pristine terrain shifts road heights slightly, so parcel counts move a little.
 // What must hold is that they stop moving: loading is a fixed point.
 const drift = Math.abs(loaded.buildings - built.buildings) / built.buildings;

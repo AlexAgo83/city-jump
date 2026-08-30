@@ -59,8 +59,8 @@ export function bindControls(handlers: {
   const undo = document.getElementById("undo-city") as HTMLButtonElement;
   const redo = document.getElementById("redo-city") as HTMLButtonElement;
   const updateUndoRedo = (): void => {
-    undo.setAttribute("aria-disabled", String(!handlers.canUndo()));
-    redo.setAttribute("aria-disabled", String(!handlers.canRedo()));
+    undo.dataset.available = String(handlers.canUndo());
+    redo.dataset.available = String(handlers.canRedo());
   };
   undo.addEventListener("click", handlers.onUndo);
   redo.addEventListener("click", handlers.onRedo);
