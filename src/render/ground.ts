@@ -351,14 +351,14 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     g = mix(seaG, shoreG, beach);
     b = mix(seaB, shoreB, beach);
   } else if (h < 88) {
-    const t = smoothstep((h - 58) / 34);
+    const t = smoothstep((h - 66) / 38);
     r = mix(GRASS[0], ROCK[0], t);
     g = mix(GRASS[1], ROCK[1], t);
     b = mix(GRASS[2], ROCK[2], t);
   } else {
     const snowNoise = valueNoise(x - 320, z + 520, 170);
     const snowShelf = 1 - smoothstep((slope - 0.18) / 0.34);
-    const t = smoothstep((h - (92 + snowNoise * 18)) / 36) * snowShelf;
+    const t = smoothstep((h - (108 + snowNoise * 18)) / 34) * snowShelf;
     r = mix(ROCK[0], SNOW[0], t);
     g = mix(ROCK[1], SNOW[1], t);
     b = mix(ROCK[2], SNOW[2], t);
@@ -379,7 +379,7 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
   }
   if (h > SEA_LEVEL + 4) {
     const wetPocket = smoothstep((26 - h) / 18) * (1 - smoothstep(slope / 0.28)) * (0.55 + valueNoise(x - 140, z + 680, 180) * 0.45);
-    const rockFace = smoothstep((slope - 0.18) / 0.5) * (0.65 + valueNoise(x + 540, z + 210, 70) * 0.35);
+    const rockFace = smoothstep((slope - 0.24) / 0.58) * (0.65 + valueNoise(x + 540, z + 210, 70) * 0.35) * smoothstep((h - 38) / 42);
     r = mix(r, 0.2, wetPocket * 0.32);
     g = mix(g, 0.38, wetPocket * 0.28);
     b = mix(b, 0.22, wetPocket * 0.24);
@@ -387,24 +387,24 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     g = mix(g, 0.37, rockFace * 0.34);
     b = mix(b, 0.32, rockFace * 0.32);
   }
-  if (h > 48) {
-    const high = smoothstep((h - 42) / 62);
-    const ravine = Math.max(0, valueNoise(x * 0.45 + z * 0.12, z * 1.3, 34) - 0.48) * 2.9 * smoothstep((slope - 0.08) / 0.34) * high;
+  {
+    const high = smoothstep((h - 50) / 80);
+    const ravine = Math.max(0, valueNoise(x * 0.45 + z * 0.12, z * 1.3, 42) - 0.5) * 2.1 * smoothstep((slope - 0.12) / 0.38) * high;
     const strata = Math.abs(((h * 0.11 + valueNoise(x, z, 260) * 1.8) % 1) - 0.5);
-    const ridge = smoothstep((h - 78) / 54) * (1 - smoothstep((slope - 0.38) / 0.42));
-    const exposed = smoothstep((slope - 0.16) / 0.35) * high;
+    const ridge = smoothstep((h - 92) / 48) * (1 - smoothstep((slope - 0.38) / 0.42));
+    const exposed = smoothstep((slope - 0.18) / 0.4) * high;
     r = mix(r, 0.24, ravine * 0.22);
     g = mix(g, 0.24, ravine * 0.22);
     b = mix(b, 0.22, ravine * 0.2);
     r = mix(r, 0.46, exposed * 0.22);
     g = mix(g, 0.45, exposed * 0.2);
     b = mix(b, 0.39, exposed * 0.18);
-    r *= 0.88 + strata * 0.24;
-    g *= 0.88 + strata * 0.18;
-    b *= 0.88 + strata * 0.14;
-    r = mix(r, 0.74, ridge * 0.18);
-    g = mix(g, 0.74, ridge * 0.16);
-    b = mix(b, 0.68, ridge * 0.14);
+    r *= 0.94 + strata * 0.12 * high;
+    g *= 0.94 + strata * 0.09 * high;
+    b *= 0.94 + strata * 0.07 * high;
+    r = mix(r, 0.7, ridge * 0.12);
+    g = mix(g, 0.7, ridge * 0.1);
+    b = mix(b, 0.64, ridge * 0.09);
   }
   if (roadWear > 0) {
     const dust = valueNoise(x + 300, z - 1200, 36) * 0.16;
