@@ -880,7 +880,15 @@ check("clicking it again removes the roundabout", (await stats()).roundabouts ==
 await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
 
 // It has to survive a save.
-await realTime(2400);
+await page.waitForFunction(() => {
+  const raw = window.localStorage.getItem("cityjump.autosave");
+  if (!raw) return false;
+  try {
+    return JSON.parse(raw).nodes?.some((node) => node[4] === 1);
+  } catch {
+    return false;
+  }
+}, null, { timeout: 5_000 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);

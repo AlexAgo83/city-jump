@@ -60,7 +60,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
         positions[i * 3 + 1] = h;
-        writeTerrainColor(colors, i * 4, h, heightmap.worldX(ix), heightmap.worldZ(iz));
+        writeTerrainColor(colors, i * 4, h, heightmap.baseAt(ix, iz), heightmap.worldX(ix), heightmap.worldZ(iz));
       }
     }
     if (dirty) {
@@ -295,7 +295,7 @@ const SNOW: Rgba = [0.86, 0.87, 0.8, 1];
 const SEAFLOOR_NEAR: Rgba = [0.19, 0.36, 0.32, 1];
 const SEAFLOOR_FAR: Rgba = [0.05, 0.1, 0.15, 1];
 
-function writeTerrainColor(out: Float32Array, offset: number, h: number, x: number, z: number): void {
+export function writeTerrainColor(out: Float32Array, offset: number, h: number, baseH: number, x: number, z: number): void {
   const sea = distanceFromIsland(x, z);
   const seaR = mix(SEAFLOOR_NEAR[0], SEAFLOOR_FAR[0], sea);
   const seaG = mix(SEAFLOOR_NEAR[1], SEAFLOOR_FAR[1], sea);
@@ -312,24 +312,43 @@ function writeTerrainColor(out: Float32Array, offset: number, h: number, x: numb
     r = mix(seaR, shoreR, beach);
     g = mix(seaG, shoreG, beach);
     b = mix(seaB, shoreB, beach);
-  } else if (h < 52) {
-    const t = smoothstep((h - 28) / 24);
+  } else if (h < 88) {
+    const t = smoothstep((h - 38) / 50);
     r = mix(GRASS[0], ROCK[0], t);
     g = mix(GRASS[1], ROCK[1], t);
     b = mix(GRASS[2], ROCK[2], t);
   } else {
-    const t = smoothstep((h - 72) / 24);
+    const t = smoothstep((h - 118) / 36);
     r = mix(ROCK[0], SNOW[0], t);
     g = mix(ROCK[1], SNOW[1], t);
     b = mix(ROCK[2], SNOW[2], t);
   }
 
-  // The fine octave used to run at scale 18, barely twice the 8m cell size and on the same axes
-  // as the mesh, so it read as a grid of little squares. Sampling it wider and on rotated
-  // coordinates keeps the same amount of variation without any alignment to look at.
-  // ponytail: rotate and rescale one octave, rather than layering more of them.
+  const dryPatch = valueNoise(x - 900, z + 300, 380);
+  const lushPatch = valueNoise(x + 1200, z - 850, 520);
+  const roadWear = smoothstep((baseH - h - 0.08) / 0.7);
+  if (h > SEA_LEVEL + 2 && h < 44) {
+    const dry = smoothstep((dryPatch - 0.45) / 0.35) * 0.22;
+    const lush = smoothstep((lushPatch - 0.58) / 0.22) * 0.12;
+    r = mix(r, 0.46, dry);
+    g = mix(g, 0.43, dry);
+    b = mix(b, 0.25, dry);
+    r = mix(r, 0.24, lush);
+    g = mix(g, 0.55, lush);
+    b = mix(b, 0.25, lush);
+  }
+  if (roadWear > 0) {
+    const dust = valueNoise(x + 300, z - 1200, 36) * 0.16;
+    r = mix(r, 0.42 + dust, roadWear * 0.42);
+    g = mix(g, 0.39 + dust, roadWear * 0.38);
+    b = mix(b, 0.30 + dust * 0.5, roadWear * 0.34);
+  }
+
+  // Rotated/noisy octaves break the mesh grid; sparse flecks stand in for grass clumps, stones
+  // and leaf litter without owning thousands of detail meshes.
   const fine = valueNoise(x * SIN45 + z * SIN45, z * SIN45 - x * SIN45, 52);
-  const shade = 0.84 + valueNoise(x, z, 150) * 0.14 + fine * 0.26;
+  const speck = valueNoise(x + 17, z - 31, 13);
+  const shade = 0.82 + valueNoise(x, z, 150) * 0.16 + fine * 0.24 + (speck > 0.82 && h > SEA_LEVEL + 4 ? (speck - 0.82) * 0.5 : 0);
   const tint = (valueNoise(x + 700, z - 400, 90) - 0.5) * 0.08;
   out[offset] = r * shade * (1 - tint);
   out[offset + 1] = g * shade * (1 + tint * 0.6);
