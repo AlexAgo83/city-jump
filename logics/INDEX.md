@@ -90,4 +90,8 @@
 
 ## Runbooks
 
-_None_
+| Doc | Title | Status | Category | Verified | Path |
+|---|---|---|---|---|---|
+| [run_001_author_a_building_model_that_lands_on_its_parcel](runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md) | Author a building model that lands on its parcel | Active | other | 2026-08-30 against the 20-model library in `public/buildings/` and `scripts/gen_buildings.py` | runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md |
+| [run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street](runbook/run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street.md) | Put an object on top of a building without it landing in the street | Active | other | 2026-08-30 against the roof-prop placement in `src/render/buildings.ts` and commits `4f06cc6`..`c9d9df1` | runbook/run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street.md |
+| [run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through](runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md) | Cut terrain under a road or a junction without raw ground poking through | Active | other | 2026-08-30 against `src/sim/heightmap.ts` and commits `aa8167e`, `1b45ae4`, `69d448c`, `70a112a`, `17ebabb` | runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md |
