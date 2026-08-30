@@ -35,8 +35,13 @@ const FRAMINGS = [
   { name: "street", radius: 140, beta: Math.PI / 2.4 },
 ];
 
+// Headless Chromium falls back to SwiftShader, a software rasteriser: fine for comparing runs,
+// but it prices triangles and draw calls nothing like a real GPU does. --gpu opens a real window
+// on the machine's own driver, which is what the game actually runs on.
+const onGpu = args.includes("--gpu");
 const browser = await chromium.launch({
-  args: ["--use-gl=angle", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+  headless: !onGpu,
+  args: onGpu ? ["--ignore-gpu-blocklist"] : ["--use-gl=angle", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
 });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.on("pageerror", (error) => console.log("[page exception]", error.message));
@@ -106,7 +111,7 @@ await browser.close();
 
 const run = {
   at: new Date().toISOString(),
-  label,
+  label: onGpu ? `${label}-gpu` : label,
   commit: execSync("git rev-parse --short HEAD", { cwd: ROOT }).toString().trim(),
   dirty: execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0,
   fps,
@@ -127,7 +132,7 @@ const previous = existsSync(HISTORY)
       .split("\n")
       .filter(Boolean)
       .map((line) => JSON.parse(line))
-      .filter((entry) => entry.label === label)
+      .filter((entry) => entry.label === (onGpu ? `${label}-gpu` : label))
       .at(-1)
   : undefined;
 
@@ -135,7 +140,7 @@ mkdirSync(dirname(HISTORY), { recursive: true });
 appendFileSync(HISTORY, `${JSON.stringify(run)}\n`);
 
 const delta = (now, before) => (before === undefined ? "" : `  (${now - before >= 0 ? "+" : ""}${Math.round(now - before)})`);
-console.log(`\n${label}  ${run.commit}${run.dirty ? "+dirty" : ""}`);
+console.log(`\n${run.label}  ${run.commit}${run.dirty ? "+dirty" : ""}`);
 console.log(`  city        ${run.city.segments} segments, ${run.city.buildings} buildings, ${run.city.cars} cars, ${run.city.activeMeshes} active meshes`);
 for (const framing of FRAMINGS) {
   console.log(`  ${framing.name.padEnd(11)} ${fps[framing.name]} fps${delta(fps[framing.name], previous?.fps?.[framing.name])}`);
