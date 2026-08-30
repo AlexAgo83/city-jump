@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { portalOutline, tunnelSection, tunnelStripIndices } from "./roadMesh";
+import { portalOutline, segmentMeshTouchesBounds, tunnelSection, tunnelStripIndices } from "./roadMesh";
 
 describe("road mesh geometry", () => {
   it("builds a symmetrical arched tunnel section", () => {
@@ -26,5 +26,18 @@ describe("road mesh geometry", () => {
     expect(outline.at(-1)!.x).toBeCloseTo(90);
     expect(outline.at(-1)!.z).toBeCloseTo(50);
     expect(outline[0]!.y).toBe(7);
+  });
+
+  it("rebuilds road meshes whose volume touches the dirty region even when no centre sample is inside", () => {
+    const touches = segmentMeshTouchesBounds(
+      [
+        { x: -100, y: 0, z: -100 },
+        { x: 100, y: 0, z: 100 },
+      ],
+      { width: 10, highway: false, pedestrian: false },
+      { minX: -2, maxX: 2, minZ: 90, maxZ: 94 },
+    );
+
+    expect(touches).toBe(true);
   });
 });

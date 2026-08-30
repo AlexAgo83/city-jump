@@ -145,8 +145,8 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     const junctions = allJunctions(graph);
 
     for (const seg of graph.allSegments()) {
-      if (dirty && !pointsTouchBounds(seg.samples, dirty)) continue;
       const type = roadType(seg.type);
+      if (dirty && !segmentMeshTouchesBounds(seg.samples, type, dirty)) continue;
       if (type.tunnelDepth) {
         const steps = Math.max(4, Math.ceil(seg.length / 8));
         const trace = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT);
@@ -784,6 +784,21 @@ function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3
 
 function pointsTouchBounds(points: readonly Vec3[], bounds: TerrainBounds): boolean {
   return points.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
+}
+
+export function segmentMeshTouchesBounds(points: readonly Vec3[], type: Pick<RoadType, "width" | "highway" | "pedestrian">, bounds: TerrainBounds): boolean {
+  const pad = type.highway || type.pedestrian ? type.width / 2 : type.width / 2 + SIDEWALK_WIDTH;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (const p of points) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minZ = Math.min(minZ, p.z);
+    maxZ = Math.max(maxZ, p.z);
+  }
+  return maxX + pad >= bounds.minX && minX - pad <= bounds.maxX && maxZ + pad >= bounds.minZ && minZ - pad <= bounds.maxZ;
 }
 
 function junctionTouchesBounds(junction: JunctionGeometry, bounds: TerrainBounds): boolean {
