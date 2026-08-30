@@ -1,14 +1,14 @@
 ## item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone - Follow something that moves, and stop cleanly when it is gone
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:03:06
+> Indicators reviewed: 2026-08-30 13:07:22
 
 # AI Context
 - Summary: The camera cannot ride along with a car; and a followed vehicle does not survive a rebuild today, since `traffic.rebuild()` disposes the whole mover population — so follow must end gracefully rather than freeze.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`
+
+# Notes
+- Task `task_014_implement_the_camera_target_policies_and_the_camera_settings_section` was finished via `logics-manager flow finish task` on 2026-08-30.

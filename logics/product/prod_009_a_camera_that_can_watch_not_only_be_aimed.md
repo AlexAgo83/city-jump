@@ -1,11 +1,12 @@
 ## prod_009_a_camera_that_can_watch_not_only_be_aimed - A camera that can watch, not only be aimed
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`
-> Related backlog: `item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged`, `item_043_orbit_the_camera_around_what_the_player_is_looking_at`, `item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone`, `item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view`
+> Related backlog: `item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged`
 > Related task: `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:07:22
 
 # Overview
 city-jump's camera is a tool for operating the city: the player points it and it stays pointed. That is right for building, and wrong for everything else -- seeing a junction from all sides, sitting with the light as it changes, or watching one car actually take a roundabout. This slice keeps that camera exactly as it is and adds two more things it can do with its target: turn around it, or let it move. One camera, three policies, and touching the controls always gives the player back the one they already know.
@@ -49,5 +50,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_012_give_the_camera_three_target_policies_free_orbit_and_follow`
+- Product back-reference: `item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged`
 - Task back-reference: `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`

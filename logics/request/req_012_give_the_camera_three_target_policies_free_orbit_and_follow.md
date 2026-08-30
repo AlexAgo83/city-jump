@@ -1,12 +1,13 @@
 ## req_012_give_the_camera_three_target_policies_free_orbit_and_follow - Give the camera three target policies: free, orbit, and follow
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:07:21
 
 # AI Context
 - Summary: The scene already uses an `ArcRotateCamera`, so this is not three cameras but three rules for what `camera.target` does each frame: stay put, be orbited, or track something moving. Follow depends on cars being selectable; camera-position persistence has to be suspended outside Free or it records a moving car as the resume point.

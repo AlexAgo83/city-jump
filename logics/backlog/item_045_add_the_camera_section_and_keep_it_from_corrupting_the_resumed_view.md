@@ -1,14 +1,14 @@
 ## item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view - Add the Camera section, and keep it from corrupting the resumed view
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 13:03:06
+> Indicators reviewed: 2026-08-30 13:07:22
 
 # AI Context
 - Summary: There is no Camera row in the settings panel, and `writeCameraState`'s 800 ms debounce off the view-matrix observable never fires under a self-turning camera and would persist a moving car's position under follow.
@@ -55,3 +55,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`
+
+# Notes
+- Task `task_014_implement_the_camera_target_policies_and_the_camera_settings_section` was finished via `logics-manager flow finish task` on 2026-08-30.
