@@ -1,15 +1,15 @@
 ## task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off - Let the player turn shadows and the city's own lights off
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-08-30 18:33:39
+> Indicators reviewed: 2026-08-30 18:37:32
 
 # AI Context
 - Summary: Orchestration for req_017: shadows first (switch on the light so rebuilds adding casters stay harmless), then the city's lights as one combined answer with the hour. Both small; the risk is reaching for a quality preset instead of two switches.
@@ -58,9 +58,15 @@
 
 # Validation
 - (no validation recorded yet)
+- command: `rtk npm run ci; rtk npm run test:e2e; rtk npm run test:visual; Playwright Demo FPS: default 40, shadows off 55, lights off 62, both off 65` | result: passed | date: 2026-08-30
+- Finish workflow executed on 2026-08-30.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-08-30.
+- Linked backlog item(s): `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`, `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`
+- Related request(s): `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`, `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
 
 # Links
 - Request: `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`

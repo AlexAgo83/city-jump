@@ -7,7 +7,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:21:58
+> Indicators reviewed: 2026-08-30 18:37:32
 
 # AI Context
 - Summary: The frame rate is measured, quoted in the README and asserted in CI, and never shown to the person playing. `measureFps` in `src/render/debugApi.ts` already counts frames but is reachable only from a script. This puts one smoothed figure in the top-right -- where `#selection-panel` already lives, so the two must coexist -- behind a `Show FPS` toggle in `Settings > World` that is off by default and persisted like `Grid` and `Buildings`.

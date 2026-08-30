@@ -1,12 +1,13 @@
 ## req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off - Let the player turn shadows and the city's own lights off
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:37:32
 
 # AI Context
 - Summary: The two most expensive things the scene does -- a cascaded shadow map every frame, and a clustered spotlight plus point light per streetlight and per headlight after dark -- are the two the player cannot switch off. Both already have their seam: `sun.shadowEnabled` on the light, and the `setEnabled` the two `ClusteredLightContainer`s already take from the hour of day. Two positive-sense World toggles, on by default.

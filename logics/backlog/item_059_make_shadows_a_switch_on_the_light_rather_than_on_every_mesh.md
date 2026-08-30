@@ -1,14 +1,14 @@
 ## item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh - Make shadows a switch, on the light rather than on every mesh
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 18:22:33
+> Indicators reviewed: 2026-08-30 18:37:32
 
 # AI Context
 - Summary: Switch shadows at the light (`sun.shadowEnabled`), not by walking meshes and emptying the caster list -- buildings and trees re-register casters on every rebuild, so the mesh-walking approach quietly undoes itself. Must stop the shadow map rendering, not just hide its result.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
+
+# Notes
+- Task `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off` was finished via `logics-manager flow finish task` on 2026-08-30.

@@ -1,12 +1,12 @@
 ## prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine - A city that can be made to run on a weaker machine
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
-> Related backlog: `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`, `item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black`
+> Related backlog: `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`
 > Related task: `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:54
+> Indicators reviewed: 2026-08-30 18:37:32
 
 # Overview
 city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less.
@@ -57,5 +57,5 @@ flowchart TB
 - Turning both back on restores the Demo city exactly.
 
 # References
-- Product back-reference: `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
+- Product back-reference: `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`
 - Task back-reference: `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
