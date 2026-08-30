@@ -7,6 +7,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:45
 
 # AI Context
 - Summary: A road placement costs a whole-city rebuild (full heightmap re-stamp, a 456,976-vertex ground refresh allocating ~2.7M colour objects and a 1.37M-entry normals array, every road mesh and mover disposed), while the first load ships 561 KB gz of JS including 93 KB of unused gaussian splatting and blocks the first frame on 1.8 MB of building models.
@@ -56,6 +57,9 @@
 - src/render/drawTool.ts
 - src/sim/heightmap.ts
 - src/app/app.ts
+- logics/architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md
+- logics/runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md
+- logics/runbook/run_005_add_lights_to_the_scene_without_freezing_the_rebuild.md
 - logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md
 - logics/request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md
 

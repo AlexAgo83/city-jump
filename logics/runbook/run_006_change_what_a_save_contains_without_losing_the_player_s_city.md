@@ -2,10 +2,11 @@
 > Status: Active
 > Category: other
 > Verified: 2026-08-30 against `src/sim/save.ts`, `src/ui/saves.ts`, `src/sim/save.test.ts` and the older-build check in `scripts/interact.mjs`
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
+> Related backlog: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`
+> Related task: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:40
 
 # Trigger
 - Adding, removing or renaming anything that goes into a save (a new road property, a new kind of planting, a new setting).

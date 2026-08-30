@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:44
 
 # AI Context
 - Summary: Orchestration for req_007: restore the pre-load state on a failed load, narrow the visibility toggles, unit-test the render geometry, and collapse the Node version while surfacing refused autosave writes.
@@ -17,6 +18,10 @@
 
 # Context
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
+- Two of these slices are prerequisites for task_010's performance work on the same files, so this task should land first:
+  - `item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle` removes the toggle callers of `rebuild()` before task_010 changes what `rebuild()` costs.
+  - `item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches` gives `src/render/traffic.ts` and `roadMesh.ts` unit coverage before task_010 reworks them.
+- `run_006_change_what_a_save_contains_without_losing_the_player_s_city` covers the save-side rules and the two false "the city is gone" diagnoses; read it before touching `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one` or the autosave half of `item_023_one_node_version_and_an_autosave_that_admits_it_failed`.
 
 # Plan
 - [ ] 1. Read this request and its four backlog slices; confirm req_005's rebuild-internals scope stays closed and untouched.

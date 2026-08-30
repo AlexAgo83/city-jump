@@ -7,6 +7,7 @@
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:45
 
 # AI Context
 - Summary: Five findings from a repo review of city-jump 0.2.0: a failed load empties the graph it was meant to replace, visibility toggles trigger a full city resolve, the three largest render files have no unit coverage, `.nvmrc` and `render.yaml` disagree on the Node major, and a refused autosave write is swallowed.
@@ -54,6 +55,7 @@
 - src/render/drawTool.ts
 - render.yaml
 - .nvmrc
+- logics/runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md
 - logics/request/req_005_review_findings_redundant_and_quadratic_rebuild_work.md
 
 # Backlog

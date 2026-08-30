@@ -2,10 +2,11 @@
 > Status: Active
 > Category: other
 > Verified: 2026-08-30 against the 20-model library in `public/buildings/` and `scripts/gen_buildings.py`
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
+> Related backlog: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`
+> Related task: `task_011_implement_one_source_of_truth_for_building_model_geometry`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:40
 
 # Trigger
 - Adding, regenerating or hand-authoring a `.glb` in `public/buildings/`.

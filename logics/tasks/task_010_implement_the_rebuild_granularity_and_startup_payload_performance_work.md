@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:25:12
 
 # AI Context
 - Summary: Orchestration for req_008: measure first, then cut the ground-refresh allocations, bound the terrain and ground work to the changed region, narrow the road and traffic rebuilds, trim the glTF loader, unblock the first frame, and stop the per-frame queue rebuild.
@@ -17,6 +18,10 @@
 
 # Context
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
+- `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views` governs this task. It already set the precondition for doing this work at all ("keep the full rebuild until measured frame time shows that it misses the interaction budget" -- which is why the measurement slice runs first) and the constraint on doing it ("any later incremental path must produce the same result as a clean rebuild" -- which is the equality test in `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`). The ADR needs updating once the incremental path lands, since its fixed rebuild order stops being the only path.
+- Sequencing against the sibling tasks, which touch the same files:
+  - `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings` removes the toggle callers of `rebuild()` in `src/app/app.ts`, and gives `src/render/traffic.ts`, `roadMesh.ts` and `drawTool.ts` their first unit coverage. Land that task before this one: the rebuild surface is then already smaller, and the road-mesh and traffic-loop reworks here have a safety net instead of only a screenshot.
+  - `task_011_implement_one_source_of_truth_for_building_model_geometry` restructures where `src/render/buildings.ts` gets a model's geometry, and this task's first-frame slice restructures how the same file loads models. Do not run them in parallel; take task_011 first, since it decides what the loading change then has to preserve.
 
 # Plan
 - [ ] 1. Read this request and its seven backlog slices; confirm req_005's rebuild internals and req_007's toggle/load scope stay closed and untouched.
@@ -75,4 +80,4 @@
 # Links
 - Request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
 - Product brief(s): `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`
-- Architecture decision(s): (none yet)
+- Architecture decision(s): `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views`

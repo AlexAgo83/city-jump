@@ -2,10 +2,11 @@
 > Status: Active
 > Category: other
 > Verified: 2026-08-30 against `src/sim/heightmap.ts` and commits `aa8167e`, `1b45ae4`, `69d448c`, `70a112a`, `17ebabb`
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
+> Related backlog: `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`
+> Related task: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:40
 
 # Trigger
 - A wedge, notch or sliver of untouched terrain shows through a road surface, a junction plaza or a roundabout ring.

@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:25:12
 
 # AI Context
 - Summary: Orchestration for req_009: inventory what `buildingSpec` derives, move each fact to the mesh or to one generator-emitted declaration, delete the duplicates, gate drift in the fast CI, and correct the contract docs.
@@ -17,6 +18,8 @@
 
 # Context
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
+- This task and `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work` both restructure `src/render/buildings.ts` -- this one decides where a model's geometry comes from, that one changes how models are loaded at startup. Take this one first: what it settles is what the loading change then has to preserve.
+- `run_001_author_a_building_model_that_lands_on_its_parcel` and `run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street` carry the geometry facts this task is consolidating, and the verification method that failed three times on this exact code. Read both before starting.
 
 # Plan
 - [ ] 1. Read this request and its three backlog slices, plus run_001_author_a_building_model_that_lands_on_its_parcel and run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street for why this matters geometrically.

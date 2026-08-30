@@ -2,10 +2,11 @@
 > Status: Active
 > Category: other
 > Verified: 2026-08-30 against `src/render/streetlights.ts` and `src/render/traffic.ts` as shipped
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
+> Related backlog: `item_026_rebuild_only_the_road_meshes_and_movers_a_placement_touched`
+> Related task: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-08-30 11:24:40
 
 # Trigger
 - Adding any real light source: street lamps, headlights, signal lamps, window glow, a beacon.
