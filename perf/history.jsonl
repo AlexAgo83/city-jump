@@ -1,2 +1,3 @@
 {"at":"2026-08-30T21:48:53.072Z","label":"demo","commit":"cf4fdf1","dirty":true,"fps":{"overview":30,"district":34,"street":45},"rebuildMs":731,"city":{"segments":237,"buildings":1593,"cars":237,"pedestrians":474,"trees":2441,"activeMeshes":2038}}
 {"at":"2026-08-30T21:49:33.620Z","label":"demo","commit":"cf4fdf1","dirty":true,"fps":{"overview":33,"district":32,"street":48},"rebuildMs":744,"city":{"segments":237,"buildings":1593,"cars":237,"pedestrians":474,"trees":2441,"activeMeshes":2038}}
+{"at":"2026-08-30T22:02:42.096Z","label":"ma-ville","commit":"168dc55","dirty":false,"fps":{"overview":50,"district":60,"street":70},"rebuildMs":671,"city":{"segments":185,"buildings":2826,"cars":244,"pedestrians":715,"trees":2470,"activeMeshes":1216}}
