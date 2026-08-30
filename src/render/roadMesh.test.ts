@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { Vector3 } from "@babylonjs/core/Maths/math";
 
-import { portalOutline, segmentMeshTouchesBounds, tunnelSection, tunnelStripIndices } from "./roadMesh";
+import { portalOutline, segmentMeshTouchesBounds, sidewalkOuterCorner, tunnelSection, tunnelStripIndices } from "./roadMesh";
 
 describe("road mesh geometry", () => {
   it("builds a symmetrical arched tunnel section", () => {
@@ -39,6 +40,22 @@ describe("road mesh geometry", () => {
         { minX: -2, maxX: 2, minZ: 6, maxZ: 8 },
       ),
     ).toBe(true);
+  });
+
+  it("aligns sidewalk ends with the neighbouring junction footway edge", () => {
+    const low = { x: 0, y: 0, z: 0 };
+    const high = { x: 10, y: 0, z: 0 };
+    const corner = sidewalkOuterCorner(
+      {
+        node: 1,
+        roundabout: 0,
+        arms: [{ segment: 1, trim: 4, outward: { x: 0, y: 0, z: -1 }, angle: -Math.PI / 2, cornerLow: low, cornerHigh: high }],
+        ring: [low, high, { x: 10, y: 0, z: 10 }, { x: 0, y: 0, z: 10 }],
+      },
+      high,
+    );
+
+    expect(corner!.equals(new Vector3(12.6, 0.24, 0))).toBe(true);
   });
 
   it("does not rebuild a diagonal road only because its broad AABB touches the dirty region", () => {

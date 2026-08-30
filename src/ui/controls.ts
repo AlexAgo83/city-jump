@@ -227,6 +227,7 @@ export function bindControls(handlers: {
   let sunFrame: number | null = null;
   let autoStartHour = 0;
   let autoStartedAt = 0;
+  let restoringSettings = true;
   const updateSun = (next = Number(sunHour.value)): void => {
     const hour = ((next % 24) + 24) % 24;
     sunHour.value = String(hour);
@@ -255,6 +256,7 @@ export function bindControls(handlers: {
     updateSun();
     autoStartHour = Number(sunHour.value);
     autoStartedAt = performance.now();
+    persistSettings();
   });
   sunAuto.addEventListener("change", () => {
     if (sunFrame) cancelAnimationFrame(sunFrame);
@@ -307,6 +309,7 @@ export function bindControls(handlers: {
   // The toolbar's own checkboxes, not the city -- restored once at startup so a reload comes
   // back exactly as it was left, instead of resetting to whatever the markup defaults to.
   function persistSettings(): void {
+    if (restoringSettings) return;
     writeSettings({
       grid: showGrid.checked,
       buildings: showBuildings.checked,
@@ -317,6 +320,7 @@ export function bindControls(handlers: {
       settingsOpen: !toolbarContent.hidden,
       traffic: showTraffic.checked,
       trafficDensity: Number(trafficDensity.value),
+      sunHour: Number(sunHour.value),
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
@@ -342,12 +346,14 @@ export function bindControls(handlers: {
   trafficDensity.disabled = !showTraffic.checked;
   applySetting(gridSnap, stored.gridSnap);
   applySetting(shortNight, stored.shortNight);
+  if (stored.sunHour !== undefined && Number.isFinite(stored.sunHour)) sunHour.value = String(stored.sunHour);
   const cameraMode = stored.cameraMode && document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${stored.cameraMode}"]`);
   if (cameraMode) {
     cameraMode.checked = true;
     handlers.onCameraMode(stored.cameraMode!);
   }
   applySetting(sunAuto, stored.sunAuto); // last: starting the auto-cycle reads the others' state
+  restoringSettings = false;
 
   bindSaves(handlers, applyCity);
   updateSun();

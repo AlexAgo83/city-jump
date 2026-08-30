@@ -10,7 +10,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
 import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "../sim/routing";
-import { canGo, signalAt, signalCycle, type SignalCycle } from "../sim/signals";
+import { canGo, signalAt, signalCycle, type SignalCycle, type SignalState } from "../sim/signals";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
   armPort,
@@ -88,6 +88,7 @@ const WALKER_COLORS = [
 
 /** Metres per second on foot. A car covers a block while a walker crosses it. */
 const WALKER_SPEED = 1.4;
+const PEDESTRIAN_CROSSING_CLEARANCE = CROSSING_DEPTH / WALKER_SPEED + 0.5;
 
 /**
  * A transfer in progress: the very polyline the Traffic view draws for this movement, being
@@ -185,6 +186,12 @@ export function roundaboutExitBlocked(
   segmentId: SegmentId,
 ): boolean {
   return exiting.some((ride) => ride.exit === segmentId && ride.total - ride.travelled < CAR_GAP * 2);
+}
+
+export const pedestrianCanCross = (state: SignalState): boolean => state === "red";
+
+export function pedestrianCanStartCrossing(cycle: SignalCycle, segment: SegmentId, time: number): boolean {
+  return pedestrianCanCross(signalAt(cycle, segment, time)) && pedestrianCanCross(signalAt(cycle, segment, time + PEDESTRIAN_CROSSING_CLEARANCE));
 }
 
 export function trafficLaneOffset(
@@ -1004,7 +1011,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     return junctionAt(nodeId).arms.every((arm) => {
       const reach = arm.trim + CROSSING_DEPTH * 3;
       if (!crossesRoad(centre, arm.outward, reach, [path])) return true;
-      return !canGo(signalAt(cycle, arm.segment, time));
+      return pedestrianCanStartCrossing(cycle, arm.segment, time);
     });
   }
 

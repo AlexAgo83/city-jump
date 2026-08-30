@@ -348,6 +348,17 @@ await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("traffic setting is remembered across reload", !(await page.locator("#show-traffic").isChecked()) && await page.locator("#traffic-density").isDisabled());
 await page.locator("#show-traffic").check();
+await page.locator("#traffic-density").evaluate((input) => {
+  input.value = "1.75";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("traffic density is remembered across reload", (await page.locator("#traffic-density").inputValue()) === "1.75");
+await page.locator("#traffic-density").evaluate((input) => {
+  input.value = "1";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
@@ -378,6 +389,9 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await nextFrame();
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("sun hour is remembered across reload", (await page.locator("#sun-hour").inputValue()) === "20");
 const eveningSun = await sunState();
 const eveningSky = await skyState();
 check(
@@ -1039,7 +1053,9 @@ check(
 await page.keyboard.press("ArrowUp");
 await nextFrame();
 check("panning returns the camera to Free", await page.locator('input[name="camera-mode"][value="free"]').isChecked());
-await click(vehiclePoint.x, vehiclePoint.y);
+const followVehiclePoint = await screenPoint("window.cityjump.vehiclePoint()");
+check("there is still a vehicle to follow", followVehiclePoint !== null);
+await click(followVehiclePoint.x, followVehiclePoint.y);
 const cameraBeforeFollow = await page.evaluate(() => window.cityjump.cameraState());
 await page.locator('input[name="camera-mode"][value="follow"]').check();
 await realTime(650);

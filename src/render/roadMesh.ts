@@ -8,7 +8,7 @@ import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
-import type { NodeId, RoadGraph } from "../sim/graph";
+import type { NodeId, RoadGraph, Segment } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
 import type { TerrainBounds } from "../sim/heightmap";
 import { baseRoadTypeId, laneCentres, roadType, walkCentres, type LaneCentre, type RoadType } from "../sim/roadTypes";
@@ -216,6 +216,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           innerRight.push(new Vector3(position.x - n.x * half, y, position.z - n.z * half));
           outerRight.push(new Vector3(position.x - n.x * out, y, position.z - n.z * out));
         }
+        alignSidewalkEnds(junctions, seg, outerLeft, outerRight);
         const walkLeft = roadStripMesh(scene, `sidewalk_l_${seg.id}`, outerLeft, innerLeft);
         const walkRight = roadStripMesh(scene, `sidewalk_r_${seg.id}`, innerRight, outerRight);
         for (const walk of [walkLeft, walkRight]) {
@@ -500,6 +501,65 @@ function roundaboutArmPatches(
   });
 }
 
+function alignSidewalkEnds(junctions: Map<NodeId, JunctionGeometry>, seg: Segment, outerLeft: Vector3[], outerRight: Vector3[]): void {
+  const start = junctions.get(seg.a);
+  const startArm = start?.arms.find((arm) => arm.segment === seg.id);
+  if (start && start.roundabout === 0 && startArm) {
+    outerLeft[0] = sidewalkOuterCorner(start, startArm.cornerHigh) ?? outerLeft[0]!;
+    outerRight[0] = sidewalkOuterCorner(start, startArm.cornerLow) ?? outerRight[0]!;
+  }
+
+  const end = junctions.get(seg.b);
+  const endArm = end?.arms.find((arm) => arm.segment === seg.id);
+  if (end && end.roundabout === 0 && endArm) {
+    outerLeft[outerLeft.length - 1] = sidewalkOuterCorner(end, endArm.cornerLow) ?? outerLeft[outerLeft.length - 1]!;
+    outerRight[outerRight.length - 1] = sidewalkOuterCorner(end, endArm.cornerHigh) ?? outerRight[outerRight.length - 1]!;
+  }
+}
+
+export function sidewalkOuterCorner(junction: JunctionGeometry, corner: Vec3): Vector3 | null {
+  const ring = junction.ring;
+  const i = ring.findIndex((point) => sameXZ(point, corner));
+  if (i < 0) return null;
+  const centroid = junctionCentroid(junction);
+  const edges: [Vec3, Vec3][] = [
+    [ring[(i - 1 + ring.length) % ring.length]!, ring[i]!],
+    [ring[i]!, ring[(i + 1) % ring.length]!],
+  ];
+  const edge = edges.find(([a, b]) => !junctionMouthEdge(junction, a, b));
+  if (!edge) return null;
+  const [a, b] = edge;
+  const dx = b.x - a.x;
+  const dz = b.z - a.z;
+  const length = Math.hypot(dx, dz);
+  if (length < 0.05) return null;
+  let nx = -dz / length;
+  let nz = dx / length;
+  if (nx * ((a.x + b.x) / 2 - centroid.x) + nz * ((a.z + b.z) / 2 - centroid.z) < 0) {
+    nx = -nx;
+    nz = -nz;
+  }
+  return new Vector3(corner.x + nx * SIDEWALK_WIDTH, corner.y + SIDEWALK_LIFT, corner.z + nz * SIDEWALK_WIDTH);
+}
+
+function sameXZ(a: Vec3, b: Vec3): boolean {
+  return Math.hypot(a.x - b.x, a.z - b.z) < 0.15;
+}
+
+function junctionMouthEdge(junction: JunctionGeometry, a: Vec3, b: Vec3): boolean {
+  return junction.arms.some(
+    (arm) =>
+      (sameXZ(a, arm.cornerLow) && sameXZ(b, arm.cornerHigh)) || (sameXZ(a, arm.cornerHigh) && sameXZ(b, arm.cornerLow)),
+  );
+}
+
+function junctionCentroid(junction: JunctionGeometry): { x: number; z: number } {
+  return junction.ring.reduce((sum, p) => ({ x: sum.x + p.x / junction.ring.length, z: sum.z + p.z / junction.ring.length }), {
+    x: 0,
+    z: 0,
+  });
+}
+
 
 /**
  * Closes the footway around an ordinary junction. The junction polygon already has exactly the
@@ -517,21 +577,13 @@ function junctionFootway(
   const ring = junction.ring;
   if (ring.length < 3) return [];
 
-  const centroid = ring.reduce((sum, p) => ({ x: sum.x + p.x / ring.length, z: sum.z + p.z / ring.length }), {
-    x: 0,
-    z: 0,
-  });
+  const centroid = junctionCentroid(junction);
   // Two neighbouring arms each compute their shared corner independently, from their own
   // (possibly curved) centreline -- they land within a few centimetres of each other, not
   // exactly on top. A tighter epsilon here misses that match, misreads the mouth as a kerb
   // gap, and pastes a sidewalk patch straight onto the carriageway.
-  const same = (a: Vec3, b: Vec3): boolean => Math.hypot(a.x - b.x, a.z - b.z) < 0.15;
   /** True when this edge is where a road opens onto the junction, which must stay clear. */
-  const isMouth = (a: Vec3, b: Vec3): boolean =>
-    junction.arms.some(
-      (arm) =>
-        (same(a, arm.cornerLow) && same(b, arm.cornerHigh)) || (same(a, arm.cornerHigh) && same(b, arm.cornerLow)),
-    );
+  const isMouth = (a: Vec3, b: Vec3): boolean => junctionMouthEdge(junction, a, b);
 
   // A narrower road can meet this node without ever reaching the hull -- its corners sit
   // inside the ring, pulled behind the wider roads either side of it. The kerb edge that

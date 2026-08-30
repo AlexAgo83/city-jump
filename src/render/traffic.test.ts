@@ -6,6 +6,8 @@ import {
   laneQueueIsOrdered,
   laneStartBlocked,
   leaveLaneQueue,
+  pedestrianCanCross,
+  pedestrianCanStartCrossing,
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
   scaledTrafficCount,
@@ -42,6 +44,20 @@ describe("traffic queues", () => {
     expect(roundaboutExitBlocked([{ exit: 4, travelled: 92, total: 100 }], 4)).toBe(true);
     expect(roundaboutExitBlocked([{ exit: 4, travelled: 70, total: 100 }], 4)).toBe(false);
     expect(roundaboutExitBlocked([{ exit: 5, travelled: 92, total: 100 }], 4)).toBe(false);
+  });
+
+  it("lets pedestrians cross only while vehicle traffic has red", () => {
+    expect(pedestrianCanCross("red")).toBe(true);
+    expect(pedestrianCanCross("green")).toBe(false);
+    expect(pedestrianCanCross("amber")).toBe(false);
+  });
+
+  it("keeps pedestrians waiting when vehicle green is about to return", () => {
+    const cycle = { phases: [[1], [2]], arms: [1, 2], offset: 0, length: 27 };
+
+    expect(pedestrianCanStartCrossing(cycle, 2, 0)).toBe(true);
+    expect(pedestrianCanStartCrossing(cycle, 2, 13.2)).toBe(false);
+    expect(pedestrianCanStartCrossing(cycle, 1, 0)).toBe(false);
   });
 
   it("uses the same lane-change offset in both travel directions", () => {
