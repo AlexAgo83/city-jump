@@ -1,20 +1,38 @@
 {
   "models": {
-    "lot_1x1": { "kind": "pitched", "deckY": 7, "ridgeY": 9.5, "ridgeZ": -3.25 },
-    "lot_1x2": { "kind": "pitched", "deckY": 18.5, "ridgeY": 21, "ridgeZ": -7.25 },
-    "lot_1x3": { "kind": "flat", "deckY": 12.5 },
-    "lot_1x4": { "kind": "flat", "deckY": 24 },
-    "lot_2x1": { "kind": "pitched", "deckY": 15, "ridgeY": 17.5, "ridgeZ": -3.25 },
-    "lot_2x2": { "kind": "flat", "deckY": 10 },
+    "lot_1x1": {
+      "kind": "pitched",
+      "deckY": 7.0,
+      "ridgeY": 9.5,
+      "ridgeZ": -3.25
+    },
+    "lot_1x2": {
+      "kind": "pitched",
+      "deckY": 18.5,
+      "ridgeY": 21.0,
+      "ridgeZ": -7.25
+    },
+    "lot_1x3": {
+      "kind": "flat",
+      "deckY": 12.5
+    },
+    "lot_1x4": {
+      "kind": "flat",
+      "deckY": 24.0
+    },
+    "lot_2x1": {
+      "kind": "pitched",
+      "deckY": 15.0,
+      "ridgeY": 17.5,
+      "ridgeZ": -3.25
+    },
+    "lot_2x2": {
+      "kind": "flat",
+      "deckY": 10.0
+    },
     "lot_2x3": {
-      "kind": "setback",
-      "lowerDeckY": 16.2,
-      "upperDeckY": 22.5,
-      "width": 14.5,
-      "minX": 1.74,
-      "maxX": 12.76,
-      "minZ": -19.8,
-      "maxZ": -2.7
+      "kind": "flat",
+      "deckY": 22.5
     },
     "lot_2x4": {
       "kind": "setback",
@@ -26,21 +44,18 @@
       "minZ": -26.84,
       "maxZ": -3.66
     },
-    "lot_3x1": { "kind": "flat", "deckY": 23 },
+    "lot_3x1": {
+      "kind": "flat",
+      "deckY": 23.0
+    },
     "lot_3x2": {
-      "kind": "setback",
-      "lowerDeckY": 13.68,
-      "upperDeckY": 19,
-      "width": 22.5,
-      "minX": 2.7,
-      "maxX": 19.8,
-      "minZ": -12.76,
-      "maxZ": -1.74
+      "kind": "flat",
+      "deckY": 19.0
     },
     "lot_3x3": {
       "kind": "setback",
       "lowerDeckY": 10.08,
-      "upperDeckY": 14,
+      "upperDeckY": 14.0,
       "width": 22.5,
       "minX": 2.7,
       "maxX": 19.8,
@@ -57,11 +72,14 @@
       "minZ": -26.84,
       "maxZ": -3.66
     },
-    "lot_4x1": { "kind": "flat", "deckY": 13.5 },
+    "lot_4x1": {
+      "kind": "flat",
+      "deckY": 13.5
+    },
     "lot_4x2": {
       "kind": "setback",
       "lowerDeckY": 20.16,
-      "upperDeckY": 28,
+      "upperDeckY": 28.0,
       "width": 30.5,
       "minX": 3.66,
       "maxX": 26.84,
@@ -71,7 +89,7 @@
     "lot_4x3": {
       "kind": "setback",
       "lowerDeckY": 15.12,
-      "upperDeckY": 21,
+      "upperDeckY": 21.0,
       "width": 30.5,
       "minX": 3.66,
       "maxX": 26.84,
@@ -81,7 +99,7 @@
     "lot_4x4": {
       "kind": "setback",
       "lowerDeckY": 10.08,
-      "upperDeckY": 14,
+      "upperDeckY": 14.0,
       "width": 30.5,
       "minX": 3.66,
       "maxX": 26.84,
