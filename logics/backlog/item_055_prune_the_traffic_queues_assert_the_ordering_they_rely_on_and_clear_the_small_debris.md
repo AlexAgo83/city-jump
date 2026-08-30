@@ -1,14 +1,14 @@
 ## item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris - Prune the traffic queues, assert the ordering they rely on, and clear the small debris
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:42:38
+> Indicators reviewed: 2026-08-30 14:54:21
 
 # AI Context
 - Summary: Four small ones: `leaveQueue` never deletes emptied lane entries, the lane-order invariant the frame loop depends on is only a comment, the share button awaits `encodeShare` unguarded so a browser without `CompressionStream` fails silently, and the buildable-cell centroid is written three times.
@@ -61,3 +61,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`
+
+# Notes
+- Task `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work` was finished via `logics-manager flow finish task` on 2026-08-30.

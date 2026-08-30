@@ -1,12 +1,13 @@
 ## req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work - Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:54:20
 
 # AI Context
 - Summary: A review of the whole 068aceb..HEAD range found ten defects that the green suite cannot see. Two are player-visible: the road renderer disposes meshes by world AABB but recreates them by centreline samples, so roads vanish; and the zoning brush skips the move-throttle its tree-spray twin has, costing one full world rebuild per pointer event. Eight smaller ones follow: a disposed mesh left reachable, a traffic overlay contradicting its own radio, two wrong debug statistics, an unpruned map, an unasserted lane-order invariant, an unguarded `CompressionStream` call, and a centroid written three times.

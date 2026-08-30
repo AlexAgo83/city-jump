@@ -1,12 +1,12 @@
 ## prod_012_a_city_that_keeps_drawing_itself_correctly - A city that keeps drawing itself correctly
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`
-> Related backlog: `item_052_make_a_partial_rebuild_unable_to_lose_geometry`, `item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs`, `item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying`, `item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris`
+> Related backlog: `item_052_make_a_partial_rebuild_unable_to_lose_geometry`
 > Related task: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:53
+> Indicators reviewed: 2026-08-30 14:54:21
 
 # Overview
 The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.
@@ -55,5 +55,5 @@ flowchart TB
 - Every number the debug statistics report is the current one.
 
 # References
-- Product back-reference: `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`
+- Product back-reference: `item_052_make_a_partial_rebuild_unable_to_lose_geometry`
 - Task back-reference: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`

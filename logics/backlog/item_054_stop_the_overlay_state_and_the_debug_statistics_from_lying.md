@@ -1,14 +1,14 @@
 ## item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying - Stop the overlay state and the debug statistics from lying
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:42:38
+> Indicators reviewed: 2026-08-30 14:54:21
 
 # AI Context
 - Summary: Three things report something untrue: `onRoadMode` kills the traffic overlay while its radio still reads Traffic, `startupModelCount` is a constant zero by construction, and the reported building count is an app-local copy the renderer updates behind its back.
@@ -58,3 +58,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`
+
+# Notes
+- Task `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work` was finished via `logics-manager flow finish task` on 2026-08-30.

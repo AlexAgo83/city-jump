@@ -1,14 +1,14 @@
 ## item_052_make_a_partial_rebuild_unable_to_lose_geometry - Make a partial rebuild unable to lose geometry
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:42:38
+> Indicators reviewed: 2026-08-30 14:54:21
 
 # AI Context
 - Summary: `roadMesh.rebuild(dirty)` disposes meshes whose world AABB touches the dirty box but recreates only segments whose centreline samples fall inside it. A long diagonal road whose bounding box clips the region while its centreline does not is destroyed and never redrawn.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`
+
+# Notes
+- Task `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work` was finished via `logics-manager flow finish task` on 2026-08-30.
