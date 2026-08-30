@@ -132,8 +132,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
 
   function rebuild(dirty?: TerrainBounds): void {
     if (dirty) {
+      const segmentsById = new Map(graph.allSegments().map((segment) => [segment.id, segment]));
       meshes = meshes.filter((mesh) => {
-        if (!meshTouchesBounds(mesh, dirty)) return true;
+        if (!meshTouchesDirty(segmentsById, mesh, dirty)) return true;
         mesh.dispose();
         return false;
       });
@@ -788,27 +789,58 @@ function pointsTouchBounds(points: readonly Vec3[], bounds: TerrainBounds): bool
 
 export function segmentMeshTouchesBounds(points: readonly Vec3[], type: Pick<RoadType, "width" | "highway" | "pedestrian">, bounds: TerrainBounds): boolean {
   const pad = type.highway || type.pedestrian ? type.width / 2 : type.width / 2 + SIDEWALK_WIDTH;
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minZ = Infinity;
-  let maxZ = -Infinity;
-  for (const p of points) {
-    minX = Math.min(minX, p.x);
-    maxX = Math.max(maxX, p.x);
-    minZ = Math.min(minZ, p.z);
-    maxZ = Math.max(maxZ, p.z);
+  const expanded = { minX: bounds.minX - pad, maxX: bounds.maxX + pad, minZ: bounds.minZ - pad, maxZ: bounds.maxZ + pad };
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i]!;
+    if (pointTouchesBounds(a, expanded)) return true;
+    const b = points[i + 1];
+    if (b && segmentTouchesBounds(a, b, expanded)) return true;
   }
-  return maxX + pad >= bounds.minX && minX - pad <= bounds.maxX && maxZ + pad >= bounds.minZ && minZ - pad <= bounds.maxZ;
+  return false;
 }
 
 function junctionTouchesBounds(junction: JunctionGeometry, bounds: TerrainBounds): boolean {
   return pointsTouchBounds(junction.ring, bounds) || junction.arms.some((arm) => pointsTouchBounds([arm.cornerLow, arm.cornerHigh], bounds));
 }
 
-function meshTouchesBounds(mesh: Mesh | LinesMesh, bounds: TerrainBounds): boolean {
+function meshTouchesDirty(segmentsById: Map<number, { samples: readonly Vec3[]; type: string }>, mesh: Mesh | LinesMesh, bounds: TerrainBounds): boolean {
+  const id = segmentIdFromMeshName(mesh.name);
+  if (id !== null) {
+    const segment = segmentsById.get(id);
+    if (!segment) return true;
+    return segmentMeshTouchesBounds(segment.samples, roadType(segment.type), bounds);
+  }
   mesh.computeWorldMatrix(true);
   const box = mesh.getBoundingInfo().boundingBox;
   return box.maximumWorld.x >= bounds.minX && box.minimumWorld.x <= bounds.maxX && box.maximumWorld.z >= bounds.minZ && box.minimumWorld.z <= bounds.maxZ;
+}
+
+function pointTouchesBounds(p: Vec3, bounds: TerrainBounds): boolean {
+  return p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ;
+}
+
+function segmentTouchesBounds(a: Vec3, b: Vec3, bounds: TerrainBounds): boolean {
+  if (Math.max(a.x, b.x) < bounds.minX || Math.min(a.x, b.x) > bounds.maxX || Math.max(a.z, b.z) < bounds.minZ || Math.min(a.z, b.z) > bounds.maxZ) return false;
+  return (
+    linesIntersect(a, b, { x: bounds.minX, y: 0, z: bounds.minZ }, { x: bounds.maxX, y: 0, z: bounds.minZ }) ||
+    linesIntersect(a, b, { x: bounds.maxX, y: 0, z: bounds.minZ }, { x: bounds.maxX, y: 0, z: bounds.maxZ }) ||
+    linesIntersect(a, b, { x: bounds.maxX, y: 0, z: bounds.maxZ }, { x: bounds.minX, y: 0, z: bounds.maxZ }) ||
+    linesIntersect(a, b, { x: bounds.minX, y: 0, z: bounds.maxZ }, { x: bounds.minX, y: 0, z: bounds.minZ })
+  );
+}
+
+function linesIntersect(a: Vec3, b: Vec3, c: Vec3, d: Vec3): boolean {
+  const side = (p: Vec3, q: Vec3, r: Vec3) => Math.sign((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
+  const abC = side(a, b, c);
+  const abD = side(a, b, d);
+  const cdA = side(c, d, a);
+  const cdB = side(c, d, b);
+  return abC !== abD && cdA !== cdB;
+}
+
+function segmentIdFromMeshName(name: string): number | null {
+  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel)_(\d+)/.exec(name);
+  return match ? Number(match[1]) : null;
 }
 
 /** `offset` moves the sampled line sideways from the centreline, for a lane drawn off-centre. */

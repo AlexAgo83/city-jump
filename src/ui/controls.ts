@@ -333,19 +333,25 @@ function bindSaves(
   share.addEventListener("click", async () => {
     const name = window.prompt("Name this shared city:", readActiveSave() ?? "Shared city")?.trim();
     if (!name) return;
+    let fragment: string | null;
     try {
-      const fragment = await encodeShare({ name, city: handlers.onSave() });
-      if (!fragment) return showRefusal("This city is too large to share as a link.");
-      const link = `${location.origin}${location.pathname}#${fragment}`;
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(link);
-        showRefusal("Share link copied.");
-      } else {
-        window.prompt("Share link:", link);
-      }
+      fragment = await encodeShare({ name, city: handlers.onSave() });
     } catch (error) {
       showRefusal(`This city could not be shared: ${(error as Error).message}.`);
+      return;
     }
+    if (!fragment) return showRefusal("This city is too large to share as a link.");
+    const link = `${location.origin}${location.pathname}#${fragment}`;
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(link);
+        showRefusal("Share link copied.");
+        return;
+      } catch {
+        // Fall through to the manual copy prompt.
+      }
+    }
+    window.prompt("Share link:", link);
   });
 
   remove.addEventListener("click", () => {

@@ -310,6 +310,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees: trees.count(),
     zones: zones.count(),
     models: buildings.modelCount,
+    startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
