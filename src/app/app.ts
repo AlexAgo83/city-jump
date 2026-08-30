@@ -145,14 +145,14 @@ export async function startApp(): Promise<void> {
     },
     onBuildings(visible) {
       buildingsVisible = visible;
-      buildings.setVisible(visible);
+      buildingCount = buildings.setVisible(visible);
     },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
       // "Traffic" hides them outright -- the lane overlay is meant to be read from above, and a
       // building in the way defeats the point.
-      buildings.setVisible(view === "all" ? buildingsVisible : false);
+      buildingCount = buildings.setVisible(view === "all" ? buildingsVisible : false);
       buildings.setGridVisible(view === "no-buildings");
       roads.setShowTraffic(view === "traffic");
       // The road surface, sidewalks and the streetlights standing on them fade back so the lane

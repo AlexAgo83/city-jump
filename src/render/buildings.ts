@@ -189,6 +189,13 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let taken: Mesh | null = null;
   let visible = true;
   let gridVisible = false;
+  let lastPlaced = 0;
+
+  function applyBuildingVisibility(): void {
+    for (const model of available) model.mesh.setEnabled(visible && model.mesh.thinInstanceCount > 0);
+    for (const mesh of Object.values(roofProps)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
+    groundShadow.mesh.setEnabled(visible && groundShadow.mesh.thinInstanceCount > 0);
+  }
 
   /**
    * `cells` and `parcels` are the caller's, so the layout is solved once per rebuild rather than
@@ -226,19 +233,6 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       taken.isPickable = false;
       taken.setEnabled(gridVisible);
     }
-    if (!visible) {
-      for (const model of available) {
-        model.mesh.thinInstanceCount = 0;
-        model.mesh.setEnabled(false);
-      }
-      for (const mesh of Object.values(roofProps)) {
-        mesh.thinInstanceCount = 0;
-        mesh.setEnabled(false);
-      }
-      groundShadow.setInstances([]);
-      return 0;
-    }
-
     const buckets = new Map<string, BuildingParcel[]>(available.map((m) => [m.id, []]));
 
     for (const parcel of parcels) {
@@ -259,7 +253,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       model.mesh.thinInstanceCount = 0;
       // A mesh with no instance buffer still draws itself, at the origin. Until it has
       // somewhere to stand, it is switched off rather than left hovering over the map.
-      model.mesh.setEnabled(chosen.length > 0);
+      model.mesh.setEnabled(visible && chosen.length > 0);
       if (chosen.length === 0) continue;
 
       const matrices = new Float32Array(chosen.length * 16);
@@ -306,19 +300,25 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     for (const [kind, mesh] of Object.entries(roofProps) as [PropKind, Mesh][]) {
       const list = propMatrices.get(kind) ?? [];
       mesh.thinInstanceCount = 0;
-      mesh.setEnabled(list.length > 0);
+      mesh.setEnabled(visible && list.length > 0);
       if (list.length === 0) continue;
       const buffer = new Float32Array(list.length * 16);
       list.forEach((m, i) => m.copyToArray(buffer, i * 16));
       mesh.thinInstanceSetBuffer("matrix", buffer, 16);
     }
 
-    return placed;
+    lastPlaced = placed;
+    applyBuildingVisibility();
+    return visible ? placed : 0;
   }
 
   return {
     rebuild,
-    setVisible: (next: boolean) => (visible = next),
+    setVisible(next: boolean) {
+      visible = next;
+      applyBuildingVisibility();
+      return visible ? lastPlaced : 0;
+    },
     setGridVisible(next: boolean) {
       gridVisible = next;
       grid?.setEnabled(next);
@@ -329,6 +329,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       for (const model of available) setMaterialAlpha(model.mesh.material, faded ? 0.35 : 1);
       for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
+    count: () => (visible ? lastPlaced : 0),
     modelCount: available.length,
   };
 }
@@ -574,16 +575,10 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.specularPower = 96;
   } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
     material.diffuseColor = new Color3(0.22, 0.12, 0.08);
-    material.emissiveColor = new Color3(0.06, 0.03, 0.02);
-    material.disableLighting = true;
   } else if (material.name.includes("_sign")) {
     material.diffuseColor = new Color3(0.95, 0.65, 0.18);
-    material.emissiveColor = new Color3(0.28, 0.16, 0.03);
-    material.disableLighting = true;
   } else if (material.name.includes("_awning")) {
     material.diffuseColor = new Color3(0.16, 0.28, 0.34);
-    material.emissiveColor = new Color3(0.03, 0.05, 0.06);
-    material.disableLighting = true;
   }
   if (!material.name.includes("_glass")) material.specularColor = Color3.Black();
   material.maxSimultaneousLights = 32;
