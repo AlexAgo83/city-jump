@@ -401,6 +401,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     }
 
     lastPlaced = placed;
+    // Models arrive over several frames and rebuild the city as they land, outside the app's own
+    // rebuild -- and the shadow map is only redrawn when it is told to, so tell it.
+    shadows.getShadowMap()?.resetRefreshCounter();
     applyBuildingVisibility();
     return visible ? placed : 0;
   }

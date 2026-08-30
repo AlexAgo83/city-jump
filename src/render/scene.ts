@@ -5,6 +5,7 @@ import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -101,12 +102,36 @@ export function createScene(canvas: HTMLCanvasElement) {
   const setShadowsEnabled = (enabled: boolean): void => {
     sun.shadowEnabled = enabled;
   };
+
+  /**
+   * Nothing that casts a shadow moves on its own: cars and people are not casters, so between one
+   * edit and the next the shadow map draws the same city over and over. It is rendered once and
+   * then only again when something it depends on changes -- the camera (the cascades are fitted to
+   * its frustum), the sun, or the city itself. Watching the camera here rather than asking callers
+   * to report it keeps the rule in one place, and a moving camera is exactly the case where the
+   * map has to be redrawn anyway.
+   */
+  const shadowMap = shadows.getShadowMap();
+  let shadowKey = "";
+  if (shadowMap) {
+    shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
+    scene.onBeforeRenderObservable.add(() => {
+      const key = `${camera.alpha.toFixed(4)},${camera.beta.toFixed(4)},${camera.radius.toFixed(2)},${camera.target.x.toFixed(2)},${camera.target.z.toFixed(2)},${sun.direction.x.toFixed(4)},${sun.direction.y.toFixed(4)}`;
+      if (key === shadowKey) return;
+      shadowKey = key;
+      shadowMap.resetRefreshCounter();
+    });
+  }
+  /** Whatever casts shadows has changed: draw the map again on the next frame. */
+  const invalidateShadows = (): void => {
+    shadowKey = "";
+  };
   setSunHour(14);
 
   engine.runRenderLoop(() => scene.render());
   window.addEventListener("resize", () => engine.resize());
 
-  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled };
+  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows };
 }
 
 const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {

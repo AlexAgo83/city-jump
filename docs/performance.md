@@ -67,6 +67,10 @@ city, at 1024 x 4 cascades:
 | lights     |    x1.18 |  x1.07 |
 | traffic    |    x1.00 |  x1.07 |
 
+Re-run after the two fixes below, the same table flattens out -- buildings x1.43, shadows x1.59,
+traffic x1.46, lights x1.41 at overview, and nothing above x1.21 at street level. There is no
+single hot spot left: what remains is spread across the whole frame.
+
 Traffic is free. Buildings and shadows are each worth half the frame -- and they are the same
 cost twice, because what was expensive was **drawing every building into the shadow map, once per
 cascade**. Emptying the caster list bought as much as switching shadows off altogether; dropping
@@ -89,6 +93,11 @@ indistinguishable in a screenshot.
 
 - **Two shadow cascades at 2048, not four at 1024.** Measured back to back on the same session:
   overview 65 -> 81 fps, street 78 -> 103.
+- **The shadow map is drawn once and kept.** Nothing that casts a shadow moves on its own -- cars
+  and people are not casters -- so the map is only redrawn when the camera moves (the cascades are
+  fitted to its frustum), the sun moves, or the city changes. With the camera still that is 2
+  renders in 457 frames instead of 457. Worth about +12 fps at street level: what is left of the
+  shadow cost is the main pass sampling the map, not drawing it.
 
 Meshes: 1216 -> 841. Frame rates moved with them, but see the warning above about believing any
 single pair of numbers.

@@ -33,7 +33,7 @@ type CameraMode = "free" | "orbit" | "follow";
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, camera, shadows, setSunHour, setShadowsEnabled } = createScene(canvas);
+  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows } = createScene(canvas);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
   setTerrain(heightmap);
   const frameTerrain = (): void => {
@@ -117,6 +117,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("zones", () => zoneOverlay.rebuild(zones));
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));
+    invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
     scheduleAutosave();
   };
 
