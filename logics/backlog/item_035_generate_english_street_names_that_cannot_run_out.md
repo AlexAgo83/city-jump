@@ -1,14 +1,14 @@
 ## item_035_generate_english_street_names_that_cannot_run_out - Generate English street names that cannot run out
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:52:30
+> Indicators reviewed: 2026-08-30 13:02:46
 
 # AI Context
 - Summary: Roads have no names, and a fixed word list runs out; the scheme needs a suffix that follows the road type plus a cardinal-then-ordinal ladder past exhaustion.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`
+
+# Notes
+- Task `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel` was finished via `logics-manager flow finish task` on 2026-08-30.

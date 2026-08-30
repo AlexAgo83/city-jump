@@ -1,14 +1,14 @@
 ## item_038_open_the_detail_panel_on_a_building_or_a_car - Open the detail panel on a building or a car
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:52:30
+> Indicators reviewed: 2026-08-30 13:02:46
 
 # AI Context
 - Summary: The select tool covers roads, roundabouts and trees but not buildings or cars; both resolve through the existing ground-pick nearest-match rather than by making meshes pickable.
@@ -52,3 +52,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`
+
+# Notes
+- Task `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel` was finished via `logics-manager flow finish task` on 2026-08-30.

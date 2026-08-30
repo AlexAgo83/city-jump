@@ -1,11 +1,12 @@
 ## prod_007_a_city_you_can_point_at_and_name - A city you can point at and name
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`
-> Related backlog: `item_034_chain_road_segments_into_streets_that_survive_a_split`, `item_035_generate_english_street_names_that_cannot_run_out`, `item_036_give_every_building_an_odd_or_even_address_number`, `item_037_persist_street_names_and_name_the_cities_saved_before_this_existed`, `item_038_open_the_detail_panel_on_a_building_or_a_car`
+> Related backlog: `item_034_chain_road_segments_into_streets_that_survive_a_split`
 > Related task: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:02:46
 
 # Overview
 city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing.
@@ -52,5 +53,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`
+- Product back-reference: `item_034_chain_road_segments_into_streets_that_survive_a_split`
 - Task back-reference: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`

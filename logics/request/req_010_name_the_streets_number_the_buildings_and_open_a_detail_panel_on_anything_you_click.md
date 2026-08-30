@@ -1,12 +1,13 @@
 ## req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click - Name the streets, number the buildings, and open a detail panel on anything you click
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:02:45
 
 # AI Context
 - Summary: The city has no streets, only unrelated Bezier segments, so nothing can be named or addressed; buildings and cars are also unselectable. Adds street chaining (reusing the signal phases' facing rule), an English naming scheme with an unbounded escalation ladder, odd/even house numbers from existing parcel data, and the two missing detail-panel cases.
