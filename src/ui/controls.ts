@@ -28,11 +28,15 @@ export function bindControls(handlers: {
   onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
   onCameraMode(mode: "free" | "orbit" | "follow"): void;
+  onUndo(): void;
+  onRedo(): void;
+  canUndo(): boolean;
+  canRedo(): boolean;
   /** Current city as data, ready to store. */
   onSave(): CitySave;
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
-}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; updateUndoRedo(): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -52,6 +56,21 @@ export function bindControls(handlers: {
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
   let roadMode: "straight" | "curve" | "roundabout" = "straight";
   let plantMode: "plant" | "spray" = "plant";
+  const undo = document.getElementById("undo-city") as HTMLButtonElement;
+  const redo = document.getElementById("redo-city") as HTMLButtonElement;
+  const updateUndoRedo = (): void => {
+    undo.setAttribute("aria-disabled", String(!handlers.canUndo()));
+    redo.setAttribute("aria-disabled", String(!handlers.canRedo()));
+  };
+  undo.addEventListener("click", handlers.onUndo);
+  redo.addEventListener("click", handlers.onRedo);
+  window.addEventListener("keydown", (event) => {
+    if ((event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z") return;
+    event.preventDefault();
+    if (event.shiftKey) handlers.onRedo();
+    else handlers.onUndo();
+  });
   for (const button of toolButtons) {
     button.addEventListener("click", () => {
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
@@ -266,7 +285,7 @@ export function bindControls(handlers: {
 
   bindSaves(handlers, applyCity);
   updateSun();
-  return { applyCity, applyRoadType };
+  return { applyCity, applyRoadType, updateUndoRedo };
 }
 
 /**

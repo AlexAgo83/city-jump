@@ -118,6 +118,11 @@ export interface SelectionTools {
   vehicleAt(x: number, z: number): { segment: Segment; kind: string; target: FollowTarget } | null;
 }
 
+export interface HistoryTools {
+  beforeChange(): void;
+  afterChange(changed: boolean): void;
+}
+
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
@@ -129,6 +134,7 @@ export function createDrawTool(
   selection: SelectionTools,
   onSelect: (info: SelectionInfo | null) => void,
   initialTypeId: RoadTypeId = "street",
+  history?: HistoryTools,
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "view";
@@ -290,12 +296,16 @@ export function createDrawTool(
   }
 
   /** One burst: scattered evenly over the disc, so the middle is not denser than the edge. */
-  function sprayBurst(centre: { x: number; z: number }): void {
+  let gestureChanged = false;
+
+  function sprayBurst(centre: { x: number; z: number }): boolean {
+    let changed = false;
     for (let i = 0; i < SPRAY_PER_BURST; i++) {
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.sqrt(Math.random()) * sprayRadius;
-      nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance, treeSpecies);
+      changed = nature.plant(centre.x + Math.cos(angle) * distance, centre.z + Math.sin(angle) * distance, treeSpecies) || changed;
     }
+    return changed;
   }
 
   function clearPreview(): void {
@@ -327,7 +337,8 @@ export function createDrawTool(
     if (!at || !painting) return;
     // Wait until the brush has moved half its width before laying down another burst.
     if (!brushMovedFarEnough(lastSprayed, at, sprayRadius)) return;
-    sprayBurst(at);
+    if (!lastSprayed) history?.beforeChange();
+    gestureChanged = sprayBurst(at) || gestureChanged;
     lastSprayed = at;
   }
 
@@ -336,8 +347,10 @@ export function createDrawTool(
     moveSprayRing(at, zoneRadius);
     if (!at || !painting) return;
     if (!brushMovedFarEnough(lastSprayed, at, zoneRadius)) return;
+    if (!lastSprayed) history?.beforeChange();
     zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
     lastSprayed = at;
+    gestureChanged = true;
     onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
   }
 
@@ -392,16 +405,20 @@ export function createDrawTool(
       clearPreview();
       targetHighlight.setEnabled(false);
       if (target.kind === "tree") {
-        nature.clearTree(target.x, target.z);
+        history?.beforeChange();
+        history?.afterChange(nature.clearTree(target.x, target.z));
         return;
       }
+      history?.beforeChange();
       if (target.kind === "roundabout") {
         const radius = target.radius + TERRAIN_DIRTY_PAD;
         graph.setRoundabout(target.node, false);
+        history?.afterChange(true);
         onCommitted({ minX: target.x - radius, maxX: target.x + radius, minZ: target.z - radius, maxZ: target.z + radius });
       } else {
         const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
         graph.removeSegment(target.segment.id);
+        history?.afterChange(true);
         onCommitted(dirty);
       }
       return;
@@ -409,25 +426,33 @@ export function createDrawTool(
     if (mode === "roundabout") {
       const node = nearestJunctionNode(at.x, at.z);
       if (!node) return onRefused("Click where two or more roads meet.");
+      history?.beforeChange();
       // The road panel's lane choice applies here too -- a roundabout has no type of its own,
       // so it takes lanes from whatever is currently selected to draw with.
       graph.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
       const pos = graph.node(node).pos;
       const radius = roundaboutRadius(graph, node) + TERRAIN_DIRTY_PAD;
+      history?.afterChange(true);
       onCommitted({ minX: pos.x - radius, maxX: pos.x + radius, minZ: pos.z - radius, maxZ: pos.z + radius });
       return;
     }
     if (mode === "plant") {
-      if (!nature.plant(at.x, at.z, treeSpecies)) onRefused("A tree needs dry ground.");
+      history?.beforeChange();
+      const planted = nature.plant(at.x, at.z, treeSpecies);
+      if (!planted) onRefused("A tree needs dry ground.");
+      history?.afterChange(planted);
       return;
     }
     if (mode === "spray") {
-      sprayBurst(at);
+      history?.beforeChange();
+      history?.afterChange(sprayBurst(at));
       lastSprayed = at;
       return;
     }
     if (mode === "zone") {
+      history?.beforeChange();
       zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
+      history?.afterChange(true);
       onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
       return;
     }
@@ -451,13 +476,16 @@ export function createDrawTool(
 
   function finish(from: Snap, to: Snap, control: Vec3): void {
     const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position)), TERRAIN_DIRTY_PAD);
+    history?.beforeChange();
     const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
       onRefused(result.reason);
+      history?.afterChange(false);
       return; // the refused segment never entered the graph; keep drawing from the same start
     }
     stage = { phase: "idle" };
     clearPreview();
+    history?.afterChange(true);
     onCommitted(dirty);
   }
 
@@ -546,6 +574,8 @@ export function createDrawTool(
     pressedAt = null;
     // A drag that already sprayed must not also fire a burst on release.
     const sprayed = (mode === "spray" || mode === "zone") && lastSprayed !== null;
+    if (sprayed) history?.afterChange(gestureChanged);
+    gestureChanged = false;
     lastSprayed = null;
     if (isLeftClick && !sprayed && travelled <= CLICK_SLOP) onClick();
   });

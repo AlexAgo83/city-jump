@@ -13,6 +13,7 @@ import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
 import { Zones } from "../sim/zones";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
+import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -38,6 +39,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const graph = new RoadGraph();
   const plantings = new Plantings();
   const zones = new Zones();
+  const history = createCityHistory<CitySave>(20);
   createOcean(scene);
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
@@ -53,6 +55,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let buildingsVisible = true;
   let cameraMode: CameraMode = "free";
   let followTarget: (() => { x: number; y: number; z: number } | null) | null = null;
+  let pendingHistorySnapshot: CitySave | null = null;
   const setCameraMode = (mode: CameraMode): void => {
     cameraMode = mode;
     const input = document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${mode}"]`);
@@ -136,6 +139,29 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees.rebuild();
     scheduleAutosave();
   };
+  const snapshot = (): CitySave => serializeCity(graph, plantings, zones, terrainPreset, sunHour);
+  const restoreSnapshot = (city: CitySave): void => {
+    tool.cancel();
+    followTarget = null;
+    restoreCity(graph, plantings, zones, city);
+    rebuild();
+    updateUndoRedo();
+  };
+  const beforeChange = (): void => {
+    pendingHistorySnapshot ??= snapshot();
+  };
+  const afterChange = (changed: boolean): void => {
+    if (changed && pendingHistorySnapshot) history.record(pendingHistorySnapshot);
+    pendingHistorySnapshot = null;
+    updateUndoRedo();
+  };
+  let updateUndoRedo = (): void => {};
+  const undo = (): void => {
+    if (!history.undo(snapshot(), restoreSnapshot)) showRefusal("Nothing to undo.");
+  };
+  const redo = (): void => {
+    if (!history.redo(snapshot(), restoreSnapshot)) showRefusal("Nothing to redo.");
+  };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
   // that exists, but the callback itself only ever fires later, once the player actually clicks.
@@ -182,6 +208,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       vehicleAt: (x, z) => traffic.vehicleAt(x, z),
     },
     onSelect,
+    "street",
+    { beforeChange, afterChange },
   );
 
   await seedDefaultDemoSave();
@@ -245,9 +273,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       }
       setCameraMode(mode);
     },
-    onSave: () => serializeCity(graph, plantings, zones, terrainPreset, sunHour),
+    onUndo: undo,
+    onRedo: redo,
+    canUndo: () => history.canUndo,
+    canRedo: () => history.canRedo,
+    onSave: snapshot,
     onLoad: loadCity,
   });
+  updateUndoRedo = controls.updateUndoRedo;
+  updateUndoRedo();
 
   function loadCity(city: CitySave): boolean {
     tool.cancel();
@@ -260,8 +294,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
     }
+    history.clear();
+    pendingHistorySnapshot = null;
     sunHour = city.hour;
     rebuild();
+    updateUndoRedo();
     return true;
   }
 
