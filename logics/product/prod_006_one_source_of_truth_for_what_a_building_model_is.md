@@ -1,11 +1,12 @@
 ## prod_006_one_source_of_truth_for_what_a_building_model_is - One source of truth for what a building model is
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
-> Related backlog: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`, `item_032_fail_the_build_when_the_generator_and_the_renderer_disagree`, `item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does`
+> Related backlog: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`
 > Related task: `task_011_implement_one_source_of_truth_for_building_model_geometry`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:39:36
 
 # Overview
 city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city.
@@ -48,5 +49,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
+- Product back-reference: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`
 - Task back-reference: `task_011_implement_one_source_of_truth_for_building_model_geometry`

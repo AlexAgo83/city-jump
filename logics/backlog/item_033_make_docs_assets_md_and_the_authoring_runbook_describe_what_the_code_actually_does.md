@@ -1,14 +1,14 @@
 ## item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does - Make docs/assets.md and the authoring runbook describe what the code actually does
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:36:50
+> Indicators reviewed: 2026-08-30 12:39:36
 
 # AI Context
 - Summary: `docs/assets.md` claims dimensions need not be declared because the renderer reads the bounding box, which the duplicated spec contradicts, and run_001 carries a manual mirror-the-formula step that should not outlive the fix.
@@ -49,3 +49,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_011_implement_one_source_of_truth_for_building_model_geometry`
+
+# Notes
+- Task `task_011_implement_one_source_of_truth_for_building_model_geometry` was finished via `logics-manager flow finish task` on 2026-08-30.
