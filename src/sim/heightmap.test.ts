@@ -152,6 +152,37 @@ describe("heightmap", () => {
     expect(Math.abs(flattened - before)).toBeGreaterThan(0.05);
   });
 
+  it("matches a full conform when only the changed region is re-stamped", () => {
+    const generator = (x: number, z: number) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70);
+    const full = new Heightmap({ size: 600, cell: 4, generator });
+    const incremental = new Heightmap({ size: 600, cell: 4, generator });
+    const g = new RoadGraph();
+    const west = g.addNode(-220, -40);
+    const east = g.addNode(220, -40);
+    g.addSegment(west, east, v3(0, 0, -30));
+    incremental.conformToRoads(g);
+
+    const north = g.addNode(0, -220);
+    const south = g.addNode(0, 180);
+    const added = g.addSegment(north, south, v3(0, 0, -20));
+    const seg = g.segment(added);
+    const xs = seg.samples.map((p) => p.x);
+    const zs = seg.samples.map((p) => p.z);
+    incremental.conformToRoads(g, [], {
+      minX: Math.min(...xs) - 140,
+      maxX: Math.max(...xs) + 140,
+      minZ: Math.min(...zs) - 140,
+      maxZ: Math.max(...zs) + 140,
+    });
+    full.conformToRoads(g);
+
+    for (let iz = 0; iz < full.count; iz++) {
+      for (let ix = 0; ix < full.count; ix++) {
+        expect(incremental.at(ix, iz)).toBeCloseTo(full.at(ix, iz), 6);
+      }
+    }
+  });
+
   it("gives a cell to the nearest road when two are close", () => {
     const h = map();
     setTerrain(h);

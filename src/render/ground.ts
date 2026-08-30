@@ -8,7 +8,7 @@ import { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
 import { Material } from "@babylonjs/core/Materials/material";
 import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
-import { SEA_LEVEL, type Heightmap } from "../sim/heightmap";
+import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap";
 
 export const GROUND_SIZE = 5400;
 export const GROUND_CELL = 8;
@@ -53,27 +53,68 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   data.colors = colors as unknown as number[];
   data.applyToMesh(mesh, true);
 
-  function refresh(): void {
-    const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
-    const colorData = mesh.getVerticesData(VertexBuffer.ColorKind) as Float32Array;
-    for (let iz = 0; iz < n; iz++) {
-      for (let ix = 0; ix < n; ix++) {
+  function refresh(dirty?: TerrainBounds): void {
+    const bounds = dirty ? groundGridBounds(heightmap, dirty) : { minIx: 0, maxIx: n - 1, minIz: 0, maxIz: n - 1 };
+    for (let iz = bounds.minIz; iz <= bounds.maxIz; iz++) {
+      for (let ix = bounds.minIx; ix <= bounds.maxIx; ix++) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
-        current[i * 3 + 1] = h;
-        writeTerrainColor(colorData, i * 4, h, heightmap.worldX(ix), heightmap.worldZ(iz));
+        positions[i * 3 + 1] = h;
+        writeTerrainColor(colors, i * 4, h, heightmap.worldX(ix), heightmap.worldZ(iz));
       }
     }
-    mesh.updateVerticesData(VertexBuffer.PositionKind, current);
-    mesh.updateVerticesData(VertexBuffer.ColorKind, colorData);
+    if (dirty) {
+      uploadRows(mesh, VertexBuffer.PositionKind, positions, n, 3, bounds);
+      uploadRows(mesh, VertexBuffer.ColorKind, colors, n, 4, bounds);
+    } else {
+      mesh.updateVerticesData(VertexBuffer.PositionKind, positions);
+      mesh.updateVerticesData(VertexBuffer.ColorKind, colors);
+    }
 
-    VertexData.ComputeNormals(current, indices, normals as unknown as number[]);
-    mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
+    VertexData.ComputeNormals(positions, indices, normals as unknown as number[]);
+    if (dirty) uploadRows(mesh, VertexBuffer.NormalKind, normals, n, 3, expandGridBounds(bounds, n, 1));
+    else mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
     mesh.refreshBoundingInfo();
   }
 
   refresh();
   return { mesh, refresh };
+}
+
+function uploadRows(
+  mesh: Mesh,
+  kind: string,
+  data: Float32Array,
+  rowWidth: number,
+  stride: number,
+  bounds: { minIx: number; maxIx: number; minIz: number; maxIz: number },
+): void {
+  const buffer = mesh.getVertexBuffer(kind);
+  if (!buffer) return;
+  const width = bounds.maxIx - bounds.minIx + 1;
+  for (let iz = bounds.minIz; iz <= bounds.maxIz; iz++) {
+    const start = (iz * rowWidth + bounds.minIx) * stride;
+    buffer.updateDirectly(data.subarray(start, start + width * stride), start);
+  }
+}
+
+function expandGridBounds(
+  bounds: { minIx: number; maxIx: number; minIz: number; maxIz: number },
+  count: number,
+  by: number,
+): { minIx: number; maxIx: number; minIz: number; maxIz: number } {
+  return {
+    minIx: Math.max(0, bounds.minIx - by),
+    maxIx: Math.min(count - 1, bounds.maxIx + by),
+    minIz: Math.max(0, bounds.minIz - by),
+    maxIz: Math.min(count - 1, bounds.maxIz + by),
+  };
+}
+
+function groundGridBounds(heightmap: Heightmap, bounds: TerrainBounds): { minIx: number; maxIx: number; minIz: number; maxIz: number } {
+  const lo = (v: number) => Math.min(heightmap.count - 1, Math.max(0, Math.floor((v + heightmap.size / 2) / heightmap.cell)));
+  const hi = (v: number) => Math.min(heightmap.count - 1, Math.max(0, Math.ceil((v + heightmap.size / 2) / heightmap.cell)));
+  return { minIx: lo(bounds.minX), maxIx: hi(bounds.maxX), minIz: lo(bounds.minZ), maxIz: hi(bounds.maxZ) };
 }
 
 /**

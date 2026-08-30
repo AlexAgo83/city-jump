@@ -15,6 +15,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
 import type { BuildingParcel } from "../sim/slots";
+import type { TerrainBounds } from "../sim/heightmap";
 import { type Vec3, v3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
 import { toBabylon } from "./convert";
@@ -23,6 +24,7 @@ const ACCEPTED = new Color3(0.45, 0.85, 0.5);
 const REFUSED = new Color3(0.95, 0.35, 0.25);
 const SELECTED = new Color3(0.4, 0.7, 0.95);
 const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
+const TERRAIN_DIRTY_PAD = 140;
 
 /**
  * Three clicks: start, control point, end. No drag state to manage, and the bend is
@@ -118,7 +120,7 @@ export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
   ground: Mesh,
-  onCommitted: () => void,
+  onCommitted: (dirty?: TerrainBounds) => void,
   onRefused: (reason: string) => void,
   nature: NatureTools,
   zones: ZoneTools,
@@ -331,7 +333,7 @@ export function createDrawTool(
     if (!at || !painting) return;
     zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
     lastSprayed = at;
-    onCommitted();
+    onCommitted(expandBounds({ minX: at.x - ZONE_RADIUS, maxX: at.x + ZONE_RADIUS, minZ: at.z - ZONE_RADIUS, maxZ: at.z + ZONE_RADIUS }, TERRAIN_DIRTY_PAD));
   }
 
   function onMove(): void {
@@ -389,11 +391,14 @@ export function createDrawTool(
         return;
       }
       if (target.kind === "roundabout") {
+        const radius = target.radius + TERRAIN_DIRTY_PAD;
         graph.setRoundabout(target.node, false);
+        onCommitted({ minX: target.x - radius, maxX: target.x + radius, minZ: target.z - radius, maxZ: target.z + radius });
       } else {
+        const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
         graph.removeSegment(target.segment.id);
+        onCommitted(dirty);
       }
-      onCommitted();
       return;
     }
     if (mode === "roundabout") {
@@ -402,7 +407,9 @@ export function createDrawTool(
       // The road panel's lane choice applies here too -- a roundabout has no type of its own,
       // so it takes lanes from whatever is currently selected to draw with.
       graph.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
-      onCommitted();
+      const pos = graph.node(node).pos;
+      const radius = roundaboutRadius(graph, node) + TERRAIN_DIRTY_PAD;
+      onCommitted({ minX: pos.x - radius, maxX: pos.x + radius, minZ: pos.z - radius, maxZ: pos.z + radius });
       return;
     }
     if (mode === "plant") {
@@ -416,7 +423,7 @@ export function createDrawTool(
     }
     if (mode === "zone") {
       zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
-      onCommitted();
+      onCommitted(expandBounds({ minX: at.x - ZONE_RADIUS, maxX: at.x + ZONE_RADIUS, minZ: at.z - ZONE_RADIUS, maxZ: at.z + ZONE_RADIUS }, TERRAIN_DIRTY_PAD));
       return;
     }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
@@ -438,6 +445,7 @@ export function createDrawTool(
   }
 
   function finish(from: Snap, to: Snap, control: Vec3): void {
+    const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position)), TERRAIN_DIRTY_PAD);
     const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
       onRefused(result.reason);
@@ -445,7 +453,7 @@ export function createDrawTool(
     }
     stage = { phase: "idle" };
     clearPreview();
-    onCommitted();
+    onCommitted(dirty);
   }
 
   /** Drawing state only -- never the selection, which an option change has no business erasing. */
@@ -582,6 +590,24 @@ export function createDrawTool(
       resetDrawing();
     },
   };
+}
+
+function expandBounds(bounds: TerrainBounds, by: number): TerrainBounds {
+  return { minX: bounds.minX - by, maxX: bounds.maxX + by, minZ: bounds.minZ - by, maxZ: bounds.maxZ + by };
+}
+
+function boundsOf(points: readonly Vec3[]): TerrainBounds {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minZ = Infinity;
+  let maxZ = -Infinity;
+  for (const p of points) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minZ = Math.min(minZ, p.z);
+    maxZ = Math.max(maxZ, p.z);
+  }
+  return { minX, maxX, minZ, maxZ };
 }
 
 /** Preview sampling only; the graph builds its own table once the segment is accepted. */

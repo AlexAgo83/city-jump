@@ -1,6 +1,7 @@
 import type { Scene } from "@babylonjs/core/scene";
 import type { RoadGraph } from "../sim/graph";
 import { resolveSnap, commitSegment } from "../sim/rules";
+import type { TerrainBounds } from "../sim/heightmap";
 import { v3 } from "../sim/vec";
 
 export interface DebugApi {
@@ -25,7 +26,7 @@ export interface DebugApi {
 export function installDebugApi(
   scene: Scene,
   graph: RoadGraph,
-  rebuild: () => void,
+  rebuild: (dirty?: TerrainBounds) => void,
   startedAt: number,
   stats: () => Record<string, number>,
 ): void {
@@ -137,7 +138,7 @@ export function installDebugApi(
       const demoBuildMs = performance.now() - buildStarted;
       const placementStarted = performance.now();
       if (!api.road(700, 650, 780, 650, 860, 650, "street")) throw new Error("measurement road was refused");
-      rebuild();
+      rebuild({ minX: 560, maxX: 1000, minZ: 510, maxZ: 790 });
       return {
         startupMs: performance.now() - startedAt,
         demoBuildMs,

@@ -277,6 +277,15 @@ await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
 await page.locator('[data-tool="roads"]').click();
 check("the road category opens its options", await page.locator("#road-options").isVisible());
+check(
+  "zones sits between Roads and Power",
+  (await page.locator("#action-palette [data-tool]").evaluateAll((buttons) => buttons.map((button) => button.getAttribute("data-tool")).join(","))).startsWith(
+    "select,roads,zones,power",
+  ),
+);
+await page.locator('[data-tool="zones"]').click();
+check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
+await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
 await page.locator("#grid-snap").check();

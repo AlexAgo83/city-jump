@@ -50,6 +50,10 @@ export function bindControls(handlers: {
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
   let roadMode: "straight" | "curve" | "roundabout" = "straight";
   let plantMode: "plant" | "spray" = "plant";
+  const currentSelectView = (): "all" | "no-buildings" | "traffic" => {
+    const value = document.querySelector<HTMLInputElement>('input[name="select-view"]:checked')?.value;
+    return value === "no-buildings" ? "no-buildings" : value === "traffic" ? "traffic" : "all";
+  };
 
   for (const button of toolButtons) {
     button.addEventListener("click", () => {
@@ -63,6 +67,12 @@ export function bindControls(handlers: {
       handlers.onRoadMode(
         tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "zones" ? "zone" : tool === "bulldoze" ? "bulldoze" : "view",
       );
+      if (tool === "select") handlers.onSelectView(currentSelectView());
+      if (tool === "zones") {
+        const zonesView = document.querySelector<HTMLInputElement>('input[name="select-view"][value="no-buildings"]');
+        if (zonesView) zonesView.checked = true;
+        handlers.onSelectView("no-buildings");
+      }
     });
   }
 

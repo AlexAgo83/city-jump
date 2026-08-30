@@ -31,6 +31,13 @@ export const SEA_LEVEL = 0;
  */
 const JUNCTION_PRIORITY = 1000;
 
+export interface TerrainBounds {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+}
+
 export interface HeightmapOptions {
   /** Side of the square map, in metres. */
   readonly size: number;
@@ -126,9 +133,21 @@ export class Heightmap implements Terrain {
    * ground each time. A road that has been removed simply is not cut, and the ground
    * beneath it comes back.
    */
-  conformToRoads(graph: RoadGraph, parcels: readonly BuildingParcel[] = []): void {
-    this.current.set(this.base);
-    this.claim.fill(Infinity);
+  conformToRoads(graph: RoadGraph, parcels: readonly BuildingParcel[] = [], dirty?: TerrainBounds): void {
+    const region = dirty ? this.gridBounds(dirty) : null;
+    if (region) {
+      for (let iz = region.minIz; iz <= region.maxIz; iz++) {
+        const offset = iz * this.count;
+        for (let ix = region.minIx; ix <= region.maxIx; ix++) {
+          const index = offset + ix;
+          this.current[index] = this.base[index]!;
+          this.claim[index] = Infinity;
+        }
+      }
+    } else {
+      this.current.set(this.base);
+      this.claim.fill(Infinity);
+    }
 
     for (const seg of graph.allSegments()) {
       const type = roadType(seg.type);
@@ -145,7 +164,7 @@ export class Heightmap implements Terrain {
         if (type.tunnelDepth && this.baseHeightAt(position.x, position.z) - position.y > TUNNEL_COVER) {
           continue;
         }
-        this.stamp(position.x, position.z, position.y, half, reach);
+        this.stamp(position.x, position.z, position.y, half, reach, 0, region);
       }
     }
 
@@ -163,14 +182,20 @@ export class Heightmap implements Terrain {
         // (denser, more numerous) stamps land inside the junction's own footprint too and would
         // otherwise win the ordinary nearest-wins race almost everywhere except the exact centre,
         // leaving jagged slivers of the arm's own grade poking through the polygon.
-        this.stampPolygon(junction.ring, EMBANKMENT, JUNCTION_PRIORITY);
+        this.stampPolygon(junction.ring, EMBANKMENT, JUNCTION_PRIORITY, region);
       } else {
         const elevationAt = ringElevation(junction.arms, node.pos.y);
-        this.stamp(node.pos.x, node.pos.z, elevationAt, junction.roundabout, junction.roundabout + EMBANKMENT, JUNCTION_PRIORITY);
+        this.stamp(node.pos.x, node.pos.z, elevationAt, junction.roundabout, junction.roundabout + EMBANKMENT, JUNCTION_PRIORITY, region);
       }
     }
 
-    for (const parcel of parcels) this.stampParcel(parcel);
+    for (const parcel of parcels) this.stampParcel(parcel, region);
+  }
+
+  private gridBounds(bounds: TerrainBounds): { minIx: number; maxIx: number; minIz: number; maxIz: number } {
+    const lo = (v: number) => Math.min(this.count - 1, Math.max(0, Math.floor((v + this.size / 2) / this.cell)));
+    const hi = (v: number) => Math.min(this.count - 1, Math.max(0, Math.ceil((v + this.size / 2) / this.cell)));
+    return { minIx: lo(bounds.minX), maxIx: hi(bounds.maxX), minIz: lo(bounds.minZ), maxIz: hi(bounds.maxZ) };
   }
 
   /**
@@ -195,12 +220,17 @@ export class Heightmap implements Terrain {
     half: number,
     reach: number,
     priority = 0,
+    region: ReturnType<Heightmap["gridBounds"]> | null = null,
   ): void {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
+    const minIx = region ? Math.max(region.minIx, lo(x)) : lo(x);
+    const maxIx = region ? Math.min(region.maxIx, hi(x)) : hi(x);
+    const minIz = region ? Math.max(region.minIz, lo(z)) : lo(z);
+    const maxIz = region ? Math.min(region.maxIz, hi(z)) : hi(z);
 
-    for (let iz = lo(z); iz <= hi(z); iz++) {
-      for (let ix = lo(x); ix <= hi(x); ix++) {
+    for (let iz = minIz; iz <= maxIz; iz++) {
+      for (let ix = minIx; ix <= maxIx; ix++) {
         const dx = this.worldX(ix) - x;
         const dz = this.worldZ(iz) - z;
         const distance = Math.hypot(dx, dz);
@@ -232,7 +262,7 @@ export class Heightmap implements Terrain {
    * triangle fan from the polygon's centroid vertex for vertex, so a corner can never come out
    * higher on the ground than it is drawn on the road.
    */
-  private stampPolygon(ring: readonly Vec3[], reach: number, priority: number): void {
+  private stampPolygon(ring: readonly Vec3[], reach: number, priority: number, region: ReturnType<Heightmap["gridBounds"]> | null = null): void {
     if (ring.length < 3) return;
     let cx = 0;
     let cy = 0;
@@ -260,8 +290,13 @@ export class Heightmap implements Terrain {
     const lo = (v: number) => Math.max(0, Math.floor((v - reach + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + reach + this.size / 2) / this.cell));
 
-    for (let iz = lo(minZ); iz <= hi(maxZ); iz++) {
-      for (let ix = lo(minX); ix <= hi(maxX); ix++) {
+    const minIx = region ? Math.max(region.minIx, lo(minX)) : lo(minX);
+    const maxIx = region ? Math.min(region.maxIx, hi(maxX)) : hi(maxX);
+    const minIz = region ? Math.max(region.minIz, lo(minZ)) : lo(minZ);
+    const maxIz = region ? Math.min(region.maxIz, hi(maxZ)) : hi(maxZ);
+
+    for (let iz = minIz; iz <= maxIz; iz++) {
+      for (let ix = minIx; ix <= maxIx; ix++) {
         const x = this.worldX(ix);
         const z = this.worldZ(iz);
         const { distance, y: edgeY } = nearestOnRingXZ(ring, x, z);
@@ -285,7 +320,7 @@ export class Heightmap implements Terrain {
     }
   }
 
-  private stampParcel(parcel: BuildingParcel): void {
+  private stampParcel(parcel: BuildingParcel, region: ReturnType<Heightmap["gridBounds"]> | null = null): void {
     const halfWidth = (parcel.frontageCells * 8) / 2;
     const depth = parcel.depthCells * 8;
     const reach = BUILDING_PAD_EMBANKMENT;
@@ -297,8 +332,13 @@ export class Heightmap implements Terrain {
     const lo = (v: number) => Math.max(0, Math.floor((v - radius + this.size / 2) / this.cell));
     const hi = (v: number) => Math.min(this.count - 1, Math.ceil((v + radius + this.size / 2) / this.cell));
 
-    for (let iz = lo(parcel.position.z); iz <= hi(parcel.position.z); iz++) {
-      for (let ix = lo(parcel.position.x); ix <= hi(parcel.position.x); ix++) {
+    const minIx = region ? Math.max(region.minIx, lo(parcel.position.x)) : lo(parcel.position.x);
+    const maxIx = region ? Math.min(region.maxIx, hi(parcel.position.x)) : hi(parcel.position.x);
+    const minIz = region ? Math.max(region.minIz, lo(parcel.position.z)) : lo(parcel.position.z);
+    const maxIz = region ? Math.min(region.maxIz, hi(parcel.position.z)) : hi(parcel.position.z);
+
+    for (let iz = minIz; iz <= maxIz; iz++) {
+      for (let ix = minIx; ix <= maxIx; ix++) {
         const dx = this.worldX(ix) - parcel.position.x;
         const dz = this.worldZ(iz) - parcel.position.z;
         const along = dx * alongX + dz * alongZ;

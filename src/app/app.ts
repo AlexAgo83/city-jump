@@ -12,7 +12,7 @@ import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
 import { Zones } from "../sim/zones";
-import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
+import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
@@ -65,13 +65,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees.setSunHour(hour);
   };
 
-  const rebuild = (): void => {
+  const rebuild = (dirty?: TerrainBounds): void => {
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
     const cells = buildableCells(graph, zones);
     const parcels = buildingParcels(cells, zones);
-    heightmap.conformToRoads(graph, parcels);
-    ground.refresh();
+    heightmap.conformToRoads(graph, parcels, dirty);
+    ground.refresh(dirty);
     trees.rebuild();
     worldGrid.rebuild();
     roads.rebuild();
@@ -162,9 +162,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onRoadMode(mode) {
       tool.setMode(mode);
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
-      buildings.setGridVisible(drawingRoads);
+      const zoning = mode === "zone";
+      buildingCount = buildings.setVisible(zoning ? false : buildingsVisible);
+      buildings.setGridVisible(drawingRoads || zoning);
       buildings.setFaded(drawingRoads);
-      zoneOverlay.setVisible(false);
+      zoneOverlay.setVisible(zoning);
+      if (!zoning) roads.setShowTraffic(false);
     },
     onRoadType(type) {
       tool.setRoadType(type);
