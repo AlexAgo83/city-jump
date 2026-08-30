@@ -502,7 +502,7 @@ check(
     const scene = window.cityjump._scene;
     const beams = () => scene.lights.find((l) => l.name === "car_headlights");
     const lamps = scene.meshes.filter((m) => m.name.startsWith("car_head_") || m.name.startsWith("car_tail_"));
-    const slider = document.querySelector('input[type="range"]');
+    const slider = document.getElementById("sun-hour");
     const setHour = (hour) => {
       slider.value = String(hour);
       slider.dispatchEvent(new Event("input", { bubbles: true }));
@@ -606,7 +606,7 @@ await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForFunction(() => window.cityjump.stats().cars > 0, null, { timeout: 5_000 });
+await page.waitForFunction((cars) => window.cityjump.stats().cars === cars, drawn.cars, { timeout: 5_000 });
 const beforeTraffic = await trafficPositions();
 await realTime(250);
 const afterTraffic = await trafficPositions();
