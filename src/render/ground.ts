@@ -335,8 +335,15 @@ export function createOcean(scene: Scene) {
   mesh.position.y = SEA_LEVEL - 0.2;
   mesh.material = material;
   mesh.isPickable = false;
+  // The swell moves slowly and the mesh is 5329 vertices whose normals have to be recomputed with
+  // them: at 30 Hz that is half the work for a difference nobody can see in water.
+  const WAVE_INTERVAL_MS = 33;
+  let lastWave = 0;
   scene.registerBeforeRender(() => {
-    const t = performance.now() / 1000;
+    const now = performance.now();
+    if (now - lastWave < WAVE_INTERVAL_MS) return;
+    lastWave = now;
+    const t = now / 1000;
     const current = mesh.getVerticesData(VertexBuffer.PositionKind) as Float32Array;
     for (let i = 0; i < current.length; i += 3) {
       const depth = oceanDepth(current[i]!, current[i + 2]!);

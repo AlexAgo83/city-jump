@@ -27,8 +27,11 @@ export function sunAzimuthAt(hour: number): number {
 /** Engine, scene, camera and lights. Nothing here knows about roads. */
 export function createScene(canvas: HTMLCanvasElement) {
   // adaptToDeviceRatio: without it the canvas renders at CSS pixels and a retina screen shows the
-  // result upscaled -- which is what "pixelated" looks like.
+  // result upscaled. With it, a retina screen renders four times the pixels -- and this scene is
+  // fill-bound the moment the water fills the frame. Capped at 1.5x: past that the multisampling
+  // and FXAA are doing the work anyway, and the pixels are just cost.
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false }, true);
+  engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.5));
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
   scene.imageProcessingConfiguration.contrast = 1.12;

@@ -142,8 +142,13 @@ spare, and the player's to spend:
 
 Tone mapping, a little contrast and a vignette are always on: they are a shader constant each.
 
-The engine now also renders at the device pixel ratio. On a retina screen that is four times the
-pixels -- and the difference between a sharp city and an upscaled one.
+The engine renders at the device pixel ratio, capped at 1.5x. Uncapped, a retina screen draws four
+times the pixels, and this scene is fill-bound the moment the water fills the frame: looking out to
+sea measured 87 fps at 2x and 124 at 1.5x. Past 1.5x the multisampling and FXAA are doing the work
+anyway.
+
+The swell is recomputed at 30 Hz rather than every frame -- 5329 vertices whose normals have to be
+recomputed with them, for a difference nobody can see in water.
 
 ## What is left
 
