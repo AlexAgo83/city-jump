@@ -1,0 +1,161 @@
+{
+  "title": "Let the player turn shadows and the city's own lights off",
+  "references": [
+    "src/render/scene.ts",
+    "src/render/streetlights.ts",
+    "src/render/traffic.ts",
+    "src/ui/controls.ts",
+    "src/ui/saves.ts",
+    "src/app/app.ts",
+    "index.html",
+    "scripts/interact.mjs",
+    "logics/request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md",
+    "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+    "logics/roadmap/road_001_city_jump_playable_city.md"
+  ],
+  "request": {
+    "complexity": "Low",
+    "theme": "City legibility",
+    "needs": [
+      "The two most expensive things the scene does are the two the player has no say over. A cascaded shadow map re-renders the casters every frame, and after dark the city lights a clustered spotlight and point light per streetlight plus a spotlight per car headlight.",
+      "A visitor on a weaker machine has exactly one lever today: stop building. The game gives them no way to trade fidelity for speed, which is the ordinary bargain every 3D application offers.",
+      "`req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off` puts the cost on screen. Showing someone a number they cannot act on is worse than not showing it; these are the two switches that make the number actionable.",
+      "Both are already switchable. Nothing needs inventing -- the seams exist and are currently driven only by the hour of day."
+    ],
+    "context": [
+      "Shadows are one object. `src/render/scene.ts` builds a single `CascadedShadowGenerator` over the `sun` `DirectionalLight`, and every caster registers against it (`shadows.addShadowCaster` in `src/render/buildings.ts` and `src/render/trees.ts`, with `receiveShadows` set on the meshes). The native switch is on the light -- `sun.shadowEnabled` -- which stops the shadow map rendering without touching a single caster or receiver. Walking every mesh to clear `receiveShadows` and emptying the caster list is the wrong path: it is more code, it has to be undone exactly, and it fights every rebuild that adds a new caster.",
+      "The city's lights are two clusters. `src/render/streetlights.ts` holds a `ClusteredLightContainer` plus a `SpotLight` and `PointLight` per lamp, and already enables and disables the whole cluster by hour at `setSunHour` (`lightCluster.setEnabled(on)`). `src/render/traffic.ts` holds a second `ClusteredLightContainer` for car headlights. Both already have the exact call the setting needs.",
+      "The sun and the ambient light are not part of this. `HemisphericLight` and the `DirectionalLight` are what make the world visible at all, and turning them off leaves a black screen rather than a faster one. This setting is about the lights the city itself emits.",
+      "The hour of day already owns these. `streetlightsOnAt(hour)` decides when lamps come on, and `setSunHour` applies it. A setting that fights that will produce the classic bug: the player turns lights back on at 22:00 and nothing happens until they next move the sun slider. The setting and the hour have to combine into one answer that is applied immediately.",
+      "The debug statistics stay honest for free: `realLightCount()` already returns 0 when the cluster is disabled, so a lights-off city reports zero real lights without any change.",
+      "`Settings > World` is the row in `index.html` (around line 125) that holds `Grid` and `Buildings`, wired in `src/ui/controls.ts` and persisted through `UiSettings` in `src/ui/saves.ts` by `applySetting` and `persistSettings`. `item_058_add_show_fps_to_settings_world_and_remember_it` adds the third toggle to that row; these are the fourth and fifth, and follow the same pattern exactly.",
+      "Both toggles read positively -- `Shadows` and `Lights`, checked by default -- to match `Grid` and `Buildings` beside them and to keep today's appearance as the default. The player-facing effect is the one asked for; only the sense of the label differs."
+    ],
+    "acceptance_criteria": [
+      "AC1: `Settings > World` carries a `Shadows` checkbox, on by default, and turning it off removes shadows from the scene immediately.",
+      "AC2: `Settings > World` carries a `Lights` checkbox, on by default, and turning it off puts out the streetlights and car headlights immediately, at any hour.",
+      "AC3: With shadows off, no shadow map is rendered -- the cost is actually gone, not merely invisible.",
+      "AC4: With lights off, the scene is still lit by the sun and the ambient light; night is darker, not black.",
+      "AC5: The setting and the hour of day combine into one answer: turning lights on after dark lights them at once, and turning them on during the day leaves them off until dusk as usual.",
+      "AC6: Both choices are remembered across a reload, through the same settings storage the other World toggles use.",
+      "AC7: Turning either setting off and back on restores the scene to what it looked like before -- no missing casters, no lamps left dark, verified against the bundled Demo city.",
+      "AC8: The browser interaction suite covers both toggles off and on again; `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass."
+    ]
+  },
+  "product": {
+    "title": "A city that can be made to run on a weaker machine",
+    "overview": "city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less.",
+    "goals": [
+      "A player on weaker hardware can keep building instead of giving up.",
+      "The two most expensive things in the scene are the two the player can switch off.",
+      "Turning a setting off actually stops the work, rather than hiding its result.",
+      "The default is exactly what the game looks like today.",
+      "The switches use the seams the renderers already have, not new machinery."
+    ],
+    "non_goals": [
+      "A quality preset, a detail slider, or graphics tiers.",
+      "Automatic degradation when the frame rate drops.",
+      "Turning off the sun or the ambient light, which would leave a black screen rather than a fast one.",
+      "Shadow map resolution, filtering quality, cascade counts, or any other shadow tuning.",
+      "Reducing what is drawn -- fewer buildings, fewer cars, less terrain -- which is a different bargain with a different cost.",
+      "Any change to how streetlights and headlights are decided by the hour of day."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Make shadows a switch, on the light rather than on every mesh",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": [
+        "AC1",
+        "AC3",
+        "AC6",
+        "AC7"
+      ],
+      "problem": [
+        "The `CascadedShadowGenerator` in `src/render/scene.ts` re-renders every caster into a shadow map each frame, and nothing can stop it. It is created once at startup and never referred to again except to register casters.",
+        "The tempting fix is the expensive one: walk every mesh clearing `receiveShadows` and empty the caster list. That is more code, has to be undone exactly to satisfy AC7, and fights every rebuild that adds a new caster -- buildings and trees both register casters on rebuild, so a rebuild while shadows are off would quietly put them back.",
+        "A setting that only hides the shadows without stopping the shadow map costs exactly as much as leaving them on, which fails the point of the setting."
+      ],
+      "scope_in": [
+        "Expose a shadow switch from `createScene` alongside the `shadows` generator and `setSunHour` it already returns, so `src/app/app.ts` can drive it the way it drives the sun.",
+        "Use the native switch on the light -- `sun.shadowEnabled` -- rather than unregistering casters, so rebuilds that add casters while the setting is off stay harmless.",
+        "A `Shadows` checkbox in the `World` row of `index.html`, on by default, wired in `src/ui/controls.ts` and persisted in `UiSettings` following `item_058_add_show_fps_to_settings_world_and_remember_it` exactly.",
+        "Prove the cost is gone rather than hidden: confirm the shadow map is not being rendered when the setting is off, and record the before-and-after frame rate from the counter `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off` adds.",
+        "Extend `scripts/interact.mjs`: shadows off, shadows on, and the scene back to what it was."
+      ],
+      "scope_out": [
+        "Shadow map resolution, filtering quality, cascade counts, darkness, or bias.",
+        "Turning off the sun itself.",
+        "The streetlight and headlight clusters, which are the other slice."
+      ],
+      "acceptance_criteria": [
+        "AC1: A `Shadows` toggle in `Settings > World`, on by default, removes shadows immediately when switched off.",
+        "AC2: With shadows off, no shadow map is rendered, evidenced rather than asserted.",
+        "AC3: A rebuild that adds new casters while the setting is off does not bring shadows back.",
+        "AC4: Switching back on restores the Demo city to what it looked like before, and the choice survives a reload."
+      ]
+    },
+    {
+      "title": "Make the city's own lights a switch, without turning the night black",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": [
+        "AC2",
+        "AC4",
+        "AC5",
+        "AC6",
+        "AC7",
+        "AC8"
+      ],
+      "problem": [
+        "After dark the city lights a `SpotLight` and a `PointLight` per streetlight through a `ClusteredLightContainer` in `src/render/streetlights.ts`, plus a `SpotLight` per car through a second cluster in `src/render/traffic.ts`. Nothing but the hour of day decides whether they run.",
+        "The hour already owns them: `streetlightsOnAt(hour)` decides, `setSunHour` applies. A setting bolted on beside that produces the classic bug -- the player switches lights back on at 22:00 and nothing happens until they next touch the sun slider.",
+        "Turning off the wrong lights turns off the scene. The `HemisphericLight` and the sun `DirectionalLight` are what make the world visible; this setting is about the lights the city itself emits, and confusing the two yields a black screen rather than a faster one."
+      ],
+      "scope_in": [
+        "One combined answer -- the hour says lights should be on AND the setting allows them -- applied through the `setEnabled` calls both clusters already have, so switching the setting at any hour takes effect at once.",
+        "Cover both emitters: the streetlight cluster and its per-lamp lights in `src/render/streetlights.ts`, and the headlight cluster in `src/render/traffic.ts`.",
+        "Leave the ambient and sun lights alone, so night with lights off is darker rather than black.",
+        "A `Lights` checkbox in the `World` row of `index.html`, on by default, wired and persisted following `item_058_add_show_fps_to_settings_world_and_remember_it` exactly.",
+        "Confirm `realLightCount()` in the debug statistics reports zero with the setting off -- it already keys off the cluster being enabled, so this should hold for free, and if it does not the combined answer was applied in the wrong place.",
+        "Extend `scripts/interact.mjs`: set the hour after dark, lights off, lights on, and the lamps back."
+      ],
+      "scope_out": [
+        "Changing `streetlightsOnAt` or when lights come on by hour.",
+        "The sun, the ambient light, the sky, or the day cycle.",
+        "Shadows, which are the other slice.",
+        "Reducing the number of lamps or headlights rather than switching them off."
+      ],
+      "acceptance_criteria": [
+        "AC1: A `Lights` toggle in `Settings > World`, on by default, puts out streetlights and headlights immediately at any hour.",
+        "AC2: With lights off after dark the scene is still lit by sun and ambient light -- darker, not black.",
+        "AC3: Turning lights on after dark lights them at once, without touching the sun slider; turning them on during the day leaves them off until dusk as usual.",
+        "AC4: `realLightCount()` reports zero with the setting off, and switching back on restores the Demo city to what it looked like before.",
+        "AC5: The `Lights` choice survives a reload, through the same storage as the other World toggles.",
+        "AC6: This slice lands last, so `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` are all green on the request as a whole when it closes."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Let the player turn shadows and the city's own lights off",
+    "plan": [
+      "Read this request and its two backlog slices. Both are small; the risk is reaching for a quality preset instead of two switches.",
+      "Run after task_018. That chain adds the third World toggle and the frame-rate counter -- these are the fourth and fifth toggles, and the counter is how their effect is measured.",
+      "Shadows first: switch on the light, not on every mesh, so a rebuild that registers new casters while the setting is off stays harmless.",
+      "Then the city's lights, as one combined answer with the hour of day rather than a second opinion beside it.",
+      "Record the frame rate with each setting on and off, on the bundled Demo city, using the counter from req_016.",
+      "Extend the browser interaction suite for both toggles, then run the fast gate and the visual check.",
+      "Confirm the Demo city looks exactly as it does today with both settings at their defaults.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/shadows-and-lights-switches.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

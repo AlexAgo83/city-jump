@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:07:14
+> Indicators reviewed: 2026-08-30 14:23:35
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -61,7 +61,10 @@ them is ever "finished" and closed.
   that opens on a road, a building, a car, a tree or a roundabout, and free, orbit and follow
   cameras.
 - Standing: the city can be read and watched. `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
-  adds the one readout the player has no way to see today.
+  adds the one readout the player has no way to see today, and
+  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off` gives them the two switches
+  that make that number worth looking at -- showing someone a cost they cannot act on is worse
+  than not showing it.
 - Open questions: everything above the street -- districts, neighbourhoods, a map view.
 
 ## E5 - Keeping and sharing a city
@@ -110,6 +113,9 @@ them; the next chain is chosen when this one closes.
    deliberately so: an FPS readout is only worth trusting once a partial rebuild is known not to
    be silently dropping geometry, and it is the instrument the next performance question will be
    argued with.
+3. `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off` -- last of the three, and
+   only after the counter exists: these two switches are the answer to the number it shows, and
+   the counter is how their effect is measured rather than asserted.
 
 - A strand with an open question that blocks a player-visible decision earns priority over one
   that only carries internal work -- but only when the decision is actually blocked, not merely
@@ -136,7 +142,8 @@ them; the next chain is chosen when this one closes.
   `prod_010_a_published_game_whose_documents_tell_the_truth`,
   `prod_011_a_city_that_is_built_on_purpose`,
   `prod_012_a_city_that_keeps_drawing_itself_correctly`,
-  `prod_013_a_city_that_tells_you_what_it_costs_to_draw`
+  `prod_013_a_city_that_tells_you_what_it_costs_to_draw`,
+  `prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
@@ -149,7 +156,8 @@ them; the next chain is chosen when this one closes.
   `req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy`,
   `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`,
   `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`,
-  `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
+  `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`,
+  `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
 - Backlog item(s): `item_001_stand_up_the_babylon_scene_and_the_dev_loop`,
   `item_008_establish_modular_repository_foundations`
 - Task(s): `task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it`,

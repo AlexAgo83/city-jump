@@ -1,0 +1,496 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+      "ref": "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+      "sections": {
+        "Goals": [
+          "- The player can see what the city costs to draw, while they are drawing it.",
+          "- The figure on screen is the same one the test suite argues with.",
+          "- Someone who does not want a number in the corner never sees one.",
+          "- Nothing measures when nobody is looking."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.",
+          "```mermaid",
+          "flowchart LR",
+          "    Frames[Per-frame delta from the engine] --> Smooth[One smoothed frame-rate value]",
+          "    Smooth --> Counter[Top-right HUD counter]",
+          "    Smooth --> Probe[\"measureFps() for the suites\"]"
+        ],
+        "References": [
+          "- Product back-reference: `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`",
+          "- Task back-reference: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+          "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md",
+      "ref": "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+      "sections": {
+        "Goals": [
+          "- A player on weaker hardware can keep building instead of giving up.",
+          "- The two most expensive things in the scene are the two the player can switch off.",
+          "- Turning a setting off actually stops the work, rather than hiding its result.",
+          "- The default is exactly what the game looks like today.",
+          "- The switches use the seams the renderers already have, not new machinery."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less."
+        ],
+        "References": [
+          "- Product back-reference: `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`",
+          "- Task back-reference: `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that can be made to run on a weaker machine"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Active",
+      "title": "city-jump playable city"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "let, player, turn, shadows, city, own, lights, off",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_058_add_show_fps_to_settings_world_and_remember_it",
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+          "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ]
+      },
+      "path": "logics/request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md",
+      "ref": "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `Settings > World` carries a `Shadows` checkbox, on by default, and turning it off removes shadows from the scene immediately.",
+          "- AC2: `Settings > World` carries a `Lights` checkbox, on by default, and turning it off puts out the streetlights and car headlights immediately, at any hour.",
+          "- AC3: With shadows off, no shadow map is rendered -- the cost is actually gone, not merely invisible.",
+          "- AC4: With lights off, the scene is still lit by the sun and the ambient light; night is darker, not black.",
+          "- AC5: The setting and the hour of day combine into one answer: turning lights on after dark lights them at once, and turning them on during the day leaves them off until dusk as usual.",
+          "- AC6: Both choices are remembered across a reload, through the same settings storage the other World toggles use."
+        ],
+        "Needs": [
+          "- The two most expensive things the scene does are the two the player has no say over. A cascaded shadow map re-renders the casters every frame, and after dark the city lights a clustered spotlight and point light per streetlight plus a spotlight per car headlight.",
+          "- A visitor on a weaker machine has exactly one lever today: stop building. The game gives them no way to trade fidelity for speed, which is the ordinary bargain every 3D application offers.",
+          "- `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off` puts the cost on screen. Showing someone a number they cannot act on is worse than not showing it; these are the two switches that make the number actionable.",
+          "- Both are already switchable. Nothing needs inventing -- the seams exist and are currently driven only by the hour of day."
+        ]
+      },
+      "status": "Draft",
+      "title": "Let the player turn shadows and the city's own lights off"
+    },
+    {
+      "ai_context": {
+        "keywords": "show, frame, rate, screen, let, player, turn, off",
+        "skip when": "The work adds a profiler, frame-time graphs, per-renderer timings, other debug statistics in the UI, or any performance optimisation -- this chain measures, it does not improve.",
+        "summary": "The frame rate is measured, quoted in the README and asserted in CI, and never shown to the person playing. `measureFps` in `src/render/debugApi.ts` already counts frames but is reachable only from a script. This puts one smoothed figure in the top-right -- where `#selection-panel` already lives, so the two must coexist -- behind a `Show FPS` toggle in `Settings > World` that is off by default and persisted like `Grid` and `Buildings`.",
+        "use when": "Working on the on-screen frame-rate counter, the `Show FPS` setting, `src/ui/hud.ts` overlays, or the `UiSettings` World toggles."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching",
+          "item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel",
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ]
+      },
+      "path": "logics/request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md",
+      "ref": "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: When the setting is on, the current frame rate is shown in the top-right of the view, legible over both a bright and a dark scene.",
+          "- AC2: The counter and the selection panel are both usable at once -- neither hides or overlaps the other, whichever appears first.",
+          "- AC3: `Settings > World` carries a `Show FPS` checkbox alongside `Grid` and `Buildings`, off by default, which turns the counter on and off immediately.",
+          "- AC4: The choice is remembered across a reload, through the same settings storage the other World toggles use.",
+          "- AC5: The displayed figure is smoothed and updated on a human-readable cadence rather than recomputed and redrawn every frame.",
+          "- AC6: With the setting off, nothing measures and nothing draws -- the counter costs nothing when it is not wanted."
+        ],
+        "Needs": [
+          "- The frame rate is the one thing the player can feel and cannot see. Draw enough roads and the city slows down; nothing on screen says by how much, or when it started, or whether the last thing they built is what did it.",
+          "- The figure already exists and is already measured -- `measureFps` in `src/render/debugApi.ts` counts frames over a window and resolves a number -- but it is reachable only from a script driving the page from outside. The player has no way to ask for it.",
+          "- This is also the instrument the project argues performance with. The README quotes a frame rate, the visual and interaction suites check one, and the dirty-region rebuild work was justified by cost measurements -- all of it invisible to the person actually playing.",
+          "- It has to be optional. A permanent number in the corner is clutter for someone who only wants to build a city, so it belongs behind a setting that is off by default and remembered like every other setting."
+        ]
+      },
+      "status": "Draft",
+      "title": "Show the frame rate on screen, and let the player turn it off"
+    },
+    {
+      "ai_context": {
+        "keywords": "add, show, fps, settings, world, remember",
+        "skip when": "The work restructures the settings toolbar, adds a settings screen, or exposes other debug statistics.",
+        "summary": "A third checkbox in the `World` row of `index.html`, off by default, wired in `src/ui/controls.ts` and persisted through `UiSettings` in `src/ui/saves.ts` exactly as `show-grid` and `show-buildings` are. Following those two precisely is the whole of the work.",
+        "use when": "Adding the `Show FPS` toggle, or any new World setting that has to persist."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_058_add_show_fps_to_settings_world_and_remember_it"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md",
+      "ref": "item_058_add_show_fps_to_settings_world_and_remember_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `Settings > World` shows `Show FPS` beside `Grid` and `Buildings`, off by default, taking effect immediately.",
+          "- AC2: The choice survives a reload, through the same storage as the other World toggles.",
+          "- AC3: The browser interaction suite covers switching it on, reading a plausible figure, and switching it off.",
+          "- AC4: The toolbar still lays out correctly at the narrow widths the existing media query covers."
+        ],
+        "Problem": [
+          "- There is no way to ask for the counter. `Settings > World` holds `Grid` and `Buildings`; a third toggle beside them is where a player would look for it.",
+          "- A setting the player has to set again on every visit is worse than no setting. The other World toggles are already persisted through `UiSettings` in `src/ui/saves.ts`, and a new one that is not would be the odd one out."
+        ]
+      },
+      "status": "Ready",
+      "title": "Add Show FPS to Settings > World and remember it"
+    },
+    {
+      "ai_context": {
+        "keywords": "shadows, switch, light, rather, than, mesh",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_058_add_show_fps_to_settings_world_and_remember_it",
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/backlog/item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh.md",
+      "ref": "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A `Shadows` toggle in `Settings > World`, on by default, removes shadows immediately when switched off.",
+          "- AC2: With shadows off, no shadow map is rendered, evidenced rather than asserted.",
+          "- AC3: A rebuild that adds new casters while the setting is off does not bring shadows back.",
+          "- AC4: Switching back on restores the Demo city to what it looked like before, and the choice survives a reload."
+        ],
+        "Problem": [
+          "- The `CascadedShadowGenerator` in `src/render/scene.ts` re-renders every caster into a shadow map each frame, and nothing can stop it. It is created once at startup and never referred to again except to register casters.",
+          "- The tempting fix is the expensive one: walk every mesh clearing `receiveShadows` and empty the caster list. That is more code, has to be undone exactly to satisfy AC7, and fights every rebuild that adds a new caster -- buildings and trees both register casters on rebuild, so a rebuild while shadows are off would quietly put them back.",
+          "- A setting that only hides the shadows without stopping the shadow map costs exactly as much as leaving them on, which fails the point of the setting."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make shadows a switch, on the light rather than on every mesh"
+    },
+    {
+      "ai_context": {
+        "keywords": "city, own, lights, switch, turning, night, black",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_058_add_show_fps_to_settings_world_and_remember_it",
+          "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md",
+      "ref": "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A `Lights` toggle in `Settings > World`, on by default, puts out streetlights and headlights immediately at any hour.",
+          "- AC2: With lights off after dark the scene is still lit by sun and ambient light -- darker, not black.",
+          "- AC3: Turning lights on after dark lights them at once, without touching the sun slider; turning them on during the day leaves them off until dusk as usual.",
+          "- AC4: `realLightCount()` reports zero with the setting off, and switching back on restores the Demo city to what it looked like before.",
+          "- AC5: The `Lights` choice survives a reload, through the same storage as the other World toggles.",
+          "- AC6: This slice lands last, so `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` are all green on the request as a whole when it closes."
+        ],
+        "Problem": [
+          "- After dark the city lights a `SpotLight` and a `PointLight` per streetlight through a `ClusteredLightContainer` in `src/render/streetlights.ts`, plus a `SpotLight` per car through a second cluster in `src/render/traffic.ts`. Nothing but the hour of day decides whether they run.",
+          "- The hour already owns them: `streetlightsOnAt(hour)` decides, `setSunHour` applies. A setting bolted on beside that produces the classic bug -- the player switches lights back on at 22:00 and nothing happens until they next touch the sun slider.",
+          "- Turning off the wrong lights turns off the scene. The `HemisphericLight` and the sun `DirectionalLight` are what make the world visible; this setting is about the lights the city itself emits, and confusing the two yields a black screen rather than a faster one."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the city's own lights a switch, without turning the night black"
+    },
+    {
+      "ai_context": {
+        "keywords": "let, player, turn, shadows, city, own, lights, off",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+          "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md",
+      "ref": "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the player turn shadows and the city's own lights off"
+    }
+  ],
+  "estimates": {
+    "char_count": 21347,
+    "companion_doc_count": 3,
+    "doc_count": 6
+  },
+  "generated_at": "2026-08-30T12:23:02Z",
+  "handoff": {
+    "companion_doc_count": 3,
+    "enabled": true,
+    "source_refs": [
+      "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+      "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+      "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black",
+      "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off,item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh,item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black,task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+  "refs": [
+    "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+    "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+    "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black",
+    "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md",
+      "ref": "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+    }
+  ]
+}

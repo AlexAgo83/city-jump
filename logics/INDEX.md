@@ -26,6 +26,7 @@
 | [prod_011_a_city_that_is_built_on_purpose](product/prod_011_a_city_that_is_built_on_purpose.md) | A city that is built on purpose | Settled |  |  | product/prod_011_a_city_that_is_built_on_purpose.md |
 | [prod_012_a_city_that_keeps_drawing_itself_correctly](product/prod_012_a_city_that_keeps_drawing_itself_correctly.md) | A city that keeps drawing itself correctly | Proposed |  |  | product/prod_012_a_city_that_keeps_drawing_itself_correctly.md |
 | [prod_013_a_city_that_tells_you_what_it_costs_to_draw](product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md) | A city that tells you what it costs to draw | Proposed |  |  | product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md |
+| [prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine](product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md) | A city that can be made to run on a weaker machine | Proposed |  |  | product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md |
 
 ## Roadmaps
 
@@ -54,6 +55,7 @@
 | [req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them](request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md) | Let the player decide what gets built, instead of the geometry deciding for them | Done |  |  | request/req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them.md |
 | [req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work](request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md) | Close the ten defects the review found in the dirty-region rebuild, zoning, and sharing work | Draft |  |  | request/req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work.md |
 | [req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen, and let the player turn it off | Draft |  |  | request/req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
+| [req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off](request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Draft |  |  | request/req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
 
 ## Backlog
 
@@ -117,6 +119,8 @@
 | [item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching](backlog/item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching.md) | Measure the frame rate once, and only while someone is watching | Ready |  | 0% | backlog/item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching.md |
 | [item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel](backlog/item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel.md) | Put the counter in the top-right without evicting the selection panel | Ready |  | 0% | backlog/item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel.md |
 | [item_058_add_show_fps_to_settings_world_and_remember_it](backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md) | Add Show FPS to Settings > World and remember it | Ready |  | 0% | backlog/item_058_add_show_fps_to_settings_world_and_remember_it.md |
+| [item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh](backlog/item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh.md) | Make shadows a switch, on the light rather than on every mesh | Ready |  | 0% | backlog/item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh.md |
+| [item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black](backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md) | Make the city's own lights a switch, without turning the night black | Ready |  | 0% | backlog/item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black.md |
 
 ## Tasks
 
@@ -140,6 +144,7 @@
 | [task_016_implement_zoning_as_the_player_s_second_decision](tasks/task_016_implement_zoning_as_the_player_s_second_decision.md) | Implement zoning as the player's second decision | Done | codex | 100% | tasks/task_016_implement_zoning_as_the_player_s_second_decision.md |
 | [task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work](tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md) | Close the ten review findings from the dirty-region rebuild and zoning work | Ready |  | 0% | tasks/task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work.md |
 | [task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off](tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md) | Show the frame rate on screen and let the player turn it off | Ready |  | 0% | tasks/task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off.md |
+| [task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off](tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md) | Let the player turn shadows and the city's own lights off | Ready |  | 0% | tasks/task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off.md |
 
 ## Runbooks
 
