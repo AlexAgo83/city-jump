@@ -326,7 +326,7 @@ export function createDrawTool(
     moveSprayRing(at, sprayRadius);
     if (!at || !painting) return;
     // Wait until the brush has moved half its width before laying down another burst.
-    if (lastSprayed && Math.hypot(at.x - lastSprayed.x, at.z - lastSprayed.z) < sprayRadius / 2) return;
+    if (!brushMovedFarEnough(lastSprayed, at, sprayRadius)) return;
     sprayBurst(at);
     lastSprayed = at;
   }
@@ -335,6 +335,7 @@ export function createDrawTool(
     const at = groundPoint();
     moveSprayRing(at, zoneRadius);
     if (!at || !painting) return;
+    if (!brushMovedFarEnough(lastSprayed, at, zoneRadius)) return;
     zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
     lastSprayed = at;
     onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
@@ -633,4 +634,8 @@ export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
     out.push(v3(x, terrainHeight(x, z), z));
   }
   return out;
+}
+
+export function brushMovedFarEnough(last: { x: number; z: number } | null, at: { x: number; z: number }, radius: number): boolean {
+  return !last || Math.hypot(at.x - last.x, at.z - last.z) >= radius / 2;
 }

@@ -21,6 +21,7 @@ export function createZoneRenderer(scene: Scene) {
 
   function rebuild(zones: Zones): void {
     mesh?.dispose();
+    mesh = null;
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
