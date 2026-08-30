@@ -35,7 +35,7 @@ type BulldozeTarget =
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
 
-export type FollowTarget = () => { x: number; y: number; z: number } | null;
+export type FollowTarget = () => { x: number; y: number; z: number; heading: number; segment: Segment } | null;
 
 type SelectTarget =
   | BulldozeTarget

@@ -1154,7 +1154,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       density = clamped;
       rebuild();
     },
-    vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number } | null } | null {
+    vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } | null {
       let best: Mover | null = null;
       let bestDistance = 7;
       for (const mover of movers) {
@@ -1171,7 +1171,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
             kind: "Car",
             target: () =>
               movers.includes(best!) && !best!.walk
-                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z }
+                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z, heading: best!.mesh.rotation.y, segment: best!.segment }
                 : null,
           }
         : null;

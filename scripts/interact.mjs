@@ -991,6 +991,15 @@ const selectedVehicle = await page.evaluate(() => ({
   ),
 }));
 check("clicking a car opens its street", !selectedVehicle.hidden && selectedVehicle.kind === "Car" && Boolean(selectedVehicle.rows.Street), JSON.stringify(selectedVehicle));
+await page.evaluate(() => {
+  for (const segment of window.cityjump._graph.allSegments()) segment.streetId += 1000;
+});
+await page.waitForFunction(
+  (street) => Object.fromEntries([...document.querySelectorAll("#selection-panel dt")].map((dt) => [dt.textContent, dt.nextElementSibling?.textContent ?? ""])).Street !== street,
+  selectedVehicle.rows.Street,
+  { timeout: 5_000 },
+);
+check("selected car street updates when it changes", true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
 await page.locator('input[name="camera-mode"][value="orbit"]').check();
 await realTime(500);
@@ -1009,6 +1018,7 @@ await page.locator('input[name="camera-mode"][value="follow"]').check();
 await realTime(650);
 const cameraAfterFollow = await page.evaluate(() => window.cityjump.cameraState());
 check("follow mode keeps the selected car framed", Math.hypot(cameraAfterFollow.targetX - cameraBeforeFollow.targetX, cameraAfterFollow.targetZ - cameraBeforeFollow.targetZ) > 0.2);
+check("follow mode turns with the selected car", Math.abs(cameraAfterFollow.alpha - cameraBeforeFollow.alpha) > 0.02);
 await page.evaluate(() => window.cityjump.rebuild());
 await realTime(100);
 check("follow mode ends cleanly when the car is rebuilt away", await page.locator('input[name="camera-mode"][value="free"]').isChecked());

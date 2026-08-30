@@ -48,7 +48,7 @@ interface BuildingManifest {
 }
 
 type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
-type FootDecorKind = "bench" | "bollard" | "planter" | "utility";
+type FootDecorKind = "bench" | "bollard" | "planter" | "utility" | "trash" | "mail" | "sign" | "shrub" | "bikeRack" | "crate" | "barrier" | "wallLight" | "vending";
 type FootDecorFace = "front" | "back" | "left" | "right";
 
 interface FootDecorPlacement {
@@ -565,11 +565,30 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     bollard: new StandardMaterial("footdecor_bollard", scene),
     planter: new StandardMaterial("footdecor_planter", scene),
     utility: new StandardMaterial("footdecor_utility", scene),
+    trash: new StandardMaterial("footdecor_trash", scene),
+    mail: new StandardMaterial("footdecor_mail", scene),
+    sign: new StandardMaterial("footdecor_sign", scene),
+    shrub: new StandardMaterial("footdecor_shrub", scene),
+    bikeRack: new StandardMaterial("footdecor_bikeRack", scene),
+    crate: new StandardMaterial("footdecor_crate", scene),
+    barrier: new StandardMaterial("footdecor_barrier", scene),
+    wallLight: new StandardMaterial("footdecor_wallLight", scene),
+    vending: new StandardMaterial("footdecor_vending", scene),
   };
   material.bench.diffuseColor = new Color3(0.34, 0.2, 0.12);
   material.bollard.diffuseColor = new Color3(0.82, 0.72, 0.42);
   material.planter.diffuseColor = new Color3(0.18, 0.38, 0.2);
   material.utility.diffuseColor = new Color3(0.32, 0.34, 0.34);
+  material.trash.diffuseColor = new Color3(0.12, 0.26, 0.24);
+  material.mail.diffuseColor = new Color3(0.14, 0.28, 0.68);
+  material.sign.diffuseColor = new Color3(0.78, 0.72, 0.52);
+  material.shrub.diffuseColor = new Color3(0.12, 0.36, 0.16);
+  material.bikeRack.diffuseColor = new Color3(0.58, 0.6, 0.62);
+  material.crate.diffuseColor = new Color3(0.5, 0.3, 0.16);
+  material.barrier.diffuseColor = new Color3(0.86, 0.28, 0.12);
+  material.wallLight.diffuseColor = new Color3(0.92, 0.78, 0.42);
+  material.wallLight.emissiveColor = new Color3(0.25, 0.18, 0.06);
+  material.vending.diffuseColor = new Color3(0.7, 0.12, 0.16);
   for (const mat of Object.values(material)) mat.specularColor = Color3.Black();
 
   const finish = (mesh: Mesh, kind: FootDecorKind): Mesh => {
@@ -597,12 +616,70 @@ function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
   bollard.position.y = 0.5;
   const planter = box(scene, "footdecor_planter", 2.2, 0.55, 0.75, 0, 0.275, 0);
   const utility = box(scene, "footdecor_utility", 1.15, 1.05, 0.7, 0, 0.525, 0);
+  const trash = MeshBuilder.CreateCylinder("footdecor_trash", { diameter: 0.75, height: 1, tessellation: 10 }, scene);
+  trash.position.y = 0.5;
+  const mail = Mesh.MergeMeshes(
+    [box(scene, "footdecor_mail_post", 0.16, 0.8, 0.16, 0, 0.4, 0), box(scene, "footdecor_mail_box", 0.9, 0.42, 0.55, 0, 0.95, 0)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const sign = Mesh.MergeMeshes(
+    [box(scene, "footdecor_sign_board", 1, 0.72, 0.08, 0, 0.78, 0), box(scene, "footdecor_sign_feet", 1.1, 0.12, 0.5, 0, 0.06, 0)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const shrubTop = MeshBuilder.CreateSphere("footdecor_shrub_top", { diameter: 1.15, segments: 8 }, scene);
+  shrubTop.position.y = 0.95;
+  const shrub = Mesh.MergeMeshes([box(scene, "footdecor_shrub_pot", 0.8, 0.45, 0.8, 0, 0.225, 0), shrubTop], true, true, undefined, false, false)!;
+  const bikeRack = Mesh.MergeMeshes(
+    [-0.45, 0, 0.45].map((x) => box(scene, `footdecor_bikeRack_${x}`, 0.08, 0.75, 0.55, x, 0.375, 0)),
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const crate = Mesh.MergeMeshes(
+    [box(scene, "footdecor_crate_a", 0.85, 0.55, 0.75, -0.25, 0.275, 0), box(scene, "footdecor_crate_b", 0.7, 0.45, 0.65, 0.45, 0.225, 0.05)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const barrier = Mesh.MergeMeshes(
+    [box(scene, "footdecor_barrier_bar", 1.6, 0.18, 0.12, 0, 0.7, 0), box(scene, "footdecor_barrier_l", 0.14, 0.9, 0.14, -0.65, 0.45, 0), box(scene, "footdecor_barrier_r", 0.14, 0.9, 0.14, 0.65, 0.45, 0)],
+    true,
+    true,
+    undefined,
+    false,
+    false,
+  )!;
+  const wallLightGlobe = MeshBuilder.CreateSphere("footdecor_wallLight_globe", { diameter: 0.45, segments: 8 }, scene);
+  wallLightGlobe.position.y = 1;
+  const wallLight = Mesh.MergeMeshes([box(scene, "footdecor_wallLight_stem", 0.14, 0.8, 0.14, 0, 0.4, 0), wallLightGlobe], true, true, undefined, false, false)!;
+  const vending = box(scene, "footdecor_vending", 0.95, 1.8, 0.65, 0, 0.9, 0);
 
   return {
     bench: finish(bench, "bench"),
     bollard: finish(bollard, "bollard"),
     planter: finish(planter, "planter"),
     utility: finish(utility, "utility"),
+    trash: finish(trash, "trash"),
+    mail: finish(mail, "mail"),
+    sign: finish(sign, "sign"),
+    shrub: finish(shrub, "shrub"),
+    bikeRack: finish(bikeRack, "bikeRack"),
+    crate: finish(crate, "crate"),
+    barrier: finish(barrier, "barrier"),
+    wallLight: finish(wallLight, "wallLight"),
+    vending: finish(vending, "vending"),
   };
 }
 
@@ -663,8 +740,10 @@ export function buildingFootDecorMatrices(
   const halfWidth = width / 2;
   const gap = 0.8;
   const placements: FootDecorPlacement[] = [];
+  const maxPlacements = 1 + (roofSeed(parcel) % 4);
 
   const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {
+    if (placements.length >= maxPlacements) return;
     const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
     const position = Vector3.TransformCoordinates(
       new Vector3(localX, 0, localZ),
@@ -676,19 +755,26 @@ export function buildingFootDecorMatrices(
       matrix: Matrix.Compose(Vector3.OneReadOnly, Quaternion.FromEulerAngles(0, parcel.rotationY + rotationY, 0), position),
     });
   };
+  const shouldPlace = (face: FootDecorFace, i: number) => decorSeed(parcel, face, i) % 5 !== 0;
+  const pick = (face: FootDecorFace, i: number, kinds: readonly FootDecorKind[]) => kinds[Math.floor(decorSeed(parcel, face, i) / 5) % kinds.length]!;
 
   for (let i = 0; i < parcel.frontageCells; i++) {
     const x = -halfWidth + (i + 0.5) * GRID.cellSize;
-    if (parcel.frontageCells > 1 && !blockedFaces.has("front")) add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
-    if (!blockedFaces.has("back")) add(i % 4 === 0 ? "utility" : "planter", x, -depth - gap, Math.PI);
+    if (parcel.frontageCells > 1 && !blockedFaces.has("front") && shouldPlace("front", i)) add(pick("front", i, ["bench", "planter", "sign", "trash", "mail", "bikeRack", "vending"]), x, gap, 0);
+    if (!blockedFaces.has("back") && shouldPlace("back", i)) add(pick("back", i, ["utility", "crate", "barrier", "trash", "shrub"]), x, -depth - gap, Math.PI);
   }
   for (let i = 0; i < parcel.depthCells; i++) {
     const z = -(i + 0.5) * GRID.cellSize;
-    if (!blockedFaces.has("left")) add(i % 2 === 0 ? "bollard" : "planter", -halfWidth - gap, z, Math.PI / 2);
-    if (!blockedFaces.has("right")) add(i % 2 === 0 ? "planter" : "bollard", halfWidth + gap, z, -Math.PI / 2);
+    if (!blockedFaces.has("left") && shouldPlace("left", i)) add(pick("left", i, ["bollard", "planter", "shrub", "wallLight"]), -halfWidth - gap, z, Math.PI / 2);
+    if (!blockedFaces.has("right") && shouldPlace("right", i)) add(pick("right", i, ["planter", "bollard", "wallLight", "trash"]), halfWidth + gap, z, -Math.PI / 2);
   }
 
   return placements;
+}
+
+function decorSeed(parcel: BuildingParcel, face: FootDecorFace, index: number): number {
+  const faceSeed = face === "front" ? 11 : face === "back" ? 23 : face === "left" ? 37 : 41;
+  return (roofSeed(parcel) ^ Math.imul(faceSeed + index, 2654435761)) >>> 0;
 }
 
 export function buildingBlockedDecorFaces(parcel: BuildingParcel, occupiedCells: ReadonlySet<string>): ReadonlySet<FootDecorFace> {

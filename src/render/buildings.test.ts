@@ -46,14 +46,24 @@ describe("roof props", () => {
       cells: [],
     };
     const placements = buildingFootDecorMatrices(parcel, () => parcel.position.y);
-    expect(placements).toHaveLength(10);
-    expect(placements.filter((placement) => placement.kind === "planter").length).toBeGreaterThan(0);
-    expect(placements.some((placement) => placement.kind === "bench")).toBe(true);
-    expect(placements.some((placement) => placement.kind === "bollard")).toBe(true);
-    expect(placements.some((placement) => placement.kind === "utility")).toBe(true);
+    const repeat = buildingFootDecorMatrices(parcel, () => parcel.position.y);
+    expect(placements.map((placement) => [placement.kind, [...placement.matrix.m]])).toEqual(
+      repeat.map((placement) => [placement.kind, [...placement.matrix.m]]),
+    );
+    expect(placements.length).toBeGreaterThan(0);
+    expect(placements.length).toBeLessThanOrEqual(4);
     expect(placements[0]!.matrix.m[12]).toBeCloseTo(6);
     expect(placements[0]!.matrix.m[13]).toBeCloseTo(2.08);
     expect(placements[0]!.matrix.m[14]).toBeCloseTo(20.8);
+  });
+
+  it("varies foot decoration kinds across buildings", () => {
+    const kinds = new Set(
+      Array.from({ length: 80 }, (_, i) => parcel(i % 10, Math.floor(i / 10), 2 + (i % 3), 1 + (i % 4))).flatMap((p) =>
+        buildingFootDecorMatrices(p, () => 0).map((placement) => placement.kind),
+      ),
+    );
+    expect(kinds).toEqual(new Set(["barrier", "bench", "bikeRack", "bollard", "crate", "mail", "planter", "shrub", "sign", "trash", "utility", "vending", "wallLight"]));
   });
 
   it("puts foot decorations on the terrain height at their own position", () => {
@@ -82,7 +92,8 @@ describe("roof props", () => {
       },
       () => 2,
     );
-    expect(placements).toHaveLength(7);
+    expect(placements.length).toBeGreaterThan(0);
+    expect(placements.length).toBeLessThanOrEqual(4);
     expect(placements.some((placement) => placement.matrix.m[14]! > 20)).toBe(false);
   });
 
@@ -93,7 +104,7 @@ describe("roof props", () => {
     const blocked = buildingBlockedDecorFaces(first, occupied);
     const placements = buildingFootDecorMatrices(first, () => 0, blocked);
     expect(blocked.has("right")).toBe(true);
-    expect(placements).toHaveLength(6);
+    expect(placements.length).toBeLessThanOrEqual(4);
     expect(placements.some((placement) => placement.matrix.m[12]! > 26)).toBe(false);
   });
 });

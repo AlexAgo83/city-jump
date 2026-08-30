@@ -19,8 +19,10 @@ import { allJunctions } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, type CitySave, type SavedCamera } from "../sim/save";
+import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
-import type { SelectionInfo } from "../render/drawTool";
+import { approachAngle } from "../sim/transfers";
+import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { showFps, showRefusal, showSelection } from "../ui/hud";
@@ -56,7 +58,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;
   let cameraMode: CameraMode = "free";
-  let followTarget: (() => { x: number; y: number; z: number } | null) | null = null;
+  let followTarget: FollowTarget | null = null;
   let pendingHistorySnapshot: CitySave | null = null;
   const setCameraMode = (mode: CameraMode): void => {
     cameraMode = mode;
@@ -205,7 +207,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
   // that exists, but the callback itself only ever fires later, once the player actually clicks.
   let controls: ReturnType<typeof bindControls> | undefined;
+  let selectedInfo: SelectionInfo | null = null;
   const onSelect = (info: SelectionInfo | null): void => {
+    selectedInfo = info;
     showSelection(info);
     followTarget = info?.kind === "vehicle" ? info.target : null;
     // The eyedropper: picking a road sets the Roads tab up to match it, ready to draw more.
@@ -364,20 +368,27 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   if (savedCamera) applyCamera(savedCamera);
   scene.registerBeforeRender(() => {
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
+    const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;
+    if (selectedInfo?.kind === "vehicle" && selectedTarget) {
+      const street = streetForSegment(graph, selectedTarget.segment.id).name;
+      if (street !== selectedInfo.street) showSelection((selectedInfo = { ...selectedInfo, street }));
+    }
     if (cameraMode === "orbit") {
       camera.alpha += (scene.getEngine().getDeltaTime() / 1000) * 0.22;
       return;
     }
     if (cameraMode !== "follow") return;
-    const target = followTarget?.();
+    const target = selectedTarget ?? followTarget?.();
     if (!target) {
       showRefusal("Follow ended because the vehicle is gone.");
       setCameraMode("free");
       return;
     }
+    const dt = scene.getEngine().getDeltaTime() / 1000;
     camera.target.x += (target.x - camera.target.x) * 0.14;
     camera.target.y += (target.y - camera.target.y) * 0.14;
     camera.target.z += (target.z - camera.target.z) * 0.14;
+    camera.alpha = approachAngle(camera.alpha, -target.heading - Math.PI / 2, dt * 3);
   });
   window.addEventListener("keydown", (event) => {
     if (cameraMode !== "free" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
