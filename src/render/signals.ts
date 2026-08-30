@@ -7,6 +7,7 @@ import { Color3, Color4 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 
 import type { NodeId, RoadGraph, SegmentId } from "../sim/graph";
+import type { TerrainBounds } from "../sim/heightmap";
 import { allJunctions, type JunctionArm, type JunctionGeometry } from "../sim/junction";
 import { roadType } from "../sim/roadTypes";
 import { signalAt, signalCycle, type SignalCycle, type SignalState } from "../sim/signals";
@@ -29,7 +30,10 @@ const LAMP_DARK = new Color4(0.11, 0.11, 0.12, 1);
 interface Mast {
   readonly node: NodeId;
   readonly segment: SegmentId;
+  readonly x: number;
+  readonly z: number;
   readonly lamps: InstancedMesh[];
+  readonly meshes: (Mesh | InstancedMesh)[];
 }
 
 /**
@@ -73,13 +77,34 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   let meshes: (Mesh | InstancedMesh)[] = [];
   const cycles = new Map<NodeId, SignalCycle>();
 
-  function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph)): void {
-    for (const mesh of meshes) mesh.dispose();
-    meshes = [];
-    masts = [];
+  function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph), dirty?: TerrainBounds): void {
+    if (dirty) {
+      const kept: Mast[] = [];
+      for (const mast of masts) {
+        const junction = junctions.get(mast.node);
+        if (signalMastTouchesBounds(mast, dirty) || !junction || signalJunctionTouchesBounds(graph, junction, dirty)) {
+          for (const mesh of mast.meshes) mesh.dispose();
+        } else {
+          kept.push(mast);
+        }
+      }
+      masts = kept;
+      meshes = kept.flatMap((mast) => mast.meshes);
+    } else {
+      for (const mesh of meshes) mesh.dispose();
+      meshes = [];
+      masts = [];
+    }
     cycles.clear();
+    for (const mast of masts) {
+      if (cycles.has(mast.node)) continue;
+      const junction = junctions.get(mast.node);
+      const cycle = junction ? signalCycle(graph, mast.node, junction) : null;
+      if (cycle) cycles.set(mast.node, cycle);
+    }
 
     for (const junction of junctions.values()) {
+      if (dirty && !signalJunctionTouchesBounds(graph, junction, dirty)) continue;
       const cycle = signalCycle(graph, junction.node, junction);
       if (!cycle) continue;
       cycles.set(junction.node, cycle);
@@ -131,7 +156,7 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(lens);
       return lens;
     });
-    return { node: nodeId, segment: arm.segment, lamps };
+    return { node: nodeId, segment: arm.segment, x: mast.position.x, z: mast.position.z, lamps, meshes: [mast, ...lamps] };
   }
 
   /** Shows the state each mast's junction has reached. Runs every frame; it only sets colours. */
@@ -151,4 +176,17 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   scene.registerBeforeRender(() => update(performance.now() / 1000));
 
   return { rebuild, count: () => masts.length };
+}
+
+export function signalMastTouchesBounds(mast: Pick<Mast, "x" | "z">, bounds: TerrainBounds): boolean {
+  return mast.x >= bounds.minX && mast.x <= bounds.maxX && mast.z >= bounds.minZ && mast.z <= bounds.maxZ;
+}
+
+function signalJunctionTouchesBounds(graph: RoadGraph, junction: JunctionGeometry, bounds: TerrainBounds): boolean {
+  const node = graph.node(junction.node);
+  return (
+    signalMastTouchesBounds(node.pos, bounds) ||
+    junction.ring.some((p) => signalMastTouchesBounds(p, bounds)) ||
+    junction.arms.some((arm) => signalMastTouchesBounds(arm.cornerLow, bounds) || signalMastTouchesBounds(arm.cornerHigh, bounds))
+  );
 }

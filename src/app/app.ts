@@ -91,9 +91,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("trees", () => trees.rebuild(dirty));
     measure("worldGrid", () => worldGrid.rebuild(dirty));
     measure("roads", () => roads.rebuild(dirty, junctions));
-    measure("streetlights", () => streetlights.rebuild(junctions));
+    measure("streetlights", () => streetlights.rebuild(junctions, dirty));
     measure("traffic", () => traffic.rebuild(dirty));
-    measure("signals", () => signals.rebuild(junctions));
+    measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(zones));
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));

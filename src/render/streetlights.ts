@@ -9,11 +9,12 @@ import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math"
 import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
+import type { TerrainBounds } from "../sim/heightmap";
 import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
-import { ROAD_LIFT } from "./roadMesh";
+import { ROAD_LIFT, segmentMeshTouchesBounds } from "./roadMesh";
 
 /** The hours streetlights burn -- and, with them, every headlight on the road. */
 export function streetlightsOnAt(hour: number): boolean {
@@ -66,10 +67,22 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   let lamps = 0;
   let sunHour = 14;
   let lampPositions: { position: Vector3; direction: Vector3; white: boolean }[] = [];
-  /** One lamp's two lights, kept and moved rather than rebuilt. */
-  let realLights: { pool: SpotLight; facade: PointLight }[] = [];
+  interface LampRecord {
+    segment: number;
+    pole: Matrix;
+    arm: Matrix;
+    head: Matrix;
+    bulb: Matrix | null;
+    bulbWhite: Matrix | null;
+    position: Vector3;
+    direction: Vector3;
+    white: boolean;
+    shadow: { x: number; y: number; z: number; radius: number };
+    lights?: { pool: SpotLight; facade: PointLight };
+  }
+  let lampRecords: LampRecord[] = [];
 
-  function rebuild(junctions: Map<number, JunctionGeometry> = allJunctions(graph)): number {
+  function rebuild(junctions: Map<number, JunctionGeometry> = allJunctions(graph), dirty?: TerrainBounds): number {
     const poleMatrices: Matrix[] = [];
     const armMatrices: Matrix[] = [];
     const headMatrices: Matrix[] = [];
@@ -77,9 +90,57 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     const bulbWhiteMatrices: Matrix[] = [];
     const positions: typeof lampPositions = [];
     const shadowBases: { x: number; y: number; z: number; radius: number }[] = [];
+    const changedRecords: LampRecord[] = [];
+    const spareLights: NonNullable<LampRecord["lights"]>[] = [];
+    if (!dirty) {
+      for (const record of lampRecords) {
+        if (record.lights) spareLights.push(record.lights);
+        record.lights = undefined;
+      }
+    }
+    const records: LampRecord[] = dirty
+      ? lampRecords.filter((record) => {
+          try {
+            const segment = graph.segment(record.segment);
+            const keep = !streetlightSegmentTouchesBounds(segment.samples, roadType(segment.type), dirty);
+            if (!keep && record.lights) spareLights.push(record.lights);
+            if (!keep) record.lights = undefined;
+            return keep;
+          } catch {
+            if (record.lights) spareLights.push(record.lights);
+            record.lights = undefined;
+            return false;
+          }
+        })
+      : [];
+    const pushRecord = (record: LampRecord): void => {
+      changedRecords.push(record);
+      records.push(record);
+      poleMatrices.push(record.pole);
+      armMatrices.push(record.arm);
+      headMatrices.push(record.head);
+      if (record.bulb) bulbMatrices.push(record.bulb);
+      if (record.bulbWhite) bulbWhiteMatrices.push(record.bulbWhite);
+      positions.push({ position: record.position, direction: record.direction, white: record.white });
+      shadowBases.push(record.shadow);
+      if (!record.lights && spareLights.length) {
+        record.lights = spareLights.pop();
+        moveRecordLights(record);
+      }
+    };
+    for (const record of records) {
+      poleMatrices.push(record.pole);
+      armMatrices.push(record.arm);
+      headMatrices.push(record.head);
+      if (record.bulb) bulbMatrices.push(record.bulb);
+      if (record.bulbWhite) bulbWhiteMatrices.push(record.bulbWhite);
+      positions.push({ position: record.position, direction: record.direction, white: record.white });
+      shadowBases.push(record.shadow);
+    }
     for (const segment of graph.allSegments()) {
       const type = roadType(segment.type);
       if (type.tunnelDepth) continue;
+      if (dirty && !streetlightSegmentTouchesBounds(segment.samples, type, dirty)) continue;
 
       // A junction or roundabout trims the road surface back from its node -- a lamp placed by
       // raw distance along the segment doesn't know that, and can land on ground that reads as
@@ -103,17 +164,23 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
           const bulbZ = position.z + n.z * bulbOffset;
           const y = position.y + ROAD_LIFT;
           const armRotation = Quaternion.FromEulerAngles(0, Math.atan2(bulbX - poleX, bulbZ - poleZ), 0);
-          poleMatrices.push(Matrix.Compose(Vector3.OneReadOnly, Quaternion.Identity(), new Vector3(poleX, y + 3.75, poleZ)));
-          armMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3((poleX + bulbX) / 2, y + 7.38, (poleZ + bulbZ) / 2)));
-          headMatrices.push(Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3(bulbX, y + 7.22, bulbZ)));
+          const poleMatrix = Matrix.Compose(Vector3.OneReadOnly, Quaternion.Identity(), new Vector3(poleX, y + 3.75, poleZ));
+          const armMatrix = Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3((poleX + bulbX) / 2, y + 7.38, (poleZ + bulbZ) / 2));
+          const headMatrix = Matrix.Compose(Vector3.OneReadOnly, armRotation, new Vector3(bulbX, y + 7.22, bulbZ));
           const lightPosition = new Vector3(bulbX, y + 7.06, bulbZ);
-          (isHighway ? bulbWhiteMatrices : bulbMatrices).push(Matrix.Compose(Vector3.OneReadOnly, armRotation, lightPosition));
-          positions.push({
+          const bulbMatrix = Matrix.Compose(Vector3.OneReadOnly, armRotation, lightPosition);
+          pushRecord({
+            segment: segment.id,
+            pole: poleMatrix,
+            arm: armMatrix,
+            head: headMatrix,
+            bulb: isHighway ? null : bulbMatrix,
+            bulbWhite: isHighway ? bulbMatrix : null,
             position: lightPosition,
             direction: new Vector3(n.x * side * 0.45, -1, n.z * side * 0.45).normalize(),
             white: isHighway,
+            shadow: { x: poleX, y, z: poleZ, radius: 0.5 },
           });
-          shadowBases.push({ x: poleX, y, z: poleZ, radius: 0.5 });
         }
       }
     }
@@ -123,11 +190,16 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     applyInstances(head, headMatrices);
     applyInstances(bulb, bulbMatrices);
     applyInstances(bulbWhite, bulbWhiteMatrices);
+    // ponytail: dirty rebuild preserves records/lights, but still uploads whole thin-instance buffers;
+    // split buffers by segment if the measured ~15.7 ms placement cost starts to matter.
     groundShadow.setInstances(shadowBases);
     lampPositions = positions;
+    lampRecords = records;
     lamps = bulbMatrices.length + bulbWhiteMatrices.length;
-    rebuildLights();
-    updateLights();
+    rebuildLights(records.filter((record) => !record.lights));
+    for (const lights of spareLights) disposeLights(lights);
+    if (dirty) updateRecordLights(changedRecords);
+    else updateLights();
     return lamps;
   }
 
@@ -141,25 +213,26 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     glow.emissiveColor = on ? new Color3(1, 0.68, 0.24) : new Color3(0.25, 0.18, 0.08);
     glowWhite.emissiveColor = on ? new Color3(0.85, 0.92, 1) : new Color3(0.16, 0.19, 0.22);
     lightCluster.setEnabled(on);
-    for (const lamp of realLights) {
-      lamp.pool.setEnabled(on);
-      lamp.facade.setEnabled(on);
+    for (const record of lampRecords) {
+      updateRecordLights([record]);
     }
   }
 
-  function rebuildLights(): void {
+  function updateRecordLights(records: LampRecord[]): void {
+    const on = streetlightsOnAt(sunHour);
+    for (const record of records) {
+      if (!record.lights) continue;
+      record.lights.pool.setEnabled(on);
+      record.lights.facade.setEnabled(on);
+    }
+  }
+
+  function rebuildLights(records: LampRecord[]): void {
     // Creating or disposing a light walks every mesh in the scene, and a city carries hundreds
     // of lamps: churning them all on every rebuild cost seconds per road drawn. Only the
     // difference in count is created or disposed now; every other light is simply moved.
-    while (realLights.length > lampPositions.length) {
-      const lamp = realLights.pop()!;
-      for (const light of [lamp.pool, lamp.facade]) {
-        lightCluster.removeLight(light);
-        light.dispose();
-      }
-    }
-    while (realLights.length < lampPositions.length) {
-      const i = realLights.length;
+    for (const record of records) {
+      const i = lampRecords.indexOf(record);
       const pool = new SpotLight(`streetlight_pool_${i}`, Vector3.Zero(), Vector3.Down(), Math.PI / 2.1, 1.35, scene);
       pool.intensity = 7;
       pool.range = 44;
@@ -167,18 +240,33 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
       facade.intensity = 3.2;
       facade.range = 40;
       for (const light of [pool, facade]) lightCluster.addLight(light);
-      realLights.push({ pool, facade });
+    record.lights = { pool, facade };
+    moveRecordLights(record);
     }
+  }
 
-    for (const [i, lamp] of lampPositions.entries()) {
-      const { pool, facade } = realLights[i]!;
-      pool.position = lamp.position;
-      pool.direction = lamp.direction;
-      pool.diffuse = lamp.white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
-      pool.specular = lamp.white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
-      facade.position = lamp.position;
-      facade.diffuse = lamp.white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);
-      facade.specular = lamp.white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
+  function moveRecordLights(record: LampRecord): void {
+    if (!record.lights) return;
+    const { pool, facade } = record.lights;
+    pool.position = record.position;
+    pool.direction = record.direction;
+    pool.diffuse = record.white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
+    pool.specular = record.white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
+    facade.position = record.position;
+    facade.diffuse = record.white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);
+    facade.specular = record.white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
+  }
+
+  function disposeRecordLights(record: LampRecord): void {
+    if (!record.lights) return;
+    disposeLights(record.lights);
+    record.lights = undefined;
+  }
+
+  function disposeLights(lights: NonNullable<LampRecord["lights"]>): void {
+    for (const light of [lights.pool, lights.facade]) {
+      lightCluster.removeLight(light);
+      light.dispose();
     }
   }
 
@@ -201,8 +289,16 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     setSunHour,
     setFaded,
     count: () => lamps,
-    realLightCount: () => (lightCluster.isEnabled() ? realLights.length * 2 : 0),
+    realLightCount: () => (lightCluster.isEnabled() ? lampRecords.filter((record) => record.lights).length * 2 : 0),
   };
+}
+
+export function streetlightSegmentTouchesBounds(
+  samples: readonly { x: number; y: number; z: number }[],
+  type: { width: number; highway?: boolean; pedestrian?: boolean },
+  bounds: TerrainBounds,
+): boolean {
+  return segmentMeshTouchesBounds(samples, { ...type, width: type.width + 4 }, bounds);
 }
 
 function applyInstances(mesh: Mesh, matrices: Matrix[]): void {
