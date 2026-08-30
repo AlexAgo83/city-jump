@@ -7,6 +7,7 @@
  * A roundabout is the one junction with no signals: it is its own way of taking turns.
  */
 import type { NodeId, RoadGraph, SegmentId } from "./graph";
+import { angleBetween, OPPOSITE_BEARING_TOLERANCE } from "./facing";
 import { junctionGeometry, type JunctionGeometry } from "./junction";
 import { roadType } from "./roadTypes";
 
@@ -21,9 +22,6 @@ const AMBER = 2;
  */
 const ALL_RED = 2.5;
 const PHASE = GREEN + AMBER + ALL_RED;
-
-/** Two arms run together when they face each other within this much. */
-const OPPOSITE = Math.PI / 4;
 
 export interface SignalCycle {
   /** Each phase is the arms that get their green at the same time. */
@@ -64,7 +62,7 @@ export function signalCycle(graph: RoadGraph, nodeId: NodeId, geometry?: Junctio
       .filter((other) => !taken.has(other.segment))
       .map((other) => ({ other, off: Math.abs(Math.PI - angleBetween(arm.angle, other.angle)) }))
       .sort((l, r) => l.off - r.off)[0];
-    if (facing && facing.off <= OPPOSITE) {
+    if (facing && facing.off <= OPPOSITE_BEARING_TOLERANCE) {
       taken.add(facing.other.segment);
       phase.push(facing.other.segment);
     }
@@ -92,9 +90,3 @@ export function signalAt(cycle: SignalCycle, segment: SegmentId, time: number): 
 
 /** Only a green lets anyone in. Amber is for stopping, not for going. */
 export const canGo = (state: SignalState): boolean => state === "green";
-
-/** Smallest turn from one bearing to the other, in [0, PI]. */
-function angleBetween(a: number, b: number): number {
-  const d = Math.abs(a - b) % (Math.PI * 2);
-  return d > Math.PI ? Math.PI * 2 - d : d;
-}

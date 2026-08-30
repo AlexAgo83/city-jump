@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { readAutosave, writeAutosave } from "./saves";
 import type { CitySave } from "../sim/save";
 
-const city: CitySave = { v: 5, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [] };
+const city: CitySave = { v: 6, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [] };
 
 describe("autosave storage", () => {
   afterEach(() => {

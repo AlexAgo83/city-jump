@@ -1,13 +1,14 @@
 ## item_036_give_every_building_an_odd_or_even_address_number - Give every building an odd-or-even address number
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 45%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:52:30
 
 # AI Context
 - Summary: Address numbers come almost free from `BuildableCell`'s existing `segment`, `side` and `column`: odd one side, even the other, growing from the street's origin.

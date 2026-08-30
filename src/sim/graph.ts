@@ -1,6 +1,7 @@
 import { type Vec3, v3, lerp, distXZ, normalizeXZ, sub } from "./vec";
 import { terrainHeight } from "./terrain";
 import { DEFAULT_ROAD_TYPE, roadType } from "./roadTypes";
+import { angleBetween, OPPOSITE_BEARING_TOLERANCE } from "./facing";
 
 export type NodeId = number;
 export type SegmentId = number;
@@ -23,6 +24,7 @@ export interface Segment {
   /** The single control point of the quadratic Bezier. */
   readonly control: Vec3;
   readonly type: string;
+  readonly streetId: number;
   /** Polyline sample of the curve, roughly one point per metre. */
   readonly samples: readonly Vec3[];
   /** Curve parameter of each sample, so a distance can be turned back into a `t`. */
@@ -118,22 +120,27 @@ export class RoadGraph {
     return id;
   }
 
-  addSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE): SegmentId {
+  addSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number): SegmentId {
     const na = this.node(a);
     const nb = this.node(b);
     roadType(type); // rejects an unknown type here rather than at render time
-    return this.addBuiltSegment(a, b, control, type, buildSamples(na.pos, control, nb.pos, type));
+    const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
+    this.nextStreetId = Math.max(this.nextStreetId, id + 1);
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type));
   }
+
+  private nextStreetId = 1;
 
   private addBuiltSegment(
     a: NodeId,
     b: NodeId,
     control: Vec3,
     type: string,
+    streetId: number,
     built: Pick<Segment, "samples" | "ts" | "cumulative" | "length">,
   ): SegmentId {
     const id = this.nextSegmentId++;
-    this.segments.set(id, { id, a, b, control, type, ...built });
+    this.segments.set(id, { id, a, b, control, type, streetId, ...built });
     this.node(a).segments.add(id);
     this.node(b).segments.add(id);
     return id;
@@ -246,10 +253,32 @@ export class RoadGraph {
     const midId = this.addNodeAt(mid);
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addBuiltSegment(seg.a, midId, q0, seg.type, split.left);
-    this.addBuiltSegment(midId, seg.b, q1, seg.type, split.right);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right);
     this.removeSegment(id);
     return midId;
+  }
+
+  private inheritedStreetId(a: NodeId, b: NodeId, control: Vec3, type: string): number | null {
+    const candidates = [
+      ...this.continuationsAt(a, Math.atan2(control.x - this.node(a).pos.x, control.z - this.node(a).pos.z), type),
+      ...this.continuationsAt(b, Math.atan2(control.x - this.node(b).pos.x, control.z - this.node(b).pos.z), type),
+    ].sort((l, r) => l.off - r.off);
+    return candidates[0]?.streetId ?? null;
+  }
+
+  private continuationsAt(nodeId: NodeId, bearing: number, type: string): { streetId: number; off: number }[] {
+    const node = this.node(nodeId);
+    if (node.roundabout) return [];
+    return [...node.segments]
+      .map((id) => this.segment(id))
+      .filter((seg) => seg.type === type)
+      .map((seg) => {
+        const point = seg.a === nodeId ? this.pointAt(seg.id, 1) : this.pointAt(seg.id, seg.length - 1);
+        const tangent = seg.a === nodeId ? point.tangent : v3(-point.tangent.x, -point.tangent.y, -point.tangent.z);
+        return { streetId: seg.streetId, off: Math.abs(Math.PI - angleBetween(bearing, Math.atan2(tangent.x, tangent.z))) };
+      })
+      .filter(({ off }) => off <= OPPOSITE_BEARING_TOLERANCE);
   }
 
   /** Nearest node within a radius. ponytail: linear scan; add a grid index if it shows up in a profile. */

@@ -1,13 +1,14 @@
 ## item_034_chain_road_segments_into_streets_that_survive_a_split - Chain road segments into streets that survive a split
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 45%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:52:30
 
 # AI Context
 - Summary: A road drawn through three junctions is three unrelated segments; a street is that chain, found with the same facing rule `signalCycle` already uses, and its identity has to survive `splitSegment`.

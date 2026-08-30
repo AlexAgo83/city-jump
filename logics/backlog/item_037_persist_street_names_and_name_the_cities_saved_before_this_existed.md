@@ -1,13 +1,14 @@
 ## item_037_persist_street_names_and_name_the_cities_saved_before_this_existed - Persist street names, and name the cities saved before this existed
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 45%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:52:30
 
 # AI Context
 - Summary: Names must survive a reload, but `parseCity` requires a segment tuple of exactly 6 entries, so a seventh field rejects every existing city unless the check is relaxed first; older saves get generated names on load.

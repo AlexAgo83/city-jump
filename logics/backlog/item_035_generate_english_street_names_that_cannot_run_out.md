@@ -1,13 +1,14 @@
 ## item_035_generate_english_street_names_that_cannot_run_out - Generate English street names that cannot run out
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 45%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:52:30
 
 # AI Context
 - Summary: Roads have no names, and a fixed word list runs out; the scheme needs a suffix that follows the road type plus a cardinal-then-ordinal ladder past exhaustion.

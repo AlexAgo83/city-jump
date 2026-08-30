@@ -1,14 +1,15 @@
 ## task_012_implement_street_names_building_addresses_and_the_extended_detail_panel - Implement street names, building addresses, and the extended detail panel
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:34:28
+> Indicators reviewed: 2026-08-30 12:52:30
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_010: chain segments into streets, name them with an unbounded English scheme, number the buildings, persist the names with save compatibility, and extend the detail panel to buildings and cars.
