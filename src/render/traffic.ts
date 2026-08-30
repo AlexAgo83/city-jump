@@ -180,6 +180,10 @@ export function trafficLaneOffset(
   return laneChangeOffset(changing.offset, lane.offset, travelled / (span.end - span.start));
 }
 
+function laneQueueKey(mover: Mover): number {
+  return mover.segment.id * 10000 + (mover.direction === 1 ? 5000 : 0) + Math.round((mover.lane.offset + 100) * 10);
+}
+
 /**
  * A body shape, in metres. Everything a car is made of comes off these numbers, so a new kind of
  * vehicle is a row in the table below rather than another lump of mesh-building code.
@@ -944,6 +948,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     );
   }
 
+  const queues = new Map<number, Mover[]>();
+  const ahead = new Map<Mover, Mover>();
+
   scene.registerBeforeRender(() => {
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
@@ -953,15 +960,15 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
     // Who is in front of whom. Same road, same way, same lane: a car goes no further than the one
     // ahead of it lets it, which is what makes a red light a queue rather than a pile.
-    const queues = new Map<string, Mover[]>();
+    for (const queue of queues.values()) queue.length = 0;
     for (const mover of movers) {
       if (mover.walk || mover.ride) continue;
-      const key = `${mover.segment.id}:${mover.direction}:${mover.lane.offset}`;
+      const key = laneQueueKey(mover);
       const queue = queues.get(key);
       if (queue) queue.push(mover);
       else queues.set(key, [mover]);
     }
-    const ahead = new Map<Mover, Mover>();
+    ahead.clear();
     for (const queue of queues.values()) {
       // Sorted least progressed first, whichever way the lane runs, so the car in front of each
       // one is simply the next entry along -- and the last, most progressed car has none: only
