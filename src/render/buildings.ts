@@ -1,4 +1,4 @@
-import "@babylonjs/loaders/glTF";
+import "@babylonjs/loaders/glTF/2.0/glTFLoader";
 import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";

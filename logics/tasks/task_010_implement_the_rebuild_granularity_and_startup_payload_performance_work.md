@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 55%
+> Progress: 65%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -73,7 +73,7 @@
 - request-AC7 -> `item_030_make_rebuild_and_startup_cost_measurable_against_a_known_city`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- 2026-08-30 payload wave: npm run build passed with index chunk 961.73 kB / 250.42 kB gzip, down from 1,007.93 kB / 251.27 kB gzip before the loader import change; rg found no KHR_gaussian_splatting, KHR_interactivity, or large gaussianSplattingMesh payload in dist; npm run test:e2e and npm run ci passed.
 
 # Report
 - Not started.
