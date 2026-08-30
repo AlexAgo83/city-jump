@@ -17,7 +17,7 @@ import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math"
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { terrainHeight } from "../sim/terrain";
-import type { BuildingKind } from "../sim/buildingKinds";
+import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
@@ -796,12 +796,19 @@ function setMaterialAlpha(material: Material | null, alpha: number): void {
  * ponytail: tint + squash, swap for real per-kind models when there are any.
  */
 export const BUILDING_KIND_STYLE: Record<BuildingKind, { scaleY: number; color: [number, number, number] }> = {
-  residential: { scaleY: 1, color: [1, 1, 1] },
-  commercial: { scaleY: 1, color: [0.82, 0.9, 1.05] },
-  industrial: { scaleY: 0.7, color: [0.95, 0.86, 0.7] },
-  agricultural: { scaleY: 0.4, color: [0.78, 0.95, 0.66] },
-  military: { scaleY: 0.55, color: [0.62, 0.72, 0.5] },
+  residential: { scaleY: 1, color: tintFor("residential", 0.25) },
+  commercial: { scaleY: 1, color: tintFor("commercial", 0.3) },
+  industrial: { scaleY: 0.7, color: tintFor("industrial", 0.45) },
+  agricultural: { scaleY: 0.4, color: tintFor("agricultural", 0.45) },
+  military: { scaleY: 0.55, color: tintFor("military", 0.45) },
 };
+
+/** The kind's own colour, mixed back towards white -- a full-strength tint over an already
+ * textured model reads as a plastic toy rather than a building. */
+function tintFor(kind: BuildingKind, strength: number): [number, number, number] {
+  const [r, g, b] = BUILDING_KIND_COLOR[kind];
+  return [1 + (r - 1) * strength, 1 + (g - 1) * strength, 1 + (b - 1) * strength];
+}
 
 function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);

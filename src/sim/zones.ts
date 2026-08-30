@@ -39,11 +39,12 @@ export class Zones {
     }
   }
 
-  toJSON(): SavedZone[] {
+  /** Migration happens on the way in, so what comes out is always a current kind. */
+  toJSON(): [x: number, z: number, kind: ZoneKind][] {
     return [...this.cells.entries()]
       .map(([cell, kind]) => {
         const [x, z] = cell.split(":").map(Number);
-        return [x!, z!, kind] as SavedZone;
+        return [x!, z!, kind] as [number, number, ZoneKind];
       })
       .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   }

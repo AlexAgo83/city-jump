@@ -2,6 +2,15 @@ import type { BuildingParcel } from "./slots";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
+/** One colour per business, so the zone overlay and the buildings themselves never disagree. */
+export const BUILDING_KIND_COLOR: Record<BuildingKind, readonly [number, number, number]> = {
+  residential: [0.32, 0.78, 0.42],
+  commercial: [0.26, 0.55, 0.95],
+  industrial: [0.93, 0.82, 0.24],
+  agricultural: [0.95, 0.6, 0.18],
+  military: [0.6, 0.35, 0.85],
+};
+
 export interface BuildingNeed {
   readonly kind: BuildingKind;
   readonly supply: number;
