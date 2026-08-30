@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:33:07
+> Indicators reviewed: 2026-08-30 14:38:38
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -30,8 +30,13 @@ them is ever "finished" and closed.
 - Holds: drawing straight and curved roads, snapping, splitting roads that cross, junction
   polygons, roundabouts, tunnels, one-way and multi-lane types, pedestrian ways.
 - Standing: mature. This is the foundation everything else derives from, and it works.
-- Open questions: bridges, which alter terrain interaction the way tunnels did and deserve their
-  own chain when they come.
+- Open question: bridges, which alter terrain interaction the way tunnels did.
+- Suggestion: model before mesh. A tunnel is a road type with a `tunnelDepth`, and the heightmap
+  reads that to leave the hill whole; a bridge needs the opposite -- ground it must not conform
+  to. Decide first whether that is another road type or a genuinely new kind of segment, because
+  `conformToRoads`, the junction geometry and the save format all key off `type`. The chain to
+  write is that decision, and `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views`
+  is where its answer belongs.
 
 ## E2 - The land and what grows on it
 - Holds: the heightmap, terrain conformance under roads and junctions, buildable plots, parcel
@@ -42,16 +47,32 @@ them is ever "finished" and closed.
 - Standing: the second decision exists. A building now appears because someone asked for that
   kind of building there, not only because a rectangle fit. Demand and economy still do not
   exist, and that was deliberate -- they needed something to act on, and this is it.
-- Open questions: demand, growth over time, and economy, all of which now have a model to act on.
-  Whether zones should also carry a style dimension rather than only a footprint constraint,
-  which would drag the model library with it.
+- Open question: demand, growth over time, and economy, all of which now have a model to act on.
+- Suggestion: take the smallest one first -- whether a plot fills *at all*. Today every valid
+  parcel gets a building; letting a zoned plot stay empty until something wants it is one boolean
+  in `buildingParcels` and the first thing that makes a city feel alive rather than complete.
+  Growth, upgrades and money are all downstream of that and none of them should be attempted
+  before it exists.
+- Open question: whether zones should carry a style dimension rather than only a footprint
+  constraint.
+- Suggestion: not yet, and the reason is recorded rather than forgotten -- it multiplies the model
+  library, and `scripts/gen_buildings.py` already assigns a style per model that nothing outside
+  the generator can address. Revisit only once the manifest from
+  `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
+  is proven able to carry a style field, which is a small experiment rather than a chain.
 
 ## E3 - Life on the network
 - Holds: cars and pedestrians, lanes and lane changes, junction transfers, traffic signals,
   crossings, roundabout circulation, headlights and street lighting.
 - Standing: mature and visibly working.
-- Open questions: whether trips ever mean anything -- routing between an origin and a
-  destination rather than plausible movement.
+- Open question: whether trips ever mean anything -- routing between an origin and a destination
+  rather than plausible movement.
+- Suggestion: zoning just supplied the missing half. A dense block is a destination and a low
+  block is an origin, so the smallest honest step is one car that knows where it is going --
+  picked from the existing parcels, routed over the graph, and handed to the junction-transfer
+  model that already moves it. Do that for one car before doing it for all of them, and do it
+  after `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`,
+  which is where the population count stops being a constant.
 
 ## E4 - Reading the city
 - Holds: the select tool, the detail panel, the zone and traffic views, the buildable grid.
@@ -75,7 +96,11 @@ them is ever "finished" and closed.
   the switches that make that number worth looking at -- showing someone a cost they cannot act
   on is worse than not showing it. The traffic pair is the largest of the three and the only one
   a player would also want for its own sake.
-- Open questions: everything above the street -- districts, neighbourhoods, a map view.
+- Open question: everything above the street -- districts, neighbourhoods, a map view.
+- Suggestion: streets and addresses exist now, so a district is a grouping over streets rather
+  than a new coordinate system -- start by naming a group, not by drawing a map. A map view is
+  the expensive end of this and should wait until there is something on it worth reading; the
+  cheap first step is the detail panel saying which district a street belongs to.
 
 ## E5 - Keeping and sharing a city
 - Holds: named saves, autosave, session resume, the bundled Demo city, camera and settings
@@ -85,8 +110,12 @@ them is ever "finished" and closed.
   nothing, an autosave that says when it could not write, and a city that travels as a gzipped
   URL fragment with no server behind it.
 - Standing: a city is safe and it can leave the browser that built it.
-- Open questions: whether a city is ever worth more than a link -- galleries, remixing, any of
+- Open question: whether a city is ever worth more than a link -- galleries, remixing, any of
   which would need infrastructure this project deliberately does not have.
+- Suggestion: treat this as answered no, and record it. `adr_004_stay_a_static_client_with_no_server_of_its_own`
+  is Settled, and a gallery is a server by another name. The right move is to close the question
+  against that ADR rather than leave it standing as if it were pending -- if it should reopen, the
+  thing to reopen is the ADR, not this line.
 
 ## E6 - The craft underneath
 - Holds: the layering the architecture test enforces, the test suite, the CI budget, the
@@ -107,8 +136,20 @@ them is ever "finished" and closed.
   island on every road placed, the world grid allocates on the order of 900,000 vectors whenever
   it is showing, and `allJunctions` solves the same geometry five times per rebuild. The chain is
   written to allow the answer "leave it, here is the number".
-- Open questions: none outstanding for the rebuild; the next one is the main bundle, still 963 kB
-  and warned about on every build, which no chain covers.
+- Open question: the main bundle, still 963 kB raw and 251 kB gzipped, warned about by Vite on
+  every build, which no chain covers.
+- Suggestion: measure the chunk before splitting it. `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
+  already narrowed the glTF loader and deferred the building models; what is left is mostly
+  Babylon, and the question is which of its subsystems are reachable at first paint. A chain here
+  is worth scaffolding once that measurement exists -- for a game whose pitch is "no install, it
+  runs on the page", first-paint weight is the pitch.
+- Open question: whether the build tools should ever work on a touchscreen.
+  `item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen` answered what to *tell*
+  a phone visitor, not whether they can build.
+- Suggestion: the blocker is named in the README -- hover previews and right-click cancel have no
+  touch equivalent. So the chain to write is not "add touch support" but "decide what a preview
+  and a cancel are without a hover and a right button", and that is a design question worth one
+  short request before any code.
 
 # Sequencing
 - Advance whichever strand the moment calls for. There is no prescribed order between them and
@@ -151,7 +192,14 @@ them; the next chain is chosen when this one closes.
 - The road graph is a strong foundation but bridges and any future persistence of simulation
   state may expose missing model that must be decided before meshes or UI depend on it.
 - Strands that are already mature attract polish while the strand that would change the game
-  (zoning and demand) stays unbuilt. Notice when that is happening.
+  stays unbuilt. Zoning has landed, so the version of this risk that applies now is demand:
+  four of the six open chains are settings, measurement and correctness work, and none of them
+  changes what the player decides. That is defensible while the review findings are open and
+  stops being defensible after them. Notice when it stops.
+- Five of the six open chains touch the renderers, and three touch the same files. The ordering
+  that keeps them apart lives in each orchestration task's plan, not here, and running two of
+  them at once is the failure mode -- particularly `task_017` against anything else, since it
+  settles the dispose-and-recreate predicate the others copy.
 - These strands are a description of the project's shape, not a commitment to any of them in any
   order or timeframe.
 

@@ -1,10 +1,10 @@
 {
   "budgets": {
     "max_docs": 16,
-    "max_docs_per_ref": 4
+    "max_docs_per_ref": 8
   },
   "changed_paths": [],
-  "command": "logics-manager sync context-pack req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is --mode full --profile normal --handoff",
+  "command": "logics-manager sync context-pack req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is --mode full --profile deep --handoff",
   "companion_docs": [
     {
       "kind": "product",
@@ -34,8 +34,9 @@
           "- The switches use the seams the renderers already have, not new machinery."
         ],
         "Key product decisions": [
-          "- Use structured input as the source of truth for generated docs.",
-          "- Keep generated write paths local and repo-bounded."
+          "- Switch at the source, not at every consumer: on the light, not on every mesh -- otherwise every rebuild undoes the setting.",
+          "- Off must stop the work. A setting that hides a result and keeps its cost is worse than no setting.",
+          "- The default is exactly today's appearance, so an existing city is untouched until its owner chooses."
         ],
         "Overview": [
           "city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less.",
@@ -81,11 +82,17 @@
           "- A preference about display never travels inside a city."
         ],
         "Key product decisions": [
-          "- Use structured input as the source of truth for generated docs.",
-          "- Keep generated write paths local and repo-bounded."
+          "- Density is a preference about display, not a fact about the city: it lives in settings and never travels in a save or a share link.",
+          "- The slider's floor is a quiet city, not an empty one -- emptiness is the toggle's job, and two controls for one state is a UI nobody can read.",
+          "- Density cannot be applied incrementally, so the slider settles before it respawns."
         ],
         "Overview": [
-          "city-jump decides how busy a city is with three integer expressions nobody has revisited since they were written, and it runs that simulation whether the machine can afford it or not. This slice hands both ends of that to the player: a switch that stops the simulation outright for someone whose hardware cannot carry it, and a slider that lets someone whose hardware can turn a quiet town into rush hour. It is the largest of the three performance switches and the only one a player would also want for its own sake."
+          "city-jump decides how busy a city is with three integer expressions nobody has revisited since they were written, and it runs that simulation whether the machine can afford it or not. This slice hands both ends of that to the player: a switch that stops the simulation outright for someone whose hardware cannot carry it, and a slider that lets someone whose hardware can turn a quiet town into rush hour. It is the largest of the three performance switches and the only one a player would also want for its own sake.",
+          "```mermaid",
+          "flowchart TB",
+          "    Seg[Each segment, at spawn time] --> Counts[\"cars min(4,max(1,len/80)) - peds min(8,max(2,len/22)) or min(6,len/45)\"]",
+          "    Slider[\"Settings > World: density slider\"] -->|scales, default = today| Counts",
+          "    Counts --> Movers[Mesh instances stepped every frame]"
         ],
         "References": [
           "- Product back-reference: `req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`",
@@ -98,9 +105,14 @@
     {
       "kind": "roadmap",
       "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
         "item": [
           "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
-          "item_008_establish_modular_repository_foundations"
+          "item_008_establish_modular_repository_foundations",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
         ],
         "prod": [
           "prod_001_a_city_that_grows_from_the_roads_you_draw",
@@ -114,7 +126,10 @@
           "prod_011_a_city_that_is_built_on_purpose",
           "prod_012_a_city_that_keeps_drawing_itself_correctly",
           "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
-          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+          "prod_016_a_city_you_can_change_your_mind_about",
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
         ],
         "req": [
           "req_000_draw_a_road_network_the_city_grows_from",
@@ -130,7 +145,10 @@
           "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
           "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
           "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
-          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "req_019_let_the_player_take_back_the_last_thing_they_did",
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
         ],
         "road": [
           "road_001_city_jump_playable_city"
@@ -140,7 +158,10 @@
           "task_002_establish_modular_repository_foundations",
           "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
           "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
-          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "task_021_let_the_player_take_back_the_last_thing_they_did",
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
         ]
       },
       "path": "logics/roadmap/road_001_city_jump_playable_city.md",
@@ -186,8 +207,9 @@
           "- Nothing measures when nobody is looking."
         ],
         "Key product decisions": [
-          "- Use structured input as the source of truth for generated docs.",
-          "- Keep generated write paths local and repo-bounded."
+          "- Off by default: a permanent number in the corner is clutter for someone who only wants to build.",
+          "- One measurement, two readers. A second measurement that can disagree with the suite is worse than none.",
+          "- Nothing samples while the counter is hidden."
         ],
         "Overview": [
           "city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.",
@@ -204,15 +226,663 @@
       },
       "status": "Proposed",
       "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/product/prod_001_a_city_that_grows_from_the_roads_you_draw.md",
+      "ref": "prod_001_a_city_that_grows_from_the_roads_you_draw",
+      "sections": {
+        "Goals": [
+          "- Drawing a road feels free and the result looks organic, without the player ever placing an intersection.",
+          "- One representation of the network -- a graph -- that zoning, rendering and later traffic all read from, so no later feature has to invent its own.",
+          "- A building always fronts a road, by construction rather than by a check.",
+          "- A city of a thousand buildings renders at an interactive frame rate on an ordinary machine.",
+          "- Relief is a change to one function and a terrain pass, not a rewrite of the network."
+        ],
+        "Key product decisions": [
+          "- Represent the network as nodes and quadratic Bezier segments, with arc-length lookup",
+          "  computed once for every downstream consumer.",
+          "- Create junctions only through snapping and segment splitting; the player never places",
+          "  a junction object directly.",
+          "- Derive non-overlapping buildable cells from road frontage instead of placing buildings",
+          "  freely and resolving collisions afterwards."
+        ],
+        "Overview": [
+          "The first playable loop of city-jump: draw a curved road network with the pointer, and watch buildings take their places along it. The network is a graph the whole simulation reads from, the buildings are instanced models from the MeshAnvil pipeline, and the ground under both is a heightmap the roads conform to.",
+          "```mermaid",
+          "flowchart TD",
+          "  player[Player draws with the pointer] --> tool[Drawing tool<br/>node snap, segment split,<br/>2m quantisation, min length]",
+          "  tool -->|refused: too short or too steep| reason[Reason shown<br/>nothing enters the graph]",
+          "  tool -->|accepted| graph[Road graph<br/>nodes + quadratic Bezier segments<br/>the only persisted state]"
+        ],
+        "References": [
+          "- Product back-reference: `item_008_establish_modular_repository_foundations`",
+          "- Task back-reference: `task_002_establish_modular_repository_foundations`",
+          "- Repository overview: `README.md`",
+          "- Asset contract: `docs/assets.md`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that grows from the roads you draw"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "sections": {
+        "Goals": [
+          "- A failed load is a no-op, not a destructive one.",
+          "- A storage failure is visible to the player at the moment it happens.",
+          "- Toggling what is visible costs what a visibility toggle should cost.",
+          "- The largest rendering files have unit coverage that runs on every push, not only in the on-demand browser suite.",
+          "- One Node version, resolved identically by CI and by the deploy."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted.",
+          "```mermaid",
+          "flowchart LR",
+          "    Player[Player action] --> Load[Load a saved city]",
+          "    Player --> Toggle[Visibility toggle]",
+          "    Player --> Edit[Edit the road graph]"
+        ],
+        "References": [
+          "- Product back-reference: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`",
+          "- Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city builder that never loses the city on screen"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "sections": {
+        "Goals": [
+          "- Placing a road costs what that road changed, not what the whole city contains.",
+          "- The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+          "- The first load ships only the engine features the game actually uses.",
+          "- The first frame arrives without waiting on every building model in the catalogue.",
+          "- The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+          "- Rebuild and startup cost are measurable, so a regression is visible."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees.",
+          "```mermaid",
+          "flowchart LR",
+          "    Place[Road placed] --> Dirty[Changed region only]",
+          "    Dirty --> Terrain[Heightmap re-stamp]",
+          "    Dirty --> Ground[Ground vertices refreshed]"
+        ],
+        "References": [
+          "- Product back-reference: `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`",
+          "- Task back-reference: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city builder that stays responsive as the city grows"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/product/prod_006_one_source_of_truth_for_what_a_building_model_is.md",
+      "ref": "prod_006_one_source_of_truth_for_what_a_building_model_is",
+      "sections": {
+        "Goals": [
+          "- The renderer asks the model what it is, instead of guessing from its filename.",
+          "- A disagreement between generator and renderer fails a check, not a screenshot.",
+          "- The authoring contract in docs/assets.md matches what the code actually does.",
+          "- Hand-authored models remain possible under the same contract as generated ones."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city.",
+          "```mermaid",
+          "flowchart LR",
+          "    Gen[gen_buildings.py] --> GLB[(Building GLB)]",
+          "    Gen --> Decl[Declaration beside it]",
+          "    GLB --> Mesh[Mesh extents read at load]"
+        ],
+        "References": [
+          "- Product back-reference: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`",
+          "- Task back-reference: `task_011_implement_one_source_of_truth_for_building_model_geometry`"
+        ]
+      },
+      "status": "Settled",
+      "title": "One source of truth for what a building model is"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "sections": {
+        "Goals": [
+          "- A road drawn through several junctions is one named street, not three anonymous curves.",
+          "- Every building has an address a player can read and repeat.",
+          "- Clicking anything visible -- road, roundabout, tree, building, car -- opens the same panel and answers the question.",
+          "- Names never run out, and never change under the player.",
+          "- Cities saved before any of this existed keep loading, and get names."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing.",
+          "```mermaid",
+          "flowchart LR",
+          "    Seg[Road segments] -->|facing rule| Street[Street]",
+          "    Street --> Name[Generated English name]",
+          "    Street --> Along[Distance along street]"
+        ],
+        "References": [
+          "- Product back-reference: `item_034_chain_road_segments_into_streets_that_survive_a_split`",
+          "- Task back-reference: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city you can point at and name"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/product/prod_008_a_city_you_can_hand_to_someone_else.md",
+      "ref": "prod_008_a_city_you_can_hand_to_someone_else",
+      "sections": {
+        "Goals": [
+          "- A player can give their city to someone with one button and a paste.",
+          "- No city is ever uploaded anywhere, and none appears in any server log.",
+          "- A city the size of the bundled Demo fits in a link people can actually send.",
+          "- Receiving a city is an offer, never a surprise overwrite.",
+          "- A malicious link cannot do more than be refused."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "Every city built in city-jump is trapped in the browser that made it. This slice lets a player hand one to somebody with a link and nothing else -- no account, no upload, no server, because the game is a static site and should stay one. The city rides in the URL fragment, compressed and coarsened just enough to fit, and arrives as an offer to import rather than something that overwrites what the receiver already has.",
+          "```mermaid",
+          "flowchart LR",
+          "    City[(Saved city)] --> Quant[Round elevations]",
+          "    Quant --> Gzip[gzip and base64url]",
+          "    Gzip --> Frag[URL fragment]"
+        ],
+        "References": [
+          "- Product back-reference: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`",
+          "- Task back-reference: `task_013_implement_sharing_a_city_by_link`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city you can hand to someone else"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md",
+      "ref": "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+      "sections": {
+        "Goals": [
+          "- The player can watch the city instead of only aiming at it.",
+          "- Following a car is possible without losing zoom and angle control.",
+          "- The mode is always escapable: touch the camera and you are back to Free.",
+          "- Nothing about the existing camera changes for a player who never opens the section."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump's camera is a tool for operating the city: the player points it and it stays pointed. That is right for building, and wrong for everything else -- seeing a junction from all sides, sitting with the light as it changes, or watching one car actually take a roundabout. This slice keeps that camera exactly as it is and adds two more things it can do with its target: turn around it, or let it move. One camera, three policies, and touching the controls always gives the player back the one they already know.",
+          "```mermaid",
+          "flowchart LR",
+          "    Cam[One ArcRotateCamera] --> Policy{Target policy}",
+          "    Policy -->|Free| Held[Where the player put it]",
+          "    Policy -->|Orbit| Turn[Alpha advances around the target]"
+        ],
+        "References": [
+          "- Product back-reference: `item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged`",
+          "- Task back-reference: `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A camera that can watch, not only be aimed"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/product/prod_010_a_published_game_whose_documents_tell_the_truth.md",
+      "ref": "prod_010_a_published_game_whose_documents_tell_the_truth",
+      "sections": {
+        "Goals": [
+          "- A reader of SECURITY.md learns about the deployment that actually exists.",
+          "- The threat-model review the policy demands is done before the feature that triggers it ships.",
+          "- A visitor on a phone is either able to play or told plainly that they cannot, before they try.",
+          "- The project's documents stay honest as the deployment changes again."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump stopped being a thing on one machine and became a link anyone can open, and its documents did not notice. The security policy describes a dev server, the supported-versions table names a version that is no longer current, and the game itself cannot be played by anyone who arrives on a phone. None of this is a bug in the game; all of it is the gap between what the project is and what it says about itself. This slice closes that gap and makes the project take a written position on the visitors it currently ignores.",
+          "```mermaid",
+          "flowchart LR",
+          "    Ship[0.2.0 published on a static site] --> Gap{Documents followed?}",
+          "    Gap -->|no| Sec[SECURITY.md describes a dev server]",
+          "    Gap -->|no| Rev[No threat-model review for shared links]"
+        ],
+        "References": [
+          "- Product back-reference: `item_046_make_security_md_describe_the_deployment_that_exists`",
+          "- Task back-reference: `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A published game whose documents tell the truth"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/product/prod_011_a_city_that_is_built_on_purpose.md",
+      "ref": "prod_011_a_city_that_is_built_on_purpose",
+      "sections": {
+        "Goals": [
+          "- The player decides what kind of place they are building, not only where the roads run.",
+          "- The difference between two zones is visible while playing, not only in a debug view.",
+          "- An existing city is untouched until its owner chooses to zone it.",
+          "- The Zones view finally shows zones.",
+          "- Demand, growth and economy become possible later without redoing this."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump lets a player draw roads beautifully and then watches buildings appear on their own, sized by whatever rectangle happened to fit. The city is a consequence, not a plan. This slice gives the player the second decision the game has been missing: not only where the road goes, but what belongs beside it. It stops deliberately short of demand, growth and economy -- those need something to act on, and this is that something.",
+          "```mermaid",
+          "flowchart LR",
+          "    Road[Player draws a road] --> Cells[Buildable cells]",
+          "    Paint[Player paints a zone] --> Zone[(Authored zone on the ground)]",
+          "    Cells --> Pack[buildingParcels]"
+        ],
+        "References": [
+          "- Product back-reference: `item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing`",
+          "- Task back-reference: `task_016_implement_zoning_as_the_player_s_second_decision`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that is built on purpose"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry",
+          "item_053_make_the_zoning_brush_cost_what_the_tree_brush_costs",
+          "item_054_stop_the_overlay_state_and_the_debug_statistics_from_lying",
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/product/prod_012_a_city_that_keeps_drawing_itself_correctly.md",
+      "ref": "prod_012_a_city_that_keeps_drawing_itself_correctly",
+      "sections": {
+        "Goals": [
+          "- A partial rebuild is indistinguishable from a full one, except in cost.",
+          "- Painting zones feels like painting trees, because it does the same amount of work.",
+          "- The debug statistics can be trusted as evidence in the next performance investigation.",
+          "- The invariants the fast paths depend on are asserted, not commented.",
+          "- Nothing in the renderers holds a disposed object or grows without bound."
+        ],
+        "Key product decisions": [
+          "- Fix the predicate, not the symptom: disposal and recreation get one test, so the class of bug cannot recur in that renderer.",
+          "- Two player-visible defects each leave a check behind; the eight smaller ones do not each need one.",
+          "- Where a helper can be extracted and unit-tested without a scene, prefer that to a browser check."
+        ],
+        "Overview": [
+          "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[An edit: road, bulldoze, zone brush] --> Box[TerrainBounds box, padded 140m]",
+          "    Box --> HM[Heightmap: clips stamps to grid indices]",
+          "    Box --> GR[Ground: rewrites and uploads rows]"
+        ],
+        "References": [
+          "- Product back-reference: `req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work`",
+          "- Task back-reference: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that keeps drawing itself correctly"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history",
+          "item_064_make_one_gesture_one_step_and_leave_nothing_pointing_at_what_is_gone",
+          "item_065_put_undo_and_redo_where_the_player_will_reach_for_them"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/product/prod_016_a_city_you_can_change_your_mind_about.md",
+      "ref": "prod_016_a_city_you_can_change_your_mind_about",
+      "sections": {
+        "Goals": [
+          "- A mistake costs one keystroke, not five minutes of redrawing.",
+          "- One gesture undoes in one press, whatever that gesture planted or painted.",
+          "- Nothing in the program survives an undo still pointing at something that is gone.",
+          "- The simplest thing that works ships first, with its ceiling written down.",
+          "- Undo touches the city and leaves the view alone."
+        ],
+        "Key product decisions": [
+          "- Snapshots before an operation log: the model already serialises and restores all-or-nothing, so the cheap answer ships first and its ceiling is measured and written down.",
+          "- The undoable thing is a change to the model, never a change to the meshes -- the graph is the source of truth.",
+          "- A load is not an edit: every path that replaces the whole city clears the history."
+        ],
+        "Overview": [
+          "city-jump is careful, hand-shaped work -- a curve takes three considered clicks -- and it has no undo. One misplaced bulldoze and the only recovery is to redraw from memory or reload and lose everything since the last autosave. The model already knows how to snapshot and restore itself all-or-nothing, so the machinery is nearly free; the work is deciding what one step is, and making sure nothing in the program is still pointing at a road that stopped existing.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[Any city change: road, bulldoze, plant, spray, zone] --> Gesture{One gesture = one entry}",
+          "    Gesture -->|press to release| Snap[\"serializeCity snapshot, pushed before the change\"]",
+          "    Snap --> Hist[(Bounded history, redo branch discarded on new change)]"
+        ],
+        "References": [
+          "- Product back-reference: `req_019_let_the_player_take_back_the_last_thing_they_did`",
+          "- Task back-reference: `task_021_let_the_player_take_back_the_last_thing_they_did`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can change your mind about"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
+          "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
+          "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
+          "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers"
+        ],
+        "prod": [
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
+        ],
+        "req": [
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "task": [
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md",
+      "ref": "prod_017_an_edit_that_costs_what_it_changed_everywhere",
+      "sections": {
+        "Goals": [
+          "- The decision about each renderer rests on its measured cost, not on its position in a list.",
+          "- The same city geometry stops being solved five times to draw one frame.",
+          "- An edit stops rescanning the whole island for trees that cannot have changed.",
+          "- Every renderer this touches disposes and recreates on one predicate.",
+          "- A renderer left rebuilding whole is left there on purpose, with the measurement written down."
+        ],
+        "Key product decisions": [
+          "- Measure before deciding. \"Leave it whole, here is the number\" is a valid outcome and the chain is written to allow it.",
+          "- The duplicated junction geometry needs no measurement: it is the same work solved five times, and the parcel layout one line away already got the fix.",
+          "- Every renderer bounded disposes and recreates on one predicate -- this chain is positioned to repeat that mistake four more times."
+        ],
+        "Overview": [
+          "The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[One road placed] --> Box[TerrainBounds box]",
+          "    Box --> Done[\"Bounded by req_008: heightmap, ground, road meshes, traffic\"]",
+          "    Edit --> Whole{Still rebuilt whole}"
+        ],
+        "References": [
+          "- Product back-reference: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`",
+          "- Task back-reference: `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "An edit that costs what it changed, everywhere"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md",
+      "ref": "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+      "sections": {
+        "Overview": [
+          "After a graph edit, refresh disposable terrain and rendering projections in a fixed order",
+          "instead of synchronizing mutable copies of city geometry. Ordinary edits may pass dirty",
+          "bounds so renderers update only the affected region; reset, load, and terrain regeneration",
+          "still use the full path.",
+          "```mermaid",
+          "flowchart LR"
+        ],
+        "References": [
+          "- Related request: `req_002_establish_modular_repository_foundations`",
+          "- Related backlog: (none yet)",
+          "- Related task: (none yet)"
+        ]
+      },
+      "status": "Settled",
+      "title": "Rebuild terrain roads plots and buildings as derived views"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md",
+      "ref": "adr_004_stay_a_static_client_with_no_server_of_its_own",
+      "sections": {
+        "Overview": [
+          "city-jump ships as files on a CDN. Features are designed to fit that, rather than the deployment",
+          "being changed to fit a feature.",
+          "```mermaid",
+          "flowchart LR",
+          "    Build[vite build] --> Files[Static files in dist]",
+          "    Files --> CDN[Render static site]"
+        ],
+        "References": [
+          "- Related request: `req_011_share_a_city_as_a_link_that_needs_no_server`",
+          "- Related backlog: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`",
+          "- Related task: `task_013_implement_sharing_a_city_by_link`",
+          "- `render.yaml` -- the static site blueprint this records.",
+          "- `SECURITY.md` -- the threat-model review this decision defers to."
+        ]
+      },
+      "status": "Settled",
+      "title": "Stay a static client with no server of its own"
     }
   ],
   "docs": [
     {
       "ai_context": {
         "keywords": "let, player, turn, traffic, simulation, off, set, busy, city",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work changes traffic behaviour (following, lane changes, signals, transfers, roundabouts), adds routing or demand, splits cars from pedestrians, or puts density into a save or share link.",
+        "summary": "How busy a city is lives in three frozen expressions in `src/render/traffic.ts` -- cars `min(4, max(1, floor(len/80)))`, pedestrians `min(8, max(2, floor(len/22)))` on pedestrian ways and `min(6, floor(len/45))` elsewhere -- and the simulation runs whether the machine can afford it or not. A `Traffic` toggle that removes the movers and the per-frame step, plus a density slider scaling those three counts, with the default reproducing today's city exactly.",
+        "use when": "Adding the `Traffic` toggle or the density slider, or changing the spawn counts and the per-frame step in `src/render/traffic.ts`."
       },
       "kind": "request",
       "linked_refs": {
@@ -355,13 +1025,14 @@
     {
       "ai_context": {
         "keywords": "traffic, switch, stops, simulation, rather, than, hiding",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work touches the density slider, changes traffic behaviour, or switches streetlights and shadows.",
+        "summary": "Off must mean the movers do not exist and the `registerBeforeRender` step is not entered -- hiding the meshes leaves the whole cost running and the frame rate unmoved, which is the worst outcome for a setting whose only purpose is cost. Headlights answer to this and to `Lights` as one combined answer, so no beams survive their cars.",
+        "use when": "Adding the `Traffic` toggle, or changing what runs per frame in `src/render/traffic.ts`."
       },
       "kind": "backlog",
       "linked_refs": {
         "item": [
+          "item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris",
           "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it"
         ],
         "prod": [
@@ -369,6 +1040,7 @@
         ],
         "req": [
           "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
           "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
         ],
         "task": [
@@ -396,10 +1068,214 @@
     },
     {
       "ai_context": {
+        "keywords": "let, player, set, busy, city, respawning, pixel",
+        "skip when": "The work separates cars from pedestrians, varies density by hour or zone, reshapes the count expressions beyond scaling, or carries density in a save.",
+        "summary": "One factor scaling the three spawn-count expressions, applied at spawn time, pure and unit-tested, with the default reproducing today's counts exactly. Density cannot be applied incrementally -- it means a full traffic rebuild -- so the slider settles before it respawns, or it repeats the zoning brush's defect. Its floor is a quiet city, not an empty one; emptiness is the toggle's job.",
+        "use when": "Adding the traffic density slider, or changing the per-segment car and pedestrian spawn counts."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel"
+        ],
+        "prod": [
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+        ],
+        "req": [
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ],
+        "run": [
+          "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint"
+        ],
+        "task": [
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ]
+      },
+      "path": "logics/backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md",
+      "ref": "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A density slider in `Settings > World` makes the city measurably busier or quieter without a reload.",
+          "- AC2: At its default the counts are exactly today's, proven by the existing suite's assertions still holding unchanged.",
+          "- AC3: The scaling is a pure function with unit tests, and never yields a negative or absurd count.",
+          "- AC4: A drag from one end of the slider to the other costs a bounded number of traffic rebuilds, not one per input event.",
+          "- AC5: The slider offers no empty city and has no effect while traffic is off; the choice survives a reload and never travels in a save or a share link.",
+          "- AC6: This slice lands last, so `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` are all green on the request as a whole when it closes."
+        ],
+        "Problem": [
+          "- How busy a city is lives in three expressions in `src/render/traffic.ts`: cars are `min(4, max(1, floor(length / 80)))`, pedestrians are `min(8, max(2, floor(length / 22)))` on a pedestrian way and `min(6, floor(length / 45))` elsewhere. They are someone's taste, frozen in the source, and the player cannot reach them.",
+          "- Density cannot be changed in place. A different count means different movers, which means a full traffic rebuild that disposes every existing one -- and a range input fires on every pixel of a drag. Wiring the slider straight to a rebuild reproduces exactly the defect the zoning brush shipped with.",
+          "- A slider that reaches zero and a toggle that turns traffic off are two controls for one state, and a player who finds both will not know which one they are supposed to use."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the player set how busy the city is, without respawning on every pixel"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh",
+          "item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md",
+      "ref": "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that can be made to run on a weaker machine"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it",
+          "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel"
+        ],
+        "prod": [
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+        ],
+        "req": [
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ],
+        "task": [
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ]
+      },
+      "path": "logics/product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md",
+      "ref": "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city whose traffic is the player's to dial"
+    },
+    {
+      "ai_context": {
+        "keywords": "roadmap, epics, strands, sequencing, city-jump playable city",
+        "skip when": "You need execution detail for a single backlog item or task, or a release plan with dates.",
+        "summary": "Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.",
+        "use when": "Deciding what to work on next, or placing a new request chain against the shape of the project."
+      },
+      "kind": "roadmap",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+          "prod_016_a_city_you_can_change_your_mind_about",
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "req_019_let_the_player_take_back_the_last_thing_they_did",
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "task_021_let_the_player_take_back_the_last_thing_they_did",
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "schema_version": "1.0",
+      "sections": {
+        "Milestones": [
+          "> These are epics, not releases. `logics-manager flow roadmap validate` expects headings of the",
+          "> form `<major>.<minor> - <name>` and will report zero milestones against this file; that is a",
+          "> deliberate divergence, not a defect, and it is outside `npm run logics:validate` (which runs",
+          "> lint and audit only). Do not \"fix\" it by putting version numbers back.",
+          "## E1 - The road network",
+          "- Holds: drawing straight and curved roads, snapping, splitting roads that cross, junction"
+        ],
+        "Risks": [
+          "- Zoning, traffic, and economy can each become standalone simulations; request chains must keep",
+          "  every increment tied to one visible player decision.",
+          "- The road graph is a strong foundation but bridges and any future persistence of simulation",
+          "  state may expose missing model that must be decided before meshes or UI depend on it.",
+          "- Strands that are already mature attract polish while the strand that would change the game",
+          "  stays unbuilt. Zoning has landed, so the version of this risk that applies now is demand:"
+        ],
+        "Sequencing": [
+          "- Advance whichever strand the moment calls for. There is no prescribed order between them and",
+          "  no version gate to pass.",
+          "- One request chain at a time per strand, so each increment stays independently reviewable and",
+          "  linked to concrete workflow docs.",
+          "- Where two chains touch the same files, the ordering lives in the orchestration tasks, not here.",
+          "Every chain listed above has shipped except the two that are open now. There is no queue behind"
+        ],
+        "Summary": [
+          "Grow the road-construction prototype into a playable city simulation without replacing the",
+          "graph and derived-view foundations already proven in the browser.",
+          "The project does not advance in themed waves or numbered releases. It advances by picking up",
+          "whichever of these strands needs attention, delivering one request chain against it, and moving",
+          "on -- often somewhere else entirely. Every strand stays open for the life of the project; none of",
+          "them is ever \"finished\" and closed."
+        ]
+      },
+      "status": "Active",
+      "title": "city-jump playable city"
+    },
+    {
+      "ai_context": {
         "keywords": "let, player, turn, traffic, simulation, off, set, busy, city",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The change adds routing or demand, alters traffic behaviour, or reacts automatically to the frame rate.",
+        "summary": "Orchestration for req_018: the switch first (no movers, no per-frame step, headlights joined with `Lights`), then density as one scaling factor. The trap is a slider wired straight to a rebuild -- read run_008 rung 9 before writing it.",
+        "use when": "Implementing either backlog slice under req_018. Runs after task_019, which settles the World-toggle pattern and the shared headlight answer."
       },
       "kind": "task",
       "linked_refs": {
@@ -435,89 +1311,72 @@
       "title": "Let the player turn the traffic simulation off and set how busy the city is"
     },
     {
-      "ai_context": {
-        "keywords": "let, player, set, busy, city, respawning, pixel",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
-      },
-      "kind": "backlog",
+      "ai_context": {},
+      "kind": "runbook",
       "linked_refs": {
-        "item": [
-          "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel"
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
         ],
-        "prod": [
-          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry"
         ],
         "req": [
-          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
         ],
         "run": [
+          "run_007_the_code_says_it_drew_it_and_the_screen_disagrees",
           "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint"
         ],
         "task": [
-          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
         ]
       },
-      "path": "logics/backlog/item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel.md",
-      "ref": "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel",
+      "path": "logics/runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md",
+      "ref": "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint",
       "schema_version": "1.0",
       "sections": {
-        "Acceptance criteria": [
-          "- AC1: A density slider in `Settings > World` makes the city measurably busier or quieter without a reload.",
-          "- AC2: At its default the counts are exactly today's, proven by the existing suite's assertions still holding unchanged.",
-          "- AC3: The scaling is a pure function with unit tests, and never yields a negative or absurd count.",
-          "- AC4: A drag from one end of the slider to the other costs a bounded number of traffic rebuilds, not one per input event.",
-          "- AC5: The slider offers no empty city and has no effect while traffic is off; the choice survives a reload and never travels in a save or a share link."
+        "Prerequisites": [
+          "- Read `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views` first. Everything on screen is derived from the graph and thrown away on rebuild; a dirty region does not change that contract, it only narrows how much of it is exercised at once.",
+          "- Know the shape being passed around: `TerrainBounds` is a plain XZ box, `{ minX, maxX, minZ, maxZ }`, in world metres. It carries no Y, no rotation and no notion of which renderer asked for it.",
+          "- Passing no box at all means a full rebuild. That is always correct and always slow, and it is the right answer whenever the affected area cannot be bounded cheaply -- `roads.setShowTraffic` takes it deliberately, because a view change touches every road."
         ],
-        "Problem": [
-          "- How busy a city is lives in three expressions in `src/render/traffic.ts`: cars are `min(4, max(1, floor(length / 80)))`, pedestrians are `min(8, max(2, floor(length / 22)))` on a pedestrian way and `min(6, floor(length / 45))` elsewhere. They are someone's taste, frozen in the source, and the player cannot reach them.",
-          "- Density cannot be changed in place. A different count means different movers, which means a full traffic rebuild that disposes every existing one -- and a range input fires on every pixel of a drag. Wiring the slider straight to a rebuild reproduces exactly the defect the zoning brush shipped with.",
-          "- A slider that reaches zero and a toggle that turns traffic off are two controls for one state, and a player who finds both will not know which one they are supposed to use."
+        "Procedure": [
+          "1. **Bound the change at the caller, then pad it.** `src/render/drawTool.ts` builds the box from the geometry the edit actually touched -- `boundsOf(seg.samples)` for a road, the roundabout's radius for a junction, the brush circle for a zone -- and then grows it by `TERRAIN_DIRTY_PAD` (140 m). The pad is not slack: terrain grades out past the road it conforms to, and a box drawn tight to the centreline leaves a visible step where the embankment was cut off. A new caller that forgets the pad produces a seam, not a crash.",
+          "2. **Compute the box before the mutation, not after.** `finish` samples the curve it is about to commit and derives the box from that, because after `commitSegment` the thing it needs to measure may have been split into pieces. Bulldoze does the same: `boundsOf(target.segment.samples)` is read before `graph.removeSegment`, because afterwards the segment is gone.",
+          "3. **Dispose and recreate on the same predicate.** This is the rule the review found broken. If a renderer decides *what to throw away* by one test and *what to draw again* by another, the difference between them is geometry that is destroyed and never comes back. `roadMesh.rebuild` disposed by the rendered mesh's world AABB and recreated on whether a centreline sample fell inside the box; a long diagonal road whose bounding box clipped the region while its centreline did not was disposed and skipped. The suite was green throughout: the road was still in the graph, still counted, and simply not on screen. **Write one predicate, call it from both sides.**",
+          "4. **A centreline is not the thing you drew.** Whatever predicate you settle on, remember that a road renders wider than its samples -- carriageway, sidewalks, lane paint, junction aprons. A box that misses the centreline can still contain a great deal of that segment. Grow the segment's extent by the widest thing derived from it before testing, or test the drawn extent directly.",
+          "5. **Clip in index space where the data is a grid.** `Heightmap.conformToRoads` and `createGround`'s `refresh` both convert the world box to grid indices once (`gridBounds`, `groundGridBounds`) and intersect every per-stamp loop with it. Because both sides of every loop are clamped to the same indices, these two cannot suffer the failure in rung 3 -- the region *is* the iteration domain rather than a filter over one. Prefer this shape when the data allows it.",
+          "6. **Reset only what you will restamp.** `conformToRoads` restores `current` from `base` and refills `claim` with `Infinity` inside the region only. Cells outside keep their previously conformed height and their old priority, which is correct precisely because no stamp is allowed to reach them. Widen the reset and the stamps together or not at all."
+        ],
+        "Trigger": [
+          "- Teaching a renderer to rebuild only part of itself, or extending the existing dirty-region rebuild to one that still rebuilds in full (trees, world grid, streetlights, signals).",
+          "- Adding a new caller of `rebuild(dirty?: TerrainBounds)` -- any new edit that changes the world.",
+          "- Something that used to be on screen is missing after an edit somewhere else, and comes back when the page is reloaded or a full rebuild is forced.",
+          "- Changing what `TerrainBounds` is, or the padding a caller applies to it."
+        ],
+        "Verification": [
+          "- **Prove the predicate, not the pixels.** Extract the dispose/recreate test into a pure function and unit-test it with plain bounds and plain points; `src/render/roadMesh.test.ts` already tests exported helpers from that module with no scene. The failing shape is a long diagonal segment with the box inside its bounding box and away from its centreline.",
+          "- **Compare against a full rebuild.** The correctness question is always \"would a full rebuild have drawn this?\". A partial rebuild that differs from a full one in anything but cost is a bug, and the cheapest manual check is to force one and see what reappears.",
+          "- **Measure, do not assume.** `installDebugApi` exposes `measureCosts()`, which resets, builds the demo city, times one road placement with a dirty box, and reports `startupMs`, `demoBuildMs` and `placementMs`. Record before and after.",
+          "- **Then `npm test`, `npm run test:e2e` and `npm run test:visual`.** None of them caught rung 3's bug, which is the reason this runbook exists -- a new dirty-region path should leave behind the check that would have.",
+          "- If something is missing from the screen and the counters disagree, `run_007_the_code_says_it_drew_it_and_the_screen_disagrees` is the ladder; a partial rebuild that disposed without recreating is now its first rung."
         ]
       },
-      "status": "Ready",
-      "title": "Let the player set how busy the city is, without respawning on every pixel"
-    },
-    {
-      "ai_context": {},
-      "kind": "product",
-      "linked_refs": {
-        "item": [
-          "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it",
-          "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel"
-        ],
-        "prod": [
-          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
-        ],
-        "req": [
-          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
-        ],
-        "task": [
-          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
-        ]
-      },
-      "path": "logics/product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md",
-      "ref": "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
-      "schema_version": "1.0",
-      "sections": {},
-      "status": "Proposed",
-      "title": "A city whose traffic is the player's to dial"
+      "status": "Active",
+      "title": "Repaint only part of the world without losing what you did not repaint"
     }
   ],
   "estimates": {
-    "char_count": 26854,
-    "companion_doc_count": 4,
-    "doc_count": 7
+    "char_count": 72843,
+    "companion_doc_count": 18,
+    "doc_count": 10
   },
-  "generated_at": "2026-08-30T12:26:36Z",
+  "generated_at": "2026-08-30T12:39:16Z",
   "handoff": {
-    "companion_doc_count": 4,
+    "companion_doc_count": 18,
     "enabled": true,
     "source_refs": [
       "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
-      "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it",
-      "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel",
       "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
     ],
     "validation_summary_count": 1
@@ -537,12 +1396,10 @@
     "state": "absent"
   },
   "mode": "full",
-  "profile": "normal",
-  "ref": "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is,item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it,item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel,task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+  "profile": "deep",
+  "ref": "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is,task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
   "refs": [
     "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
-    "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it",
-    "item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel",
     "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
   ],
   "release": {

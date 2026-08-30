@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:13
 
 # AI Context
 - Summary: Orchestration for req_019: bounded snapshot history in `src/sim` first, then gesture boundaries and stale-id clearing, then the controls. Take snapshots and measure; only a bad measurement justifies an operation log, and that conclusion is a finding rather than licence to grow the chain.

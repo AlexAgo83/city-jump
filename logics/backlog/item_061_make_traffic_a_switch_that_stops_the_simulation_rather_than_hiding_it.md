@@ -2,8 +2,8 @@
 > From version: 0.2.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Low
 > Theme: City legibility
@@ -22,7 +22,8 @@
 
 # Scope
 - In:
-  - A traffic switch that results in no movers existing and no per-frame step running -- the meshes disposed and the simulation not entered, rather than skipped inside.
+  - Dispose the movers through the same `leaveQueue` path a dirty rebuild uses, not by dropping them: the lane `queues` and `queueOf` maps hold references, and a mover dropped without unregistering leaks into a map that outlives it. `item_055_prune_the_traffic_queues_assert_the_ordering_they_rely_on_and_clear_the_small_debris` fixes the related leak and lands first; this slice must not reintroduce it from the other end.
+- A traffic switch that results in no movers existing and no per-frame step running -- the meshes disposed and the simulation not entered, rather than skipped inside.
   - A `Traffic` checkbox in the `World` row of `index.html`, on by default, wired in `src/ui/controls.ts` and persisted in `UiSettings`, copying `show-grid` and `show-buildings` exactly.
   - Make the traffic switch and the `Lights` switch combine into one answer for the headlight cluster, so no beams survive their cars.
   - Confirm the debug statistics report zero cars and zero pedestrians with the setting off -- they read the mover list, so this holds only if the movers are genuinely gone.

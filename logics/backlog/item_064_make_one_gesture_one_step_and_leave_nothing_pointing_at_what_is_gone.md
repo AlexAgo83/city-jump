@@ -2,8 +2,8 @@
 > From version: 0.2.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Medium
 > Theme: City legibility
@@ -26,7 +26,8 @@
   - Coalesce a continuous gesture into one entry: a spray burst and a zone stroke each open on press and close on release, following the same `lastSprayed` / pointer-up boundary the brushes already have.
   - Record nothing when a change was refused, so a rejected road leaves no entry.
   - On undo or redo, clear or re-resolve everything holding an id: the selection, the follow-camera target, and any pending draw stage.
-  - Route undo through the existing rebuild and autosave path, and make sure a restored state does not itself push a new history entry.
+  - Clear the history on every path that replaces the whole city rather than editing it: `loadCity` from the save picker, the autosave restore at startup, the bundled Demo seed, and a share-link import. A load is not an edit, and undoing across one hands the player a city they never had open.
+- Route undo through the existing rebuild and autosave path, and make sure a restored state does not itself push a new history entry.
   - Leave the view alone: sun hour, camera, World settings and select view are untouched by undo.
   - Extend `scripts/interact.mjs`: draw and undo, spray and undo once, paint a zone stroke and undo once, and select a road then undo the road that carried the selection.
 - Out:
@@ -39,12 +40,14 @@
 - AC2: A spray burst and a single zone-brush stroke each undo in one press.
 - AC3: After an undo nothing holds a stale node or segment id -- the selection, the follow camera and any pending draw are cleared or re-resolved, proven by undoing the road a selection was standing on.
 - AC4: Undo leaves the sun hour, the camera and the settings exactly as they were.
+- AC5: Loading a city -- from the picker, the autosave, the Demo seed or a share link -- clears the history, proven by a test that loads and then finds nothing to undo.
 
 # AC Traceability
 - request-AC2 -> This backlog slice. Proof: AC1: Every way the city can change produces exactly one history entry, and a refused change produces none.
 - request-AC3 -> This backlog slice. Proof: AC2: A spray burst and a single zone-brush stroke each undo in one press.
 - request-AC4 -> This backlog slice. Proof: AC3: After an undo nothing holds a stale node or segment id -- the selection, the follow camera and any pending draw are cleared or re-resolved, proven by undoing the road a selection was standing on.
 - request-AC6 -> This backlog slice. Proof: AC4: Undo leaves the sun hour, the camera and the settings exactly as they were.
+- request-AC10 -> This backlog slice. Proof: AC5: Loading a city -- from the picker, the autosave, the Demo seed or a share link -- clears the history, proven by a test that loads and then finds nothing to undo.
 
 # Decision framing
 - Product framing: Not needed

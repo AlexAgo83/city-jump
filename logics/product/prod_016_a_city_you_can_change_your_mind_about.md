@@ -6,6 +6,7 @@
 > Related task: `task_021_let_the_player_take_back_the_last_thing_they_did`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:54
 
 # Overview
 city-jump is careful, hand-shaped work -- a curve takes three considered clicks -- and it has no undo. One misplaced bulldoze and the only recovery is to redraw from memory or reload and lose everything since the last autosave. The model already knows how to snapshot and restore itself all-or-nothing, so the machinery is nearly free; the work is deciding what one step is, and making sure nothing in the program is still pointing at a road that stopped existing.
@@ -39,16 +40,20 @@ flowchart TB
 - Changing what any of the build tools do.
 
 # Scope and guardrails
-- In: scaffolded request, product, backlog, orchestration task, validation, and handoff context.
-- Out: unrelated workflow docs and implementation of generated tasks.
+- In: undo and redo over the city model -- graph, plantings and zones -- from the toolbar and the keyboard.
+- In: the gesture boundaries that make a spray burst or a zone stroke one step.
+- Out: a browsable history, a timeline, or restore points; undoing settings, camera or the sun hour.
+- Out: history across a reload, or history carried in a save or a share link.
 
 # Key product decisions
-- Use structured input as the source of truth for generated docs.
-- Keep generated write paths local and repo-bounded.
+- Snapshots before an operation log: the model already serialises and restores all-or-nothing, so the cheap answer ships first and its ceiling is measured and written down.
+- The undoable thing is a change to the model, never a change to the meshes -- the graph is the source of truth.
+- A load is not an edit: every path that replaces the whole city clears the history.
 
 # Success signals
-- Generated docs pass lint and audit without broad manual rewrites.
-- Context-pack output can be handed to an implementation agent directly.
+- A misplaced bulldoze costs one keystroke, not five minutes of redrawing.
+- One gesture undoes in one press, whatever it planted or painted.
+- Nothing survives an undo still pointing at a road that stopped existing.
 
 # References
 - Product back-reference: `req_019_let_the_player_take_back_the_last_thing_they_did`

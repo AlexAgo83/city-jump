@@ -1,10 +1,10 @@
 {
   "budgets": {
-    "max_docs": 24,
-    "max_docs_per_ref": 4
+    "max_docs": 16,
+    "max_docs_per_ref": 8
   },
   "changed_paths": [],
-  "command": "logics-manager sync context-pack req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit item_066_measure_what_each_full_rebuild_renderer_actually_costs item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world --mode full --profile normal --handoff",
+  "command": "logics-manager sync context-pack req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world --mode full --profile deep --handoff",
   "companion_docs": [
     {
       "kind": "product",
@@ -36,11 +36,17 @@
           "- A renderer left rebuilding whole is left there on purpose, with the measurement written down."
         ],
         "Key product decisions": [
-          "- Use structured input as the source of truth for generated docs.",
-          "- Keep generated write paths local and repo-bounded."
+          "- Measure before deciding. \"Leave it whole, here is the number\" is a valid outcome and the chain is written to allow it.",
+          "- The duplicated junction geometry needs no measurement: it is the same work solved five times, and the parcel layout one line away already got the fix.",
+          "- Every renderer bounded disposes and recreates on one predicate -- this chain is positioned to repeat that mistake four more times."
         ],
         "Overview": [
-          "The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code."
+          "The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[One road placed] --> Box[TerrainBounds box]",
+          "    Box --> Done[\"Bounded by req_008: heightmap, ground, road meshes, traffic\"]",
+          "    Edit --> Whole{Still rebuilt whole}"
         ],
         "References": [
           "- Product back-reference: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`",
@@ -163,8 +169,9 @@
           "- Nothing in the renderers holds a disposed object or grows without bound."
         ],
         "Key product decisions": [
-          "- Use structured input as the source of truth for generated docs.",
-          "- Keep generated write paths local and repo-bounded."
+          "- Fix the predicate, not the symptom: disposal and recreation get one test, so the class of bug cannot recur in that renderer.",
+          "- Two player-visible defects each leave a check behind; the eight smaller ones do not each need one.",
+          "- Where a helper can be extracted and unit-tested without a scene, prefer that to a browser check."
         ],
         "Overview": [
           "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.",
@@ -185,9 +192,14 @@
     {
       "kind": "roadmap",
       "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
         "item": [
           "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
-          "item_008_establish_modular_repository_foundations"
+          "item_008_establish_modular_repository_foundations",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
         ],
         "prod": [
           "prod_001_a_city_that_grows_from_the_roads_you_draw",
@@ -202,7 +214,9 @@
           "prod_012_a_city_that_keeps_drawing_itself_correctly",
           "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
           "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
-          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+          "prod_016_a_city_you_can_change_your_mind_about",
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
         ],
         "req": [
           "req_000_draw_a_road_network_the_city_grows_from",
@@ -219,7 +233,9 @@
           "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
           "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
           "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
-          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "req_019_let_the_player_take_back_the_last_thing_they_did",
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
         ],
         "road": [
           "road_001_city_jump_playable_city"
@@ -230,7 +246,9 @@
           "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
           "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
           "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
-          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "task_021_let_the_player_take_back_the_last_thing_they_did",
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
         ]
       },
       "path": "logics/roadmap/road_001_city_jump_playable_city.md",
@@ -253,9 +271,9 @@
     {
       "ai_context": {
         "keywords": "four, renderers, still, rebuild, whole, world, edit",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work changes what these renderers draw, reworks scenery rules or lamp/signal models, builds a general dirty-region framework, or optimises by drawing less.",
+        "summary": "req_008 bounded the heightmap, ground, road meshes and traffic to the region an edit touched, and left trees, world grid, streetlights and signals rebuilding whole. Trees rescan 5,400 m of island on a 58 m step per road placed; the world grid allocates ~900,000 vectors when visible; and `allJunctions` solves the same geometry five times per rebuild. Measure first -- the honest answer for at least one of these is a number and no code.",
+        "use when": "Bounding or measuring the trees, world grid, streetlight or signal rebuilds, or removing the duplicated `allJunctions` work."
       },
       "kind": "request",
       "linked_refs": {
@@ -408,9 +426,9 @@
     {
       "ai_context": {
         "keywords": "measure, each, full, rebuild, renderer, actually, costs",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work changes any renderer, adds a profiling UI, or gates performance in CI.",
+        "summary": "`measureCosts()` reports three totals and cannot say where a placement's time goes. This adds per-renderer figures for trees, world grid (hidden and visible), streetlights and signals, plus the `allJunctions` call count -- the gate that decides the two slices after it, including the option of deciding not to act.",
+        "use when": "Extending `measureCosts()` in `src/render/debugApi.ts`, or establishing a performance baseline before touching a renderer."
       },
       "kind": "backlog",
       "linked_refs": {
@@ -448,79 +466,10 @@
     },
     {
       "ai_context": {
-        "keywords": "finish, bounding, renderers, still, rebuild, whole, world",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
-      },
-      "kind": "task",
-      "linked_refs": {
-        "item": [
-          "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
-          "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
-          "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
-          "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers"
-        ],
-        "prod": [
-          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
-        ],
-        "req": [
-          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
-        ],
-        "run": [
-          "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint"
-        ],
-        "task": [
-          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
-        ]
-      },
-      "path": "logics/tasks/task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world.md",
-      "ref": "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world",
-      "schema_version": "1.0",
-      "sections": {
-        "Context": [
-          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
-        ],
-        "Validation": [
-          "- (no validation recorded yet)"
-        ]
-      },
-      "status": "Ready",
-      "title": "Finish bounding the renderers that still rebuild the whole world"
-    },
-    {
-      "ai_context": {},
-      "kind": "product",
-      "linked_refs": {
-        "item": [
-          "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
-          "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
-          "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
-          "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers"
-        ],
-        "prod": [
-          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
-        ],
-        "req": [
-          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
-        ],
-        "task": [
-          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
-        ]
-      },
-      "path": "logics/product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md",
-      "ref": "prod_017_an_edit_that_costs_what_it_changed_everywhere",
-      "schema_version": "1.0",
-      "sections": {},
-      "status": "Proposed",
-      "title": "An edit that costs what it changed, everywhere"
-    },
-    {
-      "ai_context": {
         "keywords": "solve, junction, geometry, once, per, rebuild, instead, five, times",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work caches junction geometry across rebuilds, changes `junctionGeometry` itself, or bounds a renderer to a region.",
+        "summary": "`allJunctions(graph)` is called from `heightmap.ts`, `roadMesh.ts`, `streetlights.ts` and `signals.ts` -- four full solves per rebuild -- with a fifth in `traffic.ts`'s lazy cache. Nothing to do with dirty regions: solve it once in `app.ts` beside `buildableCells`/`buildingParcels`, which already got exactly this treatment one line away.",
+        "use when": "Removing duplicated junction-geometry work, or changing who calls `allJunctions` during a rebuild."
       },
       "kind": "backlog",
       "linked_refs": {
@@ -559,9 +508,9 @@
     {
       "ai_context": {
         "keywords": "rescanning, whole, island, trees, cannot, changed",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work changes scenery rules, species mix, forest patches, spacing, instancing or shadows.",
+        "summary": "The scenery is deterministic from a seeded index, the heightmap, the road mask and the plantings -- so a tree far from an edit cannot have changed, yet every road placed rescans ~8,600 candidate points plus every forest patch. Rung 3 exposure is worse here than for roads: a tree's position can be inside the region while the road suppressing it is outside, and a missing tree is far harder to notice than a missing road.",
+        "use when": "Bounding the tree rebuild, or changing the scenery scan and road mask in `src/render/trees.ts`."
       },
       "kind": "backlog",
       "linked_refs": {
@@ -603,9 +552,9 @@
     {
       "ai_context": {
         "keywords": "decide, world, grid, streetlights, signals, numbers",
-        "skip when": "(unfilled: replace before this doc is used)",
-        "summary": "(unfilled: replace before this doc is used)",
-        "use when": "(unfilled: replace before this doc is used)"
+        "skip when": "The work changes lamp spacing, signal timing, the cycle model, the grid's appearance, or extends beyond these three.",
+        "summary": "Three renderers, three separate decisions, each made on the measurement rather than on how expensive the source looks. The world grid is free when hidden and ~900,000 vectors when not; the streetlights already solved light churn but never the lamp meshes; signals re-run every cycle and remake every mast. Leaving one whole is a valid outcome if the number says so -- recorded, with a comment where the next reader meets it.",
+        "use when": "Bounding or deciding against bounding the world grid, streetlight or signal rebuilds."
       },
       "kind": "backlog",
       "linked_refs": {
@@ -641,23 +590,143 @@
       },
       "status": "Ready",
       "title": "Decide the world grid, the streetlights and the signals on their numbers"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
+          "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
+          "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
+          "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers"
+        ],
+        "prod": [
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
+        ],
+        "req": [
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "task": [
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md",
+      "ref": "prod_017_an_edit_that_costs_what_it_changed_everywhere",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "An edit that costs what it changed, everywhere"
+    },
+    {
+      "ai_context": {
+        "keywords": "finish, bounding, renderers, still, rebuild, whole, world",
+        "skip when": "The change alters what these renderers draw, or optimises by reducing detail rather than by bounding work.",
+        "summary": "Orchestration for req_020: measure, then the duplicated junction geometry, then the trees, then the remaining three on their numbers. Runs after task_017 -- that chain settles the dispose/recreate predicate this one would otherwise copy wrong four more times.",
+        "use when": "Implementing any of the four backlog slices under req_020, in the plan's order."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
+          "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
+          "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
+          "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers"
+        ],
+        "prod": [
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
+        ],
+        "req": [
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "run": [
+          "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint"
+        ],
+        "task": [
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/tasks/task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world.md",
+      "ref": "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Finish bounding the renderers that still rebuild the whole world"
+    },
+    {
+      "ai_context": {},
+      "kind": "runbook",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
+        ],
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "run": [
+          "run_007_the_code_says_it_drew_it_and_the_screen_disagrees",
+          "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md",
+      "ref": "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint",
+      "schema_version": "1.0",
+      "sections": {
+        "Prerequisites": [
+          "- Read `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views` first. Everything on screen is derived from the graph and thrown away on rebuild; a dirty region does not change that contract, it only narrows how much of it is exercised at once.",
+          "- Know the shape being passed around: `TerrainBounds` is a plain XZ box, `{ minX, maxX, minZ, maxZ }`, in world metres. It carries no Y, no rotation and no notion of which renderer asked for it.",
+          "- Passing no box at all means a full rebuild. That is always correct and always slow, and it is the right answer whenever the affected area cannot be bounded cheaply -- `roads.setShowTraffic` takes it deliberately, because a view change touches every road."
+        ],
+        "Procedure": [
+          "1. **Bound the change at the caller, then pad it.** `src/render/drawTool.ts` builds the box from the geometry the edit actually touched -- `boundsOf(seg.samples)` for a road, the roundabout's radius for a junction, the brush circle for a zone -- and then grows it by `TERRAIN_DIRTY_PAD` (140 m). The pad is not slack: terrain grades out past the road it conforms to, and a box drawn tight to the centreline leaves a visible step where the embankment was cut off. A new caller that forgets the pad produces a seam, not a crash.",
+          "2. **Compute the box before the mutation, not after.** `finish` samples the curve it is about to commit and derives the box from that, because after `commitSegment` the thing it needs to measure may have been split into pieces. Bulldoze does the same: `boundsOf(target.segment.samples)` is read before `graph.removeSegment`, because afterwards the segment is gone.",
+          "3. **Dispose and recreate on the same predicate.** This is the rule the review found broken. If a renderer decides *what to throw away* by one test and *what to draw again* by another, the difference between them is geometry that is destroyed and never comes back. `roadMesh.rebuild` disposed by the rendered mesh's world AABB and recreated on whether a centreline sample fell inside the box; a long diagonal road whose bounding box clipped the region while its centreline did not was disposed and skipped. The suite was green throughout: the road was still in the graph, still counted, and simply not on screen. **Write one predicate, call it from both sides.**",
+          "4. **A centreline is not the thing you drew.** Whatever predicate you settle on, remember that a road renders wider than its samples -- carriageway, sidewalks, lane paint, junction aprons. A box that misses the centreline can still contain a great deal of that segment. Grow the segment's extent by the widest thing derived from it before testing, or test the drawn extent directly.",
+          "5. **Clip in index space where the data is a grid.** `Heightmap.conformToRoads` and `createGround`'s `refresh` both convert the world box to grid indices once (`gridBounds`, `groundGridBounds`) and intersect every per-stamp loop with it. Because both sides of every loop are clamped to the same indices, these two cannot suffer the failure in rung 3 -- the region *is* the iteration domain rather than a filter over one. Prefer this shape when the data allows it.",
+          "6. **Reset only what you will restamp.** `conformToRoads` restores `current` from `base` and refills `claim` with `Infinity` inside the region only. Cells outside keep their previously conformed height and their old priority, which is correct precisely because no stamp is allowed to reach them. Widen the reset and the stamps together or not at all."
+        ],
+        "Trigger": [
+          "- Teaching a renderer to rebuild only part of itself, or extending the existing dirty-region rebuild to one that still rebuilds in full (trees, world grid, streetlights, signals).",
+          "- Adding a new caller of `rebuild(dirty?: TerrainBounds)` -- any new edit that changes the world.",
+          "- Something that used to be on screen is missing after an edit somewhere else, and comes back when the page is reloaded or a full rebuild is forced.",
+          "- Changing what `TerrainBounds` is, or the padding a caller applies to it."
+        ],
+        "Verification": [
+          "- **Prove the predicate, not the pixels.** Extract the dispose/recreate test into a pure function and unit-test it with plain bounds and plain points; `src/render/roadMesh.test.ts` already tests exported helpers from that module with no scene. The failing shape is a long diagonal segment with the box inside its bounding box and away from its centreline.",
+          "- **Compare against a full rebuild.** The correctness question is always \"would a full rebuild have drawn this?\". A partial rebuild that differs from a full one in anything but cost is a bug, and the cheapest manual check is to force one and see what reappears.",
+          "- **Measure, do not assume.** `installDebugApi` exposes `measureCosts()`, which resets, builds the demo city, times one road placement with a dirty box, and reports `startupMs`, `demoBuildMs` and `placementMs`. Record before and after.",
+          "- **Then `npm test`, `npm run test:e2e` and `npm run test:visual`.** None of them caught rung 3's bug, which is the reason this runbook exists -- a new dirty-region path should leave behind the check that would have.",
+          "- If something is missing from the screen and the counters disagree, `run_007_the_code_says_it_drew_it_and_the_screen_disagrees` is the ladder; a partial rebuild that disposed without recreating is now its first rung."
+        ]
+      },
+      "status": "Active",
+      "title": "Repaint only part of the world without losing what you did not repaint"
     }
   ],
   "estimates": {
-    "char_count": 37801,
+    "char_count": 48074,
     "companion_doc_count": 5,
-    "doc_count": 9
+    "doc_count": 10
   },
-  "generated_at": "2026-08-30T12:32:50Z",
+  "generated_at": "2026-08-30T12:39:17Z",
   "handoff": {
     "companion_doc_count": 5,
     "enabled": true,
     "source_refs": [
       "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit",
-      "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
-      "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
-      "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
-      "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers",
       "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
     ],
     "validation_summary_count": 1
@@ -677,14 +746,10 @@
     "state": "absent"
   },
   "mode": "full",
-  "profile": "normal",
-  "ref": "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit,item_066_measure_what_each_full_rebuild_renderer_actually_costs,item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times,item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed,item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers,task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world",
+  "profile": "deep",
+  "ref": "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit,task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world",
   "refs": [
     "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit",
-    "item_066_measure_what_each_full_rebuild_renderer_actually_costs",
-    "item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times",
-    "item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed",
-    "item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers",
     "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
   ],
   "release": {

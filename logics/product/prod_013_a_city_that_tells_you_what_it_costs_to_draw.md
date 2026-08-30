@@ -6,6 +6,7 @@
 > Related task: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:53
 
 # Overview
 city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.
@@ -35,16 +36,20 @@ flowchart LR
 - A quality or detail setting the counter would feed.
 
 # Scope and guardrails
-- In: scaffolded request, product, backlog, orchestration task, validation, and handoff context.
-- Out: unrelated workflow docs and implementation of generated tasks.
+- In: one smoothed frame-rate figure, the HUD element that shows it, and the World setting that switches it on.
+- In: sharing that measurement with `measureFps`, so the player and the suite argue with the same number.
+- Out: profilers, frame-time graphs, per-renderer timings, and any other debug statistic in the UI.
+- Out: performance work of any kind -- this measures, it does not improve.
 
 # Key product decisions
-- Use structured input as the source of truth for generated docs.
-- Keep generated write paths local and repo-bounded.
+- Off by default: a permanent number in the corner is clutter for someone who only wants to build.
+- One measurement, two readers. A second measurement that can disagree with the suite is worse than none.
+- Nothing samples while the counter is hidden.
 
 # Success signals
-- Generated docs pass lint and audit without broad manual rewrites.
-- Context-pack output can be handed to an implementation agent directly.
+- A player can see the frame rate fall as they build, without opening a console.
+- The counter and `measureFps` never disagree on the same scene.
+- With the setting off, the feature costs nothing measurable.
 
 # References
 - Product back-reference: `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`

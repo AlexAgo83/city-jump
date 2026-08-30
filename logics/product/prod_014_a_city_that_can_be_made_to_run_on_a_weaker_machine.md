@@ -6,6 +6,7 @@
 > Related task: `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:54
 
 # Overview
 city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less.
@@ -40,16 +41,20 @@ flowchart TB
 - Any change to how streetlights and headlights are decided by the hour of day.
 
 # Scope and guardrails
-- In: scaffolded request, product, backlog, orchestration task, validation, and handoff context.
-- Out: unrelated workflow docs and implementation of generated tasks.
+- In: two World toggles -- shadows, and the lights the city itself emits -- both on by default.
+- In: the seams the renderers already have: `shadowEnabled` on the sun, and `setEnabled` on the two light clusters.
+- Out: quality presets, detail tiers, automatic degradation, and shadow tuning of any kind.
+- Out: the sun and ambient lights, and reducing what is drawn.
 
 # Key product decisions
-- Use structured input as the source of truth for generated docs.
-- Keep generated write paths local and repo-bounded.
+- Switch at the source, not at every consumer: on the light, not on every mesh -- otherwise every rebuild undoes the setting.
+- Off must stop the work. A setting that hides a result and keeps its cost is worse than no setting.
+- The default is exactly today's appearance, so an existing city is untouched until its owner chooses.
 
 # Success signals
-- Generated docs pass lint and audit without broad manual rewrites.
-- Context-pack output can be handed to an implementation agent directly.
+- A visitor whose machine cannot keep up has something to turn off besides the game.
+- Turning a setting off moves the frame-rate counter, measurably.
+- Turning both back on restores the Demo city exactly.
 
 # References
 - Product back-reference: `req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off`

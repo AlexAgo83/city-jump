@@ -6,6 +6,7 @@
 > Related task: `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:54
 
 # Overview
 The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.
@@ -41,16 +42,20 @@ flowchart TB
 - Startup or bundle cost, which is a different question.
 
 # Scope and guardrails
-- In: scaffolded request, product, backlog, orchestration task, validation, and handoff context.
-- Out: unrelated workflow docs and implementation of generated tasks.
+- In: the four renderers left out of the region-based rebuild -- trees, world grid, streetlights, signals -- and the junction geometry solved five times per rebuild.
+- In: a per-renderer measurement, taken first, that every decision in the chain then cites.
+- Out: what any of these renderers draw; the scene after this is pixel-identical to the scene before.
+- Out: a general dirty-region framework, anything outside these four, and going faster by drawing less.
 
 # Key product decisions
-- Use structured input as the source of truth for generated docs.
-- Keep generated write paths local and repo-bounded.
+- Measure before deciding. "Leave it whole, here is the number" is a valid outcome and the chain is written to allow it.
+- The duplicated junction geometry needs no measurement: it is the same work solved five times, and the parcel layout one line away already got the fix.
+- Every renderer bounded disposes and recreates on one predicate -- this chain is positioned to repeat that mistake four more times.
 
 # Success signals
-- Generated docs pass lint and audit without broad manual rewrites.
-- Context-pack output can be handed to an implementation agent directly.
+- The placement cost falls slice by slice, with a recorded figure behind each.
+- A partial rebuild matches a full one for every renderer changed.
+- Anything left rebuilding whole is left there on purpose, with its measurement where the next reader meets it.
 
 # References
 - Product back-reference: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`

@@ -2,8 +2,8 @@
 > From version: 0.2.0
 > Schema version: 1.0
 > Status: Draft
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
@@ -28,7 +28,8 @@
 - An undo is a full model replacement, so it forces a full rebuild -- `rebuild()` with no dirty box. That is correct and it is the expensive path. Whether the affected region can be derived from the difference between two snapshots is worth asking, but correctness comes first and a full rebuild is always right.
 - Undo changes the city, not the view. The sun hour, the camera, the World toggles and the select view are settings, not city data, and pressing undo must not move them. The terrain preset sits on the boundary: it is carried in the save but is not chosen in the UI any more, so it changes only on load.
 - The autosave has to follow. `scheduleAutosave` runs at the end of every rebuild, so an undo that goes through the normal rebuild path is persisted for free -- but a state restored by undo must not itself become a new undo entry, or the stack never unwinds.
-- There is no keyboard shortcut infrastructure. `src/app/app.ts` registers one `keydown` listener for the camera's arrow keys; `Esc` is handled in `src/render/drawTool.ts`. A `Ctrl`/`Cmd+Z` binding joins that, and must not fire while the player is typing into a prompt or a save-name field.
+- Loading a city is not an edit, and the history must say so. Four paths replace the whole city without the player having built anything: the save picker's Load, the autosave restore at startup, the bundled Demo seed, and a share link imported from the URL fragment. Each of those starts a new city, so each clears the history -- undoing across a load would hand the player a city they never had open. State it and test it; a history that survives a load is the kind of bug that is only found by someone losing work.
+- There is no keyboard shortcut infrastructure. `src/app/app.ts` registers one `keydown` listener for the camera's arrow keys; Esc is handled in `src/render/drawTool.ts`. A Ctrl/Cmd+Z binding joins that, and must not fire while the player is typing into a prompt or a save-name field.
 
 # Acceptance criteria
 - AC1: The player can undo the last change they made to the city, and redo it again, from the toolbar and from the keyboard.
@@ -37,6 +38,7 @@
 - AC4: Undo never leaves a stale reference behind: the selection, the follow camera and any pending draw survive an undo or are cleared, and never point at something that no longer exists.
 - AC5: Redo is available only until the player makes a new change, at which point the redo branch is discarded.
 - AC6: Undo and redo change the city and nothing else -- the sun hour, the camera and the settings are untouched.
+- AC10: Loading a city clears the history -- from the save picker, the autosave restore, the Demo seed or a share link -- so undo can never reach back past the city the player currently has open.
 - AC7: The history has a stated bound, and the memory it costs at that bound is measured rather than assumed.
 - AC8: The undo and redo controls say when there is nothing to undo or redo, rather than doing nothing silently.
 - AC9: The browser interaction suite covers drawing, undoing, redoing, and undoing a brush stroke in one press; `npm test`, `npm run test:architecture`, `npm run build` and `npm run logics:validate` all pass.

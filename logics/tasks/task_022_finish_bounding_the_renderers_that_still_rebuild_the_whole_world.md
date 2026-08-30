@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-30 14:37:13
 
 # AI Context
 - Summary: Orchestration for req_020: measure, then the duplicated junction geometry, then the trees, then the remaining three on their numbers. Runs after task_017 -- that chain settles the dispose/recreate predicate this one would otherwise copy wrong four more times.
