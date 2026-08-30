@@ -185,6 +185,36 @@ function laneQueueKey(mover: Mover): number {
   return mover.segment.id * 10000 + (mover.direction === 1 ? 5000 : 0) + Math.round((mover.lane.offset + 100) * 10);
 }
 
+interface QueuedMover {
+  readonly distance: number;
+  readonly direction: 1 | -1;
+}
+
+export function joinLaneQueue<T extends QueuedMover>(queues: Map<number, T[]>, queueOf: Map<T, number>, key: number, mover: T): void {
+  const queue = queues.get(key) ?? [];
+  if (!queues.has(key)) queues.set(key, queue);
+  const at = mover.distance * mover.direction;
+  const index = queue.findIndex((other) => other.distance * other.direction > at);
+  queue.splice(index < 0 ? queue.length : index, 0, mover);
+  queueOf.set(mover, key);
+}
+
+export function leaveLaneQueue<T extends QueuedMover>(queues: Map<number, T[]>, queueOf: Map<T, number>, mover: T): void {
+  const key = queueOf.get(mover);
+  if (key === undefined) return;
+  const queue = queues.get(key);
+  if (queue) {
+    const index = queue.indexOf(mover);
+    if (index >= 0) queue.splice(index, 1);
+    if (queue.length === 0) queues.delete(key);
+  }
+  queueOf.delete(mover);
+}
+
+export function laneQueueIsOrdered<T extends QueuedMover>(queue: readonly T[]): boolean {
+  return queue.every((mover, i) => i === 0 || queue[i - 1]!.distance * queue[i - 1]!.direction <= mover.distance * mover.direction);
+}
+
 function segmentTouchesBounds(segment: Segment, bounds: TerrainBounds): boolean {
   return segment.samples.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
 }
@@ -979,26 +1009,16 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   const queues = new Map<number, Mover[]>();
-  const queueOf = new Map<Mover, Mover[]>();
+  const queueOf = new Map<Mover, number>();
   const ahead = new Map<Mover, Mover>();
 
   function leaveQueue(mover: Mover): void {
-    const queue = queueOf.get(mover);
-    if (!queue) return;
-    const index = queue.indexOf(mover);
-    if (index >= 0) queue.splice(index, 1);
-    queueOf.delete(mover);
+    leaveLaneQueue(queues, queueOf, mover);
   }
 
   function joinQueue(mover: Mover): void {
     if (mover.walk || mover.ride) return;
-    const key = laneQueueKey(mover);
-    const queue = queues.get(key) ?? [];
-    if (!queues.has(key)) queues.set(key, queue);
-    const at = mover.distance * mover.direction;
-    const index = queue.findIndex((other) => other.distance * other.direction > at);
-    queue.splice(index < 0 ? queue.length : index, 0, mover);
-    queueOf.set(mover, queue);
+    joinLaneQueue(queues, queueOf, laneQueueKey(mover), mover);
   }
 
   scene.registerBeforeRender(() => {

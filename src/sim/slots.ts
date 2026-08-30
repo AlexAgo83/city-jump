@@ -189,6 +189,13 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
   return parcels;
 }
 
+export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: number; z: number } {
+  return {
+    x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
+    z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
+  };
+}
+
 function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean): typeof PARCEL_SIZES {
   if (zone === "dense") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
   if (zone === "low" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
@@ -197,8 +204,8 @@ function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean): typeof PARC
 
 function zoneForCell(zones: Zones | undefined, cell: BuildableCell): ZoneKind | undefined {
   if (!zones) return undefined;
-  const x = cell.corners.reduce((sum, p) => sum + p.x, 0) / 4;
-  const z = cell.corners.reduce((sum, p) => sum + p.z, 0) / 4;
+  // Reached when cells were built without zones, then packed with zones.
+  const { x, z } = buildableCellCentre(cell);
   return zones.at(x, z);
 }
 
@@ -318,6 +325,7 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, zone
         point(along + GRID.cellSize, (row + 1) * GRID.cellSize),
         point(along, (row + 1) * GRID.cellSize),
       ] as const;
+      const centre = buildableCellCentre({ corners });
       cells.push({
         lowRise,
         segment: block[0]!.segment,
@@ -327,7 +335,7 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, zone
         row,
         rotationY,
         corners,
-        zone: zones?.at(corners.reduce((sum, p) => sum + p.x, 0) / 4, corners.reduce((sum, p) => sum + p.z, 0) / 4),
+        zone: zones?.at(centre.x, centre.z),
       });
     }
   }

@@ -14,7 +14,7 @@ import { Plantings } from "../sim/plantings";
 import { Zones } from "../sim/zones";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { buildingParcels, buildableCells, GRID, type BuildableCell } from "../sim/slots";
+import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
@@ -148,7 +148,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     {
       paint(x, z, radius, kind) {
         for (const cell of currentBuildableCells) {
-          const centre = cellCentre(cell);
+          const centre = buildableCellCentre(cell);
           if (Math.hypot(centre.x - x, centre.z - z) <= radius) zones.paint(centre.x, centre.z, GRID.cellSize / Math.SQRT2, kind);
         }
       },
@@ -322,13 +322,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       .allNodes()
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
   }
-}
-
-function cellCentre(cell: BuildableCell): { x: number; z: number } {
-  return {
-    x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
-    z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
-  };
 }
 
 async function seedDefaultDemoSave(): Promise<void> {
