@@ -21,7 +21,7 @@ export function showFps(fps: number | null): void {
 }
 
 export function showCompass(alpha: number): void {
-  const heading = (-alpha - Math.PI / 2 + Math.PI * 2) % (Math.PI * 2);
+  const heading = (((-alpha - Math.PI / 2) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
   const names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   compassNeedle.style.transform = `rotate(${heading}rad)`;
   compassDirection.textContent = names[Math.round(heading / (Math.PI / 4)) % names.length]!;

@@ -1233,6 +1233,9 @@ check("arrow right strafes sideways", panStrafe.x > panForward.x + 50, `x ${panS
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, 0));
 await nextFrame();
 check("compass points west when the camera looks west", await page.locator(".compass-direction").textContent() === "W");
+await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3, Math.PI * 2));
+await nextFrame();
+check("compass wraps full camera turns", await page.locator(".compass-direction").textContent() === "W");
 const turnedStart = await cameraTarget();
 await holdKey("ArrowUp");
 const turnedForward = await cameraTarget();
