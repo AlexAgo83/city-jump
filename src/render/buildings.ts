@@ -177,8 +177,7 @@ interface Model {
  */
 export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
   const manifest = await loadManifest();
-  const models = await Promise.all(BUILDING_MODELS.map((id) => loadModel(scene, id, shadows, manifest.models[id])));
-  const available = models.filter((m): m is Model => m !== null);
+  const available: Model[] = [];
   const roofProps = buildRoofProps(scene, shadows);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
@@ -199,6 +198,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let visible = true;
   let gridVisible = false;
   let lastPlaced = 0;
+  let lastCells: readonly BuildableCell[] = [];
   let lastParcels: readonly BuildingParcel[] = [];
 
   function applyBuildingVisibility(): void {
@@ -212,6 +212,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
    * once here and once again for the terrain that has to be flattened under it.
    */
   function rebuild(cells: readonly BuildableCell[], parcels: readonly BuildingParcel[]): number {
+    lastCells = cells;
     lastParcels = parcels;
     grid?.dispose();
     grid = cells.length
@@ -323,6 +324,15 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     return visible ? placed : 0;
   }
 
+  for (const id of BUILDING_MODELS) {
+    void loadModel(scene, id, shadows, manifest.models[id]).then((model) => {
+      if (!model) return;
+      available.push(model);
+      rebuild(lastCells, lastParcels);
+    });
+  }
+  const startupModelCount = available.length;
+
   return {
     rebuild,
     setVisible(next: boolean) {
@@ -356,7 +366,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         }));
       return points.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))[0] ?? null;
     },
-    modelCount: available.length,
+    get modelCount() {
+      return available.length;
+    },
+    startupModelCount,
   };
 }
 
