@@ -6,6 +6,8 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { FresnelParameters } from "@babylonjs/core/Materials/fresnelParameters";
 import { Material } from "@babylonjs/core/Materials/material";
+import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap";
@@ -19,8 +21,10 @@ export const GROUND_CELL = 8;
  */
 export function createGround(scene: Scene, heightmap: Heightmap) {
   const material = new StandardMaterial("ground", scene);
-  material.diffuseColor = Color3.White();
-  material.specularColor = Color3.Black();
+  material.diffuseColor = new Color3(0.94, 0.94, 0.9);
+  material.specularColor = new Color3(0.018, 0.017, 0.014);
+  material.specularPower = 10;
+  material.bumpTexture = terrainBumpTexture(scene);
   const mesh = new Mesh("ground", scene);
   mesh.material = material;
   mesh.receiveShadows = true;
@@ -60,7 +64,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
         positions[i * 3 + 1] = h;
-        writeTerrainColor(colors, i * 4, h, heightmap.baseAt(ix, iz), heightmap.worldX(ix), heightmap.worldZ(iz));
+        writeTerrainColor(colors, i * 4, h, heightmap.baseAt(ix, iz), terrainSlope(heightmap, ix, iz), heightmap.worldX(ix), heightmap.worldZ(iz));
       }
     }
     if (dirty) {
@@ -79,6 +83,40 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
 
   refresh();
   return { mesh, refresh };
+}
+
+function terrainBumpTexture(scene: Scene): DynamicTexture {
+  const size = 128;
+  const texture = new DynamicTexture("ground-bump", { width: size, height: size }, scene, false);
+  const context = texture.getContext();
+  const image = context.getImageData(0, 0, size, size);
+  for (let z = 0; z < size; z++) {
+    for (let x = 0; x < size; x++) {
+      const coarse = valueNoise(x, z, 24);
+      const fine = valueNoise(x + 200, z - 90, 7);
+      const grain = hash(x, z);
+      const v = Math.round(108 + coarse * 78 + fine * 42 + grain * 18);
+      const i = (z * size + x) * 4;
+      image.data[i] = v;
+      image.data[i + 1] = v;
+      image.data[i + 2] = v;
+      image.data[i + 3] = 255;
+    }
+  }
+  context.putImageData(image, 0, 0);
+  texture.update(false);
+  texture.wrapU = Texture.WRAP_ADDRESSMODE;
+  texture.wrapV = Texture.WRAP_ADDRESSMODE;
+  texture.uScale = GROUND_SIZE / 28;
+  texture.vScale = GROUND_SIZE / 28;
+  texture.level = 0.13;
+  return texture;
+}
+
+function terrainSlope(heightmap: Heightmap, ix: number, iz: number): number {
+  const dx = (heightmap.at(ix + 1, iz) - heightmap.at(ix - 1, iz)) / (heightmap.cell * 2);
+  const dz = (heightmap.at(ix, iz + 1) - heightmap.at(ix, iz - 1)) / (heightmap.cell * 2);
+  return Math.hypot(dx, dz);
 }
 
 function uploadRows(
@@ -295,7 +333,7 @@ const SNOW: Rgba = [0.86, 0.87, 0.8, 1];
 const SEAFLOOR_NEAR: Rgba = [0.19, 0.36, 0.32, 1];
 const SEAFLOOR_FAR: Rgba = [0.05, 0.1, 0.15, 1];
 
-export function writeTerrainColor(out: Float32Array, offset: number, h: number, baseH: number, x: number, z: number): void {
+export function writeTerrainColor(out: Float32Array, offset: number, h: number, baseH: number, slope: number, x: number, z: number): void {
   const sea = distanceFromIsland(x, z);
   const seaR = mix(SEAFLOOR_NEAR[0], SEAFLOOR_FAR[0], sea);
   const seaG = mix(SEAFLOOR_NEAR[1], SEAFLOOR_FAR[1], sea);
@@ -336,6 +374,16 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     r = mix(r, 0.24, lush);
     g = mix(g, 0.55, lush);
     b = mix(b, 0.25, lush);
+  }
+  if (h > SEA_LEVEL + 4) {
+    const wetPocket = smoothstep((26 - h) / 18) * (1 - smoothstep(slope / 0.28)) * (0.55 + valueNoise(x - 140, z + 680, 180) * 0.45);
+    const rockFace = smoothstep((slope - 0.18) / 0.5) * (0.65 + valueNoise(x + 540, z + 210, 70) * 0.35);
+    r = mix(r, 0.2, wetPocket * 0.32);
+    g = mix(g, 0.38, wetPocket * 0.28);
+    b = mix(b, 0.22, wetPocket * 0.24);
+    r = mix(r, 0.38, rockFace * 0.36);
+    g = mix(g, 0.37, rockFace * 0.34);
+    b = mix(b, 0.32, rockFace * 0.32);
   }
   if (roadWear > 0) {
     const dust = valueNoise(x + 300, z - 1200, 36) * 0.16;
