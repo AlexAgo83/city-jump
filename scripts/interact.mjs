@@ -6,6 +6,7 @@
 // never touches picking -- so a broken drawing tool passed every check. Whatever else
 // changes, a click has to still draw a road.
 import { chromium } from "playwright";
+import { readFile } from "node:fs/promises";
 
 const [url = "http://localhost:5173", shot = null] = process.argv.slice(2);
 const failures = [];
@@ -1468,6 +1469,37 @@ await page.locator("#save-share").click();
 await page.waitForFunction(() => Boolean(window.__shareLink), null, { timeout: 5_000 });
 const shareLink = await page.evaluate(() => window.__shareLink ?? "");
 check("a share link is copied", shareLink.includes("#city="), shareLink.slice(0, 80));
+
+// A file has no length ceiling, so it is what a city too big to share as a link travels in.
+// Export and import each ask more than one question, so every dialog is answered until they are done.
+let fileDialogAnswer = "";
+const answerFileDialog = (dialog) => dialog.accept(fileDialogAnswer);
+page.on("dialog", answerFileDialog);
+const exported = await (async () => {
+  fileDialogAnswer = "Exportville";
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 10_000 }), page.locator("#save-export").click()]);
+  const path = await download.path();
+  return { name: download.suggestedFilename(), city: JSON.parse(await readFile(path, "utf8")) };
+})();
+check(
+  "a city can be exported to a file",
+  exported.name === "Exportville.json" && exported.city.segments.length === (await stats()).segments,
+  `${exported.name}, ${exported.city.segments?.length} segments`,
+);
+const beforeImport = await stats();
+await page.evaluate(() => window.cityjump.reset());
+fileDialogAnswer = "Importville";
+await page.locator("#save-import-file").setInputFiles({ name: exported.name, mimeType: "application/json", buffer: Buffer.from(JSON.stringify(exported.city)) });
+// Replaying a save splits a road at every junction it rebuilds, so the count comes back at least
+// as high as the file's -- the same allowance the load-a-city check makes.
+await page.waitForFunction((count) => window.cityjump.stats().segments >= count, exported.city.segments.length, { timeout: 10_000 });
+const importedFile = await page.evaluate(() => ({ segments: window.cityjump.stats().segments, active: localStorage.getItem("cityjump.activeSave") }));
+check(
+  "an exported city imports back under its own name",
+  importedFile.segments >= exported.city.segments.length && importedFile.active === "Importville",
+  JSON.stringify(importedFile),
+);
+page.off("dialog", answerFileDialog);
 page.on("dialog", (dialog) => dialog.accept());
 await page.evaluate(() => {
   for (const key of Object.keys(localStorage)) {

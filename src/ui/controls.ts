@@ -1,4 +1,4 @@
-import type { CitySave } from "../sim/save";
+import { parseCity, type CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
 import { decodeShare, encodeShare } from "../sim/share";
 import type { ZoneKind } from "../sim/zones";
@@ -373,6 +373,9 @@ function bindSaves(
   const store = document.getElementById("save-store") as HTMLButtonElement;
   const load = document.getElementById("save-load") as HTMLButtonElement;
   const share = document.getElementById("save-share") as HTMLButtonElement;
+  const exportCity = document.getElementById("save-export") as HTMLButtonElement;
+  const importCity = document.getElementById("save-import") as HTMLButtonElement;
+  const importFile = document.getElementById("save-import-file") as HTMLInputElement;
   const remove = document.getElementById("save-delete") as HTMLButtonElement;
 
   const refresh = (selected?: string): void => {
@@ -445,6 +448,40 @@ function bindSaves(
       }
     }
     window.prompt("Share link:", link);
+  });
+
+  // A link carries a whole city in its fragment, which browsers and chat apps cut off well before
+  // a big city fits. A file has no such ceiling, and is what you hand someone to compare cities.
+  exportCity.addEventListener("click", () => {
+    const name = window.prompt("Export the city as:", readActiveSave() ?? "My city")?.trim();
+    if (!name) return;
+    const blob = new Blob([JSON.stringify(handlers.onSave())], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${name.replace(/[^\w.-]+/g, "-")}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showRefusal(`Exported "${name}".`);
+  });
+
+  importCity.addEventListener("click", () => {
+    importFile.value = ""; // so picking the same file twice still fires a change
+    importFile.click();
+  });
+
+  importFile.addEventListener("change", async () => {
+    const file = importFile.files?.[0];
+    if (!file) return;
+    const city = parseCity(await file.text());
+    if (!city) return showRefusal("That file is not a city this build can read.");
+    const name = window.prompt("Save the imported city as:", file.name.replace(/\.json$/i, ""))?.trim();
+    if (!name) return;
+    if (listSaves().includes(name) && !window.confirm(`Overwrite "${name}"?`)) return;
+    if (!writeSave(name, city)) return showRefusal("Could not save the imported city: browser storage is full or unavailable.");
+    writeActiveSave(name);
+    refresh(name);
+    if (handlers.onLoad(city)) applyCity(city);
+    showRefusal(`Imported "${name}".`);
   });
 
   remove.addEventListener("click", () => {
