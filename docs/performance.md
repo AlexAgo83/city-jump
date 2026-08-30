@@ -160,6 +160,17 @@ It is a whole-city swap, not per building: the models are thin-instanced, and sp
 instance buffers by distance would cost more CPU every frame than the vertices save. Above that
 height every building is far away anyway.
 
+## Traffic at a distance
+
+Cars and people are hidden past a reach that follows the zoom (320 m at street level, up to 2 km
+when the whole city is in shot). They keep driving -- the simulation is cheap, the drawing is not
+-- and the check runs a few times a second rather than every frame.
+
+Measured against the same build without it: 145 of 959 movers drawn instead of all of them, and
+104 fps against 95 with the camera in close. At mid zoom it is worth nothing (89 against 88): the
+ones it hides were being frustum-culled anyway. Kept for the close view and for the ~800 meshes it
+takes out of the scene walk each frame.
+
 ## What is left
 
 - **A repeatable measurement, before anything else.** Every remaining idea is a trade, and this
@@ -168,10 +179,11 @@ height every building is far away anyway.
 - **Road surface per tile rather than per segment** -- `road` 184 + `roundabout` 182 + `junction`
   90 + `lane` 55 are still one mesh each. Tried once (above) and reverted; it also needs a
   tile-level dirty region to stop an edit rebuilding whole tiles.
-- **Distance, not just zoom.** The detail rules read the camera's own distance, which is right for
-  a city builder looking down at a district, and wrong for a low camera looking across one: the
-  near kerb and the far skyline get the same treatment. Per-object distance would fix that, and
-  costs a per-frame pass over the meshes it applies to.
+- **Distance for the rest.** Traffic is culled by distance (above); street furniture, roof clutter
+  and building models are still switched by zoom alone, because they are thin-instanced -- culling
+  one instance means rewriting the buffer its neighbours are in. Road detail (crossings, kerbs,
+  signals) could take the same pass traffic does, and was not worth it while traffic's own gain
+  measured 9%.
 - **Traffic as thin instances** -- ~1700 meshes for cars, their parts and pedestrians. They batch
   already, so this buys scene traversal, not draw calls, and costs a per-frame matrix buffer
   rewrite. Measure before doing it.
