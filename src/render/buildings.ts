@@ -199,6 +199,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let visible = true;
   let gridVisible = false;
   let lastPlaced = 0;
+  let lastParcels: readonly BuildingParcel[] = [];
 
   function applyBuildingVisibility(): void {
     for (const model of available) model.mesh.setEnabled(visible && model.mesh.thinInstanceCount > 0);
@@ -211,6 +212,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
    * once here and once again for the terrain that has to be flattened under it.
    */
   function rebuild(cells: readonly BuildableCell[], parcels: readonly BuildingParcel[]): number {
+    lastParcels = parcels;
     grid?.dispose();
     grid = cells.length
       ? MeshBuilder.CreateLineSystem(
@@ -339,8 +341,37 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
     count: () => (visible ? lastPlaced : 0),
+    buildingAt(x: number, z: number): BuildingParcel | null {
+      if (!visible) return null;
+      return lastParcels.find((parcel) => parcel.cells.some((cell) => pointInCell(x, z, cell))) ?? null;
+    },
+    buildingPoint(): { x: number; y: number; z: number } | null {
+      const points = lastParcels
+        .map((parcel) => parcel.cells[0])
+        .filter((cell): cell is BuildableCell => cell !== undefined)
+        .map((cell) => ({
+          x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
+          y: cell.corners.reduce((sum, p) => sum + p.y, 0) / 4,
+          z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
+        }));
+      return points.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))[0] ?? null;
+    },
     modelCount: available.length,
   };
+}
+
+function pointInCell(x: number, z: number, cell: BuildableCell): boolean {
+  let sign = 0;
+  for (let i = 0; i < cell.corners.length; i++) {
+    const a = cell.corners[i]!;
+    const b = cell.corners[(i + 1) % cell.corners.length]!;
+    const cross = (b.x - a.x) * (z - a.z) - (b.z - a.z) * (x - a.x);
+    if (Math.abs(cross) < 1e-6) continue;
+    const next = Math.sign(cross);
+    if (sign && next !== sign) return false;
+    sign = next;
+  }
+  return true;
 }
 
 /** A box, positioned -- the one primitive every roof prop below is built out of. */

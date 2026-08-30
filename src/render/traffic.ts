@@ -1043,6 +1043,23 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   return {
     rebuild,
     setSunHour,
+    vehicleAt(x: number, z: number): { segment: Segment; kind: string } | null {
+      let best: Mover | null = null;
+      let bestDistance = 7;
+      for (const mover of movers) {
+        if (mover.walk) continue;
+        const d = Math.hypot(mover.mesh.position.x - x, mover.mesh.position.z - z);
+        if (d <= bestDistance) {
+          best = mover;
+          bestDistance = d;
+        }
+      }
+      return best ? { segment: best.segment, kind: "Car" } : null;
+    },
+    vehiclePoint(): { x: number; y: number; z: number } | null {
+      const mover = movers.find((candidate) => !candidate.walk);
+      return mover ? { x: mover.mesh.position.x, y: mover.mesh.position.y, z: mover.mesh.position.z } : null;
+    },
     count: () => movers.filter((mover) => !mover.walk).length,
     pedestrians: () => movers.filter((mover) => mover.walk).length,
   };

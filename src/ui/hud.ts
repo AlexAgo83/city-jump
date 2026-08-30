@@ -26,9 +26,20 @@ export function showSelection(info: SelectionInfo | null): void {
     selectionKind.textContent = "Road";
     selectionRows.innerHTML =
       row("Type", info.name) +
+      row("Street", info.street) +
       row("Lanes", String(info.lanes)) +
       row("Direction", info.oneWay ? "One-way" : "Two-way") +
       row("Length", `${info.length.toFixed(0)} m`);
+    return;
+  }
+  if (info.kind === "building") {
+    selectionKind.textContent = "Building";
+    selectionRows.innerHTML = row("Address", info.address) + row("Footprint", info.footprint);
+    return;
+  }
+  if (info.kind === "vehicle") {
+    selectionKind.textContent = info.name;
+    selectionRows.innerHTML = row("Street", info.street);
     return;
   }
   if (info.kind === "roundabout") {

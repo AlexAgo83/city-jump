@@ -27,6 +27,7 @@ describe("city saves", () => {
     restoreCity(restored, new Plantings(), new Zones(), save!);
     expect(restored.allNodes().map((node) => node.pos.y)).toEqual([4, 9, 12]);
     expect(restored.allSegments().map((segment) => segment.type)).toEqual(["street", "avenue"]);
+    expect(restored.allSegments().map((segment) => segment.streetId)).toEqual(save!.segments.map((segment) => segment[6]));
     expect(save!.terrain).toBe("rugged");
     expect(save!.hour).toBe(18.5);
   });

@@ -712,13 +712,15 @@ const screenPoint = (worldish) =>
     const pos = new Function("return " + expr)();
     if (!pos) return null;
     const t = scene.getTransformMatrix().m;
-    const { x, y, z } = pos;
+    const { x, z } = pos;
+    const y = pos.y ?? 0;
     const w = x * t[3] + y * t[7] + z * t[11] + t[15];
     const engine = scene.getEngine();
-    return {
+    const point = {
       x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
       y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
     };
+    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
   }, worldish);
 const highlightRadius = () =>
   page.evaluate(() => {
@@ -770,14 +772,40 @@ const selected = await page.evaluate(() => ({
   hidden: document.getElementById("selection-panel").hidden,
   kind: document.querySelector("#selection-panel .selection-kind").textContent,
   typeLabel: document.querySelector("#selection-panel dl dd")?.textContent ?? "",
+  rows: Object.fromEntries(
+    [...document.querySelectorAll("#selection-panel dt")].map((dt) => [dt.textContent, dt.nextElementSibling?.textContent ?? ""]),
+  ),
 }));
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
+check("a road panel shows its street name", selected.rows.Street?.endsWith("Street") || selected.rows.Street?.endsWith("Avenue"), JSON.stringify(selected.rows));
 const pickedType = await page.evaluate(() => document.querySelector('input[name="road-type"]:checked').value);
 check(
   "picking a road sets the Roads tab to match it (eyedropper)",
   selected.typeLabel.toLowerCase().startsWith(pickedType),
   `panel says "${selected.typeLabel}", Roads tab picked "${pickedType}"`,
 );
+const buildingPoint = await screenPoint("window.cityjump.buildingPoint()");
+check("there is a building to select", buildingPoint !== null);
+await click(buildingPoint.x, buildingPoint.y);
+const selectedBuilding = await page.evaluate(() => ({
+  hidden: document.getElementById("selection-panel").hidden,
+  kind: document.querySelector("#selection-panel .selection-kind").textContent,
+  rows: Object.fromEntries(
+    [...document.querySelectorAll("#selection-panel dt")].map((dt) => [dt.textContent, dt.nextElementSibling?.textContent ?? ""]),
+  ),
+}));
+check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
+const vehiclePoint = await screenPoint("window.cityjump.vehiclePoint()");
+check("there is a vehicle to select", vehiclePoint !== null);
+await click(vehiclePoint.x, vehiclePoint.y);
+const selectedVehicle = await page.evaluate(() => ({
+  hidden: document.getElementById("selection-panel").hidden,
+  kind: document.querySelector("#selection-panel .selection-kind").textContent,
+  rows: Object.fromEntries(
+    [...document.querySelectorAll("#selection-panel dt")].map((dt) => [dt.textContent, dt.nextElementSibling?.textContent ?? ""]),
+  ),
+}));
+check("clicking a car opens its street", !selectedVehicle.hidden && selectedVehicle.kind === "Car" && Boolean(selectedVehicle.rows.Street), JSON.stringify(selectedVehicle));
 // Back to bulldoze mode: everything from here on still expects that, same as before this check.
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
@@ -1033,6 +1061,7 @@ await page.evaluate(() => {
   delete raw.planted;
   delete raw.cleared;
   delete raw.zones;
+  raw.segments = raw.segments.map((segment) => segment.slice(0, 6));
   raw.v = 1;
   window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
 });

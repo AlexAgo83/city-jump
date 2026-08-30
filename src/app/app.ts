@@ -139,6 +139,10 @@ export async function startApp(): Promise<void> {
         zones.paint(x, z, radius, kind);
       },
     },
+    {
+      buildingAt: (x, z) => buildings.buildingAt(x, z),
+      vehicleAt: (x, z) => traffic.vehicleAt(x, z),
+    },
     onSelect,
   );
 
@@ -258,6 +262,10 @@ export async function startApp(): Promise<void> {
     models: buildings.modelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));
+  Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
+    buildingPoint: () => buildings.buildingPoint(),
+    vehiclePoint: () => traffic.vehiclePoint(),
+  });
 
   function surfaceJunctions(): number {
     return graph
