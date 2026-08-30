@@ -37,6 +37,14 @@ npm run test:e2e
 npm run test:visual
 ```
 
+Rendering work that is meant to be faster has to show it. `npm run perf` measures a
+city and records the numbers; [`docs/performance.md`](docs/performance.md) says how to
+read them and what is already known to cost:
+
+```bash
+npm run perf -- --city perf/cities/ma-ville.json --label ma-ville
+```
+
 GitHub Actions keeps browser coverage out of the push gate. Use the `Browser
 Interaction` workflow's manual trigger when a pull request touches rendering, browser
 controls, persistence, or road drawing; it also runs on its weekly schedule.

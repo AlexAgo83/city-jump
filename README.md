@@ -140,6 +140,7 @@ validation. The browser interaction and visual suites run on demand.
 ## More
 
 - [`docs/assets.md`](docs/assets.md) — the building model authoring contract.
+- [`docs/performance.md`](docs/performance.md) — how a city is measured, what costs, and what is left to do.
 - [`logics/runbook/`](logics/runbook/) — how the hard parts actually work, and what went wrong first.
 - [`SECURITY.md`](SECURITY.md) — the current static-client security model.
 - [`docs/shared-link-threat-model.md`](docs/shared-link-threat-model.md) — the share-link review.

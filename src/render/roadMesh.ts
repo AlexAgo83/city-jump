@@ -205,7 +205,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       ribbon.material = type.pedestrian ? pavingMaterial : baseId === "dirt" ? dirtMaterial : baseId === "military" ? militaryMaterial : type.industrial ? industrialMaterial : material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
-      meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
+      meshes.push(styledLines(scene, `curb_${seg.id}`, [left, right], curb));
       if (type.industrial) {
         for (const side of type.oneWay ? [-1, 1] : [-1, 0, 1]) {
           const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.04, side * half * 0.45);
@@ -246,13 +246,12 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           outerRight.push(new Vector3(position.x - n.x * out, y, position.z - n.z * out));
         }
         alignSidewalkEnds(junctions, seg, outerLeft, outerRight);
-        const walkLeft = roadStripMesh(scene, `sidewalk_l_${seg.id}`, outerLeft, innerLeft);
-        const walkRight = roadStripMesh(scene, `sidewalk_r_${seg.id}`, innerRight, outerRight);
-        for (const walk of [walkLeft, walkRight]) {
-          walk.material = pavingMaterial;
-          walk.isPickable = false;
-          meshes.push(walk);
-        }
+        // Both footways of a road in one mesh: same paving, same lifetime, and one draw instead
+        // of two on every road in the city.
+        const walk = roadStripMesh(scene, `sidewalk_${seg.id}`, outerLeft, innerLeft, [innerRight, outerRight]);
+        walk.material = pavingMaterial;
+        walk.isPickable = false;
+        meshes.push(walk);
       }
       // A two-way avenue always gets a centre line (it is wide enough to read as two directions);
       // a 2-lane two-way road gets the same line as its lane divider. One-way never draws one --
@@ -410,24 +409,35 @@ function crossingMeshes(
   // down to which direction that road happened to have been drawn in.
   const rows = [near, far].map((d) => (atStart ? d : seg.length - d)).sort((l, r) => l - r);
 
+  // Every stripe of one crossing in a single mesh. They are four vertices each and never move
+  // apart, so a mesh per stripe bought nothing and cost a draw call each -- on a real city that
+  // was the largest single group of meshes in the scene, by a factor of three.
+  const positions: number[] = [];
+  const indices: number[] = [];
   for (let i = 0; i < stripes; i++) {
     const centre = -half + pitch * (i + 0.5);
-    const left: Vector3[] = [];
-    const right: Vector3[] = [];
+    const base = positions.length / 3;
     for (const along of rows) {
       const { position, tangent } = graph.pointAt(arm.segment, along);
       const n = perpXZ(normalizeXZ(tangent));
       const lo = centre - STRIPE_WIDTH / 2;
       const hi = centre + STRIPE_WIDTH / 2;
       const y = position.y + MARK_LIFT;
-      left.push(new Vector3(position.x + n.x * hi, y, position.z + n.z * hi));
-      right.push(new Vector3(position.x + n.x * lo, y, position.z + n.z * lo));
+      positions.push(position.x + n.x * hi, y, position.z + n.z * hi);
+      positions.push(position.x + n.x * lo, y, position.z + n.z * lo);
     }
-    const stripe = roadStripMesh(scene, `crossing_${arm.segment}_${nodeId}_${i}`, left, right);
-    stripe.material = paint;
-    stripe.isPickable = false;
-    out.push(stripe);
+    indices.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
   }
+  if (!positions.length) return out;
+  const crossing = new MeshClass(`crossing_${arm.segment}_${nodeId}`, scene);
+  const data = new VertexData();
+  data.positions = positions;
+  data.indices = indices;
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  data.applyToMesh(crossing);
+  crossing.material = paint;
+  crossing.isPickable = false;
+  out.push(crossing);
   return out;
 }
 
@@ -899,6 +909,14 @@ function footwayArcs(
   return out;
 }
 
+/** Several lines that live and die together -- both kerbs of a road, say -- as one mesh. */
+function styledLines(scene: Scene, name: string, lines: Vector3[][], color: Color3): LinesMesh {
+  const mesh = MeshBuilder.CreateLineSystem(name, { lines }, scene);
+  mesh.color = color;
+  mesh.isPickable = false;
+  return mesh;
+}
+
 function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3, close = false): LinesMesh {
   const mesh = MeshBuilder.CreateLines(name, { points: close ? [...points, points[0]!] : points }, scene);
   mesh.color = color;
@@ -1004,7 +1022,7 @@ function linesIntersect(a: Vec3, b: Vec3, c: Vec3, d: Vec3): boolean {
 }
 
 function segmentIdFromMeshName(name: string): number | null {
-  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:pier|pylon|cable)|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
+  const match = /^(?:road|curb|guardrail_[lr]|sidewalk|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:pier|pylon|cable)|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
   return match ? Number(match[1]) : null;
 }
 
@@ -1213,13 +1231,16 @@ export function portalOutline(center: { x: number; z: number }, tangent: { x: nu
   return tunnelSection(width).map((p) => new Vector3(center.x + n.x * p.x, y + p.y, center.z + n.z * p.x));
 }
 
-function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[]): Mesh {
+function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[], ...more: [Vector3[], Vector3[]][]): Mesh {
   const positions: number[] = [];
   const indices: number[] = [];
-  for (let i = 0; i < left.length; i++) positions.push(left[i]!.x, left[i]!.y, left[i]!.z, right[i]!.x, right[i]!.y, right[i]!.z);
-  for (let i = 0; i < left.length - 1; i++) {
-    const a = i * 2;
-    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  for (const [l, r] of [[left, right] as [Vector3[], Vector3[]], ...more]) {
+    const base = positions.length / 3;
+    for (let i = 0; i < l.length; i++) positions.push(l[i]!.x, l[i]!.y, l[i]!.z, r[i]!.x, r[i]!.y, r[i]!.z);
+    for (let i = 0; i < l.length - 1; i++) {
+      const a = base + i * 2;
+      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
   }
   const mesh = new MeshClass(name, scene);
   const data = new VertexData();

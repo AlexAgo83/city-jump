@@ -911,10 +911,28 @@ check(
   }),
 );
 check(
+  // Both footways of a road live in one mesh, so this reads its vertices rather than its name:
+  // paving has to sit out beyond the kerb on both sides of the centre line.
   "ordinary roads get a footway either side",
   await page.evaluate(() => {
-    const meshes = window.cityjump._scene.meshes.filter((m) => m.name.startsWith("sidewalk_"));
-    return meshes.some((m) => m.name.startsWith("sidewalk_l_")) && meshes.some((m) => m.name.startsWith("sidewalk_r_"));
+    const graph = window.cityjump._graph;
+    const seg = graph.allSegments().find((s) => s.type === "street" && s.length > 60);
+    if (!seg) return false;
+    const mesh = window.cityjump._scene.getMeshByName(`sidewalk_${seg.id}`);
+    if (!mesh) return false;
+    const mid = graph.pointAt(seg.id, seg.length / 2);
+    const len = Math.hypot(mid.tangent.x, mid.tangent.z);
+    const n = { x: -mid.tangent.z / len, z: mid.tangent.x / len };
+    const positions = mesh.getVerticesData("position");
+    let left = 0;
+    let right = 0;
+    for (let i = 0; i < positions.length; i += 3) {
+      const side = (positions[i] - mid.position.x) * n.x + (positions[i + 2] - mid.position.z) * n.z;
+      left = Math.max(left, side);
+      right = Math.min(right, side);
+    }
+    // A street is 8 m wide, so paving beyond 4 m out on both sides is a footway on both sides.
+    return left > 4 && right < -4;
   }),
 );
 check(
