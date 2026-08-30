@@ -222,6 +222,21 @@ const shadowState = () =>
       bias: generator?.bias ?? 0,
       normalBias: generator?.normalBias ?? 0,
       pcf: generator?.usePercentageCloserFiltering ?? false,
+      sunShadowEnabled: sun?.shadowEnabled ?? false,
+    };
+  });
+const cityLightState = () =>
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const count = (name) => {
+      const cluster = scene.getLightByName(name);
+      return cluster?.isEnabled() ? cluster.lights.filter((light) => light.isEnabled()).length : 0;
+    };
+    return {
+      streetlights: count("streetlight_lights"),
+      headlights: count("car_headlights"),
+      sun: scene.getLightByName("sun")?.intensity ?? 0,
+      ambient: scene.getLightByName("ambient")?.intensity ?? 0,
     };
   });
 const trafficPositions = () =>
@@ -310,6 +325,20 @@ await waitForApp();
 check("fps setting is remembered across reload", await page.locator("#show-fps").isChecked() && await page.locator("#fps-counter").isVisible());
 await page.locator("#show-fps").uncheck();
 check("fps counter turns off immediately", await page.locator("#fps-counter").isHidden());
+check("shadows and city lights are on by default", (await page.locator("#show-shadows").isChecked()) && (await page.locator("#show-lights").isChecked()));
+check("shadows are switched on at the sun light", (await shadowState()).sunShadowEnabled);
+await page.locator("#show-shadows").uncheck();
+await page.locator("#show-lights").uncheck();
+check("shadows can be turned off without touching casters", !(await shadowState()).sunShadowEnabled);
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check(
+  "shadow and light settings are remembered across reload",
+  !(await page.locator("#show-shadows").isChecked()) && !(await page.locator("#show-lights").isChecked()) && !(await shadowState()).sunShadowEnabled,
+);
+await page.locator("#show-shadows").check();
+await page.locator("#show-lights").check();
+check("shadows can be restored", (await shadowState()).sunShadowEnabled);
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
@@ -478,6 +507,18 @@ check(
     return lamps.length >= 6 && byDay === false && byNight === true;
   }),
 );
+const litCity = await cityLightState();
+check("city lights leave the sun and ambient sky fill alone", litCity.streetlights > 0 && litCity.headlights > 0 && litCity.sun > 0 && litCity.ambient > 0);
+await page.locator("#show-lights").uncheck();
+const playerDarkenedCity = await cityLightState();
+check(
+  "city lights can be switched off without making night black",
+  playerDarkenedCity.streetlights === 0 && playerDarkenedCity.headlights === 0 && playerDarkenedCity.sun > 0 && playerDarkenedCity.ambient > 0,
+  `${JSON.stringify(playerDarkenedCity)}`,
+);
+await page.locator("#show-lights").check();
+const relitCity = await cityLightState();
+check("city lights can be restored", relitCity.streetlights > 0 && relitCity.headlights > 0, `${JSON.stringify(relitCity)}`);
 check("streetlights include facade fill lights", await streetlightFacadeLights());
 check("streetlights reach nearby buildings", await streetlightsReachBuildings());
 check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);

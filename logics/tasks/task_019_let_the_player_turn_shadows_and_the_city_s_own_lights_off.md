@@ -1,13 +1,15 @@
 ## task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off - Let the player turn shadows and the city's own lights off
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-30 18:22:33
 
 # AI Context
 - Summary: Orchestration for req_017: shadows first (switch on the light so rebuilds adding casters stay harmless), then the city's lights as one combined answer with the hour. Both small; the risk is reaching for a quality preset instead of two switches.

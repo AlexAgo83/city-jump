@@ -66,6 +66,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
 
   let lamps = 0;
   let sunHour = 14;
+  let lightsEnabled = true;
   let lampPositions: { position: Vector3; direction: Vector3; white: boolean }[] = [];
   interface LampRecord {
     segment: number;
@@ -209,7 +210,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   function updateLights(): void {
-    const on = streetlightsOnAt(sunHour);
+    const on = lightsEnabled && streetlightsOnAt(sunHour);
     glow.emissiveColor = on ? new Color3(1, 0.68, 0.24) : new Color3(0.25, 0.18, 0.08);
     glowWhite.emissiveColor = on ? new Color3(0.85, 0.92, 1) : new Color3(0.16, 0.19, 0.22);
     lightCluster.setEnabled(on);
@@ -219,7 +220,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   function updateRecordLights(records: LampRecord[]): void {
-    const on = streetlightsOnAt(sunHour);
+    const on = lightsEnabled && streetlightsOnAt(sunHour);
     for (const record of records) {
       if (!record.lights) continue;
       record.lights.pool.setEnabled(on);
@@ -287,6 +288,10 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   return {
     rebuild,
     setSunHour,
+    setLightsEnabled(enabled: boolean) {
+      lightsEnabled = enabled;
+      updateLights();
+    },
     setFaded,
     count: () => lamps,
     realLightCount: () => (lightCluster.isEnabled() ? lampRecords.filter((record) => record.lights).length * 2 : 0),

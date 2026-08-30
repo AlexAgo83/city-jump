@@ -1,13 +1,14 @@
 ## item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh - Make shadows a switch, on the light rather than on every mesh
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:22:33
 
 # AI Context
 - Summary: Switch shadows at the light (`sun.shadowEnabled`), not by walking meshes and emptying the caster list -- buildings and trees re-register casters on every rebuild, so the mesh-walking approach quietly undoes itself. Must stop the shadow map rendering, not just hide its result.

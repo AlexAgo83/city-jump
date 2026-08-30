@@ -93,12 +93,15 @@ export function createScene(canvas: HTMLCanvasElement) {
     scene.fogColor.copyFromFloats(horizon.r, horizon.g, horizon.b);
     sky.setHour(daylight, sunVector);
   }
+  const setShadowsEnabled = (enabled: boolean): void => {
+    sun.shadowEnabled = enabled;
+  };
   setSunHour(14);
 
   engine.runRenderLoop(() => scene.render());
   window.addEventListener("resize", () => engine.resize());
 
-  return { engine, scene, camera, shadows, setSunHour };
+  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled };
 }
 
 const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {

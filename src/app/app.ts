@@ -29,7 +29,7 @@ type CameraMode = "free" | "orbit" | "follow";
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, camera, shadows, setSunHour } = createScene(canvas);
+  const { scene, camera, shadows, setSunHour, setShadowsEnabled } = createScene(canvas);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
   setTerrain(heightmap);
   const frameTerrain = (): void => {
@@ -253,6 +253,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     onWorldGrid: worldGrid.setVisible,
     onFps: setFpsVisible,
+    onShadows: setShadowsEnabled,
+    onLights(visible) {
+      streetlights.setLightsEnabled(visible);
+      traffic.setLightsEnabled(visible);
+    },
     onGridSnap(enabled) {
       tool.setGridSnap(enabled);
     },

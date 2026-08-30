@@ -55,6 +55,8 @@ export interface UiSettings {
   buildings?: boolean;
   gridSnap?: boolean;
   fps?: boolean;
+  shadows?: boolean;
+  lights?: boolean;
   sunAuto?: boolean;
   shortNight?: boolean;
   cameraMode?: "free" | "orbit" | "follow";

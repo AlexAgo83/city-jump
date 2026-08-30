@@ -1,13 +1,14 @@
 ## item_060_make_the_city_s_own_lights_a_switch_without_turning_the_night_black - Make the city's own lights a switch, without turning the night black
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:22:33
 
 # AI Context
 - Summary: One combined answer -- the hour says on AND the setting allows it -- through the `setEnabled` calls both light clusters already have, so switching at 22:00 takes effect at once instead of waiting for the next sun-slider move. Ambient and sun stay lit: night goes darker, not black.

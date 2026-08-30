@@ -391,7 +391,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   headlightCluster.maxRange = 42;
   let headlights: SpotLight[] = [];
   let sunHour = 14;
-  const lightsOn = () => streetlightsOnAt(sunHour);
+  let lightsEnabled = true;
+  const lightsOn = () => lightsEnabled && streetlightsOnAt(sunHour);
 
   function syncHeadlights(count: number): void {
     while (headlights.length > count) {
@@ -422,6 +423,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     headlightCluster.setEnabled(on);
   }
   setSunHour(sunHour);
+
+  function setLightsEnabled(enabled: boolean): void {
+    lightsEnabled = enabled;
+    setSunHour(sunHour);
+  }
 
   /** Wheels and glass for each shape: one prototype whatever colour the body it rides on is. */
   const carParts = CAR_SHAPES.map((shape) => {
@@ -1116,6 +1122,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   return {
     rebuild,
     setSunHour,
+    setLightsEnabled,
     vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number } | null } | null {
       let best: Mover | null = null;
       let bestDistance = 7;

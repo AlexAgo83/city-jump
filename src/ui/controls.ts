@@ -20,6 +20,8 @@ export function bindControls(handlers: {
   onRoadType(type: string): void;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
+  onShadows(visible: boolean): void;
+  onLights(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onSprayRadius(radius: number): void;
@@ -127,6 +129,8 @@ export function bindControls(handlers: {
   const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
   const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
+  const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
+  const showLights = document.getElementById("show-lights") as HTMLInputElement;
 
   showGrid.addEventListener("change", () => {
     handlers.onWorldGrid(showGrid.checked);
@@ -145,6 +149,16 @@ export function bindControls(handlers: {
 
   showFps.addEventListener("change", () => {
     handlers.onFps(showFps.checked);
+    persistSettings();
+  });
+
+  showShadows.addEventListener("change", () => {
+    handlers.onShadows(showShadows.checked);
+    persistSettings();
+  });
+
+  showLights.addEventListener("change", () => {
+    handlers.onLights(showLights.checked);
     persistSettings();
   });
 
@@ -269,6 +283,8 @@ export function bindControls(handlers: {
       buildings: showBuildings.checked,
       gridSnap: gridSnap.checked,
       fps: showFps.checked,
+      shadows: showShadows.checked,
+      lights: showLights.checked,
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
@@ -283,6 +299,8 @@ export function bindControls(handlers: {
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showFps, stored.fps);
+  applySetting(showShadows, stored.shadows);
+  applySetting(showLights, stored.lights);
   applySetting(gridSnap, stored.gridSnap);
   applySetting(shortNight, stored.shortNight);
   const cameraMode = stored.cameraMode && document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${stored.cameraMode}"]`);
