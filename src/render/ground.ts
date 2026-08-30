@@ -356,7 +356,9 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     g = mix(GRASS[1], ROCK[1], t);
     b = mix(GRASS[2], ROCK[2], t);
   } else {
-    const t = smoothstep((h - 118) / 36);
+    const snowNoise = valueNoise(x - 320, z + 520, 170);
+    const snowShelf = 1 - smoothstep((slope - 0.18) / 0.34);
+    const t = smoothstep((h - (116 + snowNoise * 20)) / 38) * snowShelf;
     r = mix(ROCK[0], SNOW[0], t);
     g = mix(ROCK[1], SNOW[1], t);
     b = mix(ROCK[2], SNOW[2], t);
@@ -384,6 +386,21 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     r = mix(r, 0.38, rockFace * 0.36);
     g = mix(g, 0.37, rockFace * 0.34);
     b = mix(b, 0.32, rockFace * 0.32);
+  }
+  if (h > 48) {
+    const high = smoothstep((h - 48) / 86);
+    const ravine = Math.max(0, valueNoise(x * 0.45 + z * 0.12, z * 1.3, 42) - 0.54) * 2.2 * smoothstep((slope - 0.12) / 0.42) * high;
+    const strata = Math.abs(((h * 0.11 + valueNoise(x, z, 260) * 1.8) % 1) - 0.5);
+    const ridge = smoothstep((h - 94) / 64) * (1 - smoothstep((slope - 0.38) / 0.42));
+    r = mix(r, 0.24, ravine * 0.22);
+    g = mix(g, 0.24, ravine * 0.22);
+    b = mix(b, 0.22, ravine * 0.2);
+    r *= 0.94 + strata * 0.1;
+    g *= 0.94 + strata * 0.08;
+    b *= 0.94 + strata * 0.06;
+    r = mix(r, 0.62, ridge * 0.1);
+    g = mix(g, 0.62, ridge * 0.1);
+    b = mix(b, 0.56, ridge * 0.08);
   }
   if (roadWear > 0) {
     const dust = valueNoise(x + 300, z - 1200, 36) * 0.16;

@@ -29,4 +29,16 @@ describe("ground terrain color", () => {
     expect(steepLow[0]).toBeGreaterThan(flatLow[0]!);
     expect(steepLow[2]).toBeGreaterThan(flatLow[2]!);
   });
+
+  it("keeps steep mountains rocky while snow settles on flatter peaks", () => {
+    const flatPeak = new Float32Array(4);
+    const steepPeak = new Float32Array(4);
+
+    writeTerrainColor(flatPeak, 0, 150, 150, 0.04, 420, -560);
+    writeTerrainColor(steepPeak, 0, 150, 150, 0.9, 420, -560);
+
+    expect(flatPeak[0]).toBeGreaterThan(steepPeak[0]!);
+    expect(flatPeak[1]).toBeGreaterThan(steepPeak[1]!);
+    expect(flatPeak[2]).toBeGreaterThan(steepPeak[2]!);
+  });
 });
