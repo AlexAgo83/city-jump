@@ -1,12 +1,13 @@
 ## req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them - Let the player decide what gets built, instead of the geometry deciding for them
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:51:59
 
 # AI Context
 - Summary: Buildings appear because a rectangle fit, not because anyone wanted them there; the only decision in the game is where the road goes. Adds a zone the player paints, reusing the `LOW_RISE_SIZES` constraint seam that already narrows sizes for pedestrian roads — deliberately without demand, growth or economy.

@@ -1,14 +1,14 @@
 ## item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing - Model a zone as authored land that survives the roads changing
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:47:36
+> Indicators reviewed: 2026-08-30 12:52:00
 
 # AI Context
 - Summary: A zone is authored intent, not derived state, so it cannot be recomputed from the graph and must survive the roads under it being redrawn — anchored to ground rather than to parcels.
@@ -54,3 +54,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_016_implement_zoning_as_the_player_s_second_decision`
+
+# Notes
+- Task `task_016_implement_zoning_as_the_player_s_second_decision` was finished via `logics-manager flow finish task` on 2026-08-30.

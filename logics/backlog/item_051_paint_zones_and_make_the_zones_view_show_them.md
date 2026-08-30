@@ -1,14 +1,14 @@
 ## item_051_paint_zones_and_make_the_zones_view_show_them - Paint zones, and make the Zones view show them
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:47:36
+> Indicators reviewed: 2026-08-30 12:52:00
 
 # AI Context
 - Summary: Nothing paints an area today, and the `Zones` view shows the buildable grid rather than any player intent — the name promises something the game does not have.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_016_implement_zoning_as_the_player_s_second_decision`
+
+# Notes
+- Task `task_016_implement_zoning_as_the_player_s_second_decision` was finished via `logics-manager flow finish task` on 2026-08-30.

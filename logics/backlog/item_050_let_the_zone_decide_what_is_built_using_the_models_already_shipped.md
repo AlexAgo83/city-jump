@@ -1,14 +1,14 @@
 ## item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped - Let the zone decide what is built, using the models already shipped
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:47:36
+> Indicators reviewed: 2026-08-30 12:52:00
 
 # AI Context
 - Summary: `buildingParcels` picks a footprint by what fits; the seam to constrain it already exists as `LOW_RISE_SIZES` for pedestrian roads, and a zone is the same mechanism driven by the player.
@@ -55,3 +55,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_016_implement_zoning_as_the_player_s_second_decision`
+
+# Notes
+- Task `task_016_implement_zoning_as_the_player_s_second_decision` was finished via `logics-manager flow finish task` on 2026-08-30.

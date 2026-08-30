@@ -1,11 +1,12 @@
 ## prod_011_a_city_that_is_built_on_purpose - A city that is built on purpose
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
-> Related backlog: `item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing`, `item_050_let_the_zone_decide_what_is_built_using_the_models_already_shipped`, `item_051_paint_zones_and_make_the_zones_view_show_them`
+> Related backlog: `item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing`
 > Related task: `task_016_implement_zoning_as_the_player_s_second_decision`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:52:00
 
 # Overview
 city-jump lets a player draw roads beautifully and then watches buildings appear on their own, sized by whatever rectangle happened to fit. The city is a consequence, not a plan. This slice gives the player the second decision the game has been missing: not only where the road goes, but what belongs beside it. It stops deliberately short of demand, growth and economy -- those need something to act on, and this is that something.
@@ -48,5 +49,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them`
+- Product back-reference: `item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing`
 - Task back-reference: `task_016_implement_zoning_as_the_player_s_second_decision`
