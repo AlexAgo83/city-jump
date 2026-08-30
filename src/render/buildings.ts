@@ -181,6 +181,15 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
   const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
+  const groundPad = buildingGroundPadMesh(scene);
+  const groundPadMaterial = new StandardMaterial("building-ground-pad", scene);
+  // Same paving tone as sidewalks, faded at the edges by vertex alpha.
+  groundPadMaterial.diffuseColor = new Color3(0.56, 0.53, 0.48);
+  groundPadMaterial.specularColor = Color3.Black();
+  groundPadMaterial.alpha = 0.42;
+  groundPadMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
+  groundPadMaterial.backFaceCulling = false;
+  groundPad.material = groundPadMaterial;
   const takenMaterial = new StandardMaterial("buildable-grid-taken", scene);
   // disableLighting means diffuseColor is lit by (black) ambient and never shows -- every other
   // unlit material in this codebase (streetlight glow, tunnel tube) drives its visible color
@@ -207,6 +216,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     for (const model of available) model.mesh.setEnabled(visible && model.mesh.thinInstanceCount > 0);
     for (const mesh of Object.values(roofProps)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     groundShadow.mesh.setEnabled(visible && groundShadow.mesh.thinInstanceCount > 0);
+    groundPad.setEnabled(visible && groundPad.thinInstanceCount > 0);
   }
 
   /**
@@ -260,6 +270,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         radius: ((parcel.frontageCells + parcel.depthCells) / 2) * GRID.cellSize * 0.3,
       })),
     );
+    const padMatrices = new Float32Array(parcels.length * 16);
+    for (const [i, parcel] of parcels.entries()) buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
+    groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
+    groundPad.thinInstanceCount = parcels.length;
 
     let placed = 0;
     for (const model of available) {
@@ -547,6 +561,52 @@ function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
       parcel.position.z - alongZ * centerX,
     ),
   );
+}
+
+export function buildingGroundPadMatrix(parcel: BuildingParcel): Matrix {
+  const margin = 8;
+  const width = parcel.frontageCells * GRID.cellSize + margin;
+  const depth = parcel.depthCells * GRID.cellSize + margin;
+  const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
+  const outX = -Math.sin(parcel.rotationY);
+  const outZ = -Math.cos(parcel.rotationY);
+  return Matrix.Compose(
+    new Vector3(width, 1, depth),
+    rotation,
+    new Vector3(parcel.position.x + outX * (depth / 2 - margin / 2), parcel.position.y + 0.035, parcel.position.z + outZ * (depth / 2 - margin / 2)),
+  );
+}
+
+function buildingGroundPadMesh(scene: Scene): Mesh {
+  const steps = 8;
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  for (let z = 0; z <= steps; z++) {
+    for (let x = 0; x <= steps; x++) {
+      const u = x / steps;
+      const v = z / steps;
+      positions.push(u - 0.5, 0, v - 0.5);
+      const edge = Math.min(u, v, 1 - u, 1 - v);
+      colors.push(1, 1, 1, Math.min(1, edge / 0.18));
+      if (x < steps && z < steps) {
+        const i = z * (steps + 1) + x;
+        indices.push(i, i + 1, i + steps + 1, i + 1, i + steps + 2, i + steps + 1);
+      }
+    }
+  }
+  const mesh = new Mesh("building-ground-pads", scene);
+  const data = new VertexData();
+  data.positions = positions;
+  data.indices = indices;
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  data.colors = colors;
+  data.applyToMesh(mesh, true);
+  mesh.hasVertexAlpha = true;
+  mesh.isPickable = false;
+  mesh.alwaysSelectAsActiveMesh = true;
+  mesh.setEnabled(false);
+  return mesh;
 }
 
 /** One quad per taken cell, merged into a single mesh -- a highlight, not a hundred draw calls. */

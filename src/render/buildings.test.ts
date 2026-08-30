@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { roofObjectLimit, roofPropY } from "./buildings";
+import { buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -19,5 +19,20 @@ describe("roof props", () => {
     expect(roofPropY(pitched, 3.25, -3.25, 9.5)).toBe(9.5);
     expect(roofPropY(pitched, 3.25, -0.75, 9.5)).toBeCloseTo(7.58, 2);
     expect(roofPropY(undefined, 3.25, -3.25, 9.5)).toBe(9.5);
+  });
+
+  it("puts a paving pad just larger than the building footprint", () => {
+    const matrix = buildingGroundPadMatrix({
+      position: { x: 10, y: 2, z: 20 },
+      rotationY: 0,
+      frontageCells: 2,
+      depthCells: 3,
+      cells: [],
+    });
+    expect(matrix.m[0]).toBe(24);
+    expect(matrix.m[10]).toBe(32);
+    expect(matrix.m[12]).toBeCloseTo(10);
+    expect(matrix.m[13]).toBeCloseTo(2.035);
+    expect(matrix.m[14]).toBeCloseTo(8);
   });
 });
