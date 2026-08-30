@@ -215,6 +215,10 @@ export function laneQueueIsOrdered<T extends QueuedMover>(queue: readonly T[]): 
   return queue.every((mover, i) => i === 0 || queue[i - 1]!.distance * queue[i - 1]!.direction <= mover.distance * mover.direction);
 }
 
+export function scaledTrafficCount(base: number, density: number): number {
+  return base <= 0 ? 0 : Math.max(1, Math.round(base * density));
+}
+
 function segmentTouchesBounds(segment: Segment, bounds: TerrainBounds): boolean {
   return segment.samples.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
 }
@@ -392,7 +396,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   let headlights: SpotLight[] = [];
   let sunHour = 14;
   let lightsEnabled = true;
-  const lightsOn = () => lightsEnabled && streetlightsOnAt(sunHour);
+  let trafficEnabled = true;
+  let density = 1;
+  const lightsOn = () => trafficEnabled && lightsEnabled && streetlightsOnAt(sunHour);
 
   function syncHeadlights(count: number): void {
     while (headlights.length > count) {
@@ -891,8 +897,20 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     ];
   }
 
+  function clearMovers(): void {
+    for (const mover of movers) mover.mesh.dispose();
+    movers = [];
+    queues.clear();
+    queueOf.clear();
+    syncHeadlights(0);
+  }
+
   function rebuild(dirty?: TerrainBounds): void {
     const segments = graph.allSegments();
+    if (!trafficEnabled) {
+      clearMovers();
+      return;
+    }
     if (dirty) {
       const live = new Set(segments.map((segment) => segment.id));
       movers = movers.filter((mover) => {
@@ -962,9 +980,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       if (!type.highway) {
         const walks = walkCentres(type, SIDEWALK_WIDTH);
         // A path is all footway, so it carries more; a street gets a handful either side.
-        const count = type.pedestrian
+        const baseCount = type.pedestrian
           ? Math.min(8, Math.max(2, Math.floor(seg.length / 22)))
           : Math.min(6, Math.floor(seg.length / 45));
+        const count = scaledTrafficCount(baseCount, density);
         for (let i = 0; i < count; i++) {
           const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
             `pedestrian_${seg.id}_${i}`,
@@ -976,7 +995,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       if (type.pedestrian) continue;
 
       const lanes = laneCentres(type);
-      const count = Math.min(4, Math.max(1, Math.floor(seg.length / 80)));
+      const count = scaledTrafficCount(Math.min(4, Math.max(1, Math.floor(seg.length / 80))), density);
       for (let i = 0; i < count; i++) {
         // Shape and colour picked apart from each other, so a street carries a mix of both.
         const shape = (si * 3 + i) % CAR_SHAPES.length;
@@ -1028,6 +1047,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   }
 
   scene.registerBeforeRender(() => {
+    if (!trafficEnabled || movers.length === 0) return;
     const now = performance.now() / 1000;
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
 
@@ -1123,6 +1143,17 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     rebuild,
     setSunHour,
     setLightsEnabled,
+    setEnabled(enabled: boolean) {
+      if (trafficEnabled === enabled) return;
+      trafficEnabled = enabled;
+      rebuild();
+    },
+    setDensity(next: number) {
+      const clamped = Math.max(0.25, Math.min(2, next));
+      if (density === clamped) return;
+      density = clamped;
+      rebuild();
+    },
     vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number } | null } | null {
       let best: Mover | null = null;
       let bestDistance = 7;

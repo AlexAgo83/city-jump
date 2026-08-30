@@ -58,6 +58,8 @@ export interface UiSettings {
   shadows?: boolean;
   lights?: boolean;
   settingsOpen?: boolean;
+  traffic?: boolean;
+  trafficDensity?: number;
   sunAuto?: boolean;
   shortNight?: boolean;
   cameraMode?: "free" | "orbit" | "follow";

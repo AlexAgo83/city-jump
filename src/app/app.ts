@@ -273,6 +273,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       streetlights.setLightsEnabled(visible);
       traffic.setLightsEnabled(visible);
     },
+    onTraffic: traffic.setEnabled,
+    onTrafficDensity: traffic.setDensity,
     onGridSnap(enabled) {
       tool.setGridSnap(enabled);
     },

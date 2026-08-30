@@ -1,13 +1,14 @@
 ## item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it - Make traffic a switch that stops the simulation rather than hiding it
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:38:12
 
 # AI Context
 - Summary: Off must mean the movers do not exist and the `registerBeforeRender` step is not entered -- hiding the meshes leaves the whole cost running and the frame rate unmoved, which is the worst outcome for a setting whose only purpose is cost. Headlights answer to this and to `Lights` as one combined answer, so no beams survive their cars.

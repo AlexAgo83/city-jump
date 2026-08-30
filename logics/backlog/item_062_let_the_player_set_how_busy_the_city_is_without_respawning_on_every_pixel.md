@@ -1,13 +1,14 @@
 ## item_062_let_the_player_set_how_busy_the_city_is_without_respawning_on_every_pixel - Let the player set how busy the city is, without respawning on every pixel
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:38:12
 
 # AI Context
 - Summary: One factor scaling the three spawn-count expressions, applied at spawn time, pure and unit-tested, with the default reproducing today's counts exactly. Density cannot be applied incrementally -- it means a full traffic rebuild -- so the slider settles before it respawns, or it repeats the zoning brush's defect. Its floor is a quiet city, not an empty one; emptiness is the toggle's job.

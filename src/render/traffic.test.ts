@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { circularQueueRooms, joinLaneQueue, laneQueueIsOrdered, leaveLaneQueue, trafficLaneOffset } from "./traffic";
+import { circularQueueRooms, joinLaneQueue, laneQueueIsOrdered, leaveLaneQueue, scaledTrafficCount, trafficLaneOffset } from "./traffic";
 
 describe("traffic queues", () => {
+  it("scales traffic counts without changing the default or making non-empty roads empty", () => {
+    expect([0, 1, 4, 8].map((count) => scaledTrafficCount(count, 1))).toEqual([0, 1, 4, 8]);
+    expect(scaledTrafficCount(4, 0.25)).toBe(1);
+    expect(scaledTrafficCount(4, 2)).toBe(8);
+  });
+
   it("keeps a circular gap on roundabout rides", () => {
     const [a, b, c] = ["a", "b", "c"];
     const rooms = circularQueueRooms([

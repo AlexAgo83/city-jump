@@ -342,6 +342,12 @@ check(
 await page.locator("#show-shadows").check();
 await page.locator("#show-lights").check();
 check("shadows can be restored", (await shadowState()).sunShadowEnabled);
+check("traffic is on by default", await page.locator("#show-traffic").isChecked());
+await page.locator("#show-traffic").uncheck();
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("traffic setting is remembered across reload", !(await page.locator("#show-traffic").isChecked()) && await page.locator("#traffic-density").isDisabled());
+await page.locator("#show-traffic").check();
 
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
@@ -578,6 +584,29 @@ await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="all"]').check();
 await page.locator('[data-tool="roads"]').click();
 check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
+await page.locator("#traffic-density").evaluate((input) => {
+  input.value = "2";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForFunction((cars) => window.cityjump.stats().cars > cars, drawn.cars, { timeout: 5_000 });
+const denseTraffic = await stats();
+check("traffic density can make the city busier", denseTraffic.cars > drawn.cars, `${denseTraffic.cars} vs ${drawn.cars}`);
+await page.locator("#traffic-density").evaluate((input) => {
+  input.value = "0.25";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForFunction((cars) => window.cityjump.stats().cars < cars, denseTraffic.cars, { timeout: 5_000 });
+const quietTraffic = await stats();
+check("traffic density can make the city quieter without emptying it", quietTraffic.cars > 0 && quietTraffic.cars < denseTraffic.cars, `${quietTraffic.cars}`);
+await page.locator("#show-traffic").uncheck();
+await page.waitForFunction(() => window.cityjump.stats().cars === 0 && window.cityjump.stats().pedestrians === 0, null, { timeout: 5_000 });
+check("traffic can be switched off instead of hidden", (await stats()).cars === 0 && (await stats()).pedestrians === 0);
+await page.locator("#show-traffic").check();
+await page.locator("#traffic-density").evaluate((input) => {
+  input.value = "1";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.waitForFunction(() => window.cityjump.stats().cars > 0, null, { timeout: 5_000 });
 const beforeTraffic = await trafficPositions();
 await realTime(250);
 const afterTraffic = await trafficPositions();

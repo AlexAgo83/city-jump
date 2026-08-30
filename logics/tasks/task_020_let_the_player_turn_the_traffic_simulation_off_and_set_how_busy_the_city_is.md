@@ -1,13 +1,15 @@
 ## task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is - Let the player turn the traffic simulation off and set how busy the city is
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-08-30 18:38:12
 
 # AI Context
 - Summary: Orchestration for req_018: the switch first (no movers, no per-frame step, headlights joined with `Lights`), then density as one scaling factor. The trap is a slider wired straight to a rebuild -- read run_008 rung 9 before writing it.

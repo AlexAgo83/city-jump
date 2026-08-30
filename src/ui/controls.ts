@@ -22,6 +22,8 @@ export function bindControls(handlers: {
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
+  onTraffic(enabled: boolean): void;
+  onTrafficDensity(density: number): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onSprayRadius(radius: number): void;
@@ -134,6 +136,8 @@ export function bindControls(handlers: {
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
+  const showTraffic = document.getElementById("show-traffic") as HTMLInputElement;
+  const trafficDensity = document.getElementById("traffic-density") as HTMLInputElement;
 
   showGrid.addEventListener("change", () => {
     handlers.onWorldGrid(showGrid.checked);
@@ -163,6 +167,19 @@ export function bindControls(handlers: {
   showLights.addEventListener("change", () => {
     handlers.onLights(showLights.checked);
     persistSettings();
+  });
+
+  showTraffic.addEventListener("change", () => {
+    trafficDensity.disabled = !showTraffic.checked;
+    handlers.onTraffic(showTraffic.checked);
+    persistSettings();
+  });
+
+  let densityTimer = 0;
+  trafficDensity.addEventListener("input", () => {
+    persistSettings();
+    window.clearTimeout(densityTimer);
+    densityTimer = window.setTimeout(() => handlers.onTrafficDensity(Number(trafficDensity.value)), 250);
   });
 
   document.getElementById("tree-species")!.addEventListener("change", (event) => {
@@ -289,6 +306,8 @@ export function bindControls(handlers: {
       shadows: showShadows.checked,
       lights: showLights.checked,
       settingsOpen: !toolbarContent.hidden,
+      traffic: showTraffic.checked,
+      trafficDensity: Number(trafficDensity.value),
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
@@ -306,6 +325,12 @@ export function bindControls(handlers: {
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
+  applySetting(showTraffic, stored.traffic);
+  if (stored.trafficDensity !== undefined && Number.isFinite(stored.trafficDensity)) {
+    trafficDensity.value = String(stored.trafficDensity);
+    handlers.onTrafficDensity(stored.trafficDensity);
+  }
+  trafficDensity.disabled = !showTraffic.checked;
   applySetting(gridSnap, stored.gridSnap);
   applySetting(shortNight, stored.shortNight);
   const cameraMode = stored.cameraMode && document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${stored.cameraMode}"]`);
