@@ -73,6 +73,22 @@ const waitForPreview = () =>
   page.waitForFunction(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false, null, { timeout: 5_000 });
 const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
+const screenPoint = (worldish) =>
+  page.evaluate((expr) => {
+    const scene = window.cityjump._scene;
+    const pos = new Function("return " + expr)();
+    if (!pos) return null;
+    const t = scene.getTransformMatrix().m;
+    const { x, z } = pos;
+    const y = pos.y ?? 0;
+    const w = x * t[3] + y * t[7] + z * t[11] + t[15];
+    const engine = scene.getEngine();
+    const point = {
+      x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
+      y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
+    };
+    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
+  }, worldish);
 const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
 const buildableGridVisible = () =>
@@ -313,12 +329,11 @@ const offshoreBridge = await page.evaluate(() => {
   const b = graph.node(segment.b).pos;
   const middle = graph.pointAt(segment.id, segment.length / 2).position;
   const piers = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("bridge_pier_")).length;
-  const ramps = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("bridge_ramp_")).length;
-  return { type: segment.type, length: segment.length, pylons, piers, ramps, bend: Math.abs(middle.x - (a.x + b.x) / 2) };
+  return { type: segment.type, length: segment.length, pylons, piers, bend: Math.abs(middle.x - (a.x + b.x) / 2) };
 });
 check(
   "the offshore bridge is a curved two-way two-lane highway with pylons",
-  offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.ramps === 2 && offshoreBridge.bend > 200,
+  offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.bend > 200,
   JSON.stringify(offshoreBridge),
 );
 check("startup does not wait for all parcel models", fresh.startupModels < 16, `${fresh.startupModels} models ready at renderer return`);
@@ -960,22 +975,6 @@ check(
 );
 
 // The bulldozer aims at what the pointer is actually over.
-const screenPoint = (worldish) =>
-  page.evaluate((expr) => {
-    const scene = window.cityjump._scene;
-    const pos = new Function("return " + expr)();
-    if (!pos) return null;
-    const t = scene.getTransformMatrix().m;
-    const { x, z } = pos;
-    const y = pos.y ?? 0;
-    const w = x * t[3] + y * t[7] + z * t[11] + t[15];
-    const engine = scene.getEngine();
-    const point = {
-      x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
-      y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
-    };
-    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
-  }, worldish);
 const highlightRadius = () =>
   page.evaluate(() => {
     const mesh = window.cityjump._scene.getMeshByName("bulldoze-highlight");

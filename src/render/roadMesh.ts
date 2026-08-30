@@ -890,7 +890,7 @@ function cableBridge(
   material: StandardMaterial,
   color: Color3,
 ): (Mesh | LinesMesh)[] {
-  const out: (Mesh | LinesMesh)[] = [bridgeRamp(scene, graph, seg, 0, width, material), bridgeRamp(scene, graph, seg, seg.length, width, material)];
+  const out: (Mesh | LinesMesh)[] = [];
   for (const d of [seg.length * 0.22, seg.length * 0.5, seg.length * 0.78]) {
     const { position, tangent } = graph.pointAt(seg.id, d);
     const n = perpXZ(normalizeXZ(tangent));
@@ -918,37 +918,6 @@ function cableBridge(
     }
   }
   return out;
-}
-
-function bridgeRamp(scene: Scene, graph: RoadGraph, seg: Segment, distance: number, width: number, material: StandardMaterial): Mesh {
-  const atStart = distance === 0;
-  const { position, tangent } = graph.pointAt(seg.id, distance);
-  const outward = atStart ? new Vector3(-tangent.x, 0, -tangent.z) : new Vector3(tangent.x, 0, tangent.z);
-  const n = perpXZ(normalizeXZ(tangent));
-  const length = 150;
-  const half = width * 0.75;
-  const lowerY = position.y - 14;
-  const upper = position;
-  const lower = new Vector3(position.x + outward.x * length, lowerY, position.z + outward.z * length);
-  const points = [
-    new Vector3(lower.x + n.x * half, lower.y, lower.z + n.z * half),
-    new Vector3(lower.x - n.x * half, lower.y, lower.z - n.z * half),
-    new Vector3(upper.x + n.x * half, upper.y, upper.z + n.z * half),
-    new Vector3(upper.x - n.x * half, upper.y, upper.z - n.z * half),
-    new Vector3(lower.x + n.x * half, lower.y - 2, lower.z + n.z * half),
-    new Vector3(lower.x - n.x * half, lower.y - 2, lower.z - n.z * half),
-    new Vector3(upper.x + n.x * half, upper.y - 2, upper.z + n.z * half),
-    new Vector3(upper.x - n.x * half, upper.y - 2, upper.z - n.z * half),
-  ];
-  const mesh = vertexMesh(
-    scene,
-    `bridge_ramp_${seg.id}_${atStart ? "a" : "b"}`,
-    points.flatMap((p) => [p.x, p.y, p.z]),
-    [0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7],
-  );
-  mesh.material = material;
-  mesh.isPickable = false;
-  return mesh;
 }
 
 function pointsTouchBounds(points: readonly Vec3[], bounds: TerrainBounds): boolean {
@@ -1007,7 +976,7 @@ function linesIntersect(a: Vec3, b: Vec3, c: Vec3, d: Vec3): boolean {
 }
 
 function segmentIdFromMeshName(name: string): number | null {
-  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:ramp|pier|pylon|cable)|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
+  const match = /^(?:road|curb_[lr]|guardrail_[lr]|sidewalk_[lr]|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:pier|pylon|cable)|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
   return match ? Number(match[1]) : null;
 }
 

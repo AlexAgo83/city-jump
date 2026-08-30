@@ -89,6 +89,7 @@ const CLICK_SLOP = 5;
 
 /** How far from a node you can click and still mean that node. */
 const NODE_REACH = 22;
+const BRIDGE_NODE_REACH = 170;
 
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
@@ -372,7 +373,7 @@ export function createDrawTool(
       return highlightCircle(target.x, target.z, target.radius);
     }
     targetHighlight.setEnabled(false);
-    const snap = resolveSnap(graph, at.x, at.z, gridSnap);
+    const snap = resolveDrawingSnap(at.x, at.z);
     nodeHighlight.setEnabled(snap.kind === "node");
     if (snap.kind === "node") {
       nodeHighlight.position.copyFromFloats(snap.position.x, snap.position.y + PREVIEW_LIFT, snap.position.z);
@@ -382,12 +383,12 @@ export function createDrawTool(
     if (stage.phase === "control") {
       // Before the control point is placed, the preview is the straight it would be.
       const mid = lerp(stage.from.position, snap.position, 0.5);
-      const check = validateSegment(stage.from.position, mid, snap.position, typeId);
+      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap));
       drawPreview(sampleQuadratic(stage.from.position, mid, snap.position), check.ok);
       return;
     }
 
-    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId);
+    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap));
     drawPreview(sampleQuadratic(stage.from.position, stage.control, snap.position), check.ok);
   }
 
@@ -456,7 +457,7 @@ export function createDrawTool(
       onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
       return;
     }
-    const snap = resolveSnap(graph, at.x, at.z, gridSnap);
+    const snap = resolveDrawingSnap(at.x, at.z);
 
     if (stage.phase === "idle") {
       stage = { phase: "control", from: snap };
@@ -487,6 +488,31 @@ export function createDrawTool(
     clearPreview();
     history?.afterChange(true);
     onCommitted(dirty);
+  }
+
+  function resolveDrawingSnap(x: number, z: number): Snap {
+    const bridge = nearestElevatedEndpoint(x, z);
+    return bridge ?? resolveSnap(graph, x, z, gridSnap);
+  }
+
+  function nearestElevatedEndpoint(x: number, z: number): Snap | null {
+    let best: Snap | null = null;
+    let bestDistance = BRIDGE_NODE_REACH;
+    for (const node of graph.allNodes()) {
+      if (![...node.segments].some((id) => graph.segment(id).elevated)) continue;
+      const distance = Math.hypot(node.pos.x - x, node.pos.z - z);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = { kind: "node", nodeId: node.id, position: node.pos };
+      }
+    }
+    return best;
+  }
+
+  function touchesElevated(snap: Snap): boolean {
+    if (snap.kind === "segment") return !!graph.segment(snap.segmentId).elevated;
+    if (snap.kind !== "node") return false;
+    return [...graph.node(snap.nodeId).segments].some((id) => graph.segment(id).elevated);
   }
 
   /** Drawing state only -- never the selection, which an option change has no business erasing. */

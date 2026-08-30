@@ -163,6 +163,18 @@ describe("validation", () => {
     }
   });
 
+  it("extends an elevated bridge with another elevated road", () => {
+    const g = new RoadGraph();
+    const bridgeStart = g.addNodeAt(v3(0, 50, 0));
+    const bridgeEnd = g.addNodeAt(v3(100, 50, 0));
+    g.addElevatedSegment(bridgeStart, bridgeEnd, v3(50, 60, 0), "highway_2lane");
+
+    const result = commitSegment(g, resolveSnap(g, 0, 0), { kind: "free", position: v3(0, 0, 50) }, v3(0, 0, 25), "highway_2lane");
+
+    expect(result.ok).toBe(true);
+    expect(result.ok && g.segment(result.segmentId).elevated).toBe(true);
+  });
+
   it("does not split surface roads when a tunnel crosses under them", () => {
     const g = new RoadGraph();
     expect(road(g, -60, 0, 60, 0).ok).toBe(true);

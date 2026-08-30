@@ -51,7 +51,7 @@ export type Validation = { ok: true } | { ok: false; reason: string };
  * Draw-time validation. A refused segment never enters the graph, and the reason is the
  * message shown to the player, so it is written for them rather than for a log.
  */
-export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: string): Validation {
+export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: string, allowSteep = false): Validation {
   roadType(type);
 
   const length = quadraticLengthXZ(start, control, end);
@@ -59,7 +59,7 @@ export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: str
     return { ok: false, reason: `Too short: ${length.toFixed(1)} m, minimum is ${RULES.minLength} m.` };
   }
 
-  if (!roadType(type).tunnelDepth) {
+  if (!allowSteep && !roadType(type).tunnelDepth) {
     const gradient = maxSampleGradient(start, control, end);
     if (gradient > RULES.maxGradient + 1e-6) {
       return {
@@ -119,14 +119,15 @@ export function commitSegment(
   control: Vec3,
   type: string,
 ): { ok: true; segmentId: SegmentId } | { ok: false; reason: string } {
-  const validation = validateSegment(from.position, control, to.position, type);
+  const elevated = touchesElevated(graph, from) || touchesElevated(graph, to);
+  const validation = validateSegment(from.position, control, to.position, type, elevated);
   if (!validation.ok) return validation;
 
   const a = resolveEndpoint(graph, from);
   const b = resolveEndpoint(graph, to);
   if (a === b) return { ok: false, reason: "A road cannot start and end at the same point." };
 
-  const crossings = roadType(type).tunnelDepth ? [] : allCrossings(graph, from.position, control, to.position);
+  const crossings = elevated || roadType(type).tunnelDepth ? [] : allCrossings(graph, from.position, control, to.position);
   if (crossings.length) {
     const nodes = [a];
     for (const crossing of crossings) {
@@ -144,7 +145,13 @@ export function commitSegment(
     return { ok: true, segmentId: lastSegment };
   }
 
-  return { ok: true, segmentId: graph.addSegment(a, b, control, type) };
+  return { ok: true, segmentId: elevated ? graph.addElevatedSegment(a, b, control, type) : graph.addSegment(a, b, control, type) };
+}
+
+function touchesElevated(graph: RoadGraph, snap: Snap): boolean {
+  if (snap.kind === "segment") return !!graph.segment(snap.segmentId).elevated;
+  if (snap.kind !== "node") return false;
+  return [...graph.node(snap.nodeId).segments].some((id) => graph.segment(id).elevated);
 }
 
 function resolveEndpoint(graph: RoadGraph, snap: Snap): NodeId {
