@@ -1,14 +1,14 @@
 ## item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle - Stop rebuilding the whole city for a visibility toggle
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 80%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:20:20
+> Indicators reviewed: 2026-08-30 12:28:32
 
 # AI Context
 - Summary: `onBuildings` and `onSelectView` call the full `rebuild()` -- parcel solve, `conformToRoads` and every renderer -- when only mesh visibility and fading changed.
@@ -50,3 +50,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`
+
+# Notes
+- Task `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings` was finished via `logics-manager flow finish task` on 2026-08-30.

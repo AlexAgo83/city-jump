@@ -1,11 +1,12 @@
 ## prod_004_a_city_builder_that_never_loses_the_city_on_screen - A city builder that never loses the city on screen
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
-> Related backlog: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`, `item_021_stop_rebuilding_the_whole_city_for_a_visibility_toggle`, `item_022_unit_test_the_rendering_geometry_that_only_the_browser_suite_touches`, `item_023_one_node_version_and_an_autosave_that_admits_it_failed`
+> Related backlog: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`
 > Related task: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:28:32
 
 # Overview
 city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted.
@@ -48,5 +49,5 @@ flowchart LR
 - Context-pack output can be handed to an implementation agent directly.
 
 # References
-- Product back-reference: `req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene`
+- Product back-reference: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`
 - Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`

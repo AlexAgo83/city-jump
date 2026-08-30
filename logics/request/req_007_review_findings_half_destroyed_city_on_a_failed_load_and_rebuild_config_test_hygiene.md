@@ -1,13 +1,13 @@
 ## req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene - Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:24:45
+> Indicators reviewed: 2026-08-30 12:28:31
 
 # AI Context
 - Summary: Five findings from a repo review of city-jump 0.2.0: a failed load empties the graph it was meant to replace, visibility toggles trigger a full city resolve, the three largest render files have no unit coverage, `.nvmrc` and `render.yaml` disagree on the Node major, and a refused autosave write is swallowed.
