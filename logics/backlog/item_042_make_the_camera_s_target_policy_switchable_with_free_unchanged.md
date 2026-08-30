@@ -1,13 +1,14 @@
 ## item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged - Make the camera's target policy switchable, with Free unchanged
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:03:06
 
 # AI Context
 - Summary: `createScene` hard-wires one camera behaviour; the modes need a per-frame target policy with Free unchanged, plus the escape rule that any pan drops back to Free.

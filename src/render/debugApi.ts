@@ -13,6 +13,7 @@ export interface DebugApi {
   demoCity(): void;
   stats(): Record<string, number>;
   camera(radius: number, beta?: number, alpha?: number): void;
+  cameraState(): { targetX: number; targetY: number; targetZ: number; alpha: number; beta: number; radius: number };
   measureFps(ms: number): Promise<number>;
 }
 
@@ -110,6 +111,22 @@ export function installDebugApi(
       cam.radius = radius;
       cam.beta = beta;
       cam.alpha = alpha;
+    },
+    cameraState() {
+      const cam = scene.activeCamera as unknown as {
+        target: { x: number; y: number; z: number };
+        alpha: number;
+        beta: number;
+        radius: number;
+      };
+      return {
+        targetX: cam.target.x,
+        targetY: cam.target.y,
+        targetZ: cam.target.z,
+        alpha: cam.alpha,
+        beta: cam.beta,
+        radius: cam.radius,
+      };
     },
     measureFps(ms) {
       return new Promise<number>((resolve) => {

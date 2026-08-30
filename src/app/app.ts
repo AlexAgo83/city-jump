@@ -22,6 +22,8 @@ import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { showRefusal, showSelection } from "../ui/hud";
 
+type CameraMode = "free" | "orbit" | "follow";
+
 export async function startApp(): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
   const { scene, camera, shadows, setSunHour } = createScene(canvas);
@@ -49,6 +51,13 @@ export async function startApp(): Promise<void> {
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;
+  let cameraMode: CameraMode = "free";
+  let followTarget: (() => { x: number; y: number; z: number } | null) | null = null;
+  const setCameraMode = (mode: CameraMode): void => {
+    cameraMode = mode;
+    const input = document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${mode}"]`);
+    if (input) input.checked = true;
+  };
   const setSun = (hour: number): void => {
     setSunHour(hour);
     streetlights.setSunHour(hour);
@@ -108,6 +117,7 @@ export async function startApp(): Promise<void> {
   let controls: ReturnType<typeof bindControls> | undefined;
   const onSelect = (info: SelectionInfo | null): void => {
     showSelection(info);
+    followTarget = info?.kind === "vehicle" ? info.target : null;
     // The eyedropper: picking a road sets the Roads tab up to match it, ready to draw more.
     if (info?.kind === "road") controls?.applyRoadType(info.baseId, info.lanes, info.oneWay);
   };
@@ -191,6 +201,14 @@ export async function startApp(): Promise<void> {
       sunHour = hour;
       setSun(hour);
     },
+    onCameraMode(mode) {
+      if (mode === "follow" && !followTarget) {
+        showRefusal("Select a car before using Follow.");
+        setCameraMode("free");
+        return;
+      }
+      setCameraMode(mode);
+    },
     onSave: () => serializeCity(graph, plantings, zones, terrainPreset, sunHour),
     onLoad: loadCity,
   });
@@ -228,8 +246,28 @@ export async function startApp(): Promise<void> {
     camera.beta = savedCamera.beta;
     camera.radius = savedCamera.radius;
   }
+  scene.registerBeforeRender(() => {
+    if (cameraMode === "orbit") {
+      camera.alpha += (scene.getEngine().getDeltaTime() / 1000) * 0.22;
+      return;
+    }
+    if (cameraMode !== "follow") return;
+    const target = followTarget?.();
+    if (!target) {
+      showRefusal("Follow ended because the vehicle is gone.");
+      setCameraMode("free");
+      return;
+    }
+    camera.target.x += (target.x - camera.target.x) * 0.14;
+    camera.target.y += (target.y - camera.target.y) * 0.14;
+    camera.target.z += (target.z - camera.target.z) * 0.14;
+  });
+  window.addEventListener("keydown", (event) => {
+    if (cameraMode !== "free" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
+  });
   let cameraSaveTimer = 0;
   camera.onViewMatrixChangedObservable.add(() => {
+    if (cameraMode !== "free") return;
     window.clearTimeout(cameraSaveTimer);
     cameraSaveTimer = window.setTimeout(
       () =>

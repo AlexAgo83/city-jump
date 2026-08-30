@@ -33,16 +33,18 @@ type BulldozeTarget =
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
 
+export type FollowTarget = () => { x: number; y: number; z: number } | null;
+
 type SelectTarget =
   | BulldozeTarget
   | { kind: "building"; parcel: BuildingParcel }
-  | { kind: "vehicle"; segment: Segment; vehicle: string };
+  | { kind: "vehicle"; segment: Segment; vehicle: string; target: FollowTarget };
 
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
   | { kind: "building"; address: string; footprint: string }
-  | { kind: "vehicle"; name: string; street: string }
+  | { kind: "vehicle"; name: string; street: string; target: FollowTarget }
   | { kind: "tree" }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number };
 
@@ -109,7 +111,7 @@ export interface ZoneTools {
 
 export interface SelectionTools {
   buildingAt(x: number, z: number): BuildingParcel | null;
-  vehicleAt(x: number, z: number): { segment: Segment; kind: string } | null;
+  vehicleAt(x: number, z: number): { segment: Segment; kind: string; target: FollowTarget } | null;
 }
 
 export function createDrawTool(
@@ -223,7 +225,7 @@ export function createDrawTool(
       return;
     }
     if (target.kind === "vehicle") {
-      onSelect({ kind: "vehicle", name: target.vehicle, street: streetForSegment(graph, target.segment.id).name });
+      onSelect({ kind: "vehicle", name: target.vehicle, street: streetForSegment(graph, target.segment.id).name, target: target.target });
       return;
     }
     if (target.kind === "tree") {
@@ -245,7 +247,7 @@ export function createDrawTool(
     const building = selection.buildingAt(x, z);
     if (building) return showSelection({ kind: "building", parcel: building });
     const vehicle = selection.vehicleAt(x, z);
-    if (vehicle) return showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind });
+    if (vehicle) return showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, target: vehicle.target });
     const target = bulldozeTarget(x, z);
     if (!target) return clearSelection();
     showSelection(target);

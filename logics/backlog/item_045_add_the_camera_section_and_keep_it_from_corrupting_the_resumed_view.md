@@ -1,14 +1,14 @@
 ## item_045_add_the_camera_section_and_keep_it_from_corrupting_the_resumed_view - Add the Camera section, and keep it from corrupting the resumed view
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:04:01
+> Indicators reviewed: 2026-08-30 13:03:06
 
 # AI Context
 - Summary: There is no Camera row in the settings panel, and `writeCameraState`'s 800 ms debounce off the view-matrix observable never fires under a self-turning camera and would persist a moving car's position under follow.

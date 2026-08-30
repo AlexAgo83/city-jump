@@ -1,14 +1,14 @@
 ## item_044_follow_something_that_moves_and_stop_cleanly_when_it_is_gone - Follow something that moves, and stop cleanly when it is gone
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:04:01
+> Indicators reviewed: 2026-08-30 13:03:06
 
 # AI Context
 - Summary: The camera cannot ride along with a car; and a followed vehicle does not survive a rebuild today, since `traffic.rebuild()` disposes the whole mover population — so follow must end gracefully rather than freeze.

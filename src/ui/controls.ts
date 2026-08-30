@@ -24,6 +24,7 @@ export function bindControls(handlers: {
   onBuildings(visible: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
+  onCameraMode(mode: "free" | "orbit" | "follow"): void;
   /** Current city as data, ready to store. */
   onSave(): CitySave;
   /** Replays a stored city. Returns false if it could not be replayed. */
@@ -185,6 +186,13 @@ export function bindControls(handlers: {
     persistSettings();
   });
   shortNight.addEventListener("change", persistSettings);
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="camera-mode"]')) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      handlers.onCameraMode(input.value === "follow" ? "follow" : input.value === "orbit" ? "orbit" : "free");
+      persistSettings();
+    });
+  }
 
   /** Points the toolbar at a city that was just loaded, without re-firing its handlers. */
   const applyCity = (city: CitySave): void => {
@@ -215,6 +223,7 @@ export function bindControls(handlers: {
       gridSnap: gridSnap.checked,
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
+      cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
     });
   }
   function applySetting(checkbox: HTMLInputElement, value: boolean | undefined): void {
@@ -227,6 +236,11 @@ export function bindControls(handlers: {
   applySetting(showBuildings, stored.buildings);
   applySetting(gridSnap, stored.gridSnap);
   applySetting(shortNight, stored.shortNight);
+  const cameraMode = stored.cameraMode && document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${stored.cameraMode}"]`);
+  if (cameraMode) {
+    cameraMode.checked = true;
+    handlers.onCameraMode(stored.cameraMode!);
+  }
   applySetting(sunAuto, stored.sunAuto); // last: starting the auto-cycle reads the others' state
 
   bindSaves(handlers, applyCity);

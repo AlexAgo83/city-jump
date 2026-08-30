@@ -56,6 +56,7 @@ export interface UiSettings {
   gridSnap?: boolean;
   sunAuto?: boolean;
   shortNight?: boolean;
+  cameraMode?: "free" | "orbit" | "follow";
 }
 
 const SETTINGS_KEY = "cityjump.settings";

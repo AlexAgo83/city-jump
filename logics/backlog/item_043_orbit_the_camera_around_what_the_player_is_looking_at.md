@@ -1,13 +1,14 @@
 ## item_043_orbit_the_camera_around_what_the_player_is_looking_at - Orbit the camera around what the player is looking at
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 13:03:06
 
 # AI Context
 - Summary: Nothing turns the camera by itself, so seeing a place from all sides means holding the mouse down; orbit advances `alpha` at a frame-rate-independent cinematic pace around the selection or the current target.

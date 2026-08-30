@@ -1043,7 +1043,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   return {
     rebuild,
     setSunHour,
-    vehicleAt(x: number, z: number): { segment: Segment; kind: string } | null {
+    vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number } | null } | null {
       let best: Mover | null = null;
       let bestDistance = 7;
       for (const mover of movers) {
@@ -1054,7 +1054,16 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           bestDistance = d;
         }
       }
-      return best ? { segment: best.segment, kind: "Car" } : null;
+      return best
+        ? {
+            segment: best.segment,
+            kind: "Car",
+            target: () =>
+              movers.includes(best!) && !best!.walk
+                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z }
+                : null,
+          }
+        : null;
     },
     vehiclePoint(): { x: number; y: number; z: number } | null {
       const mover = movers.find((candidate) => !candidate.walk);

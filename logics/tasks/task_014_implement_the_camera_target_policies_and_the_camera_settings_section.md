@@ -1,14 +1,15 @@
 ## task_014_implement_the_camera_target_policies_and_the_camera_settings_section - Implement the camera target policies and the Camera settings section
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:49:50
+> Indicators reviewed: 2026-08-30 13:03:06
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_012: a switchable per-frame target policy with Free unchanged, then orbit, then the Camera section and its persistence rules, then follow once cars are selectable.

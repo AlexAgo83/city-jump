@@ -806,6 +806,34 @@ const selectedVehicle = await page.evaluate(() => ({
   ),
 }));
 check("clicking a car opens its street", !selectedVehicle.hidden && selectedVehicle.kind === "Car" && Boolean(selectedVehicle.rows.Street), JSON.stringify(selectedVehicle));
+const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
+await page.locator('input[name="camera-mode"][value="orbit"]').check();
+await realTime(500);
+const cameraAfterOrbit = await page.evaluate(() => window.cityjump.cameraState());
+check("orbit mode turns the camera around the target", Math.abs(cameraAfterOrbit.alpha - cameraBeforeOrbit.alpha) > 0.02);
+check(
+  "camera mode is persisted in settings",
+  await page.evaluate(() => JSON.parse(window.localStorage.getItem("cityjump.settings") ?? "{}").cameraMode === "orbit"),
+);
+await page.keyboard.press("ArrowUp");
+await nextFrame();
+check("panning returns the camera to Free", await page.locator('input[name="camera-mode"][value="free"]').isChecked());
+await click(vehiclePoint.x, vehiclePoint.y);
+const cameraBeforeFollow = await page.evaluate(() => window.cityjump.cameraState());
+await page.locator('input[name="camera-mode"][value="follow"]').check();
+await realTime(650);
+const cameraAfterFollow = await page.evaluate(() => window.cityjump.cameraState());
+check("follow mode keeps the selected car framed", Math.hypot(cameraAfterFollow.targetX - cameraBeforeFollow.targetX, cameraAfterFollow.targetZ - cameraBeforeFollow.targetZ) > 0.2);
+await page.evaluate(() => window.cityjump.rebuild());
+await realTime(100);
+check("follow mode ends cleanly when the car is rebuilt away", await page.locator('input[name="camera-mode"][value="free"]').isChecked());
+await page.evaluate((state) => {
+  const camera = window.cityjump._scene.activeCamera;
+  camera.target.set(state.targetX, state.targetY, state.targetZ);
+  camera.alpha = state.alpha;
+  camera.beta = state.beta;
+  camera.radius = state.radius;
+}, cameraBeforeOrbit);
 // Back to bulldoze mode: everything from here on still expects that, same as before this check.
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
