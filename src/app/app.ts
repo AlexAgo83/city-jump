@@ -76,7 +76,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     worldGrid.rebuild();
     roads.rebuild(dirty);
     streetlights.rebuild();
-    traffic.rebuild();
+    traffic.rebuild(dirty);
     signals.rebuild();
     zoneOverlay.rebuild(zones);
     buildingCount = buildings.rebuild(cells, parcels);

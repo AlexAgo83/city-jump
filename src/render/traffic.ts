@@ -40,6 +40,7 @@ import {
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 import { streetlightsOnAt } from "./streetlights";
+import type { TerrainBounds } from "../sim/heightmap";
 
 /** The width a car is built to, which is what the lane spacing is measured against. */
 const CAR_WIDTH = 3;
@@ -182,6 +183,10 @@ export function trafficLaneOffset(
 
 function laneQueueKey(mover: Mover): number {
   return mover.segment.id * 10000 + (mover.direction === 1 ? 5000 : 0) + Math.round((mover.lane.offset + 100) * 10);
+}
+
+function segmentTouchesBounds(segment: Segment, bounds: TerrainBounds): boolean {
+  return segment.samples.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
 }
 
 /**
@@ -841,15 +846,26 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     ];
   }
 
-  function rebuild(): void {
-    for (const mover of movers) mover.mesh.dispose();
-    movers = [];
+  function rebuild(dirty?: TerrainBounds): void {
+    const segments = graph.allSegments();
+    if (dirty) {
+      const live = new Set(segments.map((segment) => segment.id));
+      movers = movers.filter((mover) => {
+        if (live.has(mover.segment.id) && !segmentTouchesBounds(mover.segment, dirty)) return true;
+        mover.mesh.dispose();
+        return false;
+      });
+    } else {
+      for (const mover of movers) mover.mesh.dispose();
+      movers = [];
+    }
     junctions.clear();
     ringsAt.clear();
     loops.clear();
     cycles.clear();
 
-    for (const [si, seg] of graph.allSegments().entries()) {
+    for (const [si, seg] of segments.entries()) {
+      if (dirty && !segmentTouchesBounds(seg, dirty)) continue;
       const type = roadType(seg.type);
       if (type.tunnelDepth) continue;
       const from = trimAt(seg.a, seg.id);
