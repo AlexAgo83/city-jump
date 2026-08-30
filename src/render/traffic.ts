@@ -168,6 +168,18 @@ export function circularQueueRooms<T>(
   return out;
 }
 
+export function trafficLaneOffset(
+  lane: LaneCentre,
+  changing: LaneCentre | null,
+  span: { readonly start: number; readonly end: number },
+  distance: number,
+  direction: 1 | -1,
+): number {
+  if (!changing) return lane.offset;
+  const travelled = direction === 1 ? distance - span.start : span.end - distance;
+  return laneChangeOffset(changing.offset, lane.offset, travelled / (span.end - span.start));
+}
+
 /**
  * A body shape, in metres. Everything a car is made of comes off these numbers, so a new kind of
  * vehicle is a row in the table below rather than another lump of mesh-building code.
@@ -642,11 +654,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
   /** How far across its lane change the car is, and so where it sits across the road. */
   function offsetOf(mover: Mover): number {
-    if (!mover.changing) return mover.lane.offset;
     const seg = mover.segment;
     const span = laneChangeSpan(trimAt(seg.a, seg.id), seg.length - trimAt(seg.b, seg.id));
-    const travelled = mover.direction === 1 ? mover.distance - span.start : span.end - mover.distance;
-    return laneChangeOffset(mover.changing.offset, mover.lane.offset, travelled / (span.end - span.start));
+    return trafficLaneOffset(mover.lane, mover.changing, span, mover.distance, mover.direction);
   }
 
   /**

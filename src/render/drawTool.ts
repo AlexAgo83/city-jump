@@ -520,7 +520,7 @@ export function createDrawTool(
 }
 
 /** Preview sampling only; the graph builds its own table once the segment is accepted. */
-function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
+export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
   const out: Vec3[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;

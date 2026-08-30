@@ -814,7 +814,7 @@ function tunnelMesh(scene: Scene, name: string, graph: RoadGraph, id: number, st
   };
 }
 
-function tunnelStripIndices(count: number, steps: number, flip: boolean): number[] {
+export function tunnelStripIndices(count: number, steps: number, flip: boolean): number[] {
   const indices: number[] = [];
   for (let i = 0; i < steps; i++) {
     const a = i * count;
@@ -839,7 +839,7 @@ function vertexMesh(scene: Scene, name: string, positions: number[], indices: nu
   return mesh;
 }
 
-function tunnelSection(width: number): { x: number; y: number }[] {
+export function tunnelSection(width: number): { x: number; y: number }[] {
   const gateWidth = width + 8;
   const wall = 3;
   const arch = 5;
@@ -968,7 +968,7 @@ function portalMesh(
   return mesh;
 }
 
-function portalOutline(center: { x: number; z: number }, tangent: { x: number; z: number }, width: number, y: number): Vector3[] {
+export function portalOutline(center: { x: number; z: number }, tangent: { x: number; z: number }, width: number, y: number): Vector3[] {
   const n = perpXZ(normalizeXZ({ x: tangent.x, y: 0, z: tangent.z }));
   return tunnelSection(width).map((p) => new Vector3(center.x + n.x * p.x, y + p.y, center.z + n.z * p.x));
 }
