@@ -1152,6 +1152,12 @@ await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === 0);
+const costs = await page.evaluate(() => window.cityjump.measureCosts());
+check(
+  "debug performance measurement reports startup and placement cost",
+  costs.startupMs > 0 && costs.demoBuildMs > 0 && costs.placementMs > 0 && costs.segments > 0,
+  JSON.stringify(costs),
+);
 
 check("no errors or missing side-effect imports", noise.length === 0, noise.join(" / "));
 

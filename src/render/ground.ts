@@ -61,15 +61,14 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
         current[i * 3 + 1] = h;
-        terrainColor(h, heightmap.worldX(ix), heightmap.worldZ(iz)).toArray(colorData, i * 4);
+        writeTerrainColor(colorData, i * 4, h, heightmap.worldX(ix), heightmap.worldZ(iz));
       }
     }
     mesh.updateVerticesData(VertexBuffer.PositionKind, current);
     mesh.updateVerticesData(VertexBuffer.ColorKind, colorData);
 
-    const recomputed: number[] = [];
-    VertexData.ComputeNormals(current, indices, recomputed);
-    mesh.updateVerticesData(VertexBuffer.NormalKind, recomputed);
+    VertexData.ComputeNormals(current, indices, normals as unknown as number[]);
+    mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
     mesh.refreshBoundingInfo();
   }
 
@@ -246,20 +245,42 @@ function waveNoise(x: number, z: number): number {
   return (Math.sin(x * 0.017 + z * 0.031) + Math.sin(x * 0.043 - z * 0.019)) * 0.25 + 0.5;
 }
 
-function terrainColor(h: number, x: number, z: number): Color4 {
-  const sand = new Color4(0.58, 0.5, 0.29, 1);
-  const grass = new Color4(0.31, 0.5, 0.27, 1);
-  const rock = new Color4(0.34, 0.35, 0.31, 1);
-  const snow = new Color4(0.86, 0.87, 0.8, 1);
-  const seafloor = Color4.Lerp(new Color4(0.19, 0.36, 0.32, 1), new Color4(0.05, 0.1, 0.15, 1), distanceFromIsland(x, z));
-  let color: Color4;
+type Rgba = readonly [number, number, number, number];
+
+const SAND: Rgba = [0.58, 0.5, 0.29, 1];
+const GRASS: Rgba = [0.31, 0.5, 0.27, 1];
+const ROCK: Rgba = [0.34, 0.35, 0.31, 1];
+const SNOW: Rgba = [0.86, 0.87, 0.8, 1];
+const SEAFLOOR_NEAR: Rgba = [0.19, 0.36, 0.32, 1];
+const SEAFLOOR_FAR: Rgba = [0.05, 0.1, 0.15, 1];
+
+function writeTerrainColor(out: Float32Array, offset: number, h: number, x: number, z: number): void {
+  const sea = distanceFromIsland(x, z);
+  const seaR = mix(SEAFLOOR_NEAR[0], SEAFLOOR_FAR[0], sea);
+  const seaG = mix(SEAFLOOR_NEAR[1], SEAFLOOR_FAR[1], sea);
+  const seaB = mix(SEAFLOOR_NEAR[2], SEAFLOOR_FAR[2], sea);
+  let r: number;
+  let g: number;
+  let b: number;
   if (h < SEA_LEVEL + 4) {
-    const shore = Color4.Lerp(sand, grass, smoothstep((h - SEA_LEVEL) / 8));
-    color = Color4.Lerp(seafloor, shore, smoothstep((h - (SEA_LEVEL - 10)) / 14));
+    const shore = smoothstep((h - SEA_LEVEL) / 8);
+    const shoreR = mix(SAND[0], GRASS[0], shore);
+    const shoreG = mix(SAND[1], GRASS[1], shore);
+    const shoreB = mix(SAND[2], GRASS[2], shore);
+    const beach = smoothstep((h - (SEA_LEVEL - 10)) / 14);
+    r = mix(seaR, shoreR, beach);
+    g = mix(seaG, shoreG, beach);
+    b = mix(seaB, shoreB, beach);
   } else if (h < 52) {
-    color = Color4.Lerp(grass, rock, smoothstep((h - 28) / 24));
+    const t = smoothstep((h - 28) / 24);
+    r = mix(GRASS[0], ROCK[0], t);
+    g = mix(GRASS[1], ROCK[1], t);
+    b = mix(GRASS[2], ROCK[2], t);
   } else {
-    color = Color4.Lerp(rock, snow, smoothstep((h - 72) / 24));
+    const t = smoothstep((h - 72) / 24);
+    r = mix(ROCK[0], SNOW[0], t);
+    g = mix(ROCK[1], SNOW[1], t);
+    b = mix(ROCK[2], SNOW[2], t);
   }
 
   // The fine octave used to run at scale 18, barely twice the 8m cell size and on the same axes
@@ -269,11 +290,13 @@ function terrainColor(h: number, x: number, z: number): Color4 {
   const fine = valueNoise(x * SIN45 + z * SIN45, z * SIN45 - x * SIN45, 52);
   const shade = 0.84 + valueNoise(x, z, 150) * 0.14 + fine * 0.26;
   const tint = (valueNoise(x + 700, z - 400, 90) - 0.5) * 0.08;
-  color.r *= shade * (1 - tint);
-  color.g *= shade * (1 + tint * 0.6);
-  color.b *= shade * (1 - tint * 0.4);
-  return color;
+  out[offset] = r * shade * (1 - tint);
+  out[offset + 1] = g * shade * (1 + tint * 0.6);
+  out[offset + 2] = b * shade * (1 - tint * 0.4);
+  out[offset + 3] = 1;
 }
+
+const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 /** cos/sin of 45 degrees: turns a noise octave off the mesh axes. */
 const SIN45 = Math.SQRT1_2;

@@ -1,3 +1,3 @@
 import { startApp } from "./app/app";
 
-await startApp();
+await startApp(performance.now());

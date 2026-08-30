@@ -14,6 +14,7 @@ export interface DebugApi {
   stats(): Record<string, number>;
   camera(radius: number, beta?: number, alpha?: number): void;
   cameraState(): { targetX: number; targetY: number; targetZ: number; alpha: number; beta: number; radius: number };
+  measureCosts(): { startupMs: number; demoBuildMs: number; placementMs: number; segments: number };
   measureFps(ms: number): Promise<number>;
 }
 
@@ -25,6 +26,7 @@ export function installDebugApi(
   scene: Scene,
   graph: RoadGraph,
   rebuild: () => void,
+  startedAt: number,
   stats: () => Record<string, number>,
 ): void {
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
@@ -126,6 +128,21 @@ export function installDebugApi(
         alpha: cam.alpha,
         beta: cam.beta,
         radius: cam.radius,
+      };
+    },
+    measureCosts() {
+      api.reset();
+      const buildStarted = performance.now();
+      api.demoCity();
+      const demoBuildMs = performance.now() - buildStarted;
+      const placementStarted = performance.now();
+      if (!api.road(700, 650, 780, 650, 860, 650, "street")) throw new Error("measurement road was refused");
+      rebuild();
+      return {
+        startupMs: performance.now() - startedAt,
+        demoBuildMs,
+        placementMs: performance.now() - placementStarted,
+        segments: graph.allSegments().length,
       };
     },
     measureFps(ms) {

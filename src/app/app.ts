@@ -24,7 +24,7 @@ import { showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 
-export async function startApp(): Promise<void> {
+export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
   const { scene, camera, shadows, setSunHour } = createScene(canvas);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
@@ -283,7 +283,7 @@ export async function startApp(): Promise<void> {
     );
   });
 
-  installDebugApi(scene, graph, rebuild, () => ({
+  installDebugApi(scene, graph, rebuild, startedAt, () => ({
     segments: graph.allSegments().length,
     junctions: surfaceJunctions(),
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,

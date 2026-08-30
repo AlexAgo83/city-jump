@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 5%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -82,3 +82,7 @@
 - Request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
 - Product brief(s): `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`
 - Architecture decision(s): `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views`
+
+# Evidence
+- AC6 | date: 2026-08-30 | command: `npm run test:e2e` | result: passed on 2026-08-30; sample startupms=6816.2, demobuildms=5490.5, placementms=581.3, segments=238 | Debug surface exposes window.cityjump.measureCosts() for startup, demo build, and one placement cost against the existing demo-city path.
+- AC2 | date: 2026-08-30 | command: `npm run ci` | result: passed on 2026-08-30: vitest, architecture tests, build/typecheck, logics lint/audit passed | Ground refresh no longer creates Color4 constants/Lerp results per terrain vertex and reuses its normal Float32Array for recomputation.
