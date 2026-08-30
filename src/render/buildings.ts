@@ -21,8 +21,23 @@ import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
-export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
-const BUILDING_ASSET_VERSION = "2026-08-30-01";
+export const BUILDING_MODELS = [
+  ...PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`),
+  // Farms, works and compounds are their own models -- a barn and crop rows, tanks and a stack,
+  // barracks and a hangar -- not a tinted office block. They only exist for the deep lots that
+  // kind of frontage is allowed (see INDUSTRIAL_SIZES).
+  ...["farm", "industrial", "military"].flatMap((prefix) =>
+    PARCEL_SIZES.filter(({ depthCells }) => depthCells === 4).map(({ frontageCells }) => `${prefix}_${frontageCells}x4`),
+  ),
+];
+const BUILDING_ASSET_VERSION = "2026-08-30-11";
+
+/** Which model a parcel stands up: its size, and whether its business has its own models. */
+export function buildingModelId(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): string {
+  const size = `${parcel.frontageCells}x${parcel.depthCells}`;
+  const own = parcel.kind === "agricultural" ? "farm" : parcel.kind === "industrial" || parcel.kind === "military" ? parcel.kind : null;
+  return own && parcel.depthCells === 4 ? `${own}_${size}` : `lot_${size}`;
+}
 let glassReflectionTexture: RawCubeTexture | null = null;
 
 type RoofGeometry =
@@ -271,7 +286,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     const buckets = new Map<string, BuildingParcel[]>(available.map((m) => [m.id, []]));
 
     for (const parcel of parcels) {
-      buckets.get(`lot_${parcel.frontageCells}x${parcel.depthCells}`)?.push(parcel);
+      buckets.get(buildingModelId(parcel))?.push(parcel);
     }
     groundShadow.setInstances(
       parcels.map((parcel) => ({
@@ -282,8 +297,14 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       })),
     );
     const padMatrices = new Float32Array(parcels.length * 16);
-    for (const [i, parcel] of parcels.entries()) buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
+    const padColors = new Float32Array(parcels.length * 4);
+    for (const [i, parcel] of parcels.entries()) {
+      buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
+      // A farm stands on turned soil, not on the paving every other building gets.
+      padColors.set(parcel.kind === "agricultural" ? [0.75, 0.56, 0.38, 1] : [1, 1, 1, 1], i * 4);
+    }
     groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
+    groundPad.thinInstanceSetBuffer("color", padColors, 4, false);
     groundPad.thinInstanceCount = parcels.length;
     const occupiedCells = buildingCellSet(parcels);
     const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
@@ -328,7 +349,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     // itself is bucketed by model.
     const propMatrices = new Map<PropKind, Matrix[]>();
     for (const parcel of parcels) {
-      const model = available.find((m) => m.id === `lot_${parcel.frontageCells}x${parcel.depthCells}`);
+      // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
+      if (buildingModelId(parcel) !== `lot_${parcel.frontageCells}x${parcel.depthCells}`) continue;
+      const model = available.find((m) => m.id === buildingModelId(parcel));
       if (!model) continue;
       const cells = parcel.frontageCells * parcel.depthCells;
       const pitched = hasPitchedRoof(model.roof);
@@ -798,9 +821,10 @@ function setMaterialAlpha(material: Material | null, alpha: number): void {
 export const BUILDING_KIND_STYLE: Record<BuildingKind, { scaleY: number; color: [number, number, number] }> = {
   residential: { scaleY: 1, color: tintFor("residential", 0.25) },
   commercial: { scaleY: 1, color: tintFor("commercial", 0.3) },
-  industrial: { scaleY: 0.7, color: tintFor("industrial", 0.45) },
-  agricultural: { scaleY: 0.4, color: tintFor("agricultural", 0.45) },
-  military: { scaleY: 0.55, color: tintFor("military", 0.45) },
+  industrial: { scaleY: 1, color: [1, 1, 1] }, // its own models already look the part
+  agricultural: { scaleY: 1, color: [1, 1, 1] }, // its own models already look the part
+
+  military: { scaleY: 1, color: [1, 1, 1] },
 };
 
 /** The kind's own colour, mixed back towards white -- a full-strength tint over an already
@@ -850,7 +874,8 @@ export function buildingFootDecorMatrices(
   const halfWidth = width / 2;
   const gap = 0.8;
   const placements: FootDecorPlacement[] = [];
-  const maxPlacements = 1 + (roofSeed(parcel) % 4);
+  // Half of what it used to be (1..4): the pavement clutter read as a junk shop up close.
+  const maxPlacements = Math.max(1, Math.round((1 + (roofSeed(parcel) % 4)) / 2));
 
   const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {
     if (placements.length >= maxPlacements) return;
@@ -1000,7 +1025,9 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roo
     // vertices leaves an identity transform for the instance matrices to replace.
     mesh.setParent(null);
     mesh.bakeCurrentTransformIntoVertices();
-    mesh.convertToFlatShadedMesh();
+    // No convertToFlatShadedMesh here: on a multi-material model it quietly drops all but the
+    // first few submeshes (a farm lost its walls, silo and crop rows). The models are authored
+    // flat-faced anyway, so there is nothing to convert.
     mesh.refreshBoundingInfo();
     mesh.setEnabled(false);
     for (const node of result.meshes) if (node !== mesh) node.dispose();

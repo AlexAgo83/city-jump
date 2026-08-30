@@ -105,6 +105,54 @@
       "maxX": 26.84,
       "minZ": -26.84,
       "maxZ": -3.66
+    },
+    "industrial_1x4": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_2x4": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_3x4": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_4x4": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "military_1x4": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_2x4": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_3x4": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_4x4": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "farm_1x4": {
+      "kind": "flat",
+      "deckY": 5.0
+    },
+    "farm_2x4": {
+      "kind": "flat",
+      "deckY": 5.0
+    },
+    "farm_3x4": {
+      "kind": "flat",
+      "deckY": 5.0
+    },
+    "farm_4x4": {
+      "kind": "flat",
+      "deckY": 5.0
     }
   }
 }

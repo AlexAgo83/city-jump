@@ -31,6 +31,29 @@ ROOF_TRIM = (0.20, 0.22, 0.24, 1.0)
 SIGN = (0.92, 0.66, 0.22, 1.0)
 AWNING = (0.18, 0.28, 0.34, 1.0)
 INDUSTRIAL_DOOR = (0.12, 0.13, 0.14, 1.0)
+BARN = (0.46, 0.38, 0.30, 1.0)  # weathered timber: a red barn shouted across the whole map
+BARN_TRIM = (0.86, 0.84, 0.78, 1.0)
+SILO = (0.72, 0.73, 0.70, 1.0)
+TUNNEL = (0.80, 0.82, 0.78, 1.0)
+ORCHARD = (0.30, 0.44, 0.24, 1.0)
+HAY = (0.78, 0.70, 0.40, 1.0)
+CROP = [(0.52, 0.62, 0.24, 1.0), (0.74, 0.68, 0.28, 1.0), (0.42, 0.55, 0.26, 1.0)]
+SOIL = (0.36, 0.27, 0.19, 1.0)
+
+INDUSTRY_SHED = (0.62, 0.64, 0.66, 1.0)
+INDUSTRY_TRIM = (0.30, 0.33, 0.36, 1.0)
+TANK = (0.78, 0.79, 0.76, 1.0)
+STACK = (0.72, 0.55, 0.45, 1.0)
+PIPE = (0.45, 0.48, 0.50, 1.0)
+YARD = (0.34, 0.34, 0.35, 1.0)
+MILITARY_WALL = (0.42, 0.45, 0.34, 1.0)
+MILITARY_TRIM = (0.26, 0.29, 0.22, 1.0)
+MILITARY_HARD = (0.38, 0.38, 0.36, 1.0)
+
+# A farm is mostly field: only the front cell or so is built on, the rest is crop rows. Depth is
+# always 4 cells (the sizes agricultural frontage is allowed), so the yard sits at the road and
+# the field runs back from it.
+FARM_YARD_DEPTH = 11.0
 
 
 def trim_colour(colour):
@@ -66,6 +89,21 @@ def box(name, x0, y0, z0, x1, y1, z1):
         (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1),
     ]
     faces = [(0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    return obj
+
+
+def gabled_roof_at(name, x0, y0, w, d, base_z, ridge_h):
+    """`gabled_roof`, but placed -- a farm's barn does not sit at the lot's origin."""
+    verts = [
+        (x0, y0, base_z), (x0 + w, y0, base_z), (x0 + w, y0 + d, base_z), (x0, y0 + d, base_z),
+        (x0, y0 + d / 2, base_z + ridge_h), (x0 + w, y0 + d / 2, base_z + ridge_h),
+    ]
+    faces = [(0, 1, 5, 4), (2, 3, 4, 5), (0, 4, 3), (1, 2, 5)]
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(verts, [], faces)
     mesh.update()
@@ -277,6 +315,270 @@ def build(name, w, d, h, roof, colour, style):
     print(f"wrote {path}  ({w} x {d} x {h + roof} m)")
 
 
+def prism(name, cx, cy, r, z0, z1, sides=8):
+    """A round-ish tower -- a silo, a tank -- without dragging in a mesh primitive op."""
+    import math
+    verts = []
+    for z in (z0, z1):
+        for i in range(sides):
+            a = 2 * math.pi * i / sides
+            verts.append((cx + r * math.cos(a), cy + r * math.sin(a), z))
+    faces = [tuple(range(sides))[::-1], tuple(range(sides, 2 * sides))]
+    faces += [(i, (i + 1) % sides, sides + (i + 1) % sides, sides + i) for i in range(sides)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    return obj
+
+
+def export_parts(name, parts, mats, note):
+    for part, mat_name in parts:
+        part.data.materials.append(mats[mat_name])
+    bpy.ops.object.select_all(action="DESELECT")
+    for part, _ in parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0][0]
+    if len(parts) > 1:
+        bpy.ops.object.join()
+    path = os.path.join(OUT_DIR, f"{name}.glb")
+    bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True, export_yup=True, export_apply=True)
+    print(f"wrote {path}  ({note})")
+
+
+def works_specs(prefix):
+    """Industry and the military take the same deep lots as a farm. One layout per size, so a
+    row of them does not read as the same building stamped four times."""
+    for frontage in range(1, 5):
+        yield (f"{prefix}_{frontage}x4", frontage * CELL - 1.5, 4 * CELL - 1.5, frontage)
+
+
+def build_industrial(name, w, d, variant):
+    """A works. The variant decides what fills the yard behind the shed:
+    1 tank farm, 2 boiler house and stack, 3 warehouse and pipe rack, 4 the lot."""
+    clear_scene()
+    parts = [(box(f"{name}_yard", 0.0, 9.0, 0.0, w, d, 0.15), "yard")]
+    shed_w = min(w, 26.0)
+    shed_h = 7.5
+    parts.append((box(f"{name}_shed", 0.0, 1.0, 0.0, shed_w, 9.0, shed_h), "shed"))
+    parts.append((gabled_roof_at(f"{name}_shed_roof", 0.0, 1.0, shed_w, 8.0, shed_h, 1.8), "trim"))
+    # Roller doors along the frontage, one per 8 m of shed.
+    for i in range(max(1, int(shed_w // 8))):
+        x = 1.5 + i * 8.0
+        if x + 4.5 > shed_w:
+            break
+        parts.append((box(f"{name}_door_{i}", x, 0.9, 0.0, x + 4.5, 1.05, shed_h * 0.6), "trim"))
+    if variant in (2, 4):
+        # The stack, and the boiler house it comes out of.
+        parts.append((box(f"{name}_boiler", 0.5, 10.0, 0.0, min(w, 7.0), 16.0, 5.0), "shed"))
+        parts.append((prism(f"{name}_stack", min(w, 7.0) - 2.0, 13.0, 1.3, 0.0, 19.0), "stack"))
+    if variant in (1, 4):
+        # A tank farm: as many as the frontage has room for, bunded by a low wall.
+        tanks = max(1, int((w - 2.0) // 7.0))
+        for i in range(tanks):
+            cx = 4.0 + i * 7.0
+            if cx + 3.0 > w:
+                break
+            parts.append((prism(f"{name}_tank_{i}", cx, 22.0, 3.0, 0.0, 8.0), "tank"))
+            parts.append((prism(f"{name}_tank_cap_{i}", cx, 22.0, 3.0, 8.0, 8.8, 8), "trim"))
+        parts.append((box(f"{name}_bund_front", 0.4, 17.5, 0.0, w - 0.4, 18.1, 1.1), "trim"))
+        parts.append((box(f"{name}_bund_back", 0.4, 26.5, 0.0, w - 0.4, 27.1, 1.1), "trim"))
+    if variant in (3, 4):
+        # A back warehouse and the pipe rack feeding it, on stubby legs.
+        parts.append((box(f"{name}_store", 0.8, d - 12.0, 0.0, max(3.0, w - 0.8), d - 1.0, 6.0), "shed"))
+        parts.append((gabled_roof_at(f"{name}_store_roof", 0.8, d - 12.0, max(2.2, w - 1.6), 11.0, 6.0, 1.5), "trim"))
+    if variant in (2, 3, 4):
+        parts.append((box(f"{name}_pipe", 0.6, 17.0, 3.4, 1.4, d - 1.0, 4.2), "pipe"))
+        parts.append((box(f"{name}_pipe2", 1.8, 17.0, 3.4, 2.6, d - 1.0, 4.2), "pipe"))
+        for i in range(3):
+            y = 18.0 + i * 5.0
+            parts.append((box(f"{name}_pipe_leg_{i}", 0.6, y, 0.0, 2.6, y + 0.6, 3.4), "pipe"))
+    if variant == 1:
+        # Nothing else stands here, so the yard gets its stock in the open.
+        for i in range(4):
+            x = 1.0 + i * 4.0
+            if x + 3.0 > w:
+                break
+            parts.append((box(f"{name}_stock_{i}", x, d - 6.0, 0.0, x + 3.0, d - 1.5, 2.2), "trim"))
+    mats = {
+        "shed": material(name, INDUSTRY_SHED),
+        "trim": material(f"{name}_trim", INDUSTRY_TRIM),
+        "tank": material(f"{name}_tank", TANK),
+        "stack": material(f"{name}_stack", STACK),
+        "pipe": material(f"{name}_pipe", PIPE),
+        "yard": material(f"{name}_yard", YARD),
+    }
+    export_parts(name, parts, mats, f"works {w} x {d} m")
+
+
+def build_military(name, w, d, variant):
+    """A compound. The variant decides what stands behind the barracks:
+    1 motor pool, 2 hangar, 3 ammunition silos, 4 the whole base."""
+    clear_scene()
+    parts = [(box(f"{name}_apron", 0.0, 10.0, 0.0, w, d, 0.15), "hard")]
+    # Barracks blocks along the frontage: long, low, gabled, evenly spaced.
+    blocks = max(1, int(w // 9.0))
+    for i in range(blocks):
+        x = 0.5 + i * 9.0
+        bw = min(7.5, w - x - 0.5)
+        if bw < 3.0:
+            break
+        parts.append((box(f"{name}_barrack_{i}", x, 1.0, 0.0, x + bw, 8.0, 3.6), "wall"))
+        parts.append((gabled_roof_at(f"{name}_barrack_roof_{i}", x, 1.0, bw, 7.0, 3.6, 1.3), "trim"))
+        parts.append((box(f"{name}_barrack_door_{i}", x + bw / 2 - 0.6, 0.9, 0.0, x + bw / 2 + 0.6, 1.05, 2.2), "trim"))
+    if variant in (2, 4):
+        # The hangar: one big shed with the doors facing the apron.
+        hangar_w = min(w - 1.0, 18.0)
+        parts.append((box(f"{name}_hangar", 0.5, 11.0, 0.0, 0.5 + hangar_w, 22.0, 7.0), "wall"))
+        parts.append((gabled_roof_at(f"{name}_hangar_roof", 0.5, 11.0, hangar_w, 11.0, 7.0, 2.6), "trim"))
+        parts.append((box(f"{name}_hangar_door", 1.5, 10.85, 0.0, 0.5 + hangar_w - 1.0, 11.05, 5.2), "hard"))
+    if variant in (3, 4):
+        # Ammunition silos, each in its own revetment.
+        silos = max(1, int((w - 2.0) // 6.0))
+        for i in range(silos):
+            cx = 3.5 + i * 6.0
+            if cx + 2.5 > w:
+                break
+            parts.append((prism(f"{name}_silo_{i}", cx, 26.0, 2.2, 0.0, 6.5), "hard"))
+            parts.append((prism(f"{name}_silo_cap_{i}", cx, 26.0, 2.2, 6.5, 7.4, 8), "trim"))
+            parts.append((box(f"{name}_revet_{i}", cx - 3.0, 22.8, 0.0, cx + 3.0, 23.4, 2.0), "wall"))
+    if variant in (1, 4):
+        # Motor pool: a vehicle shelter and rows of crates under it.
+        shelter_w = min(w - 1.0, 16.0)
+        parts.append((box(f"{name}_shelter_roof", 0.5, 12.0, 3.4, 0.5 + shelter_w, 20.0, 3.9), "trim"))
+        for i in range(4):
+            x = 1.2 + i * (shelter_w / 4 if shelter_w > 4 else 4)
+            if x + 1.0 > w:
+                break
+            parts.append((box(f"{name}_post_{i}", x, 12.4, 0.0, x + 0.5, 12.9, 3.4), "trim"))
+            parts.append((box(f"{name}_post_b_{i}", x, 19.2, 0.0, x + 0.5, 19.7, 3.4), "trim"))
+    for i in range(3):
+        x = 1.0 + i * 3.4
+        if x + 2.4 > w:
+            break
+        parts.append((box(f"{name}_crate_{i}", x, d - 3.0, 0.0, x + 2.4, d - 1.2, 1.6), "wall"))
+    # A wire fence down both sides of the compound.
+    for i, fx in enumerate([0.1, w - 0.35]):
+        parts.append((box(f"{name}_fence_{i}", fx, 9.5, 0.0, fx + 0.25, d, 2.4), "trim"))
+    mats = {
+        "wall": material(name, MILITARY_WALL),
+        "trim": material(f"{name}_trim", MILITARY_TRIM),
+        "hard": material(f"{name}_hard", MILITARY_HARD),
+    }
+    export_parts(name, parts, mats, f"compound {w} x {d} m")
+
+
+def farm_specs():
+    """Farms take the same deep lots the industrial frontage does, one holding per size:
+    1 market garden, 2 grain farm, 3 orchard, 4 livestock."""
+    for frontage in range(1, 5):
+        yield (f"farm_{frontage}x4", frontage * CELL - 1.5, 4 * CELL - 1.5, frontage)
+
+
+def build_farm(name, w, d, variant):
+    clear_scene()
+    parts = []
+    barn_w = min(w * 0.62, 13.0)
+    barn_d = 8.5
+    barn_h = 5.0
+    ridge = 3.4
+    parts.append((box(f"{name}_barn", 0.0, 1.0, 0.0, barn_w, 1.0 + barn_d, barn_h), "barn"))
+    parts.append((gabled_roof_at(f"{name}_barn_roof", 0.0, 1.0, barn_w, barn_d, barn_h, ridge), "trim"))
+    # The big sliding door, and the white boards a barn is always trimmed with.
+    parts.append((box(f"{name}_barn_door", barn_w * 0.3, 0.9, 0.0, barn_w * 0.7, 1.02, barn_h * 0.72), "door"))
+    parts.append((box(f"{name}_barn_band", -0.05, 0.95, barn_h - 0.5, barn_w + 0.05, 1.05, barn_h - 0.2), "trim"))
+    if w > barn_w + 4.0:
+        # Silo and a low feed shed fill the rest of the yard.
+        sx = barn_w + 1.5
+        parts.append((box(f"{name}_silo", sx, 2.0, 0.0, sx + 3.2, 5.2, 10.5), "silo"))
+        parts.append((gabled_roof_at(f"{name}_silo_cap", sx, 2.0, 3.2, 3.2, 10.5, 1.1), "trim"))
+        if w > sx + 8.0:
+            parts.append((box(f"{name}_shed", sx + 4.2, 1.5, 0.0, w - 0.5, 6.5, 3.2), "barn"))
+            parts.append((gabled_roof_at(f"{name}_shed_roof", sx + 4.2, 1.5, w - 0.5 - (sx + 4.2), 5.0, 3.2, 1.4), "trim"))
+    # The field: bare soil, then whatever this holding grows on it.
+    parts.append((box(f"{name}_soil", 0.0, FARM_YARD_DEPTH, 0.0, w, d, 0.3), "soil"))
+    if variant == 1:
+        # Market garden: polytunnels down the plot, with a bed between each pair.
+        row = 0
+        y = FARM_YARD_DEPTH + 1.0
+        while y + 3.0 < d:
+            parts.append((box(f"{name}_tunnel_{row}", 0.6, y, 0.0, w - 0.6, y + 3.0, 1.4), "tunnel"))
+            parts.append((gabled_roof_at(f"{name}_tunnel_top_{row}", 0.6, y, w - 1.2, 3.0, 1.4, 0.9), "tunnel"))
+            parts.append((box(f"{name}_bed_{row}", 0.8, y + 3.2, 0.25, w - 0.8, y + 4.0, 0.7), f"crop{row % len(CROP)}"))
+            y += 5.0
+            row += 1
+    elif variant == 3:
+        # Orchard: staggered rows of little trees, trunk and canopy.
+        row = 0
+        y = FARM_YARD_DEPTH + 2.0
+        while y + 2.0 < d:
+            x = 2.0 + (1.5 if row % 2 else 0.0)
+            i = 0
+            while x + 1.5 < w:
+                parts.append((box(f"{name}_trunk_{row}_{i}", x - 0.2, y - 0.2, 0.25, x + 0.2, y + 0.2, 1.4), "soil"))
+                parts.append((prism(f"{name}_canopy_{row}_{i}", x, y, 1.5, 1.4, 3.6, 6), "orchard"))
+                x += 4.0
+                i += 1
+            y += 4.0
+            row += 1
+    elif variant == 4:
+        # Livestock: open pasture, a field shelter and hay bales, fenced into two paddocks.
+        parts.append((box(f"{name}_pasture", 0.5, FARM_YARD_DEPTH + 0.5, 0.25, w - 0.5, d - 0.5, 0.55), "crop2"))
+        parts.append((box(f"{name}_paddock_split", 0.5, (FARM_YARD_DEPTH + d) / 2, 0.0, w - 0.5, (FARM_YARD_DEPTH + d) / 2 + 0.25, 1.2), "trim"))
+        parts.append((box(f"{name}_shelter", 0.8, FARM_YARD_DEPTH + 2.0, 0.0, min(w - 0.8, 6.0), FARM_YARD_DEPTH + 6.0, 2.6), "barn"))
+        parts.append((gabled_roof_at(f"{name}_shelter_roof", 0.8, FARM_YARD_DEPTH + 2.0, min(w - 1.6, 5.2), 4.0, 2.6, 1.0), "trim"))
+        for i in range(3):
+            x = 1.2 + i * 3.2
+            if x + 2.2 > w:
+                break
+            parts.append((prism(f"{name}_bale_{i}", x + 1.1, d - 3.0, 1.1, 0.25, 2.4, 8), "hay"))
+    else:
+        row = 0
+        y = FARM_YARD_DEPTH + 0.9
+        while y + 1.4 < d:
+            # Tall enough to read as a crop from the camera's usual height, not a stripe on the dirt.
+            parts.append((box(f"{name}_crop_{row}", 0.5, y, 0.25, w - 0.5, y + 1.4, 1.6), f"crop{row % len(CROP)}"))
+            y += 2.4
+            row += 1
+    # A post fence around the field, so its edge is legible even before the crop grows.
+    for i, fx in enumerate([0.1, w - 0.35]):
+        parts.append((box(f"{name}_fence_{i}", fx, FARM_YARD_DEPTH, 0.0, fx + 0.25, d, 1.3), "trim"))
+    parts.append((box(f"{name}_fence_back", 0.1, d - 0.25, 0.0, w - 0.1, d, 1.3), "trim"))
+
+    mats = {
+        "barn": material(name, BARN),
+        "trim": material(f"{name}_trim", BARN_TRIM),
+        "door": material(f"{name}_door", DOOR),
+        "silo": material(f"{name}_silo", SILO),
+        "soil": material(f"{name}_soil", SOIL),
+    }
+    mats["tunnel"] = material(f"{name}_tunnel", TUNNEL)
+    mats["orchard"] = material(f"{name}_orchard", ORCHARD)
+    mats["hay"] = material(f"{name}_hay", HAY)
+    for i, colour in enumerate(CROP):
+        mats[f"crop{i}"] = material(f"{name}_crop{i}", colour)
+    for part, mat_name in parts:
+        part.data.materials.append(mats[mat_name])
+
+    bpy.ops.object.select_all(action="DESELECT")
+    for part, _ in parts:
+        part.select_set(True)
+    bpy.context.view_layer.objects.active = parts[0][0]
+    if len(parts) > 1:
+        bpy.ops.object.join()
+
+    path = os.path.join(OUT_DIR, f"{name}.glb")
+    bpy.ops.export_scene.gltf(
+        filepath=path,
+        export_format="GLB",
+        use_selection=True,
+        export_yup=True,
+        export_apply=True,
+    )
+    print(f"wrote {path}  (farm {w} x {d} m)")
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     manifest = {"models": {}}
@@ -298,6 +600,14 @@ def main():
         else:
             manifest["models"][name] = {"kind": "flat", "deckY": h}
         build(*spec)
+    for prefix, builder in (("industrial", build_industrial), ("military", build_military)):
+        for name, w, d, variant in works_specs(prefix):
+            manifest["models"][name] = {"kind": "flat", "deckY": 7.5 if prefix == "industrial" else 3.6}
+            builder(name, w, d, variant)
+    for name, w, d, variant in farm_specs():
+        # Nothing stands on a barn roof, so the manifest only has to keep the deck flat and low.
+        manifest["models"][name] = {"kind": "flat", "deckY": 5.0}
+        build_farm(name, w, d, variant)
     with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")

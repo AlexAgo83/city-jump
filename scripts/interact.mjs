@@ -350,9 +350,10 @@ check(
   offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.bend > 200,
   JSON.stringify(offshoreBridge),
 );
-check("startup does not wait for all parcel models", fresh.startupModels < 16, `${fresh.startupModels} models ready at renderer return`);
-await page.waitForFunction(() => window.cityjump.stats().models === 16, null, { timeout: 20_000 });
-check("all sixteen parcel models load", (await stats()).models === 16, `${(await stats()).models} models`);
+check("startup does not wait for all parcel models", fresh.startupModels < 28, `${fresh.startupModels} models ready at renderer return`);
+await page.waitForFunction(() => window.cityjump.stats().models === 28, null, { timeout: 20_000 });
+// 16 lot models plus a farm, a works and a compound for each of the four deep lot sizes.
+check("all parcel models load", (await stats()).models === 28, `${(await stats()).models} models`);
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
 const paletteBox = await page.locator("#action-palette").boundingBox();
