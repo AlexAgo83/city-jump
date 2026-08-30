@@ -331,8 +331,6 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       rebuild(lastCells, lastParcels);
     });
   }
-  const startupModelCount = available.length;
-
   return {
     rebuild,
     setVisible(next: boolean) {
@@ -369,7 +367,6 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     get modelCount() {
       return available.length;
     },
-    startupModelCount,
   };
 }
 

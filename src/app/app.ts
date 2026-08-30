@@ -47,7 +47,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
-  let buildingCount = 0;
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;
@@ -80,7 +79,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     traffic.rebuild(dirty);
     signals.rebuild();
     zoneOverlay.rebuild(zones);
-    buildingCount = buildings.rebuild(cells, parcels);
+    buildings.rebuild(cells, parcels);
     scheduleAutosave();
   };
 
@@ -168,11 +167,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.setMode(mode);
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
       const zoning = mode === "zone";
-      buildingCount = buildings.setVisible(zoning ? false : buildingsVisible);
+      buildings.setVisible(zoning ? false : buildingsVisible);
       buildings.setGridVisible(drawingRoads || zoning);
       buildings.setFaded(drawingRoads);
       zoneOverlay.setVisible(zoning);
-      if (!zoning) roads.setShowTraffic(false);
     },
     onRoadType(type) {
       tool.setRoadType(type);
@@ -195,14 +193,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     onBuildings(visible) {
       buildingsVisible = visible;
-      buildingCount = buildings.setVisible(visible);
+      buildings.setVisible(visible);
     },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
       // "Traffic" hides them outright -- the lane overlay is meant to be read from above, and a
       // building in the way defeats the point.
-      buildingCount = buildings.setVisible(view === "all" ? buildingsVisible : false);
+      buildings.setVisible(view === "all" ? buildingsVisible : false);
       buildings.setGridVisible(view === "no-buildings");
       zoneOverlay.setVisible(view === "no-buildings");
       roads.setShowTraffic(view === "traffic");
@@ -301,7 +299,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     segments: graph.allSegments().length,
     junctions: surfaceJunctions(),
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
-    buildings: buildingCount,
+    buildings: buildings.count(),
     avenues: graph.allSegments().filter((segment) => baseRoadTypeId(segment.type) === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => roadType(segment.type).tunnelDepth !== undefined).length,
     cars: traffic.count(),
@@ -312,7 +310,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees: trees.count(),
     zones: zones.count(),
     models: buildings.modelCount,
-    startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
