@@ -100,34 +100,34 @@ def material(name, colour):
 
 def front_panel(parts, name, x0, y0, z0, x1, z1):
     parts.append((box(f"{name}_glass", x0 + 0.04, y0 - 0.5, z0 + 0.04, x1 - 0.04, y0 - 0.44, z1 - 0.04), "glass"))
-    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 - 0.42, z1, x1 + 0.06, y0 - 0.04, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 - 0.42, z0 - 0.08, x1 + 0.06, y0 - 0.04, z0), "trim"))
-    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 - 0.42, z0 - 0.08, x0, y0 - 0.04, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_right", x1, y0 - 0.42, z0 - 0.08, x1 + 0.08, y0 - 0.04, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 - 0.62, z1, x1 + 0.06, y0 - 0.5, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 - 0.62, z0 - 0.08, x1 + 0.06, y0 - 0.5, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 - 0.62, z0 - 0.08, x0, y0 - 0.5, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x1, y0 - 0.62, z0 - 0.08, x1 + 0.08, y0 - 0.5, z1 + 0.08), "trim"))
 
 
 def back_panel(parts, name, x0, y0, z0, x1, z1):
     parts.append((box(f"{name}_glass", x0 + 0.04, y0 + 0.44, z0 + 0.04, x1 - 0.04, y0 + 0.5, z1 - 0.04), "glass"))
-    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 + 0.04, z1, x1 + 0.06, y0 + 0.42, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 + 0.04, z0 - 0.08, x1 + 0.06, y0 + 0.42, z0), "trim"))
-    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 + 0.04, z0 - 0.08, x0, y0 + 0.42, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_right", x1, y0 + 0.04, z0 - 0.08, x1 + 0.08, y0 + 0.42, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.06, y0 + 0.5, z1, x1 + 0.06, y0 + 0.62, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.06, y0 + 0.5, z0 - 0.08, x1 + 0.06, y0 + 0.62, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.08, y0 + 0.5, z0 - 0.08, x0, y0 + 0.62, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x1, y0 + 0.5, z0 - 0.08, x1 + 0.08, y0 + 0.62, z1 + 0.08), "trim"))
 
 
 def left_panel(parts, name, x0, y0, z0, y1, z1):
     parts.append((box(f"{name}_glass", x0 - 0.5, y0 + 0.04, z0 + 0.04, x0 - 0.44, y1 - 0.04, z1 - 0.04), "glass"))
-    parts.append((box(f"{name}_frame_top", x0 - 0.42, y0 - 0.06, z1, x0 - 0.04, y1 + 0.06, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_bottom", x0 - 0.42, y0 - 0.06, z0 - 0.08, x0 - 0.04, y1 + 0.06, z0), "trim"))
-    parts.append((box(f"{name}_frame_left", x0 - 0.42, y0 - 0.08, z0 - 0.08, x0 - 0.04, y0, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_right", x0 - 0.42, y1, z0 - 0.08, x0 - 0.04, y1 + 0.08, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_top", x0 - 0.62, y0 - 0.06, z1, x0 - 0.5, y1 + 0.06, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 - 0.62, y0 - 0.06, z0 - 0.08, x0 - 0.5, y1 + 0.06, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 - 0.62, y0 - 0.08, z0 - 0.08, x0 - 0.5, y0, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x0 - 0.62, y1, z0 - 0.08, x0 - 0.5, y1 + 0.08, z1 + 0.08), "trim"))
 
 
 def right_panel(parts, name, x0, y0, z0, y1, z1):
     parts.append((box(f"{name}_glass", x0 + 0.44, y0 + 0.04, z0 + 0.04, x0 + 0.5, y1 - 0.04, z1 - 0.04), "glass"))
-    parts.append((box(f"{name}_frame_top", x0 + 0.04, y0 - 0.06, z1, x0 + 0.42, y1 + 0.06, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_bottom", x0 + 0.04, y0 - 0.06, z0 - 0.08, x0 + 0.42, y1 + 0.06, z0), "trim"))
-    parts.append((box(f"{name}_frame_left", x0 + 0.04, y0 - 0.08, z0 - 0.08, x0 + 0.42, y0, z1 + 0.08), "trim"))
-    parts.append((box(f"{name}_frame_right", x0 + 0.04, y1, z0 - 0.08, x0 + 0.42, y1 + 0.08, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_top", x0 + 0.5, y0 - 0.06, z1, x0 + 0.62, y1 + 0.06, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_bottom", x0 + 0.5, y0 - 0.06, z0 - 0.08, x0 + 0.62, y1 + 0.06, z0), "trim"))
+    parts.append((box(f"{name}_frame_left", x0 + 0.5, y0 - 0.08, z0 - 0.08, x0 + 0.62, y0, z1 + 0.08), "trim"))
+    parts.append((box(f"{name}_frame_right", x0 + 0.5, y1, z0 - 0.08, x0 + 0.62, y1 + 0.08, z1 + 0.08), "trim"))
 
 
 def add_windows(parts, name, w, d, h, style, x0=0.0, y0=0.0, z0=0.0):

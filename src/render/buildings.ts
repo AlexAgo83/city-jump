@@ -1,5 +1,4 @@
 import "@babylonjs/loaders/glTF/2.0/glTFLoader";
-import "@babylonjs/core/Rendering/edgesRenderer";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
@@ -13,7 +12,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
-import { Matrix, Vector3, Quaternion, Color3, Color4 } from "@babylonjs/core/Maths/math";
+import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -21,7 +20,7 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`);
-const BUILDING_ASSET_VERSION = "2026-08-29-23";
+const BUILDING_ASSET_VERSION = "2026-08-30-01";
 let glassReflectionTexture: RawCubeTexture | null = null;
 
 type RoofGeometry =
@@ -579,9 +578,6 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roo
     mesh.bakeCurrentTransformIntoVertices();
     mesh.convertToFlatShadedMesh();
     mesh.refreshBoundingInfo();
-    mesh.enableEdgesRendering();
-    mesh.edgesWidth = 0.45;
-    mesh.edgesColor = new Color4(0.04, 0.05, 0.05, 0.3);
     mesh.setEnabled(false);
     for (const node of result.meshes) if (node !== mesh) node.dispose();
 
@@ -644,6 +640,8 @@ function finishBuildingMaterial(material: StandardMaterial): void {
     material.diffuseColor = new Color3(0.95, 0.65, 0.18);
   } else if (material.name.includes("_awning")) {
     material.diffuseColor = new Color3(0.16, 0.28, 0.34);
+  } else if (material.name.includes("_trim")) {
+    material.diffuseColor = new Color3(0.12, 0.15, 0.16);
   }
   if (!material.name.includes("_glass")) material.specularColor = Color3.Black();
   material.maxSimultaneousLights = 32;
