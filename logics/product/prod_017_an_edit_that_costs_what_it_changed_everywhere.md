@@ -1,12 +1,12 @@
 ## prod_017_an_edit_that_costs_what_it_changed_everywhere - An edit that costs what it changed, everywhere
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
-> Related backlog: `item_066_measure_what_each_full_rebuild_renderer_actually_costs`, `item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times`, `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`, `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`
+> Related backlog: `item_066_measure_what_each_full_rebuild_renderer_actually_costs`
 > Related task: `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:54
+> Indicators reviewed: 2026-08-30 18:04:03
 
 # Overview
 The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.
@@ -58,5 +58,5 @@ flowchart TB
 - Anything left rebuilding whole is left there on purpose, with its measurement where the next reader meets it.
 
 # References
-- Product back-reference: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
+- Product back-reference: `item_066_measure_what_each_full_rebuild_renderer_actually_costs`
 - Task back-reference: `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`

@@ -1,12 +1,13 @@
 ## req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit - Four renderers still rebuild the whole world on every edit
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:04:02
 
 # AI Context
 - Summary: req_008 bounded the heightmap, ground, road meshes and traffic to the region an edit touched, and left trees, world grid, streetlights and signals rebuilding whole. Trees rescan 5,400 m of island on a 58 m step per road placed; the world grid allocates ~900,000 vectors when visible; and `allJunctions` solves the same geometry five times per rebuild. Measure first -- the honest answer for at least one of these is a number and no code.

@@ -1,14 +1,14 @@
 ## item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers - Decide the world grid, the streetlights and the signals on their numbers
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:56:54
+> Indicators reviewed: 2026-08-30 18:04:03
 
 # AI Context
 - Summary: Three renderers, three separate decisions, each made on the measurement rather than on how expensive the source looks. The world grid is free when hidden and ~900,000 vectors when not; the streetlights already solved light churn but never the lamp meshes; signals re-run every cycle and remake every mast. Leaving one whole is a valid outcome if the number says so -- recorded, with a comment where the next reader meets it.
@@ -60,3 +60,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`
+
+# Notes
+- Task `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world` was finished via `logics-manager flow finish task` on 2026-08-30.

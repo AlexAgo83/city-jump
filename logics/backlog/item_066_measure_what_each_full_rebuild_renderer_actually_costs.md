@@ -1,14 +1,14 @@
 ## item_066_measure_what_each_full_rebuild_renderer_actually_costs - Measure what each full-rebuild renderer actually costs
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 97%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:56:54
+> Indicators reviewed: 2026-08-30 18:04:03
 
 # AI Context
 - Summary: `measureCosts()` reports three totals and cannot say where a placement's time goes. This adds per-renderer figures for trees, world grid (hidden and visible), streetlights and signals, plus the `allJunctions` call count -- the gate that decides the two slices after it, including the option of deciding not to act.
@@ -55,3 +55,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`
+
+# Notes
+- Task `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world` was finished via `logics-manager flow finish task` on 2026-08-30.

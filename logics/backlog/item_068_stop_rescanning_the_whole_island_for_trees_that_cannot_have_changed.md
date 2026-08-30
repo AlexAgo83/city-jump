@@ -1,14 +1,14 @@
 ## item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed - Stop rescanning the whole island for trees that cannot have changed
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:56:54
+> Indicators reviewed: 2026-08-30 18:04:03
 
 # AI Context
 - Summary: The scenery is deterministic from a seeded index, the heightmap, the road mask and the plantings -- so a tree far from an edit cannot have changed, yet every road placed rescans ~8,600 candidate points plus every forest patch. Rung 3 exposure is worse here than for roads: a tree's position can be inside the region while the road suppressing it is outside, and a missing tree is far harder to notice than a missing road.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`
+
+# Notes
+- Task `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world` was finished via `logics-manager flow finish task` on 2026-08-30.

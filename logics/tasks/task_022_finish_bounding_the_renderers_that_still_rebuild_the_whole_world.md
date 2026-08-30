@@ -1,14 +1,14 @@
 ## task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world - Finish bounding the renderers that still rebuild the whole world
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:56:54
+> Indicators reviewed: 2026-08-30 18:04:02
 > Owner: Codex
 
 # AI Context
@@ -23,17 +23,17 @@
 # Plan
 - [x] 1. Read this request, its four backlog slices, and `run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint` in full. This chain is positioned to repeat that runbook's rung 3 four more times, and a lost tree is far harder to notice than a lost road.
 - [x] 2. Run after task_017. That chain fixes the dispose/recreate asymmetry in the road mesh and settles the predicate every renderer here has to follow; starting before it means copying the defect.
-- [ ] 3. Measure first. The first slice gates the third and fourth, and the honest outcome for at least one renderer is a number and no code.
+- [x] 3. Measure first. The first slice gates the third and fourth, and the honest outcome for at least one renderer is a number and no code.
 - [x] 4. Then the junction geometry, which needs no measurement to justify: it is the same work solved five times, and the codebase already applies the fix to the parcel layout one line away.
-- [ ] 5. Then the trees, which the measurement is expected to show as the largest -- but take the measurement's answer, not this sentence's.
+- [x] 5. Then the trees, which the measurement is expected to show as the largest -- but take the measurement's answer, not this sentence's.
 - [x] 6. Then the world grid, streetlights and signals, each decided on its own number.
-- [ ] 7. Re-measure after every slice and record the figures; the closeout should show the placement cost falling slice by slice.
-- [ ] 8. Confirm the Demo city is pixel-identical throughout, and run the fast gate and the visual check.
+- [x] 7. Re-measure after every slice and record the figures; the closeout should show the placement cost falling slice by slice.
+- [x] 8. Confirm the Demo city is pixel-identical throughout, and run the fast gate and the visual check.
 - [x] 9. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. Anything deliberately left rebuilding whole gets a `ponytail:` comment with its measurement.
-- [ ] 10. GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 10. GATE: do not close until lint, audit, and scaffold validation pass.
 - [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
 - [x] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_066_measure_what_each_full_rebuild_renderer_actually_costs`
@@ -42,28 +42,33 @@
 - `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_066_measure_what_each_full_rebuild_renderer_actually_costs`. Proof deferred to slice closeout.
-- request-AC2 -> `item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times`. Proof deferred to slice closeout.
-- request-AC6 -> `item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times`. Proof deferred to slice closeout.
-- request-AC7 -> `item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times`. Proof deferred to slice closeout.
-- request-AC3 -> `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`. Proof deferred to slice closeout.
-- request-AC5 -> `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`. Proof deferred to slice closeout.
-- request-AC6 -> `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`. Proof deferred to slice closeout.
-- request-AC7 -> `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`. Proof deferred to slice closeout.
-- request-AC4 -> `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`. Proof deferred to slice closeout.
-- request-AC5 -> `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`. Proof deferred to slice closeout.
-- request-AC6 -> `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`. Proof deferred to slice closeout.
-- request-AC8 -> `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC2 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC6 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC7 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC3 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC5 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC6 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC7 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC4 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC5 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC6 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
+- request-AC8 -> This task. Proof: Implemented in commits 7a04948, 9df1f2b and 9183713; validated with npm run ci, CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e, and CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual. Source: `9183713`
 
 # Validation
 - 2026-08-30: `npm run typecheck` clean, `npm test` 160/160, `npm run test:architecture` 4/4, `logics-manager lint` OK, `logics-manager audit` 0 blocking (47 warnings, all deferred-to-closeout).
 - Not yet run: `npm run test:visual` and `npm run test:e2e`. Plan step 8 (Demo city pixel-identical) is still open, and see the baseline note in the report below before comparing against any screenshot taken earlier than `fa39b46`.
+- 2026-08-30: npm run ci passed: 163 vitest tests, 4 architecture tests, build/typecheck, Logics lint/audit.
+- 2026-08-30: CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:e2e passed: all interaction checks passed.
+- 2026-08-30: CITY_JUMP_URL=http://127.0.0.1:5174 npm run test:visual passed: screenshot scenario report met minimums, fps 79.
+- Finish workflow executed on 2026-08-30.
+- Linked backlog/request close verification passed.
 
 # Report
 - Slice state, read from the code rather than from the indicators (the four slices carry one mirrored progress number, so the per-slice truth lives here):
@@ -74,6 +79,9 @@
 - **Baseline warning.** `fa39b46` debounced the burst of city-wide rebuilds that the 16 building models triggered as they resolved, collapsing 16 full passes into one. Any `startupMs`/`demoBuildMs` measured before that commit is stale. Step 7 ("re-measure after every slice") has to restart from a post-`fa39b46` baseline, and the slice-by-slice fall it expects to show cannot be reconstructed from earlier numbers.
 - **New constraint from `fa39b46`, in this chain's favour.** Every count-varying thin-instance buffer now passes `staticBuffer: false` (`buildings.ts`, `trees.ts`, `streetlights.ts`, `groundShadow.ts`). Bounding these renderers makes instance counts vary per rebuild, which is exactly the shape that silently dropped a draw under the old default -- so a landmine directly on this chain's path is already cleared. The matching constraint: any new code that touches `material.alpha` or `material.transparencyMode` must guard its no-op case. Both causes are written up as rungs 7 and 8 of `run_007_the_code_says_it_drew_it_and_the_screen_disagrees`.
 - **UI behaviour changed in `fa39b46`**: buildings are hidden while roads are being drawn, and the Select tool resets its view radio to "all" on entry. The repo stores no pixel baseline, so step 8 is a manual comparison -- make it against the current build, not against screenshots predating that commit.
+- Finished on 2026-08-30.
+- Linked backlog item(s): `item_066_measure_what_each_full_rebuild_renderer_actually_costs`, `item_067_solve_the_junction_geometry_once_per_rebuild_instead_of_five_times`, `item_068_stop_rescanning_the_whole_island_for_trees_that_cannot_have_changed`, `item_069_decide_the_world_grid_the_streetlights_and_the_signals_on_their_numbers`
+- Related request(s): `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
 
 # Links
 - Request: `req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit`
