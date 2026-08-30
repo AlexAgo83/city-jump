@@ -1,5 +1,6 @@
 import type { CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
+import type { ZoneKind } from "../sim/zones";
 import {
   listSaves,
   readSave,
@@ -14,11 +15,12 @@ import {
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
-  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout"): void;
+  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone"): void;
   onRoadType(type: string): void;
   onWorldGrid(visible: boolean): void;
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
+  onZoneKind(kind: ZoneKind | "clear"): void;
   onBuildings(visible: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
@@ -42,6 +44,7 @@ export function bindControls(handlers: {
   const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
+  const zoneOptions = document.getElementById("zone-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
   let roadMode: "straight" | "curve" | "roundabout" = "straight";
   let plantMode: "plant" | "spray" = "plant";
@@ -54,8 +57,9 @@ export function bindControls(handlers: {
       roadTypeOptions.hidden = tool !== "roads";
       roadOptions.hidden = tool !== "roads";
       natureOptions.hidden = tool !== "nature";
+      zoneOptions.hidden = tool !== "zones";
       handlers.onRoadMode(
-        tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "bulldoze" ? "bulldoze" : "view",
+        tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "zones" ? "zone" : tool === "bulldoze" ? "bulldoze" : "view",
       );
     });
   }
@@ -105,6 +109,11 @@ export function bindControls(handlers: {
   document.getElementById("tree-species")!.addEventListener("change", (event) => {
     handlers.onTreeSpecies((event.currentTarget as HTMLSelectElement).value);
   });
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
+    input.addEventListener("change", () => {
+      if (input.checked) handlers.onZoneKind(input.value === "dense" ? "dense" : input.value === "clear" ? "clear" : "low");
+    });
+  }
 
   const roadLanes = document.getElementById("road-lanes") as HTMLInputElement;
   const roadOneway = document.getElementById("road-oneway") as HTMLInputElement;

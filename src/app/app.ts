@@ -8,8 +8,10 @@ import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
+import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
+import { Zones } from "../sim/zones";
 import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildingParcels, buildableCells } from "../sim/slots";
@@ -32,6 +34,7 @@ export async function startApp(): Promise<void> {
 
   const graph = new RoadGraph();
   const plantings = new Plantings();
+  const zones = new Zones();
   createOcean(scene);
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
@@ -40,6 +43,7 @@ export async function startApp(): Promise<void> {
   const signals = createSignalRenderer(scene, graph);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
+  const zoneOverlay = createZoneRenderer(scene);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   let buildingCount = 0;
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
@@ -55,8 +59,8 @@ export async function startApp(): Promise<void> {
   const rebuild = (): void => {
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
-    const cells = buildableCells(graph);
-    const parcels = buildingParcels(cells);
+    const cells = buildableCells(graph, zones);
+    const parcels = buildingParcels(cells, zones);
     heightmap.conformToRoads(graph, parcels);
     ground.refresh();
     trees.rebuild();
@@ -65,6 +69,7 @@ export async function startApp(): Promise<void> {
     streetlights.rebuild();
     traffic.rebuild();
     signals.rebuild();
+    zoneOverlay.rebuild(zones);
     buildingCount = buildings.rebuild(cells, parcels);
     scheduleAutosave();
   };
@@ -86,7 +91,7 @@ export async function startApp(): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, terrainPreset, sunHour)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -107,22 +112,35 @@ export async function startApp(): Promise<void> {
     if (info?.kind === "road") controls?.applyRoadType(info.baseId, info.lanes, info.oneWay);
   };
 
-  const tool = createDrawTool(scene, graph, ground.mesh, rebuild, showRefusal, {
-    plant(x, z, species) {
-      if (heightmap.heightAt(x, z) <= SEA_LEVEL) return false;
-      plantings.plant(x, z, species);
-      refreshTrees();
-      return true;
+  const tool = createDrawTool(
+    scene,
+    graph,
+    ground.mesh,
+    rebuild,
+    showRefusal,
+    {
+      plant(x, z, species) {
+        if (heightmap.heightAt(x, z) <= SEA_LEVEL) return false;
+        plantings.plant(x, z, species);
+        refreshTrees();
+        return true;
+      },
+      clearTree(x, z) {
+        const tree = trees.nearestTree(x, z, TREE_REACH);
+        if (!tree) return false;
+        plantings.clear(tree.x, tree.z);
+        refreshTrees();
+        return true;
+      },
+      treeAt: (x, z, within) => trees.nearestTree(x, z, within),
     },
-    clearTree(x, z) {
-      const tree = trees.nearestTree(x, z, TREE_REACH);
-      if (!tree) return false;
-      plantings.clear(tree.x, tree.z);
-      refreshTrees();
-      return true;
+    {
+      paint(x, z, radius, kind) {
+        zones.paint(x, z, radius, kind);
+      },
     },
-    treeAt: (x, z, within) => trees.nearestTree(x, z, within),
-  }, onSelect);
+    onSelect,
+  );
 
   await seedDefaultDemoSave();
 
@@ -132,6 +150,7 @@ export async function startApp(): Promise<void> {
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
       buildings.setGridVisible(drawingRoads);
       buildings.setFaded(drawingRoads);
+      zoneOverlay.setVisible(false);
     },
     onRoadType(type) {
       tool.setRoadType(type);
@@ -142,6 +161,9 @@ export async function startApp(): Promise<void> {
     },
     onTreeSpecies(species) {
       tool.setTreeSpecies(species);
+    },
+    onZoneKind(kind) {
+      tool.setZoneKind(kind);
     },
     onBuildings(visible) {
       buildingsVisible = visible;
@@ -154,6 +176,7 @@ export async function startApp(): Promise<void> {
       // building in the way defeats the point.
       buildingCount = buildings.setVisible(view === "all" ? buildingsVisible : false);
       buildings.setGridVisible(view === "no-buildings");
+      zoneOverlay.setVisible(view === "no-buildings");
       roads.setShowTraffic(view === "traffic");
       // The road surface, sidewalks and the streetlights standing on them fade back so the lane
       // overlay is the thing that actually reads.
@@ -164,7 +187,7 @@ export async function startApp(): Promise<void> {
       sunHour = hour;
       setSun(hour);
     },
-    onSave: () => serializeCity(graph, plantings, terrainPreset, sunHour),
+    onSave: () => serializeCity(graph, plantings, zones, terrainPreset, sunHour),
     onLoad: loadCity,
   });
 
@@ -174,7 +197,7 @@ export async function startApp(): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, city);
+      restoreCity(graph, plantings, zones, city);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
@@ -231,6 +254,7 @@ export async function startApp(): Promise<void> {
     streetlights: streetlights.count(),
     realStreetlights: streetlights.realLightCount(),
     trees: trees.count(),
+    zones: zones.count(),
     models: buildings.modelCount,
     activeMeshes: scene.getActiveMeshes().length,
   }));

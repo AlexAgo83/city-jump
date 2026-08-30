@@ -14,6 +14,7 @@ import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/r
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { type Vec3, v3, lerp } from "../sim/vec";
+import type { ZoneKind } from "../sim/zones";
 import { toBabylon } from "./convert";
 
 const ACCEPTED = new Color3(0.45, 0.85, 0.5);
@@ -48,16 +49,18 @@ export interface DrawTool {
   setGridSnap(enabled: boolean): void;
   setRoadType(type: RoadTypeId): void;
   setTreeSpecies(species: string): void;
+  setZoneKind(kind: ZoneKind | "clear"): void;
 }
 
 export type DrawMode = "straight" | "curve";
 export type PlantMode = "plant" | "spray";
-export type ToolMode = "view" | "bulldoze" | "roundabout" | DrawMode | PlantMode;
+export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | DrawMode | PlantMode;
 /** Any key `ROAD_TYPES` recognizes -- a base id, or one composed with lanes/one-way. */
 export type RoadTypeId = string;
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
 const SPRAY_RADIUS = 45;
+const ZONE_RADIUS = SPRAY_RADIUS;
 /** Trees attempted per press, and again each time the brush has moved half its own width. */
 const SPRAY_PER_BURST = 8;
 const SPRAY_RING_POINTS = 56;
@@ -91,6 +94,10 @@ export interface NatureTools {
   treeAt(x: number, z: number, within: number): { x: number; z: number } | null;
 }
 
+export interface ZoneTools {
+  paint(x: number, z: number, radius: number, kind: ZoneKind | null): void;
+}
+
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
@@ -98,6 +105,7 @@ export function createDrawTool(
   onCommitted: () => void,
   onRefused: (reason: string) => void,
   nature: NatureTools,
+  zones: ZoneTools,
   onSelect: (info: SelectionInfo | null) => void,
   initialTypeId: RoadTypeId = "street",
 ): DrawTool {
@@ -106,6 +114,7 @@ export function createDrawTool(
   let gridSnap = true;
   let typeId = initialTypeId;
   let treeSpecies = "fir";
+  let zoneKind: ZoneKind | "clear" = "low";
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
@@ -279,6 +288,15 @@ export function createDrawTool(
     lastSprayed = at;
   }
 
+  function onZoneMove(painting: boolean): void {
+    const at = groundPoint();
+    moveSprayRing(at);
+    if (!at || !painting) return;
+    zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
+    lastSprayed = at;
+    onCommitted();
+  }
+
   function onMove(): void {
     if (mode === "view") return;
     const at = groundPoint();
@@ -357,6 +375,11 @@ export function createDrawTool(
     if (mode === "spray") {
       sprayBurst(at);
       lastSprayed = at;
+      return;
+    }
+    if (mode === "zone") {
+      zones.paint(at.x, at.z, ZONE_RADIUS, zoneKind === "clear" ? null : zoneKind);
+      onCommitted();
       return;
     }
     const snap = resolveSnap(graph, at.x, at.z, gridSnap);
@@ -455,6 +478,7 @@ export function createDrawTool(
     if (info.type === PointerEventTypes.POINTERMOVE) {
       // The brush follows the pointer whatever the button is doing; it only paints while held.
       if (mode === "spray") return onSprayMove(leftPointerDown);
+      if (mode === "zone") return onZoneMove(leftPointerDown);
       return onMove();
     }
     if (info.type === PointerEventTypes.POINTERDOWN) {
@@ -471,7 +495,7 @@ export function createDrawTool(
       : 0;
     pressedAt = null;
     // A drag that already sprayed must not also fire a burst on release.
-    const sprayed = mode === "spray" && lastSprayed !== null;
+    const sprayed = (mode === "spray" || mode === "zone") && lastSprayed !== null;
     lastSprayed = null;
     if (isLeftClick && !sprayed && travelled <= CLICK_SLOP) onClick();
   });
@@ -502,7 +526,7 @@ export function createDrawTool(
     cancel,
     setMode(next) {
       mode = next;
-      setCameraDrag(next !== "spray");
+      setCameraDrag(next !== "spray" && next !== "zone");
       cancel();
     },
     setGridSnap(enabled) {
@@ -515,6 +539,10 @@ export function createDrawTool(
     },
     setTreeSpecies(next) {
       treeSpecies = next;
+    },
+    setZoneKind(next) {
+      zoneKind = next;
+      resetDrawing();
     },
   };
 }

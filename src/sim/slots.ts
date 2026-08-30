@@ -3,6 +3,7 @@ import { roadType } from "./roadTypes";
 import { junctionRadius } from "./junction";
 import { type Vec3, v3, normalizeXZ, perpXZ, distXZ } from "./vec";
 import { terrainHeight } from "./terrain";
+import type { ZoneKind, Zones } from "./zones";
 
 export interface Slot {
   readonly segment: SegmentId;
@@ -40,6 +41,7 @@ export interface BuildableCell {
   readonly row: number;
   readonly rotationY: number;
   readonly corners: readonly [Vec3, Vec3, Vec3, Vec3];
+  readonly zone?: ZoneKind;
 }
 
 export interface BuildingParcel {
@@ -64,6 +66,7 @@ export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
  * each `building_lot_*` mesh and update this list. Everything here is 14m or under.
  */
 export const LOW_RISE_SIZES = new Set(["1x1", "2x2", "1x3", "4x1", "4x4", "3x3"]);
+export const DENSE_SIZES = new Set(["2x3", "2x4", "3x2", "3x4", "4x2", "4x3"]);
 
 const sizeKey = (frontageCells: number, depthCells: number): string => `${frontageCells}x${depthCells}`;
 
@@ -115,7 +118,7 @@ export function allSlots(graph: RoadGraph): Slot[] {
 }
 
 /** Buildable cells in road creation order; an older cell wins any overlap. */
-export function buildableCells(graph: RoadGraph): BuildableCell[] {
+export function buildableCells(graph: RoadGraph, zones?: Zones): BuildableCell[] {
   const accepted: BuildableCell[] = [];
   const buckets = new Map<string, BuildableCell[]>();
   const roads = indexRoadSamples(graph);
@@ -123,7 +126,7 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
   for (const segment of graph.allSegments()) {
     const lowRise = roadType(segment.type).pedestrian === true;
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
-      for (const candidate of cellsForBlock(block, blockIndex, lowRise)) {
+      for (const candidate of cellsForBlock(block, blockIndex, lowRise, zones)) {
         if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -141,7 +144,7 @@ export function buildableCells(graph: RoadGraph): BuildableCell[] {
 }
 
 /** Packs the roadside cells into a stable random mix of rectangular 1x1 to 4x4 parcels. */
-export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel[] {
+export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones): BuildingParcel[] {
   const groups = new Map<string, BuildableCell[]>();
   for (const cell of cells) {
     const key = `${cell.segment}:${cell.side}:${cell.block}`;
@@ -157,15 +160,12 @@ export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel
     const random = seededRandom(`${first.corners[0].x.toFixed(2)}:${first.corners[0].z.toFixed(2)}`);
     const roadside = group.filter((cell) => cell.row === 0).sort((a, b) => a.column - b.column);
 
-    // Every cell in a group comes from one segment, so the whole block is low-rise or none of it.
-    const allowed = first.lowRise
-      ? PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)))
-      : PARCEL_SIZES;
-
     for (const origin of roadside) {
       if (!free.has(`${origin.column}:${origin.row}`)) continue;
-      const sizes = shuffled(allowed, random);
-      const size = sizes.find(({ frontageCells, depthCells }) =>
+      const allowed = allowedSizes(origin.zone ?? zoneForCell(zones, origin), first.lowRise);
+      const size = shuffled(allowed, random).find(({ frontageCells, depthCells }) =>
+        rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
+      ) ?? PARCEL_SIZES.find(({ frontageCells, depthCells }) =>
         rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
       )!; // 1x1 always fits the free origin
       const occupied = rectangle(origin, size.frontageCells, size.depthCells).map(([column, row]) => free.get(`${column}:${row}`)!);
@@ -187,6 +187,19 @@ export function buildingParcels(cells: readonly BuildableCell[]): BuildingParcel
     }
   }
   return parcels;
+}
+
+function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean): typeof PARCEL_SIZES {
+  if (zone === "dense") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
+  if (zone === "low" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
+  return PARCEL_SIZES;
+}
+
+function zoneForCell(zones: Zones | undefined, cell: BuildableCell): ZoneKind | undefined {
+  if (!zones) return undefined;
+  const x = cell.corners.reduce((sum, p) => sum + p.x, 0) / 4;
+  const z = cell.corners.reduce((sum, p) => sum + p.z, 0) / 4;
+  return zones.at(x, z);
 }
 
 export function cellsOverlap(a: BuildableCell, b: BuildableCell): boolean {
@@ -281,7 +294,7 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
 }
 
 
-function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean): BuildableCell[] {
+function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, zones?: Zones): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -299,6 +312,12 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean): Bui
   for (let row = 0; row < GRID.depth; row++) {
     let column = 0;
     for (let along = -width / 2; along < width / 2; along += GRID.cellSize) {
+      const corners = [
+        point(along, row * GRID.cellSize),
+        point(along + GRID.cellSize, row * GRID.cellSize),
+        point(along + GRID.cellSize, (row + 1) * GRID.cellSize),
+        point(along, (row + 1) * GRID.cellSize),
+      ] as const;
       cells.push({
         lowRise,
         segment: block[0]!.segment,
@@ -307,12 +326,8 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean): Bui
         column: column++,
         row,
         rotationY,
-        corners: [
-          point(along, row * GRID.cellSize),
-          point(along + GRID.cellSize, row * GRID.cellSize),
-          point(along + GRID.cellSize, (row + 1) * GRID.cellSize),
-          point(along, (row + 1) * GRID.cellSize),
-        ],
+        corners,
+        zone: zones?.at(corners.reduce((sum, p) => sum + p.x, 0) / 4, corners.reduce((sum, p) => sum + p.z, 0) / 4),
       });
     }
   }

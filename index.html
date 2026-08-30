@@ -191,11 +191,19 @@
       </select>
     </label>
   </div>
+  <div id="zone-options" class="tool-options" hidden>
+    <div class="segmented" role="group" aria-label="Zone kind">
+      <label><input type="radio" name="zone-kind" value="low" checked /><span>Low</span></label>
+      <label><input type="radio" name="zone-kind" value="dense" /><span>Dense</span></label>
+      <label><input type="radio" name="zone-kind" value="clear" /><span>Clear</span></label>
+    </div>
+  </div>
   <div id="action-palette" role="toolbar" aria-label="Build tools">
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
     <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
     <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
     <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
+    <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
     <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>

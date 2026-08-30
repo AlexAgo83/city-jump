@@ -12,8 +12,9 @@
 import { RoadGraph, type NodeId } from "./graph";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { v3 } from "./vec";
+import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
 /**
@@ -36,15 +37,17 @@ export interface CitySave {
   readonly segments: readonly SavedSegment[];
   readonly planted: readonly SavedPlanting[];
   readonly cleared: readonly SavedPlanting[];
+  readonly zones: readonly SavedZone[];
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: string, hour: number): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
+    zones: zones.toJSON(),
     nodes: graph
       .allNodes()
       .map((node) =>
@@ -65,13 +68,14 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, terrain: s
  * has had segments removed no longer numbers its nodes from 1.
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
-export function restoreCity(graph: RoadGraph, plantings: Plantings, save: CitySave): void {
-  replayCity(new RoadGraph(), new Plantings(), save);
-  replayCity(graph, plantings, save);
+export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave): void {
+  replayCity(new RoadGraph(), new Plantings(), new Zones(), save);
+  replayCity(graph, plantings, zones, save);
 }
 
-function replayCity(graph: RoadGraph, plantings: Plantings, save: CitySave): void {
+function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave): void {
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
+  zones.replaceWith(save.zones);
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();
   const roundabouts: { id: NodeId; lanes: 1 | 2 }[] = [];
@@ -109,7 +113,8 @@ export function parseCity(text: string): CitySave | null {
   if (!Array.isArray(value.nodes) || !Array.isArray(value.segments)) return null;
   const planted = readPlantings(value.planted);
   const cleared = readPlantings(value.cleared);
-  if (planted === null || cleared === null) return null;
+  const zones = readZones(value.zones);
+  if (planted === null || cleared === null || zones === null) return null;
 
   const nodes = value.nodes.filter(
     (node): node is SavedNode =>
@@ -124,7 +129,7 @@ export function parseCity(text: string): CitySave | null {
   );
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared };
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones };
 }
 
 function toPlantings(points: readonly SavedPlanting[]): Planting[] {
@@ -143,6 +148,20 @@ function readPlantings(value: unknown): SavedPlanting[] | null {
       Number.isFinite(point[1]),
   );
   return points.length === value.length ? points : null;
+}
+
+function readZones(value: unknown): SavedZone[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const zones = value.filter(
+    (zone): zone is SavedZone =>
+      Array.isArray(zone) &&
+      zone.length === 3 &&
+      Number.isFinite(zone[0]) &&
+      Number.isFinite(zone[1]) &&
+      (zone[2] === "low" || zone[2] === "dense"),
+  );
+  return zones.length === value.length ? zones : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

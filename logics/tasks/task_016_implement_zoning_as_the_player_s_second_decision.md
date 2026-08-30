@@ -1,14 +1,15 @@
 ## task_016_implement_zoning_as_the_player_s_second_decision - Implement zoning as the player's second decision
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 75%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-30 12:06:56
+> Indicators reviewed: 2026-08-30 12:47:36
+> Owner: codex
 
 # AI Context
 - Summary: Orchestration for req_014: model the zone and what it anchors to, let it constrain what is built using only the shipped models, then add the brush and make the Zones view show zones.

@@ -163,6 +163,16 @@ const buildingLightPipeline = () =>
       .filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled())
       .every((mesh) => materialIsStandard(mesh.material));
   });
+const buildingModelCounts = () =>
+  page.evaluate(() =>
+    Object.fromEntries(
+      window.cityjump._scene.meshes
+        .filter((mesh) => mesh.name.startsWith("building_lot_"))
+        .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0]),
+    ),
+  );
+const zonesOverlayVisible = () =>
+  page.evaluate(() => window.cityjump._scene.getMeshByName("zones-overlay")?.isEnabled() ?? false);
 const streetlightFacadeLights = () =>
   page.evaluate(() => {
     const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
@@ -419,6 +429,28 @@ await page.locator("#show-buildings").uncheck();
 check("generated buildings can be hidden", (await stats()).buildings === 0);
 await page.locator("#show-buildings").check();
 check("generated buildings can be restored", (await stats()).buildings === drawn.buildings);
+const unzonedModels = await buildingModelCounts();
+await page.locator('[data-tool="zones"]').click();
+await page.locator('input[name="zone-kind"][value="dense"]').check();
+await click(500, 350);
+await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
+const zoned = await stats();
+const denseModels = await buildingModelCounts();
+check("a zone can be painted from the toolbar", zoned.zones > 0, `${zoned.zones} cells`);
+check("zoning changes what gets built", JSON.stringify(denseModels) !== JSON.stringify(unzonedModels));
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="no-buildings"]').check();
+check("the Zones view shows the player's zones", await zonesOverlayVisible());
+check("the buildable grid stays readable under zones", await buildableGridVisible());
+await page.locator('[data-tool="zones"]').click();
+await page.locator('input[name="zone-kind"][value="clear"]').check();
+await click(500, 350);
+await page.waitForFunction(() => window.cityjump.stats().zones === 0, null, { timeout: 5_000 });
+check("a zone can be cleared from the toolbar", (await stats()).zones === 0);
+check("clearing a zone restores the unzoned building mix", JSON.stringify(await buildingModelCounts()) === JSON.stringify(unzonedModels));
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="all"]').check();
+await page.locator('[data-tool="roads"]').click();
 check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
 const beforeTraffic = await trafficPositions();
 await realTime(250);
@@ -1000,6 +1032,7 @@ await page.evaluate(() => {
   const raw = JSON.parse(window.localStorage.getItem("cityjump.autosave"));
   delete raw.planted;
   delete raw.cleared;
+  delete raw.zones;
   raw.v = 1;
   window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
 });

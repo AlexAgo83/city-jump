@@ -1,13 +1,14 @@
 ## item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing - Model a zone as authored land that survives the roads changing
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 75%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 12:47:36
 
 # AI Context
 - Summary: A zone is authored intent, not derived state, so it cannot be recomputed from the graph and must survive the roads under it being redrawn — anchored to ground rather than to parcels.
