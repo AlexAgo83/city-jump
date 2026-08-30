@@ -654,7 +654,7 @@ export function buildingFootDecorMatrices(parcel: BuildingParcel): FootDecorPlac
   const width = parcel.frontageCells * GRID.cellSize;
   const depth = parcel.depthCells * GRID.cellSize;
   const halfWidth = width / 2;
-  const gap = 1.5;
+  const gap = 0.8;
   const placements: FootDecorPlacement[] = [];
 
   const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {

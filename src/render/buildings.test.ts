@@ -51,6 +51,6 @@ describe("roof props", () => {
     expect(placements.some((placement) => placement.kind === "utility")).toBe(true);
     expect(placements[0]!.matrix.m[12]).toBeCloseTo(6);
     expect(placements[0]!.matrix.m[13]).toBeCloseTo(2.08);
-    expect(placements[0]!.matrix.m[14]).toBeCloseTo(21.5);
+    expect(placements[0]!.matrix.m[14]).toBeCloseTo(20.8);
   });
 });
