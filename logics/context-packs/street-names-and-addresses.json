@@ -1,0 +1,456 @@
+{
+  "budgets": {
+    "max_docs": 28,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click item_034_chain_road_segments_into_streets_that_survive_a_split item_035_generate_english_street_names_that_cannot_run_out item_036_give_every_building_an_odd_or_even_address_number item_037_persist_street_names_and_name_the_cities_saved_before_this_existed item_038_open_the_detail_panel_on_a_building_or_a_car task_012_implement_street_names_building_addresses_and_the_extended_detail_panel --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "sections": {
+        "Goals": [
+          "- A road drawn through several junctions is one named street, not three anonymous curves.",
+          "- Every building has an address a player can read and repeat.",
+          "- Clicking anything visible -- road, roundabout, tree, building, car -- opens the same panel and answers the question.",
+          "- Names never run out, and never change under the player.",
+          "- Cities saved before any of this existed keep loading, and get names."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing."
+        ],
+        "References": [
+          "- Product back-reference: `req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click`",
+          "- Task back-reference: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can point at and name"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "name, streets, number, buildings, open, detail, panel, anything, you, click",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md",
+      "ref": "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Connected road segments that continue through a junction are recognised as one street, using the same facing rule the signal phases already use, and a street's identity survives a segment being split.",
+          "- AC2: Every street carries a generated English name, drawn once and stable for the life of that street; the scheme cannot run out of names, and a name that would collide still reads as a plausible street name.",
+          "- AC3: Every building has an address: a number and its street name, with odd numbers on one side of the street and even on the other, growing with distance from the street's origin.",
+          "- AC4: Clicking a building opens the existing detail panel showing at least its address; clicking a car opens it for that vehicle.",
+          "- AC5: Street names survive a save and reload unchanged, and a city saved before this feature existed loads successfully and is given generated names.",
+          "- AC6: The street chaining, the name generation and the address arithmetic are pure functions in `src/sim`, unit-tested without a Babylon scene, and `tests/architecture.mjs` still passes."
+        ],
+        "Needs": [
+          "- Clicking a building or a car tells the player nothing. The select tool already opens a detail panel for a road, a roundabout and a tree (`showSelection` in `src/ui/hud.ts`, fed by `SelectionInfo` from `src/render/drawTool.ts`), but a building and a vehicle -- the two things a player looks at most -- are not selectable at all.",
+          "- A building has no address, because the city has no streets to have an address on. Roads exist only as individual Bezier segments: a road drawn through three junctions is three unrelated segments, and no part of the model says they are the same street. `12 Lilac Street` means twelve along the whole street, so an address cannot be derived until a street exists as a thing.",
+          "- Nothing names a road. Every road is shown by its type (`Street`, `Avenue`, `Highway`), never by a name, so two roads of the same type are indistinguishable in the panel and unreferenceable in conversation.",
+          "- A naming scheme that runs out is not acceptable. The operator asked explicitly for one that is not limited by its number of combinations, so a fixed word list on its own will not do -- there has to be a way past exhaustion that still reads as a real street name."
+        ]
+      },
+      "status": "Draft",
+      "title": "Name the streets, number the buildings, and open a detail panel on anything you click"
+    },
+    {
+      "ai_context": {
+        "keywords": "chain, road, segments, streets, survive, split",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/backlog/item_034_chain_road_segments_into_streets_that_survive_a_split.md",
+      "ref": "item_034_chain_road_segments_into_streets_that_survive_a_split",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Segments continuing through a junction resolve to one street, using the same facing rule as the signal phases, with a roundabout breaking the chain.",
+          "- AC2: Splitting a segment leaves both halves on the same street as before the split, proven by a test.",
+          "- AC3: The module is pure, lives in `src/sim`, and its tests run with no Babylon scene."
+        ],
+        "Problem": [
+          "- A road drawn through three junctions is three unrelated segments; nothing in the model says they are one street, so nothing can be addressed along it.",
+          "- `splitSegment` replaces one segment with two, so any identity attached to a segment has to be carried across that.",
+          "- The facing rule needed here already exists in `signalCycle` (`OPPOSITE`, 45 degrees); a second, independently written rule would eventually disagree with the first."
+        ]
+      },
+      "status": "Ready",
+      "title": "Chain road segments into streets that survive a split"
+    },
+    {
+      "ai_context": {
+        "keywords": "generate, english, street, names, cannot, run, out",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_035_generate_english_street_names_that_cannot_run_out"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/backlog/item_035_generate_english_street_names_that_cannot_run_out.md",
+      "ref": "item_035_generate_english_street_names_that_cannot_run_out",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every street gets a distinct English name whose suffix matches the road's type or shape.",
+          "- AC2: A test that exhausts the base combinations shows the ladder producing further distinct, plausible names rather than repeating or failing.",
+          "- AC3: The generator is pure and deterministic for a given seed."
+        ],
+        "Problem": [
+          "- No road has a name, so two roads of the same type are indistinguishable and unreferenceable.",
+          "- A fixed word list runs out, which the operator explicitly ruled out."
+        ]
+      },
+      "status": "Ready",
+      "title": "Generate English street names that cannot run out"
+    },
+    {
+      "ai_context": {
+        "keywords": "building, odd, even, address, number",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_036_give_every_building_an_odd_or_even_address_number"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/backlog/item_036_give_every_building_an_odd_or_even_address_number.md",
+      "ref": "item_036_give_every_building_an_odd_or_even_address_number",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every parcel resolves to a number and a street, with odd on one side and even on the other, increasing from the street's origin.",
+          "- AC2: No two parcels on one street share an address, proven on the bundled Demo save."
+        ],
+        "Problem": [
+          "- A building has no address, and the data to compute one already exists unused: `BuildableCell` carries its `segment`, its `side` and its `column` along that segment, and a parcel's cells all come from one segment."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give every building an odd-or-even address number"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, street, names, building, addresses, extended, detail, panel",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md",
+      "ref": "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement street names, building addresses, and the extended detail panel"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split",
+          "item_035_generate_english_street_names_that_cannot_run_out",
+          "item_036_give_every_building_an_odd_or_even_address_number",
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city you can point at and name"
+    },
+    {
+      "ai_context": {
+        "keywords": "persist, street, names, name, cities, saved, before, existed",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/backlog/item_037_persist_street_names_and_name_the_cities_saved_before_this_existed.md",
+      "ref": "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A city saved with names reloads with exactly those names.",
+          "- AC2: A city saved before this feature loads successfully and comes back with generated names, covered by the extended older-build check.",
+          "- AC3: The unit test on a hand-written pre-feature payload passes, and no existing save check was relaxed to make this work."
+        ],
+        "Problem": [
+          "- A name drawn at random is worthless if it changes on every reload, so it has to be saved.",
+          "- `parseCity` requires a segment tuple of exactly 6 entries, so adding a field rejects every existing city -- the same class of break that once refused every save in the library.",
+          "- Cities saved before this feature carry no names and must be given generated ones on load."
+        ]
+      },
+      "status": "Ready",
+      "title": "Persist street names, and name the cities saved before this existed"
+    },
+    {
+      "ai_context": {
+        "keywords": "open, detail, panel, building, car",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_038_open_the_detail_panel_on_a_building_or_a_car"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/backlog/item_038_open_the_detail_panel_on_a_building_or_a_car.md",
+      "ref": "item_038_open_the_detail_panel_on_a_building_or_a_car",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Clicking a building opens the panel with its address; clicking a car opens it for that vehicle.",
+          "- AC2: A road's panel now shows its street name, and the existing road, roundabout and tree cases behave as before.",
+          "- AC3: Selection still resolves through the ground pick, with no mesh made pickable that was not before."
+        ],
+        "Problem": [
+          "- The select tool covers roads, roundabouts and trees; the two things a player looks at most are not selectable.",
+          "- Buildings are thin instances with `isPickable = false` and cars move every frame, so mesh picking is the expensive route."
+        ]
+      },
+      "status": "Ready",
+      "title": "Open the detail panel on a building or a car"
+    }
+  ],
+  "estimates": {
+    "char_count": 15861,
+    "companion_doc_count": 1,
+    "doc_count": 8
+  },
+  "generated_at": "2026-08-30T09:33:39Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+      "item_034_chain_road_segments_into_streets_that_survive_a_split",
+      "item_035_generate_english_street_names_that_cannot_run_out",
+      "item_036_give_every_building_an_odd_or_even_address_number",
+      "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+      "item_038_open_the_detail_panel_on_a_building_or_a_car",
+      "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click,item_034_chain_road_segments_into_streets_that_survive_a_split,item_035_generate_english_street_names_that_cannot_run_out,item_036_give_every_building_an_odd_or_even_address_number,item_037_persist_street_names_and_name_the_cities_saved_before_this_existed,item_038_open_the_detail_panel_on_a_building_or_a_car,task_012_implement_street_names_building_addresses_and_the_extended_detail_panel",
+  "refs": [
+    "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+    "item_034_chain_road_segments_into_streets_that_survive_a_split",
+    "item_035_generate_english_street_names_that_cannot_run_out",
+    "item_036_give_every_building_an_odd_or_even_address_number",
+    "item_037_persist_street_names_and_name_the_cities_saved_before_this_existed",
+    "item_038_open_the_detail_panel_on_a_building_or_a_car",
+    "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md",
+      "ref": "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+    }
+  ]
+}

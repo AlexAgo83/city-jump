@@ -1,0 +1,214 @@
+{
+  "title": "Name the streets, number the buildings, and open a detail panel on anything you click",
+  "references": [
+    "src/render/drawTool.ts",
+    "src/ui/hud.ts",
+    "src/sim/slots.ts",
+    "src/sim/signals.ts",
+    "src/sim/junction.ts",
+    "src/sim/graph.ts",
+    "src/sim/save.ts",
+    "src/render/traffic.ts",
+    "scripts/interact.mjs",
+    "logics/runbook/run_006_change_what_a_save_contains_without_losing_the_player_s_city.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "City legibility",
+    "needs": [
+      "Clicking a building or a car tells the player nothing. The select tool already opens a detail panel for a road, a roundabout and a tree (`showSelection` in `src/ui/hud.ts`, fed by `SelectionInfo` from `src/render/drawTool.ts`), but a building and a vehicle -- the two things a player looks at most -- are not selectable at all.",
+      "A building has no address, because the city has no streets to have an address on. Roads exist only as individual Bezier segments: a road drawn through three junctions is three unrelated segments, and no part of the model says they are the same street. `12 Lilac Street` means twelve along the whole street, so an address cannot be derived until a street exists as a thing.",
+      "Nothing names a road. Every road is shown by its type (`Street`, `Avenue`, `Highway`), never by a name, so two roads of the same type are indistinguishable in the panel and unreferenceable in conversation.",
+      "A naming scheme that runs out is not acceptable. The operator asked explicitly for one that is not limited by its number of combinations, so a fixed word list on its own will not do -- there has to be a way past exhaustion that still reads as a real street name."
+    ],
+    "context": [
+      "The chaining rule this needs already exists in the codebase. `signalCycle` in `src/sim/signals.ts` pairs the arms of a junction that face each other within `OPPOSITE` (45 degrees), and its own comment states the idea exactly: two roads meeting is a bend in one road. A street is that same pairing followed across junctions, so this should reuse the rule rather than invent a second one that can disagree with it.",
+      "The address arithmetic is nearly free from data that already exists. `BuildableCell` in `src/sim/slots.ts` carries `segment`, `side` (-1 for the right of the segment, +1 for the left) and `column` (its position along that segment), and every cell of a parcel comes from one segment -- so which street a parcel is on, which side, and how far along are all already known.",
+      "Selection must not go through mesh picking. `pickThing` picks the *ground* and then finds the nearest thing to that point; buildings are thin instances with `isPickable = false` and cars move every frame, so making them pickable meshes is the expensive path. Parcels are already computed on every rebuild and movers are a flat list -- a nearest-match against the picked ground point is the same mechanism the tool already uses for roads, trees and roundabouts.",
+      "Street names are drawn once and persisted, not derived from geometry. A name recomputed from position would change when an unrelated road is drawn, which makes an address worthless. Identity therefore has to survive `splitSegment` in `src/sim/graph.ts`, which replaces one segment with two.",
+      "Names are in English, matching the rest of the UI (`Road`, `Roundabout`, `Tree`).",
+      "Cities saved before this exists carry no names, and must get freshly generated ones when they load -- the operator confirmed this. That makes save compatibility a first-class part of this work, and `run_006_change_what_a_save_contains_without_losing_the_player_s_city` is the procedure: `parseCity` currently requires a segment tuple of exactly 6 entries, so a seventh field rejects every existing city unless the length check is relaxed first."
+    ],
+    "acceptance_criteria": [
+      "AC1: Connected road segments that continue through a junction are recognised as one street, using the same facing rule the signal phases already use, and a street's identity survives a segment being split.",
+      "AC2: Every street carries a generated English name, drawn once and stable for the life of that street; the scheme cannot run out of names, and a name that would collide still reads as a plausible street name.",
+      "AC3: Every building has an address: a number and its street name, with odd numbers on one side of the street and even on the other, growing with distance from the street's origin.",
+      "AC4: Clicking a building opens the existing detail panel showing at least its address; clicking a car opens it for that vehicle.",
+      "AC5: Street names survive a save and reload unchanged, and a city saved before this feature existed loads successfully and is given generated names.",
+      "AC6: The street chaining, the name generation and the address arithmetic are pure functions in `src/sim`, unit-tested without a Babylon scene, and `tests/architecture.mjs` still passes.",
+      "AC7: No existing check is weakened: the older-build save check in `scripts/interact.mjs` is extended to cover the new field rather than relaxed."
+    ]
+  },
+  "product": {
+    "title": "A city you can point at and name",
+    "overview": "city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing.",
+    "goals": [
+      "A road drawn through several junctions is one named street, not three anonymous curves.",
+      "Every building has an address a player can read and repeat.",
+      "Clicking anything visible -- road, roundabout, tree, building, car -- opens the same panel and answers the question.",
+      "Names never run out, and never change under the player.",
+      "Cities saved before any of this existed keep loading, and get names."
+    ],
+    "non_goals": [
+      "Renaming a street by hand, or any name-editing UI.",
+      "Labels floating in the 3D scene, street signs, or a map view.",
+      "Districts, neighbourhoods, postcodes, or any spatial grouping above the street.",
+      "Making the address mean anything to simulation -- no routing by address, no deliveries, no residents.",
+      "Changing how roads are drawn, split, or rendered."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Chain road segments into streets that survive a split",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC6"],
+      "problem": [
+        "A road drawn through three junctions is three unrelated segments; nothing in the model says they are one street, so nothing can be addressed along it.",
+        "`splitSegment` replaces one segment with two, so any identity attached to a segment has to be carried across that.",
+        "The facing rule needed here already exists in `signalCycle` (`OPPOSITE`, 45 degrees); a second, independently written rule would eventually disagree with the first."
+      ],
+      "scope_in": [
+        "A pure module in `src/sim` that groups the graph's segments into streets: at a junction, a segment continues into the arm that most nearly faces it within the existing `OPPOSITE` threshold, when the road type matches and neither side is a roundabout.",
+        "A stable street identity carried on the segment, inherited by both halves in `splitSegment` and by a segment drawn as the continuation of an existing street.",
+        "Distance along a street, ordered from a deterministic origin, so an address can be measured from it.",
+        "Unit tests for the interesting shapes: a straight run through several junctions, a bend, a T where the through road continues and the branch does not, a crossroads, a roundabout breaking the chain, and a split."
+      ],
+      "scope_out": [
+        "Naming anything -- that is the next slice.",
+        "Changing `signalCycle` itself or how signal phases are chosen.",
+        "Any UI."
+      ],
+      "acceptance_criteria": [
+        "AC1: Segments continuing through a junction resolve to one street, using the same facing rule as the signal phases, with a roundabout breaking the chain.",
+        "AC2: Splitting a segment leaves both halves on the same street as before the split, proven by a test.",
+        "AC3: The module is pure, lives in `src/sim`, and its tests run with no Babylon scene."
+      ]
+    },
+    {
+      "title": "Generate English street names that cannot run out",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC2", "AC6"],
+      "problem": [
+        "No road has a name, so two roads of the same type are indistinguishable and unreferenceable.",
+        "A fixed word list runs out, which the operator explicitly ruled out."
+      ],
+      "scope_in": [
+        "A generator producing `<core> <suffix>` English names, where the suffix follows the road's own type and shape -- Avenue for an avenue, Boulevard or Expressway for a highway, Walk or Mews for a pedestrian way, Close for a dead end -- so the name states something true about the road.",
+        "An escalation ladder past the base combinations: a cardinal qualifier (North, South, East, West), then an ordinal, so the supply is unbounded and every rung still reads as a plausible street name.",
+        "A name drawn once per street from a seed, stable for the life of that street.",
+        "Unit tests: no two streets in one city share a name, the ladder is exercised by forcing exhaustion, and the same seed gives the same name twice."
+      ],
+      "scope_out": [
+        "Editing or overriding a name by hand.",
+        "Localised or non-English names.",
+        "Themed naming by district or region."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every street gets a distinct English name whose suffix matches the road's type or shape.",
+        "AC2: A test that exhausts the base combinations shows the ladder producing further distinct, plausible names rather than repeating or failing.",
+        "AC3: The generator is pure and deterministic for a given seed."
+      ]
+    },
+    {
+      "title": "Give every building an odd-or-even address number",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC3", "AC6"],
+      "problem": [
+        "A building has no address, and the data to compute one already exists unused: `BuildableCell` carries its `segment`, its `side` and its `column` along that segment, and a parcel's cells all come from one segment."
+      ],
+      "scope_in": [
+        "Address arithmetic in `src/sim`: the number grows with distance from the street's origin, odd on one side and even on the other, following the real-world convention.",
+        "Resolve a parcel to its street, its side and its distance along that street, reusing the cell data rather than recomputing geometry.",
+        "Unit tests: numbers increase along the street, the two sides never collide, and two parcels on the same street never share a number."
+      ],
+      "scope_out": [
+        "Displaying the address -- that is the panel slice.",
+        "Persisting numbers: they are derived from position and recomputed, unlike the street name.",
+        "Address gaps, ranges, or sub-numbering (12A, 12B)."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every parcel resolves to a number and a street, with odd on one side and even on the other, increasing from the street's origin.",
+        "AC2: No two parcels on one street share an address, proven on the bundled Demo save."
+      ]
+    },
+    {
+      "title": "Persist street names, and name the cities saved before this existed",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC5", "AC7"],
+      "problem": [
+        "A name drawn at random is worthless if it changes on every reload, so it has to be saved.",
+        "`parseCity` requires a segment tuple of exactly 6 entries, so adding a field rejects every existing city -- the same class of break that once refused every save in the library.",
+        "Cities saved before this feature carry no names and must be given generated ones on load."
+      ],
+      "scope_in": [
+        "Carry the street name through `serializeCity` and `restoreCity`, following `run_006_change_what_a_save_contains_without_losing_the_player_s_city`: relax the tuple length check to accept both shapes, bump `SAVE_VERSION`, keep every version up to the current one readable.",
+        "Generate names on load for a city that has none, so an older save comes back fully named.",
+        "Extend the older-build check in `scripts/interact.mjs` to strip the new field, and add a unit test parsing a hand-written payload without it."
+      ],
+      "scope_out": [
+        "Any other save format change.",
+        "Migrating or rewriting saves in place.",
+        "Persisting address numbers, which stay derived."
+      ],
+      "acceptance_criteria": [
+        "AC1: A city saved with names reloads with exactly those names.",
+        "AC2: A city saved before this feature loads successfully and comes back with generated names, covered by the extended older-build check.",
+        "AC3: The unit test on a hand-written pre-feature payload passes, and no existing save check was relaxed to make this work."
+      ]
+    },
+    {
+      "title": "Open the detail panel on a building or a car",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC4"],
+      "problem": [
+        "The select tool covers roads, roundabouts and trees; the two things a player looks at most are not selectable.",
+        "Buildings are thin instances with `isPickable = false` and cars move every frame, so mesh picking is the expensive route."
+      ],
+      "scope_in": [
+        "Extend `SelectionInfo` and `pickThing` with a building and a vehicle case, resolved by nearest match against the picked ground point -- the same mechanism the tool already uses for roads, trees and roundabouts.",
+        "Show the building's address and whatever the panel can honestly say about it (type, footprint), and for a car what it is and the street it is on.",
+        "Show the street name in the existing road case too, now that there is one.",
+        "Keep the panel's existing behaviour: it closes on clicking the terrain, and the road eyedropper still works."
+      ],
+      "scope_out": [
+        "Making buildings or cars pickable meshes.",
+        "Following a selected car with the camera, or any new interaction beyond opening the panel.",
+        "Redesigning the panel's markup or styling beyond the new rows."
+      ],
+      "acceptance_criteria": [
+        "AC1: Clicking a building opens the panel with its address; clicking a car opens it for that vehicle.",
+        "AC2: A road's panel now shows its street name, and the existing road, roundabout and tree cases behave as before.",
+        "AC3: Selection still resolves through the ground pick, with no mesh made pickable that was not before."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Implement street names, building addresses, and the extended detail panel",
+    "plan": [
+      "Read this request and its five backlog slices, plus run_006_change_what_a_save_contains_without_losing_the_player_s_city before touching the save format.",
+      "Build the street chaining first: everything else is addressed along it, and it is the only slice with real design risk.",
+      "Add the name generator and its exhaustion ladder on top of the street identity.",
+      "Derive address numbers from the parcel data that already carries side and position.",
+      "Persist the names and handle older saves, extending the older-build check rather than relaxing it.",
+      "Extend the selection panel to buildings and cars, and show the street name on roads.",
+      "Run the fast gate, then the browser interaction and visual checks; confirm an older save loads and comes back named.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/street-names-and-addresses.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

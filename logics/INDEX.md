@@ -18,6 +18,7 @@
 | [prod_004_a_city_builder_that_never_loses_the_city_on_screen](product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md) | A city builder that never loses the city on screen | Proposed |  |  | product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md |
 | [prod_005_a_city_builder_that_stays_responsive_as_the_city_grows](product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md) | A city builder that stays responsive as the city grows | Proposed |  |  | product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md |
 | [prod_006_one_source_of_truth_for_what_a_building_model_is](product/prod_006_one_source_of_truth_for_what_a_building_model_is.md) | One source of truth for what a building model is | Proposed |  |  | product/prod_006_one_source_of_truth_for_what_a_building_model_is.md |
+| [prod_007_a_city_you_can_point_at_and_name](product/prod_007_a_city_you_can_point_at_and_name.md) | A city you can point at and name | Proposed |  |  | product/prod_007_a_city_you_can_point_at_and_name.md |
 
 ## Roadmaps
 
@@ -39,6 +40,7 @@
 | [req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene](request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md) | Review findings: half-destroyed city on a failed load, and rebuild/config/test hygiene | Draft |  |  | request/req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene.md |
 | [req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses](request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md) | Performance: every road placed rebuilds the whole city, and the first load ships what it never uses | Draft |  |  | request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md |
 | [req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together](request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md) | Building geometry facts are written twice, in two languages, with nothing tying them together | Draft |  |  | request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md |
+| [req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click](request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md) | Name the streets, number the buildings, and open a detail panel on anything you click | Draft |  |  | request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md |
 
 ## Backlog
 
@@ -77,6 +79,11 @@
 | [item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry](backlog/item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry.md) | Give the renderer one place to learn a model's geometry | Ready |  | 0% | backlog/item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry.md |
 | [item_032_fail_the_build_when_the_generator_and_the_renderer_disagree](backlog/item_032_fail_the_build_when_the_generator_and_the_renderer_disagree.md) | Fail the build when the generator and the renderer disagree | Ready |  | 0% | backlog/item_032_fail_the_build_when_the_generator_and_the_renderer_disagree.md |
 | [item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does](backlog/item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does.md) | Make docs/assets.md and the authoring runbook describe what the code actually does | Ready |  | 0% | backlog/item_033_make_docs_assets_md_and_the_authoring_runbook_describe_what_the_code_actually_does.md |
+| [item_034_chain_road_segments_into_streets_that_survive_a_split](backlog/item_034_chain_road_segments_into_streets_that_survive_a_split.md) | Chain road segments into streets that survive a split | Ready |  | 0% | backlog/item_034_chain_road_segments_into_streets_that_survive_a_split.md |
+| [item_035_generate_english_street_names_that_cannot_run_out](backlog/item_035_generate_english_street_names_that_cannot_run_out.md) | Generate English street names that cannot run out | Ready |  | 0% | backlog/item_035_generate_english_street_names_that_cannot_run_out.md |
+| [item_036_give_every_building_an_odd_or_even_address_number](backlog/item_036_give_every_building_an_odd_or_even_address_number.md) | Give every building an odd-or-even address number | Ready |  | 0% | backlog/item_036_give_every_building_an_odd_or_even_address_number.md |
+| [item_037_persist_street_names_and_name_the_cities_saved_before_this_existed](backlog/item_037_persist_street_names_and_name_the_cities_saved_before_this_existed.md) | Persist street names, and name the cities saved before this existed | Ready |  | 0% | backlog/item_037_persist_street_names_and_name_the_cities_saved_before_this_existed.md |
+| [item_038_open_the_detail_panel_on_a_building_or_a_car](backlog/item_038_open_the_detail_panel_on_a_building_or_a_car.md) | Open the detail panel on a building or a car | Ready |  | 0% | backlog/item_038_open_the_detail_panel_on_a_building_or_a_car.md |
 
 ## Tasks
 
@@ -93,6 +100,7 @@
 | [task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings](tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md) | Implement the load-rollback and rendering hygiene review findings | Ready |  | 0% | tasks/task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings.md |
 | [task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work](tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md) | Implement the rebuild-granularity and startup-payload performance work | Ready |  | 0% | tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md |
 | [task_011_implement_one_source_of_truth_for_building_model_geometry](tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md) | Implement one source of truth for building model geometry | Ready |  | 0% | tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md |
+| [task_012_implement_street_names_building_addresses_and_the_extended_detail_panel](tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md) | Implement street names, building addresses, and the extended detail panel | Ready |  | 0% | tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md |
 
 ## Runbooks
 
