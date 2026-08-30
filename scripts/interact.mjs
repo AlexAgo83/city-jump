@@ -1121,7 +1121,7 @@ await page.evaluate(() => {
 });
 page.once("dialog", (dialog) => dialog.accept("Sharedville"));
 await page.locator("#save-share").click();
-await nextFrame();
+await page.waitForFunction(() => Boolean(window.__shareLink), null, { timeout: 5_000 });
 const shareLink = await page.evaluate(() => window.__shareLink ?? "");
 check("a share link is copied", shareLink.includes("#city="), shareLink.slice(0, 80));
 page.on("dialog", (dialog) => dialog.accept());

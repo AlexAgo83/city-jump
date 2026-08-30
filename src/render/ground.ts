@@ -367,19 +367,21 @@ const smoothstep = (t: number): number => {
 export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
   let visible = false;
   let mesh: LinesMesh | null = null;
+  const stride = 8;
 
   function rebuild(dirty?: TerrainBounds): void {
-    // ponytail: leave dirty-height nudges stale; rebuild the visible 900k-vector grid on full refresh or toggle.
+    // ponytail: leave dirty-height nudges stale; rebuild the reference grid on full refresh or toggle.
     if (dirty) return;
     mesh?.dispose();
     mesh = null;
     if (!visible) return;
 
     const lines: Vector3[][] = [];
-    for (let i = 0; i < heightmap.count; i++) {
+    const indices = gridIndices(heightmap.count, stride);
+    for (const i of indices) {
       const row: Vector3[] = [];
       const column: Vector3[] = [];
-      for (let j = 0; j < heightmap.count; j++) {
+      for (const j of indices) {
         row.push(new Vector3(heightmap.worldX(j), heightmap.at(j, i) + 0.04, heightmap.worldZ(i)));
         column.push(new Vector3(heightmap.worldX(i), heightmap.at(i, j) + 0.04, heightmap.worldZ(j)));
       }
@@ -399,4 +401,11 @@ export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
       rebuild();
     },
   };
+}
+
+function gridIndices(count: number, stride: number): number[] {
+  const indices: number[] = [];
+  for (let i = 0; i < count; i += stride) indices.push(i);
+  if (indices.at(-1) !== count - 1) indices.push(count - 1);
+  return indices;
 }

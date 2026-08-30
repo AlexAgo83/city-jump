@@ -77,9 +77,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!dirty) trees.rebuild();
     worldGrid.rebuild(dirty);
     roads.rebuild(dirty, junctions);
-    if (!dirty || streetlights.count() === 0) streetlights.rebuild(junctions);
+    streetlights.rebuild(junctions);
     traffic.rebuild(dirty);
-    if (!dirty || signals.count() === 0) signals.rebuild(junctions);
+    signals.rebuild(junctions);
     zoneOverlay.rebuild(zones);
     buildings.rebuild(cells, parcels);
     scheduleAutosave();
