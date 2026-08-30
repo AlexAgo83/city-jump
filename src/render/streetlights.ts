@@ -208,4 +208,5 @@ function applyInstances(mesh: Mesh, matrices: Matrix[]): void {
   const buffer = new Float32Array(matrices.length * 16);
   for (const [i, matrix] of matrices.entries()) matrix.copyToArray(buffer, i * 16);
   mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+  mesh.thinInstanceCount = matrices.length;
 }

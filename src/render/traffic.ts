@@ -1039,6 +1039,12 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
     for (const mover of movers) {
       const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
+      if (!graph.hasSegment(mover.segment.id)) {
+        staleMovers.add(mover);
+        leaveQueue(mover);
+        mover.mesh.dispose();
+        continue;
+      }
 
       if (mover.ride) {
         const ride = mover.ride;
@@ -1081,17 +1087,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         if (mover.ride) continue;
       }
       const offset = offsetOf(mover);
-      let sample: ReturnType<RoadGraph["pointAt"]>;
-      try {
-        sample = graph.pointAt(mover.segment.id, mover.distance);
-      } catch (error) {
-        if (!(error instanceof Error) || !error.message.startsWith("unknown segment:")) throw error;
-        staleMovers.add(mover);
-        leaveQueue(mover);
-        mover.mesh.dispose();
-        continue;
-      }
-      const { position, tangent } = sample;
+      const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
       const normal = perpXZ(normalizeXZ(tangent));
       mover.mesh.position.set(
         position.x + normal.x * offset,

@@ -273,6 +273,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         matrixFor(parcel, model.centerX).copyToArray(matrices, i * 16);
       }
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16);
+      model.mesh.thinInstanceCount = chosen.length;
       placed += chosen.length;
     }
 
@@ -317,6 +318,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const buffer = new Float32Array(list.length * 16);
       list.forEach((m, i) => m.copyToArray(buffer, i * 16));
       mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+      mesh.thinInstanceCount = list.length;
     }
 
     lastPlaced = placed;

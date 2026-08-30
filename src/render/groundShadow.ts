@@ -61,6 +61,7 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
         .copyToArray(buffer, i * 16);
     }
     mesh.thinInstanceSetBuffer("matrix", buffer, 16);
+    mesh.thinInstanceCount = bases.length;
   }
 
   return { mesh, setInstances };

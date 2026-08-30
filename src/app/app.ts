@@ -15,7 +15,7 @@ import { Zones } from "../sim/zones";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { allJunctions } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell } from "../sim/slots";
+import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, type CitySave } from "../sim/save";
 import { setTerrain } from "../sim/terrain";
 import type { SelectionInfo } from "../render/drawTool";
@@ -68,11 +68,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const rebuild = (dirty?: TerrainBounds): void => {
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
-    const cells = buildableCells(graph, zones);
-    currentBuildableCells = cells;
-    const parcels = buildingParcels(cells, zones);
+    if (!dirty) {
+      currentBuildableCells = buildableCells(graph, zones);
+      currentParcels = buildingParcels(currentBuildableCells, zones);
+    }
     const junctions = allJunctions(graph);
-    heightmap.conformToRoads(graph, parcels, dirty, junctions);
+    heightmap.conformToRoads(graph, currentParcels, dirty, junctions);
     ground.refresh(dirty);
     if (!dirty) trees.rebuild();
     worldGrid.rebuild(dirty);
@@ -81,7 +82,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     traffic.rebuild(dirty);
     signals.rebuild(junctions);
     zoneOverlay.rebuild(zones);
-    buildings.rebuild(cells, parcels);
+    if (dirty) scheduleBuildingRebuild();
+    else buildings.rebuild(currentBuildableCells, currentParcels);
     scheduleAutosave();
   };
 
@@ -89,6 +91,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // on the rugged map comes back on the rugged map.
   let terrainPreset = "rolling";
   let currentBuildableCells: readonly BuildableCell[] = [];
+  let currentParcels: readonly BuildingParcel[] = [];
+  let buildingRebuildTimer = 0;
+  const scheduleBuildingRebuild = (): void => {
+    window.clearTimeout(buildingRebuildTimer);
+    // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
+    buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
+  };
   let sunHour = 14;
   const applyTerrain = (preset: string): void => {
     terrainPreset = preset;

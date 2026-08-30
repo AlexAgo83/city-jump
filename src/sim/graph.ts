@@ -179,6 +179,10 @@ export class RoadGraph {
     return s;
   }
 
+  hasSegment(id: SegmentId): boolean {
+    return this.segments.has(id);
+  }
+
   allNodes(): RoadNode[] {
     return [...this.nodes.values()];
   }

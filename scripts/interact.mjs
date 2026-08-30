@@ -412,6 +412,7 @@ await click(500, 280);
 await page.mouse.move(600, 330);
 check("the second click takes the bend", await previewVisible());
 await click(700, 360);
+await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 5_000 });
 
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === 1, `${drawn.segments} segments`);
@@ -476,6 +477,9 @@ await page.locator("#zone-radius").evaluate((input) => {
 await page.locator('input[name="zone-kind"][value="dense"]').check();
 await click(500, 350);
 await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
+await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
+  .filter((mesh) => mesh.name.startsWith("building_lot_"))
+  .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== before, JSON.stringify(Object.entries(unzonedModels)), { timeout: 5_000 });
 const zoned = await stats();
 const denseModels = await buildingModelCounts();
 check("a zone can be painted from the toolbar", zoned.zones > 0, `${zoned.zones} cells`);
@@ -488,6 +492,9 @@ await page.locator('[data-tool="zones"]').click();
 await page.locator('input[name="zone-kind"][value="clear"]').check();
 await click(500, 350);
 await page.waitForFunction(() => window.cityjump.stats().zones === 0, null, { timeout: 5_000 });
+await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
+  .filter((mesh) => mesh.name.startsWith("building_lot_"))
+  .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) === before, JSON.stringify(Object.entries(unzonedModels)), { timeout: 5_000 });
 check("a zone can be cleared from the toolbar", (await stats()).zones === 0);
 check("clearing a zone restores the unzoned building mix", JSON.stringify(await buildingModelCounts()) === JSON.stringify(unzonedModels));
 await page.locator('[data-tool="select"]').click();
@@ -563,6 +570,7 @@ check("tunnels do not grow surface buildings or traffic", tunneled.buildings ===
 await page.locator('input[name="road-type"][value="pedestrian"]').check();
 await click(180, 300);
 await click(560, 250);
+await page.waitForFunction((previous) => window.cityjump.stats().buildings > previous, tunneled.buildings, { timeout: 5_000 });
 const walked = await stats();
 check("the road type selector draws pedestrian paths", walked.segments === tunneled.segments + 1, `${walked.segments} segments`);
 check("a pedestrian path is populated on foot", walked.pedestrians > tunneled.pedestrians, `${walked.pedestrians} pedestrians`);
