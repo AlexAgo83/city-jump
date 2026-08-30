@@ -1146,6 +1146,7 @@ const selectedVehicle = await page.evaluate(() => ({
   ),
 }));
 check("clicking a car opens its street", !selectedVehicle.hidden && selectedVehicle.kind === "Car" && Boolean(selectedVehicle.rows.Street), JSON.stringify(selectedVehicle));
+check("a selected car names what kind of vehicle it is", Boolean(selectedVehicle.rows.Type), JSON.stringify(selectedVehicle.rows));
 await page.evaluate(() => {
   for (const segment of window.cityjump._graph.allSegments()) segment.streetId += 1000;
 });

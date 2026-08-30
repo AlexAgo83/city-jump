@@ -122,6 +122,8 @@ interface Plan {
 /** Anything moving on the network: a car in a lane, or someone on a footway. */
 interface Mover {
   readonly mesh: Mesh | InstancedMesh;
+  /** What it is -- "Saloon", "Tractor", "Tanker" -- for the selection panel. Walkers have none. */
+  readonly vehicle: string;
   /** Someone on foot: a footway rather than a lane, and no lane changes to make. */
   readonly walk: boolean;
   /** Bob while walking; zero in a car. */
@@ -283,6 +285,28 @@ interface CarShape {
   readonly theme?: BuildingKind;
   /** Its own paint, when the ordinary car colours would be wrong (a pink tractor, say). */
   readonly colors?: Color3[];
+  /** What makes it that vehicle rather than a box: a stack, a drum, side boards, a turret. */
+  readonly details?: CarDetail[];
+}
+
+/**
+ * One extra piece bolted onto a shape. `y` is measured up from the road, `z` along the vehicle
+ * (+ towards the front), `x` across it -- `mirrored` builds the same piece on the other side.
+ * `round` makes it a cylinder along its own longest axis instead of a box, which is what tells a
+ * tanker's drum and a tractor's exhaust from yet another slab.
+ */
+interface CarDetail {
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+  readonly depth: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  /** Dark trim (stacks, tyres, stowage) rather than the vehicle's own paint. */
+  readonly dark?: boolean;
+  readonly mirrored?: boolean;
+  readonly round?: boolean;
 }
 
 const CAR_SHAPES: CarShape[] = [
@@ -348,6 +372,13 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1.25 * CAR_VISUAL_SCALE,
     theme: "agricultural",
     colors: [new Color3(0.16, 0.42, 0.2), new Color3(0.85, 0.5, 0.12)],
+    details: [
+      // The exhaust standing up beside the bonnet, and the mudguards over the back wheels.
+      { name: "stack", width: 0.22, height: 2.1, depth: 0.22, x: 0.9, y: 1.5, z: 1.1, dark: true, round: true },
+      { name: "guard", width: 0.2, height: 0.24, depth: 2.1, x: 1.25, y: 1.75, z: -1.5, mirrored: true },
+      { name: "weight", width: 1.5, height: 0.4, depth: 0.4, x: 0, y: 0.85, z: 2.2, dark: true },
+      { name: "hitch", width: 0.4, height: 0.24, depth: 0.7, x: 0, y: 0.7, z: -2.3, dark: true },
+    ],
   },
   {
     // Long, low and open: the trailer a tractor tows, hauling the harvest.
@@ -362,6 +393,13 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1 * CAR_VISUAL_SCALE,
     theme: "agricultural",
     colors: [new Color3(0.62, 0.55, 0.35), new Color3(0.5, 0.42, 0.28)],
+    details: [
+      // Side boards and a tailgate around the load bed, and the drawbar reaching forward.
+      { name: "board", width: 0.18, height: 0.85, depth: 4.4, x: 1.4, y: 1.9, z: -1.4, mirrored: true },
+      { name: "tailgate", width: 2.9, height: 0.85, depth: 0.18, x: 0, y: 1.9, z: -3.6 },
+      { name: "load", width: 2.6, height: 0.5, depth: 4.0, x: 0, y: 2.1, z: -1.4, dark: true },
+      { name: "drawbar", width: 0.3, height: 0.24, depth: 1.4, x: 0, y: 0.75, z: 3.6, dark: true },
+    ],
   },
   {
     // A cab and a long drum behind it: the tanker that feeds a works.
@@ -376,6 +414,14 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1.05 * CAR_VISUAL_SCALE,
     theme: "industrial",
     colors: [new Color3(0.82, 0.83, 0.8), new Color3(0.75, 0.55, 0.2)],
+    details: [
+      // The drum itself, its end cap, the catwalk along the top and the hose locker under it.
+      { name: "drum", width: 2.7, height: 2.7, depth: 5.4, x: 0, y: 2.3, z: -1.6, round: true },
+      { name: "cap", width: 2.5, height: 2.5, depth: 0.3, x: 0, y: 2.3, z: -4.4, round: true, dark: true },
+      { name: "walk", width: 0.9, height: 0.12, depth: 5.0, x: 0, y: 3.7, z: -1.6, dark: true },
+      { name: "rail", width: 0.1, height: 0.4, depth: 5.0, x: 0.5, y: 3.95, z: -1.6, dark: true, mirrored: true },
+      { name: "locker", width: 0.5, height: 0.7, depth: 1.6, x: 1.4, y: 1.2, z: -2.4, dark: true, mirrored: true },
+    ],
   },
   {
     // Cab forward, flat deck behind: the truck that carries everything else.
@@ -390,6 +436,13 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1 * CAR_VISUAL_SCALE,
     theme: "industrial",
     colors: [new Color3(0.3, 0.42, 0.55), new Color3(0.55, 0.28, 0.16)],
+    details: [
+      // Headboard behind the cab, low rails down the deck, and the load strapped to it.
+      { name: "headboard", width: 2.9, height: 1.2, depth: 0.2, x: 0, y: 2.3, z: 0.9 },
+      { name: "rail", width: 0.16, height: 0.4, depth: 4.4, x: 1.4, y: 1.9, z: -1.6, mirrored: true },
+      { name: "crate", width: 2.2, height: 1.1, depth: 1.8, x: 0, y: 2.25, z: -0.6, dark: true },
+      { name: "pipe", width: 0.6, height: 0.6, depth: 3.6, x: 0.6, y: 2.0, z: -2.8, dark: true, round: true },
+    ],
   },
   {
     // Low, wide and blunt, with a squat turret-sized cabin: the armour.
@@ -404,6 +457,13 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1 * CAR_VISUAL_SCALE,
     theme: "military",
     colors: [new Color3(0.3, 0.34, 0.24), new Color3(0.36, 0.36, 0.3)],
+    details: [
+      // A turret with a barrel out of it, skirts over the wheels, stowage on the back deck.
+      { name: "turret", width: 1.8, height: 0.55, depth: 2.0, x: 0, y: 2.3, z: -0.4 },
+      { name: "barrel", width: 0.22, height: 0.22, depth: 2.6, x: 0, y: 2.45, z: 1.4, dark: true, round: true },
+      { name: "skirt", width: 0.16, height: 0.55, depth: 5.2, x: 1.6, y: 1.0, z: 0, dark: true, mirrored: true },
+      { name: "stowage", width: 2.2, height: 0.45, depth: 1.0, x: 0, y: 2.1, z: -2.5, dark: true },
+    ],
   },
   {
     // Canvas-backed troop truck: tall box behind a short cab.
@@ -418,6 +478,15 @@ const CAR_SHAPES: CarShape[] = [
     wheel: 1.05 * CAR_VISUAL_SCALE,
     theme: "military",
     colors: [new Color3(0.26, 0.3, 0.2), new Color3(0.4, 0.42, 0.3)],
+    details: [
+      // Canvas back on its hoops, a tailgate, and the spare wheel behind the cab.
+      { name: "canvas", width: 2.8, height: 1.5, depth: 4.2, x: 0, y: 2.6, z: -1.6 },
+      { name: "hoop", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -0.4, dark: true },
+      { name: "hoop_mid", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -1.8, dark: true },
+      { name: "hoop_back", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -3.2, dark: true },
+      { name: "tailgate", width: 2.7, height: 0.9, depth: 0.16, x: 0, y: 1.9, z: -3.7, dark: true },
+      { name: "spare", width: 0.34, height: 1.0, depth: 1.0, x: 1.5, y: 1.3, z: 1.0, dark: true, round: true },
+    ],
   },
 ];
 
@@ -474,6 +543,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         slab(name, shape.width - 0.22, 0.16, depth, 0, floor + shape.hull + 0.08, at);
       if (shape.bonnet > 0) parts.push(ledge(`car_bonnet_${shape.name}_${i}`, shape.bonnet, (shape.length - shape.bonnet) / 2));
       if (shape.boot > 0) parts.push(ledge(`car_boot_${shape.name}_${i}`, shape.boot, -(shape.length - shape.boot) / 2));
+      parts.push(...detailParts(shape, false, `_${i}`));
 
       const car = Mesh.MergeMeshes(parts, true, true, undefined, false, false);
       if (!car) throw new Error("car failed to merge");
@@ -687,7 +757,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       head.position.set(0, seatY + 0.58 + 0.1, at);
       rider.push(torso, head);
     }
-    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...trim, ...rider], true, true, undefined, false, false);
+    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...trim, ...rider, ...detailParts(shape, true, "")], true, true, undefined, false, false);
     if (!parts) throw new Error("car parts failed to merge");
     parts.name = `car_parts_${shape.name}`;
     parts.material = dark;
@@ -703,6 +773,32 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
    * ponytail: built out of primitives rather than extruded, because an extrusion has to be
    * oriented and this cannot be got wrong.
    */
+  /**
+   * The pieces a shape declares for itself, in one of the two prototypes a vehicle is built from
+   * (its painted body, or the dark trim that rides along). A round piece becomes a cylinder along
+   * whichever of its dimensions is longest, so one spec covers a drum, an exhaust and a barrel.
+   */
+  function detailParts(shape: CarShape, dark: boolean, suffix: string): Mesh[] {
+    return (shape.details ?? [])
+      .filter((detail) => (detail.dark ?? false) === dark)
+      .flatMap((detail) => (detail.mirrored ? [1, -1] : [1]).map((side) => {
+        const name = `car_${shape.name}_${detail.name}${side < 0 ? "_l" : ""}${suffix}`;
+        const x = detail.x * side * CAR_VISUAL_SCALE;
+        const y = detail.y * CAR_VISUAL_SCALE;
+        const z = detail.z * CAR_VISUAL_SCALE;
+        const w = detail.width * CAR_VISUAL_SCALE;
+        const h = detail.height * CAR_VISUAL_SCALE;
+        const d = detail.depth * CAR_VISUAL_SCALE;
+        if (!detail.round) return slab(name, w, h, d, x, y, z, 0.08);
+        const longest = Math.max(w, h, d);
+        const mesh = MeshBuilder.CreateCylinder(name, { diameter: Math.min(w, h, d), height: longest, tessellation: 10 }, scene);
+        if (longest === d) mesh.rotation.x = Math.PI / 2;
+        else if (longest === w) mesh.rotation.z = Math.PI / 2;
+        mesh.position.set(x, y, z);
+        return mesh;
+      }));
+  }
+
   function slab(
     name: string,
     width: number,
@@ -1220,12 +1316,13 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       const span = Math.max(1, seg.length - from - trimAt(seg.b, seg.id));
 
       /** Puts one mover on this road, entering it the way any other would. */
-      const place = (mesh: Mesh | InstancedMesh, i: number, count: number, walk: boolean, lane: LaneCentre): void => {
+      const place = (mesh: Mesh | InstancedMesh, i: number, count: number, walk: boolean, lane: LaneCentre, vehicle = ""): void => {
         const pace = walk
           ? 0.75 + ((si + i * 7) % 5) * 0.12
           : 0.85 + ((si + i * 3) % 5) * 0.075;
         const mover: Mover = {
           mesh,
+          vehicle,
           walk,
           stride: walk ? 0.05 : 0,
           phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
@@ -1294,7 +1391,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
           part.isPickable = false;
           part.parent = body;
         }
-        place(body, i, count, false, lanes[i % lanes.length]!);
+        place(body, i, count, false, lanes[i % lanes.length]!, CAR_SHAPES[shape]!.name);
       }
     }
 
@@ -1465,7 +1562,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       density = clamped;
       rebuild();
     },
-    vehicleAt(x: number, z: number): { segment: Segment; kind: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } | null {
+    vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } | null {
       let best: Mover | null = null;
       let bestDistance = 7;
       for (const mover of movers) {
@@ -1480,6 +1577,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
         ? {
             segment: best.segment,
             kind: "Car",
+            vehicle: best.vehicle,
             target: () =>
               movers.includes(best!) && !best!.walk
                 ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z, heading: best!.heading, segment: best!.segment }

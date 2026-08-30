@@ -90,7 +90,9 @@ export function showSelection(info: SelectionInfo | null): void {
   }
   if (info.kind === "vehicle") {
     selectionKind.textContent = info.name;
-    selectionRows.innerHTML = row("Street", info.street);
+    // "saloon" -> "Saloon", "troop truck" -> "Troop truck".
+    const model = info.model ? info.model.charAt(0).toUpperCase() + info.model.slice(1) : "";
+    selectionRows.innerHTML = (model ? row("Type", model) : "") + row("Street", info.street);
     return;
   }
   if (info.kind === "roundabout") {
