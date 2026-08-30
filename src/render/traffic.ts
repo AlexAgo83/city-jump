@@ -1118,7 +1118,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     for (const [si, seg] of segments.entries()) {
       if (dirty && !segmentTouchesBounds(seg, dirty)) continue;
       const type = roadType(seg.type);
-      if (type.tunnelDepth) continue;
       const from = trimAt(seg.a, seg.id);
       const span = Math.max(1, seg.length - from - trimAt(seg.b, seg.id));
 
@@ -1162,7 +1161,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
       // Down the middle of a path, along the footway of anything else. A highway has a guardrail
       // where that footway would be, so nobody walks it.
-      if (!type.highway) {
+      if (!type.highway && !type.tunnelDepth) {
         const walks = walkCentres(type, SIDEWALK_WIDTH);
         // A path is all footway, so it carries more; a street gets a handful either side.
         const baseCount = type.pedestrian
@@ -1206,7 +1205,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     if (mover.walk) {
       mover.pitch = 0;
     } else {
-      const targetPitch = vehicleTerrainPitch(mover.mesh.position, mover.heading);
+      const targetPitch = roadType(mover.segment.type).tunnelDepth ? 0 : vehicleTerrainPitch(mover.mesh.position, mover.heading);
       mover.pitch += (targetPitch - mover.pitch) * Math.min(1, dt * 5);
     }
     mover.mesh.rotationQuaternion = null;

@@ -34,6 +34,8 @@ export const GRID = {
 export interface BuildableCell {
   /** Set on cells fronting a pedestrian path, which only carries low buildings. */
   readonly lowRise: boolean;
+  /** Set on cells fronting an industrial road, which only carries industrial models. */
+  readonly industrial: boolean;
   readonly segment: SegmentId;
   readonly side: -1 | 1;
   readonly block: number;
@@ -67,6 +69,7 @@ export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
  */
 export const LOW_RISE_SIZES = new Set(["1x1", "2x2", "1x3", "4x1", "4x4", "3x3"]);
 export const DENSE_SIZES = new Set(["2x3", "2x4", "3x2", "3x4", "4x2", "4x3"]);
+export const INDUSTRIAL_SIZES = new Set(["1x4", "2x4", "3x4", "4x4"]);
 
 const sizeKey = (frontageCells: number, depthCells: number): string => `${frontageCells}x${depthCells}`;
 
@@ -124,9 +127,11 @@ export function buildableCells(graph: RoadGraph, zones?: Zones): BuildableCell[]
   const roads = indexRoadSamples(graph);
 
   for (const segment of graph.allSegments()) {
-    const lowRise = roadType(segment.type).pedestrian === true;
+    const type = roadType(segment.type);
+    const lowRise = type.pedestrian === true;
+    const industrial = type.industrial === true;
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
-      for (const candidate of cellsForBlock(block, blockIndex, lowRise, zones)) {
+      for (const candidate of cellsForBlock(block, blockIndex, lowRise, industrial, zones)) {
         if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -162,7 +167,7 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
 
     for (const origin of roadside) {
       if (!free.has(`${origin.column}:${origin.row}`)) continue;
-      const allowed = allowedSizes(origin.zone ?? zoneForCell(zones, origin), first.lowRise);
+      const allowed = allowedSizes(origin.zone ?? zoneForCell(zones, origin), first.lowRise, first.industrial);
       const size = shuffled(allowed, random).find(({ frontageCells, depthCells }) =>
         rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
       ) ?? PARCEL_SIZES.find(({ frontageCells, depthCells }) =>
@@ -196,7 +201,8 @@ export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: 
   };
 }
 
-function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean): typeof PARCEL_SIZES {
+function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, industrial: boolean): typeof PARCEL_SIZES {
+  if (industrial) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => INDUSTRIAL_SIZES.has(sizeKey(frontageCells, depthCells)));
   if (zone === "dense") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
   if (zone === "low" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
   return PARCEL_SIZES;
@@ -301,7 +307,7 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
 }
 
 
-function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, zones?: Zones): BuildableCell[] {
+function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, industrial: boolean, zones?: Zones): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -328,6 +334,7 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, zone
       const centre = buildableCellCentre({ corners });
       cells.push({
         lowRise,
+        industrial,
         segment: block[0]!.segment,
         side: block[0]!.side,
         block: blockIndex,

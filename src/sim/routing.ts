@@ -8,14 +8,12 @@ import { roadType, type LaneCentre } from "./roadTypes";
 import type { Vec3 } from "./vec";
 
 /**
- * Whether this segment can be used at all. A car has no business on a footpath or in a tunnel
- * mouth; someone on foot has none on a highway, which carries a guardrail where its footway
- * would be.
+ * Whether this segment can be used at all. A car has no business on a footpath; someone on foot
+ * has none on a highway or in a tunnel.
  */
 function usable(graph: RoadGraph, id: SegmentId, onFoot: boolean): boolean {
   const type = roadType(graph.segment(id).type);
-  if (type.tunnelDepth) return false;
-  return onFoot ? !type.highway : !type.pedestrian;
+  return onFoot ? !type.highway && !type.tunnelDepth : !type.pedestrian;
 }
 
 /**

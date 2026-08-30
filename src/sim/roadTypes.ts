@@ -10,6 +10,8 @@ export interface RoadType {
   readonly pedestrian?: boolean;
   /** No frontage: nothing gets to build on it, and it gets guardrails instead of a sidewalk. */
   readonly highway?: boolean;
+  /** Avenue-sized road that fronts industrial buildings. */
+  readonly industrial?: boolean;
   /** Lanes each way (or total, if one-way). Two lanes widen the carriageway and get a lane line. */
   readonly lanes: 1 | 2;
   /** All traffic moves the same way -- no oncoming lane to share the road with. */
@@ -22,6 +24,7 @@ const LANE_WIDTH = 3.5;
 const BASE_ROAD_TYPES = {
   street: { id: "street", name: "Street", width: 8, maxSpeed: 12 },
   avenue: { id: "avenue", name: "Avenue", width: 14, maxSpeed: 16 },
+  industrial: { id: "industrial", name: "Industrial", width: 14, maxSpeed: 16, industrial: true },
   tunnel: { id: "tunnel", name: "Tunnel", width: 9, tunnelDepth: 16, maxSpeed: 14 },
   highway: { id: "highway", name: "Highway", width: 20, highway: true, maxSpeed: 24 },
   pedestrian: { id: "pedestrian", name: "Pedestrian", width: 4, pedestrian: true, maxSpeed: 12 },

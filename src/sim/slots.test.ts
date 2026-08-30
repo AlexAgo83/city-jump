@@ -7,6 +7,7 @@ import {
   buildableCells,
   cellsOverlap,
   GRID,
+  INDUSTRIAL_SIZES,
   SLOT,
   LOW_RISE_SIZES,
 } from "./slots";
@@ -204,5 +205,18 @@ describe("pedestrian frontage", () => {
 
     expect(cells.filter((cell) => cell.segment === path).every((cell) => cell.lowRise)).toBe(true);
     expect(cells.filter((cell) => cell.segment === road).some((cell) => cell.lowRise)).toBe(false);
+  });
+});
+
+describe("industrial frontage", () => {
+  it("only offers parcel sizes backed by industrial models", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "industrial");
+    const parcels = buildingParcels(buildableCells(g));
+
+    expect(parcels.length).toBeGreaterThan(0);
+    for (const parcel of parcels) {
+      expect(INDUSTRIAL_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`)).toBe(true);
+    }
   });
 });

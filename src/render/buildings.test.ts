@@ -122,6 +122,7 @@ function parcel(column: number, row: number, frontageCells: number, depthCells: 
 function cell(column: number, row: number): BuildableCell {
   return {
     lowRise: false,
+    industrial: false,
     segment: 1,
     side: 1,
     block: 0,

@@ -53,6 +53,20 @@ describe("city saves", () => {
     expect(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14).segments).toHaveLength(2);
   });
 
+  it("persists elevated player highways", () => {
+    const graph = city();
+    const a = graph.addNodeAt(v3(-200, 20, 0));
+    const b = graph.addNodeAt(v3(200, 20, 0));
+    graph.addElevatedSegment(a, b, v3(0, 60, 0), "highway_2lane");
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14)))!;
+    const restored = new RoadGraph();
+    restoreCity(restored, new Plantings(), new Zones(), save);
+
+    const highway = restored.allSegments().find((segment) => segment.type === "highway_2lane");
+    expect(highway?.elevated).toBe(true);
+  });
+
   it("carries hand-planted and cleared trees through a save", () => {
     const plantings = new Plantings();
     plantings.plant(10, 20, "oak");

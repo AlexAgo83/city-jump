@@ -148,7 +148,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
       // "past the road" (the junction's own disc, a roundabout's ring) rather than beside it.
       const { start: trimStart, end: trimEnd } = segmentTrims(junctions, graph, segment.id);
 
-      const isAvenue = baseRoadTypeId(segment.type) === "avenue";
+      const isAvenue = baseRoadTypeId(segment.type) === "avenue" || type.industrial;
       const isHighway = type.highway === true;
       const spacing = isAvenue || isHighway ? 70 : 95;
       for (let d = spacing / 2; d < segment.length - 12; d += spacing) {

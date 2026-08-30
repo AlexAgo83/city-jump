@@ -35,14 +35,16 @@ describe("routing", () => {
     expect(pickExit(g, west, arrive, 0.5)).toBe(arrive);
   });
 
-  it("skips footpaths and tunnels", () => {
+  it("lets cars use tunnels, keeps pedestrians out of them", () => {
     const g = new RoadGraph();
     const hub = g.addNode(0, 0);
     const a = g.addNode(-100, 0);
     const b = g.addNode(100, 0);
     const arrive = g.addSegment(a, hub, v3(-50, 0, 0), "street");
     g.addSegment(hub, b, v3(50, 0, 0), "pedestrian");
-    expect(exits(g, hub, arrive)).toEqual([arrive]);
+    const tunnel = g.addSegment(hub, b, v3(50, 0, 0), "tunnel");
+    expect(exits(g, hub, arrive)).toEqual([tunnel]);
+    expect(exits(g, hub, arrive, true)).not.toContain(tunnel);
   });
 
   it("takes the ring the one way round, and a full lap to come back out the same arm", () => {

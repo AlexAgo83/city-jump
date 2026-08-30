@@ -70,6 +70,12 @@ const walkTurnColor = new Color3(0.55, 0.85, 0.55);
 export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const material = new StandardMaterial("road", scene);
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
+  const industrialMaterial = new StandardMaterial("industrial_road", scene);
+  industrialMaterial.diffuseColor = new Color3(0.13, 0.14, 0.14);
+  industrialMaterial.specularColor = Color3.Black();
+  const industrialPaintMaterial = new StandardMaterial("industrial_paint", scene);
+  industrialPaintMaterial.diffuseColor = new Color3(0.95, 0.62, 0.16);
+  industrialPaintMaterial.specularColor = Color3.Black();
   // A footpath in the same asphalt as a street reads as a street. Paving reads as somewhere to walk.
   const pavingMaterial = new StandardMaterial("paving", scene);
   pavingMaterial.diffuseColor = new Color3(0.56, 0.53, 0.48);
@@ -119,7 +125,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
    */
   function applyFade(): void {
     const alpha = faded ? 0.35 : 1;
-    for (const m of [material, pavingMaterial, paintMaterial, guardrailMaterial]) {
+    for (const m of [material, industrialMaterial, industrialPaintMaterial, pavingMaterial, paintMaterial, guardrailMaterial]) {
       m.alpha = alpha;
       m.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
     }
@@ -160,11 +166,17 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         tube.interior.isPickable = false;
         meshes.push(line, tube.shell, tube.interior);
         meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel));
+        if (showTraffic) {
+          for (const [i, laneCentre] of laneCentres(type).entries()) {
+            const points = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT + 0.02, laneCentre.offset);
+            meshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
+          }
+        }
         continue;
       }
 
       const half = type.width / 2;
-      const isAvenue = baseRoadTypeId(seg.type) === "avenue";
+      const isAvenue = baseRoadTypeId(seg.type) === "avenue" || type.industrial;
       // The surface stops short of each junction; the junction polygon closes the gap.
       const { start, end } = segmentTrims(junctions, graph, seg.id);
       const from = start;
@@ -183,10 +195,19 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       }
 
       const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
-      ribbon.material = type.pedestrian ? pavingMaterial : material;
+      ribbon.material = type.pedestrian ? pavingMaterial : type.industrial ? industrialMaterial : material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
       meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
+      if (type.industrial) {
+        for (const side of [-1, 0, 1]) {
+          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.04, side * half * 0.45);
+          const mark = MeshBuilder.CreateTube(`industrial_mark_${seg.id}_${side}`, { path: points, radius: 0.18, tessellation: 4 }, scene);
+          mark.material = industrialPaintMaterial;
+          mark.isPickable = false;
+          meshes.push(mark);
+        }
+      }
 
       // A footway either side, stepped up from the carriageway. A path is already all footway.
       // A highway gets no frontage to walk to, so it gets a guardrail in place of the sidewalk.

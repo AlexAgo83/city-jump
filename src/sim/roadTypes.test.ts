@@ -4,8 +4,8 @@ import { ROAD_TYPES, roadType, baseRoadTypeId, composeRoadTypeId, laneCentres, w
 const SIDEWALK_WIDTH = 2.6; // a stand-in for roadMesh.ts's own constant; walkCentres takes it as a plain number
 
 describe("road type variants", () => {
-  it("composes the four lane/one-way combinations for street, avenue, tunnel and highway", () => {
-    for (const base of ["street", "avenue", "tunnel", "highway"]) {
+  it("composes the four lane/one-way combinations for street, avenue, industrial, tunnel and highway", () => {
+    for (const base of ["street", "avenue", "industrial", "tunnel", "highway"]) {
       expect(composeRoadTypeId(base, 1, false)).toBe(base);
       expect(composeRoadTypeId(base, 2, false)).toBe(`${base}_2lane`);
       expect(composeRoadTypeId(base, 1, true)).toBe(`${base}_oneway`);
@@ -18,7 +18,7 @@ describe("road type variants", () => {
   });
 
   it("widens a two-way road for a second lane on both sides, but fits a one-way's second lane in the space its opposite direction gave up", () => {
-    for (const base of ["street", "avenue", "tunnel", "highway"]) {
+    for (const base of ["street", "avenue", "industrial", "tunnel", "highway"]) {
       const oneLane = roadType(base).width;
       expect(roadType(`${base}_2lane`).width).toBe(oneLane + 7);
       expect(roadType(`${base}_oneway`).width).toBe(oneLane);
@@ -46,9 +46,14 @@ describe("road type variants", () => {
     for (const id of ["highway", "highway_2lane", "highway_oneway", "highway_2lane_oneway"]) {
       expect(roadType(id).highway).toBe(true);
     }
-    for (const id of ["street", "avenue", "tunnel", "pedestrian"]) {
+    for (const id of ["street", "avenue", "industrial", "tunnel", "pedestrian"]) {
       expect(roadType(id).highway).toBeUndefined();
     }
+  });
+
+  it("makes industrial roads avenue-sized", () => {
+    expect(roadType("industrial").width).toBe(roadType("avenue").width);
+    expect(roadType("industrial").industrial).toBe(true);
   });
 
   it("gives each road category its own speed, carried by every lane/one-way variant of it", () => {
@@ -56,6 +61,7 @@ describe("road type variants", () => {
       ["street", 12],
       ["tunnel", 14],
       ["avenue", 16],
+      ["industrial", 16],
       ["highway", 24],
     ];
     for (const [base, speed] of bySpeed) {

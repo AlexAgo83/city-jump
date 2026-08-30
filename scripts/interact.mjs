@@ -205,6 +205,12 @@ const buildingModelCounts = () =>
         .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0]),
     ),
   );
+const industrialBuildingCount = () =>
+  page.evaluate(() =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => /^building_lot_\dx4$/.test(mesh.name))
+      .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0),
+  );
 const zonesOverlayVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("zones-overlay")?.isEnabled() ?? false);
 const trafficOverlayCounts = () =>
@@ -746,13 +752,42 @@ await click(850, 430);
 const straight = await stats();
 check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
 check("the road type selector draws avenues", straight.avenues >= 1, `${straight.avenues} avenues`);
+check("the road type selector offers industrial roads", (await page.locator('input[name="road-type"][value="industrial"]').count()) === 1);
+const industrialBefore = await industrialBuildingCount();
+await page.evaluate(() => {
+  if (!window.cityjump.road(-1500, 900, -1300, 930, -1100, 900, "industrial")) throw new Error("industrial road refused");
+  window.cityjump.rebuild();
+});
+await page.waitForFunction((before) => window.cityjump._scene.meshes
+  .filter((mesh) => /^building_lot_\dx4$/.test(mesh.name))
+  .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0) > before, industrialBefore, { timeout: 5_000 });
+const industrial = await page.evaluate(() => window.cityjump._graph.allSegments().filter((segment) => segment.type === "industrial").length);
+check("industrial roads generate industrial buildings", industrial >= 1 && (await industrialBuildingCount()) > industrialBefore, `${industrial} industrial roads`);
+check(
+  "industrial roads have their own road markings",
+  await page.evaluate(() => {
+    const road = window.cityjump._graph.allSegments().find((segment) => segment.type === "industrial");
+    return !!road && window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(`industrial_mark_${road.id}_`) && mesh.isEnabled()).length === 3;
+  }),
+);
+const beforeTunnel = await stats();
 await page.locator('input[name="road-type"][value="tunnel"]').check();
 await click(220, 500);
 await click(300, 430);
 const tunneled = await stats();
 check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels`);
 check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
-check("tunnels do not grow surface buildings or traffic", tunneled.buildings === straight.buildings && tunneled.cars === straight.cars);
+check("tunnels do not grow surface buildings", tunneled.buildings === beforeTunnel.buildings, `${tunneled.buildings} vs ${beforeTunnel.buildings}`);
+check("tunnels carry vehicle traffic", tunneled.cars > beforeTunnel.cars, `${tunneled.cars} vs ${beforeTunnel.cars}`);
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="traffic"]').check();
+await nextFrame();
+const tunnelTrafficView = await page.evaluate(() => {
+  const tunnel = window.cityjump._graph.allSegments().find((segment) => segment.type.startsWith("tunnel"));
+  return tunnel ? window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(`traffic_lane_${tunnel.id}_`) && mesh.isEnabled()).length : 0;
+});
+check("the Traffic view draws tunnel lane overlays", tunnelTrafficView > 0, `${tunnelTrafficView} tunnel lanes`);
+await page.locator('[data-tool="roads"]').click();
 
 // A pedestrian path carries people on foot and no cars at all.
 await page.locator('input[name="road-type"][value="pedestrian"]').check();

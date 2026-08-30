@@ -14,7 +14,8 @@ import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { v3 } from "./vec";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
+const OFFSHORE_SCENERY_Z = 2000;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
 /**
@@ -22,7 +23,7 @@ export const SAVE_VERSION = 7;
  * `lanes` only means anything alongside that flag, and is omitted rather than written as 1.
  */
 export type SavedNode = [id: NodeId, x: number, y: number, z: number, roundabout?: 1, lanes?: 2];
-export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string, streetId?: number];
+export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string, streetId?: number, elevated?: 1];
 /**
  * A hand-planted tree or a cleared spot. The species is optional so that saves written before
  * there was a choice still load; they were all firs.
@@ -69,8 +70,12 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
       ),
     segments: graph
       .allSegments()
-      .filter((segment) => !segment.elevated)
-      .map((segment) => [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId]),
+      .filter((segment) => !isOffshoreSceneryRoad(graph, segment.a, segment.b))
+      .map((segment): SavedSegment =>
+        segment.elevated
+          ? [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId, 1]
+          : [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId],
+      ),
   };
 }
 
@@ -95,11 +100,12 @@ function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: 
     ids.set(id, placed);
     if (roundabout) roundabouts.push({ id: placed, lanes: lanes === 2 ? 2 : 1 });
   }
-  for (const [a, b, cx, cy, cz, type, streetId] of save.segments) {
+  for (const [a, b, cx, cy, cz, type, streetId, elevated] of save.segments) {
     const from = ids.get(a);
     const to = ids.get(b);
     if (from === undefined || to === undefined) throw new Error(`segment references a missing node (${a} -> ${b})`);
-    graph.addSegment(from, to, v3(cx, cy, cz), type, streetId);
+    if (elevated) graph.addElevatedSegment(from, to, v3(cx, cy, cz), type, streetId);
+    else graph.addSegment(from, to, v3(cx, cy, cz), type, streetId);
   }
   // After the segments, since a roundabout is refused on a node with nothing meeting it yet.
   for (const node of roundabouts) graph.setRoundabout(node.id, true, node.lanes);
@@ -135,15 +141,21 @@ export function parseCity(text: string): CitySave | null {
   const segments = value.segments.filter(
     (segment): segment is SavedSegment =>
       Array.isArray(segment) &&
-      (segment.length === 6 || segment.length === 7) &&
+      segment.length >= 6 &&
+      segment.length <= 8 &&
       segment.slice(0, 5).every(Number.isFinite) &&
       typeof segment[5] === "string" &&
-      (segment.length === 6 || Number.isFinite(segment[6])),
+      (segment.length === 6 || Number.isFinite(segment[6])) &&
+      (segment.length < 8 || segment[7] === 1),
   );
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
   if (camera === null) return null;
   return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones, ...(camera ? { camera } : {}) };
+}
+
+function isOffshoreSceneryRoad(graph: RoadGraph, a: NodeId, b: NodeId): boolean {
+  return Math.max(graph.node(a).pos.z, graph.node(b).pos.z) > OFFSHORE_SCENERY_Z;
 }
 
 function toPlantings(points: readonly SavedPlanting[]): Planting[] {
