@@ -1,12 +1,12 @@
 ## prod_013_a_city_that_tells_you_what_it_costs_to_draw - A city that tells you what it costs to draw
 > Date: 2026-08-30
-> Status: Proposed
+> Status: Settled
 > Related request: `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
-> Related backlog: `item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching`, `item_057_put_the_counter_in_the_top_right_without_evicting_the_selection_panel`, `item_058_add_show_fps_to_settings_world_and_remember_it`
+> Related backlog: `item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching`
 > Related task: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-30 14:37:53
+> Indicators reviewed: 2026-08-30 18:21:59
 
 # Overview
 city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.
@@ -52,5 +52,5 @@ flowchart LR
 - With the setting off, the feature costs nothing measurable.
 
 # References
-- Product back-reference: `req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`
+- Product back-reference: `item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching`
 - Task back-reference: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`

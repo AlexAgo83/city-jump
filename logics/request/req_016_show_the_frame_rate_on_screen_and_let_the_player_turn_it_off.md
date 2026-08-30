@@ -1,12 +1,13 @@
 ## req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off - Show the frame rate on screen, and let the player turn it off
 > From version: 0.2.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-30 18:21:58
 
 # AI Context
 - Summary: The frame rate is measured, quoted in the README and asserted in CI, and never shown to the person playing. `measureFps` in `src/render/debugApi.ts` already counts frames but is reachable only from a script. This puts one smoothed figure in the top-right -- where `#selection-panel` already lives, so the two must coexist -- behind a `Show FPS` toggle in `Settings > World` that is off by default and persisted like `Grid` and `Buildings`.
