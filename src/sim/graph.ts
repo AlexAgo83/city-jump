@@ -54,6 +54,7 @@ function bezierXZ(a: Vec3, c: Vec3, b: Vec3, t: number): Vec3 {
 const SAMPLE_SPACING_M = 1;
 const MIN_SAMPLES = 8;
 const MAX_SAMPLES = 512;
+const ELEVATED_CLEARANCE = 2;
 
 /**
  * Samples the curve and builds its cumulative-distance table. Elevation follows the
@@ -81,9 +82,10 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE,
   const length = cumulative[cumulative.length - 1]!;
 
   const heights = elevated
-    ? ts.map((t) => {
+    ? ts.map((t, i) => {
         const u = 1 - t;
-        return a.y * u * u + control.y * 2 * u * t + b.y * t * t;
+        const p = flat[i]!;
+        return Math.max(a.y * u * u + control.y * 2 * u * t + b.y * t * t, terrainHeight(p.x, p.z) + ELEVATED_CLEARANCE);
       })
     : spec.tunnelDepth
     ? flat.map((_, i) => a.y + (b.y - a.y) * (i / count) - tunnelDrop(i / count, spec.tunnelDepth!))

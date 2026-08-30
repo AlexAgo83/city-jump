@@ -76,6 +76,18 @@ describe("graph basics", () => {
     expect(g.segment(id).elevated).toBe(true);
     expect(g.segment(id).type).toBe("highway_2lane");
   });
+
+  it("keeps elevated roads from dipping under terrain", () => {
+    setTerrain({ heightAt: (x) => 30 * Math.sin((Math.PI * x) / 100) });
+    try {
+      const g = new RoadGraph();
+      const id = g.addElevatedSegment(g.addNodeAt(v3(0, 0, 0)), g.addNodeAt(v3(100, 0, 0)), v3(50, 0, 0));
+      const middle = g.segment(id).samples[Math.floor(g.segment(id).samples.length / 2)]!;
+      expect(middle.y).toBeGreaterThan(terrainHeight(middle.x, middle.z));
+    } finally {
+      setTerrain(flatTerrain);
+    }
+  });
 });
 
 describe("arc-length parameterisation", () => {
