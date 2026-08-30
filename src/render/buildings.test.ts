@@ -53,4 +53,16 @@ describe("roof props", () => {
     expect(placements[0]!.matrix.m[13]).toBeCloseTo(2.08);
     expect(placements[0]!.matrix.m[14]).toBeCloseTo(20.8);
   });
+
+  it("leaves the street-facing side clear on one-slot-wide buildings", () => {
+    const placements = buildingFootDecorMatrices({
+      position: { x: 10, y: 2, z: 20 },
+      rotationY: 0,
+      frontageCells: 1,
+      depthCells: 3,
+      cells: [],
+    });
+    expect(placements).toHaveLength(7);
+    expect(placements.some((placement) => placement.matrix.m[14]! > 20)).toBe(false);
+  });
 });

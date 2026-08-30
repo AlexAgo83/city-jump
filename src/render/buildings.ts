@@ -671,7 +671,7 @@ export function buildingFootDecorMatrices(parcel: BuildingParcel): FootDecorPlac
 
   for (let i = 0; i < parcel.frontageCells; i++) {
     const x = -halfWidth + (i + 0.5) * GRID.cellSize;
-    add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
+    if (parcel.frontageCells > 1) add(i % 3 === 0 ? "bench" : "planter", x, gap, 0);
     add(i % 4 === 0 ? "utility" : "planter", x, -depth - gap, Math.PI);
   }
   for (let i = 0; i < parcel.depthCells; i++) {
