@@ -394,6 +394,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
     detail.update();
+    // Above this the models are indistinguishable from the boxes that stand in for them.
+    buildings.setDistant(camera.radius > 1100);
     postFx.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     showCompass(camera.alpha);

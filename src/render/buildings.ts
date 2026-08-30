@@ -206,6 +206,22 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
   const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
+  /**
+   * The whole city as boxes. From high up a building is a few pixels of coloured roof, and the
+   * model it came from is a few thousand vertices of window frames and roof plant nobody can see.
+   * One box per building, in the same colours, drawn instead of the models above DISTANT_RADIUS.
+   */
+  const distant = MeshBuilder.CreateBox("building_distant", { size: 1 }, scene);
+  const distantMaterial = new StandardMaterial("building_distant", scene);
+  distantMaterial.diffuseColor = Color3.White();
+  distantMaterial.specularColor = Color3.Black();
+  distant.material = distantMaterial;
+  distant.isPickable = false;
+  distant.receiveShadows = true;
+  distant.alwaysSelectAsActiveMesh = true;
+  distant.setEnabled(false);
+  shadows.addShadowCaster(distant);
+
   const groundPad = buildingGroundPadMesh(scene);
   const groundPadMaterial = new StandardMaterial("building-ground-pad", scene);
   // Same paving tone as sidewalks, faded at the edges by vertex alpha.
@@ -230,6 +246,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let grid: LinesMesh | null = null;
   let taken: Mesh | null = null;
   let visible = true;
+  let far = false;
   let gridVisible = false;
   // Roof props are created already opaque (see buildRoofProps), so this starts in sync with that
   // -- the very first setFaded(false) is then correctly a no-op too, not just repeats of it.
@@ -239,7 +256,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let lastParcels: readonly BuildingParcel[] = [];
 
   function applyBuildingVisibility(): void {
-    for (const model of available) model.mesh.setEnabled(visible && model.mesh.thinInstanceCount > 0);
+    for (const model of available) model.mesh.setEnabled(visible && !far && model.mesh.thinInstanceCount > 0);
+    distant.setEnabled(visible && far && distant.thinInstanceCount > 0);
     for (const mesh of Object.values(roofProps)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     for (const mesh of Object.values(footDecor)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     groundShadow.mesh.setEnabled(visible && groundShadow.mesh.thinInstanceCount > 0);
@@ -315,6 +333,20 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
         else footDecorMatrices.set(placement.kind, [placement.matrix]);
       }
     }
+
+    // The stand-in boxes: same footprint, same colour, and as tall as the model that would have
+    // stood there -- built every rebuild whether or not they are being drawn, since they are a
+    // matrix each and the alternative is a stall the first time the camera pulls out.
+    const distantMatrices = new Float32Array(parcels.length * 16);
+    const distantColors = new Float32Array(parcels.length * 4);
+    for (const [i, parcel] of parcels.entries()) {
+      const model = available.find((m) => m.id === buildingModelId(parcel));
+      distantBoxMatrix(parcel, model?.roofY ?? 12).copyToArray(distantMatrices, i * 16);
+      distantColors.set([...distantColor(parcel), 1], i * 4);
+    }
+    distant.thinInstanceSetBuffer("matrix", distantMatrices, 16, false);
+    distant.thinInstanceSetBuffer("color", distantColors, 4, false);
+    distant.thinInstanceCount = parcels.length;
 
     let placed = 0;
     for (const model of available) {
@@ -429,6 +461,12 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       visible = next;
       applyBuildingVisibility();
       return visible ? lastPlaced : 0;
+    },
+    /** Draw the city as boxes rather than models -- for when the camera is too high to tell. */
+    setDistant(next: boolean) {
+      if (next === far) return;
+      far = next;
+      applyBuildingVisibility();
     },
     setGridVisible(next: boolean) {
       gridVisible = next;
@@ -849,6 +887,48 @@ function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
       parcel.position.x - alongX * centerX,
       parcel.position.y,
       parcel.position.z - alongZ * centerX,
+    ),
+  );
+}
+
+/**
+ * The wall colours the model generator paints a lot with, picked by the same rule it uses
+ * (`scripts/gen_buildings.py`), so a box swapped in for a model is the colour that was standing
+ * there a frame earlier. The working kinds have one colour each, which is what their own models
+ * are built in.
+ */
+const LOT_COLORS: readonly [number, number, number][] = [
+  [0.78, 0.7, 0.58],
+  [0.68, 0.55, 0.48],
+  [0.6, 0.62, 0.66],
+  [0.45, 0.52, 0.6],
+  [0.62, 0.68, 0.58],
+];
+const WORKS_COLORS: Partial<Record<BuildingKind, [number, number, number]>> = {
+  agricultural: [0.46, 0.38, 0.3],
+  industrial: [0.62, 0.64, 0.66],
+  military: [0.42, 0.45, 0.34],
+};
+
+function distantColor(parcel: BuildingParcel): [number, number, number] {
+  return WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
+}
+
+/** A box the size of the building that would stand on this parcel, seated on its frontage. */
+function distantBoxMatrix(parcel: BuildingParcel, height: number): Matrix {
+  const width = parcel.frontageCells * GRID.cellSize - 1.5;
+  const depth = parcel.depthCells * GRID.cellSize - 1.5;
+  const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
+  // The parcel's position is the middle of its frontage; the building runs back from there.
+  const backX = -Math.sin(parcel.rotationY);
+  const backZ = -Math.cos(parcel.rotationY);
+  return Matrix.Compose(
+    new Vector3(width, height, depth),
+    rotation,
+    new Vector3(
+      parcel.position.x + backX * (depth / 2),
+      parcel.position.y + height / 2,
+      parcel.position.z + backZ * (depth / 2),
     ),
   );
 }

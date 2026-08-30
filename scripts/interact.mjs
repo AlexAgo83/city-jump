@@ -570,6 +570,31 @@ await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { 
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+check(
+  "far enough out the city is drawn as boxes, and the models come back on the way in",
+  await page.evaluate(async () => {
+    const scene = window.cityjump._scene;
+    const camera = scene.activeCamera;
+    const before = { radius: camera.radius, beta: camera.beta, alpha: camera.alpha };
+    const boxes = scene.getMeshByName("building_distant");
+    const models = () => scene.meshes.filter((m) => /^building_(lot|farm|industrial|military)_/.test(m.name) && m.isEnabled()).length;
+    const frame = () => new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
+    window.cityjump.camera(1600, Math.PI / 3.4);
+    await frame();
+    await frame();
+    const far = { boxes: boxes.isEnabled(), models: models(), instances: boxes.thinInstanceCount };
+    window.cityjump.camera(400, Math.PI / 3.4);
+    await frame();
+    await frame();
+    const near = { boxes: boxes.isEnabled(), models: models() };
+    // Put the camera back: everything after this check is framed the way it was.
+    camera.radius = before.radius;
+    camera.beta = before.beta;
+    camera.alpha = before.alpha;
+    await frame();
+    return far.boxes && far.models === 0 && far.instances > 0 && !near.boxes && near.models > 0;
+  }),
+);
 const cityHud = await cityHudText();
 check("the city HUD shows population and readable needs", /habitants$/.test(cityHud.population) && cityHud.needs.includes("Workers") && cityHud.needs.includes("Commerce"), JSON.stringify(cityHud));
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);

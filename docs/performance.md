@@ -150,6 +150,16 @@ anyway.
 The swell is recomputed at 30 Hz rather than every frame -- 5329 vertices whose normals have to be
 recomputed with them, for a difference nobody can see in water.
 
+## Buildings at a distance
+
+Above 1100 m the models are swapped for one box each, in the colour the model generator would have
+painted that lot -- the same rule, so the swap is a change of detail rather than of palette.
+Measured back to back at 1600 m: 76 fps with the models, 94 with the boxes.
+
+It is a whole-city swap, not per building: the models are thin-instanced, and splitting their
+instance buffers by distance would cost more CPU every frame than the vertices save. Above that
+height every building is far away anyway.
+
 ## What is left
 
 - **A repeatable measurement, before anything else.** Every remaining idea is a trade, and this
