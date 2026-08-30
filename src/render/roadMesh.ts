@@ -10,6 +10,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
+import type { TerrainBounds } from "../sim/heightmap";
 import { baseRoadTypeId, laneCentres, roadType, walkCentres, type LaneCentre, type RoadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
@@ -129,13 +130,22 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   }
   let showTraffic = false;
 
-  function rebuild(): void {
-    for (const mesh of meshes) mesh.dispose();
-    meshes = [];
+  function rebuild(dirty?: TerrainBounds): void {
+    if (dirty) {
+      meshes = meshes.filter((mesh) => {
+        if (!meshTouchesBounds(mesh, dirty)) return true;
+        mesh.dispose();
+        return false;
+      });
+    } else {
+      for (const mesh of meshes) mesh.dispose();
+      meshes = [];
+    }
 
     const junctions = allJunctions(graph);
 
     for (const seg of graph.allSegments()) {
+      if (dirty && !pointsTouchBounds(seg.samples, dirty)) continue;
       const type = roadType(seg.type);
       if (type.tunnelDepth) {
         const steps = Math.max(4, Math.ceil(seg.length / 8));
@@ -253,6 +263,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     // footways go -- read off those transfers themselves, so the paint marks a real movement
     // rather than every arm on principle. A highway carries no footway, so nothing crosses it.
     for (const junction of junctions.values()) {
+      if (dirty && !junctionTouchesBounds(junction, dirty)) continue;
       const paths = walkCrossings(graph, junction, junctions);
       for (const arm of junction.arms) {
         const type = roadType(graph.segment(arm.segment).type);
@@ -266,6 +277,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     }
 
     for (const junction of junctions.values()) {
+      if (dirty && !junctionTouchesBounds(junction, dirty)) continue;
       if (junction.roundabout > 0) {
         meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
         // The Traffic view's own lane overlay: a roundabout is always one direction, so every
@@ -768,6 +780,20 @@ function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3
   mesh.color = color;
   mesh.isPickable = false;
   return mesh;
+}
+
+function pointsTouchBounds(points: readonly Vec3[], bounds: TerrainBounds): boolean {
+  return points.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
+}
+
+function junctionTouchesBounds(junction: JunctionGeometry, bounds: TerrainBounds): boolean {
+  return pointsTouchBounds(junction.ring, bounds) || junction.arms.some((arm) => pointsTouchBounds([arm.cornerLow, arm.cornerHigh], bounds));
+}
+
+function meshTouchesBounds(mesh: Mesh | LinesMesh, bounds: TerrainBounds): boolean {
+  mesh.computeWorldMatrix(true);
+  const box = mesh.getBoundingInfo().boundingBox;
+  return box.maximumWorld.x >= bounds.minX && box.minimumWorld.x <= bounds.maxX && box.maximumWorld.z >= bounds.minZ && box.minimumWorld.z <= bounds.maxZ;
 }
 
 /** `offset` moves the sampled line sideways from the centreline, for a lane drawn off-centre. */
