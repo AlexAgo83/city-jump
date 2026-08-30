@@ -4,7 +4,7 @@
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:50:03
+> Indicators reviewed: 2026-08-30 11:50:12
 
 # AI Context
 - Summary: Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.
@@ -101,7 +101,8 @@ them is ever "finished" and closed.
   `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,
   `prod_006_one_source_of_truth_for_what_a_building_model_is`,
   `prod_007_a_city_you_can_point_at_and_name`,
-  `prod_008_a_city_you_can_hand_to_someone_else`
+  `prod_008_a_city_you_can_hand_to_someone_else`,
+  `prod_009_a_camera_that_can_watch_not_only_be_aimed`
 - Request(s): `req_000_draw_a_road_network_the_city_grows_from`,
   `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`,
   `req_002_establish_modular_repository_foundations`,
