@@ -1,0 +1,366 @@
+{
+  "budgets": {
+    "max_docs": 20,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_011_share_a_city_as_a_link_that_needs_no_server item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely item_040_add_the_share_button_to_the_saves_panel item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link task_013_implement_sharing_a_city_by_link --mode full --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/product/prod_008_a_city_you_can_hand_to_someone_else.md",
+      "ref": "prod_008_a_city_you_can_hand_to_someone_else",
+      "sections": {
+        "Goals": [
+          "- A player can give their city to someone with one button and a paste.",
+          "- No city is ever uploaded anywhere, and none appears in any server log.",
+          "- A city the size of the bundled Demo fits in a link people can actually send.",
+          "- Receiving a city is an offer, never a surprise overwrite.",
+          "- A malicious link cannot do more than be refused."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "Every city built in city-jump is trapped in the browser that made it. This slice lets a player hand one to somebody with a link and nothing else -- no account, no upload, no server, because the game is a static site and should stay one. The city rides in the URL fragment, compressed and coarsened just enough to fit, and arrives as an offer to import rather than something that overwrites what the receiver already has."
+        ],
+        "References": [
+          "- Product back-reference: `req_011_share_a_city_as_a_link_that_needs_no_server`",
+          "- Task back-reference: `task_013_implement_sharing_a_city_by_link`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city you can hand to someone else"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "share, city, link, needs, server",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ]
+      },
+      "path": "logics/request/req_011_share_a_city_as_a_link_that_needs_no_server.md",
+      "ref": "req_011_share_a_city_as_a_link_that_needs_no_server",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A Share button in the saves panel turns the selected city into a link and puts it on the clipboard, telling the player it was copied.",
+          "- AC2: The payload is quantised and compressed so that a city the size of the bundled Demo produces a usable link; above a documented ceiling the button refuses with an explanation instead of emitting a link that will break for the receiver.",
+          "- AC3: The city travels in the URL fragment, never in a query string, and carries its name.",
+          "- AC4: Opening a share link offers to import the city; if a city of that name already exists the player can overwrite it or keep both; after importing, the link is offered for loading and the fragment is removed from the address bar so a reload does not ask again.",
+          "- AC5: A hostile or malformed link is refused safely: the fragment is size-capped before parsing, decompression is capped while it streams so a compression bomb cannot exhaust memory, `parseCity` validates the result, and a city from a newer build is refused with a message that says so rather than calling the link invalid.",
+          "- AC6: Quantisation, the envelope, and the size rules are pure functions in `src/sim`, unit-tested without a browser, and `tests/architecture.mjs` still passes."
+        ],
+        "Needs": [
+          "- A city cannot leave the browser it was built in. Saves live in `localStorage` under one key per city (`src/ui/saves.ts`), and the settings panel offers Save, Load and Delete but no way to give a city to anyone else. The operator wants a Share button next to them that produces a link.",
+          "- There is no server to share through, and there should not be one. `render.yaml` declares `runtime: static` with `staticPublishPath: dist`; the whole application is files on a CDN. Any design that needs to store a city somewhere to hand out a short link contradicts the deployment and puts other people's cities on infrastructure that does not exist.",
+          "- The naive encoding does not fit in a link. Measured against the bundled Demo save (48,175 bytes of JSON; 68 segments, 427 nodes, 605 hand-planted trees): gzip plus base64url gives roughly 22,900 characters. Rounding node elevations to 10 cm before compressing brings the same city to roughly 8,850 characters, because the save stores them at full float precision -- `[1, -802, 9.54109501838684, -884]` is a real line from the file. Without that step the feature does not work on a city anyone would want to share.",
+          "- A shared link is untrusted input from a stranger, and two of the three defences are missing. `parseCity` already validates the JSON at that boundary and already refuses a save from a newer build, but nothing caps how large a fragment may be before it is parsed, and nothing caps how far a compressed payload may expand while it is being decompressed -- a few kilobytes of crafted gzip can unfold into gigabytes.",
+          "- The city's name does not travel with it. A save's name is its `localStorage` key, not a field of `CitySave`, so a shared payload carries an unnamed city and the receiver has nothing to call it."
+        ]
+      },
+      "status": "Draft",
+      "title": "Share a city as a link that needs no server"
+    },
+    {
+      "ai_context": {
+        "keywords": "turn, city, link, sized, payload, read, back, safely",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/backlog/item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely.md",
+      "ref": "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A city the size of the bundled Demo encodes to a payload within the documented ceiling, verified against `public/default-demo.json`.",
+          "- AC2: Decoding refuses an over-long fragment before parsing, and refuses a payload that expands beyond the cap while it is still decompressing.",
+          "- AC3: A round trip through encode and decode yields a city that loads and renders the same, within the stated coordinate tolerance.",
+          "- AC4: The pure half lives in `src/sim` with no browser globals, and `tests/architecture.mjs` passes."
+        ],
+        "Problem": [
+          "- The Demo save is 48,175 bytes and encodes to roughly 22,900 characters of base64url, which is not a link anyone can send; rounding node elevations to 10 cm first brings it to roughly 8,850.",
+          "- A shared payload is untrusted: nothing today caps the size of a fragment before it is parsed, and nothing caps how far a compressed payload may expand while decompressing.",
+          "- A save's name is its `localStorage` key, not part of `CitySave`, so it does not travel with the city."
+        ]
+      },
+      "status": "Ready",
+      "title": "Turn a city into a link-sized payload and read one back safely"
+    },
+    {
+      "ai_context": {
+        "keywords": "add, share, button, saves, panel",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_040_add_the_share_button_to_the_saves_panel"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/backlog/item_040_add_the_share_button_to_the_saves_panel.md",
+      "ref": "item_040_add_the_share_button_to_the_saves_panel",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Sharing the selected city puts a working link on the clipboard and says so; Save, Load and Delete are unchanged.",
+          "- AC2: A city over the ceiling produces an explanation and no link."
+        ],
+        "Problem": [
+          "- The saves panel offers Save, Load and Delete and no way to give a city to anyone else.",
+          "- A city too large for a usable link must not produce one anyway: the failure would land on the receiver, who has no way to understand it."
+        ]
+      },
+      "status": "Ready",
+      "title": "Add the Share button to the saves panel"
+    },
+    {
+      "ai_context": {
+        "keywords": "offer, import, city, someone, arrives, share, link",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/backlog/item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.md",
+      "ref": "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Arriving on a share link offers the import by name, handles a name collision with overwrite or keep-both, and only loads the city if the player agrees.",
+          "- AC2: After handling, the fragment is gone from the address bar and a reload does not re-prompt.",
+          "- AC3: A malformed, over-large or newer-version link is refused with a message naming the reason, and the receiver's own cities are untouched.",
+          "- AC4: The browser interaction suite covers share, arrive, import, and confirms the imported city matches."
+        ],
+        "Problem": [
+          "- A link is useless unless arriving on it does something, and importing must never silently overwrite the city the receiver already has -- theirs may be the only copy.",
+          "- Left in the address bar, the fragment re-triggers the prompt on every reload."
+        ]
+      },
+      "status": "Ready",
+      "title": "Offer to import the city when someone arrives on a share link"
+    },
+    {
+      "ai_context": {
+        "keywords": "implement, sharing, city, link",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "run": [
+          "run_006_change_what_a_save_contains_without_losing_the_player_s_city"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/tasks/task_013_implement_sharing_a_city_by_link.md",
+      "ref": "task_013_implement_sharing_a_city_by_link",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Implement sharing a city by link"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+          "item_040_add_the_share_button_to_the_saves_panel",
+          "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/product/prod_008_a_city_you_can_hand_to_someone_else.md",
+      "ref": "prod_008_a_city_you_can_hand_to_someone_else",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city you can hand to someone else"
+    }
+  ],
+  "estimates": {
+    "char_count": 12400,
+    "companion_doc_count": 1,
+    "doc_count": 6
+  },
+  "generated_at": "2026-08-30T09:39:29Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_011_share_a_city_as_a_link_that_needs_no_server",
+      "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+      "item_040_add_the_share_button_to_the_saves_panel",
+      "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link",
+      "task_013_implement_sharing_a_city_by_link"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_011_share_a_city_as_a_link_that_needs_no_server,item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely,item_040_add_the_share_button_to_the_saves_panel,item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link,task_013_implement_sharing_a_city_by_link",
+  "refs": [
+    "req_011_share_a_city_as_a_link_that_needs_no_server",
+    "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely",
+    "item_040_add_the_share_button_to_the_saves_panel",
+    "item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link",
+    "task_013_implement_sharing_a_city_by_link"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_013_implement_sharing_a_city_by_link.md",
+      "ref": "task_013_implement_sharing_a_city_by_link"
+    }
+  ]
+}

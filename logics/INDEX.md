@@ -19,6 +19,7 @@
 | [prod_005_a_city_builder_that_stays_responsive_as_the_city_grows](product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md) | A city builder that stays responsive as the city grows | Proposed |  |  | product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md |
 | [prod_006_one_source_of_truth_for_what_a_building_model_is](product/prod_006_one_source_of_truth_for_what_a_building_model_is.md) | One source of truth for what a building model is | Proposed |  |  | product/prod_006_one_source_of_truth_for_what_a_building_model_is.md |
 | [prod_007_a_city_you_can_point_at_and_name](product/prod_007_a_city_you_can_point_at_and_name.md) | A city you can point at and name | Proposed |  |  | product/prod_007_a_city_you_can_point_at_and_name.md |
+| [prod_008_a_city_you_can_hand_to_someone_else](product/prod_008_a_city_you_can_hand_to_someone_else.md) | A city you can hand to someone else | Proposed |  |  | product/prod_008_a_city_you_can_hand_to_someone_else.md |
 
 ## Roadmaps
 
@@ -41,6 +42,7 @@
 | [req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses](request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md) | Performance: every road placed rebuilds the whole city, and the first load ships what it never uses | Draft |  |  | request/req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses.md |
 | [req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together](request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md) | Building geometry facts are written twice, in two languages, with nothing tying them together | Draft |  |  | request/req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together.md |
 | [req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click](request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md) | Name the streets, number the buildings, and open a detail panel on anything you click | Draft |  |  | request/req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click.md |
+| [req_011_share_a_city_as_a_link_that_needs_no_server](request/req_011_share_a_city_as_a_link_that_needs_no_server.md) | Share a city as a link that needs no server | Draft |  |  | request/req_011_share_a_city_as_a_link_that_needs_no_server.md |
 
 ## Backlog
 
@@ -84,6 +86,9 @@
 | [item_036_give_every_building_an_odd_or_even_address_number](backlog/item_036_give_every_building_an_odd_or_even_address_number.md) | Give every building an odd-or-even address number | Ready |  | 0% | backlog/item_036_give_every_building_an_odd_or_even_address_number.md |
 | [item_037_persist_street_names_and_name_the_cities_saved_before_this_existed](backlog/item_037_persist_street_names_and_name_the_cities_saved_before_this_existed.md) | Persist street names, and name the cities saved before this existed | Ready |  | 0% | backlog/item_037_persist_street_names_and_name_the_cities_saved_before_this_existed.md |
 | [item_038_open_the_detail_panel_on_a_building_or_a_car](backlog/item_038_open_the_detail_panel_on_a_building_or_a_car.md) | Open the detail panel on a building or a car | Ready |  | 0% | backlog/item_038_open_the_detail_panel_on_a_building_or_a_car.md |
+| [item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely](backlog/item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely.md) | Turn a city into a link-sized payload and read one back safely | Ready |  | 0% | backlog/item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely.md |
+| [item_040_add_the_share_button_to_the_saves_panel](backlog/item_040_add_the_share_button_to_the_saves_panel.md) | Add the Share button to the saves panel | Ready |  | 0% | backlog/item_040_add_the_share_button_to_the_saves_panel.md |
+| [item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link](backlog/item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.md) | Offer to import the city when someone arrives on a share link | Ready |  | 0% | backlog/item_041_offer_to_import_the_city_when_someone_arrives_on_a_share_link.md |
 
 ## Tasks
 
@@ -101,6 +106,7 @@
 | [task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work](tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md) | Implement the rebuild-granularity and startup-payload performance work | Ready |  | 0% | tasks/task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work.md |
 | [task_011_implement_one_source_of_truth_for_building_model_geometry](tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md) | Implement one source of truth for building model geometry | Ready |  | 0% | tasks/task_011_implement_one_source_of_truth_for_building_model_geometry.md |
 | [task_012_implement_street_names_building_addresses_and_the_extended_detail_panel](tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md) | Implement street names, building addresses, and the extended detail panel | Ready |  | 0% | tasks/task_012_implement_street_names_building_addresses_and_the_extended_detail_panel.md |
+| [task_013_implement_sharing_a_city_by_link](tasks/task_013_implement_sharing_a_city_by_link.md) | Implement sharing a city by link | Ready |  | 0% | tasks/task_013_implement_sharing_a_city_by_link.md |
 
 ## Runbooks
 
