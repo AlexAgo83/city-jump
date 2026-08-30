@@ -58,6 +58,9 @@ const waitCameraStill = () =>
     null,
     { polling: 80, timeout: 5_000 },
   );
+const setSettingsOpen = async (open) => {
+  if (((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true") !== open) await page.locator("#toolbar-toggle").click();
+};
 // Only for checks that need real elapsed time: animation, movement, held keys, or debounced autosave.
 const realTime = (ms) => page.waitForTimeout(ms);
 
@@ -66,6 +69,11 @@ await waitForApp();
 check("coarse pointer visitors see the desktop input notice", await page.locator("#touch-notice").isVisible());
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
+const cityHudText = () =>
+  page.evaluate(() => ({
+    population: document.getElementById("population")?.textContent ?? "",
+    needs: document.getElementById("needs-panel")?.textContent ?? "",
+  }));
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
 const previewVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false);
@@ -350,15 +358,15 @@ check("the old lower-left HUD is removed", (await page.locator("#hud").count()) 
 const paletteBox = await page.locator("#action-palette").boundingBox();
 check("the action palette is centered at the bottom", Math.abs(paletteBox.x + paletteBox.width / 2 - 500) < 2 && paletteBox.y > 620);
 check("road actions are absent from the top toolbar", (await page.locator("#toolbar #road-type").count()) === 0);
-const expandedToolbarWidth = (await page.locator("#toolbar").boundingBox()).width;
+const expandedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
 await page.locator("#toolbar-toggle").click();
-const collapsedToolbarWidth = (await page.locator("#toolbar").boundingBox()).width;
-check("the settings toolbar collapses into its right chevron", collapsedToolbarWidth < 50 && collapsedToolbarWidth < expandedToolbarWidth);
+const collapsedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
+check("the settings toolbar collapses but keeps needs visible", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#needs-panel").isVisible());
 await page.reload({ waitUntil: "load" });
 await waitForApp();
-check("the settings toolbar remembers being collapsed", await page.locator("#toolbar-content").isHidden());
+check("the settings toolbar remembers being collapsed", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#needs-panel").isVisible());
 await page.locator("#toolbar-toggle").click();
-check("the settings toolbar expands again", await page.locator("#toolbar-content").isVisible());
+check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#show-fps").isVisible());
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
@@ -502,11 +510,16 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
+// The open settings menu covers the scene, so a terrain click folds it away like a player would
+// -- then puts it back, so the settings controls stay reachable for whatever the test does next.
 const click = async (x, y) => {
+  const wasOpen = (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true";
+  await setSettingsOpen(false);
   await page.mouse.move(x, y);
   await nextFrame();
   await page.mouse.click(x, y);
   await nextFrame();
+  if (wasOpen) await setSettingsOpen(true);
 };
 
 await click(260, 320);
@@ -535,9 +548,12 @@ await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { 
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+const cityHud = await cityHudText();
+check("the city HUD shows population and readable needs", /habitants$/.test(cityHud.population) && cityHud.needs.includes("Workers") && cityHud.needs.includes("Commerce"), JSON.stringify(cityHud));
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
 check("streetlights use clustered lighting", await clusteredStreetlights());
+await setSettingsOpen(true);
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -611,6 +627,7 @@ await page.keyboard.press(`${shortcut}+Z`);
 check("undo shortcut removes the last city change", (await stats()).segments === fresh.segments);
 await page.keyboard.press(`${shortcut}+Shift+Z`);
 check("redo shortcut restores the city change", (await stats()).segments === drawn.segments);
+await setSettingsOpen(true);
 await page.locator("#save-slot").focus();
 await page.keyboard.press(`${shortcut}+Z`);
 check("undo shortcut is inert while a field has focus", (await stats()).segments === drawn.segments);
@@ -620,16 +637,16 @@ await page.locator("#zone-radius").evaluate((input) => {
   input.value = "56";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.locator('input[name="zone-kind"][value="dense"]').check();
+await page.locator('input[name="zone-kind"][value="commercial"]').check();
 await click(500, 350);
 await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
 await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
   .filter((mesh) => mesh.name.startsWith("building_lot_"))
   .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== before, JSON.stringify(Object.entries(unzonedModels)), { timeout: 5_000 });
 const zoned = await stats();
-const denseModels = await buildingModelCounts();
+const commercialModels = await buildingModelCounts();
 check("a zone can be painted from the toolbar", zoned.zones > 0, `${zoned.zones} cells`);
-check("zoning changes what gets built", JSON.stringify(denseModels) !== JSON.stringify(unzonedModels));
+check("zoning changes what gets built", JSON.stringify(commercialModels) !== JSON.stringify(unzonedModels));
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="no-buildings"]').check();
 check("the Zones view shows the player's zones", await zonesOverlayVisible());
@@ -661,6 +678,7 @@ await page.locator("#traffic-density").evaluate((input) => {
 await page.waitForFunction((cars) => window.cityjump.stats().cars < cars, denseTraffic.cars, { timeout: 5_000 });
 const quietTraffic = await stats();
 check("traffic density can make the city quieter without emptying it", quietTraffic.cars > 0 && quietTraffic.cars < denseTraffic.cars, `${quietTraffic.cars}`);
+await setSettingsOpen(true);
 await page.locator("#show-traffic").uncheck();
 await page.waitForFunction(() => window.cityjump.stats().cars === 0 && window.cityjump.stats().pedestrians === 0, null, { timeout: 5_000 });
 check("traffic can be switched off instead of hidden", (await stats()).cars === 0 && (await stats()).pedestrians === 0);
@@ -753,6 +771,7 @@ const straight = await stats();
 check("straight mode draws a road in two clicks", straight.segments === branched.segments + 1, `${straight.segments} segments`);
 check("the road type selector draws avenues", straight.avenues >= 1, `${straight.avenues} avenues`);
 check("the road type selector offers industrial roads", (await page.locator('input[name="road-type"][value="industrial"]').count()) === 1);
+check("the road type selector offers dirt and military roads", (await page.locator('input[name="road-type"][value="dirt"]').count()) === 1 && (await page.locator('input[name="road-type"][value="military"]').count()) === 1);
 const industrialBefore = await industrialBuildingCount();
 await page.evaluate(() => {
   if (!window.cityjump.road(-1500, 900, -1300, 930, -1100, 900, "industrial")) throw new Error("industrial road refused");
@@ -768,6 +787,17 @@ check(
   await page.evaluate(() => {
     const road = window.cityjump._graph.allSegments().find((segment) => segment.type === "industrial");
     return !!road && window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(`industrial_mark_${road.id}_`) && mesh.isEnabled()).length === 3;
+  }),
+);
+await page.evaluate(() => {
+  if (!window.cityjump.road(-1500, 980, -1300, 1010, -1100, 980, "industrial_oneway")) throw new Error("industrial one-way road refused");
+  window.cityjump.rebuild();
+});
+check(
+  "industrial one-way roads use fewer road markings",
+  await page.evaluate(() => {
+    const road = window.cityjump._graph.allSegments().find((segment) => segment.type === "industrial_oneway");
+    return !!road && window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(`industrial_mark_${road.id}_`) && mesh.isEnabled()).length === 2;
   }),
 );
 const beforeTunnel = await stats();
@@ -1066,6 +1096,7 @@ const selected = await page.evaluate(() => ({
 }));
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
 check("a road panel shows its street name", selected.rows.Street?.endsWith("Street") || selected.rows.Street?.endsWith("Avenue"), JSON.stringify(selected.rows));
+await setSettingsOpen(true);
 await page.locator("#show-fps").check();
 const hudOverlap = await page.evaluate(() => {
   const fps = document.getElementById("fps-counter").getBoundingClientRect();
@@ -1111,6 +1142,7 @@ await page.waitForFunction(
   { timeout: 5_000 },
 );
 check("selected car street updates when it changes", true);
+await setSettingsOpen(true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
 await page.locator('input[name="camera-mode"][value="orbit"]').check();
 await realTime(500);

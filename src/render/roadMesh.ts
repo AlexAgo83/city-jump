@@ -73,6 +73,12 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   const industrialMaterial = new StandardMaterial("industrial_road", scene);
   industrialMaterial.diffuseColor = new Color3(0.13, 0.14, 0.14);
   industrialMaterial.specularColor = Color3.Black();
+  const dirtMaterial = new StandardMaterial("dirt_road", scene);
+  dirtMaterial.diffuseColor = new Color3(0.36, 0.26, 0.16);
+  dirtMaterial.specularColor = Color3.Black();
+  const militaryMaterial = new StandardMaterial("military_road", scene);
+  militaryMaterial.diffuseColor = new Color3(0.12, 0.18, 0.13);
+  militaryMaterial.specularColor = Color3.Black();
   const industrialPaintMaterial = new StandardMaterial("industrial_paint", scene);
   industrialPaintMaterial.diffuseColor = new Color3(0.95, 0.62, 0.16);
   industrialPaintMaterial.specularColor = Color3.Black();
@@ -125,7 +131,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
    */
   function applyFade(): void {
     const alpha = faded ? 0.35 : 1;
-    for (const m of [material, industrialMaterial, industrialPaintMaterial, pavingMaterial, paintMaterial, guardrailMaterial]) {
+    for (const m of [material, industrialMaterial, dirtMaterial, militaryMaterial, industrialPaintMaterial, pavingMaterial, paintMaterial, guardrailMaterial]) {
       m.alpha = alpha;
       m.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
     }
@@ -195,12 +201,13 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       }
 
       const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
-      ribbon.material = type.pedestrian ? pavingMaterial : type.industrial ? industrialMaterial : material;
+      const baseId = baseRoadTypeId(seg.type);
+      ribbon.material = type.pedestrian ? pavingMaterial : baseId === "dirt" ? dirtMaterial : baseId === "military" ? militaryMaterial : type.industrial ? industrialMaterial : material;
       ribbon.isPickable = false;
       meshes.push(ribbon);
       meshes.push(styledLine(scene, `curb_l_${seg.id}`, left, curb), styledLine(scene, `curb_r_${seg.id}`, right, curb));
       if (type.industrial) {
-        for (const side of [-1, 0, 1]) {
+        for (const side of type.oneWay ? [-1, 1] : [-1, 0, 1]) {
           const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.04, side * half * 0.45);
           const mark = MeshBuilder.CreateTube(`industrial_mark_${seg.id}_${side}`, { path: points, radius: 0.18, tessellation: 4 }, scene);
           mark.material = industrialPaintMaterial;

@@ -13,6 +13,7 @@ import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
 import { Zones } from "../sim/zones";
+import { buildingNeeds, population } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
@@ -26,7 +27,7 @@ import { v3 } from "../sim/vec";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
-import { showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
+import { showCityStats, showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 
@@ -98,6 +99,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
       currentParcels = buildingParcels(currentBuildableCells, zones);
+      showCityStats(population(currentParcels), buildingNeeds(currentParcels));
     });
     let junctions: ReturnType<typeof allJunctions>;
     measure("allJunctions", () => {
@@ -436,6 +438,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     junctions: surfaceJunctions(),
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
     buildings: buildings.count(),
+    population: population(currentParcels),
+    needs: buildingNeeds(currentParcels),
     avenues: graph.allSegments().filter((segment) => baseRoadTypeId(segment.type) === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => roadType(segment.type).tunnelDepth !== undefined).length,
     cars: traffic.count(),

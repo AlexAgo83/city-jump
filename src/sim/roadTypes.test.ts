@@ -4,8 +4,8 @@ import { ROAD_TYPES, roadType, baseRoadTypeId, composeRoadTypeId, laneCentres, w
 const SIDEWALK_WIDTH = 2.6; // a stand-in for roadMesh.ts's own constant; walkCentres takes it as a plain number
 
 describe("road type variants", () => {
-  it("composes the four lane/one-way combinations for street, avenue, industrial, tunnel and highway", () => {
-    for (const base of ["street", "avenue", "industrial", "tunnel", "highway"]) {
+  it("composes the four lane/one-way combinations for street, avenue, industrial, dirt, military, tunnel and highway", () => {
+    for (const base of ["street", "avenue", "industrial", "dirt", "military", "tunnel", "highway"]) {
       expect(composeRoadTypeId(base, 1, false)).toBe(base);
       expect(composeRoadTypeId(base, 2, false)).toBe(`${base}_2lane`);
       expect(composeRoadTypeId(base, 1, true)).toBe(`${base}_oneway`);
@@ -17,12 +17,12 @@ describe("road type variants", () => {
     }
   });
 
-  it("widens a two-way road for a second lane on both sides, but fits a one-way's second lane in the space its opposite direction gave up", () => {
-    for (const base of ["street", "avenue", "industrial", "tunnel", "highway"]) {
+  it("keeps one-way roads narrower by only paving the direction they use", () => {
+    for (const base of ["street", "avenue", "industrial", "dirt", "military", "tunnel", "highway"]) {
       const oneLane = roadType(base).width;
       expect(roadType(`${base}_2lane`).width).toBe(oneLane + 7);
-      expect(roadType(`${base}_oneway`).width).toBe(oneLane);
-      expect(roadType(`${base}_2lane_oneway`).width).toBe(oneLane);
+      expect(roadType(`${base}_oneway`).width).toBe(oneLane / 2);
+      expect(roadType(`${base}_2lane_oneway`).width).toBe(oneLane / 2 + 3.5);
     }
   });
 
@@ -46,7 +46,7 @@ describe("road type variants", () => {
     for (const id of ["highway", "highway_2lane", "highway_oneway", "highway_2lane_oneway"]) {
       expect(roadType(id).highway).toBe(true);
     }
-    for (const id of ["street", "avenue", "industrial", "tunnel", "pedestrian"]) {
+    for (const id of ["street", "avenue", "industrial", "dirt", "military", "tunnel", "pedestrian"]) {
       expect(roadType(id).highway).toBeUndefined();
     }
   });
@@ -56,10 +56,18 @@ describe("road type variants", () => {
     expect(roadType("industrial").industrial).toBe(true);
   });
 
+  it("uses road frontage to choose industrial and military buildings", () => {
+    expect(roadType("industrial").frontageKind).toBe("industrial");
+    expect(roadType("dirt").frontageKind).toBe("agricultural");
+    expect(roadType("military").frontageKind).toBe("military");
+  });
+
   it("gives each road category its own speed, carried by every lane/one-way variant of it", () => {
     const bySpeed: [string, number][] = [
       ["street", 12],
       ["tunnel", 14],
+      ["military", 14],
+      ["dirt", 9],
       ["avenue", 16],
       ["industrial", 16],
       ["highway", 24],
@@ -140,12 +148,9 @@ describe("road type variants", () => {
     });
 
     it("does not otherwise depend on lanes or one-way, only on the carriageway's own width", () => {
-      // One-way never widens a road (see roadTypes.ts), so these keep the base's width and, with
-      // it, the exact same sidewalks -- unlike a car's laneCentres, which reads oneWay directly.
       const base = walkCentres(roadType("avenue"), SIDEWALK_WIDTH);
-      for (const id of ["avenue_oneway", "avenue_2lane_oneway"]) {
-        expect(walkCentres(roadType(id), SIDEWALK_WIDTH)).toEqual(base);
-      }
+      expect(walkCentres(roadType("avenue_oneway"), SIDEWALK_WIDTH)[1]!.offset).toBeLessThan(base[1]!.offset);
+      expect(walkCentres(roadType("avenue_2lane_oneway"), SIDEWALK_WIDTH)[1]!.offset).toBeLessThan(base[1]!.offset);
       // A two-way 2-lane avenue IS wider, so its sidewalks sit further out by exactly that much.
       const wide = roadType("avenue_2lane");
       const widened = walkCentres(wide, SIDEWALK_WIDTH)[1]!.offset;

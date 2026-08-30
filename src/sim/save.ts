@@ -185,7 +185,7 @@ function readZones(value: unknown): SavedZone[] | null {
       zone.length === 3 &&
       Number.isFinite(zone[0]) &&
       Number.isFinite(zone[1]) &&
-      (zone[2] === "low" || zone[2] === "dense"),
+      ["residential", "commercial", "low", "dense", "military"].includes(zone[2] as string),
   );
   return zones.length === value.length ? zones : null;
 }

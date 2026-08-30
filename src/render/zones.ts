@@ -27,7 +27,7 @@ export function createZoneRenderer(scene: Scene) {
     const indices: number[] = [];
     for (const [gx, gz, kind] of zones.toJSON()) {
       const base = positions.length / 3;
-      const tint = kind === "dense" ? [0.95, 0.55, 0.18, 1] : [0.3, 0.8, 0.55, 1];
+      const tint = kind === "commercial" ? [0.95, 0.55, 0.18, 1] : [0.3, 0.8, 0.55, 1];
       for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
         const wx = x * ZONE_CELL_SIZE;
         const wz = z * ZONE_CELL_SIZE;

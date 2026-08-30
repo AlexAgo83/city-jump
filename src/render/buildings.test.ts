@@ -28,6 +28,7 @@ describe("roof props", () => {
       rotationY: 0,
       frontageCells: 2,
       depthCells: 3,
+      kind: "residential",
       cells: [],
     });
     expect(matrix.m[0]).toBe(24);
@@ -38,11 +39,12 @@ describe("roof props", () => {
   });
 
   it("scales foot decorations by building slots on each face", () => {
-    const parcel = {
+    const parcel: BuildingParcel = {
       position: { x: 10, y: 2, z: 20 },
       rotationY: 0,
       frontageCells: 2,
       depthCells: 3,
+      kind: "residential",
       cells: [],
     };
     const placements = buildingFootDecorMatrices(parcel, () => parcel.position.y);
@@ -73,6 +75,7 @@ describe("roof props", () => {
         rotationY: 0,
         frontageCells: 2,
         depthCells: 1,
+        kind: "residential",
         cells: [],
       },
       (x, z) => x * 0.1 + z * 0.01,
@@ -88,6 +91,7 @@ describe("roof props", () => {
         rotationY: 0,
         frontageCells: 1,
         depthCells: 3,
+        kind: "residential",
         cells: [],
       },
       () => 2,
@@ -115,6 +119,7 @@ function parcel(column: number, row: number, frontageCells: number, depthCells: 
     rotationY: 0,
     frontageCells,
     depthCells,
+    kind: "residential",
     cells: Array.from({ length: frontageCells * depthCells }, (_, i) => cell(column + (i % frontageCells), row + Math.floor(i / frontageCells))),
   };
 }
@@ -123,6 +128,7 @@ function cell(column: number, row: number): BuildableCell {
   return {
     lowRise: false,
     industrial: false,
+    buildingKind: "residential",
     segment: 1,
     side: 1,
     block: 0,

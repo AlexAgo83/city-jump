@@ -1,4 +1,5 @@
 import type { SelectionInfo } from "../render/drawTool";
+import type { BuildingNeed } from "../sim/buildingKinds";
 
 const toast = document.getElementById("toast") as HTMLDivElement;
 let toastTimer = 0;
@@ -6,6 +7,8 @@ const fpsCounter = document.getElementById("fps-counter") as HTMLDivElement;
 const compass = document.getElementById("compass") as HTMLDivElement;
 const compassNeedle = compass.querySelector(".compass-needle") as HTMLSpanElement;
 const compassDirection = compass.querySelector(".compass-direction") as HTMLSpanElement;
+const populationText = document.getElementById("population") as HTMLDivElement;
+const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
 
 export function showRefusal(reason: string): void {
   toast.textContent = reason;
@@ -25,6 +28,37 @@ export function showCompass(alpha: number): void {
   const names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
   compassNeedle.style.transform = `rotate(${heading}rad)`;
   compassDirection.textContent = names[Math.round(heading / (Math.PI / 4)) % names.length]!;
+}
+
+export function showCityStats(population: number, needs: readonly BuildingNeed[]): void {
+  populationText.textContent = `${compact(population)} habitants`;
+  needsPanel.replaceChildren(...needs.map((need) => {
+    const row = document.createElement("div");
+    row.className = "need-row";
+    const value = needText(need);
+    row.innerHTML =
+      `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
+    return row;
+  }));
+}
+
+function label(kind: string): string {
+  return kind === "residential" ? "Res" : kind === "commercial" ? "Com" : kind === "industrial" ? "Ind" : kind === "agricultural" ? "Agr" : "Mil";
+}
+
+function needLabel(kind: string): string {
+  return kind === "residential" ? "Workers" : kind === "commercial" ? "Commerce" : kind === "industrial" ? "Industry" : kind === "agricultural" ? "Farming" : "Military";
+}
+
+function needText(need: BuildingNeed): string {
+  if (need.kind === "military") return `${need.supply} built / ${need.need} supported`;
+  if (need.need === 0) return need.supply > 0 ? "OK" : "No demand";
+  return need.supply >= need.need ? "OK" : `Need ${need.need - need.supply}`;
+}
+
+function compact(value: number): string {
+  if (value < 1000) return String(value);
+  return `${Math.round(value / 1000)}k`;
 }
 
 const selectionPanel = document.getElementById("selection-panel") as HTMLDivElement;
@@ -51,7 +85,7 @@ export function showSelection(info: SelectionInfo | null): void {
   }
   if (info.kind === "building") {
     selectionKind.textContent = "Building";
-    selectionRows.innerHTML = row("Address", info.address) + row("Footprint", info.footprint);
+    selectionRows.innerHTML = row("Address", info.address) + row("Type", label(info.buildingKind)) + row("Footprint", info.footprint);
     return;
   }
   if (info.kind === "vehicle") {

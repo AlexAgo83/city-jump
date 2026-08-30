@@ -17,6 +17,7 @@ import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math"
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { terrainHeight } from "../sim/terrain";
+import type { BuildingKind } from "../sim/buildingKinds";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
@@ -313,6 +314,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       // (a real "vertex buffer not big enough" GL error, silently dropping the draw for
       // that model, which is what read as buildings losing their roof/trim on a tool switch).
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
+      const colors = new Float32Array(chosen.length * 4);
+      for (const [i, parcel] of chosen.entries()) {
+        colors.set([...BUILDING_KIND_STYLE[parcel.kind].color, 1], i * 4);
+      }
+      model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
       model.mesh.thinInstanceCount = chosen.length;
       placed += chosen.length;
     }
@@ -783,13 +789,27 @@ function setMaterialAlpha(material: Material | null, alpha: number): void {
 }
 
 /** Centres the baked mesh on the parcel frontage regardless of glTF handedness. */
+/**
+ * The only thing telling a farm from a barracks apart right now: there is one set of lot models,
+ * so a parcel's business shows as a tint and how tall it is allowed to stand. Residential keeps
+ * the models' own look; the working kinds squat and take their colour.
+ * ponytail: tint + squash, swap for real per-kind models when there are any.
+ */
+export const BUILDING_KIND_STYLE: Record<BuildingKind, { scaleY: number; color: [number, number, number] }> = {
+  residential: { scaleY: 1, color: [1, 1, 1] },
+  commercial: { scaleY: 1, color: [0.82, 0.9, 1.05] },
+  industrial: { scaleY: 0.7, color: [0.95, 0.86, 0.7] },
+  agricultural: { scaleY: 0.4, color: [0.78, 0.95, 0.66] },
+  military: { scaleY: 0.55, color: [0.62, 0.72, 0.5] },
+};
+
 function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // Along-frontage direction is the model's +X once rotated.
   const alongX = Math.cos(parcel.rotationY);
   const alongZ = -Math.sin(parcel.rotationY);
   return Matrix.Compose(
-    Vector3.OneReadOnly,
+    new Vector3(1, BUILDING_KIND_STYLE[parcel.kind].scaleY, 1),
     rotation,
     new Vector3(
       parcel.position.x - alongX * centerX,

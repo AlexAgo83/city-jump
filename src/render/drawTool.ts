@@ -14,6 +14,7 @@ import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/r
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
+import type { BuildingKind } from "../sim/buildingKinds";
 import type { BuildingParcel } from "../sim/slots";
 import type { TerrainBounds } from "../sim/heightmap";
 import { type Vec3, v3, lerp } from "../sim/vec";
@@ -45,7 +46,7 @@ type SelectTarget =
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
-  | { kind: "building"; address: string; footprint: string }
+  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind }
   | { kind: "vehicle"; name: string; street: string; target: FollowTarget }
   | { kind: "tree" }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number };
@@ -89,7 +90,7 @@ const CLICK_SLOP = 5;
 
 /** How far from a node you can click and still mean that node. */
 const NODE_REACH = 22;
-const BRIDGE_NODE_REACH = 170;
+const BRIDGE_NODE_REACH = 60;
 
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
@@ -142,7 +143,7 @@ export function createDrawTool(
   let gridSnap = true;
   let typeId = initialTypeId;
   let treeSpecies = "fir";
-  let zoneKind: ZoneKind | "clear" = "low";
+  let zoneKind: ZoneKind | "clear" = "residential";
   let sprayRadius = SPRAY_RADIUS;
   let zoneRadius = ZONE_RADIUS;
   let preview: LinesMesh | null = null;
@@ -234,6 +235,7 @@ export function createDrawTool(
         kind: "building",
         address: `${address.number} ${address.street.name}`,
         footprint: `${target.parcel.frontageCells}x${target.parcel.depthCells}`,
+        buildingKind: target.parcel.kind,
       });
       return;
     }
@@ -491,8 +493,12 @@ export function createDrawTool(
   }
 
   function resolveDrawingSnap(x: number, z: number): Snap {
-    const bridge = nearestElevatedEndpoint(x, z);
-    return bridge ?? resolveSnap(graph, x, z, gridSnap);
+    // The ground point under an elevated node sits well off its own x/z, so bridge ends get extra
+    // reach -- but only when nothing ordinary is under the pointer, or a distant viaduct steals
+    // every click made near it.
+    const snap = resolveSnap(graph, x, z, gridSnap);
+    if (snap.kind !== "free") return snap;
+    return nearestElevatedEndpoint(x, z) ?? snap;
   }
 
   function nearestElevatedEndpoint(x: number, z: number): Snap | null {

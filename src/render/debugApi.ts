@@ -12,7 +12,7 @@ export interface DebugApi {
   road(x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type?: string): boolean;
   demoNetwork(): void;
   demoCity(): void;
-  stats(): Record<string, number>;
+  stats(): Record<string, unknown>;
   camera(radius: number, beta?: number, alpha?: number): void;
   cameraState(): { targetX: number; targetY: number; targetZ: number; alpha: number; beta: number; radius: number };
   measureCosts(): {
@@ -36,7 +36,7 @@ export function installDebugApi(
   graph: RoadGraph,
   rebuild: (dirty?: TerrainBounds, timings?: Record<string, number>) => void,
   startedAt: number,
-  stats: () => Record<string, number>,
+  stats: () => Record<string, unknown>,
   options: { setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number> } = {},
 ): void {
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {

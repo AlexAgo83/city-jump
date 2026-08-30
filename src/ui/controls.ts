@@ -49,7 +49,7 @@ export function bindControls(handlers: {
     toolbarToggle.setAttribute("aria-expanded", String(open));
     toolbarToggle.title = open ? "Collapse settings" : "Expand settings";
     toolbar.classList.toggle("collapsed", !open);
-    toolbarContent.hidden = !open;
+    toolbarContent.hidden = false;
   };
   toolbarToggle.addEventListener("click", () => {
     setToolbarOpen(toolbarToggle.getAttribute("aria-expanded") !== "true");
@@ -190,7 +190,7 @@ export function bindControls(handlers: {
   });
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
     input.addEventListener("change", () => {
-      if (input.checked) handlers.onZoneKind(input.value === "dense" ? "dense" : input.value === "clear" ? "clear" : "low");
+      if (input.checked) handlers.onZoneKind(input.value === "commercial" ? "commercial" : input.value === "clear" ? "clear" : "residential");
     });
   }
   document.getElementById("zone-radius")!.addEventListener("input", (event) => {
@@ -317,7 +317,7 @@ export function bindControls(handlers: {
       fps: showFps.checked,
       shadows: showShadows.checked,
       lights: showLights.checked,
-      settingsOpen: !toolbarContent.hidden,
+      settingsOpen: !toolbar.classList.contains("collapsed"),
       traffic: showTraffic.checked,
       trafficDensity: Number(trafficDensity.value),
       sunHour: Number(sunHour.value),

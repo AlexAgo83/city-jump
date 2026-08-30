@@ -1,5 +1,6 @@
-export type ZoneKind = "low" | "dense";
-export type SavedZone = [x: number, z: number, kind: ZoneKind];
+export type ZoneKind = "residential" | "commercial";
+export type SavedZoneKind = ZoneKind | "low" | "dense" | "military";
+export type SavedZone = [x: number, z: number, kind: SavedZoneKind];
 
 export const ZONE_CELL_SIZE = 8;
 
@@ -7,7 +8,7 @@ export class Zones {
   private readonly cells = new Map<string, ZoneKind>();
 
   constructor(saved: readonly SavedZone[] = []) {
-    for (const [x, z, kind] of saved) this.cells.set(key(x, z), kind);
+    this.replaceWith(saved);
   }
 
   paint(x: number, z: number, radius: number, kind: ZoneKind | null): void {
@@ -32,7 +33,10 @@ export class Zones {
 
   replaceWith(saved: readonly SavedZone[]): void {
     this.cells.clear();
-    for (const [x, z, kind] of saved) this.cells.set(key(x, z), kind);
+    for (const [x, z, kind] of saved) {
+      const migrated = migrateZoneKind(kind);
+      if (migrated) this.cells.set(key(x, z), migrated);
+    }
   }
 
   toJSON(): SavedZone[] {
@@ -47,6 +51,18 @@ export class Zones {
   count(): number {
     return this.cells.size;
   }
+}
+
+/**
+ * Zones used to be painted as densities (`low`/`dense`) plus a `military` brush that the road
+ * type now decides on its own. Old saves still carry those names, so they are read as what they
+ * always meant -- and military paint is simply dropped, since military roads make the barracks.
+ */
+function migrateZoneKind(kind: SavedZoneKind): ZoneKind | null {
+  if (kind === "low") return "residential";
+  if (kind === "dense") return "commercial";
+  if (kind === "military") return null;
+  return kind;
 }
 
 function key(x: number, z: number): string {

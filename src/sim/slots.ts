@@ -1,4 +1,5 @@
 import type { RoadGraph, SegmentId } from "./graph";
+import type { BuildingKind } from "./buildingKinds";
 import { roadType } from "./roadTypes";
 import { junctionRadius } from "./junction";
 import { type Vec3, v3, normalizeXZ, perpXZ, distXZ } from "./vec";
@@ -36,6 +37,7 @@ export interface BuildableCell {
   readonly lowRise: boolean;
   /** Set on cells fronting an industrial road, which only carries industrial models. */
   readonly industrial: boolean;
+  readonly buildingKind: BuildingKind;
   readonly segment: SegmentId;
   readonly side: -1 | 1;
   readonly block: number;
@@ -51,6 +53,7 @@ export interface BuildingParcel {
   readonly rotationY: number;
   readonly frontageCells: number;
   readonly depthCells: number;
+  readonly kind: BuildingKind;
   /** The buildable cells this parcel consumed, so the grid can highlight them as taken. */
   readonly cells: readonly BuildableCell[];
 }
@@ -130,8 +133,9 @@ export function buildableCells(graph: RoadGraph, zones?: Zones): BuildableCell[]
     const type = roadType(segment.type);
     const lowRise = type.pedestrian === true;
     const industrial = type.industrial === true;
+    const buildingKind = type.frontageKind ?? "residential";
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
-      for (const candidate of cellsForBlock(block, blockIndex, lowRise, industrial, zones)) {
+      for (const candidate of cellsForBlock(block, blockIndex, lowRise, industrial, buildingKind, zones)) {
         if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -167,7 +171,8 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
 
     for (const origin of roadside) {
       if (!free.has(`${origin.column}:${origin.row}`)) continue;
-      const allowed = allowedSizes(origin.zone ?? zoneForCell(zones, origin), first.lowRise, first.industrial);
+      const kind = parcelKind(origin, zones);
+      const allowed = allowedSizes(origin.zone ?? zoneForCell(zones, origin), first.lowRise, kind);
       const size = shuffled(allowed, random).find(({ frontageCells, depthCells }) =>
         rectangle(origin, frontageCells, depthCells).every(([column, row]) => free.has(`${column}:${row}`)),
       ) ?? PARCEL_SIZES.find(({ frontageCells, depthCells }) =>
@@ -187,6 +192,7 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
         ),
         rotationY: origin.rotationY,
         ...size,
+        kind,
         cells: occupied,
       });
     }
@@ -201,11 +207,21 @@ export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: 
   };
 }
 
-function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, industrial: boolean): typeof PARCEL_SIZES {
-  if (industrial) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => INDUSTRIAL_SIZES.has(sizeKey(frontageCells, depthCells)));
-  if (zone === "dense") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
-  if (zone === "low" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
+function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, kind: BuildingKind): typeof PARCEL_SIZES {
+  if (kind === "industrial" || kind === "agricultural" || kind === "military") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => INDUSTRIAL_SIZES.has(sizeKey(frontageCells, depthCells)));
+  if (zone === "commercial") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
+  if (zone === "residential" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
   return PARCEL_SIZES;
+}
+
+function parcelKind(cell: BuildableCell, zones: Zones | undefined): BuildingKind {
+  if (cell.buildingKind !== "residential") return cell.buildingKind;
+  const zone = cell.zone ?? zoneForCell(zones, cell);
+  if (zone) return zone;
+  // Unzoned frontage is a mixed neighbourhood: mostly homes, with a shop every few lots. The
+  // choice hangs off the cell's own position, so it survives a rebuild instead of flickering.
+  const { x, z } = buildableCellCentre(cell);
+  return (Math.abs(Math.round(x / GRID.cellSize) * 7 + Math.round(z / GRID.cellSize) * 13) % 4 === 0) ? "commercial" : "residential";
 }
 
 function zoneForCell(zones: Zones | undefined, cell: BuildableCell): ZoneKind | undefined {
@@ -307,7 +323,7 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
 }
 
 
-function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, industrial: boolean, zones?: Zones): BuildableCell[] {
+function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, industrial: boolean, buildingKind: BuildingKind, zones?: Zones): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -335,6 +351,7 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, indu
       cells.push({
         lowRise,
         industrial,
+        buildingKind,
         segment: block[0]!.segment,
         side: block[0]!.side,
         block: blockIndex,

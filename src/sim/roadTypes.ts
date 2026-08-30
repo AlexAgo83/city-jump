@@ -1,3 +1,5 @@
+import type { BuildingKind } from "./buildingKinds";
+
 export interface RoadType {
   readonly id: string;
   readonly name: string;
@@ -12,6 +14,7 @@ export interface RoadType {
   readonly highway?: boolean;
   /** Avenue-sized road that fronts industrial buildings. */
   readonly industrial?: boolean;
+  readonly frontageKind?: BuildingKind;
   /** Lanes each way (or total, if one-way). Two lanes widen the carriageway and get a lane line. */
   readonly lanes: 1 | 2;
   /** All traffic moves the same way -- no oncoming lane to share the road with. */
@@ -24,7 +27,9 @@ const LANE_WIDTH = 3.5;
 const BASE_ROAD_TYPES = {
   street: { id: "street", name: "Street", width: 8, maxSpeed: 12 },
   avenue: { id: "avenue", name: "Avenue", width: 14, maxSpeed: 16 },
-  industrial: { id: "industrial", name: "Industrial", width: 14, maxSpeed: 16, industrial: true },
+  industrial: { id: "industrial", name: "Industrial", width: 14, maxSpeed: 16, industrial: true, frontageKind: "industrial" },
+  dirt: { id: "dirt", name: "Dirt Road", width: 7, maxSpeed: 9, industrial: true, frontageKind: "agricultural" },
+  military: { id: "military", name: "Military", width: 12, maxSpeed: 14, frontageKind: "military" },
   tunnel: { id: "tunnel", name: "Tunnel", width: 9, tunnelDepth: 16, maxSpeed: 14 },
   highway: { id: "highway", name: "Highway", width: 20, highway: true, maxSpeed: 24 },
   pedestrian: { id: "pedestrian", name: "Pedestrian", width: 4, pedestrian: true, maxSpeed: 12 },
@@ -46,16 +51,13 @@ function variantsOf(base: (typeof BASE_ROAD_TYPES)[keyof typeof BASE_ROAD_TYPES]
   return combos.map(({ lanes, oneWay }) => {
     const suffix = `${lanes === 2 ? "_2lane" : ""}${oneWay ? "_oneway" : ""}`;
     const label = [lanes === 2 ? "2 lanes" : null, oneWay ? "one-way" : null].filter(Boolean).join(", ");
-    // Two-way base width already carries one lane each direction. Doubling to two lanes each
-    // way doubles the lane count on both sides, so it needs two lanes' worth of new pavement, not
-    // one. One-way frees up the opposite direction's share instead, so its second lane fits
-    // inside the width the road already had -- widening it too would leave a lane's worth of
-    // unused pavement instead of a second lane of traffic.
+    // Two-way base width already carries one lane each direction. One-way only needs that one
+    // direction's half, then adds pavement only when the player asks for a second lane.
     return {
       ...base,
       id: `${base.id}${suffix}`,
       name: label ? `${base.name} (${label})` : base.name,
-      width: base.width + (lanes - 1) * LANE_WIDTH * (oneWay ? 0 : 2),
+      width: (oneWay ? base.width / 2 : base.width) + (lanes - 1) * LANE_WIDTH * (oneWay ? 1 : 2),
       lanes,
       ...(oneWay ? { oneWay: true } : {}),
     };

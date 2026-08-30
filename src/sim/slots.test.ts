@@ -14,6 +14,7 @@ import {
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
 import { roadType } from "./roadTypes";
+import { Zones } from "./zones";
 
 function straight(g: RoadGraph, x0: number, z0: number, x1: number, z1: number, type = "street") {
   const a = g.addNode(x0, z0);
@@ -195,6 +196,18 @@ describe("pedestrian frontage", () => {
     expect(parcels.length).toBeGreaterThan(0);
     const tall = parcels.some((parcel) => !LOW_RISE_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`));
     expect(tall).toBe(true);
+    // Unzoned street frontage is a mixed neighbourhood: homes with the odd shop, nothing else.
+    expect(parcels.every((parcel) => parcel.kind === "residential" || parcel.kind === "commercial")).toBe(true);
+    expect(parcels.some((parcel) => parcel.kind === "commercial")).toBe(true);
+  });
+
+  it("uses dense zoning for commercial buildings", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "street");
+    const zones = new Zones();
+    zones.paint(0, 20, 220, "commercial");
+
+    expect(buildingParcels(buildableCells(g, zones), zones).some((parcel) => parcel.kind === "commercial")).toBe(true);
   });
 
   it("marks cells by the road they front", () => {
@@ -217,6 +230,25 @@ describe("industrial frontage", () => {
     expect(parcels.length).toBeGreaterThan(0);
     for (const parcel of parcels) {
       expect(INDUSTRIAL_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`)).toBe(true);
+      expect(parcel.kind).toBe("industrial");
     }
+  });
+
+  it("treats dirt roads as agricultural frontage", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "dirt");
+
+    expect(buildingParcels(buildableCells(g)).every((parcel) => parcel.kind === "agricultural")).toBe(true);
+  });
+});
+
+describe("military frontage", () => {
+  it("builds military parcels along military roads", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "military");
+
+    const parcels = buildingParcels(buildableCells(g));
+    expect(parcels.length).toBeGreaterThan(0);
+    expect(parcels.every((parcel) => parcel.kind === "military")).toBe(true);
   });
 });
