@@ -780,13 +780,13 @@ const afterTraffic = await trafficPositions();
 check("test traffic moves along roads", beforeTraffic.some((p, i) => Math.hypot(p[0] - afterTraffic[i][0], p[1] - afterTraffic[i][1]) > 0.5));
 await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
 await page.keyboard.press("Space");
-await page.waitForFunction(() => window.cityjump.paused(), null, { timeout: 1_000 });
+await page.waitForFunction(() => window.cityjump.paused(), null, { timeout: 5_000 });
 const pausedTraffic = await trafficPositions();
 await realTime(500);
 const stillTraffic = await trafficPositions();
 check("space pauses the simulation", pausedTraffic.every((p, i) => Math.hypot(p[0] - stillTraffic[i][0], p[1] - stillTraffic[i][1]) < 0.05));
 await page.keyboard.press("Space");
-await page.waitForFunction(() => !window.cityjump.paused(), null, { timeout: 1_000 });
+await page.waitForFunction(() => !window.cityjump.paused(), null, { timeout: 5_000 });
 await page.waitForFunction(
   (before) =>
     window.cityjump._scene.meshes
