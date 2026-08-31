@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:50
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -45,12 +45,12 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
-- request-AC5 -> This task. Proof: implemented and validated here.
-- request-AC6 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: science from a defeated kaiju and the call multiplier; proven by unit tests over won and lost waves.
+- request-AC2 -> This task. Proof: the two ways a run ends; proven by unit tests and an interaction check.
+- request-AC3 -> This task. Proof: prestige spent on capabilities and information only; proven by a unit test asserting no node touches a core rate.
+- request-AC4 -> This task. Proof: separate saves and the hardcore deletion; proven by unit tests on `ui/saves.ts` and an interaction check.
+- request-AC5 -> This task. Proof: how a run opens: bridge, road, starter kit; proven by an interaction check on a fresh run.
+- request-AC6 -> This task. Proof: `npm run balance` and its distribution; proven by a recorded run in `balance/history.jsonl`.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

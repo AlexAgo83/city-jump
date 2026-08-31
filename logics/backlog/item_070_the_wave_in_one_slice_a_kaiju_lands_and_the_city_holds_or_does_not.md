@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-08-31 23:10:28
 
 # AI Context
 - Summary: The delivery slice for the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -40,14 +40,14 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
-- request-AC6 -> This backlog slice. Proof: in scope above.
-- request-AC7 -> This backlog slice. Proof: in scope above.
-- request-AC8 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: the wave clock and the countdown; proven by `sim/wave.ts` unit tests from a fixed seed.
+- request-AC2 -> This backlog slice. Proof: destruction and the graph surviving it; proven by unit tests plus an interaction check that undo refuses to reach across a wave.
+- request-AC3 -> This backlog slice. Proof: batteries derived from military parcels; proven by unit tests over a city with parcels of several sizes.
+- request-AC4 -> This backlog slice. Proof: the kaiju's hit points and the banner's verdict; proven by an interaction check that runs a wave end to end.
+- request-AC5 -> This backlog slice. Proof: `sim/kaiju.ts` purity; proven by tests that import it with no Babylon and replay the same seed twice.
+- request-AC6 -> This backlog slice. Proof: the zone brush and the painted-beats-road rule; proven by unit tests on `parcelKind` and an interaction check on the palette.
+- request-AC7 -> This backlog slice. Proof: the edge marker and the target highlight; proven by an interaction check during a live wave.
+- request-AC8 -> This backlog slice. Proof: the frame budget; proven by a `npm run perf` run recorded in `perf/history.jsonl`.
 
 # Decision framing
 - Product framing: Not needed

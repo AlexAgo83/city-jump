@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for the districts start owing each other something, and a parcel waits for demand.
@@ -32,11 +33,11 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: production only while staffed; proven by unit tests over staffed and unstaffed parcels.
+- request-AC2 -> This backlog slice. Proof: population growing, capped and falling; proven by unit tests including a famine and a destroyed home.
+- request-AC3 -> This backlog slice. Proof: a parcel waiting for demand; proven by unit tests on `sim/slots.ts` and an interaction check.
+- request-AC4 -> This backlog slice. Proof: a housing-only city stalling; proven by a unit test that builds one and reads the gauges.
+- request-AC5 -> This backlog slice. Proof: determinism; proven by replaying the same seed twice with no renderer.
 
 # Decision framing
 - Product framing: Not needed

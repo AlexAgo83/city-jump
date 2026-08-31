@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -36,12 +36,12 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
-- request-AC6 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: science from a defeated kaiju and the call multiplier; proven by unit tests over won and lost waves.
+- request-AC2 -> This backlog slice. Proof: the two ways a run ends; proven by unit tests and an interaction check.
+- request-AC3 -> This backlog slice. Proof: prestige spent on capabilities and information only; proven by a unit test asserting no node touches a core rate.
+- request-AC4 -> This backlog slice. Proof: separate saves and the hardcore deletion; proven by unit tests on `ui/saves.ts` and an interaction check.
+- request-AC5 -> This backlog slice. Proof: how a run opens: bridge, road, starter kit; proven by an interaction check on a fresh run.
+- request-AC6 -> This backlog slice. Proof: `npm run balance` and its distribution; proven by a recorded run in `balance/history.jsonl`.
 
 # Decision framing
 - Product framing: Not needed

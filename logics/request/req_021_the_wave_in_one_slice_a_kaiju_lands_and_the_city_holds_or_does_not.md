@@ -7,7 +7,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-08-31 23:11:01
 
 # AI Context
 - Summary: The vertical slice of an attack, hardcoded: a countdown, a kaiju that lands at a random coast and walks at the nearest building, military parcels that fire on a reload, destruction that leaves rubble, and a banner that says held or breached. It exists to answer whether a wave is worth watching before anything is built to serve one.
@@ -48,6 +48,27 @@
   distance, and its current target is highlighted on the map.
 - AC8: A wave runs inside the frame budget `docs/performance.md` records for the reference city,
   measured rather than asserted.
+
+# Starting values
+Inputs, not outputs. They exist so that whoever builds this does not have to invent them, and so
+that the first wave is playable in about a minute. Every one of them is replaced by a harness run
+in `req_028_runs_science_and_prestige_leaving_an_island_with_something`; none is worth defending
+here, and none should be tuned by feel before that harness exists.
+
+| What | Start at | Why roughly this |
+| --- | --- | --- |
+| Time to the first wave | 3 minutes at x1 | long enough to draw a district and a military road |
+| Kaiju walking speed | 8 m/s | crosses a 600 m district in about 75 seconds |
+| Kaiju hit points | 600 | about four batteries firing for a minute |
+| Battery range | 220 m | a district's worth, and legible as one circle on the map |
+| Damage per salvo | 12 x parcel cells | a 1x4 does 48, a 4x4 does 192 |
+| Reload | 2.5 s | discrete enough to read a battery firing |
+| Missile travel | 1.5 s at range | visible arc, no accuracy stat |
+| Destruction radius | 25 m | the kaiju's own footprint |
+
+The kaiju itself: a bipedal silhouette about fifty metres tall -- heavy legs, a low forward-leaning
+body, short arms, a tail for balance -- in a dark, desaturated colour that reads against both the
+green island and a night city. Boxes and prisms, like everything else in the library.
 
 # Definition of Ready (DoR)
 - [x] Problem statement is explicit and user impact is clear.

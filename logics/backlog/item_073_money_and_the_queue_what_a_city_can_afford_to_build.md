@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for prices, a treasury, a build queue, and a demolition that gives half back.
@@ -33,11 +34,11 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: prices before the click and refusal after it; proven by an interaction check on a road and a zone.
+- request-AC2 -> This backlog slice. Proof: the queue and its readout; proven by unit tests on the queue and an interaction check on the line.
+- request-AC3 -> This backlog slice. Proof: rebuilding into a negative balance while new work waits; proven by its own unit test.
+- request-AC4 -> This backlog slice. Proof: demolition taking time and returning half; proven by unit tests.
+- request-AC5 -> This backlog slice. Proof: income from tax and trade; proven by `sim/economy.ts` unit tests from a fixed seed.
 
 # Decision framing
 - Product framing: Not needed

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:49
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing staffing from one shared workforce, construction time, and a building whose state reads on the map.
@@ -44,10 +44,10 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: the workforce and its demand; proven by `sim/workforce.ts` unit tests from a fixed seed.
+- request-AC2 -> This task. Proof: the building lifecycle on the map; proven by an interaction check reading instance state.
+- request-AC3 -> This task. Proof: determinism; proven by replaying the same seed twice with no renderer.
+- request-AC4 -> This task. Proof: a district going idle being visible; proven by an interaction check plus a screenshot.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

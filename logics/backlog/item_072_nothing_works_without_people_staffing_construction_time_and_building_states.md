@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for staffing from one shared workforce, construction time, and a building whose state reads on the map.
@@ -32,10 +33,10 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: the workforce and its demand; proven by `sim/workforce.ts` unit tests from a fixed seed.
+- request-AC2 -> This backlog slice. Proof: the building lifecycle on the map; proven by an interaction check reading instance state.
+- request-AC3 -> This backlog slice. Proof: determinism; proven by replaying the same seed twice with no renderer.
+- request-AC4 -> This backlog slice. Proof: a district going idle being visible; proven by an interaction check plus a screenshot.
 
 # Decision framing
 - Product framing: Not needed

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:49
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing prices, a treasury, a build queue, and a demolition that gives half back.
@@ -43,11 +43,11 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
-- request-AC5 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: prices before the click and refusal after it; proven by an interaction check on a road and a zone.
+- request-AC2 -> This task. Proof: the queue and its readout; proven by unit tests on the queue and an interaction check on the line.
+- request-AC3 -> This task. Proof: rebuilding into a negative balance while new work waits; proven by its own unit test.
+- request-AC4 -> This task. Proof: demolition taking time and returning half; proven by unit tests.
+- request-AC5 -> This task. Proof: income from tax and trade; proven by `sim/economy.ts` unit tests from a fixed seed.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

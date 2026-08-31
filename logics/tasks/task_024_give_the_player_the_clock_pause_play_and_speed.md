@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:49
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing time controls, and a day that runs at the rate the player chose.
@@ -44,10 +44,10 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: the controls and the readout; proven by an interaction check on each rate.
+- request-AC2 -> This task. Proof: equal ground per second at every rate; proven by the existing frame-cap measurement extended to the speeds.
+- request-AC3 -> This task. Proof: the sun following the clock and the slider gated by pause; proven by an interaction check.
+- request-AC4 -> This task. Proof: every action available while paused; proven by an interaction check that builds a road paused.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

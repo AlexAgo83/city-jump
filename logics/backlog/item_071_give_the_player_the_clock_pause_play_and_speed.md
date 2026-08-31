@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for time controls, and a day that runs at the rate the player chose.
@@ -31,10 +32,10 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: the controls and the readout; proven by an interaction check on each rate.
+- request-AC2 -> This backlog slice. Proof: equal ground per second at every rate; proven by the existing frame-cap measurement extended to the speeds.
+- request-AC3 -> This backlog slice. Proof: the sun following the clock and the slider gated by pause; proven by an interaction check.
+- request-AC4 -> This backlog slice. Proof: every action available while paused; proven by an interaction check that builds a road paused.
 
 # Decision framing
 - Product framing: Not needed

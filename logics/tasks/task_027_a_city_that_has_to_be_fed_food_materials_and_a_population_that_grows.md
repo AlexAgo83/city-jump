@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:49
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing the districts start owing each other something, and a parcel waits for demand.
@@ -44,11 +44,11 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
-- request-AC5 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: production only while staffed; proven by unit tests over staffed and unstaffed parcels.
+- request-AC2 -> This task. Proof: population growing, capped and falling; proven by unit tests including a famine and a destroyed home.
+- request-AC3 -> This task. Proof: a parcel waiting for demand; proven by unit tests on `sim/slots.ts` and an interaction check.
+- request-AC4 -> This task. Proof: a housing-only city stalling; proven by a unit test that builds one and reads the gauges.
+- request-AC5 -> This task. Proof: determinism; proven by replaying the same seed twice with no renderer.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

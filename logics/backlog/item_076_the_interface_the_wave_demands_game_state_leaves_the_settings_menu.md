@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for game state leaves the settings menu, and the loop gets its screen.
@@ -33,12 +34,12 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
-- request-AC6 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: the settings menu holding nothing needed during a wave; proven by an interaction check over its contents.
+- request-AC2 -> This backlog slice. Proof: the permanent banner, clock and city strip; proven by interaction checks on each.
+- request-AC3 -> This backlog slice. Proof: the ledger and its substituted formulas; proven by an interaction check reading one line against the simulation's own terms.
+- request-AC4 -> This backlog slice. Proof: no formula written twice; proven by a unit test that the ledger renders reported terms and computes nothing.
+- request-AC5 -> This backlog slice. Proof: the State view and the alert line; proven by interaction checks.
+- request-AC6 -> This backlog slice. Proof: the screen's budget; proven by recording what was removed or folded alongside what was added.
 
 # Decision framing
 - Product framing: Not needed

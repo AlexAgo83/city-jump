@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-08-31 23:11:30
 
 # AI Context
 - Summary: Implementing the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -52,14 +52,14 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
-- request-AC5 -> This task. Proof: implemented and validated here.
-- request-AC6 -> This task. Proof: implemented and validated here.
-- request-AC7 -> This task. Proof: implemented and validated here.
-- request-AC8 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: the wave clock and the countdown; proven by `sim/wave.ts` unit tests from a fixed seed.
+- request-AC2 -> This task. Proof: destruction and the graph surviving it; proven by unit tests plus an interaction check that undo refuses to reach across a wave.
+- request-AC3 -> This task. Proof: batteries derived from military parcels; proven by unit tests over a city with parcels of several sizes.
+- request-AC4 -> This task. Proof: the kaiju's hit points and the banner's verdict; proven by an interaction check that runs a wave end to end.
+- request-AC5 -> This task. Proof: `sim/kaiju.ts` purity; proven by tests that import it with no Babylon and replay the same seed twice.
+- request-AC6 -> This task. Proof: the zone brush and the painted-beats-road rule; proven by unit tests on `parcelKind` and an interaction check on the palette.
+- request-AC7 -> This task. Proof: the edge marker and the target highlight; proven by an interaction check during a live wave.
+- request-AC8 -> This task. Proof: the frame budget; proven by a `npm run perf` run recorded in `perf/history.jsonl`.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
@@ -72,6 +72,8 @@
 - Not started.
 
 # Links
+- Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this
+  chain, including both briefs and the roadmap.
 - Request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 - Product brief(s): `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 - Architecture decision(s): (none yet)

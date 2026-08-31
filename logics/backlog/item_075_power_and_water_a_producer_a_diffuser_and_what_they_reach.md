@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:10:29
 
 # AI Context
 - Summary: The delivery slice for the second placement verb: a producer, a network on the roads, and a diffuser with a radius.
@@ -32,11 +33,11 @@
 - AC2: The backlog slice is reviewable and promotable into a task.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: in scope above.
-- request-AC2 -> This backlog slice. Proof: in scope above.
-- request-AC3 -> This backlog slice. Proof: in scope above.
-- request-AC4 -> This backlog slice. Proof: in scope above.
-- request-AC5 -> This backlog slice. Proof: in scope above.
+- request-AC1 -> This backlog slice. Proof: producer, diffuser and radius; proven by `sim/utilities.ts` unit tests.
+- request-AC2 -> This backlog slice. Proof: the network over road segments, saved and restored; proven by unit tests and a save round trip.
+- request-AC3 -> This backlog slice. Proof: a building idle for a missing utility, and saying which; proven by an interaction check.
+- request-AC4 -> This backlog slice. Proof: the Utilities view; proven by an interaction check and a screenshot.
+- request-AC5 -> This backlog slice. Proof: a destroyed diffuser putting its district out, with its alert; proven by an interaction check.
 
 # Decision framing
 - Product framing: Not needed

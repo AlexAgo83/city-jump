@@ -1,0 +1,2081 @@
+{
+  "budgets": {
+    "max_docs": 48,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea prod_019_an_interface_for_a_city_you_can_lose road_002_city_jump_a_city_worth_defending --mode full --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md",
+      "ref": "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+      "sections": {
+        "Goals": [
+          "- A building standing empty is a building that does nothing: every non-residential parcel needs",
+          "  workers to operate, and the workforce is one shared stock every district competes for.",
+          "- Proportion is the game. The player is always tempted to under-build the military, because every",
+          "  barracks is a farm or a works not built -- and the wave is what prices that choice.",
+          "- The threat scales with the city, so growing is a decision rather than a free good, and it is",
+          "  fixed at the start of a wave so the player can choose to consolidate instead of expand."
+        ],
+        "Key product decisions": [
+          "- **Military buildings are the defence.** They already grow along a military road; they gain a",
+          "  range and a rate of damage rather than being replaced by a placed object.",
+          "- **Workers are the keystone, and staffing is binary.** A parcel is staffed and works, or it is",
+          "  not and does nothing. Partial output would be more realistic and less readable, and readability",
+          "  is what lets a player act on a proportion.",
+          "- **Each district has one job in the loop.** Agriculture decides whether the population *exists*"
+        ],
+        "Overview": [
+          "city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,",
+          "every building works without anyone in it, and the needs panel shows four gauges that gate",
+          "nothing. This brief is the direction that makes the city matter: a **city builder whose city is",
+          "attacked**, at intervals, by a kaiju that comes out of the sea, and whose defence is the military",
+          "district the player chose to build instead of another farm.",
+          "The genre is a city builder first. Defence is not a second game bolted to the side: the military"
+        ],
+        "References": [
+          "- Product back-reference: `item_077_runs_science_and_prestige_leaving_an_island_with_something`",
+          "- Task back-reference: `task_030_runs_science_and_prestige_leaving_an_island_with_something`",
+          "- Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the",
+          "  screen, which is a move rather than an addition.",
+          "- Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life",
+          "  on the network) are the ones this direction bends."
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that has to survive what comes out of the sea"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_022_give_the_player_the_clock_pause_play_and_speed",
+          "req_023_nothing_works_without_people_staffing_construction_time_and_building_states",
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+          "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows",
+          "req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach",
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city",
+          "road_002_city_jump_a_city_worth_defending"
+        ]
+      },
+      "path": "logics/roadmap/road_002_city_jump_a_city_worth_defending.md",
+      "ref": "road_002_city_jump_a_city_worth_defending",
+      "sections": {
+        "References": [
+          "- Product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` (the game),",
+          "  `prod_019_an_interface_for_a_city_you_can_lose` (the screen).",
+          "- Superseded roadmap: `road_001_city_jump_playable_city` -- its six strands stay open as the place",
+          "  maintenance and craft work belong; sequencing moved here.",
+          "- Architecture: `adr_001_keep_the_road_graph_as_the_source_of_truth`,",
+          "  `adr_004_stay_a_static_client_with_no_server_of_its_own`."
+        ]
+      },
+      "status": "Active",
+      "title": "city-jump: a city worth defending"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/product/prod_011_a_city_that_is_built_on_purpose.md",
+      "ref": "prod_011_a_city_that_is_built_on_purpose",
+      "sections": {
+        "Goals": [
+          "- The player decides what kind of place they are building, not only where the roads run.",
+          "- The difference between two zones is visible while playing, not only in a debug view.",
+          "- An existing city is untouched until its owner chooses to zone it.",
+          "- The Zones view finally shows zones.",
+          "- Demand, growth and economy become possible later without redoing this."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump lets a player draw roads beautifully and then watches buildings appear on their own, sized by whatever rectangle happened to fit. The city is a consequence, not a plan. This slice gives the player the second decision the game has been missing: not only where the road goes, but what belongs beside it. It stops deliberately short of demand, growth and economy -- those need something to act on, and this is that something.",
+          "```mermaid",
+          "flowchart LR",
+          "    Road[Player draws a road] --> Cells[Buildable cells]",
+          "    Paint[Player paints a zone] --> Zone[(Authored zone on the ground)]",
+          "    Cells --> Pack[buildingParcels]"
+        ],
+        "References": [
+          "- Product back-reference: `item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing`",
+          "- Task back-reference: `task_016_implement_zoning_as_the_player_s_second_decision`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that is built on purpose"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "task": [
+          "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/product/prod_019_an_interface_for_a_city_you_can_lose.md",
+      "ref": "prod_019_an_interface_for_a_city_you_can_lose",
+      "sections": {
+        "Goals": [
+          "- The three numbers that decide a run -- when the wave comes, how strong it is, how strong the",
+          "  city is -- are on screen at all times, and never behind a fold.",
+          "- Time is one click away, always: pause, play, x2, x4, with the date and hour beside them. It is",
+          "  the most frequent action in the game and it is currently a setting.",
+          "- The city is legible from the city. A building under construction, idle for want of workers,",
+          "  power or water, or being rebuilt after a wave, reads as such on the map before anything is"
+        ],
+        "Key product decisions": [
+          "- **Game state moves out of the settings menu.** The needs panel is the first to go; anything the",
+          "  player consults during play follows it. This is a move rather than an addition, and it is worth",
+          "  doing before three more things attach themselves to a menu that folds away.",
+          "- **Top centre is the wave.** Countdown, threat, the city's defence, and the button that calls the",
+          "  kaiju early -- with the clock next to it, because the two are used together: see the wave",
+          "  coming, decide whether to speed the day up or stop it."
+        ],
+        "Overview": [
+          "The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top",
+          "left, a tool dock along the bottom, a compass and a population count in the middle, a detail panel",
+          "on whatever was clicked. It is well suited to a game where nothing is at stake.",
+          "`prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` puts something at stake, and three",
+          "things follow that the current shape cannot carry: the player owns the clock, a wave is coming and",
+          "its arithmetic has to be readable before it lands, and every building is now in one of several"
+        ],
+        "References": [
+          "- Product back-reference: `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`",
+          "- Task back-reference: `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`",
+          "- Source brief: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` -- every rule this",
+          "  interface has to make readable.",
+          "- Related product: `prod_007_a_city_you_can_point_at_and_name` (the selection panel this extends),",
+          "  `prod_013_a_city_that_tells_you_what_it_costs_to_draw` (the readout budget this inherits)."
+        ]
+      },
+      "status": "Proposed",
+      "title": "An interface for a city you can lose"
+    },
+    {
+      "kind": "roadmap",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+          "prod_016_a_city_you_can_change_your_mind_about",
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "req_019_let_the_player_take_back_the_last_thing_they_did",
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city",
+          "road_002_city_jump_a_city_worth_defending"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "task_021_let_the_player_take_back_the_last_thing_they_did",
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "sections": {
+        "References": [
+          "- Product brief(s): `prod_001_a_city_that_grows_from_the_roads_you_draw`,",
+          "  `prod_004_a_city_builder_that_never_loses_the_city_on_screen`,",
+          "  `prod_005_a_city_builder_that_stays_responsive_as_the_city_grows`,",
+          "  `prod_006_one_source_of_truth_for_what_a_building_model_is`,",
+          "  `prod_007_a_city_you_can_point_at_and_name`,",
+          "  `prod_008_a_city_you_can_hand_to_someone_else`,"
+        ]
+      },
+      "status": "Superseded",
+      "title": "city-jump playable city"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md",
+      "ref": "adr_001_keep_the_road_graph_as_the_source_of_truth",
+      "sections": {
+        "Overview": [
+          "The authored shape of a city is its road graph; every spatial city feature derives from",
+          "that graph or attaches simulation state to its stable identifiers.",
+          "```mermaid",
+          "flowchart LR",
+          "  input[Road drawing] --> graph[(Road graph)]",
+          "  graph --> roads[Roads and junctions]"
+        ],
+        "References": [
+          "- Related request: `req_002_establish_modular_repository_foundations`",
+          "- Related backlog: (none yet)",
+          "- Related task: (none yet)"
+        ]
+      },
+      "status": "Settled",
+      "title": "Keep the road graph as the source of truth"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md",
+      "ref": "adr_004_stay_a_static_client_with_no_server_of_its_own",
+      "sections": {
+        "Overview": [
+          "city-jump ships as files on a CDN. Features are designed to fit that, rather than the deployment",
+          "being changed to fit a feature.",
+          "```mermaid",
+          "flowchart LR",
+          "    Build[vite build] --> Files[Static files in dist]",
+          "    Files --> CDN[Render static site]"
+        ],
+        "References": [
+          "- Related request: `req_011_share_a_city_as_a_link_that_needs_no_server`",
+          "- Related backlog: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`",
+          "- Related task: `task_013_implement_sharing_a_city_by_link`",
+          "- `render.yaml` -- the static site blueprint this records.",
+          "- `SECURITY.md` -- the threat-model review this decision defers to."
+        ]
+      },
+      "status": "Settled",
+      "title": "Stay a static client with no server of its own"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "sections": {
+        "Goals": [
+          "- A road drawn through several junctions is one named street, not three anonymous curves.",
+          "- Every building has an address a player can read and repeat.",
+          "- Clicking anything visible -- road, roundabout, tree, building, car -- opens the same panel and answers the question.",
+          "- Names never run out, and never change under the player.",
+          "- Cities saved before any of this existed keep loading, and get names."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump renders a city nobody can refer to. Roads are anonymous geometry, buildings are unaddressed boxes, and clicking either tells the player nothing. This slice gives the city the vocabulary a city has: streets that are streets rather than loose curves, names that do not run out, addresses that follow the real odd-and-even convention, and a detail panel that answers what did I just click on for every visible thing.",
+          "```mermaid",
+          "flowchart LR",
+          "    Seg[Road segments] -->|facing rule| Street[Street]",
+          "    Street --> Name[Generated English name]",
+          "    Street --> Along[Distance along street]"
+        ],
+        "References": [
+          "- Product back-reference: `item_034_chain_road_segments_into_streets_that_survive_a_split`",
+          "- Task back-reference: `task_012_implement_street_names_building_addresses_and_the_extended_detail_panel`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city you can point at and name"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+      "ref": "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+      "sections": {
+        "Goals": [
+          "- The player can see what the city costs to draw, while they are drawing it.",
+          "- The figure on screen is the same one the test suite argues with.",
+          "- Someone who does not want a number in the corner never sees one.",
+          "- Nothing measures when nobody is looking."
+        ],
+        "Key product decisions": [
+          "- Off by default: a permanent number in the corner is clutter for someone who only wants to build.",
+          "- One measurement, two readers. A second measurement that can disagree with the suite is worse than none.",
+          "- Nothing samples while the counter is hidden."
+        ],
+        "Overview": [
+          "city-jump has always measured its own frame rate and has never shown it to anyone playing. The number lives in a debug hook that a test script calls from outside the page, quoted in the README and asserted in CI, while the player who can actually feel the city slow down has nothing to look at. This slice puts the figure on screen, behind a setting that is off by default, so the cost of a city is something its builder can watch rather than something only the suite knows.",
+          "```mermaid",
+          "flowchart LR",
+          "    Frames[Per-frame delta from the engine] --> Smooth[One smoothed frame-rate value]",
+          "    Smooth --> Counter[Top-right HUD counter]",
+          "    Smooth --> Probe[\"measureFps() for the suites\"]"
+        ],
+        "References": [
+          "- Product back-reference: `item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching`",
+          "- Task back-reference: `task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/product/prod_001_a_city_that_grows_from_the_roads_you_draw.md",
+      "ref": "prod_001_a_city_that_grows_from_the_roads_you_draw",
+      "sections": {
+        "Goals": [
+          "- Drawing a road feels free and the result looks organic, without the player ever placing an intersection.",
+          "- One representation of the network -- a graph -- that zoning, rendering and later traffic all read from, so no later feature has to invent its own.",
+          "- A building always fronts a road, by construction rather than by a check.",
+          "- A city of a thousand buildings renders at an interactive frame rate on an ordinary machine.",
+          "- Relief is a change to one function and a terrain pass, not a rewrite of the network."
+        ],
+        "Key product decisions": [
+          "- Represent the network as nodes and quadratic Bezier segments, with arc-length lookup",
+          "  computed once for every downstream consumer.",
+          "- Create junctions only through snapping and segment splitting; the player never places",
+          "  a junction object directly.",
+          "- Derive non-overlapping buildable cells from road frontage instead of placing buildings",
+          "  freely and resolving collisions afterwards."
+        ],
+        "Overview": [
+          "The first playable loop of city-jump: draw a curved road network with the pointer, and watch buildings take their places along it. The network is a graph the whole simulation reads from, the buildings are instanced models from the MeshAnvil pipeline, and the ground under both is a heightmap the roads conform to.",
+          "```mermaid",
+          "flowchart TD",
+          "  player[Player draws with the pointer] --> tool[Drawing tool<br/>node snap, segment split,<br/>2m quantisation, min length]",
+          "  tool -->|refused: too short or too steep| reason[Reason shown<br/>nothing enters the graph]",
+          "  tool -->|accepted| graph[Road graph<br/>nodes + quadratic Bezier segments<br/>the only persisted state]"
+        ],
+        "References": [
+          "- Product back-reference: `item_008_establish_modular_repository_foundations`",
+          "- Task back-reference: `task_002_establish_modular_repository_foundations`",
+          "- Repository overview: `README.md`",
+          "- Asset contract: `docs/assets.md`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that grows from the roads you draw"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one"
+        ],
+        "prod": [
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen"
+        ],
+        "req": [
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene"
+        ],
+        "task": [
+          "task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_004_a_city_builder_that_never_loses_the_city_on_screen.md",
+      "ref": "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+      "sections": {
+        "Goals": [
+          "- A failed load is a no-op, not a destructive one.",
+          "- A storage failure is visible to the player at the moment it happens.",
+          "- Toggling what is visible costs what a visibility toggle should cost.",
+          "- The largest rendering files have unit coverage that runs on every push, not only in the on-demand browser suite.",
+          "- One Node version, resolved identically by CI and by the deploy."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump keeps a player's work in three places: the live graph, the autosave, and the named saves. This slice closes the paths where that work can quietly disappear -- a refused load that empties the graph it was supposed to replace, and a refused storage write nobody is told about -- and pays down the hygiene around them: no full city resolve for a visibility checkbox, unit coverage on the rendering geometry that only an expensive browser suite currently touches, and one Node version instead of two that have already drifted.",
+          "```mermaid",
+          "flowchart LR",
+          "    Player[Player action] --> Load[Load a saved city]",
+          "    Player --> Toggle[Visibility toggle]",
+          "    Player --> Edit[Edit the road graph]"
+        ],
+        "References": [
+          "- Product back-reference: `item_020_make_a_failed_city_load_a_no_op_instead_of_a_destructive_one`",
+          "- Task back-reference: `task_009_implement_the_load_rollback_and_rendering_hygiene_review_findings`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city builder that never loses the city on screen"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild"
+        ],
+        "prod": [
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/product/prod_005_a_city_builder_that_stays_responsive_as_the_city_grows.md",
+      "ref": "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+      "sections": {
+        "Goals": [
+          "- Placing a road costs what that road changed, not what the whole city contains.",
+          "- The terrain refresh stops allocating millions of throwaway objects per rebuild.",
+          "- The first load ships only the engine features the game actually uses.",
+          "- The first frame arrives without waiting on every building model in the catalogue.",
+          "- The traffic loop runs at 60 fps without rebuilding its bookkeeping every frame.",
+          "- Rebuild and startup cost are measurable, so a regression is visible."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump is fast on an empty map and gets slower with every road placed, because each placement re-solves and re-uploads the entire world: a 457k-vertex terrain, every road mesh, every car. The first load has the mirror problem -- it ships and post-processes everything the engine could ever need before drawing a single frame. This slice makes the cost of an action proportional to what the action changed, and the cost of starting proportional to what the player actually sees.",
+          "```mermaid",
+          "flowchart LR",
+          "    Place[Road placed] --> Dirty[Changed region only]",
+          "    Dirty --> Terrain[Heightmap re-stamp]",
+          "    Dirty --> Ground[Ground vertices refreshed]"
+        ],
+        "References": [
+          "- Product back-reference: `item_024_stop_the_ground_refresh_allocating_per_vertex_and_per_rebuild`",
+          "- Task back-reference: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city builder that stays responsive as the city grows"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry"
+        ],
+        "prod": [
+          "prod_006_one_source_of_truth_for_what_a_building_model_is"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/product/prod_006_one_source_of_truth_for_what_a_building_model_is.md",
+      "ref": "prod_006_one_source_of_truth_for_what_a_building_model_is",
+      "sections": {
+        "Goals": [
+          "- The renderer asks the model what it is, instead of guessing from its filename.",
+          "- A disagreement between generator and renderer fails a check, not a screenshot.",
+          "- The authoring contract in docs/assets.md matches what the code actually does.",
+          "- Hand-authored models remain possible under the same contract as generated ones."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump generates its building library in Python and renders it in TypeScript, and both sides independently decide how tall a building is, where its setback starts and how its roof is shaped. The numbers agree today because someone typed them twice correctly. This slice makes the model itself, or one declaration beside it, the single answer -- and puts a check behind it so the next edit to either side cannot quietly move every roof object in the city.",
+          "```mermaid",
+          "flowchart LR",
+          "    Gen[gen_buildings.py] --> GLB[(Building GLB)]",
+          "    Gen --> Decl[Declaration beside it]",
+          "    GLB --> Mesh[Mesh extents read at load]"
+        ],
+        "References": [
+          "- Product back-reference: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`",
+          "- Task back-reference: `task_011_implement_one_source_of_truth_for_building_model_geometry`"
+        ]
+      },
+      "status": "Settled",
+      "title": "One source of truth for what a building model is"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely"
+        ],
+        "prod": [
+          "prod_008_a_city_you_can_hand_to_someone_else"
+        ],
+        "req": [
+          "req_011_share_a_city_as_a_link_that_needs_no_server"
+        ],
+        "task": [
+          "task_013_implement_sharing_a_city_by_link"
+        ]
+      },
+      "path": "logics/product/prod_008_a_city_you_can_hand_to_someone_else.md",
+      "ref": "prod_008_a_city_you_can_hand_to_someone_else",
+      "sections": {
+        "Goals": [
+          "- A player can give their city to someone with one button and a paste.",
+          "- No city is ever uploaded anywhere, and none appears in any server log.",
+          "- A city the size of the bundled Demo fits in a link people can actually send.",
+          "- Receiving a city is an offer, never a surprise overwrite.",
+          "- A malicious link cannot do more than be refused."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "Every city built in city-jump is trapped in the browser that made it. This slice lets a player hand one to somebody with a link and nothing else -- no account, no upload, no server, because the game is a static site and should stay one. The city rides in the URL fragment, compressed and coarsened just enough to fit, and arrives as an offer to import rather than something that overwrites what the receiver already has.",
+          "```mermaid",
+          "flowchart LR",
+          "    City[(Saved city)] --> Quant[Round elevations]",
+          "    Quant --> Gzip[gzip and base64url]",
+          "    Gzip --> Frag[URL fragment]"
+        ],
+        "References": [
+          "- Product back-reference: `item_039_turn_a_city_into_a_link_sized_payload_and_read_one_back_safely`",
+          "- Task back-reference: `task_013_implement_sharing_a_city_by_link`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city you can hand to someone else"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged"
+        ],
+        "prod": [
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed"
+        ],
+        "req": [
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow"
+        ],
+        "task": [
+          "task_014_implement_the_camera_target_policies_and_the_camera_settings_section"
+        ]
+      },
+      "path": "logics/product/prod_009_a_camera_that_can_watch_not_only_be_aimed.md",
+      "ref": "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+      "sections": {
+        "Goals": [
+          "- The player can watch the city instead of only aiming at it.",
+          "- Following a car is possible without losing zoom and angle control.",
+          "- The mode is always escapable: touch the camera and you are back to Free.",
+          "- Nothing about the existing camera changes for a player who never opens the section."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump's camera is a tool for operating the city: the player points it and it stays pointed. That is right for building, and wrong for everything else -- seeing a junction from all sides, sitting with the light as it changes, or watching one car actually take a roundabout. This slice keeps that camera exactly as it is and adds two more things it can do with its target: turn around it, or let it move. One camera, three policies, and touching the controls always gives the player back the one they already know.",
+          "```mermaid",
+          "flowchart LR",
+          "    Cam[One ArcRotateCamera] --> Policy{Target policy}",
+          "    Policy -->|Free| Held[Where the player put it]",
+          "    Policy -->|Orbit| Turn[Alpha advances around the target]"
+        ],
+        "References": [
+          "- Product back-reference: `item_042_make_the_camera_s_target_policy_switchable_with_free_unchanged`",
+          "- Task back-reference: `task_014_implement_the_camera_target_policies_and_the_camera_settings_section`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A camera that can watch, not only be aimed"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_046_make_security_md_describe_the_deployment_that_exists"
+        ],
+        "prod": [
+          "prod_010_a_published_game_whose_documents_tell_the_truth"
+        ],
+        "req": [
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy"
+        ],
+        "task": [
+          "task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment"
+        ]
+      },
+      "path": "logics/product/prod_010_a_published_game_whose_documents_tell_the_truth.md",
+      "ref": "prod_010_a_published_game_whose_documents_tell_the_truth",
+      "sections": {
+        "Goals": [
+          "- A reader of SECURITY.md learns about the deployment that actually exists.",
+          "- The threat-model review the policy demands is done before the feature that triggers it ships.",
+          "- A visitor on a phone is either able to play or told plainly that they cannot, before they try.",
+          "- The project's documents stay honest as the deployment changes again."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "city-jump stopped being a thing on one machine and became a link anyone can open, and its documents did not notice. The security policy describes a dev server, the supported-versions table names a version that is no longer current, and the game itself cannot be played by anyone who arrives on a phone. None of this is a bug in the game; all of it is the gap between what the project is and what it says about itself. This slice closes that gap and makes the project take a written position on the visitors it currently ignores.",
+          "```mermaid",
+          "flowchart LR",
+          "    Ship[0.2.0 published on a static site] --> Gap{Documents followed?}",
+          "    Gap -->|no| Sec[SECURITY.md describes a dev server]",
+          "    Gap -->|no| Rev[No threat-model review for shared links]"
+        ],
+        "References": [
+          "- Product back-reference: `item_046_make_security_md_describe_the_deployment_that_exists`",
+          "- Task back-reference: `task_015_make_the_project_s_documents_and_input_model_match_the_public_deployment`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A published game whose documents tell the truth"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_052_make_a_partial_rebuild_unable_to_lose_geometry"
+        ],
+        "prod": [
+          "prod_012_a_city_that_keeps_drawing_itself_correctly"
+        ],
+        "req": [
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work"
+        ],
+        "task": [
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work"
+        ]
+      },
+      "path": "logics/product/prod_012_a_city_that_keeps_drawing_itself_correctly.md",
+      "ref": "prod_012_a_city_that_keeps_drawing_itself_correctly",
+      "sections": {
+        "Goals": [
+          "- A partial rebuild is indistinguishable from a full one, except in cost.",
+          "- Painting zones feels like painting trees, because it does the same amount of work.",
+          "- The debug statistics can be trusted as evidence in the next performance investigation.",
+          "- The invariants the fast paths depend on are asserted, not commented.",
+          "- Nothing in the renderers holds a disposed object or grows without bound."
+        ],
+        "Key product decisions": [
+          "- Fix the predicate, not the symptom: disposal and recreation get one test, so the class of bug cannot recur in that renderer.",
+          "- Two player-visible defects each leave a check behind; the eight smaller ones do not each need one.",
+          "- Where a helper can be extracted and unit-tested without a scene, prefer that to a browser check."
+        ],
+        "Overview": [
+          "The performance work that made editing a city cheap did so by teaching every renderer to repaint only the part of the world an edit touched. That is the right trade, but it moved correctness out of one place and into four, and the review found where they disagree. This slice pays that back: the region-based rebuild becomes something that cannot lose geometry, the zoning brush becomes as cheap to drag as the tree brush it was copied from, and the smaller defects around it stop being the baseline.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[An edit: road, bulldoze, zone brush] --> Box[TerrainBounds box, padded 140m]",
+          "    Box --> HM[Heightmap: clips stamps to grid indices]",
+          "    Box --> GR[Ground: rewrites and uploads rows]"
+        ],
+        "References": [
+          "- Product back-reference: `item_052_make_a_partial_rebuild_unable_to_lose_geometry`",
+          "- Task back-reference: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that keeps drawing itself correctly"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh"
+        ],
+        "prod": [
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine"
+        ],
+        "req": [
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ],
+        "task": [
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off"
+        ]
+      },
+      "path": "logics/product/prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine.md",
+      "ref": "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+      "sections": {
+        "Goals": [
+          "- A player on weaker hardware can keep building instead of giving up.",
+          "- The two most expensive things in the scene are the two the player can switch off.",
+          "- Turning a setting off actually stops the work, rather than hiding its result.",
+          "- The default is exactly what the game looks like today.",
+          "- The switches use the seams the renderers already have, not new machinery."
+        ],
+        "Key product decisions": [
+          "- Switch at the source, not at every consumer: on the light, not on every mesh -- otherwise every rebuild undoes the setting.",
+          "- Off must stop the work. A setting that hides a result and keeps its cost is worse than no setting.",
+          "- The default is exactly today's appearance, so an existing city is untouched until its owner chooses."
+        ],
+        "Overview": [
+          "city-jump renders a cascaded shadow map every frame and lights the night with a clustered spotlight per streetlight and per headlight. Both are why it looks the way it does, and both are why it can crawl on hardware that is not an M3 Pro. A visitor whose machine cannot keep up currently has one option, which is to stop building. This slice gives them the ordinary bargain every 3D application offers -- two switches that trade fidelity for speed -- using seams the renderers already have. It is the companion to showing the frame rate: one slice tells the player what the city costs, this one lets them pay less.",
+          "```mermaid",
+          "flowchart TB",
+          "    Sun[Sun DirectionalLight] --> SG[CascadedShadowGenerator]",
+          "    SG -->|shadowEnabled = false| Off1[No shadow map rendered]",
+          "    Hour[Hour of day: streetlightsOnAt] --> And{Hour says on AND setting allows}"
+        ],
+        "References": [
+          "- Product back-reference: `item_059_make_shadows_a_switch_on_the_light_rather_than_on_every_mesh`",
+          "- Task back-reference: `task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city that can be made to run on a weaker machine"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it"
+        ],
+        "prod": [
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial"
+        ],
+        "req": [
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ],
+        "task": [
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is"
+        ]
+      },
+      "path": "logics/product/prod_015_a_city_whose_traffic_is_the_player_s_to_dial.md",
+      "ref": "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+      "sections": {
+        "Goals": [
+          "- The biggest single cost in a busy city is something the player can switch off.",
+          "- How busy the city is stops being a constant in the source and becomes a choice.",
+          "- Off means the simulation is not running, not that the cars are hidden.",
+          "- The default is exactly the city that exists today.",
+          "- A preference about display never travels inside a city."
+        ],
+        "Key product decisions": [
+          "- Density is a preference about display, not a fact about the city: it lives in settings and never travels in a save or a share link.",
+          "- The slider's floor is a quiet city, not an empty one -- emptiness is the toggle's job, and two controls for one state is a UI nobody can read.",
+          "- Density cannot be applied incrementally, so the slider settles before it respawns."
+        ],
+        "Overview": [
+          "city-jump decides how busy a city is with three integer expressions nobody has revisited since they were written, and it runs that simulation whether the machine can afford it or not. This slice hands both ends of that to the player: a switch that stops the simulation outright for someone whose hardware cannot carry it, and a slider that lets someone whose hardware can turn a quiet town into rush hour. It is the largest of the three performance switches and the only one a player would also want for its own sake.",
+          "```mermaid",
+          "flowchart TB",
+          "    Seg[Each segment, at spawn time] --> Counts[\"cars min(4,max(1,len/80)) - peds min(8,max(2,len/22)) or min(6,len/45)\"]",
+          "    Slider[\"Settings > World: density slider\"] -->|scales, default = today| Counts",
+          "    Counts --> Movers[Mesh instances stepped every frame]"
+        ],
+        "References": [
+          "- Product back-reference: `item_061_make_traffic_a_switch_that_stops_the_simulation_rather_than_hiding_it`",
+          "- Task back-reference: `task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city whose traffic is the player's to dial"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_063_snapshot_the_city_s_model_into_a_bounded_history"
+        ],
+        "prod": [
+          "prod_016_a_city_you_can_change_your_mind_about"
+        ],
+        "req": [
+          "req_019_let_the_player_take_back_the_last_thing_they_did"
+        ],
+        "task": [
+          "task_021_let_the_player_take_back_the_last_thing_they_did"
+        ]
+      },
+      "path": "logics/product/prod_016_a_city_you_can_change_your_mind_about.md",
+      "ref": "prod_016_a_city_you_can_change_your_mind_about",
+      "sections": {
+        "Goals": [
+          "- A mistake costs one keystroke, not five minutes of redrawing.",
+          "- One gesture undoes in one press, whatever that gesture planted or painted.",
+          "- Nothing in the program survives an undo still pointing at something that is gone.",
+          "- The simplest thing that works ships first, with its ceiling written down.",
+          "- Undo touches the city and leaves the view alone."
+        ],
+        "Key product decisions": [
+          "- Snapshots before an operation log: the model already serialises and restores all-or-nothing, so the cheap answer ships first and its ceiling is measured and written down.",
+          "- The undoable thing is a change to the model, never a change to the meshes -- the graph is the source of truth.",
+          "- A load is not an edit: every path that replaces the whole city clears the history."
+        ],
+        "Overview": [
+          "city-jump is careful, hand-shaped work -- a curve takes three considered clicks -- and it has no undo. One misplaced bulldoze and the only recovery is to redraw from memory or reload and lose everything since the last autosave. The model already knows how to snapshot and restore itself all-or-nothing, so the machinery is nearly free; the work is deciding what one step is, and making sure nothing in the program is still pointing at a road that stopped existing.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[Any city change: road, bulldoze, plant, spray, zone] --> Gesture{One gesture = one entry}",
+          "    Gesture -->|press to release| Snap[\"serializeCity snapshot, pushed before the change\"]",
+          "    Snap --> Hist[(Bounded history, redo branch discarded on new change)]"
+        ],
+        "References": [
+          "- Product back-reference: `item_063_snapshot_the_city_s_model_into_a_bounded_history`",
+          "- Task back-reference: `task_021_let_the_player_take_back_the_last_thing_they_did`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A city you can change your mind about"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_066_measure_what_each_full_rebuild_renderer_actually_costs"
+        ],
+        "prod": [
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere"
+        ],
+        "req": [
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "task": [
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/product/prod_017_an_edit_that_costs_what_it_changed_everywhere.md",
+      "ref": "prod_017_an_edit_that_costs_what_it_changed_everywhere",
+      "sections": {
+        "Goals": [
+          "- The decision about each renderer rests on its measured cost, not on its position in a list.",
+          "- The same city geometry stops being solved five times to draw one frame.",
+          "- An edit stops rescanning the whole island for trees that cannot have changed.",
+          "- Every renderer this touches disposes and recreates on one predicate.",
+          "- A renderer left rebuilding whole is left there on purpose, with the measurement written down."
+        ],
+        "Key product decisions": [
+          "- Measure before deciding. \"Leave it whole, here is the number\" is a valid outcome and the chain is written to allow it.",
+          "- The duplicated junction geometry needs no measurement: it is the same work solved five times, and the parcel layout one line away already got the fix.",
+          "- Every renderer bounded disposes and recreates on one predicate -- this chain is positioned to repeat that mistake four more times."
+        ],
+        "Overview": [
+          "The performance work taught half the renderers to repaint only what an edit touched, and left four behind. Every road placed still rebuilds a road mask, rescans 5,400 metres of island for scenery on a 58-metre step, re-solves every junction in the city four separate times, and -- if the grid is showing -- allocates the better part of a million vectors to draw it again. This slice finishes the job, but starts by measuring rather than assuming: the honest outcome for at least one of these four is a number and no code.",
+          "```mermaid",
+          "flowchart TB",
+          "    Edit[One road placed] --> Box[TerrainBounds box]",
+          "    Box --> Done[\"Bounded by req_008: heightmap, ground, road meshes, traffic\"]",
+          "    Edit --> Whole{Still rebuilt whole}"
+        ],
+        "References": [
+          "- Product back-reference: `item_066_measure_what_each_full_rebuild_renderer_actually_costs`",
+          "- Task back-reference: `task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world`"
+        ]
+      },
+      "status": "Settled",
+      "title": "An edit that costs what it changed, everywhere"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md",
+      "ref": "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+      "sections": {
+        "Overview": [
+          "After a graph edit, refresh disposable terrain and rendering projections in a fixed order",
+          "instead of synchronizing mutable copies of city geometry. Ordinary edits may pass dirty",
+          "bounds so renderers update only the affected region; reset, load, and terrain regeneration",
+          "still use the full path.",
+          "```mermaid",
+          "flowchart LR"
+        ],
+        "References": [
+          "- Related request: `req_002_establish_modular_repository_foundations`",
+          "- Related backlog: (none yet)",
+          "- Related task: (none yet)"
+        ]
+      },
+      "status": "Settled",
+      "title": "Rebuild terrain roads plots and buildings as derived views"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "wave, slice, kaiju, lands, city, holds, does, not",
+        "skip when": "You need the economy, the run, prestige, or any number that a balance harness should be producing.",
+        "summary": "The vertical slice of an attack, hardcoded: a countdown, a kaiju that lands at a random coast and walks at the nearest building, military parcels that fire on a reload, destruction that leaves rubble, and a banner that says held or breached. It exists to answer whether a wave is worth watching before anything is built to serve one.",
+        "use when": "Building or reviewing the first attack, the kaiju's model and gait, or the fight between batteries and a wave."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+      "ref": "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A countdown runs to a wave; when it lands a kaiju arrives at a random map edge away from",
+          "  the bridge, makes for the nearest point of the coast and then for the building nearest to it.",
+          "- AC2: The kaiju destroys buildings on contact, leaving rubble; the city's graph, saves and undo",
+          "  history stay coherent through it, and undo cannot take back what the wave did.",
+          "- AC3: Every military parcel that exists is a battery: one range for all, damage per salvo",
+          "  proportional to the parcel's area, firing on a fixed reload while the kaiju is in range."
+        ],
+        "Needs": [
+          "- A city that cannot be lost is a drawing tool. Before the economy, the runs and the prestige that",
+          "  `prod_018` describes are built, one wave has to exist and be watched, because everything else in",
+          "  that brief is worth building only if this is worth watching.",
+          "- Nothing in this slice is a number anyone should defend: the threat, the reload, the range and the",
+          "  kaiju's speed are constants chosen to make one wave playable in a minute. The balance harness is",
+          "  a later slice and these values are its input, not its output."
+        ]
+      },
+      "status": "Ready",
+      "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need a rule inside a single run -- the economy and the wave are earlier slices.",
+        "summary": "The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.",
+        "use when": "Working on runs, evacuation, science, prestige, the upgrade web, or balancing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A defeated kaiju leaves science; calling a wave early multiplies what a defeated one leaves",
+          "  and pays nothing if it is not.",
+          "- AC2: A run ends by evacuation or by the population reaching zero, and both are explicable.",
+          "- AC3: Science carried off an island becomes prestige, spent on a web of capabilities, starting",
+          "  conditions and information -- never on multipliers over the loop's own scarcities.",
+          "- AC4: A run's city and the profile that outlives it are separate saves, and a hardcore setting"
+        ],
+        "Needs": [
+          "- Science comes only from waves and only leaves the island with the player, which is the tension",
+          "  the whole game is built on: never let a wave land and never progress.",
+          "- Leaving is a decision with a price on both sides. If a defeat carries as much as a departure,",
+          "  nobody will ever choose to leave.",
+          "- Balance stops being taste here: the harness runs the simulation headless over many seeds against",
+          "  scripted policies, and the constants are its outputs."
+        ]
+      },
+      "status": "Ready",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave, slice, kaiju, lands, city, holds, does, not",
+        "skip when": "You need another slice of the roadmap, or the product reasoning behind this one.",
+        "summary": "The delivery slice for the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.",
+        "use when": "Planning or reviewing this slice of `road_002_city_jump_a_city_worth_defending`."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "road": [
+          "road_002_city_jump_a_city_worth_defending"
+        ],
+        "task": [
+          "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ]
+      },
+      "path": "logics/backlog/item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+      "ref": "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The backlog slice stays bounded for the wave, in one slice: a kaiju lands and the city holds or does not.",
+          "- AC2: The backlog slice is reviewable and promotable into a task."
+        ],
+        "Problem": [
+          "- It answers the question the other seven slices depend on."
+        ]
+      },
+      "status": "Ready",
+      "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city"
+        ],
+        "task": [
+          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md",
+      "ref": "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that has to survive what comes out of the sea"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave, slice, kaiju, lands, city, holds, does, not",
+        "skip when": "You need the product reasoning -- that is in the linked briefs.",
+        "summary": "Implementing the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.",
+        "use when": "Executing this slice, or checking what it was meant to deliver."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "task": [
+          "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ]
+      },
+      "path": "logics/tasks/task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+      "ref": "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- It answers the question the other seven slices depend on.",
+          "- Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs."
+        ],
+        "Validation": [
+          "- Expected: `npm run ci`, `npm run test:e2e` locally (browser coverage is local -- see",
+          "  `CONTRIBUTING.md`), and `npm run perf -- --city perf/cities/ma-ville.json` before and after.",
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
+    },
+    {
+      "ai_context": {
+        "keywords": "roadmap, slices, kaiju, economy, workers, money, utilities, runs, prestige, interface",
+        "skip when": "You need execution detail for a single backlog item or task.",
+        "summary": "Eight ordered slices that turn a city editor into a game with something at stake. The",
+        "use when": "Deciding what to work on next, or placing a new request chain against the shape of the"
+      },
+      "kind": "roadmap",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_022_give_the_player_the_clock_pause_play_and_speed",
+          "req_023_nothing_works_without_people_staffing_construction_time_and_building_states",
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+          "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows",
+          "req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach",
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city",
+          "road_002_city_jump_a_city_worth_defending"
+        ]
+      },
+      "path": "logics/roadmap/road_002_city_jump_a_city_worth_defending.md",
+      "ref": "road_002_city_jump_a_city_worth_defending",
+      "schema_version": "1.0",
+      "sections": {
+        "Milestones": [
+          "## 1.0 - The wave, watched",
+          "- Chain: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`",
+          "- Goal: find out whether a wave is worth watching, before anything is built to serve one.",
+          "- Scope: a countdown, a kaiju that lands at a random coast and walks at the nearest building,",
+          "  military parcels that fire missiles on a reload, destruction that leaves rubble, and a banner",
+          "  that says held or breached. It also carries the zone brush painting all five businesses, without"
+        ],
+        "Risks": [
+          "- **The first slice answers a question that can be answered no.** If a wave is not worth watching,",
+          "  seven of these eight are wasted -- which is exactly why it is first and why it is hardcoded.",
+          "- **The economy is four constraints deep** (workers, money, food and materials, power and water)",
+          "  and each one added on its own is legible; all four at once is not. They are separate slices for",
+          "  that reason, and each has to be playable alone.",
+          "- **This is a much bigger game than the one that exists.** The slices are ordered so that stopping"
+        ],
+        "Sequencing": [],
+        "Summary": [
+          "`road_001_city_jump_playable_city` grew a road-drawing prototype into a city that could be drawn,",
+          "read, saved and shared. It succeeded, and it left the city with nothing at stake: every zoned",
+          "parcel filled on sight, every building worked with nobody in it, and four gauges gated nothing.",
+          "This roadmap is the direction `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` and",
+          "`prod_019_an_interface_for_a_city_you_can_lose` describe: a city builder whose city is attacked at",
+          "intervals by a kaiju out of the sea, defended by the military district the player built instead of"
+        ]
+      },
+      "status": "Active",
+      "title": "city-jump: a city worth defending"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need another slice of the roadmap, or the product reasoning behind this one.",
+        "summary": "The delivery slice for science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.",
+        "use when": "Planning or reviewing this slice of `road_002_city_jump_a_city_worth_defending`."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "road": [
+          "road_002_city_jump_a_city_worth_defending"
+        ],
+        "task": [
+          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/backlog/item_077_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "item_077_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The backlog slice stays bounded for runs, science and prestige: leaving an island with something.",
+          "- AC2: The backlog slice is reviewable and promotable into a task."
+        ],
+        "Problem": [
+          "- The loop only closes here, and the constants stop being taste."
+        ]
+      },
+      "status": "Ready",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need the product reasoning -- that is in the linked briefs.",
+        "summary": "Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.",
+        "use when": "Executing this slice, or checking what it was meant to deliver."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "task": [
+          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "task_030_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- The loop only closes here, and the constants stop being taste.",
+          "- Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs."
+        ],
+        "Validation": [
+          "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
+          "  `CONTRIBUTING.md`.",
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_049_model_a_zone_as_authored_land_that_survives_the_roads_changing"
+        ],
+        "prod": [
+          "prod_011_a_city_that_is_built_on_purpose"
+        ],
+        "req": [
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them"
+        ],
+        "task": [
+          "task_016_implement_zoning_as_the_player_s_second_decision"
+        ]
+      },
+      "path": "logics/product/prod_011_a_city_that_is_built_on_purpose.md",
+      "ref": "prod_011_a_city_that_is_built_on_purpose",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "A city that is built on purpose"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "task": [
+          "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/product/prod_019_an_interface_for_a_city_you_can_lose.md",
+      "ref": "prod_019_an_interface_for_a_city_you_can_lose",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "An interface for a city you can lose"
+    },
+    {
+      "ai_context": {
+        "keywords": "roadmap, epics, strands, sequencing, city-jump playable city",
+        "skip when": "You need execution detail for a single backlog item or task, or a release plan with dates.",
+        "summary": "Six long-running epics rather than dated versions. Each one is a standing strand of the game that keeps advancing; work moves to whichever strand the moment calls for, one request chain at a time.",
+        "use when": "Deciding what to work on next, or placing a new request chain against the shape of the project."
+      },
+      "kind": "roadmap",
+      "linked_refs": {
+        "adr": [
+          "adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views",
+          "adr_004_stay_a_static_client_with_no_server_of_its_own"
+        ],
+        "item": [
+          "item_001_stand_up_the_babylon_scene_and_the_dev_loop",
+          "item_008_establish_modular_repository_foundations",
+          "item_048_take_a_position_on_the_visitors_arriving_with_a_touchscreen"
+        ],
+        "prod": [
+          "prod_001_a_city_that_grows_from_the_roads_you_draw",
+          "prod_004_a_city_builder_that_never_loses_the_city_on_screen",
+          "prod_005_a_city_builder_that_stays_responsive_as_the_city_grows",
+          "prod_006_one_source_of_truth_for_what_a_building_model_is",
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_008_a_city_you_can_hand_to_someone_else",
+          "prod_009_a_camera_that_can_watch_not_only_be_aimed",
+          "prod_010_a_published_game_whose_documents_tell_the_truth",
+          "prod_011_a_city_that_is_built_on_purpose",
+          "prod_012_a_city_that_keeps_drawing_itself_correctly",
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+          "prod_014_a_city_that_can_be_made_to_run_on_a_weaker_machine",
+          "prod_015_a_city_whose_traffic_is_the_player_s_to_dial",
+          "prod_016_a_city_you_can_change_your_mind_about",
+          "prod_017_an_edit_that_costs_what_it_changed_everywhere",
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_000_draw_a_road_network_the_city_grows_from",
+          "req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto",
+          "req_002_establish_modular_repository_foundations",
+          "req_007_review_findings_half_destroyed_city_on_a_failed_load_and_rebuild_config_test_hygiene",
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses",
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together",
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click",
+          "req_011_share_a_city_as_a_link_that_needs_no_server",
+          "req_012_give_the_camera_three_target_policies_free_orbit_and_follow",
+          "req_013_the_game_is_deployed_in_public_while_its_documents_and_its_input_model_still_describe_a_local_dev_toy",
+          "req_014_let_the_player_decide_what_gets_built_instead_of_the_geometry_deciding_for_them",
+          "req_015_close_the_ten_defects_the_review_found_in_the_dirty_region_rebuild_zoning_and_sharing_work",
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "req_017_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "req_018_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "req_019_let_the_player_take_back_the_last_thing_they_did",
+          "req_020_four_renderers_still_rebuild_the_whole_world_on_every_edit"
+        ],
+        "road": [
+          "road_001_city_jump_playable_city",
+          "road_002_city_jump_a_city_worth_defending"
+        ],
+        "task": [
+          "task_001_deliver_the_drawable_road_network_and_the_city_that_grows_from_it",
+          "task_002_establish_modular_repository_foundations",
+          "task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work",
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off",
+          "task_019_let_the_player_turn_shadows_and_the_city_s_own_lights_off",
+          "task_020_let_the_player_turn_the_traffic_simulation_off_and_set_how_busy_the_city_is",
+          "task_021_let_the_player_take_back_the_last_thing_they_did",
+          "task_022_finish_bounding_the_renderers_that_still_rebuild_the_whole_world"
+        ]
+      },
+      "path": "logics/roadmap/road_001_city_jump_playable_city.md",
+      "ref": "road_001_city_jump_playable_city",
+      "schema_version": "1.0",
+      "sections": {
+        "Milestones": [
+          "> These are epics, not releases. `logics-manager flow roadmap validate` expects headings of the",
+          "> form `<major>.<minor> - <name>` and will report zero milestones against this file; that is a",
+          "> deliberate divergence, not a defect, and it is outside `npm run logics:validate` (which runs",
+          "> lint and audit only). Do not \"fix\" it by putting version numbers back.",
+          "## E1 - The road network",
+          "- Holds: drawing straight and curved roads, snapping, splitting roads that cross, junction"
+        ],
+        "Risks": [
+          "- Zoning, traffic, and economy can each become standalone simulations; request chains must keep",
+          "  every increment tied to one visible player decision.",
+          "- The road graph is a strong foundation but bridges and any future persistence of simulation",
+          "  state may expose missing model that must be decided before meshes or UI depend on it.",
+          "- Strands that are already mature attract polish while the strand that would change the game",
+          "  stays unbuilt. Zoning has landed, so the version of this risk that applies now is demand:"
+        ],
+        "Sequencing": [
+          "- Advance whichever strand the moment calls for. There is no prescribed order between them and",
+          "  no version gate to pass.",
+          "- One request chain at a time per strand, so each increment stays independently reviewable and",
+          "  linked to concrete workflow docs.",
+          "- Where two chains touch the same files, the ordering lives in the orchestration tasks, not here.",
+          "Every chain listed above has shipped except the two that are open now. There is no queue behind"
+        ],
+        "Summary": [
+          "> Superseded on 2026-08-31 by `road_002_city_jump_a_city_worth_defending`, which sequences the",
+          "> direction `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` sets. The six strands",
+          "> below stay open and are still where maintenance and craft work belong -- what moved is the",
+          "> sequencing, which this document deliberately did not do and the new one does.",
+          "Grow the road-construction prototype into a playable city simulation without replacing the",
+          "graph and derived-view foundations already proven in the browser."
+        ]
+      },
+      "status": "Superseded",
+      "title": "city-jump playable city"
+    },
+    {
+      "ai_context": {},
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_001_keep_the_road_graph_as_the_source_of_truth"
+        ],
+        "item": [
+          "item_008_establish_modular_repository_foundations"
+        ],
+        "req": [
+          "req_002_establish_modular_repository_foundations"
+        ],
+        "task": [
+          "task_002_establish_modular_repository_foundations"
+        ]
+      },
+      "path": "logics/architecture/adr_001_keep_the_road_graph_as_the_source_of_truth.md",
+      "ref": "adr_001_keep_the_road_graph_as_the_source_of_truth",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "Keep the road graph as the source of truth"
+    },
+    {
+      "ai_context": {
+        "keywords": "interface, wave, demands, game, state, leaves, settings, menu",
+        "skip when": "You need a simulation rule -- what a number means belongs to prod_018.",
+        "summary": "prod_019 end to end: game state leaves the settings menu, the wave banner and the time controls take the top of the screen, the city strip carries what can kill you, the gauges open a ledger that shows the arithmetic, and the map gains the State view and the alerts.",
+        "use when": "Working on layout, readouts, the ledger, alerts, or anything about where information lives on screen."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/request/req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+      "ref": "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The settings menu contains nothing a player needs during a wave.",
+          "- AC2: The wave banner and the time controls are permanent, and the compact city strip carries",
+          "  money, workers, food and what is short.",
+          "- AC3: Clicking the gauges opens a ledger: sources and sinks per resource, and formulas with this",
+          "  city's values substituted into them.",
+          "- AC4: No formula is written down twice -- the ledger displays terms the simulation reported."
+        ],
+        "Needs": [
+          "- Four slices will have added things to read by the time this lands, which is why it lands after",
+          "  them: laying out a screen before knowing what goes on it is how a screen gets laid out twice.",
+          "- The needs panel lives inside a menu that folds away. That was fine while it was decoration and",
+          "  is wrong now that it is the thing being played against.",
+          "- The ledger is what makes the rest honest: a rule returns the number and the terms that made it,",
+          "  and the panel displays what the calculation reported rather than recomputing it."
+        ]
+      },
+      "status": "Ready",
+      "title": "The interface the wave demands: game state leaves the settings menu"
+    },
+    {
+      "ai_context": {
+        "keywords": "interface, wave, demands, game, state, leaves, settings, menu",
+        "skip when": "You need another slice of the roadmap, or the product reasoning behind this one.",
+        "summary": "The delivery slice for game state leaves the settings menu, and the loop gets its screen.",
+        "use when": "Planning or reviewing this slice of `road_002_city_jump_a_city_worth_defending`."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "road": [
+          "road_002_city_jump_a_city_worth_defending"
+        ],
+        "task": [
+          "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/backlog/item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+      "ref": "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The backlog slice stays bounded for the interface the wave demands: game state leaves the settings menu.",
+          "- AC2: The backlog slice is reviewable and promotable into a task."
+        ],
+        "Problem": [
+          "- It lands after the four slices that add things to read, on purpose."
+        ]
+      },
+      "status": "Ready",
+      "title": "The interface the wave demands: game state leaves the settings menu"
+    },
+    {
+      "ai_context": {
+        "keywords": "interface, wave, demands, game, state, leaves, settings, menu",
+        "skip when": "You need the product reasoning -- that is in the linked briefs.",
+        "summary": "Implementing game state leaves the settings menu, and the loop gets its screen.",
+        "use when": "Executing this slice, or checking what it was meant to deliver."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "task": [
+          "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/tasks/task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+      "ref": "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- It lands after the four slices that add things to read, on purpose.",
+          "- Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs."
+        ],
+        "Validation": [
+          "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
+          "  `CONTRIBUTING.md`.",
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "The interface the wave demands: game state leaves the settings menu"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "A city you can point at and name"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_056_measure_the_frame_rate_once_and_only_while_someone_is_watching"
+        ],
+        "prod": [
+          "prod_013_a_city_that_tells_you_what_it_costs_to_draw"
+        ],
+        "req": [
+          "req_016_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ],
+        "task": [
+          "task_018_show_the_frame_rate_on_screen_and_let_the_player_turn_it_off"
+        ]
+      },
+      "path": "logics/product/prod_013_a_city_that_tells_you_what_it_costs_to_draw.md",
+      "ref": "prod_013_a_city_that_tells_you_what_it_costs_to_draw",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "A city that tells you what it costs to draw"
+    },
+    {
+      "ai_context": {
+        "keywords": "player, clock, pause, play, speed",
+        "skip when": "You need what happens *in* that time -- the economy, waves or growth.",
+        "summary": "Pause, play, x2 and x4 as first-class controls, with the day running at the chosen rate and the sun slider demoted to a paused-only tool. Everything already moves on elapsed time, so this is controls and plumbing rather than simulation.",
+        "use when": "Working on the time controls, the simulation clock, or the sun's relationship to it."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_071_give_the_player_the_clock_pause_play_and_speed"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_022_give_the_player_the_clock_pause_play_and_speed"
+        ]
+      },
+      "path": "logics/request/req_022_give_the_player_the_clock_pause_play_and_speed.md",
+      "ref": "req_022_give_the_player_the_clock_pause_play_and_speed",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Pause, play, x2 and x4 are permanent controls, with the current date and hour beside them.",
+          "- AC2: The city covers the same ground per second of wall clock at every speed, measured.",
+          "- AC3: The sun follows the simulation clock; the slider sets the hour while paused and is",
+          "  unavailable while the city runs.",
+          "- AC4: Every action a player can take is available while paused."
+        ],
+        "Needs": [
+          "- `prod_018` gives the player the clock, and every slice after this one assumes it: a wave is",
+          "  watched, the time between two of them is skipped, and every decision can be made paused.",
+          "- The frame cap already proved how easily this goes wrong -- movement read from the engine's own",
+          "  delta ran at a quarter speed once frames were skipped. The clock these controls drive is the one",
+          "  measured between drawn frames."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give the player the clock: pause, play and speed"
+    },
+    {
+      "ai_context": {
+        "keywords": "nothing, works, people, staffing, construction, time, building, states",
+        "skip when": "You need money, food, materials or utilities -- each is its own slice.",
+        "summary": "The keystone of the economy: every non-residential parcel needs workers from one shared stock, staffing is binary, buildings take time to go up, and the map shows construction, idle and rebuilding without a panel being opened.",
+        "use when": "Working on staffing, building states, construction time, or how a building's condition reads on the map."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_072_nothing_works_without_people_staffing_construction_time_and_building_states"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_023_nothing_works_without_people_staffing_construction_time_and_building_states"
+        ]
+      },
+      "path": "logics/request/req_023_nothing_works_without_people_staffing_construction_time_and_building_states.md",
+      "ref": "req_023_nothing_works_without_people_staffing_construction_time_and_building_states",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Population produces a workforce; every non-residential parcel demands workers from it, and",
+          "  one that cannot be staffed stands and produces nothing.",
+          "- AC2: A parcel takes time to build, and shows it -- construction, working, idle and rebuilding are",
+          "  distinguishable on the map before anything is clicked.",
+          "- AC3: Staffing is deterministic and covered by tests with no renderer.",
+          "- AC4: Turning half a district off by over-staffing another is visible in the city itself."
+        ],
+        "Needs": [
+          "- Without this a building is free to run and the game is a painting exercise. With it, every",
+          "  district competes for the same people and proportion becomes the thing being played.",
+          "- Binary rather than partial output, deliberately: a building works or it does not, because that",
+          "  is what a player can act on at a glance.",
+          "- Buildings taking time to raise is what makes building during a wave a gamble rather than a",
+          "  cheat, which is a rule `prod_018` already leans on."
+        ]
+      },
+      "status": "Ready",
+      "title": "Nothing works without people: staffing, construction time and building states"
+    },
+    {
+      "ai_context": {
+        "keywords": "money, queue, city, can, afford, build",
+        "skip when": "You need what money is spent *on* to produce anything -- that is the food and materials slice.",
+        "summary": "Money as the build meter: roads priced by the metre, buildings priced to build, a city that raises what it can afford and queues the rest, rebuilding allowed to go negative, and demolition that takes time and returns half.",
+        "use when": "Working on prices, the treasury, the build queue, or demolition."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_073_money_and_the_queue_what_a_city_can_afford_to_build"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build"
+        ]
+      },
+      "path": "logics/request/req_024_money_and_the_queue_what_a_city_can_afford_to_build.md",
+      "ref": "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Roads cost by the metre and buildings cost to build; both prices are shown before the",
+          "  click, and what cannot be afforded looks unavailable.",
+          "- AC2: The city raises what the treasury covers and queues the rest, and the queue is readable --",
+          "  how many are going up, how many are waiting for funds.",
+          "- AC3: Rebuilding after a wave proceeds even into a negative balance, and while the balance is",
+          "  negative nothing new starts."
+        ],
+        "Needs": [
+          "- Workers limit what runs; they do not limit what gets built, and with waves to prepare for the",
+          "  rate of building is exactly what needs a meter.",
+          "- The player zones an intention rather than ordering a building, so nobody may be billed for",
+          "  something they did not order: the city builds what it can pay for and the rest waits, visibly.",
+          "- Rebuilding may push the balance below zero and only new work waits, because a city recovers from",
+          "  a bad wave by definition; what it cannot do while recovering is expand."
+        ]
+      },
+      "status": "Ready",
+      "title": "Money and the queue: what a city can afford to build"
+    },
+    {
+      "ai_context": {
+        "keywords": "city, fed, food, materials, population, grows",
+        "skip when": "You need utilities, the wave, or the run.",
+        "summary": "The districts start owing each other something: farms make food and food gates population, industry makes materials, commerce makes services and trade, population grows over time within what the city can feed and staff, and a zoned parcel waits for demand instead of filling on sight.",
+        "use when": "Working on the resource loop, population growth, or when a zoned parcel becomes a building."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_074_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows"
+        ]
+      },
+      "path": "logics/request/req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows.md",
+      "ref": "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Farms produce food, industry materials, commerce services and trade, each only while",
+          "  staffed.",
+          "- AC2: Population grows over time, capped by housing and gated by food, and falls when food is",
+          "  short for long enough or when the homes holding it are destroyed.",
+          "- AC3: A zoned parcel stays empty until something wants it, and fills over time when it does.",
+          "- AC4: A city of nothing but housing stalls, and the reason is visible in the gauges."
+        ],
+        "Needs": [
+          "- The needs gauges have shown supply against demand since 0.3.0 and gated nothing. This is where",
+          "  they start to bite.",
+          "- Food decides whether the population exists, commerce decides how fast it grows, industry",
+          "  supplies the army and the shops, and the military produces nothing the economy can use -- which",
+          "  is what makes under-building it tempting and the wave's job to price.",
+          "- A parcel that waits for demand is the smallest change that makes a city feel alive rather than"
+        ]
+      },
+      "status": "Ready",
+      "title": "A city that has to be fed: food, materials and a population that grows"
+    },
+    {
+      "ai_context": {
+        "keywords": "power, water, producer, diffuser, they, reach",
+        "skip when": "You need the wave itself or the economy that consumes what utilities enable.",
+        "summary": "The second placement verb: a producer and a diffuser the player positions, power and water carried by road segments, districts that need one or the other or both, a Utilities view, and a district that goes dark when its diffuser falls.",
+        "use when": "Working on utilities, the Build tool, coverage, or what a destroyed diffuser does to a district."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach"
+        ]
+      },
+      "path": "logics/request/req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach.md",
+      "ref": "req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A producer and a diffuser can be placed, priced and staffed, and a diffuser supplies what",
+          "  falls inside its radius.",
+          "- AC2: A road segment can carry power and water, and the network from producer to diffuser is",
+          "  what makes a diffuser work.",
+          "- AC3: A building without the utility it needs is idle, and says which one it is missing.",
+          "- AC4: A Utilities view shows coverage and which roads carry what."
+        ],
+        "Needs": [
+          "- Utilities are the only thing in `prod_018` the player places directly, and the brief is explicit",
+          "  that this is infrastructure rather than defence -- turrets stay out.",
+          "- The network follows the roads (option A): carrying power or water is a property of a segment, so",
+          "  it saves with the city and needs no second graph. The free-form buried network is option B and",
+          "  is deliberately held in reserve.",
+          "- Not every district needs every utility: housing and farms want water, industry and the military"
+        ]
+      },
+      "status": "Ready",
+      "title": "Power and water: a producer, a diffuser and what they reach"
+    }
+  ],
+  "estimates": {
+    "char_count": 87454,
+    "companion_doc_count": 22,
+    "doc_count": 22
+  },
+  "generated_at": "2026-08-31T21:11:18Z",
+  "handoff": {
+    "companion_doc_count": 22,
+    "enabled": true,
+    "source_refs": [
+      "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+      "prod_019_an_interface_for_a_city_you_can_lose",
+      "road_002_city_jump_a_city_worth_defending"
+    ],
+    "validation_summary_count": 3
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "deep",
+  "ref": "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not,item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not,task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not,prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea,prod_019_an_interface_for_a_city_you_can_lose,road_002_city_jump_a_city_worth_defending",
+  "refs": [
+    "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+    "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+    "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+    "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+    "prod_019_an_interface_for_a_city_you_can_lose",
+    "road_002_city_jump_a_city_worth_defending"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- Expected: `npm run ci`, `npm run test:e2e` locally (browser coverage is local -- see",
+        "  `CONTRIBUTING.md`), and `npm run perf -- --city perf/cities/ma-ville.json` before and after.",
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+      "ref": "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+    },
+    {
+      "items": [
+        "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
+        "  `CONTRIBUTING.md`.",
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+    },
+    {
+      "items": [
+        "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
+        "  `CONTRIBUTING.md`.",
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+      "ref": "task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:04:49
+> Indicators reviewed: 2026-08-31 23:10:30
 
 # AI Context
 - Summary: Implementing the second placement verb: a producer, a network on the roads, and a diffuser with a radius.
@@ -43,11 +43,11 @@
 - [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: implemented and validated here.
-- request-AC2 -> This task. Proof: implemented and validated here.
-- request-AC3 -> This task. Proof: implemented and validated here.
-- request-AC4 -> This task. Proof: implemented and validated here.
-- request-AC5 -> This task. Proof: implemented and validated here.
+- request-AC1 -> This task. Proof: producer, diffuser and radius; proven by `sim/utilities.ts` unit tests.
+- request-AC2 -> This task. Proof: the network over road segments, saved and restored; proven by unit tests and a save round trip.
+- request-AC3 -> This task. Proof: a building idle for a missing utility, and saying which; proven by an interaction check.
+- request-AC4 -> This task. Proof: the Utilities view; proven by an interaction check and a screenshot.
+- request-AC5 -> This task. Proof: a destroyed diffuser putting its district out, with its alert; proven by an interaction check.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
