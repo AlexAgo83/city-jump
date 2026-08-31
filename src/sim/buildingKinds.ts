@@ -18,16 +18,20 @@ export interface BuildingNeed {
   readonly ratio: number;
 }
 
+/** Homes one farm can feed. A gauge in parcels, not a stock -- the real one arrives with the economy. */
+const HOMES_PER_FARM = 3;
+
 export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind">[]): BuildingNeed[] {
   const count = (kind: BuildingKind): number => parcels.filter((parcel) => parcel.kind === kind).length;
   const residential = count("residential");
   const commercial = count("commercial");
-  // ponytail: farms count as industry in the gauges; split them out when they get their own need.
-  const industrial = count("industrial") + count("agricultural");
+  const industrial = count("industrial");
+  const agricultural = count("agricultural");
   const military = count("military");
   return [
-    need("residential", residential, commercial + industrial + military * 2),
+    need("residential", residential, commercial + industrial + agricultural + military * 2),
     need("commercial", commercial, industrial),
+    need("agricultural", agricultural, Math.ceil(residential / HOMES_PER_FARM)),
     need("industrial", industrial, military),
     need("military", military, Math.min(Math.floor(residential / 2), industrial)),
   ];

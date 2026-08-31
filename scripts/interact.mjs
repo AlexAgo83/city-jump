@@ -673,7 +673,12 @@ check(
   }),
 );
 const cityHud = await cityHudText();
-check("the city HUD shows population and readable needs", /habitants$/.test(cityHud.population) && cityHud.needs.includes("Workers") && cityHud.needs.includes("Commerce"), JSON.stringify(cityHud));
+check(
+  "the city HUD shows population and one readable gauge per business",
+  /habitants$/.test(cityHud.population) &&
+    ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => cityHud.needs.includes(label)),
+  JSON.stringify(cityHud),
+);
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
 check("streetlights use clustered lighting", await clusteredStreetlights());
