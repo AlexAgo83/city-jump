@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:32:15
+> Indicators reviewed: 2026-08-31 22:36:13
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -256,6 +256,30 @@ flowchart TD
 - **Not every district needs every utility.** Housing and farms want water, industry and the
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.
+
+# What the kaiju is made of
+The star of the game, built the way everything else in it is built.
+
+- **Generated, not authored.** `scripts/gen_buildings.py` already assembles the whole model
+  library out of primitives in Blender and exports GLB; the kaiju is another script beside it. The
+  game's look is faceted and low-poly, so a monster made of boxes and prisms belongs in it, and it
+  arrives through a pipeline that exists -- manifest, GLB in `public/`, loaded after startup.
+- **Animated in code, not by a skeleton.** Nothing in this game has a rig: pedestrians bob on a
+  sine, wheels turn on a rotation, a vehicle is submeshes assembled in a script. The kaiju follows
+  that -- body, legs, arms, tail, each its own mesh, articulated in the renderer -- which costs
+  some trigonometry, makes the gait follow its real speed for free, and avoids standing up an
+  animation system for one actor. A Blender animation is what to reach for the day it has to rear
+  up and roar, and not before.
+- **Fifty metres.** Buildings reach about twenty-five, so that is enough to tower over the city
+  without leaving the camera's frame, and its footprint is what decides the radius it destroys.
+- **Split like the traffic.** `sim/kaiju.ts` is pure -- where it lands, what it is walking at,
+  where it is at time t -- and testable with no renderer, which is what the brief asks of every
+  simulation rule. `render/kaiju.ts` is the mesh, the gait and the shadow.
+- **It casts a shadow**, which is free with the shadow map already there and does half the work of
+  making it feel enormous.
+- **Buildings vanish and leave rubble, for now.** Coming apart in pieces is what the brief wants
+  and what deserves its own attention; the first slice earns that by first proving the wave is
+  worth watching.
 
 # How a run opens
 A run starts at the bridge, with a road running inland to a starter kit -- the few buildings that
