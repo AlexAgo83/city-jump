@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { kaijuPositionAt, planKaiju } from "./kaiju";
+import { WAVE_STARTING_VALUES } from "./wave";
 import { distXZ, v3 } from "./vec";
 
 describe("kaiju", () => {
@@ -29,6 +30,8 @@ describe("kaiju", () => {
     const plan = planKaiju(...args);
     expect(planKaiju(...args)).toEqual(plan);
     expect(kaijuPositionAt(plan, 0)).toEqual(plan.landing);
-    expect(distXZ(plan.landing, kaijuPositionAt(plan, 1))).toBeCloseTo(8);
+    // One second of travel at whatever the current speed is -- the number is a starting value and
+    // belongs to `wave.ts`, not to this test.
+    expect(distXZ(plan.landing, kaijuPositionAt(plan, 1))).toBeCloseTo(WAVE_STARTING_VALUES.kaijuSpeedMps);
   });
 });

@@ -8,7 +8,7 @@ import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { Vec3 } from "../sim/vec";
 
-const KAIJU_ASSET_VERSION = "2026-08-31-01";
+const KAIJU_ASSET_VERSION = "2026-09-01-01";
 
 export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   const root = new TransformNode("kaiju", scene);

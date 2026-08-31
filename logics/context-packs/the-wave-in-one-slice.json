@@ -14,7 +14,7 @@
           "adr_004_stay_a_static_client_with_no_server_of_its_own"
         ],
         "item": [
-          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ],
         "prod": [
           "prod_011_a_city_that_is_built_on_purpose",
@@ -22,13 +22,13 @@
           "prod_019_an_interface_for_a_city_you_can_lose"
         ],
         "req": [
-          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ],
         "road": [
           "road_001_city_jump_playable_city"
         ],
         "task": [
-          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+          "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ]
       },
       "path": "logics/product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md",
@@ -59,15 +59,15 @@
           "The genre is a city builder first. Defence is not a second game bolted to the side: the military"
         ],
         "References": [
-          "- Product back-reference: `item_077_runs_science_and_prestige_leaving_an_island_with_something`",
-          "- Task back-reference: `task_030_runs_science_and_prestige_leaving_an_island_with_something`",
+          "- Product back-reference: `item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`",
+          "- Task back-reference: `task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`",
           "- Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the",
           "  screen, which is a move rather than an addition.",
           "- Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life",
           "  on the network) are the ones this direction bends."
         ]
       },
-      "status": "Proposed",
+      "status": "Settled",
       "title": "A city that has to survive what comes out of the sea"
     },
     {
@@ -1107,7 +1107,7 @@
           "  a later slice and these values are its input, not its output."
         ]
       },
-      "status": "Ready",
+      "status": "Done",
       "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
     },
     {
@@ -1190,7 +1190,7 @@
           "- It answers the question the other seven slices depend on."
         ]
       },
-      "status": "Ready",
+      "status": "Done",
       "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
     },
     {
@@ -1202,7 +1202,7 @@
           "adr_004_stay_a_static_client_with_no_server_of_its_own"
         ],
         "item": [
-          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ],
         "prod": [
           "prod_011_a_city_that_is_built_on_purpose",
@@ -1210,20 +1210,20 @@
           "prod_019_an_interface_for_a_city_you_can_lose"
         ],
         "req": [
-          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ],
         "road": [
           "road_001_city_jump_playable_city"
         ],
         "task": [
-          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
+          "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
         ]
       },
       "path": "logics/product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md",
       "ref": "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
       "schema_version": "1.0",
       "sections": {},
-      "status": "Proposed",
+      "status": "Settled",
       "title": "A city that has to survive what comes out of the sea"
     },
     {
@@ -1259,10 +1259,13 @@
         "Validation": [
           "- Expected: `npm run ci`, `npm run test:e2e` locally (browser coverage is local -- see",
           "  `CONTRIBUTING.md`), and `npm run perf -- --city perf/cities/ma-ville.json` before and after.",
-          "- (no validation recorded yet)"
+          "- 2026-08-31 partial wave: `npm test`, `npm run test:e2e`, and `npm run ci` passed. Focused unit",
+          "  pass covered `src/sim/wave.test.ts`, `src/sim/kaiju.test.ts`, `src/sim/zones.test.ts`,",
+          "  `src/sim/slots.test.ts`, and `src/sim/save.test.ts`.",
+          "- 2026-08-31 reference perf baseline recorded with `npm run perf -- --city perf/cities/ma-ville.json`:"
         ]
       },
-      "status": "Ready",
+      "status": "Done",
       "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
     },
     {
@@ -1329,85 +1332,6 @@
       },
       "status": "Active",
       "title": "city-jump: a city worth defending"
-    },
-    {
-      "ai_context": {
-        "keywords": "runs, science, prestige, leaving, island, something",
-        "skip when": "You need another slice of the roadmap, or the product reasoning behind this one.",
-        "summary": "The delivery slice for science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.",
-        "use when": "Planning or reviewing this slice of `road_002_city_jump_a_city_worth_defending`."
-      },
-      "kind": "backlog",
-      "linked_refs": {
-        "item": [
-          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
-        ],
-        "prod": [
-          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
-        ],
-        "req": [
-          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
-        ],
-        "road": [
-          "road_002_city_jump_a_city_worth_defending"
-        ],
-        "task": [
-          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
-        ]
-      },
-      "path": "logics/backlog/item_077_runs_science_and_prestige_leaving_an_island_with_something.md",
-      "ref": "item_077_runs_science_and_prestige_leaving_an_island_with_something",
-      "schema_version": "1.0",
-      "sections": {
-        "Acceptance criteria": [
-          "- AC1: The backlog slice stays bounded for runs, science and prestige: leaving an island with something.",
-          "- AC2: The backlog slice is reviewable and promotable into a task."
-        ],
-        "Problem": [
-          "- The loop only closes here, and the constants stop being taste."
-        ]
-      },
-      "status": "Ready",
-      "title": "Runs, science and prestige: leaving an island with something"
-    },
-    {
-      "ai_context": {
-        "keywords": "runs, science, prestige, leaving, island, something",
-        "skip when": "You need the product reasoning -- that is in the linked briefs.",
-        "summary": "Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.",
-        "use when": "Executing this slice, or checking what it was meant to deliver."
-      },
-      "kind": "task",
-      "linked_refs": {
-        "item": [
-          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
-        ],
-        "prod": [
-          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
-        ],
-        "req": [
-          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
-        ],
-        "task": [
-          "task_030_runs_science_and_prestige_leaving_an_island_with_something"
-        ]
-      },
-      "path": "logics/tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md",
-      "ref": "task_030_runs_science_and_prestige_leaving_an_island_with_something",
-      "schema_version": "1.0",
-      "sections": {
-        "Context": [
-          "- The loop only closes here, and the constants stop being taste.",
-          "- Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs."
-        ],
-        "Validation": [
-          "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
-          "  `CONTRIBUTING.md`.",
-          "- (no validation recorded yet)"
-        ]
-      },
-      "status": "Ready",
-      "title": "Runs, science and prestige: leaving an island with something"
     },
     {
       "ai_context": {},
@@ -1979,11 +1903,11 @@
     }
   ],
   "estimates": {
-    "char_count": 87454,
+    "char_count": 85037,
     "companion_doc_count": 22,
-    "doc_count": 22
+    "doc_count": 20
   },
-  "generated_at": "2026-08-31T21:11:18Z",
+  "generated_at": "2026-08-31T22:10:08Z",
   "handoff": {
     "companion_doc_count": 22,
     "enabled": true,
@@ -1995,7 +1919,7 @@
       "prod_019_an_interface_for_a_city_you_can_lose",
       "road_002_city_jump_a_city_worth_defending"
     ],
-    "validation_summary_count": 3
+    "validation_summary_count": 2
   },
   "i18n": {
     "actions": [
@@ -2054,19 +1978,15 @@
       "items": [
         "- Expected: `npm run ci`, `npm run test:e2e` locally (browser coverage is local -- see",
         "  `CONTRIBUTING.md`), and `npm run perf -- --city perf/cities/ma-ville.json` before and after.",
-        "- (no validation recorded yet)"
+        "- 2026-08-31 partial wave: `npm test`, `npm run test:e2e`, and `npm run ci` passed. Focused unit",
+        "  pass covered `src/sim/wave.test.ts`, `src/sim/kaiju.test.ts`, `src/sim/zones.test.ts`,",
+        "  `src/sim/slots.test.ts`, and `src/sim/save.test.ts`.",
+        "- 2026-08-31 reference perf baseline recorded with `npm run perf -- --city perf/cities/ma-ville.json`:",
+        "  overview 120 fps, district 117 fps, street 104 fps, rebuild 581 ms.",
+        "- 2026-08-31 kaiju-render wave: `/Applications/Blender.app/Contents/MacOS/Blender -b -P"
       ],
       "path": "logics/tasks/task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
       "ref": "task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
-    },
-    {
-      "items": [
-        "- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see",
-        "  `CONTRIBUTING.md`.",
-        "- (no validation recorded yet)"
-      ],
-      "path": "logics/tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md",
-      "ref": "task_030_runs_science_and_prestige_leaving_an_island_with_something"
     },
     {
       "items": [

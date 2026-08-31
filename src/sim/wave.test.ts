@@ -4,11 +4,11 @@ import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSecond
 
 describe("wave clock", () => {
   it("counts down and fixes the first threat when the wave starts", () => {
-    const waiting = advanceWaveClock(createWaveClock(), 60);
-    expect(waveCountdownSeconds(waiting)).toBe(120);
+    const waiting = advanceWaveClock(createWaveClock(), WAVE_STARTING_VALUES.firstWaveSeconds / 2);
+    expect(waveCountdownSeconds(waiting)).toBe(WAVE_STARTING_VALUES.firstWaveSeconds / 2);
     expect(waiting.active).toBeNull();
 
-    const active = advanceWaveClock(waiting, 120);
+    const active = advanceWaveClock(waiting, WAVE_STARTING_VALUES.firstWaveSeconds / 2);
     expect(active.active).toEqual({
       startedAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds,
       threat: WAVE_STARTING_VALUES.kaijuHitPoints,

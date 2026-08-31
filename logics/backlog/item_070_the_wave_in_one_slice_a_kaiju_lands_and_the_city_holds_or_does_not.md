@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:54:38
+> Indicators reviewed: 2026-09-01 00:07:25
 
 # AI Context
 - Summary: The delivery slice for the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -23,7 +23,7 @@
 - In:
   - Wave clock and the countdown, with the threat fixed when the wave starts.
   - `sim/kaiju.ts`: landing edge away from the bridge, the nearest coast point, then the nearest building; position at time t.
-  - `render/kaiju.ts`: a generated GLB beside the building library, articulated in code, fifty metres, casting a shadow.
+  - `render/kaiju.ts`: a generated GLB beside the building library, articulated in code, one hundred metres, casting a shadow.
   - Destruction on contact through the existing removal path, leaving rubble, repainting the dirty region.
   - Batteries: every military parcel, one range, damage by area, fixed reload, missiles with travel time that always hit.
   - A banner: threat against firepower before, held or breached after.

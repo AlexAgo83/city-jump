@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:54:38
+> Indicators reviewed: 2026-09-01 00:09:44
 > Owner: Codex
 
 # AI Context
@@ -94,6 +94,11 @@
 - 2026-08-31 closeout: `npm run ci`, `npm run test:e2e`, `npm run logics:validate`, and
   `logics-manager flow closeout` passed. Latest reference perf recorded overview 100 fps, district
   104 fps, street 86 fps, rebuild 646 ms.
+- 2026-09-01 tuning wave: `/Applications/Blender.app/Contents/MacOS/Blender -b -P
+  scripts/gen_kaiju.py`, focused `npm test -- src/sim/wave.test.ts src/sim/kaiju.test.ts`,
+  `npm run test:architecture`, `npm run test:e2e`, `npm run ci`, and `npm run perf -- --city
+  perf/cities/ma-ville.json` passed. Reference perf recorded overview 120 fps, district 118 fps,
+  street 111 fps, rebuild 558 ms.
 - Finish workflow executed on 2026-08-31.
 - Linked backlog/request close verification passed.
 
@@ -110,6 +115,8 @@
 - Added military batteries, missile trails, kaiju HP damage, wave firepower text, and held/breached
   banner states. E2e covers the active, held, and breached banners.
 - Added live wave edge and target rings. E2e covers both on a demo city wave.
+- Post-close tuning wave: operator changed the first-wave inputs to 60 seconds, 16 m/s kaiju speed,
+  and a 98 m generated kaiju asset. Destruction radius stayed at 25 m.
 - The slice is implemented. No economy, workers, money, runs, prestige, utilities, or building
   piece explosions were added.
 - Finished on 2026-08-31.

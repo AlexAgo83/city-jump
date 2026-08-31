@@ -13,7 +13,7 @@ function glbJson(buffer) {
   throw new Error("GLB JSON chunk missing");
 }
 
-test("the shipped kaiju model is about fifty metres tall", async () => {
+test("the shipped kaiju model matches its declared height", async () => {
   const gltf = glbJson(await readFile(new URL("../public/kaiju.glb", import.meta.url)));
   const manifest = JSON.parse(await readFile(new URL("../public/kaiju.manifest.json", import.meta.url), "utf8"));
   const maxY = Math.max(

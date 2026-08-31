@@ -11,6 +11,9 @@ import bpy
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public", "kaiju.glb")
 MANIFEST = os.path.join(os.path.dirname(OUT), "kaiju.manifest.json")
 
+# The original 49 m silhouette read too small against 25 m city blocks; scale the generated GLB
+# so the manifest stays the source of truth for shipped size.
+SCALE = 2
 
 def clear_scene():
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -26,10 +29,10 @@ def material(name, colour):
 
 
 def box(name, size, loc, mat):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=[v * SCALE for v in loc])
     obj = bpy.context.object
     obj.name = name
-    obj.dimensions = size
+    obj.dimensions = [v * SCALE for v in size]
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     obj.data.materials.append(mat)
     return obj
@@ -57,7 +60,7 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=OUT, export_format="GLB", use_selection=False)
     with open(MANIFEST, "w", encoding="utf-8") as f:
-        json.dump({"models": {"kaiju": {"file": "kaiju.glb", "heightM": 49}}}, f, indent=2)
+        json.dump({"models": {"kaiju": {"file": "kaiju.glb", "heightM": 49 * SCALE}}}, f, indent=2)
         f.write("\n")
 
 

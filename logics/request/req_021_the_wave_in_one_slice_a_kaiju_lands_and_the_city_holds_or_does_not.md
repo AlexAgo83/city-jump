@@ -7,7 +7,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:54:38
+> Indicators reviewed: 2026-09-01 00:07:25
 
 # AI Context
 - Summary: The vertical slice of an attack, hardcoded: a countdown, a kaiju that lands at a random coast and walks at the nearest building, military parcels that fire on a reload, destruction that leaves rubble, and a banner that says held or breached. It exists to answer whether a wave is worth watching before anything is built to serve one.
@@ -57,8 +57,8 @@ here, and none should be tuned by feel before that harness exists.
 
 | What | Start at | Why roughly this |
 | --- | --- | --- |
-| Time to the first wave | 3 minutes at x1 | long enough to draw a district and a military road |
-| Kaiju walking speed | 8 m/s | crosses a 600 m district in about 75 seconds |
+| Time to the first wave | 60 seconds at x1 | short enough to see the attack quickly while testing the slice |
+| Kaiju walking speed | 16 m/s | crosses a 600 m district in about 38 seconds |
 | Kaiju hit points | 600 | about four batteries firing for a minute |
 | Battery range | 220 m | a district's worth, and legible as one circle on the map |
 | Damage per salvo | 12 x parcel cells | a 1x4 does 48, a 4x4 does 192 |
@@ -66,7 +66,7 @@ here, and none should be tuned by feel before that harness exists.
 | Missile travel | 1.5 s at range | visible arc, no accuracy stat |
 | Destruction radius | 25 m | the kaiju's own footprint |
 
-The kaiju itself: a bipedal silhouette about fifty metres tall -- heavy legs, a low forward-leaning
+The kaiju itself: a bipedal silhouette about one hundred metres tall -- heavy legs, a low forward-leaning
 body, short arms, a tail for balance -- in a dark, desaturated colour that reads against both the
 green island and a night city. Boxes and prisms, like everything else in the library.
 
