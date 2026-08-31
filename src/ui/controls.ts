@@ -23,6 +23,7 @@ export function bindControls(handlers: {
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
   onLook(look: { antialias: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
+  onFrameCap(fps: number): void;
   onTraffic(enabled: boolean): void;
   onTrafficDensity(density: number): void;
   onGridSnap(enabled: boolean): void;
@@ -329,6 +330,7 @@ export function bindControls(handlers: {
       fxBloom: fxBloom.checked,
       fxAo: fxAo.checked,
       fxTilt: fxTilt.checked,
+      frameCap: Number(frameCap.value),
     });
   }
   function applySetting(checkbox: HTMLInputElement, value: boolean | undefined): void {
@@ -346,6 +348,12 @@ export function bindControls(handlers: {
   };
   for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) box.addEventListener("change", emitLook);
 
+  const frameCap = document.getElementById("frame-cap") as HTMLSelectElement;
+  frameCap.addEventListener("change", () => {
+    handlers.onFrameCap(Number(frameCap.value));
+    persistSettings();
+  });
+
   const stored: UiSettings = readSettings();
   if (stored.settingsOpen !== undefined) setToolbarOpen(stored.settingsOpen);
   applySetting(showGrid, stored.grid);
@@ -356,6 +364,8 @@ export function bindControls(handlers: {
   for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt]] as const) {
     if (value !== undefined) box.checked = value;
   }
+  if (stored.frameCap !== undefined) frameCap.value = String(stored.frameCap);
+  handlers.onFrameCap(Number(frameCap.value));
   emitLook();
   applySetting(showTraffic, stored.traffic);
   if (stored.trafficDensity !== undefined && Number.isFinite(stored.trafficDensity)) {

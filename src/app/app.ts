@@ -36,7 +36,7 @@ type CameraMode = "free" | "orbit" | "follow";
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows } = createScene(canvas);
+  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap } = createScene(canvas);
   const detail = createDetailCuller(scene, camera);
   const postFx = createPostFx(scene, camera);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
@@ -300,6 +300,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       traffic.setLightsEnabled(visible);
     },
     onLook: postFx.setLook,
+    onFrameCap: setFrameCap,
     onTraffic: traffic.setEnabled,
     onTrafficDensity: traffic.setDensity,
     onGridSnap(enabled) {

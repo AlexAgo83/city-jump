@@ -71,6 +71,10 @@ const measure = async (framing) => {
   return page.evaluate((ms) => window.cityjump.measureFps(ms), sampleMs);
 };
 
+// The game caps itself to spare a laptop; a measurement wants the machine flat out.
+await page.selectOption("#frame-cap", "0");
+await page.waitForTimeout(500);
+
 const results = new Map();
 const record = (key, value) => results.set(key, [...(results.get(key) ?? []), value]);
 

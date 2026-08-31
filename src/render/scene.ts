@@ -133,10 +133,42 @@ export function createScene(canvas: HTMLCanvasElement) {
   };
   setSunHour(14);
 
-  engine.runRenderLoop(() => scene.render());
+  /**
+   * How many frames a second to actually draw. The city runs flat out otherwise -- on a 120 Hz
+   * laptop screen that is 120 frames of a scene that looks the same at 60, paid for in fan noise
+   * and battery. A cap is the only optimisation that helps a machine already keeping up.
+   *
+   * ponytail: skip frames in the render loop rather than reaching for a fixed-timestep scheduler;
+   * everything in this game is driven by elapsed time already, so a longer frame just moves
+   * further.
+   */
+  let frameIntervalMs = 1000 / 60;
+  let idleIntervalMs = 0;
+  let lastFrame = 0;
+  const setFrameCap = (fps: number): void => {
+    frameIntervalMs = fps > 0 ? 1000 / fps : 0;
+  };
+  // Nobody is watching an unfocused window: it keeps running so the city stays live, slowly.
+  window.addEventListener("blur", () => {
+    idleIntervalMs = 1000 / 10;
+  });
+  window.addEventListener("focus", () => {
+    idleIntervalMs = 0;
+  });
+  engine.runRenderLoop(() => {
+    const interval = Math.max(frameIntervalMs, idleIntervalMs);
+    if (interval > 0) {
+      const now = performance.now();
+      // Half a millisecond of slack: without it a 60 fps cap on a 60 Hz screen drops every other
+      // frame, because the frame that arrives 16.6 ms later is a hair early by the clock.
+      if (now - lastFrame < interval - 0.5) return;
+      lastFrame = now;
+    }
+    scene.render();
+  });
   window.addEventListener("resize", () => engine.resize());
 
-  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows };
+  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap };
 }
 
 const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {

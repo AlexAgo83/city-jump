@@ -171,6 +171,21 @@ Measured against the same build without it: 145 of 959 movers drawn instead of a
 ones it hides were being frustum-culled anyway. Kept for the close view and for the ~800 meshes it
 takes out of the scene walk each frame.
 
+## The cheapest optimisation: stop drawing so many frames
+
+Measured on the machine this is developed on -- an M3 Pro, ProMotion display, the reference city:
+the browser's animation-frame ceiling is 120 Hz and the game runs at 119. It is not slow, it is
+flat out, and no ablation moves it by more than a tenth. What reads as "the game is heavy" is a
+laptop being asked for 120 frames a second of a scene that looks the same at 60.
+
+So there is a frame cap, in the settings beside Shadows and Lights: 30, 60 (the default), 120, or
+Max. At 60 on a 120 Hz screen the machine does half the work. The city keeps moving at any cap --
+everything is driven by elapsed time, so a longer frame is a longer step, not a slower city -- and
+an unfocused window drops to 10 fps on its own.
+
+Both measurement harnesses set the cap to Max before measuring, and so does the interaction test,
+which steps frame by frame.
+
 ## What is left
 
 - **A repeatable measurement, before anything else.** Every remaining idea is a trade, and this

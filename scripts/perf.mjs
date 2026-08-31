@@ -84,6 +84,10 @@ await page.waitForFunction(
 );
 await page.waitForTimeout(2000);
 
+// The game caps itself to spare a laptop; a measurement wants the machine flat out.
+await page.selectOption("#frame-cap", "0");
+await page.waitForTimeout(500);
+
 const stats = await page.evaluate(() => window.cityjump.stats());
 // What the scene is actually made of: a city is slow in draw calls, and a draw call is a mesh.
 // Grouped by name prefix, because that is one renderer's output each.

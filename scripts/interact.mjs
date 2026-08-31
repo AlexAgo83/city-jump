@@ -67,6 +67,10 @@ const realTime = (ms) => page.waitForTimeout(ms);
 
 await page.goto(url, { waitUntil: "load" });
 await waitForApp();
+// The game caps itself at 60 to spare a laptop; these checks step frame by frame and want the
+// machine flat out. The cap has its own check further down, which puts this back afterwards.
+const uncapFrames = () => page.selectOption("#frame-cap", "0");
+await uncapFrames();
 check("coarse pointer visitors see the desktop input notice", await page.locator("#touch-notice").isVisible());
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
@@ -390,6 +394,13 @@ await waitForApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
 await page.locator("#fx-antialias").setChecked(true);
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
+// The cap is the one setting that spends less rather than showing more.
+await page.selectOption("#frame-cap", "30");
+const capped = await page.evaluate(() => window.cityjump.measureFps(1500));
+await page.selectOption("#frame-cap", "0");
+const uncapped = await page.evaluate(() => window.cityjump.measureFps(1500));
+check("the frame cap holds the frame rate down", capped <= 34 && uncapped > capped + 10, `${capped} capped, ${uncapped} uncapped`);
+await uncapFrames();
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
 const fpsSample = await page.evaluate(async () => {
@@ -468,6 +479,9 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await nextFrame();
+// The hour is part of the city, and the city is autosaved on a debounce: reload before that runs
+// and the city comes back at the hour it was last saved at, whatever the settings say.
+await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").hour === 20, null, { timeout: 5_000 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("sun hour is remembered across reload", (await page.locator("#sun-hour").inputValue()) === "20");
@@ -533,15 +547,14 @@ await page.locator("#sun-hour").evaluate((input) => {
 });
 
 // The open settings menu covers the scene, so a terrain click folds it away like a player would
-// -- then puts it back, so the settings controls stay reachable for whatever the test does next.
+// and leaves it folded: the checks that follow a click hover over the scene where the menu was,
+// and every block that needs the settings themselves opens them again first.
 const click = async (x, y) => {
-  const wasOpen = (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true";
   await setSettingsOpen(false);
   await page.mouse.move(x, y);
   await nextFrame();
   await page.mouse.click(x, y);
   await nextFrame();
-  if (wasOpen) await setSettingsOpen(true);
 };
 
 await click(260, 320);
