@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:38:34
+> Indicators reviewed: 2026-08-31 22:51:18
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -101,6 +101,17 @@ flowchart TD
   the edge of the screen for the direction the kaiju is in, and a button in the wave banner that
   looks at it in one click. Snapping the camera to the coast would be the same theft as taking the
   clock, and the clock is the player's by decision already.
+- **What is being built, and what is waiting for money, is a line the player can find.** The city
+  raises what it can afford and queues the rest, so a painted district with nothing growing on it
+  needs an explanation on screen -- "4 under construction, 2 waiting for funds" -- or it reads as a
+  bug. The map shows the scaffolding; the strip shows the queue.
+- **One shortage while the player is learning, all of them afterwards.** The strip's short slot
+  shows a single thing, which is what makes it a tutorial nobody had to write -- and a lie by
+  omission once three things are short at once. The switch is the player's own: one until they
+  open the gauge panel for the first time, everything after that.
+- **A district going dark gets a line.** A destroyed diffuser is a fact, not a forecast, so it is
+  allowed its alert by the same rule that denies one to a projection -- and it carries the colour
+  of what it lost, power or water, so the alert and the map agree without being read.
 - **Clicking the needs opens the arithmetic.** The city strip opens the gauge panel, and the gauge
   panel opens the ledger: per resource, where it comes from, where it goes, what is left -- and
   the formulas with *this city's* numbers substituted into them, not the abstract ones.

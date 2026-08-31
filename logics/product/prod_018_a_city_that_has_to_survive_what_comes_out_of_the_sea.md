@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:38:34
+> Indicators reviewed: 2026-08-31 22:51:18
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -230,6 +230,20 @@ flowchart TD
 - **An island is a run, and the coast is the cap.** There is no rule limiting how big a city may
   get: the buildable land runs out, the waves keep growing, and evacuating to the next island is
   how a run ends and the next one starts richer.
+- **The city builds what it can afford, and queues the rest.** The player zones an intention; the
+  city raises what the treasury covers and the rest waits for funds. Nobody is billed for
+  something they did not order, and a painted district that is not growing has a reason the
+  interface can state.
+- **Rebuilding is allowed to go negative; only new work waits.** What a wave broke comes back even
+  if the treasury cannot pay for it, pushing the balance below zero -- and while it is below zero
+  nothing *new* starts. A city recovers from a bad wave by definition; what it cannot do while
+  recovering is expand.
+- **Roads cost by the metre.** Drawing is the game's main verb, and a free verb is a verb without
+  a decision -- doubly so now that a road carries power and water as well as traffic.
+- **Demolishing takes time and returns half.** A building or a road comes down over a period, the
+  way it went up, and half of what it cost comes back. Free demolition would make the map a
+  scratchpad; no refund at all would make a mistake permanent in a game that is already punishing
+  enough.
 - **Money gates building, workers gate running.** Money comes from taxes on the population and
   from trade in the commercial district -- which is what finally makes commerce a job rather than
   an abstract growth multiplier.

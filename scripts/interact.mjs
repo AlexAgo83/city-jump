@@ -675,7 +675,7 @@ check(
 const cityHud = await cityHudText();
 check(
   "the city HUD shows population and one readable gauge per business",
-  /habitants$/.test(cityHud.population) &&
+  /residents$/.test(cityHud.population) &&
     ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => cityHud.needs.includes(label)),
   JSON.stringify(cityHud),
 );

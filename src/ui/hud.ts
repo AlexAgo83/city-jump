@@ -31,7 +31,7 @@ export function showCompass(alpha: number): void {
 }
 
 export function showCityStats(population: number, needs: readonly BuildingNeed[]): void {
-  populationText.textContent = `${compact(population)} habitants`;
+  populationText.textContent = `${compact(population)} residents`;
   needsPanel.replaceChildren(...needs.map((need) => {
     const row = document.createElement("div");
     row.className = "need-row";
