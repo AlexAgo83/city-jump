@@ -3,6 +3,7 @@ import { installDebugApi } from "../render/debugApi";
 import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
 import { createKaijuRenderer } from "../render/kaiju";
+import { createMissileRenderer, type MissileTrail } from "../render/missiles";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createRubbleRenderer } from "../render/rubble";
 import { createScene } from "../render/scene";
@@ -16,6 +17,7 @@ import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
+import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "../sim/batteries";
 import { buildingNeeds, population } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
@@ -28,16 +30,18 @@ import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClock, createWaveClock, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
-import { showCityStats, showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
+import { showCityStats, showCompass, showFps, showRefusal, showSelection, showWaveBanner } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
+type WaveVerdict = "held" | "breached";
+type PendingMissile = MissileTrail & { readonly impactAt: number; readonly damage: number };
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
@@ -68,6 +72,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const zoneOverlay = createZoneRenderer(scene);
   const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
+  const missiles = createMissileRenderer(scene);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
@@ -144,6 +149,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let currentParcels: readonly BuildingParcel[] = [];
   let waveClock = createWaveClock();
   let kaijuPlan: KaijuPlan | null = null;
+  let pendingMissiles: PendingMissile[] = [];
+  let nextSalvoAt = 0;
+  let waveVerdict: WaveVerdict | null = null;
   let buildingRebuildTimer = 0;
   const scheduleBuildingRebuild = (): void => {
     window.clearTimeout(buildingRebuildTimer);
@@ -249,18 +257,63 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       currentParcels.map((parcel) => v3(parcel.position.x, parcel.position.y, parcel.position.z)),
       v3(-360, 0, 1500),
     );
+    pendingMissiles = [];
+    nextSalvoAt = 0;
+    waveVerdict = null;
+  };
+  const finishWave = (verdict: WaveVerdict): void => {
+    waveVerdict = verdict;
+    kaiju.hide();
+    pendingMissiles = [];
+    missiles.rebuild([]);
+    showWaveBanner(verdict === "held" ? "Wave held" : "Wave breached", verdict);
+  };
+  const resetWave = (): void => {
+    waveClock = createWaveClock();
+    kaijuPlan = null;
+    pendingMissiles = [];
+    waveVerdict = null;
+    kaiju.hide();
+    missiles.rebuild([]);
   };
   const updateWave = (dt: number): void => {
     if (!simPaused) waveClock = advanceWaveClock(waveClock, dt);
+    if (waveVerdict) {
+      showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
+      return;
+    }
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
       kaiju.hide();
+      missiles.rebuild([]);
+      showWaveBanner(`Wave in ${Math.ceil(waveCountdownSeconds(waveClock))}s`, "waiting");
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
     const position = kaijuPositionAt(kaijuPlan, seconds);
     const next = kaijuPositionAt(kaijuPlan, seconds + 0.1);
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
+    const batteries = batteriesForParcels(currentParcels);
+    if (seconds >= nextSalvoAt) {
+      pendingMissiles.push(...batteriesInRange(batteries, position).map((battery) => ({
+        from: battery.position,
+        to: position,
+        impactAt: seconds + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(battery.position, position) / battery.range),
+        damage: battery.damage,
+      })));
+      nextSalvoAt = seconds + WAVE_STARTING_VALUES.reloadSeconds;
+    }
+    const hits = pendingMissiles.filter((missile) => missile.impactAt <= seconds);
+    if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
+    pendingMissiles = pendingMissiles.filter((missile) => missile.impactAt > seconds);
+    missiles.rebuild(pendingMissiles);
+    const active = waveClock.active;
+    if (!active) return;
+    showWaveBanner(`Kaiju ${Math.ceil(active.hitPoints)}/${active.threat} HP - ${Math.round(firepowerPerMinute(batteries))} dmg/min`, "active");
+    if (active.hitPoints <= 0) {
+      finishWave("held");
+      return;
+    }
     const hit = currentParcels.find((parcel) => distXZ(parcel.position, position) <= WAVE_STARTING_VALUES.destructionRadiusM);
     if (!hit) return;
     rubble.destroy(hit);
@@ -268,6 +321,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     showCityStats(population(currentParcels), buildingNeeds(currentParcels));
     history.clear();
     rebuild(parcelBounds(hit));
+    finishWave("breached");
   };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
@@ -425,6 +479,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }
     history.clear();
     pendingHistorySnapshot = null;
+    resetWave();
     sunHour = city.hour;
     addOffshoreBridge();
     rebuild();
@@ -523,8 +578,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
     kaiju: kaiju.visible(),
+    missiles: pendingMissiles.length,
+    wave: waveVerdict ?? (waveClock.active ? "active" : "waiting"),
+    waveHp: waveClock.active?.hitPoints ?? null,
   }), { setWorldGridVisible: worldGrid.setVisible, measureFps });
-  Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
+  const debugApi = (window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {};
+  const debugReset = debugApi.reset as (() => void) | undefined;
+  Object.assign(debugApi, {
+    reset() {
+      resetWave();
+      debugReset?.();
+    },
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),
     paused: () => simPaused,
@@ -535,6 +599,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
       startWave("debug");
       waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
+    },
+    forceHeldWave() {
+      if (!waveClock.active) {
+        waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
+        startWave("debug");
+      }
+      waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);
+      finishWave("held");
     },
   });
 

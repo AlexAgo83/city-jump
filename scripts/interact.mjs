@@ -80,6 +80,7 @@ const cityHudText = () =>
     needs: document.getElementById("needs-panel")?.textContent ?? "",
   }));
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
+const waveBanner = () => page.evaluate(() => document.getElementById("wave-banner")?.textContent ?? "");
 const previewVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false);
 const waitForPreview = () =>
@@ -363,6 +364,9 @@ check("all parcel models load", (await stats()).models === 28, `${(await stats()
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
 check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled())));
+check("an active wave shows the kaiju HP banner", /Kaiju \d+\/600 HP/.test(await waveBanner()), await waveBanner());
+await page.evaluate(() => window.cityjump.forceHeldWave());
+check("a held wave shows the held banner", /Wave held/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
@@ -1753,6 +1757,7 @@ await page.evaluate(() => window.cityjump.forceWave(10_000));
 await page.waitForFunction((before) => window.cityjump.stats().rubble > 0 && window.cityjump.stats().buildings < before, beforeWave.buildings, { timeout: 5_000 });
 const afterWave = await stats();
 check("the kaiju destroys a building into rubble", afterWave.buildings < beforeWave.buildings && afterWave.rubble > 0, `${beforeWave.buildings} -> ${afterWave.buildings}, rubble ${afterWave.rubble}`);
+check("a breached wave shows the breached banner", /Wave breached/.test(await waveBanner()), await waveBanner());
 await page.locator("#undo-city").click();
 check("undo refuses to cross a wave", /Nothing to undo/.test(await toast()));
 const costs = await page.evaluate(() => window.cityjump.measureCosts());

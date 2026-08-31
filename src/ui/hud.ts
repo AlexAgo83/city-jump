@@ -9,6 +9,7 @@ const compassNeedle = compass.querySelector(".compass-needle") as HTMLSpanElemen
 const compassDirection = compass.querySelector(".compass-direction") as HTMLSpanElement;
 const populationText = document.getElementById("population") as HTMLDivElement;
 const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
+const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
 
 export function showRefusal(reason: string): void {
   toast.textContent = reason;
@@ -40,6 +41,13 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
       `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
     return row;
   }));
+}
+
+export function showWaveBanner(text: string, state: "waiting" | "active" | "held" | "breached" = "waiting"): void {
+  if (waveBanner.textContent === text && waveBanner.dataset.state === state && waveBanner.hidden === (text === "")) return;
+  waveBanner.hidden = text === "";
+  waveBanner.dataset.state = state;
+  waveBanner.textContent = text;
 }
 
 function label(kind: string): string {

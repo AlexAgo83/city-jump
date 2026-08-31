@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { advanceWaveClock, createWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "./wave";
+import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "./wave";
 
 describe("wave clock", () => {
   it("counts down and fixes the first threat when the wave starts", () => {
@@ -15,5 +15,11 @@ describe("wave clock", () => {
       hitPoints: WAVE_STARTING_VALUES.kaijuHitPoints,
     });
   });
-});
 
+  it("applies damage without going below zero", () => {
+    const active = advanceWaveClock(createWaveClock(), WAVE_STARTING_VALUES.firstWaveSeconds);
+    expect(damageWaveClock(active, 250).active?.hitPoints).toBe(350);
+    expect(damageWaveClock(active, 900).active?.hitPoints).toBe(0);
+    expect(damageWaveClock(active, -50).active?.hitPoints).toBe(WAVE_STARTING_VALUES.kaijuHitPoints);
+  });
+});

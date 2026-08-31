@@ -32,7 +32,12 @@ export function advanceWaveClock(clock: WaveClock, dtSeconds: number): WaveClock
   return { elapsedSeconds, nextWaveAtSeconds: clock.nextWaveAtSeconds, active: { startedAtSeconds: clock.nextWaveAtSeconds, threat, hitPoints: threat } };
 }
 
+export function damageWaveClock(clock: WaveClock, damage: number): WaveClock {
+  if (!clock.active) return clock;
+  const hitPoints = Math.max(0, clock.active.hitPoints - Math.max(0, damage));
+  return { ...clock, active: { ...clock.active, hitPoints } };
+}
+
 export function waveCountdownSeconds(clock: WaveClock): number {
   return Math.max(0, clock.nextWaveAtSeconds - clock.elapsedSeconds);
 }
-

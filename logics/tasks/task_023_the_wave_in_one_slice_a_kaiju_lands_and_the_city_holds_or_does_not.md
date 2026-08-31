@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 60%
+> Progress: 75%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -32,12 +32,12 @@
       by the sim's position.
 - [x] 5. Destruction: buildings removed on contact through the existing path, leaving rubble, the
       dirty region repainted, and undo refusing to reach back across a wave.
-- [ ] 6. Batteries: every military parcel, one range, damage by area, fixed reload, missiles with a
+- [x] 6. Batteries: every military parcel, one range, damage by area, fixed reload, missiles with a
       travel time that always hit; the kaiju's hit points equal to the threat.
 - [x] 7. The zone brush: five businesses plus Clear, `parcelKind` reduced to "painted wins, else
       the road decides", and the saves that carry the three kinds it lost in 0.3.0.
 - [ ] 7b. The edge marker and the target highlight.
-- [ ] 8. The banner: threat against firepower before, held or breached after, with the report the
+- [x] 8. The banner: threat against firepower before, held or breached after, with the report the
       brief describes.
 - [ ] 9. Measure a wave against the reference city and record it in `perf/history.jsonl`; a wave
       that does not fit the budget in `docs/performance.md` is a finding, not a footnote.
@@ -79,6 +79,12 @@
 - 2026-08-31 destruction wave: `npm run test:e2e` and `npm run ci` passed. Reference perf recorded
   with `npm run perf -- --city perf/cities/ma-ville.json`: overview 120 fps, district 120 fps,
   street 99 fps, rebuild 582 ms.
+- 2026-08-31 batteries/banner wave: focused `npm test -- src/sim/wave.test.ts
+  src/sim/batteries.test.ts`, `npm run typecheck`, `npm run test:e2e`, and `npm run ci` passed.
+  Reference perf with `npm run perf -- --city perf/cities/ma-ville.json` first exposed a per-frame
+  HUD update regression at overview 92 fps, district 77 fps, street 85 fps, rebuild 671 ms; after
+  the no-op HUD guard, the recorded result is overview 120 fps, district 105 fps, street 104 fps,
+  rebuild 578 ms.
 
 # Report
 - Started development. Added pure wave countdown constants/clock, pure kaiju landing/path replay,
@@ -90,8 +96,9 @@
 - Added persistent rubble: a kaiju contact removes the parcel from derived buildings, paints rubble,
   saves/restores it, clears undo, and repaints the affected region. E2e covers rubble plus undo
   refusal across the wave.
-- Not yet implemented: batteries/missiles, wave banner, edge marker/target highlight, and wave
-  performance recording.
+- Added military batteries, missile trails, kaiju HP damage, wave firepower text, and held/breached
+  banner states. E2e covers the active, held, and breached banners.
+- Not yet implemented: edge marker/target highlight and final wave performance recording.
 
 # Links
 - Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this
