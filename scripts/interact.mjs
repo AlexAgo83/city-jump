@@ -87,6 +87,11 @@ const waitForPreview = () =>
   page.waitForFunction(() => window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false, null, { timeout: 5_000 });
 const nodeHighlighted = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("node-highlight")?.isEnabled() ?? false);
+const waveMarkersVisible = () =>
+  page.evaluate(() => ({
+    edge: window.cityjump._scene.getMeshByName("wave-edge-marker")?.isEnabled() ?? false,
+    target: window.cityjump._scene.getMeshByName("wave-target-highlight")?.isEnabled() ?? false,
+  }));
 const screenPoint = (worldish) =>
   page.evaluate((expr) => {
     const scene = window.cityjump._scene;
@@ -1753,6 +1758,10 @@ check("a corrupted autosave is ignored rather than fatal", (await stats()).segme
 await page.evaluate(() => window.cityjump.demoCity());
 await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 10_000 });
 const beforeWave = await stats();
+await page.evaluate(() => window.cityjump.forceWave());
+await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
+const liveWaveMarkers = await waveMarkersVisible();
+check("a live wave marks the landing edge and target building", liveWaveMarkers.edge && liveWaveMarkers.target, JSON.stringify(liveWaveMarkers));
 await page.evaluate(() => window.cityjump.forceWave(10_000));
 await page.waitForFunction((before) => window.cityjump.stats().rubble > 0 && window.cityjump.stats().buildings < before, beforeWave.buildings, { timeout: 5_000 });
 const afterWave = await stats();

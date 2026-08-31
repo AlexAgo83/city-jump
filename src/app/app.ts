@@ -12,6 +12,7 @@ import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
+import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
@@ -73,6 +74,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
   const missiles = createMissileRenderer(scene);
+  const waveMarkers = createWaveMarkerRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
@@ -264,6 +266,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
     kaiju.hide();
+    waveMarkers.hide();
     pendingMissiles = [];
     missiles.rebuild([]);
     showWaveBanner(verdict === "held" ? "Wave held" : "Wave breached", verdict);
@@ -274,6 +277,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     pendingMissiles = [];
     waveVerdict = null;
     kaiju.hide();
+    waveMarkers.hide();
     missiles.rebuild([]);
   };
   const updateWave = (dt: number): void => {
@@ -285,6 +289,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
       kaiju.hide();
+      waveMarkers.hide();
       missiles.rebuild([]);
       showWaveBanner(`Wave in ${Math.ceil(waveCountdownSeconds(waveClock))}s`, "waiting");
       return;
@@ -292,6 +297,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
     const position = kaijuPositionAt(kaijuPlan, seconds);
     const next = kaijuPositionAt(kaijuPlan, seconds + 0.1);
+    waveMarkers.show(kaijuPlan);
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
     const batteries = batteriesForParcels(currentParcels);
     if (seconds >= nextSalvoAt) {

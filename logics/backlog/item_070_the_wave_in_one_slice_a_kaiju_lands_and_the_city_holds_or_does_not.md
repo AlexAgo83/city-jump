@@ -1,14 +1,14 @@
 ## item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not - The wave, in one slice: a kaiju lands and the city holds or does not
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 60%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:13:51
+> Indicators reviewed: 2026-08-31 23:54:38
 
 # AI Context
 - Summary: The delivery slice for the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -65,6 +65,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not` was finished via `logics-manager flow finish task` on 2026-08-31.
 
 # Tasks
 - `task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`

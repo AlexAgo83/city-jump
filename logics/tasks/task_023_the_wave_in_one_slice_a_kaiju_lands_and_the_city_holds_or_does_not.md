@@ -1,14 +1,14 @@
 ## task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not - The wave, in one slice: a kaiju lands and the city holds or does not
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:13:51
+> Indicators reviewed: 2026-08-31 23:54:38
 > Owner: Codex
 
 # AI Context
@@ -36,21 +36,21 @@
       travel time that always hit; the kaiju's hit points equal to the threat.
 - [x] 7. The zone brush: five businesses plus Clear, `parcelKind` reduced to "painted wins, else
       the road decides", and the saves that carry the three kinds it lost in 0.3.0.
-- [ ] 7b. The edge marker and the target highlight.
+- [x] 7b. The edge marker and the target highlight.
 - [x] 8. The banner: threat against firepower before, held or breached after, with the report the
       brief describes.
-- [ ] 9. Measure a wave against the reference city and record it in `perf/history.jsonl`; a wave
+- [x] 9. Measure a wave against the reference city and record it in `perf/history.jsonl`; a wave
       that does not fit the budget in `docs/performance.md` is a finding, not a footnote.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: the wave clock and the countdown; proven by `sim/wave.ts` unit tests from a fixed seed.
@@ -85,6 +85,17 @@
   HUD update regression at overview 92 fps, district 77 fps, street 85 fps, rebuild 671 ms; after
   the no-op HUD guard, the recorded result is overview 120 fps, district 105 fps, street 104 fps,
   rebuild 578 ms.
+- 2026-08-31 wave-marker wave: `npm run typecheck`, `npm run test:e2e`, `npm run ci`, and
+  `npm run logics:validate` passed. Reference perf with `npm run perf -- --city
+  perf/cities/ma-ville.json` recorded two runs after adding hidden edge/target rings: overview 107
+  fps, district 99 fps, street 87 fps, rebuild 628 ms; then overview 100 fps, district 104 fps,
+  street 86 fps, rebuild 646 ms. Mesh groups and active mesh counts stayed unchanged, matching the
+  frame-rate drift warning in `docs/performance.md`.
+- 2026-08-31 closeout: `npm run ci`, `npm run test:e2e`, `npm run logics:validate`, and
+  `logics-manager flow closeout` passed. Latest reference perf recorded overview 100 fps, district
+  104 fps, street 86 fps, rebuild 646 ms.
+- Finish workflow executed on 2026-08-31.
+- Linked backlog/request close verification passed.
 
 # Report
 - Started development. Added pure wave countdown constants/clock, pure kaiju landing/path replay,
@@ -98,7 +109,12 @@
   refusal across the wave.
 - Added military batteries, missile trails, kaiju HP damage, wave firepower text, and held/breached
   banner states. E2e covers the active, held, and breached banners.
-- Not yet implemented: edge marker/target highlight and final wave performance recording.
+- Added live wave edge and target rings. E2e covers both on a demo city wave.
+- The slice is implemented. No economy, workers, money, runs, prestige, utilities, or building
+  piece explosions were added.
+- Finished on 2026-08-31.
+- Linked backlog item(s): `item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
+- Related request(s): `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 
 # Links
 - Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this
