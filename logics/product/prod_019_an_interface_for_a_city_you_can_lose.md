@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:22:41
+> Indicators reviewed: 2026-08-31 22:31:07
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -101,6 +101,10 @@ flowchart TD
   the edge of the screen for the direction the kaiju is in, and a button in the wave banner that
   looks at it in one click. Snapping the camera to the coast would be the same theft as taking the
   clock, and the clock is the player's by decision already.
+- **Two promises, two surfaces.** The banner shows threat against the city's firepower, which is
+  what the player has. Whether that firepower reaches the kaiju is the map's answer, in coverage
+  circles and in the path he takes -- so the banner is never made to claim something only the
+  geography can decide.
 - **The fight is read in the two numbers the player was promised.** Before a wave the banner says
   threat against defence; during it, the same two move -- the threat bar drains as the kaiju takes
   damage. Nothing else is added: no damage numbers, no health bars over buildings. What happens on

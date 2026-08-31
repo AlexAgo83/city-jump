@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:28:50
+> Indicators reviewed: 2026-08-31 22:31:07
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -165,6 +165,14 @@ flowchart TD
   is what makes a battery readable while it fires, and what gives an upgrade two separate things
   to improve later. The missile always hits: a chance to miss would make the banner's promise,
   threat against defence, a lie.
+- **A military parcel is a battery.** Not a building inside the compound, not an object to place:
+  the parcel. It is the only rule that stays true to defending by urbanising -- more military
+  parcels, more batteries, and it is the zoning that decides. Everything it needs is already in
+  `BuildingParcel`: where it is, how big it is, and whether it is staffed and powered.
+- **Every battery reaches the same distance; size decides how hard it hits.** One radius the
+  player can learn and reason with, and damage per salvo proportional to the parcel's area, so a
+  4x4 compound is worth four 1x4 ones. A range that varied with size would make coverage
+  unreadable on the map, which is where coverage has to be read.
 - **You do not defend a perimeter, you defend an approach.** The kaiju lands slowly and walks at
   whatever building is nearest, so the player decides its path by deciding what they leave closest
   to the coast -- and the time it takes to reach anything worth destroying is the window the
@@ -205,6 +213,13 @@ flowchart TD
   before a bad wave is the player's business -- but the risk economy only means something if the
   risk is real, so the option that deletes the save on defeat is kept in view rather than argued
   about. It is one setting, and it is the honest version of the game.
+- **The banner says what you have; the map says whether it will be where he walks.** Defence is
+  not a scalar: ten batteries in the north and a landing in the south is enormous firepower and no
+  defence at all. So the banner shows threat against *firepower* -- a capability, honest and
+  actionable -- and the coverage circles on the map answer the other half. A player who loses a
+  wave with more firepower than threat has learned the right lesson in one go: geography decides.
+  It is also what makes the prestige node that reveals the next landing coast worth its place --
+  it turns a capability into a defence.
 - **The player watches a wave, for now.** Everything they could have done, they did before it
   landed: where the military district is, what is staffed, what the coast looks like. Acting
   during an attack is a later question, and it is written down as one rather than assumed away.
