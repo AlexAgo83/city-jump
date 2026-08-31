@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:31:07
+> Indicators reviewed: 2026-08-31 22:32:15
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -220,9 +220,13 @@ flowchart TD
   wave with more firepower than threat has learned the right lesson in one go: geography decides.
   It is also what makes the prestige node that reveals the next landing coast worth its place --
   it turns a capability into a defence.
-- **The player watches a wave, for now.** Everything they could have done, they did before it
-  landed: where the military district is, what is staffed, what the coast looks like. Acting
-  during an attack is a later question, and it is written down as one rather than assumed away.
+- **The player watches a wave, and that is the answer for now.** Everything they could have done,
+  they did before it landed: where the military district is, what is staffed, what the coast looks
+  like. Ordering a building during an attack is allowed and construction time makes it a gamble
+  rather than a cheat, but nothing else is. The question reopens with hand-placed buildings, which
+  is when there will be something worth doing in the ninety seconds a kaiju takes to cross a
+  district -- and not before, because a wave the player can fight is a different game from a wave
+  that judges the city they built.
 - **An island is a run, and the coast is the cap.** There is no rule limiting how big a city may
   get: the buildable land runs out, the waves keep growing, and evacuating to the next island is
   how a run ends and the next one starts richer.
@@ -335,10 +339,6 @@ play instead of frames.
 # Open questions
 - **How much a call multiplies by**, and whether it grows with how early the call is. The harness
   answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
-- **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
-  could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
-  once one has been watched. Ordering a building is already allowed, and construction time is what
-  makes it a gamble rather than a cheat.
 
 # References
 - Product back-reference: (none yet)
