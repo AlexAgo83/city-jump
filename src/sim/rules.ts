@@ -74,7 +74,7 @@ export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: str
 
 /** Ground length of the quadratic, by sampling. ponytail: the graph rebuilds this table
  * anyway once the segment is accepted; here it only has to be good enough to judge. */
-function quadraticLengthXZ(a: Vec3, c: Vec3, b: Vec3): number {
+export function quadraticLengthXZ(a: Vec3, c: Vec3, b: Vec3): number {
   const STEPS = 24;
   let total = 0;
   let prev = a;

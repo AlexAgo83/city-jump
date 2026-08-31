@@ -1,14 +1,15 @@
 ## task_026_money_and_the_queue_what_a_city_can_afford_to_build - Money and the queue: what a city can afford to build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
-> Understanding: 90%
+> Status: In progress
+> Understanding: 92%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:30
+> Indicators reviewed: 2026-09-01 00:57:33
+> Owner: Codex
 
 # AI Context
 - Summary: Implementing prices, a treasury, a build queue, and a demolition that gives half back.
@@ -21,9 +22,9 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/economy.ts`: a treasury, income from population tax and staffed commerce, and a cost
+- [x] 1. `sim/economy.ts`: a treasury, income from population tax and staffed commerce, and a cost
       table for roads by the metre and buildings by kind and size. Pure, tested from a seed.
-- [ ] 2. The draw tool prices a road before it is committed and refuses what cannot be paid for,
+- [x] 2. The draw tool prices a road before it is committed and refuses what cannot be paid for,
       through the refusal path that already exists for too steep and too short.
 - [ ] 3. A build queue: a zoned parcel that cannot be paid for waits, and the queue is readable --
       how many rising, how many waiting for funds.
@@ -54,10 +55,15 @@
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
   `CONTRIBUTING.md`.
-- (no validation recorded yet)
+- 2026-09-01: `npx vitest run src/sim/economy.test.ts src/sim/save.test.ts src/sim/share.test.ts src/ui/saves.test.ts src/sim/rules.test.ts` passed.
+- 2026-09-01: `npm run test:e2e` passed.
+- 2026-09-01: `npm run ci` passed.
 
 # Report
-- Not started.
+- 2026-09-01: Added pure treasury, income, road cost and building cost rules.
+- 2026-09-01: Roads now show a metre price, spend treasury money on commit, and refuse valid road draws when the treasury cannot pay.
+- 2026-09-01: City saves now carry money; older saves load with the starting treasury.
+- 2026-09-01: Not yet built: parcel build queue, rebuilding into debt, delayed demolition/refund, and zone/building price readouts.
 
 # Links
 - Request: `req_024_money_and_the_queue_what_a_city_can_afford_to_build`

@@ -175,7 +175,7 @@
     width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
     border-bottom: 11px solid #75b9d1; transform-origin: 50% 70%;
   }
-  #population { color: #c8d2d9; font-size: 11px; }
+  #population, #money { color: #c8d2d9; font-size: 11px; }
   #needs-panel {
     display: grid; gap: 4px; width: 100%; min-width: 250px; color: #e6ebef;
     font: 11px/1 ui-sans-serif, system-ui; box-sizing: border-box;
@@ -196,6 +196,7 @@
     <span class="compass-direction">N</span>
   </div>
   <div id="population">0 habitants</div>
+  <div id="money">$20,000 +$0.0/s</div>
 </div>
 <div id="wave-banner" hidden></div>
 <div id="time-controls" aria-label="Simulation time">
@@ -318,6 +319,7 @@
     <label><input id="road-lanes" type="checkbox" /> Two lanes</label>
     <label><input id="road-oneway" type="checkbox" /> One-way</label>
     <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
+    <output id="road-price">$8/m</output>
   </div>
   <div id="nature-options" class="tool-options" hidden>
     <div class="segmented" role="group" aria-label="Planting mode">

@@ -3,6 +3,7 @@ import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
 import { Rubble } from "./rubble";
 import { BuildingLifecycle } from "./buildingLifecycle";
+import { STARTING_MONEY, Treasury } from "./economy";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
 import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
@@ -107,6 +108,16 @@ describe("city saves", () => {
     expect(restored.toJSON()).toEqual([[1, 2, "rising", 12]]);
   });
 
+  it("carries treasury money through a save", () => {
+    const treasury = new Treasury(1234);
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), treasury)))!;
+    const restored = new Treasury();
+    restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), new BuildingLifecycle(), restored);
+
+    expect(save.money).toBe(1234);
+    expect(restored.money).toBe(1234);
+  });
+
   it("reads plantings saved before species existed as firs", () => {
     const v2 = JSON.stringify({
       v: 2,
@@ -119,6 +130,7 @@ describe("city saves", () => {
     });
     const save = parseCity(v2);
     expect(save).not.toBeNull();
+    expect(save!.money).toBe(STARTING_MONEY);
     const restored = new Plantings();
     restoreCity(new RoadGraph(), restored, new Zones(), save!);
     expect(restored.plantedTrees.map((tree) => tree.species)).toEqual(["fir", "fir"]);
@@ -225,7 +237,7 @@ describe("city saves", () => {
   });
 
   it("refuses a segment pointing at a node the save does not contain", () => {
-    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] };
+    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, money: STARTING_MONEY, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] };
     expect(() => restoreCity(new RoadGraph(), new Plantings(), new Zones(), save)).toThrow(/missing node/);
   });
 
@@ -238,6 +250,7 @@ describe("city saves", () => {
       v: SAVE_VERSION,
       terrain: "rolling",
       hour: 14,
+      money: STARTING_MONEY,
       nodes: [[1, 0, 0, 0]],
       segments: [[1, 2, 0, 0, 0, "street"]],
       planted: [],

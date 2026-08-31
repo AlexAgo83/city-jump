@@ -10,7 +10,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
 import { RoadGraph, type Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
-import { resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
+import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
@@ -126,6 +126,13 @@ export interface HistoryTools {
   afterChange(changed: boolean): void;
 }
 
+export interface EconomyTools {
+  roadCost(type: RoadTypeId, metres: number): number;
+  canSpend(cost: number): boolean;
+  spend(cost: number): boolean;
+  money(): number;
+}
+
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
@@ -138,6 +145,7 @@ export function createDrawTool(
   onSelect: (info: SelectionInfo | null) => void,
   initialTypeId: RoadTypeId = "street",
   history?: HistoryTools,
+  economy?: EconomyTools,
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "view";
@@ -491,12 +499,19 @@ export function createDrawTool(
   function finish(from: Snap, to: Snap, control: Vec3): void {
     const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position)), TERRAIN_DIRTY_PAD);
     history?.beforeChange();
+    const cost = economy?.roadCost(typeId, quadraticLengthXZ(from.position, control, to.position)) ?? 0;
+    if (cost > 0 && !economy?.canSpend(cost)) {
+      onRefused(`Need $${cost.toLocaleString()} for this road; treasury has $${Math.floor(economy?.money() ?? 0).toLocaleString()}.`);
+      history?.afterChange(false);
+      return;
+    }
     const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
       onRefused(result.reason);
       history?.afterChange(false);
       return; // the refused segment never entered the graph; keep drawing from the same start
     }
+    if (cost > 0) economy?.spend(cost);
     stage = { phase: "idle" };
     clearPreview();
     history?.afterChange(true);

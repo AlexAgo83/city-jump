@@ -18,6 +18,7 @@ import { showRefusal } from "./hud";
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone"): void;
   onRoadType(type: string): void;
+  roadPrice(type: string): number;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
@@ -203,6 +204,7 @@ export function bindControls(handlers: {
 
   const roadLanes = document.getElementById("road-lanes") as HTMLInputElement;
   const roadOneway = document.getElementById("road-oneway") as HTMLInputElement;
+  const roadPrice = document.getElementById("road-price") as HTMLOutputElement;
   let roadTypeValue = "street";
 
   /** Pedestrian paths stay exactly what they are -- one lane, two-way, no player choice. */
@@ -210,7 +212,9 @@ export function bindControls(handlers: {
     const isPedestrian = roadTypeValue === "pedestrian";
     roadLanes.disabled = isPedestrian;
     roadOneway.disabled = isPedestrian;
-    handlers.onRoadType(composeRoadTypeId(roadTypeValue, roadLanes.checked ? 2 : 1, roadOneway.checked));
+    const type = composeRoadTypeId(roadTypeValue, roadLanes.checked ? 2 : 1, roadOneway.checked);
+    handlers.onRoadType(type);
+    roadPrice.value = `$${handlers.roadPrice(type)}/m`;
   }
 
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-type"]')) {
@@ -438,6 +442,7 @@ export function bindControls(handlers: {
   restoringSettings = false;
 
   bindSaves(handlers, applyCity);
+  emitRoadType();
   updateSun();
   setClock(Number(sunHour.value), 1, 0);
   return { applyCity, applyRoadType, setClock, setPaused, updateUndoRedo };

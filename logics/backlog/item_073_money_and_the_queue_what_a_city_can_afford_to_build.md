@@ -1,14 +1,14 @@
 ## item_073_money_and_the_queue_what_a_city_can_afford_to_build - Money and the queue: what a city can afford to build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:29
+> Indicators reviewed: 2026-09-01 00:57:33
 
 # AI Context
 - Summary: The delivery slice for prices, a treasury, a build queue, and a demolition that gives half back.

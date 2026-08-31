@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
+import { STARTING_MONEY } from "./economy";
 import { SAVE_VERSION, serializeCity } from "./save";
 import { encodeShare, decodeShare, MAX_SHARE_FRAGMENT } from "./share";
 import { v3 } from "./vec";
@@ -27,7 +28,7 @@ describe("share links", () => {
     await expect(decodeShare(`city=${"x".repeat(MAX_SHARE_FRAGMENT)}`)).rejects.toThrow(/too large/i);
     const payload = await encodeShare({
       name: "Future",
-      city: { v: SAVE_VERSION + 1, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] },
+      city: { v: SAVE_VERSION + 1, terrain: "rolling", hour: 14, money: STARTING_MONEY, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] },
     });
     await expect(decodeShare(payload!)).rejects.toThrow(/newer|incompatible/i);
   });

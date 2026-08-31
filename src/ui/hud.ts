@@ -8,6 +8,7 @@ const compass = document.getElementById("compass") as HTMLDivElement;
 const compassNeedle = compass.querySelector(".compass-needle") as HTMLSpanElement;
 const compassDirection = compass.querySelector(".compass-direction") as HTMLSpanElement;
 const populationText = document.getElementById("population") as HTMLDivElement;
+const moneyText = document.getElementById("money") as HTMLDivElement;
 const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
 const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
 
@@ -41,6 +42,10 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
       `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
     return row;
   }));
+}
+
+export function showMoney(balance: number, perSecond: number): void {
+  moneyText.textContent = `$${Math.floor(balance).toLocaleString()} ${perSecond >= 0 ? "+" : ""}$${perSecond.toFixed(1)}/s`;
 }
 
 export function showWaveBanner(text: string, state: "waiting" | "active" | "held" | "breached" = "waiting"): void {

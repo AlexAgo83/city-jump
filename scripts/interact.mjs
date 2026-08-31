@@ -676,6 +676,7 @@ const oceanBefore = await oceanSampleY();
 await realTime(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
 await page.locator('[data-tool="roads"]').click();
+check("road tools show the metre price", /\$\d+\/m/.test(await page.locator("#road-price").textContent()));
 await page.locator('input[name="road-shape"][value="curve"]').check();
 
 await page.mouse.click(360, 360, { button: "right" });
@@ -696,6 +697,7 @@ await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { 
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
+check("building a road spends money", drawn.money < fresh.money, `$${drawn.money} vs $${fresh.money}`);
 check(
   "far enough out the city is drawn as boxes, and the models come back on the way in",
   await page.evaluate(async () => {
@@ -1428,6 +1430,14 @@ await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
 check("a refused road is not added", (await stats()).segments === walked.segments);
+await page.locator('[data-tool="select"]').click();
+await page.locator('[data-tool="roads"]').click();
+await page.evaluate(() => window.cityjump.setMoney(0));
+await click(300, 340);
+await click(500, 280);
+await click(700, 360);
+check("a road the treasury cannot afford is refused", /treasury/.test(await toast()) && (await stats()).segments === walked.segments);
+await page.evaluate(() => window.cityjump.setMoney(20_000));
 
 await page.locator('[data-tool="bulldoze"]').click();
 await page.mouse.move(20, 20);

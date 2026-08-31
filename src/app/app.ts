@@ -16,6 +16,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
+import { STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -39,7 +40,7 @@ import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, rea
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
-import { showCityStats, showCompass, showFps, showRefusal, showSelection, showWaveBanner } from "../ui/hud";
+import { showCityStats, showCompass, showFps, showMoney, showRefusal, showSelection, showWaveBanner } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -63,6 +64,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const zones = new Zones();
   const rubble = new Rubble();
   const buildingLifecycle = new BuildingLifecycle();
+  const treasury = new Treasury();
   const history = createCityHistory<CitySave>(20);
   createOcean(scene);
   const ground = createGround(scene, heightmap);
@@ -129,6 +131,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       const residents = population(currentParcels);
       currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
       showCityStats(residents, buildingNeeds(currentParcels));
+      showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses));
     });
     let junctions: ReturnType<typeof allJunctions>;
     measure("allJunctions", () => {
@@ -210,7 +213,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -222,11 +225,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
-    restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle);
+    restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury);
     addOffshoreBridge();
     rebuild();
     updateUndoRedo();
@@ -349,6 +352,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const residents = population(currentParcels);
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
     showCityStats(residents, buildingNeeds(currentParcels));
+    showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses));
     history.clear();
     rebuild(parcelBounds(hit));
     finishWave("breached");
@@ -416,6 +420,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onSelect,
     "street",
     { beforeChange, afterChange },
+    {
+      roadCost: roadBuildCost,
+      canSpend: (cost) => treasury.canSpend(cost),
+      spend(cost) {
+        const spent = treasury.spend(cost);
+        showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses));
+        return spent;
+      },
+      money: () => treasury.money,
+    },
   );
 
   await seedDefaultDemoSave();
@@ -433,6 +447,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onRoadType(type) {
       tool.setRoadType(type);
     },
+    roadPrice: (type) => roadBuildCost(type, 1),
     onWorldGrid: worldGrid.setVisible,
     onFps: setFpsVisible,
     onShadows: setShadowsEnabled,
@@ -497,7 +512,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] });
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -516,7 +531,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle);
+      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
@@ -554,6 +569,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     advanceClock(simDt);
     if (simDt > 0 && currentParcels.length) {
       currentBuildingStatuses = buildingLifecycle.sync(currentParcels, population(currentParcels), simSeconds);
+      const income = incomePerSecond(population(currentParcels), currentBuildingStatuses);
+      treasury.earn(income * simDt);
+      showMoney(treasury.money, income);
       buildings.updateStates(currentBuildingStatuses);
     }
     updateWave(simDt);
@@ -621,6 +639,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     zones: zones.count(),
     rubble: rubble.count(),
     buildingStates: stateCounts(currentBuildingStatuses),
+    money: treasury.money,
+    income: incomePerSecond(population(currentParcels), currentBuildingStatuses),
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
@@ -651,6 +671,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // For a check that has to click a car: a moving one is somewhere else by the time the click
     // lands, and on a slow machine somewhere else is half a street away.
     setPaused,
+    setMoney: (money: number) => {
+      treasury.replaceWith(money);
+      showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses));
+    },
     measureBuildingStateChange() {
       const started = performance.now();
       currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS);
