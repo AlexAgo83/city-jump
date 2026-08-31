@@ -6,6 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-08-31 22:00:30
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -92,6 +93,23 @@ flowchart TD
   disaster.
 - **A run opens and closes in panels over the map**, not in screens: the island and the prestige
   to spend at the start, the summary and the science earned at the end.
+- **Nothing opens itself.** The selection panel stays where it is, on the right, and is opened by
+  the player and closed with Escape -- the game never opens it. A wave is exactly when the map
+  must not be covered by something nobody asked for, and the rule that guarantees it is simpler
+  than any layout: panels are answers to clicks.
+- **The camera is never taken.** When a wave lands the game points rather than moves: a marker on
+  the edge of the screen for the direction the kaiju is in, and a button in the wave banner that
+  looks at it in one click. Snapping the camera to the coast would be the same theft as taking the
+  clock, and the clock is the player's by decision already.
+- **The fight is read in the two numbers the player was promised.** Before a wave the banner says
+  threat against defence; during it, the same two move -- the threat bar drains as the kaiju takes
+  damage. Nothing else is added: no damage numbers, no health bars over buildings. What happens on
+  the map -- a barracks firing, a building coming apart -- is the map's job. The banner's job is to
+  make the arithmetic the player planned against turn out to have been true.
+- **A meter shows a value, and shouts a direction.** The number is there to be read; the arrow and
+  the colour are there to be noticed. Anything falling is amber, and anything that will reach zero
+  before the next wave lands is red -- because the wave is the deadline that matters, and a rate
+  the player has to project themselves is a rate they will not project.
 
 # Success signals
 - A player who has not touched the game for a minute can tell, without clicking, whether a wave is
@@ -103,14 +121,12 @@ flowchart TD
 - The settings menu contains nothing a player needs during a wave.
 
 # Open questions
-- Where the selection panel lives once the right side carries diagnostics: it currently opens over
-  the map, and a wave is exactly when the map should not be covered.
-- Whether the camera does anything of its own when a wave lands -- pulls back, marks the landing
-  point, or stays entirely under the player's hand.
-- How much of the wave's own fight needs reading: a depleting threat bar may be enough, or the
-  player may need to see which buildings are firing and what is being hit.
-- Whether the compact city strip should show trends rather than values -- an arrow that says the
-  population is falling is worth more than the number it is falling from.
+- Whether the edge marker is enough to find a kaiju on a large island, or whether the minimap this
+  game does not have is the thing actually being asked for.
+- What the wave banner does between waves, when there is no threat to show and the countdown is
+  the only live number on it.
+- Whether "will reach zero before the next wave" can be projected honestly at all, given that the
+  rates it extrapolates change every time the player builds something.
 
 # References
 - Product back-reference: (none yet)
