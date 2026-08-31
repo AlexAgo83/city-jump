@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:04:49
 
 # AI Context
 - Summary: Implementing time controls, and a day that runs at the rate the player chose.
@@ -20,10 +21,17 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. `render/scene.ts`: a simulation clock beside the frame cap -- the day advances by the
+      delta between drawn frames times the chosen rate, and the rate is what pause, play, x2 and
+      x4 set. `frameDelta` already measures the right thing; this is what reads it.
+- [ ] 2. `index.html` and `ui/controls.ts`: the controls themselves, with the date and hour beside
+      them, and Space keeping its meaning as pause.
+- [ ] 3. The sun follows that clock: `setSun` is driven by it rather than by the slider, and the
+      slider writes the hour only while paused, disabled otherwise.
+- [ ] 4. Settings persistence keeps the chosen rate, and a reload comes back paused rather than
+      resuming at x4 into a wave.
+- [ ] 5. An interaction check that the city covers the same ground per second at every rate --
+      the check that already exists for the frame cap, extended to the speeds.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -44,6 +52,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report

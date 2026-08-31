@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:04:49
 
 # AI Context
 - Summary: Implementing game state leaves the settings menu, and the loop gets its screen.
@@ -20,10 +21,18 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. Move the needs panel out of the settings menu, and with it everything a player consults
+      during play. The menu keeps look, performance, saves and a paused-only sun.
+- [ ] 2. The wave banner and the time controls take the top of the screen, together, because they
+      are used together.
+- [ ] 3. The city strip: money and rate, workers assigned against available, food, and one slot for
+      what is short -- one shortage until the gauge panel has been opened once, all of them after.
+- [ ] 4. The ledger behind the gauges: sources and sinks per resource, and formulas with this
+      city's values substituted. It displays terms the simulation reported; it computes nothing.
+- [ ] 5. A State view colouring buildings by why they are not working, and the alert line for facts.
+- [ ] 6. The edge glow for a wave, and the layout rules: nothing opens itself, the camera is never
+      taken, colour never speaks about the future.
+- [ ] 7. Check the screen's budget: nothing permanent was added without something being removed.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -46,6 +55,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report

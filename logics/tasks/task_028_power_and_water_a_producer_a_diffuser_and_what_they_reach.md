@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:04:49
 
 # AI Context
 - Summary: Implementing the second placement verb: a producer, a network on the roads, and a diffuser with a radius.
@@ -20,10 +21,16 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. `sim/utilities.ts`: a producer, a diffuser with a radius, and a network solved over road
+      segments that carry power or water. Pure, tested from a seed.
+- [ ] 2. `sim/roadTypes.ts` and the save: carrying power or water is a property of a segment, which
+      is what keeps this out of a second graph. Option B stays unbuilt.
+- [ ] 3. A Build tool in the dock, with a catalogue, prices and a coverage preview while placing.
+- [ ] 4. Per-district needs: water for homes and farms, power for industry and the military, both
+      for commerce. A building missing one is idle and says which.
+- [ ] 5. A Utilities view beside Zones and Traffic: coverage circles and which roads carry what.
+- [ ] 6. A diffuser destroyed puts its district out, and raises the one-line alert the interface
+      brief allows facts to raise.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -45,6 +52,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report

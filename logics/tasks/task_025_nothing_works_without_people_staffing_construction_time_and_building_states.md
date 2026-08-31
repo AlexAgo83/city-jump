@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:04:49
 
 # AI Context
 - Summary: Implementing staffing from one shared workforce, construction time, and a building whose state reads on the map.
@@ -20,10 +21,17 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. `sim/workforce.ts`: population to workforce, a demand per parcel derived from its kind and
+      size, and an allocation from one global stock in a fixed priority. Pure, tested from a seed.
+- [ ] 2. `sim/buildingKinds.ts`: the needs gauges read staffing rather than parcel counts, so what
+      the panel shows and what the city does stop being two different things.
+- [ ] 3. A parcel gains a lifecycle -- rising, working, idle, rebuilding -- carried in the same
+      derived state as the parcels themselves and saved with the city.
+- [ ] 4. `render/buildings.ts`: scaffolding for a parcel that is rising, an unlit and lifeless one
+      for idle, rubble for rebuilding. Instance colour already exists as the seam for this.
+- [ ] 5. The selection panel says why a building is idle, which is where the diagnosis lives until
+      the interface slice moves it.
+- [ ] 6. Measure: a city of 2,800 buildings changing state must not cost a full rebuild.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -44,6 +52,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report

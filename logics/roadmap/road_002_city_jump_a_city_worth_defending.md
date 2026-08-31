@@ -4,7 +4,7 @@
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:04
+> Indicators reviewed: 2026-08-31 23:05:08
 
 # AI Context
 - Summary: Eight ordered slices that turn a city editor into a game with something at stake. The
@@ -100,6 +100,33 @@ is the point.
   into an output.
 - Exit signal: the median run ends in evacuation rather than destruction, measured across seeds
   rather than felt.
+
+# The order to follow
+Take them in the order they are numbered. It is not a preference: each one is either what the next
+one needs, or what tells you whether the next one is worth doing.
+
+1. **1.0 first, and alone.** It answers a question whose answer can be no. Everything else assumes
+   a wave is worth watching; nobody has seen one. It carries the zone brush with it because a
+   military district cannot otherwise be put where a wave can be tested against it.
+2. **2.0 next, because everything after it is measured in time.** Construction time, growth,
+   production and reload are all rates, and a rate needs a clock the player can stop.
+3. **3.0 before any other economy slice.** Staffing is what makes a building something that can be
+   standing and doing nothing, and money, food and utilities all express themselves through that
+   state. Adding them first would give the player four ways to be blocked and no way to read any.
+4. **4.0 and 5.0 in that order.** Money meters what gets built; food and materials meter what the
+   built thing is worth. Reversed, a city produces before it can pay for anything, and the
+   production has nothing to be spent against.
+5. **6.0 after both**, because a utility is only interesting when there is something it can switch
+   off, and a diffuser is only worth defending when losing it costs production.
+6. **7.0 once there is something to read.** Four slices will have added readouts by then. Laying
+   out a screen before knowing what goes on it is how a screen gets laid out twice.
+7. **8.0 last, and it is the only one that closes the loop.** Science, evacuation, prestige and
+   the balance harness need every earlier slice to exist before they can be tuned against
+   anything.
+
+Two things may be pulled forward if the first slice's answer is yes and impatience wins: the
+**time controls** (2.0), which are small and unblock playing at all, and the **State view** from
+7.0, which is the cheapest way to see what slices 3 to 6 are doing. Nothing else moves.
 
 # Risks
 - **The first slice answers a question that can be answered no.** If a wave is not worth watching,

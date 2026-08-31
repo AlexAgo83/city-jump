@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:04:49
 
 # AI Context
 - Summary: Implementing prices, a treasury, a build queue, and a demolition that gives half back.
@@ -20,10 +21,16 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. `sim/economy.ts`: a treasury, income from population tax and staffed commerce, and a cost
+      table for roads by the metre and buildings by kind and size. Pure, tested from a seed.
+- [ ] 2. The draw tool prices a road before it is committed and refuses what cannot be paid for,
+      through the refusal path that already exists for too steep and too short.
+- [ ] 3. A build queue: a zoned parcel that cannot be paid for waits, and the queue is readable --
+      how many rising, how many waiting for funds.
+- [ ] 4. Rebuilding after a wave proceeds into a negative balance; while it is negative nothing new
+      starts. This is the rule with teeth, and it needs its own test.
+- [ ] 5. Demolition takes time and returns half, for buildings and for roads.
+- [ ] 6. The city strip shows money and its rate; prices appear on the tools that spend it.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -45,6 +52,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report

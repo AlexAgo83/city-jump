@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-08-31 23:04:50
 
 # AI Context
 - Summary: Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -21,10 +21,18 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Confirm scope, dependencies, and linked acceptance criteria.
-- [ ] 2. Implement the next coherent delivery wave.
-- [ ] 3. Update affected Logics docs in the same wave and leave the repository commit-ready.
-- [ ] 4. Keep commit creation under operator control; do not force one commit per micro-step.
+- [ ] 1. `sim/run.ts`: a run's state -- wave number, science, and the two ways it ends. Science from
+      a defeated kaiju, multiplied when the wave was called early and worth nothing when it is not.
+- [ ] 2. How a run opens: the bridge, a road inland, and the starter kit that makes the first
+      minutes possible. No scripted sequence -- the gauges are the tutorial.
+- [ ] 3. `ui/saves.ts`: the run's city and the profile that outlives it as separate saves, and a
+      hardcore setting that deletes the run's save on defeat.
+- [ ] 4. The panels that open and close a run, over the map rather than as screens.
+- [ ] 5. The first upgrade web: nine nodes, three branches, capabilities and information only.
+- [ ] 6. `scripts/balance.mjs` and `npm run balance`: the simulation headless over many seeds
+      against scripted policies, writing `balance/history.jsonl` the way perf writes its own.
+- [ ] 7. Tune until the four criteria in the brief hold, and record which run produced each
+      constant.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -47,6 +55,8 @@
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
 # Validation
+- Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report
