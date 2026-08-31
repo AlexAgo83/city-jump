@@ -1,14 +1,15 @@
 ## task_025_nothing_works_without_people_staffing_construction_time_and_building_states - Nothing works without people: staffing, construction time and building states
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:30
+> Indicators reviewed: 2026-09-01 00:40:57
+> Owner: Codex
 
 # AI Context
 - Summary: Implementing staffing from one shared workforce, construction time, and a building whose state reads on the map.
@@ -21,9 +22,9 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/workforce.ts`: population to workforce, a demand per parcel derived from its kind and
+- [x] 1. `sim/workforce.ts`: population to workforce, a demand per parcel derived from its kind and
       size, and an allocation from one global stock in a fixed priority. Pure, tested from a seed.
-- [ ] 2. `sim/buildingKinds.ts`: the needs gauges read staffing rather than parcel counts, so what
+- [x] 2. `sim/buildingKinds.ts`: the needs gauges read staffing rather than parcel counts, so what
       the panel shows and what the city does stop being two different things.
 - [ ] 3. A parcel gains a lifecycle -- rising, working, idle, rebuilding -- carried in the same
       derived state as the parcels themselves and saved with the city.
@@ -54,10 +55,14 @@
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
   `CONTRIBUTING.md`.
-- (no validation recorded yet)
+- 2026-09-01: `npx vitest run src/sim/workforce.test.ts src/sim/buildingKinds.test.ts` passed.
+- 2026-09-01: `npm run ci` passed.
+- 2026-09-01: `npm run test:e2e` passed.
 
 # Report
-- Not started.
+- 2026-09-01: Added pure workforce allocation from population, parcel kind and parcel size; non-residential parcels are staffed or idle from one shared worker pool.
+- 2026-09-01: Needs gauges now read workforce/staffed demand instead of raw parcel counts.
+- 2026-09-01: Not yet built in this wave: saved lifecycle states, visual construction/idle/rebuilding, selection idle reasons, and the 2,800-building state-change performance check.
 
 # Links
 - Request: `req_023_nothing_works_without_people_staffing_construction_time_and_building_states`

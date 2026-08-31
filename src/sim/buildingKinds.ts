@@ -1,4 +1,5 @@
 import type { BuildingParcel } from "./slots";
+import { allocateWorkforce } from "./workforce";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
@@ -28,22 +29,14 @@ export interface BuildingNeed {
   readonly ratio: number;
 }
 
-/** Homes one farm can feed. A gauge in parcels, not a stock -- the real one arrives with the economy. */
-const HOMES_PER_FARM = 3;
-
-export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind">[]): BuildingNeed[] {
-  const count = (kind: BuildingKind): number => parcels.filter((parcel) => parcel.kind === kind).length;
-  const residential = count("residential");
-  const commercial = count("commercial");
-  const industrial = count("industrial");
-  const agricultural = count("agricultural");
-  const military = count("military");
+export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[]): BuildingNeed[] {
+  const staffing = allocateWorkforce(parcels, population(parcels));
   return [
-    need("residential", residential, commercial + industrial + agricultural + military * 2),
-    need("commercial", commercial, industrial),
-    need("agricultural", agricultural, Math.ceil(residential / HOMES_PER_FARM)),
-    need("industrial", industrial, military),
-    need("military", military, Math.min(Math.floor(residential / 2), industrial)),
+    need("residential", staffing.workforce, staffing.demand),
+    need("commercial", staffing.byKind.commercial.staffedDemand, staffing.byKind.commercial.demand),
+    need("agricultural", staffing.byKind.agricultural.staffedDemand, staffing.byKind.agricultural.demand),
+    need("industrial", staffing.byKind.industrial.staffedDemand, staffing.byKind.industrial.demand),
+    need("military", staffing.byKind.military.staffed, staffing.byKind.military.staffed + staffing.byKind.military.idle),
   ];
 }
 
