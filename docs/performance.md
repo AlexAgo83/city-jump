@@ -186,6 +186,32 @@ an unfocused window drops to 10 fps on its own.
 Both measurement harnesses set the cap to Max before measuring, and so does the interaction test,
 which steps frame by frame.
 
+## Night is a different city
+
+The benchmark framings are at 16:00, and they miss the one thing that still costs half a frame.
+The reference city is saved at 20:15; in its own saved view it measured 52 fps where the daytime
+framings measure 119. Switching each thing off in turn, in that view:
+
+| off              | fps |
+| ---------------- | --: |
+| nothing          |  52 |
+| Glow (bloom)     |  53 |
+| **Lights**       |  98 |
+
+The lamps and headlights are real lights, in two clustered containers -- 1348 of them for the
+streetlights alone, plus one per car. What costs is the clustered lighting pass itself, not their
+number: halving the lights (dropping each lamp's facade light) measured 50, capping materials at
+8 simultaneous lights measured 54, shrinking the cluster's range from 52 m to 28 measured 57.
+Only turning the pass off recovers the frame.
+
+Switching the real lights off beyond a camera distance was tried and reverted: it does give the
+2x back, but the far city goes flat and dark exactly where a night city is worth looking at, and
+a cheap stand-in (an additive decal for each lamp's pool of light) did not come out of the
+renderer in the colour it was given -- worth another go with time to debug it.
+
+So the lever is the player's: **Lights, off**, which is already in the settings and doubles the
+frame rate at night.
+
 ## What is left
 
 - **A repeatable measurement, before anything else.** Every remaining idea is a trade, and this
@@ -194,6 +220,8 @@ which steps frame by frame.
 - **Road surface per tile rather than per segment** -- `road` 184 + `roundabout` 182 + `junction`
   90 + `lane` 55 are still one mesh each. Tried once (above) and reverted; it also needs a
   tile-level dirty region to stop an edit rebuilding whole tiles.
+- **A cheap stand-in for a lamp's pool of light**, so the real lights can be switched off at a
+  distance without the night going flat. See above: the decal renders, but black.
 - **Distance for the rest.** Traffic is culled by distance (above); street furniture, roof clutter
   and building models are still switched by zoom alone, because they are thin-instanced -- culling
   one instance means rewriting the buffer its neighbours are in. Road detail (crossings, kerbs,
