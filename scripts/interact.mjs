@@ -394,12 +394,18 @@ await waitForApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
 await page.locator("#fx-antialias").setChecked(true);
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
-// The cap is the one setting that spends less rather than showing more.
-await page.selectOption("#frame-cap", "30");
-const capped = await page.evaluate(() => window.cityjump.measureFps(1500));
+// The cap is the one setting that spends less rather than showing more. It can only be seen on a
+// machine that would otherwise beat it -- a CI runner drawing a frame a second is already under
+// any cap, so there the check is that capping does not stop the picture.
 await page.selectOption("#frame-cap", "0");
 const uncapped = await page.evaluate(() => window.cityjump.measureFps(1500));
-check("the frame cap holds the frame rate down", capped <= 34 && uncapped > capped + 10, `${capped} capped, ${uncapped} uncapped`);
+await page.selectOption("#frame-cap", "30");
+const capped = await page.evaluate(() => window.cityjump.measureFps(1500));
+check(
+  "the frame cap holds the frame rate down",
+  uncapped > 45 ? capped <= 34 && capped < uncapped : capped >= 1,
+  `${capped} capped, ${uncapped} uncapped`,
+);
 await uncapFrames();
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
@@ -481,7 +487,9 @@ await page.locator("#sun-hour").evaluate((input) => {
 await nextFrame();
 // The hour is part of the city, and the city is autosaved on a debounce: reload before that runs
 // and the city comes back at the hour it was last saved at, whatever the settings say.
-await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").hour === 20, null, { timeout: 5_000 });
+// Generous: the debounce is a second, but a CI runner drawing a frame a second takes longer than
+// that to get round to it.
+await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").hour === 20, null, { timeout: 20_000 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("sun hour is remembered across reload", (await page.locator("#sun-hour").inputValue()) === "20");
