@@ -1,14 +1,14 @@
 ## item_071_give_the_player_the_clock_pause_play_and_speed - Give the player the clock: pause, play and speed
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 70%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:35:37
+> Indicators reviewed: 2026-09-01 00:36:49
 
 # AI Context
 - Summary: The delivery slice for time controls, and a day that runs at the rate the player chose.
@@ -53,6 +53,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_024_give_the_player_the_clock_pause_play_and_speed` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_024_give_the_player_the_clock_pause_play_and_speed`

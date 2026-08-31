@@ -1,14 +1,14 @@
 ## task_024_give_the_player_the_clock_pause_play_and_speed - Give the player the clock: pause, play and speed
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 70%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:35:37
+> Indicators reviewed: 2026-09-01 00:36:49
 > Owner: Codex
 
 # AI Context
@@ -33,16 +33,16 @@
       resuming at x4 into a wave.
 - [x] 5. An interaction check that the city covers the same ground per second at every rate --
       the check that already exists for the frame cap, extended to the speeds.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_071_give_the_player_the_clock_pause_play_and_speed`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: the controls and the readout; proven by an interaction check on each rate.
@@ -54,6 +54,9 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `npm run ci && npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - 2026-09-01: `npm run typecheck` passed.
 - 2026-09-01: `npm run ci` passed.
@@ -63,6 +66,9 @@
 - 2026-09-01: Added permanent time controls, moved them to the lower-left, moved the action palette to the lower-right, and added overlap checks.
 - 2026-09-01: The simulation clock now drives sun/wave time through pause/play/x2/x4; traffic and signals follow the selected rate.
 - 2026-09-01: The selected run rate is persisted, while reload still starts paused.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_071_give_the_player_the_clock_pause_play_and_speed`
+- Related request(s): `req_022_give_the_player_the_clock_pause_play_and_speed`
 
 # Links
 - Request: `req_022_give_the_player_the_clock_pause_play_and_speed`

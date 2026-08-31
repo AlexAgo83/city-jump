@@ -1,12 +1,13 @@
 ## req_022_give_the_player_the_clock_pause_play_and_speed - Give the player the clock: pause, play and speed
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 00:36:49
 
 # AI Context
 - Summary: Pause, play, x2 and x4 as first-class controls, with the day running at the chosen rate and the sun slider demoted to a paused-only tool. Everything already moves on elapsed time, so this is controls and plumbing rather than simulation.
