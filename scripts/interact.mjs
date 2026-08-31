@@ -71,6 +71,10 @@ await waitForApp();
 // machine flat out. The cap has its own check further down, which puts this back afterwards.
 const uncapFrames = () => page.selectOption("#frame-cap", "0");
 await uncapFrames();
+// And the screen-space passes go off: they are the picture, not the behaviour these checks are
+// about, and on a runner rendering in software they cost most of the frame. Each has its own
+// check where it belongs.
+for (const id of ["fx-antialias", "fx-bloom", "fx-ao", "fx-tilt"]) await page.locator(`#${id}`).setChecked(false);
 check("coarse pointer visitors see the desktop input notice", await page.locator("#touch-notice").isVisible());
 
 const stats = () => page.evaluate(() => window.cityjump.stats());
@@ -392,7 +396,9 @@ await page.locator("#fx-antialias").setChecked(false);
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
-await page.locator("#fx-antialias").setChecked(true);
+// Back to how these checks run: no screen-space passes, no frame cap.
+for (const id of ["fx-antialias", "fx-bloom", "fx-ao", "fx-tilt"]) await page.locator(`#${id}`).setChecked(false);
+await uncapFrames();
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 // The cap is the one setting that spends less rather than showing more. It can only be seen on a
 // machine that would otherwise beat it -- a CI runner drawing a frame a second is already under
@@ -596,7 +602,7 @@ await click(500, 280);
 await page.mouse.move(600, 330);
 check("the second click takes the bend", await previewVisible());
 await click(700, 360);
-await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 5_000 });
+await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 20_000 });
 
 const drawn = await stats();
 check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
