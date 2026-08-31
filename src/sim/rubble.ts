@@ -16,6 +16,13 @@ export class Rubble {
     }
   }
 
+  clear(parcel: Pick<BuildingParcel, "cells">): void {
+    for (const cell of parcel.cells) {
+      const { x, z } = buildableCellCentre(cell);
+      this.cells.delete(key(x, z));
+    }
+  }
+
   blocks(parcel: Pick<BuildingParcel, "cells">): boolean {
     return parcel.cells.some((cell) => {
       const { x, z } = buildableCellCentre(cell);
@@ -40,4 +47,3 @@ export class Rubble {
 function key(x: number, z: number): string {
   return `${Math.round(x * 100) / 100}:${Math.round(z * 100) / 100}`;
 }
-

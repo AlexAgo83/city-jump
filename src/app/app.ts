@@ -127,7 +127,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
-      currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel));
+      currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
       syncBuildings();
     });
     let junctions: ReturnType<typeof allJunctions>;
@@ -171,13 +171,23 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   let simSeconds = 0;
   const stateCounts = (): Record<string, number> =>
-    currentBuildingStatuses.reduce((counts, status) => ({ ...counts, [status.state]: (counts[status.state] ?? 0) + 1 }), {} as Record<string, number>);
+    currentBuildingStatuses.reduce((counts, status) => {
+      counts[status.state] = (counts[status.state] ?? 0) + 1;
+      return counts;
+    }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses), stateCounts());
   const syncBuildings = (): void => {
     const residents = population(currentParcels);
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, {
       spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
     });
+    let clearedRubble = false;
+    for (const status of currentBuildingStatuses) {
+      if (status.state === "rebuilding" || !rubble.blocks(status.parcel)) continue;
+      rubble.clear(status.parcel);
+      clearedRubble = true;
+    }
+    if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
     showCityStats(residents, buildingNeeds(currentParcels));
     showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses), stateCounts());
   };
@@ -356,7 +366,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const hit = currentParcels.find((parcel) => distXZ(parcel.position, position) <= WAVE_STARTING_VALUES.destructionRadiusM);
     if (!hit) return;
     rubble.destroy(hit);
-    currentParcels = currentParcels.filter((parcel) => !rubble.blocks(parcel));
+    buildingLifecycle.rebuild(hit, simSeconds, {
+      spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
+    });
     syncBuildings();
     history.clear();
     rebuild(parcelBounds(hit));
@@ -682,7 +694,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     measureBuildingStateChange() {
       const started = performance.now();
-      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS);
+      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS, {
+        spend: (_parcel, cost, allowDebt) => allowDebt && treasury.spend(cost, true),
+      });
       buildings.updateStates(currentBuildingStatuses);
       return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
     },

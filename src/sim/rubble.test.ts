@@ -18,7 +18,8 @@ describe("rubble", () => {
 
     expect(rubble.count()).toBe(parcel.cells.length);
     expect(rubble.blocks(parcel)).toBe(true);
+    rubble.clear(parcel);
+    expect(rubble.blocks(parcel)).toBe(false);
     expect(new Rubble(rubble.toJSON()).toJSON()).toEqual(rubble.toJSON());
   });
 });
-

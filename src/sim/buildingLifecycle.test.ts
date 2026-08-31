@@ -33,6 +33,18 @@ describe("building lifecycle", () => {
     expect(lifecycle.sync(p, 0, 20, { spend: () => funded }).map((status) => [status.state, status.reason])).toEqual([["rising", "construction"]]);
   });
 
+  it("rebuilds damaged parcels through debt while new parcels wait", () => {
+    const lifecycle = new BuildingLifecycle();
+    const damaged = parcel("residential", 0, 2, 2);
+    const fresh = parcel("commercial", 20, 2, 2);
+    const spends: boolean[] = [];
+
+    expect(lifecycle.rebuild(damaged, 10, { spend: (_parcel, _cost, allowDebt) => allowDebt })).toBe(true);
+    expect(lifecycle.sync([damaged, fresh], 0, 20, { spend: (_parcel, _cost, allowDebt) => (spends.push(allowDebt), false) }).map((status) => status.state)).toEqual(["rebuilding", "waiting"]);
+    expect(spends).toEqual([false]);
+    expect(lifecycle.sync([damaged, fresh], 0, 10 + BUILDING_STAGE_SECONDS, { spend: () => false }).map((status) => status.state)).toEqual(["working", "waiting"]);
+  });
+
   it("round-trips active state through saved data", () => {
     const saved: SavedBuildingState[] = [[1, 2, "rising", 12]];
     const lifecycle = new BuildingLifecycle(saved);

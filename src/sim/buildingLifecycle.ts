@@ -49,6 +49,16 @@ export class BuildingLifecycle {
     return statuses;
   }
 
+  rebuild(parcel: BuildingParcel, now: number, funding: BuildingFunding): boolean {
+    if (!funding.spend(parcel, buildingBuildCost(parcel), true)) return false;
+    this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now });
+    return true;
+  }
+
+  stateOf(parcel: Pick<BuildingParcel, "position">): BuildingState | undefined {
+    return this.states.get(parcelKey(parcel))?.state;
+  }
+
   replaceWith(saved: readonly SavedBuildingState[]): void {
     this.states.clear();
     this.last = [...saved];
