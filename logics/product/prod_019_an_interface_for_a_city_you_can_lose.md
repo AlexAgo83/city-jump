@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:19:37
+> Indicators reviewed: 2026-08-31 22:22:41
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -137,9 +137,11 @@ flowchart TD
   whatever the camera is pointed at, and the one thing an edge marker cannot do.
 - **Colour is never the only difference.** Any two colours that carry meaning have to differ in
   lightness as well as hue, so they survive being read by an eye that does not separate them --
-  and so they survive a screenshot in greyscale, which is the cheap test. The palette fails this
-  today: agricultural and residential sit at 0.644 and 0.656 relative luminance, twelve
-  thousandths apart, which is orange and green at the same brightness. That pair has to move.
+  and so they survive a screenshot in greyscale, which is the cheap test. Agriculture is brown
+  rather than orange for this reason -- orange put it within 0.012 relative luminance of
+  residential green, the same brightness and so the same colour to a good share of players -- and
+  commerce moved a little to keep its distance from military purple. The five now run 0.31, 0.44,
+  0.55, 0.66, 0.80, no two closer than a tenth.
 - **The rule the three of them share: the map answers *what*, the banner answers *when*, and
   colour never talks about the future.**
 
@@ -194,8 +196,6 @@ exists, so the screen's budget can be argued about with a list rather than a fee
 - The settings menu contains nothing a player needs during a wave.
 
 # Open questions
-- Which of the two, agricultural or residential, moves in lightness, and whether the five business
-  colours can stay recognisable once they are spread across the range.
 - Whether the estimated threat shown between waves should move continuously as the population
   grows, or settle at intervals. A number that ticks upward while nothing is happening may read as
   pressure rather than information.
