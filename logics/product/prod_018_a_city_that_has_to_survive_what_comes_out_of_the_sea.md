@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 21:48:54
+> Indicators reviewed: 2026-08-31 21:57:32
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -291,6 +291,8 @@ play instead of frames.
 # References
 - Product back-reference: (none yet)
 - Task back-reference: (none yet)
+- Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the
+  screen, which is a move rather than an addition.
 - Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life
   on the network) are the ones this direction bends.
 - Related product: `prod_011_a_city_that_is_built_on_purpose` -- zoning by business, which this
