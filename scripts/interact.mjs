@@ -1746,6 +1746,15 @@ await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not
 await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === fresh.segments);
+await page.evaluate(() => window.cityjump.demoCity());
+await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 10_000 });
+const beforeWave = await stats();
+await page.evaluate(() => window.cityjump.forceWave(10_000));
+await page.waitForFunction((before) => window.cityjump.stats().rubble > 0 && window.cityjump.stats().buildings < before, beforeWave.buildings, { timeout: 5_000 });
+const afterWave = await stats();
+check("the kaiju destroys a building into rubble", afterWave.buildings < beforeWave.buildings && afterWave.rubble > 0, `${beforeWave.buildings} -> ${afterWave.buildings}, rubble ${afterWave.rubble}`);
+await page.locator("#undo-city").click();
+check("undo refuses to cross a wave", /Nothing to undo/.test(await toast()));
 const costs = await page.evaluate(() => window.cityjump.measureCosts());
 check(
   "debug performance measurement reports startup and placement cost",

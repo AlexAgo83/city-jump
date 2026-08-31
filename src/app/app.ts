@@ -4,6 +4,7 @@ import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
 import { createKaijuRenderer } from "../render/kaiju";
 import { createRoadRenderer } from "../render/roadMesh";
+import { createRubbleRenderer } from "../render/rubble";
 import { createScene } from "../render/scene";
 import { createFpsMeter } from "../render/fps";
 import { createStreetlightRenderer } from "../render/streetlights";
@@ -13,6 +14,7 @@ import { createTreeRenderer } from "../render/trees";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { Plantings } from "../sim/plantings";
+import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
 import { buildingNeeds, population } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
@@ -25,8 +27,8 @@ import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, typ
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
-import { v3 } from "../sim/vec";
-import { advanceWaveClock, createWaveClock } from "../sim/wave";
+import { distXZ, v3 } from "../sim/vec";
+import { advanceWaveClock, createWaveClock, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
@@ -52,6 +54,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const graph = new RoadGraph();
   const plantings = new Plantings();
   const zones = new Zones();
+  const rubble = new Rubble();
   const history = createCityHistory<CitySave>(20);
   createOcean(scene);
   const ground = createGround(scene, heightmap);
@@ -63,6 +66,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
+  const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
@@ -108,7 +112,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
-      currentParcels = buildingParcels(currentBuildableCells, zones);
+      currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel));
       showCityStats(population(currentParcels), buildingNeeds(currentParcels));
     });
     let junctions: ReturnType<typeof allJunctions>;
@@ -125,6 +129,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(zones));
+    measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));
     invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
@@ -173,7 +178,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot())) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -185,11 +190,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
-    restoreCity(graph, plantings, zones, city);
+    restoreCity(graph, plantings, zones, city, rubble);
     addOffshoreBridge();
     rebuild();
     updateUndoRedo();
@@ -256,6 +261,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const position = kaijuPositionAt(kaijuPlan, seconds);
     const next = kaijuPositionAt(kaijuPlan, seconds + 0.1);
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
+    const hit = currentParcels.find((parcel) => distXZ(parcel.position, position) <= WAVE_STARTING_VALUES.destructionRadiusM);
+    if (!hit) return;
+    rubble.destroy(hit);
+    currentParcels = currentParcels.filter((parcel) => !rubble.blocks(parcel));
+    showCityStats(population(currentParcels), buildingNeeds(currentParcels));
+    history.clear();
+    rebuild(parcelBounds(hit));
   };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
@@ -388,7 +400,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [] });
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -406,7 +418,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, zones, city);
+      restoreCity(graph, plantings, zones, city, rubble);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
@@ -506,6 +518,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     realStreetlights: streetlights.realLightCount(),
     trees: trees.count(),
     zones: zones.count(),
+    rubble: rubble.count(),
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
@@ -518,9 +531,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // For a check that has to click a car: a moving one is somewhere else by the time the click
     // lands, and on a slow machine somewhere else is half a street away.
     setPaused,
-    forceWave() {
+    forceWave(seconds = 0) {
       waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
       startWave("debug");
+      waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
     },
   });
 
@@ -528,6 +542,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     return graph
       .allNodes()
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
+  }
+
+  function parcelBounds(parcel: BuildingParcel): TerrainBounds {
+    const points = parcel.cells.flatMap((cell) => cell.corners);
+    return {
+      minX: Math.min(...points.map((point) => point.x)) - 16,
+      maxX: Math.max(...points.map((point) => point.x)) + 16,
+      minZ: Math.min(...points.map((point) => point.z)) - 16,
+      maxZ: Math.max(...points.map((point) => point.z)) + 16,
+    };
   }
 }
 

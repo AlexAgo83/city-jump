@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 60%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -30,7 +30,7 @@
       `public/`, its manifest entry, and the architecture test that shipped models are declared.
 - [x] 4. `render/kaiju.ts`: the mesh, the gait articulated in code, the shadow, and the walk driven
       by the sim's position.
-- [ ] 5. Destruction: buildings removed on contact through the existing path, leaving rubble, the
+- [x] 5. Destruction: buildings removed on contact through the existing path, leaving rubble, the
       dirty region repainted, and undo refusing to reach back across a wave.
 - [ ] 6. Batteries: every military parcel, one range, damage by area, fixed reload, missiles with a
       travel time that always hit; the kaiju's hit points equal to the threat.
@@ -76,6 +76,9 @@
   scripts/gen_kaiju.py`, `npm run test:e2e`, and `npm run ci` passed. Reference perf recorded with
   `npm run perf -- --city perf/cities/ma-ville.json`: overview 120 fps, district 114 fps, street
   104 fps, rebuild 554 ms.
+- 2026-08-31 destruction wave: `npm run test:e2e` and `npm run ci` passed. Reference perf recorded
+  with `npm run perf -- --city perf/cities/ma-ville.json`: overview 120 fps, district 120 fps,
+  street 99 fps, rebuild 582 ms.
 
 # Report
 - Started development. Added pure wave countdown constants/clock, pure kaiju landing/path replay,
@@ -84,8 +87,11 @@
 - Added the generated kaiju GLB and manifest, the render/kaiju loader with simple articulated gait,
   shadows, app wiring from the pure sim position, and an e2e debug check that forces a wave and
   verifies the mesh appears.
-- Not yet implemented: destruction/rubble, batteries/missiles, wave banner, edge marker/target
-  highlight, and wave performance recording.
+- Added persistent rubble: a kaiju contact removes the parcel from derived buildings, paints rubble,
+  saves/restores it, clears undo, and repaints the affected region. E2e covers rubble plus undo
+  refusal across the wave.
+- Not yet implemented: batteries/missiles, wave banner, edge marker/target highlight, and wave
+  performance recording.
 
 # Links
 - Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this

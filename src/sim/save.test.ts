@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
+import { Rubble } from "./rubble";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
+import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
@@ -81,6 +83,18 @@ describe("city saves", () => {
     expect(restored.clearedPoints).toEqual([{ x: 300, z: 300, species: "fir" }]);
     expect(restored.isCleared(300, 301)).toBe(true);
     expect(restored.isCleared(400, 400)).toBe(false);
+  });
+
+  it("carries rubble through a save", () => {
+    const graph = city();
+    const rubble = new Rubble();
+    rubble.destroy(buildingParcels(buildableCells(graph))[0]!);
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14, undefined, rubble)))!;
+    const restored = new Rubble();
+    restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, restored);
+
+    expect(restored.toJSON()).toEqual(rubble.toJSON());
   });
 
   it("reads plantings saved before species existed as firs", () => {
@@ -201,7 +215,7 @@ describe("city saves", () => {
   });
 
   it("refuses a segment pointing at a node the save does not contain", () => {
-    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [] };
+    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [], rubble: [] };
     expect(() => restoreCity(new RoadGraph(), new Plantings(), new Zones(), save)).toThrow(/missing node/);
   });
 
@@ -219,6 +233,7 @@ describe("city saves", () => {
       planted: [],
       cleared: [],
       zones: [],
+      rubble: [],
     };
 
     expect(() => restoreCity(graph, plantings, new Zones(), bad)).toThrow(/missing node/);
