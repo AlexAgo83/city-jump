@@ -393,6 +393,32 @@ await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
 await page.locator("#fx-antialias").setChecked(true);
+// Reset puts every kind of control back: a checkbox, a select, a range and a radio.
+await page.locator("#show-grid").setChecked(true);
+await page.locator("#show-shadows").setChecked(false);
+await page.selectOption("#frame-cap", "30");
+await page.locator("#sun-hour").evaluate((input) => {
+  input.value = "22";
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+await page.locator('input[name="camera-mode"][value="orbit"]').check();
+await nextFrame();
+await page.locator("#settings-reset").click();
+await nextFrame();
+const afterReset = await page.evaluate(() => ({
+  grid: document.getElementById("show-grid").checked,
+  shadows: document.getElementById("show-shadows").checked,
+  cap: document.getElementById("frame-cap").value,
+  hour: document.getElementById("sun-hour").value,
+  camera: document.querySelector('input[name="camera-mode"]:checked').value,
+}));
+check(
+  "Reset puts every setting back to its default",
+  !afterReset.grid && afterReset.shadows && afterReset.cap === "60" && afterReset.hour === "14" && afterReset.camera === "free",
+  JSON.stringify(afterReset),
+);
+await uncapFrames();
+
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 // The cap is the one setting that spends less rather than showing more. It can only be seen on a
 // machine that would otherwise beat it -- a CI runner drawing a frame a second is already under

@@ -355,6 +355,33 @@ export function bindControls(handlers: {
     persistSettings();
   });
 
+  /**
+   * Every setting back to what the markup says it should be. The defaults live in `index.html`
+   * as `checked`, `value` and `selected` attributes, and the browser keeps them for us as
+   * `defaultChecked` / `defaultValue` / `defaultSelected` -- so there is no second list of
+   * defaults here to fall out of step with the first. Dispatching the event each control already
+   * listens to means this reuses every handler rather than repeating what they do.
+   */
+  document.getElementById("settings-reset")!.addEventListener("click", () => {
+    for (const control of document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("#toolbar-content input, #toolbar-content select")) {
+      if (control.id.startsWith("save-")) continue; // the saved-city picker is not a setting
+      if (control instanceof HTMLSelectElement) {
+        const fallback = [...control.options].find((option) => option.defaultSelected) ?? control.options[0];
+        if (!fallback || control.value === fallback.value) continue;
+        control.value = fallback.value;
+      } else if (control.type === "checkbox" || control.type === "radio") {
+        if (control.checked === control.defaultChecked) continue;
+        control.checked = control.defaultChecked;
+      } else {
+        if (control.value === control.defaultValue) continue;
+        control.value = control.defaultValue;
+      }
+      control.dispatchEvent(new Event(control instanceof HTMLInputElement && control.type === "range" ? "input" : "change", { bubbles: true }));
+    }
+    setToolbarOpen(true);
+    showRefusal("Settings reset.");
+  });
+
   const stored: UiSettings = readSettings();
   if (stored.settingsOpen !== undefined) setToolbarOpen(stored.settingsOpen);
   applySetting(showGrid, stored.grid);
