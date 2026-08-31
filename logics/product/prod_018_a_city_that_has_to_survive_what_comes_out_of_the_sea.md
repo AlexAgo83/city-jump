@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 21:35:55
+> Indicators reviewed: 2026-08-31 21:43:44
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -164,6 +164,19 @@ flowchart TD
 - **The threat rises with the city.** Waves come with a threat level that follows the population,
   which is what makes growth a decision rather than a free good -- and what makes securing growth
   the thing the player is actually playing.
+- **A wave can be called.** A button asks the kaiju to come early, and pays for the risk in
+  science. Without it a city that is finished has nothing to do but wait; with it, being ready
+  ahead of schedule is worth something. It is the one place the player sets the pace of their own
+  danger.
+- **Population lives in buildings.** Each home holds a share of the residents, so a home destroyed
+  is that share gone -- the kaiju does not kill an abstract number, it walks through the place
+  those people lived. The other way population falls is food: too little for too long and it
+  declines, which is the slow failure to the destruction's fast one.
+- **No equilibrium is free.** Every fix unbalances something else: a farm wants workers, workers
+  want homes, homes want food. A city *can* be brought into balance -- that is the reward for
+  playing well -- but a balanced city earns no science, so standing still is losing slowly. The
+  pressure comes from wanting to progress, not from gauges nagging at a player who has already
+  solved their city.
 - **The player watches a wave, for now.** Everything they could have done, they did before it
   landed: where the military district is, what is staffed, what the coast looks like. Acting
   during an attack is a later question, and it is written down as one rather than assumed away.
@@ -248,15 +261,12 @@ play instead of frames.
   reference city.
 
 # Open questions
-- **How the population actually falls.** Game over at zero is decided; what takes it there is not.
-  Homes destroyed, food lost for long enough, or fear -- each teaches the player something
-  different about what to protect first.
 - **What the upgrade web is made of.** The danger is a bonus that removes the scarcity the whole
   loop is built on: more workers per home, cheaper barracks and faster building all sound
   reasonable and all dissolve the tension one notch at a time.
-- **Whether a wave can be provoked.** The threat follows the city, but a player who wants science
-  and is ready for it has no way to ask for a wave. Being able to call one early is the kind of
-  decision this game is made of -- and the kind that unbalances it if it is free.
+- **What calling a wave early is worth.** The bonus has to price earliness against the schedule
+  rather than the calendar: a small city calling at once faces a small wave, and paying a flat
+  premium for that would make calling strictly correct rather than a decision.
 - **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
   could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
   once one has been watched.
