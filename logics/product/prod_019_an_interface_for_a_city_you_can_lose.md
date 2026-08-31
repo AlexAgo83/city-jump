@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:07:18
+> Indicators reviewed: 2026-08-31 22:09:38
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -126,6 +126,47 @@ flowchart TD
   out in two days" -- not another colour.
 - **The rule the three of them share: the map answers *what*, the banner answers *when*, and
   colour never talks about the future.**
+
+# What the screen ends up holding
+Fifteen or so pieces, four of them permanent. The brief says where things live; this says what
+exists, so the screen's budget can be argued about with a list rather than a feeling.
+
+**Permanent, and new**
+- **The wave banner**: countdown, estimated threat of the next wave, the city's defence, the call
+  button and what calling multiplies by -- and during an attack, the threat bar draining.
+- **The time controls**: pause, play, x2, x4, with the date and the hour, which leaves the settings
+  menu to sit here.
+- **The city strip**: money and its rate, workers assigned against available, food, the run's
+  science, and one slot for whatever is currently short.
+- **The edge marker**: the kaiju's direction and distance, with the button that looks at it.
+
+**On demand**
+- The full gauge panel -- today's needs panel, extended with materials, services, power and water
+  -- opened from the city strip.
+- The selection panel, richer: for a building its state and *why*, its staffing, what supplies it,
+  what it produces; for a diffuser its coverage and what it feeds; for the kaiju its target.
+- The panel that opens a run: the island, and the prestige to spend.
+- The panel that closes one: evacuation or defeat, and the science earned.
+- The upgrade web itself.
+- Alerts: one line each, carrying the predictions colour is not allowed to make.
+
+**On the map, which is UI even though it is not a panel**
+- Scaffolding while a building goes up, an unlit and lifeless one while it is idle, rubble and
+  works while it is rebuilt.
+- The kaiju's current target, highlighted.
+- A diffuser's coverage circle, previewed while placing it.
+- Military range, shown when it is the subject.
+
+**Changed**
+- The tool dock gains **Build** -- producers and diffusers, with a catalogue and prices. Power and
+  Water already sit there, greyed.
+- The zone brush goes from three buttons to six: the five businesses and Clear.
+- The views go from three to five: All, Zones, Traffic, **Utilities**, **State**.
+- Every placement shows its price, and what cannot be afforded looks unavailable.
+
+**Shrunk**
+- The settings menu keeps look, performance, saves, and a sun reduced to a paused-only control. It
+  loses the needs panel, which is the move this brief turns on.
 
 # Success signals
 - A player who has not touched the game for a minute can tell, without clicking, whether a wave is
