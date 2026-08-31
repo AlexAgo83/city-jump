@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 20:28:51
+> Indicators reviewed: 2026-08-31 20:35:31
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -148,6 +148,18 @@ flowchart TD
   makes the road network the thing that structures the city twice over. Option B -- a free-form
   buried network with its own graph -- is kept in reserve for when running along roads proves too
   constraining in play, and is a slice of its own if it ever arrives.
+- **The road proposes, the brush disposes.** Land use has two mechanisms today -- a road type
+  decides the working districts, a brush decides housing and shops -- and the player has to guess
+  which one applies where. One rule replaces both: a road type gives its frontage a **default**
+  business, and the brush can **override** any cell, for any of the five. Painted wins where it is
+  painted; the road decides everywhere else.
+
+  The obvious objection is that painting military anywhere makes defence cheap to place, which is
+  what turrets were rejected for. It does not, because the cost moved: a barracks needs money to
+  build, and workers and power to *work*. Painting is easy; running is not. What this buys is both
+  halves -- a dirt track through the fields still grows farms on its own, and a player watching a
+  kaiju come in from the north-east can zone that coast without first routing a military road to
+  it.
 - **Not every district needs every utility.** Housing and farms want water, industry and the
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.
