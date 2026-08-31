@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:09:38
+> Indicators reviewed: 2026-08-31 22:19:37
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -124,6 +124,22 @@ flowchart TD
   cost the one thing worth protecting here, which is that the numbers on screen can be trusted. If
   play shows people being surprised by a famine, the answer is one line of warning -- "food runs
   out in two days" -- not another colour.
+- **The wave banner becomes the wave's report.** When an attack ends, the thing the player was
+  already watching says how it went -- held or breached, what it cost, what science it left, and
+  how close the two numbers came. It stays until the next countdown replaces it, and clicking it
+  opens the detail: what was destroyed, where, and how long it will be down. Nothing new opens and
+  nothing covers the map, because the map is already showing the answer in rubble.
+- **Undo stops at the wave.** Once an attack begins the player cannot take back what they did
+  before it: undo covers the player's actions, and a wave has made those actions part of a world
+  that has moved on. The button says so rather than silently doing nothing.
+- **A wave announces itself with light.** Until there is sound, the screen's edge carries a slow,
+  unaggressive glow when a wave is coming and while one is landing -- the one alert that works
+  whatever the camera is pointed at, and the one thing an edge marker cannot do.
+- **Colour is never the only difference.** Any two colours that carry meaning have to differ in
+  lightness as well as hue, so they survive being read by an eye that does not separate them --
+  and so they survive a screenshot in greyscale, which is the cheap test. The palette fails this
+  today: agricultural and residential sit at 0.644 and 0.656 relative luminance, twelve
+  thousandths apart, which is orange and green at the same brightness. That pair has to move.
 - **The rule the three of them share: the map answers *what*, the banner answers *when*, and
   colour never talks about the future.**
 
@@ -178,6 +194,8 @@ exists, so the screen's budget can be argued about with a list rather than a fee
 - The settings menu contains nothing a player needs during a wave.
 
 # Open questions
+- Which of the two, agricultural or residential, moves in lightness, and whether the five business
+  colours can stay recognisable once they are spread across the range.
 - Whether the estimated threat shown between waves should move continuously as the population
   grows, or settle at intervals. A number that ticks upward while nothing is happening may read as
   pressure rather than information.

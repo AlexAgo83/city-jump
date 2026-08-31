@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 21:57:32
+> Indicators reviewed: 2026-08-31 22:19:37
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -180,6 +180,14 @@ flowchart TD
   playing well -- but a balanced city earns no science, so standing still is losing slowly. The
   pressure comes from wanting to progress, not from gauges nagging at a player who has already
   solved their city.
+- **Placing a building costs money, resources to run it, and time to raise it.** Nothing appears
+  finished. That third cost is what settles a question the interface would otherwise have to:
+  building during a wave is allowed, because a barracks ordered when the kaiju lands is a
+  building site when it arrives. The clock guards the exploit, not a rule.
+- **Saving is free, and a hardcore mode is where it is not.** This is a solo game and reloading
+  before a bad wave is the player's business -- but the risk economy only means something if the
+  risk is real, so the option that deletes the save on defeat is kept in view rather than argued
+  about. It is one setting, and it is the honest version of the game.
 - **The player watches a wave, for now.** Everything they could have done, they did before it
   landed: where the military district is, what is staffed, what the coast looks like. Acting
   during an attack is a later question, and it is written down as one rather than assumed away.
@@ -212,6 +220,17 @@ flowchart TD
 - **Not every district needs every utility.** Housing and farms want water, industry and the
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.
+
+# How a run opens
+A run starts at the bridge, with a road running inland to a starter kit -- the few buildings that
+make the first minutes possible. From there the player follows the gauges: the strip says what the
+city is short of, and building that is the next move. There is no tutorial and there is no
+scripted sequence; the readout that will guide the player for the whole game is the one that
+guides them at the start.
+
+That places a demand on the interface rather than on the player: what is short has to be **one
+thing at a time and in the right order** -- a slot that says "food, then workers" teaches, and one
+that lists four shortages at once teaches nothing.
 
 # The first upgrade web
 A first cut, to be replaced once a run has been played rather than defended. What matters more
@@ -286,7 +305,8 @@ play instead of frames.
   answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
 - **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
   could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
-  once one has been watched.
+  once one has been watched. Ordering a building is already allowed, and construction time is what
+  makes it a gamble rather than a cheat.
 
 # References
 - Product back-reference: (none yet)
