@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:19:37
+> Indicators reviewed: 2026-08-31 22:28:50
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -158,6 +158,23 @@ flowchart TD
 - **Science comes from waves, and only from waves.** A wave leaves science behind; science
   carried off the island becomes prestige, and prestige buys persistent upgrades on a web the
   player spends between runs. Nothing else in the game produces it.
+- **Barracks fire missiles, at range, on a reload.** Not damage applied while the kaiju stands in
+  a circle: that model only has one answer, which is a belt of barracks around the whole island,
+  and a belt is uniform and expensive and decides nothing. A long range with a travel time lets
+  two or three military clusters cover an island, and a reload makes the damage discrete -- which
+  is what makes a battery readable while it fires, and what gives an upgrade two separate things
+  to improve later. The missile always hits: a chance to miss would make the banner's promise,
+  threat against defence, a lie.
+- **You do not defend a perimeter, you defend an approach.** The kaiju lands slowly and walks at
+  whatever building is nearest, so the player decides its path by deciding what they leave closest
+  to the coast -- and the time it takes to reach anything worth destroying is the window the
+  batteries fire in. A city set back from the shore buys itself that window; one built onto the
+  beach is hit before it has fired three salvoes.
+- **Bait is a strategy, not an exploit.** A cheap building left on a far coast draws the kaiju
+  across the island and through whatever is waiting for it. Sacrificing a barn to walk a monster
+  three kilometres under missile fire is exactly the kind of decision this game should reward, and
+  it is the reason the "call it early" button has a partner: call when the bait is placed and the
+  battery is loaded.
 - **The kaiju walks, it does not hunt.** It arrives from the open sea at a random edge of the map
   -- anywhere but the bridge -- makes for the nearest point of the coast, and from there for
   whatever building is nearest to it, destroying on contact. It is enormous and slow. Slowing it
