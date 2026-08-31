@@ -2,6 +2,7 @@ import { createBuildingRenderer } from "../render/buildings";
 import { installDebugApi } from "../render/debugApi";
 import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
+import { createKaijuRenderer } from "../render/kaiju";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createScene } from "../render/scene";
 import { createFpsMeter } from "../render/fps";
@@ -17,6 +18,7 @@ import { buildingNeeds, population } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
+import { kaijuPositionAt, planKaiju, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
@@ -24,6 +26,7 @@ import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { v3 } from "../sim/vec";
+import { advanceWaveClock, createWaveClock } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
@@ -60,6 +63,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
+  const kaiju = createKaijuRenderer(scene, shadows);
   const buildings = await createBuildingRenderer(scene, graph, shadows);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
@@ -133,6 +137,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let terrainPreset = "rolling";
   let currentBuildableCells: readonly BuildableCell[] = [];
   let currentParcels: readonly BuildingParcel[] = [];
+  let waveClock = createWaveClock();
+  let kaijuPlan: KaijuPlan | null = null;
   let buildingRebuildTimer = 0;
   const scheduleBuildingRebuild = (): void => {
     window.clearTimeout(buildingRebuildTimer);
@@ -224,6 +230,32 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
         resolve(measured);
       }, ms);
     });
+  };
+  const startWave = (seed = String(Math.round(waveClock.elapsedSeconds))): void => {
+    const half = GROUND_SIZE / 2;
+    const coast = Array.from({ length: 32 }, (_, i) => {
+      const a = (i / 32) * Math.PI * 2;
+      return v3(Math.cos(a) * half * 0.92, 0, Math.sin(a) * half * 0.92);
+    });
+    kaijuPlan = planKaiju(
+      seed,
+      { minX: -half, maxX: half, minZ: -half, maxZ: half },
+      coast,
+      currentParcels.map((parcel) => v3(parcel.position.x, parcel.position.y, parcel.position.z)),
+      v3(-360, 0, 1500),
+    );
+  };
+  const updateWave = (dt: number): void => {
+    if (!simPaused) waveClock = advanceWaveClock(waveClock, dt);
+    if (waveClock.active && !kaijuPlan) startWave();
+    if (!waveClock.active || !kaijuPlan) {
+      kaiju.hide();
+      return;
+    }
+    const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
+    const position = kaijuPositionAt(kaijuPlan, seconds);
+    const next = kaijuPositionAt(kaijuPlan, seconds + 0.1);
+    kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
   };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
@@ -404,6 +436,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   if (savedCamera) applyCamera(savedCamera);
   showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
+    const dt = frameDelta() / 1000;
+    updateWave(dt);
     detail.update();
     // Above this the models are indistinguishable from the boxes that stand in for them.
     buildings.setDistant(camera.radius > 1100);
@@ -426,7 +460,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       setCameraMode("free");
       return;
     }
-    const dt = frameDelta() / 1000;
     camera.target.x += (target.x - camera.target.x) * 0.14;
     camera.target.y += (target.y - camera.target.y) * 0.14;
     camera.target.z += (target.z - camera.target.z) * 0.14;
@@ -476,6 +509,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
+    kaiju: kaiju.visible(),
   }), { setWorldGridVisible: worldGrid.setVisible, measureFps });
   Object.assign((window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {}, {
     buildingPoint: () => buildings.buildingPoint(),
@@ -484,6 +518,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // For a check that has to click a car: a moving one is somewhere else by the time the click
     // lands, and on a slow machine somewhere else is half a street away.
     setPaused,
+    forceWave() {
+      waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
+      startWave("debug");
+    },
   });
 
   function surfaceJunctions(): number {

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -26,9 +26,9 @@
       tested from a seed, no renderer.
 - [x] 2. `sim/kaiju.ts`: the landing edge (random, away from the bridge), the nearest coast point,
       the nearest building, and the position at time t. Pure, tested from a seed.
-- [ ] 3. `scripts/gen_kaiju.py` beside `gen_buildings.py`: the model, exported as GLB into
+- [x] 3. `scripts/gen_kaiju.py` beside `gen_buildings.py`: the model, exported as GLB into
       `public/`, its manifest entry, and the architecture test that shipped models are declared.
-- [ ] 4. `render/kaiju.ts`: the mesh, the gait articulated in code, the shadow, and the walk driven
+- [x] 4. `render/kaiju.ts`: the mesh, the gait articulated in code, the shadow, and the walk driven
       by the sim's position.
 - [ ] 5. Destruction: buildings removed on contact through the existing path, leaving rubble, the
       dirty region repainted, and undo refusing to reach back across a wave.
@@ -72,13 +72,20 @@
   `src/sim/slots.test.ts`, and `src/sim/save.test.ts`.
 - 2026-08-31 reference perf baseline recorded with `npm run perf -- --city perf/cities/ma-ville.json`:
   overview 120 fps, district 117 fps, street 104 fps, rebuild 581 ms.
+- 2026-08-31 kaiju-render wave: `/Applications/Blender.app/Contents/MacOS/Blender -b -P
+  scripts/gen_kaiju.py`, `npm run test:e2e`, and `npm run ci` passed. Reference perf recorded with
+  `npm run perf -- --city perf/cities/ma-ville.json`: overview 120 fps, district 114 fps, street
+  104 fps, rebuild 554 ms.
 
 # Report
 - Started development. Added pure wave countdown constants/clock, pure kaiju landing/path replay,
   and the zone prerequisite: all five businesses plus Clear, painted cells beating the road default,
   and saves accepting the restored zone kinds.
-- Not yet implemented: generated/rendered kaiju, destruction/rubble, batteries/missiles, wave
-  banner, edge marker/target highlight, and wave performance recording.
+- Added the generated kaiju GLB and manifest, the render/kaiju loader with simple articulated gait,
+  shadows, app wiring from the pure sim position, and an e2e debug check that forces a wave and
+  verifies the mesh appears.
+- Not yet implemented: destruction/rubble, batteries/missiles, wave banner, edge marker/target
+  highlight, and wave performance recording.
 
 # Links
 - Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this

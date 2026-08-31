@@ -1,0 +1,8 @@
+{
+  "models": {
+    "kaiju": {
+      "file": "kaiju.glb",
+      "heightM": 49
+    }
+  }
+}
