@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:00:30
+> Indicators reviewed: 2026-08-31 22:07:18
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -106,10 +106,26 @@ flowchart TD
   damage. Nothing else is added: no damage numbers, no health bars over buildings. What happens on
   the map -- a barracks firing, a building coming apart -- is the map's job. The banner's job is to
   make the arithmetic the player planned against turn out to have been true.
-- **A meter shows a value, and shouts a direction.** The number is there to be read; the arrow and
-  the colour are there to be noticed. Anything falling is amber, and anything that will reach zero
-  before the next wave lands is red -- because the wave is the deadline that matters, and a rate
-  the player has to project themselves is a rate they will not project.
+- **What is about to die is marked, not mapped.** The question a player has during a wave is not
+  where the kaiju is on the island, it is what it is about to reach -- and that is known, because
+  it walks at whatever building is nearest. So the map highlights its current target, and the edge
+  marker carries the distance. Two pieces of information and no new surface. A minimap is held in
+  reserve, with the sign that would call for it: players sweeping the camera around hunting for a
+  kaiju they cannot find.
+- **Between waves the banner shows the next one.** The estimated threat of the wave to come, the
+  city's defence as it stands, the countdown, and the call button. It is full at all times and it
+  serves the only thing that matters between two waves, which is preparing for the next -- and an
+  estimate that climbs as the population does *is* the game's message: growing makes what is
+  coming worse. The banner is where a player watches their own success turn against them.
+- **A meter shows a value, and shouts a direction -- but colour never speaks about the future.**
+  The number is there to be read, the arrow to be noticed. Amber is falling, red is *empty* -- a
+  fact, not a forecast. A projection would flip a meter between red and green on every building
+  placed, and a light that changes its mind is a light players stop looking at; worse, it would
+  cost the one thing worth protecting here, which is that the numbers on screen can be trusted. If
+  play shows people being surprised by a famine, the answer is one line of warning -- "food runs
+  out in two days" -- not another colour.
+- **The rule the three of them share: the map answers *what*, the banner answers *when*, and
+  colour never talks about the future.**
 
 # Success signals
 - A player who has not touched the game for a minute can tell, without clicking, whether a wave is
@@ -121,12 +137,11 @@ flowchart TD
 - The settings menu contains nothing a player needs during a wave.
 
 # Open questions
-- Whether the edge marker is enough to find a kaiju on a large island, or whether the minimap this
-  game does not have is the thing actually being asked for.
-- What the wave banner does between waves, when there is no threat to show and the countdown is
-  the only live number on it.
-- Whether "will reach zero before the next wave" can be projected honestly at all, given that the
-  rates it extrapolates change every time the player builds something.
+- Whether the estimated threat shown between waves should move continuously as the population
+  grows, or settle at intervals. A number that ticks upward while nothing is happening may read as
+  pressure rather than information.
+- What the target highlight does when the kaiju is between two buildings, or when its target is
+  behind the camera.
 
 # References
 - Product back-reference: (none yet)
