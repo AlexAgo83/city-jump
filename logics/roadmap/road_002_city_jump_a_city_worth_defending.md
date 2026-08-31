@@ -4,7 +4,7 @@
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:59:27
+> Indicators reviewed: 2026-08-31 23:01:04
 
 # AI Context
 - Summary: Eight ordered slices that turn a city editor into a game with something at stake. The
@@ -36,7 +36,9 @@ is the point.
 - Goal: find out whether a wave is worth watching, before anything is built to serve one.
 - Scope: a countdown, a kaiju that lands at a random coast and walks at the nearest building,
   military parcels that fire missiles on a reload, destruction that leaves rubble, and a banner
-  that says held or breached. Hardcoded numbers, no economy, no run.
+  that says held or breached. It also carries the zone brush painting all five businesses, without
+  which a military district only exists where a military road runs and a wave cannot be set up to
+  be tested. Hardcoded numbers, no economy, no run.
 - Exit signal: a wave can be watched end to end, and the answer to "is this worth building a game
   around" is a yes or a no somebody has seen.
 
@@ -93,8 +95,9 @@ is the point.
 - Chain: `req_028_runs_science_and_prestige_leaving_an_island_with_something`
 - Goal: close the loop the whole thing exists for.
 - Scope: science left by a defeated kaiju, evacuation as a decision, the panels that open and
-  close a run, the first upgrade web, the hardcore option that deletes the save, and the balance
-  harness that turns every constant into an output.
+  close a run, how a run opens -- the bridge, a road inland, a starter kit -- the first upgrade web,
+  the hardcore option that deletes the save, and the balance harness that turns every constant
+  into an output.
 - Exit signal: the median run ends in evacuation rather than destruction, measured across seeds
   rather than felt.
 

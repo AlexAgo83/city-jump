@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: The delivery slice for science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -24,6 +25,8 @@
   - Evacuation, and the population reaching zero -- the two ways a run ends.
   - Panels that open and close a run, and a first upgrade web of nine nodes.
   - Separate saves for the run and the profile, and a hardcore option that deletes the run's save.
+  - How a run opens: the bridge, the road inland, and the starter kit that makes the first minutes
+    possible -- the onboarding this game has instead of a tutorial.
   - `npm run balance`: seeds, scripted policies, and the distribution of runs.
 - Out:
   - More nodes than the first web needs; a prestige shop; anything the harness has not measured.
@@ -38,6 +41,7 @@
 - request-AC3 -> This backlog slice. Proof: in scope above.
 - request-AC4 -> This backlog slice. Proof: in scope above.
 - request-AC5 -> This backlog slice. Proof: in scope above.
+- request-AC6 -> This backlog slice. Proof: in scope above.
 
 # Decision framing
 - Product framing: Not needed

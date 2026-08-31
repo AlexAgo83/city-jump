@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -41,6 +42,7 @@
 - request-AC3 -> This task. Proof: implemented and validated here.
 - request-AC4 -> This task. Proof: implemented and validated here.
 - request-AC5 -> This task. Proof: implemented and validated here.
+- request-AC6 -> This task. Proof: implemented and validated here.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 

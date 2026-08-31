@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: The delivery slice for the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -26,6 +27,9 @@
   - Destruction on contact through the existing removal path, leaving rubble, repainting the dirty region.
   - Batteries: every military parcel, one range, damage by area, fixed reload, missiles with travel time that always hit.
   - A banner: threat against firepower before, held or breached after.
+  - The zone brush painting all five businesses, painted beating the road's default -- the
+    prerequisite for putting a military district where a wave can be tested against it.
+  - The edge marker and the target highlight, which are what makes a wave readable at all.
 - Out:
   - Hardcoded constants; the balance harness is `req_028`.
   - Economy, workers, money, utilities, runs and prestige.
@@ -42,6 +46,8 @@
 - request-AC4 -> This backlog slice. Proof: in scope above.
 - request-AC5 -> This backlog slice. Proof: in scope above.
 - request-AC6 -> This backlog slice. Proof: in scope above.
+- request-AC7 -> This backlog slice. Proof: in scope above.
+- request-AC8 -> This backlog slice. Proof: in scope above.
 
 # Decision framing
 - Product framing: Not needed

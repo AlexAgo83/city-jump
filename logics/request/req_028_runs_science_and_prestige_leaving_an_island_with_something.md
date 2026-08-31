@@ -7,6 +7,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.
@@ -34,7 +35,10 @@
   conditions and information -- never on multipliers over the loop's own scarcities.
 - AC4: A run's city and the profile that outlives it are separate saves, and a hardcore setting
   deletes the run's save on defeat.
-- AC5: `npm run balance` reports the distribution of runs across seeds and policies, and every
+- AC5: A run opens at the bridge, with a road inland to a starter kit -- the few buildings that
+  make the first minutes possible -- and no scripted sequence beyond it: the gauges are what tells
+  the player what to build next.
+- AC6: `npm run balance` reports the distribution of runs across seeds and policies, and every
   balance constant traces to one of its runs.
 
 # Definition of Ready (DoR)

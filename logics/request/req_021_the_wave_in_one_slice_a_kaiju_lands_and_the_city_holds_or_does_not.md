@@ -7,6 +7,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: The vertical slice of an attack, hardcoded: a countdown, a kaiju that lands at a random coast and walks at the nearest building, military parcels that fire on a reload, destruction that leaves rubble, and a banner that says held or breached. It exists to answer whether a wave is worth watching before anything is built to serve one.
@@ -40,7 +41,12 @@
   shows threat against the city's firepower before the wave and says held or breached after it.
 - AC5: `sim/kaiju.ts` is pure and covered by tests that run with no renderer, from a fixed seed:
   where it lands, what it targets, where it is at time t.
-- AC6: A wave runs inside the frame budget `docs/performance.md` records for the reference city,
+- AC6: The zone brush paints all five businesses and Clear, and a painted cell beats the road's
+  default -- without it a military district can only exist where a military road runs, which makes
+  a wave impossible to set up and to test.
+- AC7: The wave is legible without a panel: an edge marker carries the kaiju's direction and
+  distance, and its current target is highlighted on the map.
+- AC8: A wave runs inside the frame budget `docs/performance.md` records for the reference city,
   measured rather than asserted.
 
 # Definition of Ready (DoR)

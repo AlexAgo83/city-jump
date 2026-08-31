@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-08-31 23:01:18
 
 # AI Context
 - Summary: Implementing the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -32,9 +33,12 @@
       dirty region repainted, and undo refusing to reach back across a wave.
 - [ ] 6. Batteries: every military parcel, one range, damage by area, fixed reload, missiles with a
       travel time that always hit; the kaiju's hit points equal to the threat.
-- [ ] 7. The banner: threat against firepower before, held or breached after, with the report the
+- [ ] 7. The zone brush: five businesses plus Clear, `parcelKind` reduced to "painted wins, else
+      the road decides", and the saves that carry the three kinds it lost in 0.3.0.
+- [ ] 7b. The edge marker and the target highlight.
+- [ ] 8. The banner: threat against firepower before, held or breached after, with the report the
       brief describes.
-- [ ] 8. Measure a wave against the reference city and record it in `perf/history.jsonl`; a wave
+- [ ] 9. Measure a wave against the reference city and record it in `perf/history.jsonl`; a wave
       that does not fit the budget in `docs/performance.md` is a finding, not a footnote.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
@@ -54,6 +58,8 @@
 - request-AC4 -> This task. Proof: implemented and validated here.
 - request-AC5 -> This task. Proof: implemented and validated here.
 - request-AC6 -> This task. Proof: implemented and validated here.
+- request-AC7 -> This task. Proof: implemented and validated here.
+- request-AC8 -> This task. Proof: implemented and validated here.
 - backlog-AC1 -> This task. Proof: the task stays inside the slice's scope.
 - backlog-AC2 -> This task. Proof: the task is the executable surface of the slice.
 
