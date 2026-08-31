@@ -471,6 +471,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),
     paused: () => simPaused,
+    // For a check that has to click a car: a moving one is somewhere else by the time the click
+    // lands, and on a slow machine somewhere else is half a street away.
+    setPaused,
   });
 
   function surfaceJunctions(): number {

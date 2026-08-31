@@ -45,9 +45,15 @@ read them and what is already known to cost:
 npm run perf -- --city perf/cities/ma-ville.json --label ma-ville
 ```
 
-GitHub Actions keeps browser coverage out of the push gate. Use the `Browser
-Interaction` workflow's manual trigger when a pull request touches rendering, browser
-controls, persistence, or road drawing; it also runs on its weekly schedule.
+Browser coverage is local, and deliberately so. GitHub's runners have no GPU: Chromium
+falls back to a software rasteriser and the app draws about a frame a second, while
+every wait in the interaction test polls once per frame. Run there, the suite stops
+testing the app and starts testing the runner -- and the only way to keep it green is to
+loosen the very assertions that make it worth having. Run `npm run test:e2e` before
+pushing anything that touches rendering, browser controls, persistence or road drawing.
+
+`npm run ci` is what GitHub runs: unit tests, architecture tests, the build and the
+Logics gates -- everything whose answer does not depend on a frame arriving.
 
 ## Pull Requests
 
