@@ -1,9 +1,9 @@
 ## prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea - A city that has to survive what comes out of the sea
 > Date: 2026-08-31
 > Status: Proposed
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_028_runs_science_and_prestige_leaving_an_island_with_something`
+> Related backlog: `item_077_runs_science_and_prestige_leaving_an_island_with_something`
+> Related task: `task_030_runs_science_and_prestige_leaving_an_island_with_something`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
 > Indicators reviewed: 2026-08-31 22:51:18
@@ -388,8 +388,8 @@ play instead of frames.
   answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
 
 # References
-- Product back-reference: (none yet)
-- Task back-reference: (none yet)
+- Product back-reference: `item_077_runs_science_and_prestige_leaving_an_island_with_something`
+- Task back-reference: `task_030_runs_science_and_prestige_leaving_an_island_with_something`
 - Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the
   screen, which is a move rather than an addition.
 - Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life

@@ -1,9 +1,9 @@
 ## prod_019_an_interface_for_a_city_you_can_lose - An interface for a city you can lose
 > Date: 2026-08-31
 > Status: Proposed
-> Related request: (none yet)
-> Related backlog: (none yet)
-> Related task: (none yet)
+> Related request: `req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
+> Related backlog: `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
+> Related task: `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
 > Indicators reviewed: 2026-08-31 22:51:18
@@ -238,8 +238,8 @@ exists, so the screen's budget can be argued about with a list rather than a fee
   behind the camera.
 
 # References
-- Product back-reference: (none yet)
-- Task back-reference: (none yet)
+- Product back-reference: `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
+- Task back-reference: `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 - Source brief: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` -- every rule this
   interface has to make readable.
 - Related product: `prod_007_a_city_you_can_point_at_and_name` (the selection panel this extends),
