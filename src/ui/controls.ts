@@ -19,6 +19,7 @@ export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone"): void;
   onRoadType(type: string): void;
   roadPrice(type: string): number;
+  buildingPrice(kind: ZoneKind): number;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
@@ -193,9 +194,16 @@ export function bindControls(handlers: {
   document.getElementById("spray-radius")!.addEventListener("input", (event) => {
     handlers.onSprayRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
+  const zonePrice = document.getElementById("zone-price") as HTMLOutputElement;
+  const updateZonePrice = (kind: ZoneKind | "clear"): void => {
+    zonePrice.value = kind === "clear" ? "$0" : `$${handlers.buildingPrice(kind).toLocaleString()}+ each`;
+  };
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
     input.addEventListener("change", () => {
-      if (input.checked) handlers.onZoneKind(input.value === "clear" ? "clear" : input.value as ZoneKind);
+      if (!input.checked) return;
+      const kind = input.value === "clear" ? "clear" : input.value as ZoneKind;
+      handlers.onZoneKind(kind);
+      updateZonePrice(kind);
     });
   }
   document.getElementById("zone-radius")!.addEventListener("input", (event) => {

@@ -16,7 +16,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost } from "../sim/economy";
+import { STARTING_MONEY, Treasury, buildingBuildCost, incomePerSecond, roadBuildCost } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -465,6 +465,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.setRoadType(type);
     },
     roadPrice: (type) => roadBuildCost(type, 1),
+    buildingPrice: (kind) => buildingBuildCost({ kind, frontageCells: 1, depthCells: 1 }),
     onWorldGrid: worldGrid.setVisible,
     onFps: setFpsVisible,
     onShadows: setShadowsEnabled,

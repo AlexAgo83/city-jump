@@ -560,6 +560,7 @@ check(
 await page.locator('[data-tool="zones"]').click();
 check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
 check("zone mode exposes a brush size slider", await page.locator("#zone-radius").isVisible());
+check("zone tools show the building price", /\$\d+\+ each/.test(await page.locator("#zone-price").textContent()));
 check(
   "zone mode exposes every business and Clear",
   (await page.locator('input[name="zone-kind"]').evaluateAll((inputs) => inputs.map((input) => input.value).join(","))) ===

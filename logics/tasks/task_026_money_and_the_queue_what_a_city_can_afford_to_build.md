@@ -3,8 +3,8 @@
 > Schema version: 1.0
 > Status: In progress
 > Understanding: 95%
-> Confidence: 87%
-> Progress: 65%
+> Confidence: 88%
+> Progress: 78%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -31,7 +31,7 @@
 - [x] 4. Rebuilding after a wave proceeds into a negative balance; while it is negative nothing new
       starts. This is the rule with teeth, and it needs its own test.
 - [ ] 5. Demolition takes time and returns half, for buildings and for roads.
-- [ ] 6. The city strip shows money and its rate; prices appear on the tools that spend it.
+- [x] 6. The city strip shows money and its rate; prices appear on the tools that spend it.
 - [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
@@ -64,6 +64,8 @@
 - 2026-09-01: `npm exec -- vitest run src/sim/buildingLifecycle.test.ts src/sim/rubble.test.ts src/sim/economy.test.ts` passed.
 - 2026-09-01: `npm run test:e2e` passed with the debt-backed rebuilding interaction check.
 - 2026-09-01: `npm run ci` passed.
+- 2026-09-01: `npm run test:e2e` passed with the zone building price readout check.
+- 2026-09-01: `npm run ci` passed.
 
 # Report
 - 2026-09-01: Added pure treasury, income, road cost and building cost rules.
@@ -71,7 +73,8 @@
 - 2026-09-01: City saves now carry money; older saves load with the starting treasury.
 - 2026-09-01: Buildings now spend from the treasury before rising; unaffordable parcels wait and the HUD reports rising and waiting counts.
 - 2026-09-01: Wave-damaged buildings now enter rebuilding, spend even into debt, keep rubble visible during the work, and leave new builds waiting while money is negative.
-- 2026-09-01: Not yet built: delayed demolition/refund and zone/building price readouts.
+- 2026-09-01: Zone tools now show the minimum building price, alongside the existing road metre price and city money strip.
+- 2026-09-01: Not yet built: delayed demolition/refund.
 
 # Links
 - Request: `req_024_money_and_the_queue_what_a_city_can_afford_to_build`
