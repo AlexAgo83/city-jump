@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 20:39:23
+> Indicators reviewed: 2026-08-31 21:35:55
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -26,6 +26,11 @@ player evacuates to the next island and starts again with what they earned. Leav
 rather than a defeat screen -- leave early and the island is wasted, leave late and it is lost with
 you -- and the coastline is the natural ceiling on how big a city can get before that choice
 arrives, so no artificial cap is needed.
+
+What is carried over is **science**, and a wave is the only place it comes from. The thing that
+destroys the city is the only thing that makes the next one stronger, so a player who never lets a
+wave land never progresses, and one who lets too many land has nothing left to leave with. That
+tension is the game's spine, and every other rule here serves it.
 
 Nothing in the attack needs a new representation. A kaiju walks a path the way a car does, destroys
 the way the bulldozer does, and the destruction repaints the region it touched through the
@@ -61,10 +66,12 @@ flowchart TD
     Commerce -->|services: how fast the city grows| People
     Military -->|defence| Survival{Wave}
     People -->|"population sets the threat"| Survival
-    Survival -->|held| People
-    Survival -->|breached| Ruins[Destruction<br/>and fear]
+    Survival -->|held| Science[("Science<br/>only a wave gives it")]
+    Survival -->|breached| Ruins[Buildings destroyed<br/>rebuilt over time, unusable meanwhile]
     Ruins --> People
-    People -->|"evacuate: earned prestige"| Island[Next island<br/>a new run]
+    Science -->|carried off the island| Prestige[Prestige<br/>persistent upgrades]
+    Prestige --> Island[Next island<br/>a new run]
+    People -->|"reaches zero"| Over[Game over]
 ```
 
 # Goals
@@ -86,6 +93,12 @@ flowchart TD
   sides of it, and what the player carries over is what they earned by staying as long as they did.
 - Utilities are a second thing to plan, not a second tax: power and water reach what a diffuser
   covers, and what needs them differs by district.
+- The player owns the clock. Pause, play, x2 and x4, and the city's day runs at whatever rate is
+  chosen -- so a wave can be watched, and the time between two of them can be skipped.
+- A wave is worth surviving *and* worth having: it is the only source of science, and science is
+  the only thing that leaves the island.
+- Losing a building costs time rather than permanence -- it rebuilds itself, and does nothing
+  while it does, which is a hole in the economy exactly where the kaiju walked.
 
 # Non-goals
 - Anything money is not: wages, prices that move, a market, a budget the player balances. Money
@@ -106,10 +119,13 @@ flowchart TD
 
 # Scope and guardrails
 - In: the workforce constraint, money as the build meter, the resources (food, materials, services,
-  power, water), a population that grows over time within what the city can feed and staff, parcels
-  that wait for demand instead of filling on sight, a wave clock, a kaiju that lands and destroys,
-  military parcels that defend within a range, an evacuation that ends a run, and the readouts that
-  make all of it legible.
+  power, water, science), a population that grows over time within what the city can feed and
+  staff, parcels that wait for demand instead of filling on sight, buildings that take time to go
+  up and to come back, a wave clock, a kaiju that lands and destroys, military parcels that defend
+  within a range, the time controls the player runs all of it at, an evacuation that ends a run,
+  and the readouts that make all of it legible.
+- The sun stops being a slider the player drags while the city runs: the hour follows the
+  simulation clock, and the slider becomes a way to set it while paused.
 - The road graph stays the only authored state (`adr_001`). Population, stocks and staffing are
   derived simulation state, saved alongside it, never a second source of truth for the city.
 - Simulation rules stay deterministic and free of Babylon and browser APIs, testable without a
@@ -132,8 +148,25 @@ flowchart TD
   which is precisely what makes under-building it tempting.
 - **The threat is indexed on population**, fixed at the start of each wave, and grows more slowly
   than the city does, so a well-run city gets ahead instead of running on a treadmill.
-- **Destruction is real.** A wave removes roads and buildings; rebuilding is the player's problem
-  and the next wave's context.
+- **Destruction is real, and temporary.** The kaiju destroys what it touches; the city rebuilds
+  what was destroyed on its own, and a building under reconstruction is as useless as one under
+  construction. The cost of a wave is downtime and lost production in the district it crossed, not
+  a permanent hole in the map.
+- **Science comes from waves, and only from waves.** A wave leaves science behind; science
+  carried off the island becomes prestige, and prestige buys persistent upgrades on a web the
+  player spends between runs. Nothing else in the game produces it.
+- **The kaiju walks, it does not hunt.** It arrives from the open sea at a random edge of the map
+  -- anywhere but the bridge -- makes for the nearest point of the coast, and from there for
+  whatever building is nearest to it, destroying on contact. It is enormous and slow. Slowing it
+  or turning it aside is what technologies are for, later.
+- **A run ends two ways.** The player evacuates, or the population reaches zero and it is over.
+  There is no third: the point of evacuating is to leave before the second one happens.
+- **The threat rises with the city.** Waves come with a threat level that follows the population,
+  which is what makes growth a decision rather than a free good -- and what makes securing growth
+  the thing the player is actually playing.
+- **The player watches a wave, for now.** Everything they could have done, they did before it
+  landed: where the military district is, what is staffed, what the coast looks like. Acting
+  during an attack is a later question, and it is written down as one rather than assumed away.
 - **An island is a run, and the coast is the cap.** There is no rule limiting how big a city may
   get: the buildable land runs out, the waves keep growing, and evacuating to the next island is
   how a run ends and the next one starts richer.
@@ -215,16 +248,20 @@ play instead of frames.
   reference city.
 
 # Open questions
-- What prestige is earned from, and what it buys. Population reached, waves held, and what was
-  standing at evacuation are the obvious candidates; the danger is a bonus that removes the
-  scarcity the whole loop is made of.
-- What being destroyed costs compared with evacuating. If a defeat carries as much as a departure,
-  leaving is never worth choosing.
-- What a wave leaves behind: permanent ruins the player clears, or damage that repairs itself over
-  time. This changes whether a bad wave is a setback or a scar.
-- Where the kaiju lands: the same shore every time, or a coast point chosen per wave. The second
-  makes coastal geography a defensive decision and is the reason to have an island at all.
-- Whether the population should ever fall to zero, and what that means if the answer is yes.
+- **How the population actually falls.** Game over at zero is decided; what takes it there is not.
+  Homes destroyed, food lost for long enough, or fear -- each teaches the player something
+  different about what to protect first.
+- **What the upgrade web is made of.** The danger is a bonus that removes the scarcity the whole
+  loop is built on: more workers per home, cheaper barracks and faster building all sound
+  reasonable and all dissolve the tension one notch at a time.
+- **Whether a wave can be provoked.** The threat follows the city, but a player who wants science
+  and is ready for it has no way to ask for a wave. Being able to call one early is the kind of
+  decision this game is made of -- and the kind that unbalances it if it is free.
+- **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
+  could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
+  once one has been watched.
+- **What the reconstruction actually costs.** Time alone, or money and materials as well. Free
+  rebuilding makes a wave cheap; paid rebuilding can spiral a city that was already struggling.
 
 # References
 - Product back-reference: (none yet)
