@@ -19,7 +19,7 @@ import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
-import { parseCity, serializeCity, restoreCity, type CitySave, type SavedCamera } from "../sim/save";
+import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -354,6 +354,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     canRedo: () => history.canRedo,
     onSave: () => snapshot(true),
     onLoad: loadCity,
+    onNew() {
+      // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [] });
+      // And framed the way the game opens: an empty city carries no camera, and leaving the last
+      // one is leaving the player looking at a patch of grass where their city used to be.
+      // Far enough out to see the island rather than the patch of grass in front of it: a new
+      // city is a place to choose, and the choice is where the coast is.
+      applyCamera({ targetX: 0, targetY: 0, targetZ: 0, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 800 });
+      frameTerrain();
+    },
   });
   updateUndoRedo = controls.updateUndoRedo;
   updateUndoRedo();

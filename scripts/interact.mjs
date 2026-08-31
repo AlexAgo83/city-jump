@@ -1670,6 +1670,18 @@ check(
   `${(await stats()).segments}/${beforeReload.segments}`,
 );
 
+// New: an empty city, framed on the island, and no longer standing on the last save's name.
+const beforeNew = await stats(); // a dialog handler is already accepting everything by this point
+await setSettingsOpen(true);
+await page.locator("#save-new").click();
+await page.waitForFunction((before) => window.cityjump.stats().segments < before, beforeNew.segments, { timeout: 10_000 });
+const started = await page.evaluate(() => ({ ...window.cityjump.stats(), active: localStorage.getItem("cityjump.activeSave"), radius: window.cityjump.cameraState().radius }));
+check(
+  "New starts an empty city and stops standing on the last save",
+  started.buildings === 0 && started.zones === 0 && started.active === null && started.radius > 400,
+  JSON.stringify({ segments: started.segments, buildings: started.buildings, zones: started.zones, active: started.active }),
+);
+
 await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
 await page.reload({ waitUntil: "load" });
 await waitForApp();

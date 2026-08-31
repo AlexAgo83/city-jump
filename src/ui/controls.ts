@@ -43,6 +43,7 @@ export function bindControls(handlers: {
   onSave(): CitySave;
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
+  onNew(): void;
 }): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setPaused(paused: boolean): void; updateUndoRedo(): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
@@ -395,10 +396,11 @@ export function bindControls(handlers: {
  * ponytail: window.prompt for the name. A modal is a lot of markup for one string.
  */
 function bindSaves(
-  handlers: { onSave(): CitySave; onLoad(city: CitySave): boolean },
+  handlers: { onSave(): CitySave; onLoad(city: CitySave): boolean; onNew(): void },
   applyCity: (city: CitySave) => void,
 ): void {
   const slot = document.getElementById("save-slot") as HTMLSelectElement;
+  const create = document.getElementById("save-new") as HTMLButtonElement;
   const store = document.getElementById("save-store") as HTMLButtonElement;
   const load = document.getElementById("save-load") as HTMLButtonElement;
   const share = document.getElementById("save-share") as HTMLButtonElement;
@@ -428,8 +430,20 @@ function bindSaves(
     remove.disabled = names.length === 0;
   };
 
+  create.addEventListener("click", () => {
+    // Nothing here is recoverable through undo -- a new city is not a city change, it is another
+    // city -- so this is the one place that asks before throwing work away.
+    if (!window.confirm("Start a new city? Anything not saved is lost.")) return;
+    handlers.onNew();
+    writeActiveSave(null);
+    refresh();
+    showRefusal("New city.");
+  });
+
   store.addEventListener("click", () => {
-    const suggested = slot.value || "My city";
+    // The city being edited, not whichever name the picker happens to be showing -- suggesting
+    // that one is how a new city gets saved over the demo.
+    const suggested = readActiveSave() ?? slot.value ?? "My city";
     const name = window.prompt("Save the city as:", suggested)?.trim();
     if (!name) return;
     if (listSaves().includes(name) && !window.confirm(`Overwrite "${name}"?`)) return;
