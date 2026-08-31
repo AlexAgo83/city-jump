@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BuildableCell, BuildingParcel } from "../sim/slots";
-import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, roofObjectLimit, roofPropY } from "./buildings";
+import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingStateColor, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -103,6 +103,13 @@ describe("roof props", () => {
     expect(placements.length).toBeGreaterThan(0);
     expect(placements.length).toBeLessThanOrEqual(4);
     expect(placements.some((placement) => placement.matrix.m[14]! > 20)).toBe(false);
+  });
+
+  it("uses distinct map colours for lifecycle states", () => {
+    const p = parcel(0, 0, 2, 2);
+    expect(buildingStateColor(p, { state: "rising" })).not.toEqual(buildingStateColor(p, { state: "working" }));
+    expect(buildingStateColor(p, { state: "idle" })).not.toEqual(buildingStateColor(p, { state: "working" }));
+    expect(buildingStateColor(p, { state: "rebuilding" })).not.toEqual(buildingStateColor(p, { state: "working" }));
   });
 
   it("skips foot decorations on faces touching another building cell", () => {

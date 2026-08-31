@@ -1,12 +1,12 @@
 ## prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea - A city that has to survive what comes out of the sea
 > Date: 2026-08-31
 > Status: Settled
-> Related request: `req_022_give_the_player_the_clock_pause_play_and_speed`
-> Related backlog: `item_071_give_the_player_the_clock_pause_play_and_speed`
-> Related task: `task_024_give_the_player_the_clock_pause_play_and_speed`
+> Related request: `req_023_nothing_works_without_people_staffing_construction_time_and_building_states`
+> Related backlog: `item_072_nothing_works_without_people_staffing_construction_time_and_building_states`
+> Related task: `task_025_nothing_works_without_people_staffing_construction_time_and_building_states`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:36:45
+> Indicators reviewed: 2026-09-01 00:56:12
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -388,8 +388,8 @@ play instead of frames.
   answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
 
 # References
-- Product back-reference: `item_071_give_the_player_the_clock_pause_play_and_speed`
-- Task back-reference: `task_024_give_the_player_the_clock_pause_play_and_speed`
+- Product back-reference: `item_072_nothing_works_without_people_staffing_construction_time_and_building_states`
+- Task back-reference: `task_025_nothing_works_without_people_staffing_construction_time_and_building_states`
 - Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the
   screen, which is a move rather than an addition.
 - Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life

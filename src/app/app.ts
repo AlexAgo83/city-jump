@@ -15,6 +15,7 @@ import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
+import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -61,6 +62,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const plantings = new Plantings();
   const zones = new Zones();
   const rubble = new Rubble();
+  const buildingLifecycle = new BuildingLifecycle();
   const history = createCityHistory<CitySave>(20);
   createOcean(scene);
   const ground = createGround(scene, heightmap);
@@ -124,7 +126,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
       currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel));
-      showCityStats(population(currentParcels), buildingNeeds(currentParcels));
+      const residents = population(currentParcels);
+      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
+      showCityStats(residents, buildingNeeds(currentParcels));
     });
     let junctions: ReturnType<typeof allJunctions>;
     measure("allJunctions", () => {
@@ -142,7 +146,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("zones", () => zoneOverlay.rebuild(zones));
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     if (dirty) scheduleBuildingRebuild();
-    else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentParcels));
+    else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentBuildingStatuses));
     invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
     detail.invalidate(); // and the new meshes have not been through the zoom rules yet
     scheduleAutosave();
@@ -153,6 +157,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let terrainPreset = "rolling";
   let currentBuildableCells: readonly BuildableCell[] = [];
   let currentParcels: readonly BuildingParcel[] = [];
+  let currentBuildingStatuses: readonly BuildingStatus[] = [];
   let waveClock = createWaveClock();
   let kaijuPlan: KaijuPlan | null = null;
   let pendingMissiles: PendingMissile[] = [];
@@ -164,6 +169,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
   };
+  let simSeconds = 0;
   let sunHour = DEFAULT_HOUR;
   const setClockHour = (hour: number): void => {
     sunHour = ((hour % 24) + 24) % 24;
@@ -172,6 +178,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   const advanceClock = (dt: number): void => {
     if (dt <= 0) return;
+    simSeconds += dt;
     const next = sunHour + dt * 0.25;
     simDay += Math.floor(next / 24);
     setClockHour(next);
@@ -203,7 +210,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -215,11 +222,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
-    restoreCity(graph, plantings, zones, city, rubble);
+    restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle);
     addOffshoreBridge();
     rebuild();
     updateUndoRedo();
@@ -339,7 +346,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!hit) return;
     rubble.destroy(hit);
     currentParcels = currentParcels.filter((parcel) => !rubble.blocks(parcel));
-    showCityStats(population(currentParcels), buildingNeeds(currentParcels));
+    const residents = population(currentParcels);
+    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
+    showCityStats(residents, buildingNeeds(currentParcels));
     history.clear();
     rebuild(parcelBounds(hit));
     finishWave("breached");
@@ -488,7 +497,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] });
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -507,7 +516,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, zones, city, rubble);
+      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
@@ -515,6 +524,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     history.clear();
     pendingHistorySnapshot = null;
     resetWave();
+    simSeconds = 0;
     simDay = 1;
     setClockHour(city.hour);
     addOffshoreBridge();
@@ -542,6 +552,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const dt = frameDelta() / 1000;
     const simDt = dt * timeRate;
     advanceClock(simDt);
+    if (simDt > 0 && currentParcels.length) {
+      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, population(currentParcels), simSeconds);
+      buildings.updateStates(currentBuildingStatuses);
+    }
     updateWave(simDt);
     detail.update();
     // Above this the models are indistinguishable from the boxes that stand in for them.
@@ -606,6 +620,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees: trees.count(),
     zones: zones.count(),
     rubble: rubble.count(),
+    buildingStates: stateCounts(currentBuildingStatuses),
     models: buildings.modelCount,
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
@@ -636,6 +651,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // For a check that has to click a car: a moving one is somewhere else by the time the click
     // lands, and on a slow machine somewhere else is half a street away.
     setPaused,
+    measureBuildingStateChange() {
+      const started = performance.now();
+      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS);
+      buildings.updateStates(currentBuildingStatuses);
+      return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts(currentBuildingStatuses) };
+    },
     forceWave(seconds = 0) {
       waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
       startWave("debug");
@@ -666,6 +687,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       maxZ: Math.max(...points.map((point) => point.z)) + 16,
     };
   }
+}
+
+function stateCounts(statuses: readonly BuildingStatus[]): Record<string, number> {
+  return statuses.reduce((counts, status) => ({ ...counts, [status.state]: (counts[status.state] ?? 0) + 1 }), {} as Record<string, number>);
 }
 
 async function seedDefaultDemoSave(): Promise<void> {

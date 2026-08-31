@@ -10,12 +10,13 @@
  * and `conformToRoads` reshapes the ground under them anyway.
  */
 import { RoadGraph, type NodeId } from "./graph";
+import { BuildingLifecycle, type SavedBuildingState } from "./buildingLifecycle";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { Rubble, type SavedRubble } from "./rubble";
 import { v3 } from "./vec";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 const OFFSHORE_SCENERY_Z = 2000;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
@@ -50,9 +51,10 @@ export interface CitySave {
   readonly cleared: readonly SavedPlanting[];
   readonly zones: readonly SavedZone[];
   readonly rubble: readonly SavedRubble[];
+  readonly buildingStates: readonly SavedBuildingState[];
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble()): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle()): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
@@ -62,6 +64,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
     zones: zones.toJSON(),
     rubble: rubble.toJSON(),
+    buildingStates: buildingLifecycle.toJSON(),
     nodes: graph
       .allNodes()
       .map((node) =>
@@ -87,15 +90,16 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
  * has had segments removed no longer numbers its nodes from 1.
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
-export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble()): void {
+export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle()): void {
   replayCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble());
-  replayCity(graph, plantings, zones, save, rubble);
+  replayCity(graph, plantings, zones, save, rubble, buildingLifecycle);
 }
 
-function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble): void {
+function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble, buildingLifecycle = new BuildingLifecycle()): void {
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   zones.replaceWith(save.zones);
   rubble.replaceWith(save.rubble);
+  buildingLifecycle.replaceWith(save.buildingStates);
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();
   const roundabouts: { id: NodeId; lanes: 1 | 2 }[] = [];
@@ -136,8 +140,9 @@ export function parseCity(text: string): CitySave | null {
   const cleared = readPlantings(value.cleared);
   const zones = readZones(value.zones);
   const rubble = readRubble(value.rubble);
+  const buildingStates = readBuildingStates(value.buildingStates);
   const camera = readCamera(value.camera);
-  if (planted === null || cleared === null || zones === null || rubble === null) return null;
+  if (planted === null || cleared === null || zones === null || rubble === null || buildingStates === null) return null;
 
   const nodes = value.nodes.filter(
     (node): node is SavedNode =>
@@ -156,7 +161,7 @@ export function parseCity(text: string): CitySave | null {
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
   if (camera === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones, rubble, ...(camera ? { camera } : {}) };
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, nodes, segments, planted, cleared, zones, rubble, buildingStates, ...(camera ? { camera } : {}) };
 }
 
 function isOffshoreSceneryRoad(graph: RoadGraph, a: NodeId, b: NodeId): boolean {
@@ -206,6 +211,21 @@ function readRubble(value: unknown): SavedRubble[] | null {
       Number.isFinite(point[1]),
   );
   return rubble.length === value.length ? rubble : null;
+}
+
+function readBuildingStates(value: unknown): SavedBuildingState[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const states = value.filter(
+    (state): state is SavedBuildingState =>
+      Array.isArray(state) &&
+      state.length === 4 &&
+      Number.isFinite(state[0]) &&
+      Number.isFinite(state[1]) &&
+      ["rising", "working", "idle", "rebuilding"].includes(state[2] as string) &&
+      Number.isFinite(state[3]),
+  );
+  return states.length === value.length ? states : null;
 }
 
 function readCamera(value: unknown): SavedCamera | undefined | null {

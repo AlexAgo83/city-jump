@@ -18,6 +18,7 @@ import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { terrainHeight } from "../sim/terrain";
 import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
+import type { BuildingStatus } from "../sim/buildingLifecycle";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
@@ -254,6 +255,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let lastPlaced = 0;
   let lastCells: readonly BuildableCell[] = [];
   let lastParcels: readonly BuildingParcel[] = [];
+  let lastStatuses: readonly BuildingStatus[] = [];
 
   function applyBuildingVisibility(): void {
     for (const model of available) model.mesh.setEnabled(visible && !far && model.mesh.thinInstanceCount > 0);
@@ -268,9 +270,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
    * `cells` and `parcels` are the caller's, so the layout is solved once per rebuild rather than
    * once here and once again for the terrain that has to be flattened under it.
    */
-  function rebuild(cells: readonly BuildableCell[], parcels: readonly BuildingParcel[]): number {
+  function rebuild(cells: readonly BuildableCell[], statuses: readonly BuildingStatus[]): number {
     lastCells = cells;
-    lastParcels = parcels;
+    lastStatuses = statuses;
+    lastParcels = statuses.map((status) => status.parcel);
     grid?.dispose();
     grid = cells.length
       ? MeshBuilder.CreateLineSystem(
@@ -295,38 +298,38 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     // shows which grid squares are taken and which are still open, instead of leaving the grid a
     // uniform outline that gives no hint why a building isn't sitting in some of its cells.
     taken?.dispose();
-    taken = parcels.length ? takenCellsMesh(scene, parcels) : null;
+    taken = lastParcels.length ? takenCellsMesh(scene, lastParcels) : null;
     if (taken) {
       taken.material = takenMaterial;
       taken.isPickable = false;
       taken.setEnabled(gridVisible);
     }
-    const buckets = new Map<string, BuildingParcel[]>(available.map((m) => [m.id, []]));
+    const buckets = new Map<string, BuildingStatus[]>(available.map((m) => [m.id, []]));
 
-    for (const parcel of parcels) {
-      buckets.get(buildingModelId(parcel))?.push(parcel);
+    for (const status of statuses) {
+      buckets.get(buildingModelId(status.parcel))?.push(status);
     }
     groundShadow.setInstances(
-      parcels.map((parcel) => ({
+      lastParcels.map((parcel) => ({
         x: parcel.position.x,
         y: parcel.position.y,
         z: parcel.position.z,
         radius: ((parcel.frontageCells + parcel.depthCells) / 2) * GRID.cellSize * 0.3,
       })),
     );
-    const padMatrices = new Float32Array(parcels.length * 16);
-    const padColors = new Float32Array(parcels.length * 4);
-    for (const [i, parcel] of parcels.entries()) {
+    const padMatrices = new Float32Array(lastParcels.length * 16);
+    const padColors = new Float32Array(lastParcels.length * 4);
+    for (const [i, parcel] of lastParcels.entries()) {
       buildingGroundPadMatrix(parcel).copyToArray(padMatrices, i * 16);
       // A farm stands on turned soil, not on the paving every other building gets.
       padColors.set(parcel.kind === "agricultural" ? [0.75, 0.56, 0.38, 1] : [1, 1, 1, 1], i * 4);
     }
     groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
     groundPad.thinInstanceSetBuffer("color", padColors, 4, false);
-    groundPad.thinInstanceCount = parcels.length;
-    const occupiedCells = buildingCellSet(parcels);
+    groundPad.thinInstanceCount = lastParcels.length;
+    const occupiedCells = buildingCellSet(lastParcels);
     const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
-    for (const parcel of parcels) {
+    for (const parcel of lastParcels) {
       for (const placement of buildingFootDecorMatrices(parcel, terrainHeight, buildingBlockedDecorFaces(parcel, occupiedCells))) {
         const bucket = footDecorMatrices.get(placement.kind);
         if (bucket) bucket.push(placement.matrix);
@@ -337,16 +340,17 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     // The stand-in boxes: same footprint, same colour, and as tall as the model that would have
     // stood there -- built every rebuild whether or not they are being drawn, since they are a
     // matrix each and the alternative is a stall the first time the camera pulls out.
-    const distantMatrices = new Float32Array(parcels.length * 16);
-    const distantColors = new Float32Array(parcels.length * 4);
-    for (const [i, parcel] of parcels.entries()) {
+    const distantMatrices = new Float32Array(statuses.length * 16);
+    const distantColors = new Float32Array(statuses.length * 4);
+    for (const [i, status] of statuses.entries()) {
+      const parcel = status.parcel;
       const model = available.find((m) => m.id === buildingModelId(parcel));
-      distantBoxMatrix(parcel, model?.roofY ?? 12).copyToArray(distantMatrices, i * 16);
-      distantColors.set([...distantColor(parcel), 1], i * 4);
+      distantBoxMatrix(parcel, model?.roofY ?? 12, status).copyToArray(distantMatrices, i * 16);
+      distantColors.set([...buildingStateColor(parcel, status), 1], i * 4);
     }
     distant.thinInstanceSetBuffer("matrix", distantMatrices, 16, false);
     distant.thinInstanceSetBuffer("color", distantColors, 4, false);
-    distant.thinInstanceCount = parcels.length;
+    distant.thinInstanceCount = statuses.length;
 
     let placed = 0;
     for (const model of available) {
@@ -358,8 +362,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       if (chosen.length === 0) continue;
 
       const matrices = new Float32Array(chosen.length * 16);
-      for (const [i, parcel] of chosen.entries()) {
-        matrixFor(parcel, model.centerX).copyToArray(matrices, i * 16);
+      for (const [i, status] of chosen.entries()) {
+        matrixFor(status.parcel, model.centerX, status).copyToArray(matrices, i * 16);
       }
       // Non-static: this buffer's instance count changes on every rebuild, and Babylon's
       // default (staticBuffer: true) left the GPU-side buffer sized for whichever rebuild
@@ -368,8 +372,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       // that model, which is what read as buildings losing their roof/trim on a tool switch).
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
       const colors = new Float32Array(chosen.length * 4);
-      for (const [i, parcel] of chosen.entries()) {
-        colors.set([...BUILDING_KIND_STYLE[parcel.kind].color, 1], i * 4);
+      for (const [i, status] of chosen.entries()) {
+        colors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
       }
       model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
       model.mesh.thinInstanceCount = chosen.length;
@@ -380,7 +384,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     // model's roof height and its own footprint, then bucketed by kind the same way a building
     // itself is bucketed by model.
     const propMatrices = new Map<PropKind, Matrix[]>();
-    for (const parcel of parcels) {
+    for (const parcel of lastParcels) {
       // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
       if (buildingModelId(parcel) !== `lot_${parcel.frontageCells}x${parcel.depthCells}`) continue;
       const model = available.find((m) => m.id === buildingModelId(parcel));
@@ -440,6 +444,34 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     return visible ? placed : 0;
   }
 
+  function updateStates(statuses: readonly BuildingStatus[]): void {
+    lastStatuses = statuses;
+    if (!lastParcels.length) return;
+    const buckets = new Map<string, BuildingStatus[]>(available.map((m) => [m.id, []]));
+    for (const status of statuses) buckets.get(buildingModelId(status.parcel))?.push(status);
+    for (const model of available) {
+      const chosen = buckets.get(model.id)!;
+      if (chosen.length === 0) continue;
+      const matrices = new Float32Array(chosen.length * 16);
+      const colors = new Float32Array(chosen.length * 4);
+      for (const [i, status] of chosen.entries()) {
+        matrixFor(status.parcel, model.centerX, status).copyToArray(matrices, i * 16);
+        colors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
+      }
+      model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
+      model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
+    }
+    const distantMatrices = new Float32Array(statuses.length * 16);
+    const distantColors = new Float32Array(statuses.length * 4);
+    for (const [i, status] of statuses.entries()) {
+      const model = available.find((m) => m.id === buildingModelId(status.parcel));
+      distantBoxMatrix(status.parcel, model?.roofY ?? 12, status).copyToArray(distantMatrices, i * 16);
+      distantColors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
+    }
+    distant.thinInstanceSetBuffer("matrix", distantMatrices, 16, false);
+    distant.thinInstanceSetBuffer("color", distantColors, 4, false);
+  }
+
   // The 16 lot models resolve over a few frames, and each used to trigger its own full rebuild --
   // parcel bucketing, roof props and shadows over the *whole* city, once per model. On a small
   // demo city that's unnoticeable; on a real, built-up one it stacked into a multi-second freeze
@@ -451,7 +483,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       if (!model) return;
       available.push(model);
       clearTimeout(modelLoadRebuildTimer);
-      modelLoadRebuildTimer = window.setTimeout(() => rebuild(lastCells, lastParcels), 50);
+      modelLoadRebuildTimer = window.setTimeout(() => rebuild(lastCells, lastStatuses), 50);
     });
   }
   const startupModelCount = available.length;
@@ -483,10 +515,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       lastFaded = faded;
       for (const mesh of Object.values(roofProps)) setMaterialAlpha(mesh.material, faded ? 0.35 : 1);
     },
+    updateStates,
     count: () => (visible ? lastPlaced : 0),
-    buildingAt(x: number, z: number): BuildingParcel | null {
+    buildingAt(x: number, z: number): BuildingStatus | null {
       if (!visible) return null;
-      return lastParcels.find((parcel) => parcel.cells.some((cell) => pointInCell(x, z, cell))) ?? null;
+      return lastStatuses.find((status) => status.parcel.cells.some((cell) => pointInCell(x, z, cell))) ?? null;
     },
     buildingPoint(): { x: number; y: number; z: number } | null {
       const points = lastParcels
@@ -875,13 +908,13 @@ function tintFor(kind: BuildingKind, strength: number): [number, number, number]
   return [1 + (r - 1) * strength, 1 + (g - 1) * strength, 1 + (b - 1) * strength];
 }
 
-function matrixFor(parcel: BuildingParcel, centerX: number): Matrix {
+function matrixFor(parcel: BuildingParcel, centerX: number, status?: Pick<BuildingStatus, "state">): Matrix {
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // Along-frontage direction is the model's +X once rotated.
   const alongX = Math.cos(parcel.rotationY);
   const alongZ = -Math.sin(parcel.rotationY);
   return Matrix.Compose(
-    new Vector3(1, BUILDING_KIND_STYLE[parcel.kind].scaleY, 1),
+    new Vector3(1, BUILDING_KIND_STYLE[parcel.kind].scaleY * buildingStateScaleY(status), 1),
     rotation,
     new Vector3(
       parcel.position.x - alongX * centerX,
@@ -914,20 +947,30 @@ function distantColor(parcel: BuildingParcel): [number, number, number] {
   return WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
 }
 
+export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state">): [number, number, number] {
+  const color = status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
+  return color as [number, number, number];
+}
+
+function buildingStateScaleY(status?: Pick<BuildingStatus, "state">): number {
+  return status?.state === "rising" || status?.state === "rebuilding" ? 0.28 : 1;
+}
+
 /** A box the size of the building that would stand on this parcel, seated on its frontage. */
-function distantBoxMatrix(parcel: BuildingParcel, height: number): Matrix {
+function distantBoxMatrix(parcel: BuildingParcel, height: number, status?: Pick<BuildingStatus, "state">): Matrix {
   const width = parcel.frontageCells * GRID.cellSize - 1.5;
   const depth = parcel.depthCells * GRID.cellSize - 1.5;
+  const scaledHeight = height * buildingStateScaleY(status);
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // The parcel's position is the middle of its frontage; the building runs back from there.
   const backX = -Math.sin(parcel.rotationY);
   const backZ = -Math.cos(parcel.rotationY);
   return Matrix.Compose(
-    new Vector3(width, height, depth),
+    new Vector3(width, scaledHeight, depth),
     rotation,
     new Vector3(
       parcel.position.x + backX * (depth / 2),
-      parcel.position.y + height / 2,
+      parcel.position.y + scaledHeight / 2,
       parcel.position.z + backZ * (depth / 2),
     ),
   );

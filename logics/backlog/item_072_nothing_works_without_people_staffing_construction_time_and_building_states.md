@@ -1,14 +1,14 @@
 ## item_072_nothing_works_without_people_staffing_construction_time_and_building_states - Nothing works without people: staffing, construction time and building states
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:40:57
+> Indicators reviewed: 2026-09-01 00:56:11
 
 # AI Context
 - Summary: The delivery slice for staffing from one shared workforce, construction time, and a building whose state reads on the map.
@@ -54,6 +54,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_025_nothing_works_without_people_staffing_construction_time_and_building_states` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_025_nothing_works_without_people_staffing_construction_time_and_building_states`

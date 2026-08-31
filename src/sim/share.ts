@@ -35,8 +35,9 @@ export async function decodeShare(fragment: string): Promise<SharedCity> {
   return { name: value.name, city };
 }
 
-function quantized(city: CitySave): CitySave {
-  return JSON.parse(JSON.stringify(city), (_key, value) => (typeof value === "number" ? Math.round(value * 10) / 10 : value));
+function quantized(city: CitySave): Omit<CitySave, "buildingStates"> {
+  const { buildingStates: _buildingStates, ...shareable } = city;
+  return JSON.parse(JSON.stringify(shareable), (_key, value) => (typeof value === "number" ? Math.round(value * 10) / 10 : value));
 }
 
 async function gzip(bytes: Uint8Array): Promise<Uint8Array> {

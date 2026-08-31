@@ -15,7 +15,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
 import type { BuildingKind } from "../sim/buildingKinds";
-import type { BuildingParcel } from "../sim/slots";
+import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
 import { type Vec3, v3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
@@ -40,13 +40,13 @@ export type FollowTarget = () => { x: number; y: number; z: number; heading: num
 
 type SelectTarget =
   | BulldozeTarget
-  | { kind: "building"; parcel: BuildingParcel }
+  | { kind: "building"; status: BuildingStatus }
   | { kind: "vehicle"; segment: Segment; vehicle: string; model: string; target: FollowTarget };
 
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
-  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind }
+  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"] }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
   | { kind: "tree" }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number };
@@ -116,7 +116,7 @@ export interface ZoneTools {
 }
 
 export interface SelectionTools {
-  buildingAt(x: number, z: number): BuildingParcel | null;
+  buildingAt(x: number, z: number): BuildingStatus | null;
   vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
   vehicleByMesh(name: string): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
 }
@@ -231,12 +231,14 @@ export function createDrawTool(
       return;
     }
     if (target.kind === "building") {
-      const address = addressForParcel(graph, target.parcel);
+      const address = addressForParcel(graph, target.status.parcel);
       onSelect({
         kind: "building",
         address: `${address.number} ${address.street.name}`,
-        footprint: `${target.parcel.frontageCells}x${target.parcel.depthCells}`,
-        buildingKind: target.parcel.kind,
+        footprint: `${target.status.parcel.frontageCells}x${target.status.parcel.depthCells}`,
+        buildingKind: target.status.parcel.kind,
+        state: target.status.state,
+        ...(target.status.reason ? { reason: target.status.reason } : {}),
       });
       return;
     }
@@ -263,7 +265,7 @@ export function createDrawTool(
     const vehicle = selection.vehicleAt(x, z);
     if (vehicle) return showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
     const building = selection.buildingAt(x, z);
-    if (building) return showSelection({ kind: "building", parcel: building });
+    if (building) return showSelection({ kind: "building", status: building });
     const target = bulldozeTarget(x, z);
     if (!target) return clearSelection();
     showSelection(target);

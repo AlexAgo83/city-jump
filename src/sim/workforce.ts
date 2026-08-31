@@ -7,6 +7,7 @@ export interface Staffing {
   readonly workforce: number;
   readonly demand: number;
   readonly staffedDemand: number;
+  readonly parcels: readonly { readonly index: number; readonly demand: number; readonly staffed: boolean }[];
   readonly byKind: Record<Exclude<BuildingKind, "residential">, { readonly demand: number; readonly staffedDemand: number; readonly staffed: number; readonly idle: number }>;
 }
 
@@ -27,6 +28,7 @@ export function workforceDemand(parcel: WorkforceParcel): number {
 export function allocateWorkforce(parcels: readonly WorkforceParcel[], population: number): Staffing {
   let available = workforceFromPopulation(population);
   const byKind = Object.fromEntries(PRIORITY.map((kind) => [kind, { demand: 0, staffedDemand: 0, staffed: 0, idle: 0 }])) as Record<Exclude<BuildingKind, "residential">, MutableBucket>;
+  const staffed = new Map<number, boolean>();
   const jobs = parcels
     .map((parcel, index) => ({ parcel, index, demand: workforceDemand(parcel) }))
     .filter((job): job is { parcel: WorkforceParcel & { kind: Exclude<BuildingKind, "residential"> }; index: number; demand: number } => job.demand > 0)
@@ -37,9 +39,11 @@ export function allocateWorkforce(parcels: readonly WorkforceParcel[], populatio
     bucket.demand += job.demand;
     if (available >= job.demand) {
       available -= job.demand;
+      staffed.set(job.index, true);
       bucket.staffedDemand += job.demand;
       bucket.staffed += 1;
     } else {
+      staffed.set(job.index, false);
       bucket.idle += 1;
     }
   }
@@ -48,6 +52,7 @@ export function allocateWorkforce(parcels: readonly WorkforceParcel[], populatio
     workforce: workforceFromPopulation(population),
     demand: jobs.reduce((sum, job) => sum + job.demand, 0),
     staffedDemand: Object.values(byKind).reduce((sum, bucket) => sum + bucket.staffedDemand, 0),
+    parcels: jobs.map((job) => ({ index: job.index, demand: job.demand, staffed: staffed.get(job.index) === true })),
     byKind,
   };
 }

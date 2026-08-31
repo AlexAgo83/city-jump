@@ -27,7 +27,7 @@ describe("share links", () => {
     await expect(decodeShare(`city=${"x".repeat(MAX_SHARE_FRAGMENT)}`)).rejects.toThrow(/too large/i);
     const payload = await encodeShare({
       name: "Future",
-      city: { v: SAVE_VERSION + 1, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [] },
+      city: { v: SAVE_VERSION + 1, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] },
     });
     await expect(decodeShare(payload!)).rejects.toThrow(/newer|incompatible/i);
   });

@@ -1,12 +1,13 @@
 ## req_023_nothing_works_without_people_staffing_construction_time_and_building_states - Nothing works without people: staffing, construction time and building states
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 00:56:11
 
 # AI Context
 - Summary: The keystone of the economy: every non-residential parcel needs workers from one shared stock, staffing is binary, buildings take time to go up, and the map shows construction, idle and rebuilding without a panel being opened.

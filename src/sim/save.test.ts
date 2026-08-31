@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
 import { Rubble } from "./rubble";
+import { BuildingLifecycle } from "./buildingLifecycle";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
 import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
@@ -95,6 +96,15 @@ describe("city saves", () => {
     restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, restored);
 
     expect(restored.toJSON()).toEqual(rubble.toJSON());
+  });
+
+  it("carries building lifecycle state through a save", () => {
+    const lifecycle = new BuildingLifecycle([[1, 2, "rising", 12]]);
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), lifecycle)))!;
+    const restored = new BuildingLifecycle();
+    restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), restored);
+
+    expect(restored.toJSON()).toEqual([[1, 2, "rising", 12]]);
   });
 
   it("reads plantings saved before species existed as firs", () => {
@@ -215,7 +225,7 @@ describe("city saves", () => {
   });
 
   it("refuses a segment pointing at a node the save does not contain", () => {
-    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [], rubble: [] };
+    const save: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [[1, 2, 0, 0, 0, "street"]], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] };
     expect(() => restoreCity(new RoadGraph(), new Plantings(), new Zones(), save)).toThrow(/missing node/);
   });
 
@@ -234,6 +244,7 @@ describe("city saves", () => {
       cleared: [],
       zones: [],
       rubble: [],
+      buildingStates: [],
     };
 
     expect(() => restoreCity(graph, plantings, new Zones(), bad)).toThrow(/missing node/);

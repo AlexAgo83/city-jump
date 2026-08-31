@@ -70,6 +70,10 @@ function compact(value: number): string {
   return `${Math.round(value / 1000)}k`;
 }
 
+function stateLabel(state: string): string {
+  return state === "rising" ? "Construction" : state === "idle" ? "Idle" : state === "rebuilding" ? "Rebuilding" : "Working";
+}
+
 const selectionPanel = document.getElementById("selection-panel") as HTMLDivElement;
 const selectionKind = selectionPanel.querySelector(".selection-kind") as HTMLDivElement;
 const selectionRows = selectionPanel.querySelector("dl") as HTMLDListElement;
@@ -94,7 +98,12 @@ export function showSelection(info: SelectionInfo | null): void {
   }
   if (info.kind === "building") {
     selectionKind.textContent = "Building";
-    selectionRows.innerHTML = row("Address", info.address) + row("Type", label(info.buildingKind)) + row("Footprint", info.footprint);
+    selectionRows.innerHTML =
+      row("Address", info.address) +
+      row("Type", label(info.buildingKind)) +
+      row("Footprint", info.footprint) +
+      row("State", stateLabel(info.state)) +
+      (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : "Under construction") : "");
     return;
   }
   if (info.kind === "vehicle") {

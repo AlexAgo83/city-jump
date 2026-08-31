@@ -1331,6 +1331,7 @@ const selectedBuilding = await page.evaluate(() => ({
   ),
 }));
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
+check("a building panel shows its state", Boolean(selectedBuilding.rows.State), JSON.stringify(selectedBuilding.rows));
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await page.evaluate(() => window.cityjump.setPaused(true));
 check("there is a vehicle to select", await page.evaluate(() => window.cityjump.selectVehicle()));
