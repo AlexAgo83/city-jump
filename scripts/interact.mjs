@@ -77,6 +77,7 @@ const stats = () => page.evaluate(() => window.cityjump.stats());
 const cityHudText = () =>
   page.evaluate(() => ({
     population: document.getElementById("population")?.textContent ?? "",
+    money: document.getElementById("money")?.textContent ?? "",
     needs: document.getElementById("needs-panel")?.textContent ?? "",
   }));
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
@@ -698,6 +699,7 @@ const drawn = await stats();
 check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("building a road spends money", drawn.money < fresh.money, `$${drawn.money} vs $${fresh.money}`);
+await page.evaluate(() => window.cityjump.setMoney(200_000));
 check(
   "far enough out the city is drawn as boxes, and the models come back on the way in",
   await page.evaluate(async () => {
@@ -727,6 +729,8 @@ const cityHud = await cityHudText();
 check(
   "the city HUD shows population and one readable gauge per business",
   /residents$/.test(cityHud.population) &&
+    /\$\d/.test(cityHud.money) &&
+    /rising|waiting/.test(cityHud.money) &&
     ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => cityHud.needs.includes(label)),
   JSON.stringify(cityHud),
 );
@@ -1437,7 +1441,6 @@ await click(300, 340);
 await click(500, 280);
 await click(700, 360);
 check("a road the treasury cannot afford is refused", /treasury/.test(await toast()) && (await stats()).segments === walked.segments);
-await page.evaluate(() => window.cityjump.setMoney(20_000));
 
 await page.locator('[data-tool="bulldoze"]').click();
 await page.mouse.move(20, 20);

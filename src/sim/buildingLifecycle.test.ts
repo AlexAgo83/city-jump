@@ -23,6 +23,16 @@ describe("building lifecycle", () => {
     expect(lifecycle.sync(parcels, 48, 10 + BUILDING_STAGE_SECONDS).map((status) => status.state)).toEqual(["working", "working", "idle"]);
   });
 
+  it("leaves unfunded parcels waiting until money is available", () => {
+    const lifecycle = new BuildingLifecycle();
+    const p = [parcel("commercial", 0, 2, 2)];
+    let funded = false;
+
+    expect(lifecycle.sync(p, 0, 10, { spend: () => funded }).map((status) => [status.state, status.reason])).toEqual([["waiting", "funds"]]);
+    funded = true;
+    expect(lifecycle.sync(p, 0, 20, { spend: () => funded }).map((status) => [status.state, status.reason])).toEqual([["rising", "construction"]]);
+  });
+
   it("round-trips active state through saved data", () => {
     const saved: SavedBuildingState[] = [[1, 2, "rising", 12]];
     const lifecycle = new BuildingLifecycle(saved);

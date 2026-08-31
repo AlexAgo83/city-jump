@@ -128,10 +128,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
       currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel));
-      const residents = population(currentParcels);
-      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
-      showCityStats(residents, buildingNeeds(currentParcels));
-      showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses));
+      syncBuildings();
     });
     let junctions: ReturnType<typeof allJunctions>;
     measure("allJunctions", () => {
@@ -173,6 +170,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
   };
   let simSeconds = 0;
+  const stateCounts = (): Record<string, number> =>
+    currentBuildingStatuses.reduce((counts, status) => ({ ...counts, [status.state]: (counts[status.state] ?? 0) + 1 }), {} as Record<string, number>);
+  const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses), stateCounts());
+  const syncBuildings = (): void => {
+    const residents = population(currentParcels);
+    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, {
+      spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
+    });
+    showCityStats(residents, buildingNeeds(currentParcels));
+    showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses), stateCounts());
+  };
   let sunHour = DEFAULT_HOUR;
   const setClockHour = (hour: number): void => {
     sunHour = ((hour % 24) + 24) % 24;
@@ -349,10 +357,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (!hit) return;
     rubble.destroy(hit);
     currentParcels = currentParcels.filter((parcel) => !rubble.blocks(parcel));
-    const residents = population(currentParcels);
-    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds);
-    showCityStats(residents, buildingNeeds(currentParcels));
-    showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses));
+    syncBuildings();
     history.clear();
     rebuild(parcelBounds(hit));
     finishWave("breached");
@@ -425,7 +430,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       canSpend: (cost) => treasury.canSpend(cost),
       spend(cost) {
         const spent = treasury.spend(cost);
-        showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses));
+        updateMoneyHud();
         return spent;
       },
       money: () => treasury.money,
@@ -568,10 +573,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const simDt = dt * timeRate;
     advanceClock(simDt);
     if (simDt > 0 && currentParcels.length) {
-      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, population(currentParcels), simSeconds);
+      syncBuildings();
       const income = incomePerSecond(population(currentParcels), currentBuildingStatuses);
       treasury.earn(income * simDt);
-      showMoney(treasury.money, income);
+      updateMoneyHud();
       buildings.updateStates(currentBuildingStatuses);
     }
     updateWave(simDt);
@@ -638,7 +643,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees: trees.count(),
     zones: zones.count(),
     rubble: rubble.count(),
-    buildingStates: stateCounts(currentBuildingStatuses),
+    buildingStates: stateCounts(),
     money: treasury.money,
     income: incomePerSecond(population(currentParcels), currentBuildingStatuses),
     models: buildings.modelCount,
@@ -673,13 +678,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     setPaused,
     setMoney: (money: number) => {
       treasury.replaceWith(money);
-      showMoney(treasury.money, incomePerSecond(population(currentParcels), currentBuildingStatuses));
+      updateMoneyHud();
     },
     measureBuildingStateChange() {
       const started = performance.now();
       currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS);
       buildings.updateStates(currentBuildingStatuses);
-      return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts(currentBuildingStatuses) };
+      return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
     },
     forceWave(seconds = 0) {
       waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
@@ -711,10 +716,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       maxZ: Math.max(...points.map((point) => point.z)) + 16,
     };
   }
-}
-
-function stateCounts(statuses: readonly BuildingStatus[]): Record<string, number> {
-  return statuses.reduce((counts, status) => ({ ...counts, [status.state]: (counts[status.state] ?? 0) + 1 }), {} as Record<string, number>);
 }
 
 async function seedDefaultDemoSave(): Promise<void> {

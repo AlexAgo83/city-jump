@@ -2,9 +2,9 @@
 > From version: 0.3.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 92%
-> Confidence: 85%
-> Progress: 25%
+> Understanding: 94%
+> Confidence: 87%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -26,7 +26,7 @@
       table for roads by the metre and buildings by kind and size. Pure, tested from a seed.
 - [x] 2. The draw tool prices a road before it is committed and refuses what cannot be paid for,
       through the refusal path that already exists for too steep and too short.
-- [ ] 3. A build queue: a zoned parcel that cannot be paid for waits, and the queue is readable --
+- [x] 3. A build queue: a zoned parcel that cannot be paid for waits, and the queue is readable --
       how many rising, how many waiting for funds.
 - [ ] 4. Rebuilding after a wave proceeds into a negative balance; while it is negative nothing new
       starts. This is the rule with teeth, and it needs its own test.
@@ -58,12 +58,16 @@
 - 2026-09-01: `npx vitest run src/sim/economy.test.ts src/sim/save.test.ts src/sim/share.test.ts src/ui/saves.test.ts src/sim/rules.test.ts` passed.
 - 2026-09-01: `npm run test:e2e` passed.
 - 2026-09-01: `npm run ci` passed.
+- 2026-09-01: `npm exec -- vitest run src/sim/buildingLifecycle.test.ts src/sim/economy.test.ts src/sim/save.test.ts src/render/buildings.test.ts` passed.
+- 2026-09-01: `npm run test:e2e` passed after adding the queue HUD interaction check.
+- 2026-09-01: `npm run ci` passed.
 
 # Report
 - 2026-09-01: Added pure treasury, income, road cost and building cost rules.
 - 2026-09-01: Roads now show a metre price, spend treasury money on commit, and refuse valid road draws when the treasury cannot pay.
 - 2026-09-01: City saves now carry money; older saves load with the starting treasury.
-- 2026-09-01: Not yet built: parcel build queue, rebuilding into debt, delayed demolition/refund, and zone/building price readouts.
+- 2026-09-01: Buildings now spend from the treasury before rising; unaffordable parcels wait and the HUD reports rising and waiting counts.
+- 2026-09-01: Not yet built: rebuilding into debt, delayed demolition/refund, and zone/building price readouts.
 
 # Links
 - Request: `req_024_money_and_the_queue_what_a_city_can_afford_to_build`

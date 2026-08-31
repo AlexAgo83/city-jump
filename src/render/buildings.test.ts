@@ -107,6 +107,7 @@ describe("roof props", () => {
 
   it("uses distinct map colours for lifecycle states", () => {
     const p = parcel(0, 0, 2, 2);
+    expect(buildingStateColor(p, { state: "waiting" })).not.toEqual(buildingStateColor(p, { state: "working" }));
     expect(buildingStateColor(p, { state: "rising" })).not.toEqual(buildingStateColor(p, { state: "working" }));
     expect(buildingStateColor(p, { state: "idle" })).not.toEqual(buildingStateColor(p, { state: "working" }));
     expect(buildingStateColor(p, { state: "rebuilding" })).not.toEqual(buildingStateColor(p, { state: "working" }));

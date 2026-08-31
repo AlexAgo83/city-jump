@@ -948,12 +948,12 @@ function distantColor(parcel: BuildingParcel): [number, number, number] {
 }
 
 export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state">): [number, number, number] {
-  const color = status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
+  const color = status?.state === "waiting" ? [0.18, 0.2, 0.23] : status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
   return color as [number, number, number];
 }
 
 function buildingStateScaleY(status?: Pick<BuildingStatus, "state">): number {
-  return status?.state === "rising" || status?.state === "rebuilding" ? 0.28 : 1;
+  return status?.state === "waiting" || status?.state === "rising" || status?.state === "rebuilding" ? 0.28 : 1;
 }
 
 /** A box the size of the building that would stand on this parcel, seated on its frontage. */

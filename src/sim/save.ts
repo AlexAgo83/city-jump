@@ -228,7 +228,7 @@ function readBuildingStates(value: unknown): SavedBuildingState[] | null {
       state.length === 4 &&
       Number.isFinite(state[0]) &&
       Number.isFinite(state[1]) &&
-      ["rising", "working", "idle", "rebuilding"].includes(state[2] as string) &&
+      ["waiting", "rising", "working", "idle", "rebuilding"].includes(state[2] as string) &&
       Number.isFinite(state[3]),
   );
   return states.length === value.length ? states : null;
