@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:36:13
+> Indicators reviewed: 2026-08-31 22:38:34
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -253,6 +253,15 @@ flowchart TD
   halves -- a dirt track through the fields still grows farms on its own, and a player watching a
   kaiju come in from the north-east can zone that coast without first routing a military road to
   it.
+- **The simulation explains itself.** A rule does not return a number, it returns the number and
+  the terms that made it -- the factors, their names, the unit. The panel that shows a player the
+  arithmetic then displays what the calculation reported about itself rather than recomputing it,
+  so the two cannot drift apart. It is the discipline the building manifest already established:
+  one source, or nobody notices when they disagree.
+
+  It also means there is no separate debug mode to build. The screen that teaches a player why
+  their city is stalling is the screen that shows whoever is balancing the game what the
+  constants are doing.
 - **Not every district needs every utility.** Housing and farms want water, industry and the
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.

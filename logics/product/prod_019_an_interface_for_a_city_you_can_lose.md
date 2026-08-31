@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:31:07
+> Indicators reviewed: 2026-08-31 22:38:34
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top
@@ -101,6 +101,20 @@ flowchart TD
   the edge of the screen for the direction the kaiju is in, and a button in the wave banner that
   looks at it in one click. Snapping the camera to the coast would be the same theft as taking the
   clock, and the clock is the player's by decision already.
+- **Clicking the needs opens the arithmetic.** The city strip opens the gauge panel, and the gauge
+  panel opens the ledger: per resource, where it comes from, where it goes, what is left -- and
+  the formulas with *this city's* numbers substituted into them, not the abstract ones.
+
+  ```
+  Growth = base x food x services x jobs x fear
+         = 0.8  x 1.00 x   1.20   x 0.95 x 1.00
+         = 0.91 residents / day        (capped by 340 homes)
+  ```
+
+  The substitution is what does the work: it teaches the model and diagnoses the city in the same
+  glance -- that line says jobs are what is holding the city back, and nobody had to write a tip
+  saying so. The wave is explained the same way, threat and firepower broken into their terms,
+  which is the honest answer to "how did I lose with more firepower than threat".
 - **Two promises, two surfaces.** The banner shows threat against the city's firepower, which is
   what the player has. Whether that firepower reaches the kaiju is the map's answer, in coverage
   circles and in the path he takes -- so the banner is never made to claim something only the
@@ -167,6 +181,8 @@ exists, so the screen's budget can be argued about with a list rather than a fee
   -- opened from the city strip.
 - The selection panel, richer: for a building its state and *why*, its staffing, what supplies it,
   what it produces; for a diffuser its coverage and what it feeds; for the kaiju its target.
+- The ledger, opened from the gauge panel: every resource's sources and sinks, and the formulas
+  with this city's values substituted.
 - The panel that opens a run: the island, and the prestige to spend.
 - The panel that closes one: evacuation or defeat, and the science earned.
 - The upgrade web itself.
@@ -197,6 +213,10 @@ exists, so the screen's budget can be argued about with a list rather than a fee
 - Every decision a player makes can be made with the game paused, and the interface does not push
   them to unpause to do it.
 - No permanent readout is added without something being removed or folded: the screen has a budget.
+- Every number the ledger shows can be traced to the terms that produced it, and no formula is
+  written down twice.
+- The whole economy fits on one panel. If it does not, the model is too complicated -- and the
+  panel is where that becomes impossible to ignore.
 - The settings menu contains nothing a player needs during a wave.
 
 # Open questions
