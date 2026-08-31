@@ -1165,7 +1165,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
 
     leaveQueue(mover);
     mover.ride = {
-      points,
+      points: fromWhereItIs(mover, points),
       cumulative: pathCumulative(points),
       exit: next,
       from: nodeId,
@@ -1177,6 +1177,30 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
       travelled: 0,
     };
     mover.plan = entry.plan;
+  }
+
+  /**
+   * A transfer path is drawn from the arm's own edge of the junction. A mover does not always
+   * stop exactly there: `limitOf` holds it back from a trim deeper than half the road, so on a
+   * short road between two roundabouts -- where the trim is a whole ring radius -- it ends the
+   * road several metres past that edge. Starting the path at the edge anyway threw the car
+   * backwards onto it, which is the jump seen entering a roundabout.
+   *
+   * So the path starts where the mover actually is, and whatever the path had behind that point
+   * is dropped. On an ordinary road nothing is behind it and the path is untouched.
+   */
+  function fromWhereItIs(mover: Mover, points: Vec3[]): Vec3[] {
+    const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
+    const normal = perpXZ(normalizeXZ(tangent));
+    const offset = offsetOf(mover);
+    const here = v3(position.x + normal.x * offset, position.y, position.z + normal.z * offset);
+    const forward = { x: tangent.x * mover.direction, z: tangent.z * mover.direction };
+    const behind = (point: Vec3): boolean => (point.x - here.x) * forward.x + (point.z - here.z) * forward.z < 0;
+    const ahead = points.filter((point, i) => i === points.length - 1 || !behind(point));
+    const trimmed = [here, ...ahead];
+    // A path with no length is a divide by zero waiting to happen further down: if dropping the
+    // points behind the mover left nothing to drive along, keep the path as drawn.
+    return pathCumulative(trimmed).at(-1)! > 0.5 ? trimmed : points;
   }
 
   /** Turning round where the road simply stops: out on one lane, back on the other. */
