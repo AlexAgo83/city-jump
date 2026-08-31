@@ -1,6 +1,6 @@
 ## road_001_city_jump_playable_city - city-jump playable city
 > Date: 2026-08-27
-> Status: Active
+> Status: Superseded
 > Related product: `prod_001_a_city_that_grows_from_the_roads_you_draw`
 > Related request: `req_001_split_roads_that_cross_each_other_not_only_those_drawn_onto`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
@@ -13,6 +13,11 @@
 - Skip when: You need execution detail for a single backlog item or task, or a release plan with dates.
 
 # Summary
+> Superseded on 2026-08-31 by `road_002_city_jump_a_city_worth_defending`, which sequences the
+> direction `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea` sets. The six strands
+> below stay open and are still where maintenance and craft work belong -- what moved is the
+> sequencing, which this document deliberately did not do and the new one does.
+
 Grow the road-construction prototype into a playable city simulation without replacing the
 graph and derived-view foundations already proven in the browser.
 
