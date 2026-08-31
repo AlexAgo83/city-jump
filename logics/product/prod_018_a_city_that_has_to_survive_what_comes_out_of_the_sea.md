@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 20:35:31
+> Indicators reviewed: 2026-08-31 20:39:23
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -164,6 +164,38 @@ flowchart TD
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.
 
+# How this gets balanced
+Numbers are outputs, not inventions. The simulation is deterministic and runs without a renderer,
+so the way to balance it is to run it -- the same discipline as `docs/performance.md`, applied to
+play instead of frames.
+
+- **One anchor: the interval between waves.** Everything else is quoted against it. An income is
+  credits per interval; a cost is intervals of income *at the city's current size*; a wave is the
+  share of the city that has to have gone to the military. Change the interval and nothing else
+  needs retuning.
+- **The pacing number is how many buildings fit between two waves.** One is suffocating, ten makes
+  the wave stop being a deadline; three to five is the target, and it is what sets the costs once
+  the interval is chosen -- not the other way round.
+- **Money has two sources.** The population pays tax and the commercial district trades. Commerce
+  alone would mean a city that loses its shops in a wave loses its income exactly when it has to
+  rebuild: a death spiral, not a decision.
+- **The threat grows geometrically, the city grows linearly** -- the island is finite and so is the
+  workforce. The military share needed therefore climbs until it passes what the city can feed and
+  staff. The end of a run is a consequence rather than a rule, which is what makes evacuation
+  arrive on its own and at the right moment.
+- **A balance harness, beside the performance one.** It runs the simulation headless over many
+  seeds against scripted player policies -- economy only, always 20% military, one wave late -- and
+  reports the distribution: waves held, population at evacuation, when defence falls behind. The
+  constants are tuned until:
+  - the policy that ignores the military dies at wave 3 or 4, early and legibly;
+  - the policy that builds nothing but military starves by about wave 6;
+  - a balanced policy holds 12 to 15 waves and is then overtaken;
+  - the median run ends in evacuation rather than destruction -- if it does not, leaving is not
+    priced right.
+- **None of this applies to the first slice.** The vertical slice of an attack keeps hardcoded
+  numbers chosen to make one wave playable in a minute. Balancing an engine before it has been run
+  is tuning to taste; the harness comes once the loop exists and is known to be worth playing.
+
 # Success signals
 - A city can be lost, and the loss is explicable: the player can point at the number that was too
   small before the wave landed.
@@ -177,6 +209,8 @@ flowchart TD
 - A district goes dark when its diffuser is destroyed, and the player can see which one it was.
 - A run ends by evacuation at least as often as by defeat -- if nobody ever chooses to leave, the
   choice is not priced right.
+- Every balance constant in the game can be traced to a harness run rather than to someone's
+  judgement on the day.
 - The frame rate through a wave stays inside the budget `docs/performance.md` records for the
   reference city.
 
