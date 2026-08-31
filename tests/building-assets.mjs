@@ -37,11 +37,25 @@ function close(actual, expected, model, quantity) {
   assert.ok(Math.abs(actual - expected) <= EPSILON, `${model} ${quantity}: manifest=${expected}, glb=${actual}`);
 }
 
-test("building manifest agrees with shipped GLB height facts", async () => {
+test("every shipped building model has a manifest entry", async () => {
+  const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
+  const shipped = readdirSync(BUILDINGS)
+    .filter((name) => /^(lot|farm|industrial|military)_\dx\d\.glb$/.test(name))
+    .map((name) => name.slice(0, -4))
+    .sort();
+
+  assert.deepEqual(Object.keys(manifest.models).sort(), shipped);
+});
+
+/**
+ * The roof facts are what the renderer stands roof props on, and only the lot models carry them:
+ * a farm, a works or a compound has a stack or a silo of its own and gets no props, so its
+ * manifest entry only has to exist. The height contract is checked where it is relied on.
+ */
+test("the lot manifest agrees with shipped GLB height facts", async () => {
   const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
   const models = readdirSync(BUILDINGS).filter((name) => /^lot_\dx\d\.glb$/.test(name)).map((name) => name.slice(0, -4)).sort();
 
-  assert.deepEqual(Object.keys(manifest.models).sort(), models);
   for (const model of models) {
     const roof = manifest.models[model];
     const bounds = boundsOf(glbJson(await readFile(new URL(`${model}.glb`, BUILDINGS))));

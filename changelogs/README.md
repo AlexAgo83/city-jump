@@ -11,5 +11,6 @@ Contract:
 
 Versions:
 
+- [`0.3.0`](CHANGELOGS_0_3_0.md)
 - [`0.2.0`](CHANGELOGS_0_2_0.md)
 - [`0.1.0`](CHANGELOGS_0_1_0.md)
