@@ -414,7 +414,7 @@ const afterReset = await page.evaluate(() => ({
 }));
 check(
   "Reset puts every setting back to its default",
-  !afterReset.grid && afterReset.shadows && afterReset.cap === "60" && afterReset.hour === "14" && afterReset.camera === "free",
+  !afterReset.grid && afterReset.shadows && afterReset.cap === "60" && afterReset.hour === "18.5" && afterReset.camera === "free",
   JSON.stringify(afterReset),
 );
 await uncapFrames();
@@ -431,6 +431,26 @@ check(
   "the frame cap holds the frame rate down",
   uncapped > 45 ? capped <= 34 && capped < uncapped : capped >= 1,
   `${capped} capped, ${uncapped} uncapped`,
+);
+// And the city runs at the same speed whatever the cap: everything moves on elapsed time, so a
+// longer frame is a longer step. Measured, because the engine's own delta counts animation frames
+// this render loop skips, and driving movement from that made a capped city crawl.
+const metresPerSecond = async () => page.evaluate(async () => {
+  const cars = window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("traffic_"));
+  const before = cars.map((mesh) => mesh.position.clone());
+  const started = performance.now();
+  await new Promise((resolve) => setTimeout(resolve, 2500));
+  const seconds = (performance.now() - started) / 1000;
+  return cars.reduce((sum, mesh, i) => sum + mesh.position.subtract(before[i]).length(), 0) / cars.length / seconds;
+});
+await page.selectOption("#frame-cap", "30");
+const slowSpeed = await metresPerSecond();
+await uncapFrames();
+const fastSpeed = await metresPerSecond();
+check(
+  "traffic covers the same ground whatever the frame cap",
+  slowSpeed > 1 && Math.abs(slowSpeed - fastSpeed) / fastSpeed < 0.25,
+  `${slowSpeed.toFixed(1)} m/s capped, ${fastSpeed.toFixed(1)} m/s uncapped`,
 );
 await uncapFrames();
 await page.locator("#show-fps").check();

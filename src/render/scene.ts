@@ -5,6 +5,7 @@ import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { CascadedShadowGenerator } from "@babylonjs/core/Lights/Shadows/cascadedShadowGenerator";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { DEFAULT_HOUR } from "./streetlights";
 import { RenderTargetTexture } from "@babylonjs/core/Materials/Textures/renderTargetTexture";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -52,7 +53,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   camera.wheelPrecision = 0.6;
   camera.panningSensibility = 12;
   camera.panningInertia = 0.7;
-  attachKeyboardPan(scene, camera);
+  attachKeyboardPan(scene, camera, () => frameDeltaMs);
 
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
   ambient.intensity = 0.52;
@@ -131,7 +132,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   const invalidateShadows = (): void => {
     shadowKey = "";
   };
-  setSunHour(14);
+  setSunHour(DEFAULT_HOUR);
 
   /**
    * How many frames a second to actually draw. The city runs flat out otherwise -- on a 120 Hz
@@ -145,6 +146,15 @@ export function createScene(canvas: HTMLCanvasElement) {
   let frameIntervalMs = 1000 / 60;
   let idleIntervalMs = 0;
   let lastFrame = 0;
+  /**
+   * Milliseconds between the frames actually drawn -- which is not what the engine reports once
+   * this loop starts skipping some. Babylon samples its own delta every animation frame, so with
+   * a cap on it reads the gap between two *animation* frames while the simulation has waited for
+   * several: everything driven by it then moves at a rate that follows the frame rate rather than
+   * the clock, and a city at 30 fps ran at a quarter of its speed at 120.
+   */
+  let frameDeltaMs = 0;
+  let lastDrawn = 0;
   const setFrameCap = (fps: number): void => {
     frameIntervalMs = fps > 0 ? 1000 / fps : 0;
   };
@@ -164,11 +174,14 @@ export function createScene(canvas: HTMLCanvasElement) {
       if (now - lastFrame < interval - 0.5) return;
       lastFrame = now;
     }
+    const drawnAt = performance.now();
+    frameDeltaMs = lastDrawn === 0 ? 1000 / 60 : drawnAt - lastDrawn;
+    lastDrawn = drawnAt;
     scene.render();
   });
   window.addEventListener("resize", () => engine.resize());
 
-  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap };
+  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap, frameDelta: () => frameDeltaMs };
 }
 
 const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
@@ -184,7 +197,7 @@ const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
  * turning the camera turns what "forward" means.
  * ponytail: held-key set + one per-frame vector, no input abstraction layer.
  */
-function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera): void {
+function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: () => number): void {
   camera.keysUp = [];
   camera.keysDown = [];
   camera.keysLeft = [];
@@ -224,7 +237,7 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera): void {
 
     // Speed scales with zoom: the same keypress should cover the same fraction of the screen
     // whether you are on a street or looking at the whole island.
-    const step = (camera.radius * 0.9 * scene.getEngine().getDeltaTime()) / 1000;
+    const step = (camera.radius * 0.9 * frameDelta()) / 1000;
     move.normalize().scaleInPlace(step);
     camera.target.x = clamp(camera.target.x + move.x, PAN_LIMIT);
     camera.target.z = clamp(camera.target.z + move.z, PAN_LIMIT);

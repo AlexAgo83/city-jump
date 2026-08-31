@@ -29,14 +29,14 @@ import { bindControls } from "../ui/controls";
 import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
-import { streetlightsOnAt } from "../render/streetlights";
+import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showCityStats, showCompass, showFps, showRefusal, showSelection } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap } = createScene(canvas);
+  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap, frameDelta } = createScene(canvas);
   const detail = createDetailCuller(scene, camera);
   const postFx = createPostFx(scene, camera);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
@@ -54,7 +54,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
-  const traffic = createTrafficRenderer(scene, graph);
+  const traffic = createTrafficRenderer(scene, graph, frameDelta);
   const fps = createFpsMeter();
   const signals = createSignalRenderer(scene, graph);
   const streetlights = createStreetlightRenderer(scene, graph);
@@ -139,7 +139,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
   };
-  let sunHour = 14;
+  let sunHour = DEFAULT_HOUR;
   const applyTerrain = (preset: string): void => {
     terrainPreset = preset;
     heightmap.regenerate(preset === "rugged" ? rollingHills(18, 450, 18) : rollingHills());
@@ -356,7 +356,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: 14, nodes: [], segments: [], planted: [], cleared: [], zones: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, nodes: [], segments: [], planted: [], cleared: [], zones: [] });
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -416,7 +416,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       if (street !== selectedInfo.street) showSelection((selectedInfo = { ...selectedInfo, street }));
     }
     if (cameraMode === "orbit") {
-      camera.alpha += (scene.getEngine().getDeltaTime() / 1000) * 0.22;
+      camera.alpha += (frameDelta() / 1000) * 0.22;
       return;
     }
     if (cameraMode !== "follow") return;
@@ -426,7 +426,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       setCameraMode("free");
       return;
     }
-    const dt = scene.getEngine().getDeltaTime() / 1000;
+    const dt = frameDelta() / 1000;
     camera.target.x += (target.x - camera.target.x) * 0.14;
     camera.target.y += (target.y - camera.target.y) * 0.14;
     camera.target.z += (target.z - camera.target.z) * 0.14;

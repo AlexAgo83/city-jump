@@ -499,7 +499,9 @@ CAR_SHAPES.forEach((shape, index) => {
 /** Ordinary traffic never gets handed a tanker or an APC. */
 const PLAIN_SHAPES = CAR_SHAPES.map((_, index) => index).filter((index) => !CAR_SHAPES[index]!.theme);
 
-export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
+/** `frameDelta` is milliseconds since the last drawn frame -- see `createScene`, and not the
+ * engine's own delta, which counts animation frames the render loop may have skipped. */
+export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
   /**
    * Every shape in every colour, each built out of boxes and four wheels and merged into a
    * single mesh, so a car on the map is one instance of one of them. Glass and wheels are a
@@ -1476,7 +1478,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
   scene.registerBeforeRender(() => {
     if (!trafficEnabled || paused || movers.length === 0) return;
     const now = performance.now() / 1000;
-    const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
+    const dt = Math.min(MAX_STEP_S, frameDelta() / 1000);
 
     const beams = lightsOn() ? headlights : null;
     let beam = 0;

@@ -16,6 +16,13 @@ import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
 import { ROAD_LIFT, segmentMeshTouchesBounds } from "./roadMesh";
 
+/**
+ * The hour a fresh city opens at: late enough for the light to be low and the lamps to be about to
+ * come on, which is when the city looks like something. The slider in `index.html` carries the
+ * same value as its own default -- that one is markup, this one is what the code starts from.
+ */
+export const DEFAULT_HOUR = 18.5;
+
 /** The hours streetlights burn -- and, with them, every headlight on the road. */
 export function streetlightsOnAt(hour: number): boolean {
   return hour >= 20 || hour < 6.5;
