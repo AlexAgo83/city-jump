@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 21:43:44
+> Indicators reviewed: 2026-08-31 21:47:09
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -152,6 +152,9 @@ flowchart TD
   what was destroyed on its own, and a building under reconstruction is as useless as one under
   construction. The cost of a wave is downtime and lost production in the district it crossed, not
   a permanent hole in the map.
+- **Rebuilding costs time and a quarter of the price.** Not free, so a wave through a dense
+  district is felt in the budget as well as the clock; not full price, so a bad wave does not
+  bankrupt a city that was already short -- which is the spiral this rule exists to avoid.
 - **Science comes from waves, and only from waves.** A wave leaves science behind; science
   carried off the island becomes prestige, and prestige buys persistent upgrades on a web the
   player spends between runs. Nothing else in the game produces it.
@@ -270,8 +273,6 @@ play instead of frames.
 - **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
   could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
   once one has been watched.
-- **What the reconstruction actually costs.** Time alone, or money and materials as well. Free
-  rebuilding makes a wave cheap; paid rebuilding can spiral a city that was already struggling.
 
 # References
 - Product back-reference: (none yet)
