@@ -69,6 +69,7 @@ export interface UiSettings {
   fxAo?: boolean;
   fxTilt?: boolean;
   frameCap?: number;
+  timeRate?: 1 | 2 | 4;
 }
 
 const SETTINGS_KEY = "cityjump.settings";

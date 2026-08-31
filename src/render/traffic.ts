@@ -1413,7 +1413,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         const shape = pool[(si * 3 + i) % pool.length]!;
         const palette = carBodies[shape]!;
         const body = palette[(si + i) % palette.length]!.createInstance(`traffic_${seg.id}_${i}`);
-        body.isPickable = false;
+        body.isPickable = true;
         // Wheels and glass ride along: parented, so only the body is ever positioned.
         for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail]) {
           const part = source.createInstance(`carpart_${seg.id}_${i}_${source.name}`);
@@ -1465,6 +1465,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
   const queues = new Map<number, Mover[]>();
   const queueOf = new Map<Mover, number>();
   const ahead = new Map<Mover, Mover>();
+  let timeScale = 1;
+  let simTime = performance.now() / 1000;
 
   function leaveQueue(mover: Mover): void {
     leaveLaneQueue(queues, queueOf, mover);
@@ -1477,8 +1479,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
 
   scene.registerBeforeRender(() => {
     if (!trafficEnabled || paused || movers.length === 0) return;
-    const now = performance.now() / 1000;
-    const dt = Math.min(MAX_STEP_S, frameDelta() / 1000);
+    const dt = Math.min(MAX_STEP_S, (frameDelta() / 1000) * timeScale);
+    simTime += dt;
+    const now = simTime;
 
     const beams = lightsOn() ? headlights : null;
     let beam = 0;
@@ -1573,12 +1576,28 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     beam.direction.set(forward.x, -0.42, forward.z);
   }
 
+  function vehicleTarget(mover: Mover): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } {
+    return {
+      segment: mover.segment,
+      kind: "Car",
+      vehicle: mover.vehicle,
+      target: () =>
+        movers.includes(mover) && !mover.walk
+          ? { x: mover.mesh.position.x, y: mover.mesh.position.y, z: mover.mesh.position.z, heading: mover.heading, segment: mover.segment }
+          : null,
+    };
+  }
+
   return {
     rebuild,
     setSunHour,
     setLightsEnabled,
     setPaused(next: boolean) {
       paused = next;
+    },
+    setTimeScale(next: number) {
+      timeScale = Math.max(0, next);
+      paused = timeScale === 0;
     },
     setEnabled(enabled: boolean) {
       if (trafficEnabled === enabled) return;
@@ -1593,7 +1612,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     },
     vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } | null {
       let best: Mover | null = null;
-      let bestDistance = 7;
+      let bestDistance = 14;
       for (const mover of movers) {
         if (mover.walk) continue;
         const d = Math.hypot(mover.mesh.position.x - x, mover.mesh.position.z - z);
@@ -1602,17 +1621,15 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
           bestDistance = d;
         }
       }
-      return best
-        ? {
-            segment: best.segment,
-            kind: "Car",
-            vehicle: best.vehicle,
-            target: () =>
-              movers.includes(best!) && !best!.walk
-                ? { x: best!.mesh.position.x, y: best!.mesh.position.y, z: best!.mesh.position.z, heading: best!.heading, segment: best!.segment }
-                : null,
-          }
-        : null;
+      return best ? vehicleTarget(best) : null;
+    },
+    vehicleByMesh(name: string) {
+      const mover = movers.find((candidate) => !candidate.walk && candidate.mesh.name === name);
+      return mover ? vehicleTarget(mover) : null;
+    },
+    firstVehicle() {
+      const mover = movers.find((candidate) => !candidate.walk);
+      return mover ? vehicleTarget(mover) : null;
     },
     vehiclePoint(): { x: number; y: number; z: number } | null {
       const mover = movers.find((candidate) => !candidate.walk);

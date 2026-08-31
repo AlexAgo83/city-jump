@@ -41,7 +41,7 @@ interface Mast {
  * from the same cycle the traffic obeys. Which arms have one, and what they show, is all decided
  * in `sim/signals`; nothing here has an opinion of its own.
  */
-export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
+export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
   const metal = new StandardMaterial("signal_metal", scene);
   metal.diffuseColor = new Color3(0.1, 0.11, 0.11);
   metal.specularColor = new Color3(0.2, 0.2, 0.2);
@@ -77,6 +77,8 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
   let meshes: (Mesh | InstancedMesh)[] = [];
   const cycles = new Map<NodeId, SignalCycle>();
   let paused = false;
+  let timeScale = 1;
+  let simTime = performance.now() / 1000;
 
   function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph), dirty?: TerrainBounds): void {
     if (dirty) {
@@ -175,10 +177,20 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph) {
 
   // Driven from the same clock the traffic reads, so the lamp and the car agree on the moment.
   scene.registerBeforeRender(() => {
-    if (!paused) update(performance.now() / 1000);
+    if (paused) return;
+    simTime += (frameDelta() / 1000) * timeScale;
+    update(simTime);
   });
 
-  return { rebuild, setPaused: (next: boolean) => { paused = next; }, count: () => masts.length };
+  return {
+    rebuild,
+    setPaused: (next: boolean) => { paused = next; },
+    setTimeScale(next: number) {
+      timeScale = Math.max(0, next);
+      paused = timeScale === 0;
+    },
+    count: () => masts.length,
+  };
 }
 
 export function signalMastTouchesBounds(mast: Pick<Mast, "x" | "z">, bounds: TerrainBounds): boolean {

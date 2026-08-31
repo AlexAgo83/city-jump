@@ -1,14 +1,14 @@
 ## item_071_give_the_player_the_clock_pause_play_and_speed - Give the player the clock: pause, play and speed
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 70%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:29
+> Indicators reviewed: 2026-09-01 00:35:37
 
 # AI Context
 - Summary: The delivery slice for time controls, and a day that runs at the rate the player chose.

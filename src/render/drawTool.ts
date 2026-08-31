@@ -118,6 +118,7 @@ export interface ZoneTools {
 export interface SelectionTools {
   buildingAt(x: number, z: number): BuildingParcel | null;
   vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
+  vehicleByMesh(name: string): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
 }
 
 export interface HistoryTools {
@@ -259,13 +260,20 @@ export function createDrawTool(
   function selectAt(x: number, z: number): void {
     const onTree = nature.treeAt(x, z, TREE_HIT);
     if (onTree) return showSelection({ kind: "tree", ...onTree });
-    const building = selection.buildingAt(x, z);
-    if (building) return showSelection({ kind: "building", parcel: building });
     const vehicle = selection.vehicleAt(x, z);
     if (vehicle) return showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
+    const building = selection.buildingAt(x, z);
+    if (building) return showSelection({ kind: "building", parcel: building });
     const target = bulldozeTarget(x, z);
     if (!target) return clearSelection();
     showSelection(target);
+  }
+  function selectMesh(): boolean {
+    const pick = scene.pick(scene.pointerX, scene.pointerY, (m) => m.name.startsWith("traffic_"));
+    const vehicle = pick?.pickedMesh ? selection.vehicleByMesh(pick.pickedMesh.name) : null;
+    if (!vehicle) return false;
+    showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
+    return true;
   }
 
   // The spray brush. Rebuilt in place every time the pointer moves so it lies on the terrain
@@ -396,6 +404,7 @@ export function createDrawTool(
 
   function onClick(): void {
     if (mode === "view") {
+      if (selectMesh()) return;
       const at = groundPoint();
       if (at) selectAt(at.x, at.z);
       return;

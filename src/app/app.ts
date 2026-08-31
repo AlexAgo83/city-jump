@@ -34,7 +34,7 @@ import { distXZ, v3 } from "../sim/vec";
 import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
-import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState } from "../ui/saves";
+import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
@@ -42,6 +42,7 @@ import { showCityStats, showCompass, showFps, showRefusal, showSelection, showWa
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
+type TimeRate = 0 | 1 | 2 | 4;
 type PendingMissile = MissileTrail & { readonly impactAt: number; readonly damage: number };
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
@@ -67,7 +68,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const roads = createRoadRenderer(scene, graph);
   const traffic = createTrafficRenderer(scene, graph, frameDelta);
   const fps = createFpsMeter();
-  const signals = createSignalRenderer(scene, graph);
+  const signals = createSignalRenderer(scene, graph, frameDelta);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
@@ -81,7 +82,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let buildingsVisible = true;
   let cameraMode: CameraMode = "free";
   let followTarget: FollowTarget | null = null;
-  let simPaused = false;
+  let simPaused = true;
+  let timeRate: TimeRate = 0;
+  let lastRunRate: Exclude<TimeRate, 0> = readSettings().timeRate ?? 1;
+  let simDay = 1;
   let pendingHistorySnapshot: CitySave | null = null;
   const setCameraMode = (mode: CameraMode): void => {
     cameraMode = mode;
@@ -161,6 +165,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
   };
   let sunHour = DEFAULT_HOUR;
+  const setClockHour = (hour: number): void => {
+    sunHour = ((hour % 24) + 24) % 24;
+    setSun(sunHour);
+    controls?.setClock(sunHour, simDay, timeRate);
+  };
+  const advanceClock = (dt: number): void => {
+    if (dt <= 0) return;
+    const next = sunHour + dt * 0.25;
+    simDay += Math.floor(next / 24);
+    setClockHour(next);
+  };
   const applyTerrain = (preset: string): void => {
     terrainPreset = preset;
     heightmap.regenerate(preset === "rugged" ? rollingHills(18, 450, 18) : rollingHills());
@@ -281,7 +296,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     missiles.rebuild([]);
   };
   const updateWave = (dt: number): void => {
-    if (!simPaused) waveClock = advanceWaveClock(waveClock, dt);
+    if (dt > 0) waveClock = advanceWaveClock(waveClock, dt);
     if (waveVerdict) {
       showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
       return;
@@ -334,6 +349,18 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   // that exists, but the callback itself only ever fires later, once the player actually clicks.
   let controls: ReturnType<typeof bindControls> | undefined;
   let selectedInfo: SelectionInfo | null = null;
+  const setTimeRate = (rate: TimeRate): void => {
+    timeRate = rate;
+    if (rate === 1 || rate === 2 || rate === 4) lastRunRate = rate;
+    simPaused = rate === 0;
+    traffic.setTimeScale(rate);
+    signals.setTimeScale(rate);
+    controls?.setClock(sunHour, simDay, rate);
+    controls?.setPaused(simPaused);
+  };
+  const setPaused = (paused: boolean): void => {
+    setTimeRate(paused ? 0 : lastRunRate);
+  };
   const onSelect = (info: SelectionInfo | null): void => {
     selectedInfo = info;
     showSelection(info);
@@ -375,6 +402,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     {
       buildingAt: (x, z) => buildings.buildingAt(x, z),
       vehicleAt: (x, z) => traffic.vehicleAt(x, z),
+      vehicleByMesh: (name) => traffic.vehicleByMesh(name),
     },
     onSelect,
     "street",
@@ -441,9 +469,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       streetlights.setFaded(view === "traffic");
     },
     onSunHour(hour) {
-      sunHour = hour;
-      setSun(hour);
+      setClockHour(hour);
     },
+    onTimeRate: setTimeRate,
     onCameraMode(mode) {
       if (mode === "follow" && !followTarget) {
         showRefusal("Select a car before using Follow.");
@@ -471,6 +499,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   });
   updateUndoRedo = controls.updateUndoRedo;
   updateUndoRedo();
+  setTimeRate(0);
 
   function loadCity(city: CitySave): boolean {
     tool.cancel();
@@ -486,7 +515,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     history.clear();
     pendingHistorySnapshot = null;
     resetWave();
-    sunHour = city.hour;
+    simDay = 1;
+    setClockHour(city.hour);
     addOffshoreBridge();
     rebuild();
     if (city.camera) applyCamera(city.camera);
@@ -510,7 +540,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   showCompass(camera.alpha);
   scene.registerBeforeRender(() => {
     const dt = frameDelta() / 1000;
-    updateWave(dt);
+    const simDt = dt * timeRate;
+    advanceClock(simDt);
+    updateWave(simDt);
     detail.update();
     // Above this the models are indistinguishable from the boxes that stand in for them.
     buildings.setDistant(camera.radius > 1100);
@@ -538,12 +570,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     camera.target.z += (target.z - camera.target.z) * 0.14;
     camera.alpha = approachAngle(camera.alpha, -target.heading - Math.PI / 2, dt * 3);
   });
-  const setPaused = (paused: boolean): void => {
-    simPaused = paused;
-    traffic.setPaused(paused);
-    signals.setPaused(paused);
-    controls?.setPaused(paused);
-  };
   window.addEventListener("keydown", (event) => {
     if (!(event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']") && event.code === "Space") {
       event.preventDefault();
@@ -587,6 +613,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     missiles: pendingMissiles.length,
     wave: waveVerdict ?? (waveClock.active ? "active" : "waiting"),
     waveHp: waveClock.active?.hitPoints ?? null,
+    timeRate,
+    simDay,
+    simHour: sunHour,
   }), { setWorldGridVisible: worldGrid.setVisible, measureFps });
   const debugApi = (window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {};
   const debugReset = debugApi.reset as (() => void) | undefined;
@@ -597,7 +626,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),
+    selectVehicle() {
+      const target = traffic.firstVehicle();
+      if (target) onSelect({ kind: "vehicle", name: target.kind, model: target.vehicle, street: streetForSegment(graph, target.segment.id).name, target: target.target });
+      return Boolean(target);
+    },
     paused: () => simPaused,
+    setTimeRate,
     // For a check that has to click a car: a moving one is somewhere else by the time the click
     // lands, and on a slow machine somewhere else is half a street away.
     setPaused,

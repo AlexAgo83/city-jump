@@ -376,7 +376,7 @@ await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
 const paletteBox = await page.locator("#action-palette").boundingBox();
-check("the action palette is centered at the bottom", Math.abs(paletteBox.x + paletteBox.width / 2 - 500) < 2 && paletteBox.y > 620);
+check("the action palette is bottom right", paletteBox.x + paletteBox.width > 980 && paletteBox.y > 620);
 check("road actions are absent from the top toolbar", (await page.locator("#toolbar #road-type").count()) === 0);
 const expandedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
 await page.locator("#toolbar-toggle").click();
@@ -433,6 +433,27 @@ check(
 await uncapFrames();
 
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
+check("time controls are permanent", await page.locator("#time-controls").isVisible() && /Day 1 \d\d:\d\d/.test(await page.locator("#sim-time").textContent()));
+check("time controls do not cover the compass", await page.evaluate(() => {
+  const time = document.getElementById("time-controls").getBoundingClientRect();
+  const compass = document.getElementById("compass").getBoundingClientRect();
+  return time.right <= compass.left || compass.right <= time.left || time.bottom <= compass.top || compass.bottom <= time.top;
+}));
+check("time controls do not cover the action palette", await page.evaluate(() => {
+  const time = document.getElementById("time-controls").getBoundingClientRect();
+  const palette = document.getElementById("action-palette").getBoundingClientRect();
+  return time.right <= palette.left || palette.right <= time.left || time.bottom <= palette.top || palette.bottom <= time.top;
+}));
+check("reload starts paused", await page.evaluate(() => window.cityjump.paused()) && await page.locator('[data-time-rate="0"]').getAttribute("aria-pressed") === "true");
+await page.locator('[data-time-rate="4"]').click();
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+check("reload keeps the chosen run rate but stays paused", await page.evaluate(() => window.cityjump.paused()) && await page.locator('[data-time-rate="0"]').getAttribute("aria-pressed") === "true");
+await page.evaluate(() => window.cityjump.setPaused(false));
+check("resume uses the stored run rate", await page.evaluate(() => window.cityjump.stats().timeRate === 4));
+await page.locator('[data-time-rate="1"]').click();
+await page.waitForFunction(() => !window.cityjump.paused() && window.cityjump.stats().timeRate === 1, null, { timeout: 5_000 });
+check("play resumes the simulation clock", await page.locator('[data-time-rate="1"]').getAttribute("aria-pressed") === "true" && await page.locator("#sun-hour").isDisabled());
 // The cap is the one setting that spends less rather than showing more. It can only be seen on a
 // machine that would otherwise beat it -- a CI runner drawing a frame a second is already under
 // any cap, so there the check is that capping does not stop the picture.
@@ -465,6 +486,16 @@ check(
   slowSpeed > 1 && Math.abs(slowSpeed - fastSpeed) / fastSpeed < 0.25,
   `${slowSpeed.toFixed(1)} m/s capped, ${fastSpeed.toFixed(1)} m/s uncapped`,
 );
+await page.locator('[data-time-rate="2"]').click();
+const doubleSpeed = await metresPerSecond();
+await page.locator('[data-time-rate="4"]').click();
+const quadSpeed = await metresPerSecond();
+check(
+  "traffic speed follows the selected simulation rate",
+  doubleSpeed > fastSpeed * 1.5 && quadSpeed > doubleSpeed * 1.5,
+  `${fastSpeed.toFixed(1)} x1, ${doubleSpeed.toFixed(1)} x2, ${quadSpeed.toFixed(1)} x4`,
+);
+await page.locator('[data-time-rate="1"]').click();
 await uncapFrames();
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
@@ -835,6 +866,8 @@ await page.locator("#traffic-density").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.waitForFunction((cars) => window.cityjump.stats().cars === cars, drawn.cars, { timeout: 5_000 });
+await page.locator('[data-time-rate="1"]').click();
+await page.waitForFunction(() => window.cityjump.stats().timeRate === 1, null, { timeout: 5_000 });
 await realTime(300);
 const beforeTraffic = await trafficPositions();
 await page.waitForFunction(
@@ -1298,9 +1331,9 @@ const selectedBuilding = await page.evaluate(() => ({
   ),
 }));
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
-const vehiclePoint = await screenPoint("window.cityjump.vehiclePoint()");
-check("there is a vehicle to select", vehiclePoint !== null);
-await click(vehiclePoint.x, vehiclePoint.y);
+await page.locator('input[name="select-view"][value="traffic"]').check();
+await page.evaluate(() => window.cityjump.setPaused(true));
+check("there is a vehicle to select", await page.evaluate(() => window.cityjump.selectVehicle()));
 const selectedVehicle = await page.evaluate(() => ({
   hidden: document.getElementById("selection-panel").hidden,
   kind: document.querySelector("#selection-panel .selection-kind").textContent,
@@ -1319,6 +1352,8 @@ await page.waitForFunction(
   { timeout: 5_000 },
 );
 check("selected car street updates when it changes", true);
+await page.evaluate(() => window.cityjump.setPaused(false));
+await page.locator('input[name="select-view"][value="all"]').check();
 await setSettingsOpen(true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
 await page.locator('input[name="camera-mode"][value="orbit"]').check();

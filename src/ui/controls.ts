@@ -34,6 +34,7 @@ export function bindControls(handlers: {
   onBuildings(visible: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic"): void;
   onSunHour(hour: number): void;
+  onTimeRate(rate: 0 | 1 | 2 | 4): void;
   onCameraMode(mode: "free" | "orbit" | "follow"): void;
   onUndo(): void;
   onRedo(): void;
@@ -44,7 +45,7 @@ export function bindControls(handlers: {
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
   onNew(): void;
-}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setPaused(paused: boolean): void; updateUndoRedo(): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setClock(hour: number, day: number, rate: 0 | 1 | 2 | 4): void; setPaused(paused: boolean): void; updateUndoRedo(): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -224,6 +225,8 @@ export function bindControls(handlers: {
 
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;
+  const simTime = document.getElementById("sim-time") as HTMLOutputElement;
+  const timeButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-time-rate]")];
   const sunAuto = document.getElementById("sun-auto") as HTMLInputElement;
   const shortNight = document.getElementById("short-night") as HTMLInputElement;
   const AUTO_HOURS_PER_SECOND = 0.25;
@@ -240,6 +243,27 @@ export function bindControls(handlers: {
     const minutes = totalMinutes % 60;
     sunTime.value = `${String(whole).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   };
+  const setClock = (hour: number, day: number, rate: 0 | 1 | 2 | 4): void => {
+    const totalMinutes = Math.round(hour * 60) % (24 * 60);
+    const text = `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
+    sunHour.value = String(hour);
+    sunTime.value = text;
+    simTime.value = `Day ${day} ${text}`;
+    sunHour.disabled = rate !== 0;
+    sunAuto.disabled = rate !== 0;
+    shortNight.disabled = rate !== 0;
+    for (const button of timeButtons) button.setAttribute("aria-pressed", String(Number(button.dataset.timeRate) === rate));
+  };
+  for (const button of timeButtons) {
+    button.addEventListener("click", () => {
+      const rate = Number(button.dataset.timeRate) as 0 | 1 | 2 | 4;
+      handlers.onTimeRate(rate);
+      if (rate === 1 || rate === 2 || rate === 4) {
+        const settings = readSettings();
+        writeSettings({ ...settings, timeRate: rate });
+      }
+    });
+  }
   const tickSun = (): void => {
     const now = performance.now();
     const next = autoStartHour + ((now - autoStartedAt) / 1000) * AUTO_HOURS_PER_SECOND;
@@ -332,6 +356,7 @@ export function bindControls(handlers: {
       fxAo: fxAo.checked,
       fxTilt: fxTilt.checked,
       frameCap: Number(frameCap.value),
+      timeRate: readSettings().timeRate,
     });
   }
   function applySetting(checkbox: HTMLInputElement, value: boolean | undefined): void {
@@ -414,7 +439,8 @@ export function bindControls(handlers: {
 
   bindSaves(handlers, applyCity);
   updateSun();
-  return { applyCity, applyRoadType, setPaused, updateUndoRedo };
+  setClock(Number(sunHour.value), 1, 0);
+  return { applyCity, applyRoadType, setClock, setPaused, updateUndoRedo };
 }
 
 /**
