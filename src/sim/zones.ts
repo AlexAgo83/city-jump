@@ -1,5 +1,7 @@
-export type ZoneKind = "residential" | "commercial";
-export type SavedZoneKind = ZoneKind | "low" | "dense" | "military";
+import type { BuildingKind } from "./buildingKinds";
+
+export type ZoneKind = BuildingKind;
+export type SavedZoneKind = ZoneKind | "low" | "dense";
 export type SavedZone = [x: number, z: number, kind: SavedZoneKind];
 
 export const ZONE_CELL_SIZE = 8;
@@ -55,14 +57,12 @@ export class Zones {
 }
 
 /**
- * Zones used to be painted as densities (`low`/`dense`) plus a `military` brush that the road
- * type now decides on its own. Old saves still carry those names, so they are read as what they
- * always meant -- and military paint is simply dropped, since military roads make the barracks.
+ * Zones used to be painted as densities (`low`/`dense`). Old saves still carry those names, so
+ * they are read as what they always meant.
  */
-function migrateZoneKind(kind: SavedZoneKind): ZoneKind | null {
+function migrateZoneKind(kind: SavedZoneKind): ZoneKind {
   if (kind === "low") return "residential";
   if (kind === "dense") return "commercial";
-  if (kind === "military") return null;
   return kind;
 }
 

@@ -515,6 +515,11 @@ check(
 await page.locator('[data-tool="zones"]').click();
 check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
 check("zone mode exposes a brush size slider", await page.locator("#zone-radius").isVisible());
+check(
+  "zone mode exposes every business and Clear",
+  (await page.locator('input[name="zone-kind"]').evaluateAll((inputs) => inputs.map((input) => input.value).join(","))) ===
+    "residential,commercial,industrial,agricultural,military,clear",
+);
 await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));

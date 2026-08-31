@@ -210,6 +210,17 @@ describe("pedestrian frontage", () => {
     expect(buildingParcels(buildableCells(g, zones), zones).some((parcel) => parcel.kind === "commercial")).toBe(true);
   });
 
+  it("lets painted cells beat the road default for every business", () => {
+    for (const kind of ["residential", "commercial", "industrial", "agricultural", "military"] as const) {
+      const g = new RoadGraph();
+      straight(g, -200, 0, 200, 0, "street");
+      const zones = new Zones();
+      zones.paint(0, 20, 220, kind);
+
+      expect(buildingParcels(buildableCells(g, zones), zones).some((parcel) => parcel.kind === kind)).toBe(true);
+    }
+  });
+
   it("marks cells by the road they front", () => {
     const g = new RoadGraph();
     const path = straight(g, -200, 0, 200, 0, "pedestrian");

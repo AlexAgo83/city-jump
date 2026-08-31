@@ -45,7 +45,7 @@ describe("zones", () => {
     expect(old.zones).toEqual([]);
   });
 
-  it("reads an older save's density zones and drops its military paint", () => {
+  it("reads older density zones and keeps military paint", () => {
     const zones = new Zones([
       [0, 0, "low"],
       [1, 0, "dense"],
@@ -54,7 +54,7 @@ describe("zones", () => {
 
     expect(zones.at(4, 4)).toBe("residential");
     expect(zones.at(12, 4)).toBe("commercial");
-    expect(zones.at(20, 4)).toBeUndefined();
+    expect(zones.at(20, 4)).toBe("military");
   });
 
   it("clearing a zone returns parcels to the unzoned choices", () => {

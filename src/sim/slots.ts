@@ -215,9 +215,9 @@ function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, kind: Buildi
 }
 
 function parcelKind(cell: BuildableCell, zones: Zones | undefined): BuildingKind {
-  if (cell.buildingKind !== "residential") return cell.buildingKind;
   const zone = cell.zone ?? zoneForCell(zones, cell);
   if (zone) return zone;
+  if (cell.buildingKind !== "residential") return cell.buildingKind;
   // Unzoned frontage is a mixed neighbourhood: mostly homes, with a shop every few lots. The
   // choice hangs off the cell's own position, so it survives a rebuild instead of flickering.
   const { x, z } = buildableCellCentre(cell);

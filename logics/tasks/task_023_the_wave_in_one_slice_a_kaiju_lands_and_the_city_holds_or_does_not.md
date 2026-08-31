@@ -1,14 +1,15 @@
 ## task_023_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not - The wave, in one slice: a kaiju lands and the city holds or does not
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:11:30
+> Indicators reviewed: 2026-08-31 23:13:51
+> Owner: Codex
 
 # AI Context
 - Summary: Implementing the first attack: a wave clock, a kaiju that lands and walks, batteries that fire, and a banner that says how it went.
@@ -21,9 +22,9 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/wave.ts`: the clock, the countdown, and a threat fixed when a wave starts. Pure,
+- [x] 1. `sim/wave.ts`: the clock, the countdown, and a threat fixed when a wave starts. Pure,
       tested from a seed, no renderer.
-- [ ] 2. `sim/kaiju.ts`: the landing edge (random, away from the bridge), the nearest coast point,
+- [x] 2. `sim/kaiju.ts`: the landing edge (random, away from the bridge), the nearest coast point,
       the nearest building, and the position at time t. Pure, tested from a seed.
 - [ ] 3. `scripts/gen_kaiju.py` beside `gen_buildings.py`: the model, exported as GLB into
       `public/`, its manifest entry, and the architecture test that shipped models are declared.
@@ -33,7 +34,7 @@
       dirty region repainted, and undo refusing to reach back across a wave.
 - [ ] 6. Batteries: every military parcel, one range, damage by area, fixed reload, missiles with a
       travel time that always hit; the kaiju's hit points equal to the threat.
-- [ ] 7. The zone brush: five businesses plus Clear, `parcelKind` reduced to "painted wins, else
+- [x] 7. The zone brush: five businesses plus Clear, `parcelKind` reduced to "painted wins, else
       the road decides", and the saves that carry the three kinds it lost in 0.3.0.
 - [ ] 7b. The edge marker and the target highlight.
 - [ ] 8. The banner: threat against firepower before, held or breached after, with the report the
@@ -66,10 +67,18 @@
 # Validation
 - Expected: `npm run ci`, `npm run test:e2e` locally (browser coverage is local -- see
   `CONTRIBUTING.md`), and `npm run perf -- --city perf/cities/ma-ville.json` before and after.
-- (no validation recorded yet)
+- 2026-08-31 partial wave: `npm test`, `npm run test:e2e`, and `npm run ci` passed. Focused unit
+  pass covered `src/sim/wave.test.ts`, `src/sim/kaiju.test.ts`, `src/sim/zones.test.ts`,
+  `src/sim/slots.test.ts`, and `src/sim/save.test.ts`.
+- 2026-08-31 reference perf baseline recorded with `npm run perf -- --city perf/cities/ma-ville.json`:
+  overview 120 fps, district 117 fps, street 104 fps, rebuild 581 ms.
 
 # Report
-- Not started.
+- Started development. Added pure wave countdown constants/clock, pure kaiju landing/path replay,
+  and the zone prerequisite: all five businesses plus Clear, painted cells beating the road default,
+  and saves accepting the restored zone kinds.
+- Not yet implemented: generated/rendered kaiju, destruction/rubble, batteries/missiles, wave
+  banner, edge marker/target highlight, and wave performance recording.
 
 # Links
 - Context pack: `logics/context-packs/the-wave-in-one-slice.json` -- the bounded reading for this

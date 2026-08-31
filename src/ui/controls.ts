@@ -193,7 +193,7 @@ export function bindControls(handlers: {
   });
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
     input.addEventListener("change", () => {
-      if (input.checked) handlers.onZoneKind(input.value === "commercial" ? "commercial" : input.value === "clear" ? "clear" : "residential");
+      if (input.checked) handlers.onZoneKind(input.value === "clear" ? "clear" : input.value as ZoneKind);
     });
   }
   document.getElementById("zone-radius")!.addEventListener("input", (event) => {
