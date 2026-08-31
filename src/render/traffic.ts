@@ -1164,9 +1164,12 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     if (mover.walk && !crossingIsClear(nodeId, points, now)) return;
 
     leaveQueue(mover);
+    // Both from the same array: the cumulative distances index into these very points, and a
+    // cumulative built from a different path reads off the end of it.
+    const drive = fromWhereItIs(mover, points);
     mover.ride = {
-      points: fromWhereItIs(mover, points),
-      cumulative: pathCumulative(points),
+      points: drive,
+      cumulative: pathCumulative(drive),
       exit: next,
       from: nodeId,
       lane: entry.lane,

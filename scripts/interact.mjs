@@ -547,13 +547,21 @@ await page.locator("#sun-hour").evaluate((input) => {
 });
 
 // The open settings menu covers the scene, so a terrain click folds it away like a player would
-// and leaves it folded: the checks that follow a click hover over the scene where the menu was,
-// and every block that needs the settings themselves opens them again first.
+// -- then puts it back, since most of what follows a click is another settings control. A check
+// that hovers over the scene where the menu sits uses `hoverScene`, which folds it again.
 const click = async (x, y) => {
+  const wasOpen = (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true";
   await setSettingsOpen(false);
   await page.mouse.move(x, y);
   await nextFrame();
   await page.mouse.click(x, y);
+  await nextFrame();
+  if (wasOpen) await setSettingsOpen(true);
+};
+/** Move the pointer over the scene, with the settings menu out of the way. */
+const hoverScene = async (x, y) => {
+  await setSettingsOpen(false);
+  await page.mouse.move(x, y);
   await nextFrame();
 };
 
@@ -569,10 +577,10 @@ await page.mouse.click(360, 360, { button: "right" });
 check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === fresh.segments);
 
 await click(300, 340);
-await page.mouse.move(400, 330);
+await hoverScene(400, 330);
 check("the first click arms the tool", await previewVisible());
 await page.mouse.click(360, 360, { button: "right" });
-await page.mouse.move(420, 330);
+await hoverScene(420, 330);
 check("right-click does not cancel an armed road", await previewVisible());
 await click(500, 280);
 await page.mouse.move(600, 330);
@@ -1249,6 +1257,7 @@ const followVehiclePoint = await screenPoint("window.cityjump.vehiclePoint()");
 check("there is still a vehicle to follow", followVehiclePoint !== null);
 await click(followVehiclePoint.x, followVehiclePoint.y);
 const cameraBeforeFollow = await page.evaluate(() => window.cityjump.cameraState());
+await setSettingsOpen(true); // the click above folded the menu away, and the camera controls live in it
 await page.locator('input[name="camera-mode"][value="follow"]').check();
 await realTime(650);
 const cameraAfterFollow = await page.evaluate(() => window.cityjump.cameraState());
@@ -1332,6 +1341,7 @@ await page.evaluate(() => {
 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
+await setSettingsOpen(true);
 await page.locator("#save-slot").selectOption("Rugged");
 await page.locator("#save-load").click();
 await nextFrame();
@@ -1365,6 +1375,7 @@ await page.evaluate(() => {
 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
+await setSettingsOpen(true);
 await page.locator("#save-slot").selectOption("Camera");
 await page.locator("#save-load").click();
 const loadedCamera = await page.evaluate(() => window.cityjump.cameraState());
