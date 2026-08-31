@@ -1446,38 +1446,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph) {
     joinLaneQueue(queues, queueOf, laneQueueKey(mover), mover);
   }
 
-  /**
-   * A car or a walker on the far side of the city is drawn in full even though it is a pixel of
-   * colour under the fog. They keep driving -- the simulation is cheap, it is the drawing that is
-   * not -- but they are only shown within reach of the camera. Re-checked a few times a second
-   * rather than every frame: nothing here crosses the threshold faster than that.
-   */
-  const VIEW_CHECK_MS = 200;
-  let lastViewCheck = 0;
-  function showWhatIsNear(): void {
-    const camera = scene.activeCamera;
-    if (!camera) return;
-    // Generous when zoomed in on one street, and generous again when the whole city is in shot --
-    // in between is where a walker stops being worth a draw call.
-    const reach = Math.max(320, Math.min(2000, (camera as { radius?: number }).radius ?? 600));
-    const reachSquared = reach * reach;
-    const { x, y, z } = camera.position;
-    for (const mover of movers) {
-      const p = mover.mesh.position;
-      const dx = p.x - x;
-      const dy = p.y - y;
-      const dz = p.z - z;
-      mover.mesh.setEnabled(dx * dx + dy * dy + dz * dz < reachSquared);
-    }
-  }
-
   scene.registerBeforeRender(() => {
     if (!trafficEnabled || paused || movers.length === 0) return;
     const now = performance.now() / 1000;
-    if (performance.now() - lastViewCheck > VIEW_CHECK_MS) {
-      lastViewCheck = performance.now();
-      showWhatIsNear();
-    }
     const dt = Math.min(MAX_STEP_S, scene.getEngine().getDeltaTime() / 1000);
 
     const beams = lightsOn() ? headlights : null;
