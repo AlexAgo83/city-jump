@@ -487,8 +487,10 @@ await page.locator("#sun-hour").evaluate((input) => {
 await nextFrame();
 // The hour is part of the city, and the city is autosaved on a debounce: reload before that runs
 // and the city comes back at the hour it was last saved at, whatever the settings say.
-// Generous: the debounce is a second, but a CI runner drawing a frame a second takes longer than
-// that to get round to it.
+// The hour lives in the city, and the city is autosaved on a debounce that a change of hour does
+// not itself start -- so ask for a rebuild, which does, and wait for the write to land. Reload
+// before that and the city comes back at the hour it was last saved at, settings or no settings.
+await page.evaluate(() => window.cityjump.rebuild());
 await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").hour === 20, null, { timeout: 20_000 });
 await page.reload({ waitUntil: "load" });
 await waitForApp();
