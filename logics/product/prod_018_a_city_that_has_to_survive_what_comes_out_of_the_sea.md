@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 21:47:09
+> Indicators reviewed: 2026-08-31 21:48:54
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -167,10 +167,10 @@ flowchart TD
 - **The threat rises with the city.** Waves come with a threat level that follows the population,
   which is what makes growth a decision rather than a free good -- and what makes securing growth
   the thing the player is actually playing.
-- **A wave can be called.** A button asks the kaiju to come early, and pays for the risk in
-  science. Without it a city that is finished has nothing to do but wait; with it, being ready
-  ahead of schedule is worth something. It is the one place the player sets the pace of their own
-  danger.
+- **A wave can be called, and only winning pays.** A button asks the kaiju to come early; calling
+  it multiplies the science a *defeated* kaiju leaves. Lose and the call was free bravado -- which
+  is what makes it a decision rather than a button the player mashes. It is the one place the
+  player sets the pace of their own danger.
 - **Population lives in buildings.** Each home holds a share of the residents, so a home destroyed
   is that share gone -- the kaiju does not kill an abstract number, it walks through the place
   those people lived. The other way population falls is food: too little for too long and it
@@ -212,6 +212,24 @@ flowchart TD
 - **Not every district needs every utility.** Housing and farms want water, industry and the
   military want power, commerce wants both. Four ways to be switched off is tedious; a district
   that needs two of them is a planning puzzle.
+
+# The first upgrade web
+A first cut, to be replaced once a run has been played rather than defended. What matters more
+than the nodes is the rule they follow: **prestige buys capabilities, starting conditions and
+information -- not multipliers on the scarcities the loop is made of.** A node that adds workers
+per home, or food per farm, dissolves the tension one purchase at a time; a node that tells the
+player where the kaiju will land changes what they decide without changing what anything costs.
+
+- **Survey** -- what a run starts with. More credits to open with. A stretch of road already
+  drawn. And, best of the three, knowing which coast the next kaiju makes for one wave ahead.
+- **Engineering** -- what the city does between waves. Buildings go up faster. Rebuilding costs
+  15% instead of 25%. A diffuser covers more ground.
+- **Defence** -- what a wave costs. Military buildings reach further. The kaiju slows while inside
+  a military district's range, which is where "slow it down and turn it aside" starts. A better
+  multiplier on the science a defeated kaiju leaves.
+
+Nine nodes, three branches, no tiers and no prerequisites beyond the branch itself. If a run is
+not interesting with these, more nodes will not be the reason.
 
 # How this gets balanced
 Numbers are outputs, not inventions. The simulation is deterministic and runs without a renderer,
@@ -264,12 +282,8 @@ play instead of frames.
   reference city.
 
 # Open questions
-- **What the upgrade web is made of.** The danger is a bonus that removes the scarcity the whole
-  loop is built on: more workers per home, cheaper barracks and faster building all sound
-  reasonable and all dissolve the tension one notch at a time.
-- **What calling a wave early is worth.** The bonus has to price earliness against the schedule
-  rather than the calendar: a small city calling at once faces a small wave, and paying a flat
-  premium for that would make calling strictly correct rather than a decision.
+- **How much a call multiplies by**, and whether it grows with how early the call is. The harness
+  answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
 - **Acting during an attack.** A spectator wave is the first version, deliberately. What the player
   could do -- evacuate a district, cut a bridge, concentrate the defence -- is a question to answer
   once one has been watched.
