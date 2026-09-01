@@ -21,7 +21,8 @@ import { ROAD_LIFT, segmentMeshTouchesBounds } from "./roadMesh";
  * come on, which is when the city looks like something. The slider in `index.html` carries the
  * same value as its own default -- that one is markup, this one is what the code starts from.
  */
-export const DEFAULT_HOUR = 18.5;
+/** A run opens in daylight. It used to open at dusk and be dark within seconds. */
+export const DEFAULT_HOUR = 11;
 
 /** The hours streetlights burn -- and, with them, every headlight on the road. */
 export function streetlightsOnAt(hour: number): boolean {

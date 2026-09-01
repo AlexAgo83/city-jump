@@ -26,6 +26,9 @@ export function sunAzimuthAt(hour: number): number {
 }
 
 /** Engine, scene, camera and lights. Nothing here knows about roads. */
+/** How lit the world stays at midnight, so a night is dim rather than off. */
+const NIGHT_FLOOR = 0.42;
+
 export function createScene(canvas: HTMLCanvasElement) {
   // adaptToDeviceRatio: without it the canvas renders at CSS pixels and a retina screen shows the
   // result upscaled. With it, a retina screen renders four times the pixels -- and this scene is
@@ -77,7 +80,10 @@ export function createScene(canvas: HTMLCanvasElement) {
 
   function setSunHour(hour: number): void {
     const phase = sunPhase(hour);
-    const daylight = daylightAt(hour);
+    // The island never goes fully dark. Played at night the city disappeared -- only the halos
+    // under the streetlights were left -- and a builder you cannot see is a builder you cannot
+    // play. A floor keeps the ground readable while the colour still says night.
+    const daylight = NIGHT_FLOOR + daylightAt(hour) * (1 - NIGHT_FLOOR);
     const azimuth = sunAzimuthAt(hour);
     const sunVector = new Vector3(-Math.cos(azimuth), Math.sin(phase), -Math.sin(azimuth)).normalize();
     sun.direction.copyFromFloats(Math.cos(azimuth), -Math.max(0.05, daylight), Math.sin(azimuth)).normalize();
@@ -85,16 +91,17 @@ export function createScene(canvas: HTMLCanvasElement) {
     // directional, so the night keeps some shape instead of going flat black. Real moonlight is
     // near-neutral; the eye's scotopic response reads it as blue, which is also what film does.
     const moonlit = 1 - Math.min(1, daylight * 4);
-    sun.intensity = daylight * 1.22 + moonlit * 0.18;
+    sun.intensity = daylight * 1.22 + moonlit * 0.34;
     sun.diffuse = Color3.Lerp(
       Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight),
       new Color3(0.44, 0.58, 0.95),
       moonlit,
     );
-    // Sky fill. The night floor used to be 0.02, which is black in practice.
-    ambient.intensity = 0.12 + daylight * 0.4;
+    // Sky fill. Played at night, 0.12 still read as black: the city vanished and only the halos
+    // under the streetlights were left. A night should be dim and blue, not an off switch.
+    ambient.intensity = 0.34 + daylight * 0.26;
     ambient.diffuse = Color3.Lerp(new Color3(0.3, 0.42, 0.72), Color3.White(), daylight);
-    ambient.groundColor = Color3.Lerp(new Color3(0.05, 0.08, 0.16), new Color3(0.18, 0.2, 0.22), daylight);
+    ambient.groundColor = Color3.Lerp(new Color3(0.12, 0.16, 0.26), new Color3(0.18, 0.2, 0.22), daylight);
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,

@@ -63,7 +63,10 @@ export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
 ).flat();
 
 export function parcelDemandLimits(population: number): Record<BuildingKind, number> {
-  return { residential: Math.max(1, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: Math.ceil(population / 24) };
+  // Always room for a second house. At one, a starter city whose only home was a 1x1 had housing
+  // exactly equal to its population -- no headroom, so no growth, so the limit never rose and the
+  // city was stuck at twelve residents for ever.
+  return { residential: Math.max(2, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: Math.ceil(population / 24) };
 }
 
 /**

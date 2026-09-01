@@ -263,7 +263,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       demandStep = Math.floor(simSeconds / 20);
       rebuild();
     }
-    const next = sunHour + dt * 0.25;
+    // Five minutes of real time for a full day and night at normal speed. At a quarter of an hour
+    // per second the sky strobed -- a whole day every twenty-four seconds at x4 -- and half of a
+    // session was spent unable to see the city.
+    const next = sunHour + dt * 0.08;
     simDay += Math.floor(next / 24);
     setClockHour(next);
   };

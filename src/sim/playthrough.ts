@@ -187,10 +187,10 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   road("spine", -200, 200, -200, 380);
   // A block along each road. Nothing builds on unzoned land any more, so the scenario has to zone
   // what it wants the way a player would -- rectangles on the frontage, not circles beside it.
-  band("agricultural", 220, -280, 140);
-  band("residential", 260, -300, 100);
-  band("commercial", 310 + seed, -280, 140);
-  band("military", 360 + seed, -280, 140);
+  band("agricultural", 220, -300, 160, 50);
+  band("residential", 260, -320, 120, 50);
+  band("commercial", 310 + seed, -300, 160, 50);
+  band("military", 360 + seed, -300, 160, 50);
   if (scenario.placeUtilities) {
     for (const kind of ["power", "water"] as const) {
       utilities.place(graph, "producer", kind, -250, 260);
