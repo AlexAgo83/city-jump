@@ -54,4 +54,19 @@ describe("building lifecycle", () => {
     lifecycle.replaceWith([[3, 4, "idle", 30]]);
     expect(lifecycle.toJSON()).toEqual([[3, 4, "idle", 30]]);
   });
+
+  it("holds a rebuild until the attack is over", () => {
+    const lifecycle = new BuildingLifecycle();
+    const parcel = { position: { x: 0, y: 0, z: 0 }, kind: "residential", frontageCells: 1, depthCells: 1, cells: [], rotationY: 0 } as never;
+    lifecycle.sync([parcel], 100, 0);
+    lifecycle.rebuild(parcel, 10);
+
+    // Thirty seconds of a wave: well past the stage, and still a building site.
+    const during = lifecycle.sync([parcel], 100, 40, BUILDING_STAGE_SECONDS, true);
+    expect(during[0]!.state).toBe("rebuilding");
+
+    // The wave lifts, and only now does the stage run.
+    expect(lifecycle.sync([parcel], 100, 50)[0]!.state).toBe("rebuilding");
+    expect(lifecycle.sync([parcel], 100, 40 + BUILDING_STAGE_SECONDS + 1)[0]!.state).not.toBe("rebuilding");
+  });
 });

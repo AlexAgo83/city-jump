@@ -121,20 +121,31 @@
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   .tool-options input[type="range"] { width: 92px; }
+  /*
+   * Everything that lives in the top-right corner shares one column, stacked in a fixed order --
+   * FPS, run status, selection -- and flows: whatever is hidden takes no room and the rest closes
+   * up. Each of these used to carry its own `top`, so showing two at once overlapped them and
+   * showing three needed a rule per pair.
+   */
+  #right-stack {
+    position: fixed; top: 12px; right: 12px; z-index: 2;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    max-width: min(560px, calc(100vw - 24px)); pointer-events: none;
+  }
+  #right-stack > * { pointer-events: auto; }
   #selection-panel {
-    position: fixed; top: 62px; right: 12px; min-width: 150px; max-width: 240px;
+    min-width: 150px; max-width: 240px;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.4 ui-sans-serif, system-ui; padding: 8px 12px;
     box-sizing: border-box;
   }
   #fps-counter {
-    position: fixed; top: 12px; right: 12px; min-width: 60px; box-sizing: border-box;
+    min-width: 60px; box-sizing: border-box;
     color: #f4fbff; background: #171b20e8; border: 1px solid #ffffff2b;
     border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
     padding: 7px 9px; text-align: right; text-shadow: 0 1px 2px #000;
   }
   #fps-counter[hidden] { display: none; }
-  #fps-counter:not([hidden]) ~ #selection-panel { top: 96px; }
   #selection-panel[hidden] { display: none; }
   #selection-panel .selection-kind {
     font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #7f8b95;
@@ -171,12 +182,11 @@
   #wave-banner[data-state="held"] { border-color: #8ee6a8aa; color: #bdf5cc; }
   #wave-banner[data-state="breached"] { border-color: #ff8d7aaa; color: #ffc5bc; }
   #run-panel, #between-runs {
-    position: fixed; top: 96px; right: 12px;
     display: flex; align-items: center; flex-wrap: wrap; gap: 10px; max-width: min(560px, calc(100vw - 24px)); box-sizing: border-box;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff2b; border-radius: 6px;
     font: 12px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-shadow: 0 1px 2px #000;
   }
-  #between-runs { top: 136px; max-width: min(360px, calc(100vw - 24px)); }
+  #between-runs { max-width: min(360px, calc(100vw - 24px)); }
   #between-runs[hidden] { display: none; }
   #run-panel b, #between-runs b { color: #f4fbff; font-weight: 600; }
   #run-panel button, #between-runs button {
@@ -227,16 +237,6 @@
   </div>
 </div>
 <div id="wave-banner" hidden></div>
-<div id="run-panel" aria-label="Run status">
-  <span>Wave <b id="run-wave">1</b></span>
-  <span>Science <b id="run-science">0</b></span>
-  <button id="call-wave" type="button">Call wave</button>
-  <button id="evacuate-run" type="button">Evacuate</button>
-</div>
-<div id="between-runs" aria-label="Between runs" hidden>
-  <span>Prestige <b id="profile-prestige">0</b></span>
-  <span id="upgrade-web" aria-label="Prestige upgrades"></span>
-</div>
 <div id="time-controls" aria-label="Simulation time">
   <div class="segmented">
     <button type="button" data-time-rate="0" aria-pressed="true" title="Pause">Pause</button>
@@ -420,10 +420,22 @@
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>
 </div>
+<div id="right-stack">
 <div id="fps-counter" hidden></div>
+<div id="run-panel" aria-label="Run status">
+  <span>Wave <b id="run-wave">1</b></span>
+  <span>Science <b id="run-science">0</b></span>
+  <button id="call-wave" type="button">Call wave</button>
+  <button id="evacuate-run" type="button">Evacuate</button>
+</div>
+<div id="between-runs" aria-label="Between runs" hidden>
+  <span>Prestige <b id="profile-prestige">0</b></span>
+  <span id="upgrade-web" aria-label="Prestige upgrades"></span>
+</div>
 <div id="selection-panel" hidden>
   <div class="selection-kind"></div>
   <dl></dl>
+</div>
 </div>
 <div id="touch-notice" hidden>The build tools need a mouse: hover previews show placement, and right-click cancels. You can still look around the city.</div>
 <div id="toast"></div>

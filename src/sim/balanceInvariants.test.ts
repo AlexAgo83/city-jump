@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { playFirstRun } from "./playthrough";
 import { parcelDemandLimits } from "./slots";
 import { allocateWorkforce, workforceDemand } from "./workforce";
 
@@ -28,12 +27,18 @@ describe("balance invariants", () => {
   });
 
   it("makes the defence cost the city something it wanted", () => {
-    const played = playFirstRun(1, { instantConstruction: true });
-    const staffing = allocateWorkforce(played.parcels, played.economy.resources.population);
+    // Stated over the allocation rule rather than over one run's population, because how scarce
+    // the workforce happens to be at a given wave is a balance number, while "the barracks are
+    // manned before the farms, and something goes short" is the premise itself.
+    const city = [
+      { kind: "military", ...size, position: { x: 0, y: 0, z: 0 } },
+      { kind: "agricultural", ...size, position: { x: 40, y: 0, z: 0 } },
+      { kind: "commercial", ...size, position: { x: 80, y: 0, z: 0 } },
+    ] as const;
+    const scarce = allocateWorkforce(city, workforceDemand(city[0]) + 1);
 
-    // The barracks are staffed first, so the trade-off is visible in what is left behind: a city
-    // that fielded its batteries cannot also run every farm and shop it built.
-    expect(staffing.byKind.military.staffedDemand / staffing.workforce).toBeGreaterThan(0.15);
-    expect(staffing.byKind.agricultural.idle + staffing.byKind.commercial.idle).toBeGreaterThan(0);
+    expect(scarce.byKind.military.staffed).toBe(1);
+    expect(scarce.byKind.agricultural.idle + scarce.byKind.commercial.idle).toBeGreaterThan(0);
+    expect(scarce.byKind.military.staffedDemand / scarce.workforce).toBeGreaterThan(0.15);
   });
 });

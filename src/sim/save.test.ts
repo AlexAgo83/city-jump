@@ -146,7 +146,7 @@ describe("city saves", () => {
   });
 
   it("carries the repeat-wave clock through a save and defaults older saves", () => {
-    const waveClock = scheduleNextWave({ elapsedSeconds: 100, nextWaveAtSeconds: 100, accumulatedThreat: 10, active: null }, 45);
+    const waveClock = scheduleNextWave({ earliestAtSeconds: 60, elapsedSeconds: 100, nextWaveAtSeconds: 100, accumulatedThreat: 10, active: null }, 45);
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, createRun(), waveClock)))!;
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))!;
 

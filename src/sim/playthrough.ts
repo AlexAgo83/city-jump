@@ -108,6 +108,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   let statuses: BuildingStatus[] = [];
   let parcels: BuildingParcel[] = [];
   const waves: WaveRecord[] = [];
+  let lastWaveEnded = 0;
   const log: string[] = [];
 
   const road = (name: string, x0: number, z0: number, x1: number, z1: number, type = "street") => {
@@ -150,7 +151,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       .filter((parcel) => !rubble.blocks(parcel) || lifecycle.stateOf(parcel) === "rebuilding");
     const supplied = scenario.utilities ? suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()) : null;
     const diffusers = utilities.diffusers();
-    statuses = lifecycle.sync(parcels, economy.resources.population, seconds, scenario.instantConstruction ? 0 : BUILDING_STAGE_SECONDS).map((status) => {
+    statuses = lifecycle.sync(parcels, economy.resources.population, seconds, scenario.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
       if (!supplied || status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;
@@ -232,7 +233,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   function fight(wave: number): WaveRecord {
     sync(false);
     const started = seconds;
-    const waitedSeconds = started - (waves.at(-1)?.waitedSeconds ?? 0) - waves.reduce((sum, record) => sum + record.combatDurationSeconds, 0);
+    const waitedSeconds = started - lastWaveEnded;
     const threat = waveClock.active!.threat;
     const population = economy.resources.population;
     const parcelsAtWave = parcels.length;
@@ -270,13 +271,15 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
         rubble.destroy(hit);
         treasury.spend(buildingBuildCost(hit), true);
         lifecycle.rebuild(hit, seconds);
-        parcels = parcels.filter((parcel) => parcel !== hit);
-        statuses = statuses.filter((status) => status.parcel !== hit);
       }
       seconds += COMBAT_STEP_SECONDS;
+      // Rebuilding runs during the attack, the way the app's per-frame sync does: a lot the kaiju
+      // flattened comes back once its stage elapses, and is not a target while it is going up.
+      sync(false);
     }
 
     const held = (waveClock.active?.hitPoints ?? 0) <= 0;
+    lastWaveEnded = seconds;
     log.push(`wave:${held ? "held" : "breached"}`, `combat:${seconds - started}`, `salvos:${salvos}`);
     run = held
       ? settleWave(run, { defeated: true, calledEarly: false, baseScience: 10 * run.wave })

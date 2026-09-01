@@ -203,7 +203,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const residents = cityEconomy.resources.population;
     const supplied = currentSuppliedUtilities();
     const diffusers = utilities.diffusers();
-    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS).map((status) => {
+    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
       if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;

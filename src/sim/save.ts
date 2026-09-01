@@ -216,7 +216,8 @@ function readWaveClock(value: unknown): WaveClock | null {
   if (!isRecord(value) || !Number.isFinite(value.elapsedSeconds) || !Number.isFinite(value.nextWaveAtSeconds)) return null;
   const active = value.active;
   if (active !== null && active !== undefined && (!isRecord(active) || !Number.isFinite(active.startedAtSeconds) || !Number.isFinite(active.threat) || !Number.isFinite(active.hitPoints))) return null;
-  return { elapsedSeconds: value.elapsedSeconds as number, nextWaveAtSeconds: value.nextWaveAtSeconds as number, accumulatedThreat: Number.isFinite(value.accumulatedThreat) ? value.accumulatedThreat as number : 0, active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null };
+  // A save written before the grace period existed keeps the schedule it had.
+  return { elapsedSeconds: value.elapsedSeconds as number, nextWaveAtSeconds: value.nextWaveAtSeconds as number, earliestAtSeconds: Number.isFinite(value.earliestAtSeconds) ? value.earliestAtSeconds as number : value.nextWaveAtSeconds as number, accumulatedThreat: Number.isFinite(value.accumulatedThreat) ? value.accumulatedThreat as number : 0, active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null };
 }
 
 function readResources(value: unknown): CityResources | null {

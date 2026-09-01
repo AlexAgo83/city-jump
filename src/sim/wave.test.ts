@@ -35,10 +35,20 @@ describe("wave clock", () => {
     expect(waveThreat(2, 40, 20)).toBeGreaterThan(waveThreat(1, 12, 2));
   });
 
-  it("prices sprawling cities into earlier waves", () => {
-    const small = advanceWaveClockWithThreat(createWaveClock(), 30, waveThreat(1, 12, 2));
-    const large = advanceWaveClockWithThreat(createWaveClock(), 30, waveThreat(1, 80, 60));
+  it("prices sprawling cities into earlier waves, once the grace period is over", () => {
+    // Past the opening grace, where the threat the city generates is what decides.
+    const open = { ...createWaveClock(), earliestAtSeconds: 0 };
+    const small = advanceWaveClockWithThreat(open, 30, waveThreat(1, 12, 2));
+    const large = advanceWaveClockWithThreat(open, 30, waveThreat(1, 80, 60));
 
     expect(large.nextWaveAtSeconds).toBeLessThan(small.nextWaveAtSeconds);
+    expect(large.accumulatedThreat).toBeGreaterThan(small.accumulatedThreat);
+  });
+
+  it("lands no wave before the grace period, however fast the city sprawls", () => {
+    const sprawling = advanceWaveClockWithThreat(createWaveClock(), 30, waveThreat(1, 4000, 900));
+
+    expect(sprawling.active).toBeNull();
+    expect(sprawling.nextWaveAtSeconds).toBe(WAVE_STARTING_VALUES.firstWaveSeconds);
   });
 });

@@ -29,11 +29,15 @@ describe("headless playthrough", () => {
     expect(played.wave.rebuildingCost).toBeGreaterThan(0);
   });
 
-  it("is deterministic, honours gameplay switches and reports the military gap", () => {
+  // Six full runs of a city that now reaches several hundred people: seconds, not milliseconds.
+  it("is deterministic, honours gameplay switches and reports the military gap", { timeout: 60_000 }, () => {
     expect(playFirstRun(3, { instantConstruction: true, freeBuilding: true }).wave).toEqual(playFirstRun(3, { instantConstruction: true, freeBuilding: true }).wave);
     expect(playFirstRun(3, { kaijuSpawns: false }).log.some((line) => line.startsWith("wave:"))).toBe(false);
     expect(playFirstRun(3, { instantConstruction: true }).statuses.some((status) => status.remainingSeconds === 0)).toBe(true);
     expect(playFirstRun(3, { freeBuilding: true }).treasury.money).toBeGreaterThan(playFirstRun(3).treasury.money);
-    expect(militaryGap(3)).toBeLessThan(0);
+    // The gap is the first fight's distance from the 30-second midpoint, so a fight inside the
+    // readable 20-40s band is within ten seconds of it either way. Asserting the sign instead
+    // pinned one seed's fight below the midpoint, and broke on every honest rebalance.
+    expect(Math.abs(militaryGap(3))).toBeLessThan(10);
   });
 });

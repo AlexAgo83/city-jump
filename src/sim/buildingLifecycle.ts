@@ -26,7 +26,12 @@ export class BuildingLifecycle {
     this.replaceWith(saved);
   }
 
-  sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS): BuildingStatus[] {
+  /**
+   * @param rebuildPaused While a wave is on the island, nothing is rebuilt: a lot the kaiju
+   * flattened stays flattened, and its stage only starts once the attack is over. The clock is
+   * held rather than merely checked, so a long wave cannot let a rebuild slip through.
+   */
+  sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS, rebuildPaused = false): BuildingStatus[] {
     const staffing = new Map(allocateWorkforce(parcels, population).parcels.map((parcel) => [parcel.index, parcel.staffed]));
     const live = new Map<string, { state: BuildingState; startedAt: number }>();
     const statuses = parcels.map((parcel, index) => {
@@ -38,9 +43,11 @@ export class BuildingLifecycle {
         live.set(key, { state, startedAt });
         return status(parcel, state, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
       }
-      const underWork = (previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < stageSeconds;
+      const held = previous.state === "rebuilding" && rebuildPaused;
+      const underWork = held || ((previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < stageSeconds);
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
-      const startedAt = state === previous.state ? previous.startedAt : now;
+      // A held rebuild keeps restarting its stage, so the work begins when the wave lifts.
+      const startedAt = held ? now : state === previous.state ? previous.startedAt : now;
       live.set(key, { state, startedAt });
       return status(parcel, state, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
