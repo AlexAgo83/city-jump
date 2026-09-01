@@ -4,7 +4,7 @@
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:57:57
+> Indicators reviewed: 2026-09-01 15:19:50
 
 # AI Context
 - Summary: Eight ordered slices that turn a city editor into a game with something at stake. The
@@ -136,6 +136,18 @@ Two rules that are one rule seen from two sides, and should be designed together
 apart: `req_030` makes the threat depend on the city, `req_032` makes the wave's *arrival* depend on
 accumulated threat. And `req_031`'s run panel stops carrying the hardcore checkbox, while `req_032`'s
 Gameplay settings section is where it lands -- one move, two chains, not two homes.
+
+## 9.1 - Evidence that can fail
+- Chain: `req_033_evidence_that_can_fail_a_harness_that_fights_an_economy_the_corrections_overshot_and_four_criteria_closed_without_being_built`
+- Goal: 9.0 fixed the game and lost the proof. This closes the gap between what its closeouts
+  reported and what the repository can demonstrate.
+- Scope: the combat measurement one task wrote and the next deleted, restored; a playthrough that
+  fights its wave instead of taking the outcome as an argument; assertions that can fail; an economy
+  that went past its target -- trade income removed, industry producing nothing, materials frozen,
+  a first minute ending a quarter of a million in debt; a military road that fields unlimited
+  unstaffed batteries; and four criteria reported met without being written.
+- Exit signal: `npm run balance` on a clean checkout reproduces a combat duration and a salvo count,
+  and every assertion in the harness has been watched to fail.
 
 # The order to follow
 Take them in the order they are numbered. It is not a preference: each one is either what the next

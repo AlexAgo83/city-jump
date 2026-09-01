@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 11:47:25
+> Indicators reviewed: 2026-09-01 15:19:50
 > Owner: Codex
 
 # AI Context
@@ -69,7 +69,20 @@
 - Linked backlog/request close verification passed.
 
 # Report
-- Not started.
+- Delivered the wave's legibility: the kaiju retargets the nearest living building and re-reads the
+  target set each tick, so a building placed during an attack is a candidate; attacking takes five
+  seconds; the wave ends only on the kaiju's death or the last building's. Missiles became pooled
+  projectiles with an arc, a trail, an impact flash and staggered launches, aimed at the kaiju's
+  live position while the damage stays applied at `impactAt`. Construction rises over a 24-second
+  stage with a live percentage and countdown, is charged with debt allowed, refunds half on
+  demolition, and roads are no longer refused for lack of funds.
+- Balance retuned to 900 hit points, a 4-second reload and 12 damage a parcel cell, measured at
+  25.5 seconds over 7.0 salvos by a fight harness written into `scripts/balance.mjs`.
+- Re-opened by review: that fight harness was replaced wholesale by `6f20382` in the following task,
+  so the 25.5-second figure is no longer reproducible and request-AC7 no longer holds. The
+  wave-scale performance figure of request-AC11 was also not taken -- the recorded entry is the
+  ordinary demo rebuild. Both are carried by
+  `req_033_evidence_that_can_fail_a_harness_that_fights_an_economy_the_corrections_overshot_and_four_criteria_closed_without_being_built`.
 - Finished on 2026-09-01.
 - Linked backlog item(s): `item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building`, `item_079_missiles_that_fly_and_explode_where_the_damage_lands`, `item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it`, `item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game`
 - Related request(s): `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`

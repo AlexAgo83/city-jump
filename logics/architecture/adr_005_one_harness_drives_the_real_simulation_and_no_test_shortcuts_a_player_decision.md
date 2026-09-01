@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Drivers: `scripts/balance.mjs` proved nothing for a whole delivery; two requests now need a harness over the same simulation
 > Reminder: Update status, linked refs, decision rationale, consequences, and follow-up work when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:59:21
+> Indicators reviewed: 2026-09-01 15:19:50
 
 # Overview
 There is one harness that plays this game, it drives the real simulation modules through the same
@@ -63,6 +63,12 @@ flowchart TD
   remembers.
 - Balance *figures* stay in `balance/history.jsonl` behind `npm run balance`; the *playthrough
   assertions* are ordinary tests. Measuring and gating are separate concerns on one harness.
+- **Extending the harness means keeping the measurements it already takes.** Added after this
+  decision was applied once and read the other way: task 031 wrote a fight harness reporting combat
+  duration and salvo count, and task 034 extended the harness by replacing the file, taking those
+  figures with it. One harness is not one measurement. A figure that a closeout has already cited as
+  evidence is part of the harness's contract, and removing one requires the same deliberation as
+  removing the acceptance criterion it proves.
 
 # Consequences
 - The harness becomes a real artefact with a maintenance cost: a rule change that breaks a
@@ -73,6 +79,9 @@ flowchart TD
 - A test asserting a list's labels rather than its effects is the same defect in miniature and is
   replaced, not supplemented, wherever it is found -- a check that cannot fail reports coverage that
   is not there.
+- The rule has already failed once in the direction of deletion rather than duplication, which is
+  why the clause above exists. The failure mode to watch is not two harnesses; it is one harness
+  that measures less than it did.
 - The ordering advice scattered across the four orchestration tasks reduces to this document plus
   the roadmap milestone: what must not be duplicated is here, what should be built in which order is
   there.

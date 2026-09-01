@@ -1,0 +1,244 @@
+{
+  "title": "Evidence that can fail: a harness that fights, an economy the corrections overshot, and four criteria closed without being built",
+  "references": [
+    "src/sim/playthrough.ts",
+    "src/sim/playthrough.test.ts",
+    "scripts/balance.mjs",
+    "src/sim/economy.ts",
+    "src/sim/slots.ts",
+    "src/sim/batteries.ts",
+    "src/sim/buildingKinds.ts",
+    "src/sim/run.ts",
+    "src/app/app.ts",
+    "src/ui/ledger.ts",
+    "balance/history.jsonl",
+    "perf/history.jsonl",
+    "logics/architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "Operator workflow",
+    "needs": [
+      "The four chains of milestone 9.0 delivered most of what they promised -- the kaiju crosses the city and retargets onto buildings placed during the attack, missiles fly as pooled projectiles with staggered launches and land where the damage is applied, construction is visible and priced, waves repeat and scale, the starving opening is fixed, the prestige web shrank to three nodes with real effects and moved off the play screen. What did not survive is the evidence, and the evidence was the point.",
+      "The combat measurement was deleted by the next task. `a437609` wrote a genuine fight harness -- `advanceKaijuAssault`, `batteriesInRange`, missiles carrying `impactAt`, `damageWaveClock`, stepped at 0.25 s, counting salvos -- and its closeout recorded 25.5 seconds and 7.0 salvos, inside the twenty-to-forty target. `6f20382` replaced the whole file with the playthrough version, which fights nothing. `npm run balance` today reports neither combat duration nor salvo count, so the acceptance criteria that named them are false on tasks marked Done, and the retuned numbers have no reproducible evidence. This is the same shape as `e1567fa`: a later commit removing a closed request's proof. It is the shape this milestone existed to stop.",
+      "`adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision` said one harness, and that whichever request landed first would build it and the other would extend it. 'Extend' was read as 'replace'. One harness was the right rule; it needed to say that the measurements already taken are part of what is extended.",
+      "The playthrough harness does not play a wave. `playFirstRun(seed, rules, shape)` takes the outcome as a parameter: `advanceKaijuAssault` is never called, no missile is fired, no damage is applied. The `lost` parcels are computed and never applied -- nothing is destroyed, the lifecycle is not told, the population does not move -- and `nextWaveReachable` is `!run.ended`, which was set from the shape argument. The three wave shapes are stipulated, not simulated.",
+      "Its tests assert the parameter they passed in. `expect(playFirstRun(2, ..., \"total_loss\").run.ended).toBe(\"defeated\")` is `expect(f(x)).toBe(x)`; the kaiju-spawn assertion checks a literal `0` returned by an early return. These are the branch-label pattern the ADR says to replace rather than supplement -- a check that cannot fail reporting coverage that is not there.",
+      "There is no needs-following policy either, though the closeout says there is. Every zone is painted before the loop; the loop only logs, and its logging condition compares `short.kind` against `firstNeeds.find(need => need.kind === short.kind)?.kind` -- a value against itself, always false, so the line never fires.",
+      "`militaryGap` subtracts hit points from damage-per-minute. The 15,765.7 average written into `balance/history.jsonl` as the evidence for the military-versus-threat criterion has no dimensional meaning.",
+      "Meanwhile the economy was corrected past the point it was aimed at. `incomePerSecond` lost its trade term and is now population tax alone -- about $0.24 a second at the starting population -- while a building costs a flat 800 a cell, four to thirteen times the per-kind prices the money removal had deleted, and with the per-kind differentiation gone. Playing the harness's own first forty seconds ends at **minus $212,790**. Money as a reading of the city's health was the goal; a quarter of a million in deficit inside the first minute reads as nothing at all. Nothing in the balance harness reports the treasury, which is why it was not seen.",
+      "That trade removal also silently reverts an acceptance criterion of the city-resources request, which says commerce produces services *and trade* -- the same undocumented-revert pattern as the deleted harness, one file over.",
+      "Materials were half-removed. `materialsProduced` is zero, so an industrial parcel now produces nothing at all while still demanding six workers a cell -- the second-highest cost in the game -- which makes zoning industrial strictly harmful. But materials are still in `CityResources`, still saved, still printed by the ledger, and `starter-materials` still sells 25 of them for nine prestige. A prestige node that buys a frozen number is exactly the defect the prestige request existed to delete, reintroduced by the request that deleted it.",
+      "Unzoned road frontage bypasses every construction limit. `parcelsForDemand` returns early for any parcel whose cells carry no zone, and that is the only path by which military parcels have ever reached the city -- a military road's frontage. The harness's own first run therefore fields eleven military parcels at population twelve. With `batteriesForParcels` still ignoring staffing, and military demanding eight workers a cell against a workforce of six, those eleven batteries fire at full damage with nobody in them. A long military road is unlimited free firepower.",
+      "And four acceptance criteria were closed without being built: the one-line alert when a district goes dark, for which the word 'alert' appears nowhere in the repository; the performance figure at wave scale, where the recorded entry is the ordinary demo rebuild; one notion of need, where `buildingKinds.ts` was never touched so the gauges still show staffing ratios while construction is gated on population thresholds; and the prestige branches, where the web shrank to three `starting` nodes leaving `capability` and `information` declared and empty."
+    ],
+    "context": [
+      "This request is a correction pass, not new direction. Nothing here asks for a mechanic that does not exist; every item is a measurement that stopped existing, a correction that overshot, or a criterion that was signed off without being written.",
+      "The fight harness that was deleted is recoverable: `git show a437609 -- scripts/balance.mjs` is the whole of it, and it worked. Restoring it beside the playthrough rather than in place of it is the cheapest correct answer, and it is what the ADR meant.",
+      "The playthrough already has every module it needs imported or one import away. Making it fight is not new machinery: it is calling `advanceKaijuAssault` and the battery and missile rules the app already calls, in the loop it already has.",
+      "Deriving the wave shape rather than passing it in is what makes the three outcomes worth asserting. A run that is destroyed because the kaiju destroyed it can be asked what the city can still do; a run that is destroyed because a string said so cannot.",
+      "The economy has one product decision in it and this request states an answer rather than leaving it open, because leaving it open is how it drifted in the first place. Restore trade as **income**, and let population growth be driven by jobs and housing rather than by the same services number -- that satisfies 'counted once' by moving a term rather than deleting one, and it gives the treasury a reason to move. Give industry a reason to exist by having it produce money the way commerce does, and then remove materials outright -- from `CityResources`, the saves, the ledger and the prestige web -- rather than carrying a resource nothing spends. The alternative, a real sink for materials, is a second currency on every build and more machinery than this game currently earns. Either answer is defensible; carrying a frozen stock is not.",
+      "Building prices want recalibrating with that, and the per-kind table the money removal deleted is worth restoring rather than a flat rate: a barracks and a house costing the same is a lost signal, and the old table already existed.",
+      "The unzoned-frontage bypass is deliberate in origin -- unzoned road frontage is the 'mixed neighbourhood' rule, and it should keep building. What it should not do is put military parcels outside every limit, because the military road is the only route military has. Whether the fix is a limit on that path, a staffing gate on batteries, or both, is for the slice to settle with the numbers in front of it.",
+      "The performance figure at wave scale still has nothing measuring it, and a kaiju that now genuinely walks the city destroying building after building is exactly the load that criterion was written for.",
+      "Everything this request touches is already covered by an acceptance criterion on a closed task. The closeouts should say so plainly rather than quietly re-passing: a criterion that was reported met and was not is worth naming in the report that corrects it."
+    ],
+    "acceptance_criteria": [
+      "AC1: `npm run balance` reports combat duration and salvo count again, from a fight the harness simulates rather than from a constant, and the twenty-to-forty-second target is reproducible.",
+      "AC2: The playthrough plays its first wave -- the kaiju walks and destroys, batteries fire, missiles land, damage is applied -- and the wave's shape is derived from the simulation rather than passed in as an argument.",
+      "AC3: The losses a wave inflicts are applied to the city, and what the city can still do afterwards is read from the city rather than from the argument that named the outcome.",
+      "AC4: No assertion in the harness's tests passes by construction: each one fails when the behaviour it names is removed, and the assertions that cannot are replaced rather than supplemented.",
+      "AC5: The harness reports the treasury, and the military measurement compares quantities of the same kind.",
+      "AC6: An ordinary first minute of play does not end a quarter of a million in debt -- income, building prices and what industry produces are answered together rather than one at a time.",
+      "AC7: Materials are spent by something, or are gone from the resources, the saves, the ledger and the prestige web; and no zoning choice is strictly harmful to make.",
+      "AC8: Unzoned road frontage no longer places military parcels outside every construction limit, so a military road is not unlimited free firepower.",
+      "AC9: A battery answers to staffing the way every other building does.",
+      "AC10: The four criteria closed without being built are built: the district-going-dark alert, the performance figure at wave scale, one notion of need behind the gauges and the growth rules, and no prestige branch declared without a node in it.",
+      "AC11: Every criterion this request closes leaves evidence that can be re-run, and no slice of this request removes another slice's evidence -- extending the harness means keeping the measurements it already takes."
+    ]
+  },
+  "product": {
+    "title": "Evidence that can fail",
+    "overview": "Milestone 9.0 fixed the game and lost the proof. The combat measurement that showed a first wave lasting 25.5 seconds over 7 salvos was written by one task and deleted by the next, so the retuned balance now rests on nothing a command can reproduce. The playthrough harness that was supposed to catch exactly that takes its outcome as a parameter -- no kaiju walks, no missile flies, no building falls -- and its tests assert the argument they passed in. Beside it, corrections aimed at real defects went past them: commerce lost its income, industry lost its output while keeping the second-highest wage bill, materials became a frozen number that a prestige upgrade still sells, and an ordinary first minute ends a quarter of a million in the red with nothing measuring the treasury. This brief is the pass that makes the evidence real, brings the economy back inside the range it was aimed at, and builds the four criteria that were signed off without being written.",
+    "goals": [
+      "A measurement, once taken, is not deleted by the next task that touches the file.",
+      "The harness fights the wave it claims to have played.",
+      "Every assertion can fail; the ones that cannot are replaced.",
+      "The treasury is a number someone is watching.",
+      "No zoning choice is strictly harmful, and no resource is carried that nothing spends.",
+      "A criterion reported met was met."
+    ],
+    "non_goals": [
+      "New mechanics of any kind -- every item here is a measurement, a correction, or a criterion already agreed.",
+      "Reworking the kaiju loop, the missile rendering or the construction feedback, which are delivered and working.",
+      "A second harness beside the one that exists; the fight harness is restored into it, not beside the whole.",
+      "New prestige nodes or branches -- filling the empty branches is one acceptable answer, dropping them is the other.",
+      "Difficulty settings as an answer to the economy being out of range.",
+      "Rewriting the browser interaction suite."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "A harness that fights the wave it reports on",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "Operator workflow",
+      "request_acs": ["AC1", "AC2", "AC3", "AC4", "AC5", "AC11"],
+      "problem": [
+        "`a437609` wrote a real fight harness -- kaiju assault, batteries in range, missiles carrying `impactAt`, `damageWaveClock`, stepped at 0.25 s, counting salvos -- and recorded 25.5 seconds over 7.0 salvos. `6f20382` replaced the file wholesale with a playthrough that fights nothing, so `npm run balance` reports neither duration nor salvos and the retune has no reproducible proof.",
+        "`playFirstRun(seed, rules, shape)` takes its outcome as an argument. `advanceKaijuAssault` is never called; no missile is fired; no damage is applied.",
+        "The `lost` parcels are computed and never applied: nothing is destroyed, the lifecycle is not told, the population does not move. `nextWaveReachable` is `!run.ended`, set from the shape argument.",
+        "Three of the harness's five assertions pass by construction -- `expect(f(x)).toBe(x)` -- and one checks a literal returned by an early return.",
+        "The closeout says the harness 'follows a basic needs policy'. Every zone is painted before the loop, and the loop's only reaction compares `short.kind` against itself, so it never fires.",
+        "`militaryGap` subtracts hit points from damage-per-minute, and that number is the recorded evidence for the military-versus-threat criterion.",
+        "Nothing reports the treasury, which is why an ordinary run ending at minus $212,790 went unnoticed."
+      ],
+      "scope_in": [
+        "Restore the fight measurement. `git show a437609 -- scripts/balance.mjs` is the whole of the deleted harness and it worked; fold it back in so combat duration and salvo count are reported again alongside the playthrough figures.",
+        "Make the playthrough actually play its first wave: call `advanceKaijuAssault` against the living parcels, fire the batteries in range, carry missiles to `impactAt`, apply the damage -- the same rules the app calls, from the loop the harness already has.",
+        "Derive the wave's shape from what happened instead of accepting it as a parameter. A caller may still steer a scenario -- fewer batteries, a bigger threat -- but the outcome must be read out, not passed in.",
+        "Apply the losses: destroy what the kaiju destroyed, tell the lifecycle, let the population and the treasury feel it, and read `nextWaveReachable` from the city.",
+        "Build the needs-following policy the closeout already claims: react to a shortage by zoning for it, and assert what following the gauges produces. If following them does not lead to a surviving city, report that rather than tuning the policy until it passes.",
+        "Replace every assertion that cannot fail. The test for each behaviour must break when that behaviour is removed -- check it by removing it.",
+        "Fix `militaryGap` to compare comparable quantities -- time to kill against the fight the wave actually is, rather than a rate against a stock -- and report the treasury at the first wave alongside it.",
+        "Keep every measurement the harness already takes. Extending it means adding, and a figure that disappears is the defect this slice exists to correct."
+      ],
+      "scope_out": [
+        "The economy's numbers, which are the next slice; this one makes them visible.",
+        "Changing the kaiju loop, the missiles or the construction feedback, which work.",
+        "The browser interaction suite.",
+        "A second harness."
+      ],
+      "acceptance_criteria": [
+        "AC1: `npm run balance` reports combat duration and salvo count from a simulated fight, and the twenty-to-forty-second target is reproducible from a clean checkout.",
+        "AC2: The playthrough's first wave is fought, not stipulated, and its shape is read out of the simulation.",
+        "AC3: A wave's losses are applied to the city and what remains possible afterwards is read from the city.",
+        "AC4: Every assertion fails when the behaviour it names is removed, verified by removing it.",
+        "AC5: A needs-following policy builds in response to the gauges, and what that produces is asserted.",
+        "AC6: The treasury and a dimensionally sound military measurement are both reported."
+      ]
+    },
+    {
+      "title": "An economy back inside the range it was aimed at",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC6", "AC7"],
+      "problem": [
+        "`incomePerSecond` lost its trade term and is now population tax alone -- about $0.24 a second at the starting population -- while a building costs a flat 800 a cell. Forty seconds of ordinary play ends at minus $212,790.",
+        "That removal also silently reverts the city-resources criterion which says commerce produces services *and* trade, with no doc recording it -- the same undocumented-revert pattern as the deleted harness.",
+        "The flat 800 replaced a per-kind table (residential 60, commercial 110, agricultural 75, industrial 140, military 190 a cell) with a rate four to thirteen times higher and no differentiation, so a barracks and a house now cost the same.",
+        "`materialsProduced` is zero, so an industrial parcel produces nothing while demanding six workers a cell. Zoning industrial is now strictly harmful.",
+        "Materials are nonetheless still in `CityResources`, still saved, still printed by the ledger, and `starter-materials` still sells 25 of them for nine prestige -- a prestige node buying a frozen number, which is the defect the prestige request was written to delete."
+      ],
+      "scope_in": [
+        "Restore trade as income and drive population growth from jobs and housing instead of the same services figure. This satisfies counting commerce once by moving a term rather than deleting one, and gives the treasury something to move it upward.",
+        "Give industry a reason to exist: have it produce money the way commerce does, and then remove materials outright -- from `CityResources`, the saves, `CityTerms`, the ledger and the prestige web. The alternative is a genuine sink, which means a second currency on every build; take it only if the sink is already in the game.",
+        "Whichever answer materials get, `starter-materials` must buy something real or leave the web.",
+        "Recalibrate building prices, restoring per-kind differentiation rather than a flat rate -- the old table existed and a barracks should not cost a house.",
+        "Aim the whole set at a stated target: an ordinary first minute leaves the treasury somewhere a player can read, and going negative stays possible and unblocked as the construction slice decided.",
+        "Prove it through the harness rather than by eye, using the treasury figure the first slice adds, and record the chosen numbers and the reasoning.",
+        "Confirm an older save still loads once a resource leaves the shape."
+      ],
+      "scope_out": [
+        "Debt, interest, maintenance or any consequence of a negative balance -- still later work.",
+        "Refusing a build for lack of funds, which stays out for good.",
+        "New resources.",
+        "Reworking the workforce priorities or the food rules."
+      ],
+      "acceptance_criteria": [
+        "AC1: An ordinary first minute leaves a treasury figure a player can read, proven through the harness rather than by eye.",
+        "AC2: Commerce contributes income again, and no single figure is both the growth driver and the income.",
+        "AC3: No zoning choice is strictly harmful: industry produces something for the workers it costs.",
+        "AC4: Materials are spent by something or are gone from the resources, the saves, the ledger and the prestige web, and an older save still loads.",
+        "AC5: Building prices differentiate by kind, and the numbers chosen are written down."
+      ]
+    },
+    {
+      "title": "A military road is not unlimited free firepower",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "City legibility",
+      "request_acs": ["AC8", "AC9"],
+      "problem": [
+        "`parcelsForDemand` returns early for any parcel whose cells carry no zone, so unzoned road frontage bypasses every construction limit.",
+        "That is the only path military parcels have ever taken: a military road's frontage. Giving painted military zones a limit closed one door and left the one everybody uses open.",
+        "The harness's own first run fields eleven military parcels at population twelve.",
+        "`batteriesForParcels` filters on kind alone and never consults staffing, while military demands eight workers a cell against a workforce of six -- so those eleven batteries fire at full damage with nobody in them.",
+        "Together that is unlimited firepower for the price of a road, and it is what makes the recorded military measurement absurd."
+      ],
+      "scope_in": [
+        "Keep unzoned frontage building -- the mixed-neighbourhood rule is deliberate and residential and commercial frontage should stay as it is.",
+        "Stop that path placing military parcels outside every limit. A limit on the road path, a staffing gate on batteries, or both -- settle it with the numbers in front of you rather than by picking the first that compiles.",
+        "Make a battery answer to staffing like every other building: an unstaffed military parcel is a building that does not work, and it should not shoot.",
+        "Check what this does to a city that was deliberately built around a military road, since that is the intended way to defend and it must stay viable.",
+        "Cover it with a test over the real filter at a population where the answer is unambiguous."
+      ],
+      "scope_out": [
+        "Changing battery range, damage or reload, which the wave balance owns.",
+        "Placeable turrets, which the product brief rules out.",
+        "Reworking the mixed-neighbourhood rule for residential and commercial frontage."
+      ],
+      "acceptance_criteria": [
+        "AC1: A military road no longer yields military parcels beyond any limit.",
+        "AC2: An unstaffed military parcel does not fire.",
+        "AC3: A city built around a military road can still defend itself, checked rather than assumed.",
+        "AC4: The rule is covered by a test over the real filter."
+      ]
+    },
+    {
+      "title": "The four criteria that were closed without being built",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": ["AC10", "AC11"],
+      "problem": [
+        "The one-line alert when a district goes dark was accepted on a task marked Done, and the word 'alert' appears nowhere in the repository.",
+        "The performance figure at wave scale was accepted, and the recorded entry in `perf/history.jsonl` is the ordinary demo rebuild -- no wave was measured, on a kaiju that now genuinely walks the city destroying building after building.",
+        "One notion of need was accepted, and `buildingKinds.ts` was never touched: the gauges still show workforce staffing ratios while construction is still gated on separate population thresholds.",
+        "The prestige web shrank to three `starting` nodes, which was an allowed outcome, but `UpgradeBranch` still declares `capability` and `information` and the run request named all three branches. Two branches are declared and empty.",
+        "All four were reported met. That is the defect worth naming as much as the missing work."
+      ],
+      "scope_in": [
+        "Build the district-going-dark alert, in the transient one-line shape the interface slice described.",
+        "Measure a wave: record a `npm run perf` figure for a kaiju crossing a city and destroying buildings, which is a region rebuild per building, not a single placement.",
+        "Make the gauges and the construction limits one notion of need, so a player reading the panel is reading what decides.",
+        "Settle the prestige branches: fill them with nodes that do something, or stop declaring them. Either answer is fine; declaring a branch with nothing in it is not.",
+        "Say in the closeout, by name, which criteria were reported met and were not. A silent re-pass teaches nothing."
+      ],
+      "scope_out": [
+        "New prestige mechanics if the branches are filled -- a node must fit the existing effect shape or the branch goes.",
+        "Reworking the ledger or the needs panel's presentation beyond the figures behind it.",
+        "Performance work; this measures, and only optimises if the number demands it."
+      ],
+      "acceptance_criteria": [
+        "AC1: A district going dark raises a one-line alert.",
+        "AC2: A wave-scale performance figure is recorded, distinct from a placement's.",
+        "AC3: The gauges are derived from the rules that gate construction.",
+        "AC4: No prestige branch is declared without a node that does something.",
+        "AC5: The closeout names the criteria that were previously reported met and were not."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Make the evidence real, bring the economy back in range, and build the four criteria that were signed off empty",
+    "plan": [
+      "Read this request and its four slices, then read `adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision` -- including the clarification added after this review, that extending the harness means keeping the measurements it already takes. 'Extend' was read as 'replace', and that is how a real measurement was lost.",
+      "Recover before rewriting: `git show a437609 -- scripts/balance.mjs` is the deleted fight harness in full, and it worked. Start there rather than from a blank file.",
+      "Take the harness slice first and completely. Everything after it is checked through the harness, and a harness that stipulates its own answer cannot check anything -- which is the whole reason this request exists.",
+      "Prove each replaced assertion by removing the behaviour it names and watching it fail. An assertion nobody has seen fail is an assertion nobody has tested.",
+      "Then the economy, with the treasury figure the harness now reports in front of you. The numbers are stated in the slice, and reversing one is a line -- drifting because nobody was looking is what this is correcting.",
+      "Then the military road, which is small and is what makes the military measurement absurd. Check that a city built around a military road can still defend itself: that is the intended way to defend and it must survive the fix.",
+      "Then the four unbuilt criteria, and name them in the closeout. A criterion reported met that was not is worth saying out loud; a silent re-pass teaches nothing and is how this happened.",
+      "Add nothing. Every item here is a measurement that stopped existing, a correction that went past its target, or work that was already agreed -- a new mechanic anywhere in this chain is a sign of drift.",
+      "Run `npm run ci`, `npm run test:e2e`, `npm run balance` and `npm run perf` locally, and check that `npm run balance` on a clean checkout reproduces the combat-duration figure this request restores.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The criteria this request finds unmet on closed tasks belong in the closeout by name, and `task_031`'s empty Report is repaired rather than left.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/evidence-that-can-fail.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
