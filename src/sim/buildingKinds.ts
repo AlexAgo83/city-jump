@@ -1,5 +1,6 @@
 import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
+import { housingCapacity } from "./economy";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
@@ -41,9 +42,7 @@ export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "f
 }
 
 export function population(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[]): number {
-  return parcels
-    .filter((parcel) => parcel.kind === "residential")
-    .reduce((sum, parcel) => sum + parcel.frontageCells * parcel.depthCells * 12, 0);
+  return housingCapacity(parcels);
 }
 
 function need(kind: BuildingKind, supply: number, need: number): BuildingNeed {
