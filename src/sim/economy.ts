@@ -4,7 +4,7 @@ import { roadType } from "./roadTypes";
 import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 
-export const STARTING_MONEY = 20_000;
+export const STARTING_MONEY = 40_000;
 export const CITY_DAY_SECONDS = 96;
 
 export interface CityResources {
