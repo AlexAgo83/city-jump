@@ -48,7 +48,7 @@ import { showCityStats, showCompass, showFps, showMoney, showRefusal, showRunSta
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
 type TimeRate = 0 | 1 | 2 | 4;
-type PendingMissile = MissileTrail & { readonly impactAt: number; readonly damage: number };
+type PendingMissile = { readonly from: { readonly x: number; readonly y: number; readonly z: number }; readonly launchedAt: number; readonly impactAt: number; readonly damage: number };
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
@@ -393,18 +393,27 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
     const batteries = batteriesForParcels(currentParcels);
     if (seconds >= nextSalvoAt) {
-      pendingMissiles.push(...batteriesInRange(batteries, position).map((battery) => ({
-        from: battery.position,
-        to: position,
-        impactAt: seconds + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(battery.position, position) / battery.range),
-        damage: battery.damage,
-      })));
+      pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
+        const launchedAt = seconds + index * 0.22;
+        return {
+          from: battery.position,
+          launchedAt,
+          impactAt: launchedAt + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(battery.position, position) / battery.range),
+          damage: battery.damage,
+        };
+      }));
       nextSalvoAt = seconds + WAVE_STARTING_VALUES.reloadSeconds;
     }
     const hits = pendingMissiles.filter((missile) => missile.impactAt <= seconds);
     if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
     pendingMissiles = pendingMissiles.filter((missile) => missile.impactAt > seconds);
-    missiles.rebuild(pendingMissiles);
+    const missileToTrail = (missile: PendingMissile, impact = false): MissileTrail => ({
+      from: missile.from,
+      to: position,
+      progress: impact ? 1 : (seconds - missile.launchedAt) / Math.max(0.01, missile.impactAt - missile.launchedAt),
+      impact,
+    });
+    missiles.rebuild([...pendingMissiles.filter((missile) => missile.launchedAt <= seconds).map((missile) => missileToTrail(missile)), ...hits.map((missile) => missileToTrail(missile, true))]);
     const active = waveClock.active;
     if (!active) return;
     showWaveBanner(`Kaiju ${Math.ceil(active.hitPoints)}/${active.threat} HP - ${Math.round(firepowerPerMinute(batteries))} dmg/min`, "active");
