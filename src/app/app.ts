@@ -27,7 +27,7 @@ import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { kaijuPositionAt, planKaiju, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { buildableCellCentre, buildingParcels, buildableCells, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
@@ -128,7 +128,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
-      currentParcels = buildingParcels(currentBuildableCells, zones).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
+      currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
       syncBuildings();
     });
     let junctions: ReturnType<typeof allJunctions>;
@@ -171,6 +171,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
   };
   let simSeconds = 0;
+  let demandStep = 0;
   const stateCounts = (): Record<string, number> =>
     currentBuildingStatuses.reduce((counts, status) => {
       counts[status.state] = (counts[status.state] ?? 0) + 1;
@@ -201,6 +202,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const advanceClock = (dt: number): void => {
     if (dt <= 0) return;
     simSeconds += dt;
+    if (Math.floor(simSeconds / 20) !== demandStep) {
+      demandStep = Math.floor(simSeconds / 20);
+      rebuild();
+    }
     const next = sunHour + dt * 0.25;
     simDay += Math.floor(next / 24);
     setClockHour(next);

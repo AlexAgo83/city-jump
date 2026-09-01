@@ -200,6 +200,18 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
   return parcels;
 }
 
+/** Zoned land is intent, not an instant building: demand admits one lot every 20 simulated seconds. */
+export function parcelsForDemand(parcels: readonly BuildingParcel[], population: number, seconds: number): BuildingParcel[] {
+  const admitted = Math.floor(Math.max(0, seconds) / 20) + 1;
+  const limits: Record<BuildingKind, number> = { residential: Math.max(1, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: 0 };
+  const used: Record<BuildingKind, number> = { residential: 0, agricultural: 0, commercial: 0, industrial: 0, military: 0 };
+  return parcels.filter((parcel) => {
+    if (!parcel.cells.some((cell) => cell.zone)) return true;
+    used[parcel.kind] += 1;
+    return used[parcel.kind] <= Math.min(limits[parcel.kind], admitted);
+  });
+}
+
 export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: number; z: number } {
   return {
     x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
