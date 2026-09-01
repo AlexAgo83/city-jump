@@ -4,7 +4,7 @@ export const WAVE_STARTING_VALUES = {
   kaijuSpeedMps: 16,
   kaijuHitPoints: 900,
   batteryRangeM: 220,
-  damagePerParcelCell: 12,
+  damagePerParcelCell: 14,
   reloadSeconds: 4,
   missileTravelSecondsAtRange: 1.5,
   destructionRadiusM: 25,

@@ -195,6 +195,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
   const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
+  const workingParcels = (): BuildingParcel[] => currentBuildingStatuses.filter((status) => status.state === "working").map((status) => status.parcel);
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
@@ -781,7 +782,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const simDt = dt * timeRate;
     advanceClock(simDt);
     if (simDt > 0 && currentParcels.length) {
-      lastTerms = cityEconomy.advance(currentParcels, simDt);
+      // Only a working building produces or houses anyone. A lot that is rising, unstaffed or cut
+      // off from power or water is a building the city paid for and does not yet have.
+      lastTerms = cityEconomy.advance(workingParcels(), simDt);
       const nextRun = endIfPopulationZero(runState, cityEconomy.resources.population);
       if (nextRun !== runState) {
         runState = nextRun;

@@ -132,7 +132,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   const step = (dt: number): void => {
     seconds += dt;
     sync(true);
-    economy.advance(parcels, dt);
+    economy.advance(statuses.filter((status) => status.state === "working").map((status) => status.parcel), dt);
     treasury.earn(incomePerSecond(economy.resources.population, statuses) * dt);
     if (scenario.kaijuSpawns && !waveClock.active) {
       waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(run.wave, economy.resources.population, parcels.length));
@@ -143,6 +143,9 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   road("farms", -220 + seed, 220, 80 + seed, 220, "dirt");
   road("shops", -220, 310 + seed, 80, 310 + seed);
   road("battery", -220, 360 + seed, 80, 360 + seed, "military");
+  // A spine crossing all four, so the city is one network: without it the utility producers cannot
+  // reach the diffusers and every lot sits idle -- which is a badly drawn city, not a broken game.
+  road("spine", -200, 200, -200, 380);
   paint("residential", -170, 300);
   paint("agricultural", -70, 220);
   paint("commercial", 20, 300);
