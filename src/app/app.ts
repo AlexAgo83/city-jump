@@ -864,6 +864,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   addOffshoreBridge();
   addStarterKit();
   rebuild();
+  // Looking at the city, not at a patch of empty ground. Only "New island" framed the kit, so a
+  // first load opened on whatever the default camera happened to point at.
+  applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
   updateRunHud();
 
   // Pick up where the last session stopped. A city the player never named is still their work.
