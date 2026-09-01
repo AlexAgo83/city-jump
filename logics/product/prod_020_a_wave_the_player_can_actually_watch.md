@@ -1,12 +1,12 @@
 ## prod_020_a_wave_the_player_can_actually_watch - A wave the player can actually watch
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`
-> Related backlog: `item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building`, `item_079_missiles_that_fly_and_explode_where_the_damage_lands`, `item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it`, `item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game`
+> Related backlog: `item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building`
 > Related task: `task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:23:22
+> Indicators reviewed: 2026-09-01 11:47:26
 
 # Overview
 The attack slice shipped every part it promised and none of them are legible. The kaiju lands and the wave ends on the first building it touches, so nothing is crossed and nothing is chosen. The batteries answer with a yellow wire that points at where the monster used to be. A well-defended first wave is over in ten seconds, and the harness that is supposed to prove the balance never runs the game. Meanwhile a building goes up as a stub at a fixed height for a minute, and costs nothing, because the price was removed along with the queue that refused to build. This brief is the pass that turns those mechanisms into something a player can read: a monster that crosses the city building by building, missiles that leave the ground and come down, a fight long enough to have a shape, and money that records what the city spent instead of stopping it from playing.
@@ -80,5 +80,5 @@ flowchart TD
 - No wave ends because one building fell.
 
 # References
-- Product back-reference: `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`
+- Product back-reference: `item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building`
 - Task back-reference: `task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`

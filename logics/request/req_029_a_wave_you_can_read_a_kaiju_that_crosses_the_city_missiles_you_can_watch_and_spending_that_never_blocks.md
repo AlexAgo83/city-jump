@@ -1,13 +1,13 @@
 ## req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks - A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:26
+> Indicators reviewed: 2026-09-01 11:47:25
 
 # AI Context
 - Summary: The correction pass on the attack slice: a kaiju that keeps choosing targets, missiles that fly and explode where the damage lands, a fight long enough to read, a visible construction, and building costs that are deducted without ever refusing a build.

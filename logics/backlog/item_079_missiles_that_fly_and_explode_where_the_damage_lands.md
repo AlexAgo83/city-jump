@@ -1,14 +1,14 @@
 ## item_079_missiles_that_fly_and_explode_where_the_damage_lands - Missiles that fly, and explode where the damage lands
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 80%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 11:26:11
+> Indicators reviewed: 2026-09-01 11:47:26
 
 # AI Context
 - Summary: The delivery slice for the military answer: real projectiles that climb, travel and dive, staggered launches, and an explosion drawn where the damage is already applied.
@@ -58,3 +58,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`
+
+# Notes
+- Task `task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks` was finished via `logics-manager flow finish task` on 2026-09-01.
