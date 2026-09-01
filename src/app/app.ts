@@ -37,7 +37,7 @@ import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClockWithThreat, callWaveNow, createWaveClock, damageWaveClock, scheduleNextWave, waveCountdownSeconds, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
@@ -454,7 +454,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       showWaveBanner("Pacifist: waves, science and prestige are paused.", "waiting");
       return;
     }
-    waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+    waveClock = summonIfDue(advanceWaveClock(waveClock, dt), runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveVerdict) {
       if (waveClock.elapsedSeconds < waveVerdictUntil) {
         showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
@@ -467,7 +467,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       kaiju.hide();
       waveMarkers.hide();
       missiles.rebuild([]);
-      showWaveBanner(`Wave in ${Math.ceil(waveCountdownSeconds(waveClock))}s`, "waiting");
+      showWaveBanner(`Kaiju at ${waveAtPopulation(runState.wave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population))} to go`, "waiting");
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
@@ -715,7 +715,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   callWaveButton.addEventListener("click", () => {
     if (waveClock.active || runState.ended) return;
     if (!runState.rules.kaijuSpawns) return showRefusal("Pacifist mode pauses waves, science and prestige.");
-    waveClock = callWaveNow(waveClock);
+    waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     waveCalledEarly = true;
     updateWave(0);
   });
@@ -1001,7 +1001,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measureWaveCost(maxSeconds = 90) {
       const started = performance.now();
       if (!waveClock.active) {
-        waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+        waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
         startWave("debug");
       }
       const rubbleBefore = rubble.count();
@@ -1009,14 +1009,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return { ms: performance.now() - started, rubble: rubble.count() - rubbleBefore, wave: waveVerdict ?? (waveClock.active ? "active" : "waiting") };
     },
     forceWave(seconds = 0) {
-      waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+      waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
       startWave("debug");
       waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
       if (seconds > 0) updateWave(seconds);
     },
     forceHeldWave() {
       if (!waveClock.active) {
-        waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+        waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
         startWave("debug");
       }
       waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);

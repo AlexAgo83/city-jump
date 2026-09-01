@@ -10,7 +10,7 @@ import { buildableCells, buildingParcels, parcelsForDemand, type BuildingParcel 
 import { setTerrain, flatTerrain } from "./terrain";
 import { distXZ, v3 } from "./vec";
 import { missingUtility, suppliedDiffusers, Utilities } from "./utilities";
-import { advanceWaveClockWithThreat, createWaveClock, damageWaveClock, scheduleNextWave, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
+import { advanceWaveClock, createWaveClock, damageWaveClock, scheduleNextWave, summonIfDue, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
 import { Zones } from "./zones";
 import { advanceKaijuAssault, createKaijuAssault } from "./kaiju";
 
@@ -167,7 +167,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     economy.advance(statuses.filter((status) => status.state === "working").map((status) => status.parcel), dt);
     treasury.earn(incomePerSecond(economy.resources.population, statuses) * dt);
     if (scenario.kaijuSpawns && !waveClock.active) {
-      waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(run.wave, economy.resources.population, parcels.length));
+      waveClock = summonIfDue(advanceWaveClock(waveClock, dt), run.wave, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length));
     }
   };
 

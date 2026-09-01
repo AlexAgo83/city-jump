@@ -1,6 +1,4 @@
 export const WAVE_STARTING_VALUES = {
-  firstWaveSeconds: 60,
-  betweenWaveSeconds: 60,
   kaijuSpeedMps: 16,
   kaijuHitPoints: 900,
   batteryRangeM: 220,
@@ -10,12 +8,25 @@ export const WAVE_STARTING_VALUES = {
   destructionRadiusM: 25,
 } as const;
 
+/**
+ * The residents a city must hold before a kaiju comes for it.
+ *
+ * Nothing is on a schedule. A city is attacked because it has become worth attacking, so a player
+ * who does not build is not attacked at all, and one who grows fast brings the next one on
+ * themselves. The bar rises every wave, which is why holding one buys room rather than a countdown.
+ */
+export function waveAtPopulation(wave: number): number {
+  return Math.round(50 * Math.pow(Math.max(1, wave), 1.5));
+}
+
+/** How many more residents before the island notices. Infinity is not a thing here; zero means now. */
+export function residentsUntilWave(wave: number, population: number): number {
+  return Math.max(0, waveAtPopulation(wave) - Math.max(0, population));
+}
+
 export interface WaveClock {
+  /** The simulation clock, used only to time a fight that is already happening. */
   readonly elapsedSeconds: number;
-  readonly nextWaveAtSeconds: number;
-  /** No wave may land before this, however fast the city generates threat. */
-  readonly earliestAtSeconds: number;
-  readonly accumulatedThreat: number;
   readonly active: ActiveWave | null;
 }
 
@@ -26,36 +37,27 @@ export interface ActiveWave {
 }
 
 export function createWaveClock(): WaveClock {
-  return { elapsedSeconds: 0, nextWaveAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds, earliestAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds, accumulatedThreat: 0, active: null };
+  return { elapsedSeconds: 0, active: null };
 }
 
 export function advanceWaveClock(clock: WaveClock, dtSeconds: number): WaveClock {
-  return advanceWaveClockWithThreat(clock, dtSeconds, WAVE_STARTING_VALUES.kaijuHitPoints);
+  return { ...clock, elapsedSeconds: clock.elapsedSeconds + Math.max(0, dtSeconds) };
 }
 
-export function advanceWaveClockWithThreat(clock: WaveClock, dtSeconds: number, threat: number): WaveClock {
-  const elapsedSeconds = clock.elapsedSeconds + Math.max(0, dtSeconds);
-  if (clock.active) return { ...clock, elapsedSeconds };
-  const rate = threatRate(threat);
-  const accumulatedThreat = clock.accumulatedThreat + rate * Math.max(0, dtSeconds);
-  const byThreat = accumulatedThreat >= WAVE_STARTING_VALUES.kaijuHitPoints
-    ? elapsedSeconds
-    : elapsedSeconds + (WAVE_STARTING_VALUES.kaijuHitPoints - accumulatedThreat) / rate;
-  // A city that sprawls brings its wave sooner, but never before the grace period: the opening
-  // minute is where a player learns to draw a road, zone it and give it water, and a wave that
-  // lands during that lesson teaches nothing.
-  const nextWaveAtSeconds = Math.max(clock.earliestAtSeconds, byThreat);
-  if (elapsedSeconds < nextWaveAtSeconds) return { ...clock, elapsedSeconds, accumulatedThreat, nextWaveAtSeconds };
-  return { ...clock, elapsedSeconds, nextWaveAtSeconds, accumulatedThreat, active: { startedAtSeconds: elapsedSeconds, threat, hitPoints: threat } };
+/** Summons a kaiju if the city has grown into one. Its size is fixed here and does not move again. */
+export function summonIfDue(clock: WaveClock, wave: number, population: number, threat: number): WaveClock {
+  if (clock.active || residentsUntilWave(wave, population) > 0) return clock;
+  return { ...clock, active: { startedAtSeconds: clock.elapsedSeconds, threat, hitPoints: threat } };
 }
 
-export function callWaveNow(clock: WaveClock): WaveClock {
-  return clock.active ? clock : { ...clock, accumulatedThreat: WAVE_STARTING_VALUES.kaijuHitPoints, earliestAtSeconds: clock.elapsedSeconds, nextWaveAtSeconds: clock.elapsedSeconds };
+/** The player asking for it early, before the city is big enough to have earned it. */
+export function callWaveNow(clock: WaveClock, threat: number): WaveClock {
+  return clock.active ? clock : { ...clock, active: { startedAtSeconds: clock.elapsedSeconds, threat, hitPoints: threat } };
 }
 
-export function scheduleNextWave(clock: WaveClock, delaySeconds: number = WAVE_STARTING_VALUES.betweenWaveSeconds): WaveClock {
-  const earliestAtSeconds = clock.elapsedSeconds + delaySeconds;
-  return { elapsedSeconds: clock.elapsedSeconds, nextWaveAtSeconds: earliestAtSeconds, earliestAtSeconds, accumulatedThreat: 0, active: null };
+/** A wave is over. The next one waits on the city growing past a higher bar, not on a delay. */
+export function scheduleNextWave(clock: WaveClock): WaveClock {
+  return { ...clock, active: null };
 }
 
 export function damageWaveClock(clock: WaveClock, damage: number): WaveClock {
@@ -64,14 +66,7 @@ export function damageWaveClock(clock: WaveClock, damage: number): WaveClock {
   return { ...clock, active: { ...clock.active, hitPoints } };
 }
 
-export function waveCountdownSeconds(clock: WaveClock): number {
-  return Math.max(0, clock.nextWaveAtSeconds - clock.elapsedSeconds);
-}
-
+/** How big the kaiju is when it lands -- a separate question from what brought it. */
 export function waveThreat(wave: number, population: number, parcels: number): number {
   return Math.ceil(WAVE_STARTING_VALUES.kaijuHitPoints + Math.max(0, wave - 1) * 150 + Math.max(0, population) * 2 + Math.max(0, parcels) * 8);
-}
-
-export function threatRate(threat: number): number {
-  return Math.max(1, threat / WAVE_STARTING_VALUES.firstWaveSeconds);
 }

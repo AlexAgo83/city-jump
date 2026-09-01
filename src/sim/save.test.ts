@@ -145,14 +145,14 @@ describe("city saves", () => {
     expect(restored.money).toBe(1234);
   });
 
-  it("carries the repeat-wave clock through a save and defaults older saves", () => {
-    const waveClock = scheduleNextWave({ earliestAtSeconds: 60, elapsedSeconds: 100, nextWaveAtSeconds: 100, accumulatedThreat: 10, active: null }, 45);
+  it("carries the wave state through a save and defaults older saves", () => {
+    const waveClock = scheduleNextWave({ elapsedSeconds: 100, active: { startedAtSeconds: 80, threat: 900, hitPoints: 0 } });
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, createRun(), waveClock)))!;
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))!;
 
     expect(save.waveClock).toEqual(waveClock);
-    expect(older.waveClock?.nextWaveAtSeconds).toBe(60);
-    expect(older.waveClock?.accumulatedThreat).toBe(0);
+    expect(older.waveClock?.elapsedSeconds).toBe(0);
+    expect(older.waveClock?.active).toBeNull();
   });
 
   it("carries run rules through a save and defaults older saves", () => {
