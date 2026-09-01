@@ -170,6 +170,17 @@
   #wave-banner[data-state="active"] { border-color: #ffcf66aa; color: #ffdf91; }
   #wave-banner[data-state="held"] { border-color: #8ee6a8aa; color: #bdf5cc; }
   #wave-banner[data-state="breached"] { border-color: #ff8d7aaa; color: #ffc5bc; }
+  #run-panel {
+    position: fixed; top: 92px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 24px); box-sizing: border-box;
+    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff2b; border-radius: 6px;
+    font: 12px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-shadow: 0 1px 2px #000;
+  }
+  #run-panel b { color: #f4fbff; font-weight: 600; }
+  #run-panel button {
+    color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
+    padding: 3px 8px; cursor: pointer; font: inherit;
+  }
   .compass-heading { display: flex; align-items: center; gap: 7px; }
   .compass-needle {
     width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
@@ -212,6 +223,13 @@
   </div>
 </div>
 <div id="wave-banner" hidden></div>
+<div id="run-panel" aria-label="Run status">
+  <span>Wave <b id="run-wave">1</b></span>
+  <span>Science <b id="run-science">0</b></span>
+  <span>Prestige <b id="profile-prestige">0</b></span>
+  <label><input id="hardcore-run" type="checkbox" /> Hardcore</label>
+  <button id="evacuate-run" type="button">Evacuate</button>
+</div>
 <div id="time-controls" aria-label="Simulation time">
   <div class="segmented">
     <button type="button" data-time-rate="0" aria-pressed="true" title="Pause">Pause</button>

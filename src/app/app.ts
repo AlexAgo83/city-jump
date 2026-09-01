@@ -31,6 +31,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
+import { carryScience, createRun, defeat, endIfPopulationZero, evacuate, settleWave, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -38,11 +39,11 @@ import { distXZ, v3 } from "../sim/vec";
 import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
-import { readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings } from "../ui/saves";
+import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
-import { showCityStats, showCompass, showFps, showMoney, showRefusal, showSelection, showWaveBanner } from "../ui/hud";
+import { showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -165,6 +166,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let currentParcels: readonly BuildingParcel[] = [];
   let currentBuildingStatuses: readonly BuildingStatus[] = [];
   let waveClock = createWaveClock();
+  let runState: RunState = createRun();
+  let profile: ProfileState = readProfile();
   let kaijuPlan: KaijuPlan | null = null;
   let pendingMissiles: PendingMissile[] = [];
   let nextSalvoAt = 0;
@@ -184,6 +187,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return counts;
     }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
+  const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
@@ -254,7 +258,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -266,7 +270,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
@@ -331,6 +335,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
+    if (verdict === "held") runState = settleWave(runState, { defeated: true, calledEarly: false, baseScience: 10 * runState.wave });
+    else runState = defeat(endIfPopulationZero(runState, cityEconomy.resources.population));
+    deleteRunSaveOnDefeat(profile, runState.ended ?? "defeated");
+    updateRunHud();
     kaiju.hide();
     waveMarkers.hide();
     pendingMissiles = [];
@@ -345,6 +353,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaiju.hide();
     waveMarkers.hide();
     missiles.rebuild([]);
+  };
+  const addStarterKit = (): void => {
+    if (graph.allSegments().some((segment) => Math.max(Math.abs(graph.node(segment.a).pos.z), Math.abs(graph.node(segment.b).pos.z)) < 900)) return;
+    const a = graph.addNodeAt(v3(-260, heightmap.baseHeightAt(-260, 260), 260));
+    const b = graph.addNodeAt(v3(40, heightmap.baseHeightAt(40, 260), 260));
+    graph.addSegment(a, b, v3(-110, 0, 260), "street");
+    zones.paint(-170, 300, 28, "residential");
+    zones.paint(-70, 220, 22, "agricultural");
+    zones.paint(20, 300, 18, "commercial");
   };
   const updateWave = (dt: number): void => {
     if (dt > 0) waveClock = advanceWaveClock(waveClock, dt);
@@ -494,6 +511,21 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   );
 
   await seedDefaultDemoSave();
+  const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
+  const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
+  hardcoreBox.checked = profile.hardcore;
+  hardcoreBox.addEventListener("change", () => {
+    profile = { ...profile, hardcore: hardcoreBox.checked };
+    writeProfile(profile);
+  });
+  evacuateButton.addEventListener("click", () => {
+    runState = evacuate(runState);
+    profile = carryScience(profile, runState);
+    writeProfile(profile);
+    writeAutosave(snapshot(true));
+    updateRunHud();
+    showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
+  });
 
   controls = bindControls({
     onRoadMode(mode) {
@@ -575,7 +607,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, resources: new CityEconomy().resources, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, resources: new CityEconomy().resources, run: createRun(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+      addStarterKit();
+      rebuild();
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -602,6 +636,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     history.clear();
     pendingHistorySnapshot = null;
     resetWave();
+    runState = city.run ?? createRun();
+    updateRunHud();
     simSeconds = 0;
     simDay = 1;
     setClockHour(city.hour);
@@ -613,7 +649,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   }
 
   addOffshoreBridge();
+  addStarterKit();
   rebuild();
+  updateRunHud();
 
   // Pick up where the last session stopped. A city the player never named is still their work.
   const resumed = readAutosave();
@@ -632,6 +670,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     advanceClock(simDt);
     if (simDt > 0 && currentParcels.length) {
       lastTerms = cityEconomy.advance(currentParcels, simDt);
+      const nextRun = endIfPopulationZero(runState, cityEconomy.resources.population);
+      if (nextRun !== runState) {
+        runState = nextRun;
+        updateRunHud();
+      }
       syncBuildings();
       const income = incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses);
       treasury.earn(income * simDt);
@@ -713,6 +756,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     missiles: pendingMissiles.length,
     wave: waveVerdict ?? (waveClock.active ? "active" : "waiting"),
     waveHp: waveClock.active?.hitPoints ?? null,
+    run: runState,
+    profile,
     timeRate,
     simDay,
     simHour: sunHour,
@@ -722,6 +767,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   Object.assign(debugApi, {
     reset() {
       resetWave();
+      runState = createRun();
+      updateRunHud();
       debugReset?.();
     },
     buildingPoint: () => buildings.buildingPoint(),
@@ -759,6 +806,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       }
       waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);
       finishWave("held");
+    },
+    evacuateRun() {
+      evacuateButton.click();
+      return { run: runState, profile };
     },
   });
 

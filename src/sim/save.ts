@@ -14,11 +14,12 @@ import { BuildingLifecycle, type SavedBuildingState } from "./buildingLifecycle"
 import { CityEconomy, type CityResources, STARTING_MONEY, Treasury } from "./economy";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { Rubble, type SavedRubble } from "./rubble";
+import { createRun, type RunState } from "./run";
 import { Utilities, type SavedUtility } from "./utilities";
 import { v3 } from "./vec";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 12;
+export const SAVE_VERSION = 13;
 const OFFSHORE_SCENERY_Z = 2000;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
@@ -58,15 +59,18 @@ export interface CitySave {
   readonly utilities?: readonly SavedUtility[];
   /** Absent on pre-resource saves; restore uses the bootstrap economy. */
   readonly resources?: CityResources;
+  /** Absent on pre-run saves; restore starts at the first wave. */
+  readonly run?: RunState;
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities()): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun()): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
     money: treasury.money,
     resources: cityEconomy.resources,
+    run,
     ...(camera ? { camera } : {}),
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
@@ -179,7 +183,16 @@ export function parseCity(text: string): CitySave | null {
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
   if (camera === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
+  const run = readRun(value.run);
+  if (run === null) return null;
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, run, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
+}
+
+function readRun(value: unknown): RunState | null {
+  if (value === undefined) return createRun();
+  if (!isRecord(value) || !Number.isFinite(value.wave) || !Number.isFinite(value.science)) return null;
+  if (value.ended !== null && value.ended !== "evacuated" && value.ended !== "population_zero" && value.ended !== "defeated") return null;
+  return { wave: value.wave as number, science: value.science as number, ended: value.ended };
 }
 
 function readResources(value: unknown): CityResources | null {

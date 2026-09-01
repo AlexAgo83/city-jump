@@ -19,6 +19,9 @@ const cityStrip = document.getElementById("city-strip") as HTMLButtonElement;
 const ledger = document.getElementById("ledger") as HTMLDivElement;
 const ledgerLines = document.getElementById("ledger-lines") as HTMLDivElement;
 const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
+const runWave = document.getElementById("run-wave") as HTMLSpanElement;
+const runScience = document.getElementById("run-science") as HTMLSpanElement;
+const profilePrestige = document.getElementById("profile-prestige") as HTMLSpanElement;
 
 cityStrip.addEventListener("click", () => {
   ledger.hidden = !ledger.hidden;
@@ -76,6 +79,12 @@ export function showWaveBanner(text: string, state: "waiting" | "active" | "held
   waveBanner.hidden = text === "";
   waveBanner.dataset.state = state;
   waveBanner.textContent = text;
+}
+
+export function showRunStats(wave: number, science: number, prestige: number): void {
+  runWave.textContent = String(wave);
+  runScience.textContent = String(Math.floor(science));
+  profilePrestige.textContent = String(Math.floor(prestige));
 }
 
 function label(kind: string): string {

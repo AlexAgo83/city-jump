@@ -337,12 +337,11 @@ const densestTreeCluster = () =>
     return densest;
   });
 
-// Nothing has been drawn, so generated scenery and the fixed offshore bridge are allowed,
-// but authored city growth is not.
+// Nothing has been drawn by the player, so generated scenery plus the starter run are allowed.
 const fresh = await stats();
 check(
-  "a fresh map draws terrain, trees and the offshore bridge only",
-  fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments === 1 && fresh.buildings === 0 && fresh.cars > 0,
+  "a fresh map opens with terrain, trees, bridge and starter kit",
+  fresh.activeMeshes >= 4 && fresh.trees > 0 && fresh.segments >= 2 && fresh.zones > 0 && fresh.cars > 0,
   `${JSON.stringify(fresh)}`,
 );
 const localTerrainVariation = await terrainColorVariation();
@@ -385,6 +384,10 @@ check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cit
 check("an active wave shows the kaiju HP banner", /Kaiju \d+\/600 HP/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.forceHeldWave());
 check("a held wave shows the held banner", /Wave held/.test(await waveBanner()), await waveBanner());
+const rewardedRun = await stats();
+check("a held wave adds science to the run", rewardedRun.run.science > 0 && rewardedRun.run.wave === 2, JSON.stringify(rewardedRun.run));
+const evacuatedRun = await page.evaluate(() => window.cityjump.evacuateRun());
+check("evacuation carries run science into profile prestige", evacuatedRun.run.ended === "evacuated" && evacuatedRun.profile.prestige >= rewardedRun.run.science, JSON.stringify(evacuatedRun));
 await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
@@ -451,11 +454,11 @@ check("compass remains visible at the top", await page.evaluate(() => {
   const compass = document.getElementById("compass").getBoundingClientRect();
   return compass.top < 24 && compass.left > window.innerWidth * 0.35 && compass.right < window.innerWidth * 0.65;
 }));
-check("wave banner stays top and clock sits below city stats", await page.evaluate(() => {
+check("wave banner stays top and city stats sit below the clock", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
   const strip = document.getElementById("city-strip").getBoundingClientRect();
   const wave = document.getElementById("wave-banner").getBoundingClientRect();
-  return wave.top < 90 && strip.left === time.left && strip.bottom <= time.top;
+  return wave.top < 90 && strip.left === time.left && time.bottom <= strip.top;
 }));
 check("settings menu contains no wave-critical gauges", await page.evaluate(() => !/Needs|Money|Workers|Food|Shortage/.test(document.getElementById("toolbar").textContent)));
 check("time controls do not cover the compass", await page.evaluate(() => {
@@ -1407,10 +1410,10 @@ await page.waitForTimeout(300);
 check("bulldozing a building is not immediate", (await stats()).buildings === beforeBuildingBulldoze.buildings);
 await page.waitForFunction((before) => {
   const city = window.cityjump.stats();
-  return city.buildings === before.buildings - 1 && city.money > before.money;
+  return city.buildings === before.buildings - 1 && city.money === before.money;
 }, beforeBuildingBulldoze, { timeout: 5_000 });
 const afterBuildingBulldoze = await stats();
-check("bulldozing a building takes time and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
+check("bulldozing a building takes time and does not touch money", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money === beforeBuildingBulldoze.money);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await page.evaluate(() => window.cityjump.setPaused(true));
@@ -1864,15 +1867,15 @@ check(
   `${(await stats()).segments}/${beforeReload.segments}`,
 );
 
-// New: an empty city, framed on the island, and no longer standing on the last save's name.
+// New: a starter run, framed on the island, and no longer standing on the last save's name.
 const beforeNew = await stats(); // a dialog handler is already accepting everything by this point
 await setSettingsOpen(true);
 await page.locator("#save-new").click();
 await page.waitForFunction((before) => window.cityjump.stats().segments < before, beforeNew.segments, { timeout: 10_000 });
 const started = await page.evaluate(() => ({ ...window.cityjump.stats(), active: localStorage.getItem("cityjump.activeSave"), radius: window.cityjump.cameraState().radius }));
 check(
-  "New starts an empty city and stops standing on the last save",
-  started.buildings === 0 && started.zones === 0 && started.active === null && started.radius > 400,
+  "New starts a starter run and stops standing on the last save",
+  started.segments >= 2 && started.zones > 0 && started.active === null && started.radius > 400,
   JSON.stringify({ segments: started.segments, buildings: started.buildings, zones: started.zones, active: started.active }),
 );
 
@@ -1891,10 +1894,10 @@ check("a live wave marks the landing edge and target building", liveWaveMarkers.
 await page.evaluate(() => window.cityjump.forceWave(10_000));
 await page.waitForFunction(() => {
   const city = window.cityjump.stats();
-  return city.rubble > 0 && city.buildingStates.rebuilding > 0 && city.money < 0;
+  return city.rubble > 0 && city.buildingStates.rebuilding > 0 && city.money === 0;
 }, null, { timeout: 5_000 });
 const afterWave = await stats();
-check("the kaiju rebuilds a damaged building through debt", afterWave.money < beforeWave.money && afterWave.rubble > 0 && afterWave.buildingStates.rebuilding > 0, `$${afterWave.money}, rubble ${afterWave.rubble}, ${JSON.stringify(afterWave.buildingStates)}`);
+check("the kaiju rebuilds a damaged building without touching money", afterWave.money === beforeWave.money && afterWave.rubble > 0 && afterWave.buildingStates.rebuilding > 0, `$${afterWave.money}, rubble ${afterWave.rubble}, ${JSON.stringify(afterWave.buildingStates)}`);
 check("a breached wave shows the breached banner", /Wave breached/.test(await waveBanner()), await waveBanner());
 await page.locator("#undo-city").click();
 check("undo refuses to cross a wave", /Nothing to undo/.test(await toast()));
