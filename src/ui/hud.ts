@@ -58,7 +58,7 @@ export function showCompass(alpha: number): void {
 }
 
 export function showCityStats(population: number, needs: readonly BuildingNeed[], resources?: CityResources, terms?: CityTerms): void {
-  populationText.textContent = `${compact(Math.round(population))} residents`;
+  populationText.textContent = compact(Math.round(population));
   const workers = needs.find((need) => need.kind === "residential");
   workersText.textContent = workers ? `${workers.supply}/${workers.need}` : "0/0";
   foodText.textContent = compact(Math.floor(resources?.food ?? 0));
@@ -82,7 +82,7 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
 }
 
 export function showMoney(balance: number, perSecond: number, queue: { rising?: number; rebuilding?: number } = {}): void {
-  moneyText.textContent = `$${Math.floor(balance).toLocaleString()} ${perSecond >= 0 ? "+" : ""}$${perSecond.toFixed(1)}/s`;
+  moneyText.textContent = `$${compact(Math.floor(balance))} ${perSecond >= 0 ? "+" : ""}${perSecond.toFixed(1)}/s`;
   moneyText.title = `${queue.rising ?? 0} rising, ${queue.rebuilding ?? 0} rebuilding`;
 }
 
@@ -108,11 +108,11 @@ function needLabel(kind: string): string {
 }
 
 function needText(need: BuildingNeed): string {
-  // Compact: the panel is read at a glance, and stays visible with the settings folded away.
-  if (need.kind === "military") return `${compact(Math.round(need.supply))} of ${compact(Math.round(need.need))} dmg`;
-  if (need.need === 0) return need.supply > 0 ? "OK" : "No demand";
-  return need.supply >= need.need ? "OK" : `Need ${need.need - need.supply}`;
+  if (need.kind === "military") return `${compact(Math.round(need.supply))}/${compact(Math.round(need.need))}`;
+  if (need.need === 0) return need.supply > 0 ? "OK" : "--";
+  return need.supply >= need.need ? "OK" : `Need ${compact(Math.ceil(need.need - need.supply))}`;
 }
+
 
 /**
  * The worst shortage, not the first one in the list.

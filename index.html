@@ -207,14 +207,16 @@
     width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
     border-bottom: 11px solid #75b9d1; transform-origin: 50% 70%;
   }
+  /* A narrow column: label on the left, value on the right, one line each. It used to be ten
+     columns across, which made a bar as wide as the screen with a hole in the middle of it. */
   #city-strip {
-    display: grid; grid-template-columns: repeat(10, auto);
-    align-items: center; gap: 10px; box-sizing: border-box;
+    display: grid; grid-template-columns: auto 1fr; justify-content: start;
+    align-items: center; gap: 3px 12px; width: 210px; box-sizing: border-box;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px;
     font: 11px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-align: left; cursor: pointer;
   }
   #city-strip span { color: #8fa0aa; }
-  #city-strip b { color: #f4fbff; font-weight: 600; }
+  #city-strip b { color: #f4fbff; font-weight: 600; text-align: right; }
   #ledger {
     width: min(340px, calc(100vw - 24px));
     color: #e6ebef; background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
@@ -222,8 +224,11 @@
     box-sizing: border-box;
   }
   #ledger[hidden] { display: none; }
+  /* The five needs run across the strip rather than down it: a column of short rows left a hole
+     the width of the stats line beside it. */
   #needs-panel {
-    grid-column: 1 / -1; display: grid; gap: 4px; width: 100%; min-width: 250px; color: #e6ebef;
+    grid-column: 1 / -1; display: grid; gap: 3px; width: 100%; margin-top: 3px;
+    padding-top: 5px; border-top: 1px solid #ffffff14; color: #e6ebef;
     font: 11px/1 ui-sans-serif, system-ui; box-sizing: border-box;
   }
   #ledger-lines {
@@ -243,9 +248,16 @@
   .ledger-row i:nth-of-type(1) { color: #8ee6a8; }
   .ledger-row[data-short="true"] b { color: #ffc5bc; }
   .ledger-row[data-short="true"] i:nth-of-type(2) { color: #ff8d7a; }
-  .need-row { display: grid; grid-template-columns: 54px 70px 1fr; align-items: center; gap: 8px; }
-  .need-row meter { width: 100%; height: 8px; }
-  .need-row b { color: #c8d2d9; font-weight: 500; text-align: right; white-space: nowrap; }
+  /*
+   * Label, bar, value -- side by side and no wider than they need to be. The value used to be
+   * pushed to the far right of the whole strip by a `1fr` column, leaving a hole across the middle.
+   */
+  .need-row { display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 6px; }
+  .need-row meter { width: 100%; height: 7px; min-width: 24px; }
+  .need-row b { color: #c8d2d9; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* Every click inside the strip belongs to the strip: a <meter> swallowed some of them, so
+     opening the ledger worked or did not depending on the pixel. */
+  #city-strip * { pointer-events: none; }
   @media (max-width: 680px) {
     #toolbar { max-width: calc(100vw - 24px); }
     #sun-hour { width: 72px; }

@@ -452,7 +452,8 @@ export function bindControls(handlers: {
   });
 
   const stored: UiSettings = readSettings();
-  if (stored.settingsOpen !== undefined) setToolbarOpen(stored.settingsOpen);
+  // Always closed on load. A run opens on the city, not on the settings menu.
+  setToolbarOpen(false);
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showFps, stored.fps);

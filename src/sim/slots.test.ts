@@ -262,13 +262,24 @@ describe("industrial frontage", () => {
 });
 
 describe("military frontage", () => {
-  it("limits military parcels along military roads by demand", () => {
+  it("builds nothing along a road nobody zoned, military road or not", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0, "military");
 
     const parcels = buildingParcels(buildableCells(g));
     expect(parcels.length).toBeGreaterThan(0);
     expect(parcels.every((parcel) => parcel.kind === "military")).toBe(true);
+    // A road is a road. Until the land beside it is zoned, nothing goes up on it.
+    expect(parcelsForDemand(parcels, 400, 200)).toHaveLength(0);
+  });
+
+  it("limits military parcels once the land is zoned", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "military");
+    const zones = new Zones();
+    zones.paintRect(-200, -40, 200, 40, "military");
+
+    const parcels = buildingParcels(buildableCells(g, zones), zones);
     expect(parcelsForDemand(parcels, 12, 20)).toHaveLength(1);
   });
 });

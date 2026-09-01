@@ -16,6 +16,8 @@ export const STARTING_FOOD = 30;
 export const STARTING_MATERIALS = 40;
 /** Share of itself a fed, housed city adds in a day. A curve, not a conversion rate. */
 export const GROWTH_PER_DAY = 0.25;
+/** Share of a homeless population that leaves in a day. Losing homes costs time, not the city. */
+export const HOMELESS_LEAVE_PER_DAY = 0.4;
 /** Materials a working commercial cell consumes a day, and a military one. */
 export const MATERIALS_PER_COMMERCE_CELL = 1.5;
 export const MATERIALS_PER_MILITARY_CELL = 2.5;
@@ -107,10 +109,15 @@ export class CityEconomy {
     const canGrow = foodSurplus > 0 && room > 0;
     const growth = foodShortage > 0
       ? -Math.min(this.state.population, foodShortage * 2)
-      : room < 0 ? room  // more people than homes, because a wave took the homes: they leave
+      // More people than homes: they leave, but over days rather than in the tick that noticed.
+      // Taking the whole deficit at once meant one road placement -- which reshuffles which lots
+      // exist -- emptied the island and ended the run on the spot.
+      : room < 0 ? Math.max(room, -this.state.population * HOMELESS_LEAVE_PER_DAY * day)
       : canGrow ? Math.min(room, this.state.population * GROWTH_PER_DAY * day, foodSurplus) : 0;
     this.state = {
-      population: Math.max(0, this.state.population + growth),
+      // Under one resident there is nobody left; an exponential decline would otherwise approach
+      // zero for ever and a run would never end.
+      population: this.state.population + growth < 1 ? 0 : this.state.population + growth,
       food: Math.max(0, foodAvailable - foodConsumed),
       materials: Math.max(0, materialsAvailable - materialsConsumed),
     };

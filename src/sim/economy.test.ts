@@ -79,6 +79,11 @@ describe("economy", () => {
     expect(run()).toEqual(run());
     const city = new CityEconomy({ population: 24, food: 50 });
     city.advance(parcels, CITY_DAY_SECONDS);
-    expect(city.advance([parcels[1]!], CITY_DAY_SECONDS).population.value).toBe(0);
+    // Losing every home empties the island over days, not in the tick that noticed.
+    let terms = city.advance([parcels[1]!], CITY_DAY_SECONDS);
+    expect(terms.population.change).toBeLessThan(0);
+    expect(terms.population.value).toBeGreaterThan(0);
+    for (let day = 0; day < 30 && terms.population.value > 0; day++) terms = city.advance([parcels[1]!], CITY_DAY_SECONDS);
+    expect(terms.population.value).toBe(0);
   });
 });

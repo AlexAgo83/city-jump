@@ -122,6 +122,11 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     zones.paint(x, z, radius, kind);
     log.push(`zone:${kind}`);
   };
+  /** A district laid along a road, the way a player draws one. */
+  const band = (kind: BuildingKind, z: number, fromX: number, toX: number, depth = 40) => {
+    zones.paintRect(fromX, z - depth, toX, z + depth, kind);
+    log.push(`zone:${kind}`);
+  };
   /**
    * A player who has money and room keeps drawing. Each expansion is one street further out plus a
    * zone on it, so the city grows in network as well as in density -- which is what decides how
@@ -180,10 +185,12 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   // A spine crossing all four, so the city is one network: without it the utility producers cannot
   // reach the diffusers and every lot sits idle -- which is a badly drawn city, not a broken game.
   road("spine", -200, 200, -200, 380);
-  paint("residential", -170, 300);
-  paint("agricultural", -70, 220);
-  paint("commercial", 20, 300);
-  paint("military", -70, 360);
+  // A block along each road. Nothing builds on unzoned land any more, so the scenario has to zone
+  // what it wants the way a player would -- rectangles on the frontage, not circles beside it.
+  band("agricultural", 220, -280, 140);
+  band("residential", 260, -300, 100);
+  band("commercial", 310 + seed, -280, 140);
+  band("military", 360 + seed, -280, 140);
   if (scenario.placeUtilities) {
     for (const kind of ["power", "water"] as const) {
       utilities.place(graph, "producer", kind, -250, 260);

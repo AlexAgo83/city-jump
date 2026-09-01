@@ -210,7 +210,10 @@ export function parcelsForDemand(parcels: readonly BuildingParcel[], population:
   const limits = parcelDemandLimits(population);
   const used: Record<BuildingKind, number> = { residential: 0, agricultural: 0, commercial: 0, industrial: 0, military: 0 };
   return parcels.filter((parcel) => {
-    if (!parcel.cells.some((cell) => cell.zone) && parcel.kind !== "military") return true;
+    // No zone, no building. A road is a road: drawing one used to fill both its frontages by
+    // itself, under a "mixed neighbourhood" rule, and those lots answered to no demand limit at
+    // all -- so the city built itself and the player's zoning decided almost nothing.
+    if (!parcel.cells.some((cell) => cell.zone)) return false;
     used[parcel.kind] += 1;
     return used[parcel.kind] <= Math.min(limits[parcel.kind], admitted);
   });
