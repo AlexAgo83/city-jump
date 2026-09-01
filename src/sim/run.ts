@@ -36,10 +36,12 @@ export interface RunRules {
   readonly kaijuSpawns: boolean;
   readonly instantConstruction: boolean;
   readonly freeBuilding: boolean;
+  readonly ignorePower: boolean;
+  readonly ignoreWater: boolean;
 }
 
 export const EARLY_WAVE_SCIENCE_MULTIPLIER = 2;
-export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false };
+export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false, ignorePower: true, ignoreWater: true };
 const STARTER_FUNDS_BONUS = 10_000;
 
 export const FIRST_UPGRADE_WEB: readonly PrestigeUpgrade[] = [

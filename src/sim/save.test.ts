@@ -11,7 +11,7 @@ import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
 import { Utilities } from "./utilities";
-import { createRun } from "./run";
+import { createRun, DEFAULT_RUN_RULES } from "./run";
 
 function city(): RoadGraph {
   const graph = new RoadGraph();
@@ -161,7 +161,7 @@ describe("city saves", () => {
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], run: { wave: 1, science: 0, ended: null } }))!;
 
     expect(save.run?.rules).toEqual(run.rules);
-    expect(older.run?.rules).toEqual({ kaijuSpawns: true, instantConstruction: false, freeBuilding: false });
+    expect(older.run?.rules).toEqual(DEFAULT_RUN_RULES);
   });
 
   it("loads older resource saves that still carried services", () => {

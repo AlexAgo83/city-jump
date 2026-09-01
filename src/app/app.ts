@@ -206,7 +206,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
       if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
-      return missing ? { ...status, state: "idle" as const, reason: missing } : status;
+      const ignored = missing === "power" ? runState.rules.ignorePower : missing === "water" ? runState.rules.ignoreWater : false;
+      return missing && !ignored ? { ...status, state: "idle" as const, reason: missing } : status;
     });
     const nextDark = new Set(currentBuildingStatuses.filter((status) => status.reason === "power" || status.reason === "water").map((status) => `${Math.round(status.parcel.position.x)}:${Math.round(status.parcel.position.z)}`));
     if ([...nextDark].some((key) => !darkDistricts.has(key))) showAlert("A district went dark.");
@@ -580,6 +581,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const kaijuBox = document.getElementById("kaiju-spawns") as HTMLInputElement;
   const instantBox = document.getElementById("instant-construction") as HTMLInputElement;
   const freeBuildBox = document.getElementById("free-building") as HTMLInputElement;
+  const ignorePowerBox = document.getElementById("ignore-power") as HTMLInputElement;
+  const ignoreWaterBox = document.getElementById("ignore-water") as HTMLInputElement;
   const gameplayNote = document.getElementById("gameplay-note") as HTMLSpanElement;
   const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
@@ -587,12 +590,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaijuBox.checked = runState.rules.kaijuSpawns;
     instantBox.checked = runState.rules.instantConstruction;
     freeBuildBox.checked = runState.rules.freeBuilding;
+    ignorePowerBox.checked = runState.rules.ignorePower;
+    ignoreWaterBox.checked = runState.rules.ignoreWater;
     // Only say something when a switch has taken something away. Stating what the normal rules are
     // reads as an orphan sentence beside four checkboxes.
     gameplayNote.textContent = runState.rules.kaijuSpawns ? "" : "Pacifist: no waves, so no science and no prestige.";
+    controls?.setToolEnabled("power", !runState.rules.ignorePower);
+    controls?.setToolEnabled("water", !runState.rules.ignoreWater);
   };
   const setRunRules = (): void => {
-    runState = { ...runState, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked } };
+    runState = { ...runState, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked, ignorePower: ignorePowerBox.checked, ignoreWater: ignoreWaterBox.checked } };
     renderGameplayRules();
     syncBuildings();
     buildings.updateStates(currentBuildingStatuses);
@@ -632,7 +639,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     profile = { ...profile, hardcore: hardcoreBox.checked };
     writeProfile(profile);
   });
-  for (const box of [kaijuBox, instantBox, freeBuildBox]) box.addEventListener("change", setRunRules);
+  for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) box.addEventListener("change", setRunRules);
   renderGameplayRules();
   evacuateButton.addEventListener("click", () => {
     if (!window.confirm("Evacuate this run?")) return;

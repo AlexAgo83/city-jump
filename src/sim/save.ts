@@ -207,6 +207,8 @@ function readRun(value: unknown): RunState | null {
       kaijuSpawns: rules?.kaijuSpawns === undefined ? DEFAULT_RUN_RULES.kaijuSpawns : rules.kaijuSpawns === true,
       instantConstruction: rules?.instantConstruction === undefined ? DEFAULT_RUN_RULES.instantConstruction : rules.instantConstruction === true,
       freeBuilding: rules?.freeBuilding === undefined ? DEFAULT_RUN_RULES.freeBuilding : rules.freeBuilding === true,
+      ignorePower: rules?.ignorePower === undefined ? DEFAULT_RUN_RULES.ignorePower : rules.ignorePower === true,
+      ignoreWater: rules?.ignoreWater === undefined ? DEFAULT_RUN_RULES.ignoreWater : rules.ignoreWater === true,
     },
   };
 }

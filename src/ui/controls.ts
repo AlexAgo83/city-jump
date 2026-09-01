@@ -48,7 +48,7 @@ export function bindControls(handlers: {
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
   onNew(): void;
-}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setClock(hour: number, day: number, rate: 0 | 1 | 2 | 4): void; setPaused(paused: boolean): void; updateUndoRedo(): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setClock(hour: number, day: number, rate: 0 | 1 | 2 | 4): void; setPaused(paused: boolean): void; setToolEnabled(tool: string, enabled: boolean): void; updateUndoRedo(): void } {
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -89,8 +89,17 @@ export function bindControls(handlers: {
     if (event.shiftKey) handlers.onRedo();
     else handlers.onUndo();
   });
+  /** A tool the run's rules have switched off is not a tool the player should be able to pick. */
+  const setToolEnabled = (tool: string, enabled: boolean): void => {
+    const button = toolButtons.find((candidate) => candidate.dataset.tool === tool);
+    if (!button) return;
+    button.disabled = !enabled;
+    button.title = enabled ? "" : `Turned off in Settings > Gameplay ("Ignore ${tool}").`;
+    if (!enabled && button.getAttribute("aria-pressed") === "true") toolButtons.find((candidate) => candidate.dataset.tool === "select")?.click();
+  };
   for (const button of toolButtons) {
     button.addEventListener("click", () => {
+      if (button.disabled) return;
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
       selectViewOptions.hidden = tool !== "select";
@@ -476,7 +485,9 @@ export function bindControls(handlers: {
   emitRoadType();
   updateSun();
   setClock(Number(sunHour.value), 1, 0);
-  return { applyCity, applyRoadType, setClock, setPaused, updateUndoRedo };
+  return {
+    setToolEnabled,
+ applyCity, applyRoadType, setClock, setPaused, updateUndoRedo };
 }
 
 /**
