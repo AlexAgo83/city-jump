@@ -370,6 +370,19 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     nextSalvoAt = 0;
     waveVerdict = null;
     waveVerdictUntil = 0;
+    // Show the player the thing that is about to walk through their city. It lands a kilometre or
+    // more off the coast and walks in, so without this it destroyed the place off screen.
+    const target = kaijuPlan.target ?? kaijuPlan.coast;
+    const midX = (kaijuPlan.landing.x + target.x) / 2;
+    const midZ = (kaijuPlan.landing.z + target.z) / 2;
+    applyCamera({
+      targetX: midX,
+      targetY: 0,
+      targetZ: midZ,
+      alpha: Math.atan2(kaijuPlan.landing.z - target.z, kaijuPlan.landing.x - target.x) - Math.PI / 2,
+      beta: Math.PI / 3.2,
+      radius: Math.max(700, distXZ(kaijuPlan.landing, target) * 0.9),
+    });
   };
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
@@ -679,6 +692,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     loadCity(emptyCity());
     addStarterKit();
     rebuild();
+    // The run panel and the banner both remember the run that just ended, and neither is refreshed
+    // by loading a city. Without this, a new island opened still reading "The island emptied".
+    renderUpgradeWeb();
+    updateWave(0);
     applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
   };
   const endRun = (): void => {
@@ -893,6 +910,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return;
     }
     if (cameraMode !== "follow") return;
+    // A wave outranks a selected car: while a kaiju is on the island it is what Follow follows.
+    if (kaijuAssault && waveClock.active) {
+      camera.target.set(kaijuAssault.position.x, heightmap.heightAt(kaijuAssault.position.x, kaijuAssault.position.z), kaijuAssault.position.z);
+      return;
+    }
     const target = selectedTarget ?? followTarget?.();
     if (!target) {
       showRefusal("Follow ended because the vehicle is gone.");
