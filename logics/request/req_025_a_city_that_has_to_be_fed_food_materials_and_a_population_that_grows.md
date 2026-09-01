@@ -1,12 +1,13 @@
 ## req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows - A city that has to be fed: food, materials and a population that grows
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 08:12:53
 
 # AI Context
 - Summary: The districts start owing each other something: farms make food and food gates population, industry makes materials, commerce makes services and trade, population grows over time within what the city can feed and staff, and a zoned parcel waits for demand instead of filling on sight.

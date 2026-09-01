@@ -1,14 +1,14 @@
 ## item_074_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows - A city that has to be fed: food, materials and a population that grows
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 07:56:00
+> Indicators reviewed: 2026-09-01 08:12:53
 
 # AI Context
 - Summary: The delivery slice for the districts start owing each other something, and a parcel waits for demand.
@@ -55,6 +55,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_027_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_027_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows`

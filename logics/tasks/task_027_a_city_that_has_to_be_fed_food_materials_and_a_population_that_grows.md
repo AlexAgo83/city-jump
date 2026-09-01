@@ -1,14 +1,14 @@
 ## task_027_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows - A city that has to be fed: food, materials and a population that grows
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 85%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 07:56:00
+> Indicators reviewed: 2026-09-01 08:12:54
 > Owner: Codex
 
 # AI Context
@@ -22,27 +22,27 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/economy.ts` grows production: food from staffed farms, materials from staffed
+- [x] 1. `sim/economy.ts` grows production: food from staffed farms, materials from staffed
       industry, services and trade from staffed commerce, all per simulation day.
-- [ ] 2. Population becomes a stock that grows and falls -- capped by housing, gated by food,
+- [x] 2. Population becomes a stock that grows and falls -- capped by housing, gated by food,
       pulled by jobs and services -- rather than a number derived from parcel area.
-- [ ] 3. Population lives in buildings: a home destroyed takes the share it held.
-- [ ] 4. `sim/slots.ts`: a zoned parcel waits for demand and fills over time, instead of every
+- [x] 3. Population lives in buildings: a home destroyed takes the share it held.
+- [x] 4. `sim/slots.ts`: a zoned parcel waits for demand and fills over time, instead of every
       valid parcel becoming a building on sight.
-- [ ] 5. Every rule returns its terms as well as its value, which is what the ledger will display
+- [x] 5. Every rule returns its terms as well as its value, which is what the ledger will display
       in the interface slice -- and what stops the two from ever disagreeing.
-- [ ] 6. Tests: a city of nothing but housing stalls; a famine falls; the same seed gives the same
+- [x] 6. Tests: a city of nothing but housing stalls; a famine falls; the same seed gives the same
       city.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_074_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: production only while staffed; proven by unit tests over staffed and unstaffed parcels.
@@ -55,11 +55,17 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `npm run ci && npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report
-- Not started.
+- Added deterministic resources, population persistence, demand-gated zoning, and unit/browser validation.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_074_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows`
+- Related request(s): `req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows`
 
 # Links
 - Request: `req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows`
