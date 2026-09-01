@@ -1,14 +1,14 @@
 ## item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered - Upgrades that do something, or upgrades that are not offered
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:15:14
+> Indicators reviewed: 2026-09-01 14:26:06
 
 # AI Context
 - Summary: The delivery slice for the web itself: each node gets a real effect along its own branch or leaves the web, and the branch-label test is replaced by tests over effects.
@@ -66,3 +66,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen`
+
+# Notes
+- Task `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen` was finished via `logics-manager flow finish task` on 2026-09-01.

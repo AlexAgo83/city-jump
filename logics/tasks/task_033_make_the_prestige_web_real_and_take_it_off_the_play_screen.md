@@ -1,14 +1,14 @@
 ## task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen - Make the prestige web real, and take it off the play screen
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 95%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:15:14
+> Indicators reviewed: 2026-09-01 14:26:06
 > Owner: Codex
 
 # AI Context
@@ -32,8 +32,8 @@
 - [x] 9. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The run slice's AC3 needs restating in the closeout against evidence that can fail.
 - [x] 10. GATE: do not close until lint, audit, and scaffold validation pass.
 - [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`
@@ -46,17 +46,20 @@
 - [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`. Proof deferred to slice closeout.
-- request-AC2 -> `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`. Proof deferred to slice closeout.
-- request-AC4 -> `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`. Proof deferred to slice closeout.
-- request-AC3 -> `item_087_a_run_panel_that_carries_what_the_player_is_playing_with`. Proof deferred to slice closeout.
-- request-AC5 -> `item_087_a_run_panel_that_carries_what_the_player_is_playing_with`. Proof deferred to slice closeout.
-- request-AC6 -> `item_087_a_run_panel_that_carries_what_the_player_is_playing_with`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
+- request-AC2 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
+- request-AC4 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
+- request-AC3 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
+- request-AC5 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
+- request-AC6 -> This task. Proof: Implemented in f98131a: three offered prestige upgrades now have starting-stock effects, six ineffective nodes are removed, the web moved between runs, Evacuate is confirmed, Hardcore moved to Gameplay, and diffuser destruction raises a dark-district alert. Validated with rtk npm run ci and rtk npm run test:e2e. Source: `f98131a`
 
 # Validation
 - `rtk npm exec -- vitest run src/sim/run.test.ts src/ui/saves.test.ts` passed: 2 files, 9 tests.
 - `rtk npm run ci` passed: 36 Vitest files, 252 tests, architecture tests, build/typecheck, Logics lint/audit; Vite kept the existing chunk-size warning.
 - `rtk npm run test:e2e` passed: interaction checks cover web removal from the play panel, between-run purchase, Evacuate confirmation, Hardcore in Gameplay settings, and diffuser dark-district alert.
+- command: `rtk npm run ci && rtk npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
 
 # Report
 - Confirmed the repo-code grep before implementation: eight upgrade ids appeared only in `FIRST_UPGRADE_WEB`; `coverage-map` also appeared in old profile/save tests, but no gameplay effect read it.
@@ -67,6 +70,9 @@
 - Renamed buttons from raw ids to player-facing names with descriptions in tooltips.
 - Moved Hardcore into the toolbar's Gameplay row and added confirmation before Evacuate ends a run.
 - Reused the existing diffuser-destruction toast to report that a covered district went dark, avoiding a rebuild-wide alert path.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`, `item_087_a_run_panel_that_carries_what_the_player_is_playing_with`
+- Related request(s): `req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen`
 
 # Links
 - Request: `req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen`

@@ -1,13 +1,13 @@
 ## req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen - A panel that sells nothing: nine upgrades with no effect, permanently on the play screen
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:38:29
+> Indicators reviewed: 2026-09-01 14:26:05
 
 # AI Context
 - Summary: The prestige web sells nine upgrades that change nothing and sits permanently on the play screen beside two unconfirmed destructive controls: make the nodes real or drop them, and move the purchase screen off the game.

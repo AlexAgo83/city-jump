@@ -1,12 +1,12 @@
 ## prod_022_a_purchase_screen_is_not_a_play_screen - A purchase screen is not a play screen
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen`
-> Related backlog: `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`, `item_087_a_run_panel_that_carries_what_the_player_is_playing_with`
+> Related backlog: `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`
 > Related task: `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:38:29
+> Indicators reviewed: 2026-09-01 14:26:06
 
 # Overview
 The run slice put a prestige web on the play screen: nine buttons, labelled with their own source identifiers and a price, fixed in the corner for the whole game. None of the nine does anything. Their identifiers appear twice each in the codebase -- once in the list that declares them, once in the test over that list -- and the only thing owning one changes is the colour of the button. Beside them sit a checkbox that decides whether a defeat deletes the save and a button that ends the run, both one unconfirmed click away, both permanent. The interface slice immediately before this one had just decided that no permanent readout may be added without another being folded away. This brief is that rule applied to the panel that broke it, and the honest treatment of a web that sells nine things and delivers none: make them real, or stop offering them.
@@ -73,5 +73,5 @@ flowchart TD
 - No destructive control is one unconfirmed click away.
 
 # References
-- Product back-reference: `req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen`
+- Product back-reference: `item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered`
 - Task back-reference: `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen`

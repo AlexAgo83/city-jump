@@ -1,14 +1,14 @@
 ## item_087_a_run_panel_that_carries_what_the_player_is_playing_with - A run panel that carries what the player is playing with
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:15:14
+> Indicators reviewed: 2026-09-01 14:26:06
 
 # AI Context
 - Summary: The delivery slice for the play screen: the web moves to between runs, the permanent readouts obey the rule the interface slice set, and the two destructive controls stop being one stray click away.
@@ -77,3 +77,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen`
+
+# Notes
+- Task `task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen` was finished via `logics-manager flow finish task` on 2026-09-01.
