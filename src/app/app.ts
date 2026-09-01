@@ -46,8 +46,8 @@ import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 
-/** Where a run opens: just inland of the bridge, on the low ground beside the landing. */
-const STARTER_KIT_AT = { x: -360, z: 1350 } as const;
+/** Where a run opens: the far side of the island from the bridge. */
+const STARTER_KIT_AT = { x: 360, z: -1350 } as const;
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -398,29 +398,29 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // that already exists. Checking the type is exact; the old check was a z threshold that the
     // kit's own road had to stay behind, which is how it ended up marooned in the middle.
     if (graph.allSegments().some((segment) => segment.type !== "highway_2lane")) return;
-    // Just inland of the bridge, on the low ground beside it. The kit used to sit at z=260 -- the
-    // island's summit, eighty metres above the landing and twelve hundred from it, reachable only
-    // by a road the player had to draw first. A run opens where the player arrives.
+    // The far side of the island from the bridge, so the kaiju -- which lands on the edge furthest
+    // from the bridge -- arrives near the city rather than a summit away from it.
     const z = STARTER_KIT_AT.z;
     const landing = graph.addNodeAt(v3(STARTER_KIT_AT.x, heightmap.baseHeightAt(STARTER_KIT_AT.x, z), z));
-    const west = graph.addNodeAt(v3(-510, heightmap.baseHeightAt(-510, z), z));
-    const east = graph.addNodeAt(v3(-210, heightmap.baseHeightAt(-210, z), z));
-    graph.addSegment(west, landing, v3(-435, 0, z), "street");
-    graph.addSegment(landing, east, v3(-285, 0, z), "street");
+    const x = STARTER_KIT_AT.x;
+    const west = graph.addNodeAt(v3(x - 150, heightmap.baseHeightAt(x - 150, z), z));
+    const east = graph.addNodeAt(v3(x + 150, heightmap.baseHeightAt(x + 150, z), z));
+    graph.addSegment(west, landing, v3(x - 75, 0, z), "street");
+    graph.addSegment(landing, east, v3(x + 75, 0, z), "street");
     // Painted along the road, not beside it: buildable land is the frontage strip either side of a
     // street, so a circle centred well off it covers ground nothing can ever be built on. The
     // agricultural one reached no buildable cell at all, which is why a new city opened with no
     // farm and no food.
-    zones.paint(-450, z, 45, "agricultural");
-    zones.paint(-360, z, 45, "residential");
-    zones.paint(-270, z, 45, "commercial");
+    zones.paint(x - 90, z, 45, "agricultural");
+    zones.paint(x, z, 45, "residential");
+    zones.paint(x + 90, z, 45, "commercial");
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
     for (const kind of ["power", "water"] as const) {
-      utilities.place(graph, "producer", kind, -500, z);
-      utilities.place(graph, "diffuser", kind, -400, z);
-      utilities.place(graph, "diffuser", kind, -280, z);
+      utilities.place(graph, "producer", kind, x - 140, z);
+      utilities.place(graph, "diffuser", kind, x - 40, z);
+      utilities.place(graph, "diffuser", kind, x + 80, z);
     }
   };
   const updateWave = (dt: number): void => {
