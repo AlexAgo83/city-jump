@@ -3,8 +3,9 @@ import { deleteRunSaveOnDefeat, readAutosave, readProfile, writeAutosave, writeP
 import { CityEconomy, STARTING_MONEY } from "../sim/economy";
 import { createRun } from "../sim/run";
 import { SAVE_VERSION, type CitySave } from "../sim/save";
+import { createWaveClock } from "../sim/wave";
 
-const city: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, money: STARTING_MONEY, resources: new CityEconomy().resources, run: createRun(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] };
+const city: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, money: STARTING_MONEY, resources: new CityEconomy().resources, run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] };
 
 describe("autosave storage", () => {
   afterEach(() => {

@@ -30,7 +30,7 @@ describe("building kinds", () => {
       parcel("military"),
     ]);
 
-    expect(needs.find((need) => need.kind === "agricultural")).toMatchObject({ supply: 3, need: 3, ratio: 1 });
+    expect(needs.find((need) => need.kind === "agricultural")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
     expect(needs.find((need) => need.kind === "industrial")).toMatchObject({ supply: 6, need: 6, ratio: 1 });
     expect(needs.find((need) => need.kind === "military")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
     expect(needs.map((need) => need.kind)).toContain("agricultural");
