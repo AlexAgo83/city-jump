@@ -35,6 +35,7 @@
 | [prod_020_a_wave_the_player_can_actually_watch](product/prod_020_a_wave_the_player_can_actually_watch.md) | A wave the player can actually watch | Proposed |  |  | product/prod_020_a_wave_the_player_can_actually_watch.md |
 | [prod_021_a_run_that_is_more_than_one_wave](product/prod_021_a_run_that_is_more_than_one_wave.md) | A run that is more than one wave | Proposed |  |  | product/prod_021_a_run_that_is_more_than_one_wave.md |
 | [prod_022_a_purchase_screen_is_not_a_play_screen](product/prod_022_a_purchase_screen_is_not_a_play_screen.md) | A purchase screen is not a play screen | Proposed |  |  | product/prod_022_a_purchase_screen_is_not_a_play_screen.md |
+| [prod_023_a_game_that_plays_itself_once_before_anyone_believes_it](product/prod_023_a_game_that_plays_itself_once_before_anyone_believes_it.md) | A game that plays itself, once, before anyone believes it | Proposed |  |  | product/prod_023_a_game_that_plays_itself_once_before_anyone_believes_it.md |
 
 ## Roadmaps
 
@@ -79,6 +80,7 @@
 | [req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Draft |  |  | request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
 | [req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes](request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md) | The loops that never close: a run of one wave, a city that starves on day one, and resources nothing consumes | Draft |  |  | request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md |
 | [req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen](request/req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen.md) | A panel that sells nothing: nine upgrades with no effect, permanently on the play screen | Draft |  |  | request/req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen.md |
+| [req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable](request/req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable.md) | A run played end to end: a headless playthrough, a threat the city generates, and the gameplay switches that make both testable | Draft |  |  | request/req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable.md |
 
 ## Backlog
 
@@ -171,6 +173,9 @@
 | [item_085_a_military_zone_that_builds_something](backlog/item_085_a_military_zone_that_builds_something.md) | A military zone that builds something | Ready |  | 0% | backlog/item_085_a_military_zone_that_builds_something.md |
 | [item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered](backlog/item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered.md) | Upgrades that do something, or upgrades that are not offered | Ready |  | 0% | backlog/item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered.md |
 | [item_087_a_run_panel_that_carries_what_the_player_is_playing_with](backlog/item_087_a_run_panel_that_carries_what_the_player_is_playing_with.md) | A run panel that carries what the player is playing with | Ready |  | 0% | backlog/item_087_a_run_panel_that_carries_what_the_player_is_playing_with.md |
+| [item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju](backlog/item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju.md) | A harness that plays a run from arrival to the first kaiju | Ready |  | 0% | backlog/item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju.md |
+| [item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it](backlog/item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it.md) | A threat the city generates, and a military that is measured against it | Ready |  | 0% | backlog/item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it.md |
+| [item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build](backlog/item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build.md) | A Gameplay section in settings: hardcore, pacifist, instant build, free build | Ready |  | 0% | backlog/item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build.md |
 
 ## Tasks
 
@@ -209,6 +214,7 @@
 | [task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Ready |  | 0% | tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
 | [task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent](tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md) | Close the loops: a run of several waves, a city that survives its first day, and resources that are spent | Ready |  | 0% | tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md |
 | [task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen](tasks/task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen.md) | Make the prestige web real, and take it off the play screen | Ready |  | 0% | tasks/task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen.md |
+| [task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section](tasks/task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section.md) | Play a run end to end, price the threat the city makes, and give the settings a Gameplay section | Ready |  | 0% | tasks/task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section.md |
 
 ## Runbooks
 

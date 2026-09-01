@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:38:29
+> Indicators reviewed: 2026-09-01 10:46:36
 
 # AI Context
 - Summary: The delivery slice for the play screen: the web moves to between runs, the permanent readouts obey the rule the interface slice set, and the two destructive controls stop being one stray click away.
@@ -27,7 +27,10 @@
   - Move the prestige web to where prestige is earned and spent: between runs, on the screen that follows an evacuation or precedes a new run.
   - Reduce the permanent panel to what a player uses while playing, and apply the interface slice's own rule -- anything that stays permanent displaces something that was.
   - Put a confirmation in front of ending a run, in the shape the app already uses for a refusal or a destructive choice.
-  - Move the hardcore setting to where a run starts, so it is chosen rather than toggled mid-run.
+  - Take the hardcore checkbox off the play screen. Where it lands is settled by the end-to-end
+    request's Gameplay settings section, which supersedes this slice's earlier wording about
+    'where a run begins' -- that slice moves it in, this one only stops it being here. Do not
+    build a second home for it.
   - Check the interaction script still drives what it needs to drive, since it clicks these controls.
   - Keep every readout reachable -- this is about what is permanent, not about hiding the run's state.
 - Out:
@@ -40,7 +43,8 @@
 - AC1: The prestige web is not on the play screen and is reachable between runs.
 - AC2: The permanent run readouts obey the rule that nothing is added permanently without something being folded.
 - AC3: Ending a run requires a confirmation.
-- AC4: Hardcore is chosen where a run begins, not toggled during it, and the browser interaction suite still passes.
+- AC4: Hardcore is no longer toggleable from the play screen, its new home is the Gameplay settings
+  section rather than a second one invented here, and the browser interaction suite still passes.
 
 # AC Traceability
 - request-AC3 -> This backlog slice. Proof: AC1: The prestige web is not on the play screen and is reachable between runs.

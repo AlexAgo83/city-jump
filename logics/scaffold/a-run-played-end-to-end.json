@@ -1,0 +1,200 @@
+{
+  "title": "A run played end to end: a headless playthrough, a threat the city generates, and the gameplay switches that make both testable",
+  "references": [
+    "src/sim/graph.ts",
+    "src/sim/zones.ts",
+    "src/sim/slots.ts",
+    "src/sim/buildingLifecycle.ts",
+    "src/sim/economy.ts",
+    "src/sim/buildingKinds.ts",
+    "src/sim/wave.ts",
+    "src/sim/kaiju.ts",
+    "src/sim/batteries.ts",
+    "src/sim/run.ts",
+    "scripts/balance.mjs",
+    "scripts/interact.mjs",
+    "index.html",
+    "src/ui/controls.ts",
+    "logics/architecture/adr_002_keep_simulation_independent_from_babylon_and_the_browser.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "Operator workflow",
+    "needs": [
+      "Every defect the last three requests record survived seven closeouts for the same reason: each acceptance criterion was checked inside its own slice, and nothing ever played a run. A wave that ends on the first building, a starting city that starves in one simulated day, nine upgrades that change nothing -- none of these is visible from a unit test of the part it lives in, and every one of them is obvious to anything that plays from arrival to the first attack.",
+      "What is missing is a harness that plays. Arrive on the island, draw the first roads, paint the first zones, watch parcels be admitted and rise, watch the needs move, build what the needs say to build, and reach the first wave with a city that is still alive. Every one of those steps is pure simulation -- the graph, the zones, the slots, the lifecycle, the economy and the wave are all Babylon-free by `adr_002_keep_simulation_independent_from_babylon_and_the_browser` -- so the playthrough can be headless, deterministic and fast, and is not the browser suite in another costume.",
+      "The needs are the part that most wants exercising. A player is told to read the gauges to decide what to build next; nothing has ever done that. A harness that follows what the needs panel says, and then asserts the city is better off for it, is the only way that instruction is ever tested -- and if the gauges cannot be followed to a surviving city, that is the finding.",
+      "One wave, three endings. The first attack has to be played through in each of its shapes: the kaiju destroys everything, the kaiju destroys about half the city, the kaiju destroys nothing. Each must have a stated consequence that the harness asserts -- what the run state becomes, what the population does afterwards, what rebuilding costs, whether the city can still reach the next wave. Today two of those three shapes cannot even occur, because the wave ends on the first building destroyed.",
+      "The wave's timing is a constant that nothing generates. `nextWaveAtSeconds` is sixty and never moves. The threat is a fixed six hundred hit points derived from nothing. A city that sprawls and a city that consolidates face the same kaiju at the same moment, so neither choice is priced. What the game needs is a rate: the city generates threat by existing and growing, and the wave arrives when enough of it has accumulated.",
+      "The other half of that balance has never been looked at either: whether the military a city can actually afford, staff and place by the time a wave lands is a match for the kaiju it has to beat. Battery damage scales with parcel area, military parcels demand eight workers a cell -- the highest in the game -- and the threat scales with nothing. Nobody has measured whether a reasonably played city arrives at its first wave over-armed, under-armed, or unable to field a battery at all.",
+      "The settings menu has no gameplay section, and it needs one. Hardcore currently sits on the play screen where it can be toggled mid-run; a kaiju that cannot be switched off means there is no way to build a city without a clock running against it; and construction time and build cost, which are exactly what a person testing the rest of the game wants to skip, can only be skipped by editing constants.",
+      "Those switches are not only a convenience. A harness that can play with instant construction, or with no kaiju, or with costs off, can isolate the rule it is testing instead of waiting sixty seconds per building for a scenario about food. The player-facing option and the instrument the tests need are the same switch."
+    ],
+    "context": [
+      "This request depends on the corrections in the two requests before it rather than duplicating them. The wave that no longer ends on the first building comes from the legibility request; the run that schedules a second wave, the survivable opening and the resource sinks come from the loop-closure request. Playing a run end to end is only meaningful once those exist -- but writing the harness first, and watching it fail on each of them in turn, is a legitimate and probably better order.",
+      "The balance harness is the sharpest overlap and the one place duplication is likely. The legibility request rewrites `scripts/balance.mjs` onto the real wave simulation to check combat duration. This request needs a fuller playthrough for the same reason. Whichever lands first builds the harness; the other extends it. Two harnesses over the same simulation is the failure mode to avoid, and it should be named in whichever closeout comes second.",
+      "The threat rate here and the threat scaling in the loop-closure request are one rule seen from two sides: that request makes the threat depend on the city and the wave number, this one makes the *arrival* depend on accumulated threat. They should be designed together even if they are built apart.",
+      "The gameplay switches interact with work already scoped elsewhere and the ordering matters. Disabling build costs presumes costs exist again, which is the legibility request's construction slice. Instant construction presumes the construction stage the same slice shortens. Neither switch should be built before the thing it switches.",
+      "Hardcore's home is settled by this request rather than by the run-panel request, which had scoped it to 'where a run begins'. A Gameplay section in settings is the more specific answer and supersedes that wording; the panel request's slice should carry the note rather than both moving it.",
+      "The interface slice's rule that the settings menu contains nothing a player needs during a wave is satisfied by this section rather than strained by it: pacifist mode, instant construction and free building are all chosen before or between runs, never mid-attack.",
+      "A pacifist switch is a real mode, not a debug flag. city-jump is a city builder first, and a player who wants to draw a city without a clock running against it should be able to -- with the run economy that depends on waves simply not accruing, said plainly rather than silently broken.",
+      "Keeping the harness honest matters more than keeping it short: it must drive the same rules the game drives, from the same entry points, with no test-only shortcut through a decision the player has to make. A harness that has its own copy of a rule proves nothing, which is the defect `scripts/balance.mjs` already demonstrates."
+    ],
+    "acceptance_criteria": [
+      "AC1: A headless harness plays a run from arrival through the first roads, the first zones, parcels rising and the needs moving, up to the first wave, and fails when any of those steps stops being possible.",
+      "AC2: The harness can build what the needs say to build, so the gauges are exercised as an instrument rather than only read -- and if following them does not produce a surviving city, that is reported as a finding rather than worked around.",
+      "AC3: The first wave is played in three shapes -- the kaiju destroys everything, about half, or nothing -- and each has a stated consequence the harness asserts, including what the city can still do afterwards.",
+      "AC4: When a wave arrives is driven by threat the city generates rather than by a fixed sixty seconds, so sprawling and consolidating are priced differently.",
+      "AC5: The military a city can afford, staff and place by its first wave is measured against the kaiju it must beat, across seeds, and the gap is reported rather than assumed.",
+      "AC6: The settings menu has a Gameplay section.",
+      "AC7: The hardcore setting lives in that section instead of on the play screen.",
+      "AC8: A switch turns off the kaiju spawn, making a pacifist city builder, with whatever depends on waves stated plainly rather than silently inert.",
+      "AC9: A switch makes construction instant, and a separate switch removes build costs.",
+      "AC10: The gameplay switches are carried with the run and honoured by the headless harness, so a scenario can be played with construction instant, costs off, or no kaiju."
+    ]
+  },
+  "product": {
+    "title": "A game that plays itself, once, before anyone believes it",
+    "overview": "Three requests' worth of defects share one cause: nothing has ever played this game from beginning to end. Every acceptance criterion was checked inside the slice that introduced it, and the failures all live between slices -- a wave that ends too early, a city that starves before the wave arrives, a currency that buys nothing. None of them needs a clever test to find. They need a harness that arrives on the island, draws roads, paints zones, waits for buildings, reads the gauges, builds what they ask for, and meets the first kaiju. This brief is that harness, the two balance questions it makes answerable -- how fast a city brings the wave on itself, and whether the military it can afford is a match for what arrives -- and the gameplay switches that are both a player's options and the harness's instruments: no kaiju, instant construction, free building.",
+    "goals": [
+      "A run is played end to end by something that fails loudly, not by a person noticing.",
+      "The gauges are exercised as instructions, not just displayed -- a harness that follows them proves they can be followed.",
+      "A wave arrives because of what the city did, not because sixty seconds passed.",
+      "The military a city can afford is measured against the kaiju it faces, rather than balanced by feel.",
+      "A player can turn the monster off and build a city, and say so is a mode rather than a bug.",
+      "The switches a tester wants and the options a player wants are the same switches."
+    ],
+    "non_goals": [
+      "Replacing the browser interaction suite, which checks that a click draws a road and stays the local gate for rendering.",
+      "A second balance harness beside the one the legibility request rewrites -- there is one, and it is extended.",
+      "New difficulty tiers, campaign structure, or scenario scripting beyond what the harness needs.",
+      "Rendering, animation or anything the player looks at, which the legibility request owns.",
+      "Rebalancing combat duration, which is the legibility request's slice; this brief measures the gap and reports it.",
+      "Turning the gameplay switches into an achievement, scoring or difficulty-modifier system."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "A harness that plays a run from arrival to the first kaiju",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "Operator workflow",
+      "request_acs": ["AC1", "AC2", "AC3"],
+      "problem": [
+        "Nothing plays this game. Every defect the last three requests record is invisible to a unit test of the part it lives in and obvious to anything that runs from arrival to the first attack.",
+        "The gauges are the part most in need of it: a player is told to read the needs to decide what to build, and nothing has ever followed that instruction to see where it leads.",
+        "The first wave has three shapes and two of them cannot currently happen, because the wave ends on the first building destroyed. Total loss, partial loss and a clean hold are three different futures for a city and none has been played.",
+        "The simulation is already Babylon-free, so there is no technical reason this harness does not exist -- only that no slice's acceptance criteria ever asked for it."
+      ],
+      "scope_in": [
+        "A headless harness over the real modules: arrive, draw the first roads through the same graph rules a click uses, paint zones, advance the clock, watch parcels be admitted and rise, watch the needs and the resources move.",
+        "Drive it from the same entry points the game drives, with no test-only shortcut past a decision the player has to make -- a harness with its own copy of a rule proves nothing, as `scripts/balance.mjs` already demonstrates.",
+        "A policy that follows the needs: build what the gauges say is short, and assert the city is better for it. If following them does not lead to a surviving city, report that as a finding rather than tuning the policy until it passes.",
+        "Play the first wave in three shapes -- everything destroyed, about half destroyed, nothing destroyed -- and assert a stated consequence for each: the run state, the population afterwards, what rebuilding costs, whether the next wave is reachable.",
+        "Deterministic from a seed and fast enough to run in the ordinary test gate.",
+        "Fail loudly and specifically: the step that stopped being possible, not a boolean."
+      ],
+      "scope_out": [
+        "Rendering, picking, or anything the browser suite exists to check.",
+        "Fixing the defects the harness finds -- those belong to the requests that own them.",
+        "Balance numbers, which are the next slice.",
+        "Scenario scripting or campaign structure beyond the three wave shapes."
+      ],
+      "acceptance_criteria": [
+        "AC1: A run plays headlessly from arrival to the first wave and fails loudly at the first step that stops being possible.",
+        "AC2: A needs-following policy exists, and what happens when it is followed is asserted rather than assumed.",
+        "AC3: The three wave shapes are each played and each has an asserted consequence.",
+        "AC4: The harness is deterministic from a seed and runs inside the ordinary test gate."
+      ]
+    },
+    {
+      "title": "A threat the city generates, and a military that is measured against it",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC4", "AC5"],
+      "problem": [
+        "`nextWaveAtSeconds` is sixty and never moves, so a sprawling city and a consolidated one face the same kaiju at the same moment and neither choice is priced.",
+        "The threat itself is a constant six hundred hit points derived from nothing about the city.",
+        "Nobody has measured the other side: battery damage scales with parcel area, a military parcel demands eight workers a cell -- the highest cost in the game -- and it is unknown whether a reasonably played city arrives at its first wave over-armed, under-armed, or unable to field a battery at all.",
+        "Without the measurement, every balance decision in this game is taken by feel, and the harness that was supposed to prevent that generated its own random numbers."
+      ],
+      "scope_in": [
+        "Make wave arrival depend on threat the city generates by existing and growing, rather than on a fixed countdown, and keep the countdown readable so the player can still see it coming.",
+        "Design it alongside the threat scaling the loop-closure request owns: that one makes the threat depend on the city, this one makes the arrival depend on accumulated threat, and they are one rule from two sides.",
+        "Measure, across seeds and through the playthrough harness, what military a reasonably played city can afford, staff and place by its first wave, against the kaiju that arrives.",
+        "Report the gap rather than closing it by hand -- if a competent city cannot field a battery in time, that is the finding, and the retune belongs where combat balance is owned.",
+        "Extend the existing balance harness rather than building a second one; if the legibility request has already rewritten it, build on that.",
+        "Record the numbers and the reasoning so the next change starts from a stated intent."
+      ],
+      "scope_out": [
+        "Retuning combat duration, hit points or reload, which the legibility request owns.",
+        "A second balance harness.",
+        "New wave types or abilities.",
+        "Difficulty tiers."
+      ],
+      "acceptance_criteria": [
+        "AC1: A wave arrives on accumulated threat the city generated, and the countdown to it stays readable.",
+        "AC2: Sprawling and consolidating produce measurably different wave timings.",
+        "AC3: The military a city can field by its first wave is measured against the threat across seeds, and the gap is reported.",
+        "AC4: There is one balance harness, extended rather than duplicated, and the numbers chosen are written down."
+      ]
+    },
+    {
+      "title": "A Gameplay section in settings: hardcore, pacifist, instant build, free build",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": ["AC6", "AC7", "AC8", "AC9", "AC10"],
+      "problem": [
+        "The settings menu has rows for World, Look, Sun and Camera and nothing for how the game plays.",
+        "Hardcore -- which decides whether a defeat deletes the run's save -- sits on the play screen and can be toggled at any point during the run it governs.",
+        "There is no way to build a city without a clock running against it. A city builder whose monster cannot be switched off has one mode.",
+        "Construction time and build cost are exactly what someone testing the rest of the game wants to skip, and skipping them currently means editing constants."
+      ],
+      "scope_in": [
+        "A Gameplay section in the settings menu, in the same row shape the existing sections use.",
+        "Move hardcore into it. This supersedes the run-panel request's wording about 'where a run begins'; that slice should note the move rather than making it too.",
+        "A kaiju spawn switch: off makes a pacifist city builder. Say plainly what stops accruing when it is off -- science, prestige, wave progression -- rather than leaving them silently inert.",
+        "An instant construction switch and a separate free-building switch, each built after the thing it switches exists: costs come back in the legibility request's construction slice, and the construction stage is shortened there too.",
+        "Carry the switches with the run so a saved game resumes with the same rules, and honour them in the headless harness so a scenario can be played with construction instant, costs off, or no kaiju.",
+        "Keep the interface slice's rule intact: none of these is needed during a wave, which is why the settings menu is the right home for them."
+      ],
+      "scope_out": [
+        "Difficulty tiers, scoring, achievements or modifiers built on top of these switches.",
+        "A general settings framework -- these are rows in the menu that already exists.",
+        "Changing what hardcore does.",
+        "New switches beyond these four."
+      ],
+      "acceptance_criteria": [
+        "AC1: The settings menu has a Gameplay section carrying hardcore, kaiju spawn, instant construction and free building.",
+        "AC2: Hardcore is no longer on the play screen.",
+        "AC3: With the kaiju spawn off no wave arrives, and what stops accruing is stated in the interface rather than silently inert.",
+        "AC4: Instant construction and free building each do what they say, and each is covered by a test.",
+        "AC5: The switches survive a save and a reload, and the headless harness honours them."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Play a run end to end, price the threat the city makes, and give the settings a Gameplay section",
+    "plan": [
+      "Read this request and its three slices, and read the two requests before it -- the legibility one and the loop-closure one. This request is what would have caught both, and it deliberately does not fix what they own.",
+      "Consider writing the harness first and letting it fail on each known defect in turn. It is a legitimate order and probably the better one: a harness written after the fixes proves the fixes, while a harness written before them proves the harness.",
+      "Build the playthrough on the same entry points the game uses. A test-only shortcut past a decision the player has to make is how `scripts/balance.mjs` came to prove nothing, and it is the one mistake this slice cannot afford to repeat.",
+      "Follow the needs, then report what following them does. If the gauges cannot be followed to a surviving city, that is the finding and it goes in the closeout -- do not tune the policy until it passes.",
+      "There is one balance harness. If the legibility request has already rewritten `scripts/balance.mjs` onto the real simulation, extend it; if not, build it here and say so, because the other request expects it to exist.",
+      "Design the threat rate together with the threat scaling the loop-closure request owns. Building them apart is fine; designing them apart will produce two rules that disagree.",
+      "Measure the military gap and report it. Closing it is combat balance and belongs elsewhere -- this slice's job is to make the number exist.",
+      "Build each gameplay switch after the thing it switches: free building needs costs to have returned, instant construction needs the construction stage. Neither is buildable before its slice.",
+      "Say plainly what a pacifist run stops accruing. A mode that silently disables the science economy is worse than no mode.",
+      "Run `npm run ci`, `npm run test:e2e` and `npm run balance` locally; the browser suite is the local gate and this request moves controls it clicks.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The run-panel request's hardcore wording is superseded here and its slice needs the note.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/a-run-played-end-to-end.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
