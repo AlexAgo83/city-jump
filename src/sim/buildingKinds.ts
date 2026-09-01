@@ -30,8 +30,8 @@ export interface BuildingNeed {
   readonly ratio: number;
 }
 
-export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[]): BuildingNeed[] {
-  const staffing = allocateWorkforce(parcels, population(parcels));
+export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], residents = population(parcels)): BuildingNeed[] {
+  const staffing = allocateWorkforce(parcels, residents);
   return [
     need("residential", staffing.workforce, staffing.demand),
     need("commercial", staffing.byKind.commercial.staffedDemand, staffing.byKind.commercial.demand),

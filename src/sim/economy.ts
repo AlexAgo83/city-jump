@@ -58,7 +58,7 @@ export class CityEconomy {
   private state: CityResources;
 
   constructor(state: Partial<CityResources> = {}) {
-    this.state = { population: state.population ?? 0, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
   }
 
   get resources(): CityResources {
@@ -66,7 +66,7 @@ export class CityEconomy {
   }
 
   replaceWith(state: Partial<CityResources> = {}): void {
-    this.state = { population: state.population ?? 0, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
   }
 
   advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {

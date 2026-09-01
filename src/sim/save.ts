@@ -11,7 +11,7 @@
  */
 import { RoadGraph, type NodeId } from "./graph";
 import { BuildingLifecycle, type SavedBuildingState } from "./buildingLifecycle";
-import { STARTING_MONEY, Treasury } from "./economy";
+import { CityEconomy, type CityResources, STARTING_MONEY, Treasury } from "./economy";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { Rubble, type SavedRubble } from "./rubble";
 import { v3 } from "./vec";
@@ -54,14 +54,17 @@ export interface CitySave {
   readonly rubble: readonly SavedRubble[];
   readonly buildingStates: readonly SavedBuildingState[];
   readonly money: number;
+  /** Absent on pre-resource saves; restore uses the bootstrap economy. */
+  readonly resources?: CityResources;
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury()): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
     money: treasury.money,
+    resources: cityEconomy.resources,
     ...(camera ? { camera } : {}),
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
@@ -93,17 +96,18 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
  * has had segments removed no longer numbers its nodes from 1.
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
-export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury()): void {
+export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): void {
   replayCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble());
-  replayCity(graph, plantings, zones, save, rubble, buildingLifecycle, treasury);
+  replayCity(graph, plantings, zones, save, rubble, buildingLifecycle, treasury, cityEconomy);
 }
 
-function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble, buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury()): void {
+function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble, buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): void {
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   zones.replaceWith(save.zones);
   rubble.replaceWith(save.rubble);
   buildingLifecycle.replaceWith(save.buildingStates);
   treasury.replaceWith(save.money);
+  cityEconomy.replaceWith(save.resources);
   for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
   const ids = new Map<NodeId, NodeId>();
   const roundabouts: { id: NodeId; lanes: 1 | 2 }[] = [];
@@ -140,7 +144,8 @@ export function parseCity(text: string): CitySave | null {
   if (!isRecord(value) || typeof value.v !== "number" || value.v < 1 || value.v > SAVE_VERSION) return null;
   if (typeof value.terrain !== "string" || !Number.isFinite(value.hour)) return null;
   const money = value.money === undefined ? STARTING_MONEY : Number.isFinite(value.money) ? value.money as number : null;
-  if (money === null) return null;
+  const resources = readResources(value.resources);
+  if (money === null || resources === null) return null;
   if (!Array.isArray(value.nodes) || !Array.isArray(value.segments)) return null;
   const planted = readPlantings(value.planted);
   const cleared = readPlantings(value.cleared);
@@ -167,7 +172,13 @@ export function parseCity(text: string): CitySave | null {
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
   if (camera === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, nodes, segments, planted, cleared, zones, rubble, buildingStates, ...(camera ? { camera } : {}) };
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, nodes, segments, planted, cleared, zones, rubble, buildingStates, ...(camera ? { camera } : {}) };
+}
+
+function readResources(value: unknown): CityResources | null {
+  if (value === undefined) return new CityEconomy().resources;
+  if (!isRecord(value) || ![value.population, value.food, value.materials, value.services].every(Number.isFinite)) return null;
+  return { population: value.population as number, food: value.food as number, materials: value.materials as number, services: value.services as number };
 }
 
 function isOffshoreSceneryRoad(graph: RoadGraph, a: NodeId, b: NodeId): boolean {
