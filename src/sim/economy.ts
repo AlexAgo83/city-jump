@@ -5,6 +5,13 @@ import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 
 export const STARTING_MONEY = 40_000;
+/**
+ * Two and a half days of food for the people who arrive with the run.
+ *
+ * The first farm takes a construction stage to go up and another moment to be staffed, and a city
+ * that starts an empty larder eats through a third of its population before it can grow anything.
+ */
+export const STARTING_FOOD = 30;
 export const CITY_DAY_SECONDS = 96;
 
 export interface CityResources {
@@ -44,9 +51,11 @@ export function housingCapacity(parcels: readonly Pick<BuildingParcel, "kind" | 
 /** Deterministic city stocks. One call is one simulation-day fraction, never a renderer frame. */
 export class CityEconomy {
   private state: CityResources;
+  /** True once the city has ever had a home, so the opening is not read as an eviction. */
+  private housed = false;
 
   constructor(state: Partial<CityResources> = {}) {
-    this.state = { population: state.population ?? 12, food: state.food ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD };
   }
 
   get resources(): CityResources {
@@ -54,7 +63,7 @@ export class CityEconomy {
   }
 
   replaceWith(state: Partial<CityResources> = {}): void {
-    this.state = { population: state.population ?? 12, food: state.food ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD };
   }
 
   advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {
@@ -65,7 +74,14 @@ export class CityEconomy {
     const foodAvailable = this.state.food + foodProduced;
     const foodShortage = Math.max(0, foodConsumed - foodAvailable);
     const foodSurplus = Math.max(0, foodAvailable - foodConsumed);
-    const growth = foodShortage > 0 ? -Math.min(this.state.population, foodShortage * 2) : Math.min(housing - this.state.population, foodSurplus * 0.5);
+    // Housing caps growth from the moment the city has any. Before that -- the opening minute,
+    // where the first houses are still going up -- `housing - population` was a negative number
+    // and the arrivals drained away before anything they could live in existed. Once a city has
+    // been housed, losing those homes does push the population back down: that is a wave's cost,
+    // and it is the whole reason the cap exists.
+    this.housed ||= housing > 0;
+    const room = this.housed ? housing - this.state.population : 0;
+    const growth = foodShortage > 0 ? -Math.min(this.state.population, foodShortage * 2) : Math.min(room, foodSurplus * 0.5);
     this.state = {
       population: Math.max(0, this.state.population + growth),
       food: Math.max(0, foodAvailable - foodConsumed),

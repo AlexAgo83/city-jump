@@ -55,7 +55,7 @@ describe("economy", () => {
     const grown = city.advance(homes, CITY_DAY_SECONDS);
     expect(grown.population.value).toBeGreaterThan(10);
     expect(grown.population.value).toBeLessThanOrEqual(24);
-    city.replaceWith({ population: 10 });
+    city.replaceWith({ population: 10, food: 0 });
     expect(city.advance([homes[0]!], CITY_DAY_SECONDS).population.change).toBeLessThan(0);
   });
 
