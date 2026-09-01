@@ -51,10 +51,10 @@ describe("autosave storage", () => {
     };
 
     expect(writeAutosave(city)).toBe(true);
-    expect(writeProfile({ prestige: 12, upgrades: ["coverage-map"], hardcore: true })).toBe(true);
+    expect(writeProfile({ prestige: 12, upgrades: ["starter-funds"], hardcore: true })).toBe(true);
 
     expect(readAutosave()).toEqual(city);
-    expect(readProfile()).toEqual({ prestige: 12, upgrades: ["coverage-map"], hardcore: true });
+    expect(readProfile()).toEqual({ prestige: 12, upgrades: ["starter-funds"], hardcore: true });
   });
 
   it("deletes the run save on hardcore defeat only", () => {

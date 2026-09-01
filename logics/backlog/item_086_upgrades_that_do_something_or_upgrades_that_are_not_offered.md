@@ -1,14 +1,14 @@
 ## item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered - Upgrades that do something, or upgrades that are not offered
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:38:29
+> Indicators reviewed: 2026-09-01 14:15:14
 
 # AI Context
 - Summary: The delivery slice for the web itself: each node gets a real effect along its own branch or leaves the web, and the branch-label test is replaced by tests over effects.
@@ -40,6 +40,13 @@
 - AC2: Each node's effect is covered by a test that fails when the effect is removed.
 - AC3: No node touches a core rate, proven against its effect rather than its branch label.
 - AC4: Nodes are named and described by what they do.
+
+# Report
+- Delivered in `task_033`: the offered web now contains only `starter-funds`, `starter-materials`, and `starter-services`.
+- Each remaining node has a concrete starting-condition effect: extra starting money, starting materials, or starting services.
+- The six capability/information nodes were removed from the offered web until they have observable effects.
+- `src/sim/run.test.ts` now asserts effects and removal of `coverage-map`, replacing the old branch-label-only test.
+- Upgrade buttons render player-facing names and descriptions instead of raw identifiers.
 
 # AC Traceability
 - request-AC1 -> This backlog slice. Proof: AC1: Every node still in the web changes an observable outcome; nodes that do not are gone.

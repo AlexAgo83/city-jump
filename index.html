@@ -170,18 +170,20 @@
   #wave-banner[data-state="active"] { border-color: #ffcf66aa; color: #ffdf91; }
   #wave-banner[data-state="held"] { border-color: #8ee6a8aa; color: #bdf5cc; }
   #wave-banner[data-state="breached"] { border-color: #ff8d7aaa; color: #ffc5bc; }
-  #run-panel {
+  #run-panel, #between-runs {
     position: fixed; top: 96px; right: 12px;
     display: flex; align-items: center; flex-wrap: wrap; gap: 10px; max-width: min(560px, calc(100vw - 24px)); box-sizing: border-box;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff2b; border-radius: 6px;
     font: 12px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-shadow: 0 1px 2px #000;
   }
-  #run-panel b { color: #f4fbff; font-weight: 600; }
-  #run-panel button {
+  #between-runs { top: 136px; max-width: min(360px, calc(100vw - 24px)); }
+  #between-runs[hidden] { display: none; }
+  #run-panel b, #between-runs b { color: #f4fbff; font-weight: 600; }
+  #run-panel button, #between-runs button {
     color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
     padding: 3px 8px; cursor: pointer; font: inherit;
   }
-  #upgrade-web { display: flex; gap: 4px; }
+  #upgrade-web { display: flex; flex-wrap: wrap; gap: 4px; }
   #upgrade-web button[data-owned="true"] { color: #bdf5cc; border-color: #8ee6a8aa; }
   .compass-heading { display: flex; align-items: center; gap: 7px; }
   .compass-needle {
@@ -228,10 +230,11 @@
 <div id="run-panel" aria-label="Run status">
   <span>Wave <b id="run-wave">1</b></span>
   <span>Science <b id="run-science">0</b></span>
-  <span>Prestige <b id="profile-prestige">0</b></span>
-  <label><input id="hardcore-run" type="checkbox" /> Hardcore</label>
   <button id="call-wave" type="button">Call wave</button>
   <button id="evacuate-run" type="button">Evacuate</button>
+</div>
+<div id="between-runs" aria-label="Between runs" hidden>
+  <span>Prestige <b id="profile-prestige">0</b></span>
   <span id="upgrade-web" aria-label="Prestige upgrades"></span>
 </div>
 <div id="time-controls" aria-label="Simulation time">
@@ -302,6 +305,10 @@
       <label><input type="radio" name="camera-mode" value="free" checked /> Free</label>
       <label><input type="radio" name="camera-mode" value="orbit" /> Orbit</label>
       <label><input type="radio" name="camera-mode" value="follow" /> Follow</label>
+    </div>
+    <div class="toolbar-row">
+      <span class="row-label">Gameplay</span>
+      <label><input id="hardcore-run" type="checkbox" /> Hardcore</label>
     </div>
     <div class="toolbar-row">
       <span class="row-label">City</span>

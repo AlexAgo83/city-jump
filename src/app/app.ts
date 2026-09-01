@@ -17,7 +17,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { buildingBuildCost, CityEconomy, STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
+import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -31,7 +31,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, type ProfileState, type RunState } from "../sim/run";
+import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -68,8 +68,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const rubble = new Rubble();
   const utilities = new Utilities();
   const buildingLifecycle = new BuildingLifecycle();
-  const treasury = new Treasury();
-  const cityEconomy = new CityEconomy();
+  let profile: ProfileState = readProfile();
+  const treasury = new Treasury(startingMoney(profile));
+  const cityEconomy = new CityEconomy(startingResources(profile, new CityEconomy().resources));
   const history = createCityHistory<CitySave>(20);
   createOcean(scene);
   const ground = createGround(scene, heightmap);
@@ -167,7 +168,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let currentBuildingStatuses: readonly BuildingStatus[] = [];
   let waveClock = createWaveClock();
   let runState: RunState = createRun();
-  let profile: ProfileState = readProfile();
   let kaijuPlan: KaijuPlan | null = null;
   let kaijuAssault: KaijuAssaultState | null = null;
   let pendingMissiles: PendingMissile[] = [];
@@ -192,6 +192,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
+  const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
@@ -549,12 +550,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
   const callWaveButton = document.getElementById("call-wave") as HTMLButtonElement;
   const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
+  const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
   const renderUpgradeWeb = (): void => {
     upgradeWeb.replaceChildren(...FIRST_UPGRADE_WEB.map((upgrade) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = `${upgrade.id} ${upgrade.cost}`;
+      button.textContent = `${upgrade.name} ${upgrade.cost}`;
+      button.title = upgrade.description;
       button.dataset.owned = String(profile.upgrades.includes(upgrade.id));
       button.addEventListener("click", () => {
         const next = buyUpgrade(profile, upgrade.id);
@@ -566,6 +569,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       });
       return button;
     }));
+    betweenRuns.hidden = !runState.ended;
+  };
+  const finishByEvacuation = (): void => {
+    if (runState.ended) return;
+    runState = evacuate(runState);
+    profile = carryScience(profile, runState);
+    writeProfile(profile);
+    writeAutosave(snapshot(true));
+    updateRunHud();
+    renderUpgradeWeb();
+    showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
   };
   hardcoreBox.checked = profile.hardcore;
   hardcoreBox.addEventListener("change", () => {
@@ -573,12 +587,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     writeProfile(profile);
   });
   evacuateButton.addEventListener("click", () => {
-    runState = evacuate(runState);
-    profile = carryScience(profile, runState);
-    writeProfile(profile);
-    writeAutosave(snapshot(true));
-    updateRunHud();
-    showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
+    if (!window.confirm("Evacuate this run?")) return;
+    finishByEvacuation();
   });
   callWaveButton.addEventListener("click", () => {
     if (waveClock.active || runState.ended) return;
@@ -668,7 +678,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, resources: new CityEconomy().resources, run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+      loadCity(emptyCity());
       addStarterKit();
       rebuild();
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
@@ -700,6 +710,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     runState = city.run ?? createRun();
     waveClock = city.waveClock ?? createWaveClock();
     updateRunHud();
+    renderUpgradeWeb();
     simSeconds = 0;
     simDay = 1;
     setClockHour(city.hour);
@@ -878,7 +889,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       finishWave("held");
     },
     evacuateRun() {
-      evacuateButton.click();
+      finishByEvacuation();
       return { run: runState, profile };
     },
   });

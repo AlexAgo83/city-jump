@@ -487,7 +487,7 @@ export function createDrawTool(
       if (target.kind === "utility") {
         window.setTimeout(() => {
           const removed = utilities?.removeAt(target.utility[2], target.utility[3]);
-          if (removed?.[0] === "diffuser") onRefused(`${removed[1] === "power" ? "Power" : "Water"} diffuser destroyed. Covered district is out.`);
+          if (removed?.[0] === "diffuser") onRefused(`${removed[1] === "power" ? "Power" : "Water"} diffuser destroyed. Covered district went dark.`);
           utilities?.refresh();
           history?.afterChange(Boolean(removed));
         }, DEMOLITION_MS);

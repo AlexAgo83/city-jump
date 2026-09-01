@@ -1,14 +1,14 @@
 ## item_087_a_run_panel_that_carries_what_the_player_is_playing_with - A run panel that carries what the player is playing with
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:25
+> Indicators reviewed: 2026-09-01 14:15:14
 
 # AI Context
 - Summary: The delivery slice for the play screen: the web moves to between runs, the permanent readouts obey the rule the interface slice set, and the two destructive controls stop being one stray click away.
@@ -50,6 +50,14 @@
 - AC5: A district going dark raises a one-line alert, closing the half of the interface slice's AC5 that was never built.
 - AC4: Hardcore is no longer toggleable from the play screen, its new home is the Gameplay settings
   section rather than a second one invented here, and the browser interaction suite still passes.
+
+# Report
+- Delivered in `task_033`: `#run-panel` now keeps only Wave, Science, Call wave, and Evacuate during play.
+- Prestige and the upgrade web moved to `#between-runs`, which appears after evacuation and is hidden during a live run.
+- Evacuate now requires `window.confirm` before ending the run.
+- Hardcore moved out of the play panel into the toolbar's Gameplay row.
+- The diffuser-destruction toast now says the covered district went dark.
+- `scripts/interact.mjs` proves the web placement, between-run purchase, Evacuate confirmation, Hardcore placement, and dark-district alert.
 
 # AC Traceability
 - request-AC3 -> This backlog slice. Proof: AC1: The prestige web is not on the play screen and is reachable between runs.
