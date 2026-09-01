@@ -153,7 +153,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("streetlights", () => streetlights.rebuild(junctions, dirty));
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
-    measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, occupiedCells()));
+    measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -254,7 +254,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }
     if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
     const income = incomePerSecond(residents, currentBuildingStatuses);
-    showCityStats(residents, buildingNeeds(currentParcels, residents, projectedThreat()), cityEconomy.resources, lastTerms && { ...lastTerms, trade: income });
+    // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
+    // empty after every load and every refresh, until the player pressed play.
+    lastTerms ??= cityEconomy.advance(workingParcels(), 0);
+    showCityStats(residents, buildingNeeds(currentParcels, residents, projectedThreat()), cityEconomy.resources, { ...lastTerms, trade: income });
     showMoney(treasury.money, income, stateCounts());
   };
   const refreshUtilities = (): void => {
@@ -871,6 +874,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     history.clear();
     pendingHistorySnapshot = null;
     resetWave();
+    lastTerms = undefined;
     runState = city.run ?? createRun();
     // Never restore a wave in progress. Nothing about the kaiju is saved -- not where it stands,
     // not what it was walking towards, not the missiles in the air -- so reloading rebuilt the plan
