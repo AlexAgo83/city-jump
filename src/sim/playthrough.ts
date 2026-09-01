@@ -74,6 +74,8 @@ const GROW_STEP_SECONDS = 4;
 const GROW_STEPS_PER_WAVE = 120;
 const COMBAT_STEP_SECONDS = 0.25;
 const COMBAT_CAP_SECONDS = 90;
+/** Salvos a defence should need to kill a wave -- the top of the readable band. */
+const SALVO_TARGET = 8;
 
 /**
  * Plays a run: arrive, road, zone, grow, meet a kaiju, rebuild, meet the next one, until the run
@@ -206,6 +208,14 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
         } else if (scenario.expand && treasury.money > 5_000 && expand(short.kind)) {
           log.push(`need:${short.kind}->expand supply=${short.supply} need=${short.need}`);
         }
+      }
+      // The needs panel never asks for defence -- its military row compares staffed lots against
+      // staffed-plus-idle, so a fully staffed district reads as satisfied however small it is. A
+      // player reads the banner instead: threat against firepower. This does the same.
+      if (scenario.expand && treasury.money > 5_000) {
+        const projected = waveThreat(run.wave, economy.resources.population, parcels.length);
+        const salvoDamage = batteriesForParcels(parcels, economy.resources.population).reduce((sum, battery) => sum + battery.damage, 0);
+        if (salvoDamage * SALVO_TARGET < projected && expand("military")) log.push(`threat:${projected}>firepower:${salvoDamage * SALVO_TARGET}->expand:military`);
       }
       previous = needs;
     }
