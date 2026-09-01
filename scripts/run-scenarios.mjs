@@ -52,5 +52,6 @@ function scenario(label, rules) {
   return { runs, fought, offTarget };
 }
 
-scenario(`with utilities (${waves} waves)`, { instantConstruction: true });
-scenario(`without utilities (${waves} waves)`, { instantConstruction: true, utilities: false });
+scenario(`expanding city, with utilities (${waves} waves)`, { instantConstruction: true, expand: true });
+scenario(`expanding city, no utilities (${waves} waves)`, { instantConstruction: true, expand: true, utilities: false });
+scenario(`static city (the balance gate's scenario, ${waves} waves)`, { instantConstruction: true });

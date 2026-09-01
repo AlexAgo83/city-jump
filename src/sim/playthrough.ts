@@ -64,11 +64,17 @@ export interface PlaythroughResult extends RunPlaythrough {
 export interface ScenarioRules extends RunRules {
   /** Place power and water the way a player would, and let buildings go idle without them. */
   readonly utilities: boolean;
-  /** Keep drawing roads outward while there is money and a shortage to answer. */
+  /**
+   * Keep drawing roads outward while there is money and a shortage to answer.
+   *
+   * Off by default so `npm run balance` and the unit tests measure one fixed city and stay a
+   * regression gate. `npm run scenarios` turns it on: exploring how a player who keeps building
+   * changes the run must not move the bar the gate is checked against.
+   */
   readonly expand: boolean;
 }
 
-export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, expand: true };
+export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, expand: false };
 
 const GROW_STEP_SECONDS = 4;
 const GROW_STEPS_PER_WAVE = 120;
