@@ -35,6 +35,9 @@ function scenario(label, rules) {
           `lots=${w.parcels} bat=${w.fieldedBatteries} combat=${w.combatDurationSeconds.toFixed(1)}s${combatOut ? "!" : " "} ` +
           `salvos=${w.salvos}${salvoOut ? "!" : " "} ${w.held ? "HELD" : "BREACHED"} lost=${w.destroyed} $${w.treasury.toFixed(0)}`,
       );
+      const kinds = Object.entries(w.byKind).map(([kind, count]) => `${kind.slice(0, 4)}=${count}`).join(" ");
+      const roads = Object.entries(w.roadMetres).map(([type, metres]) => `${type.split("_")[0]}=${metres}m`).join(" ");
+      console.log(`        lots: ${kinds}  |  roads: ${roads}`);
     }
   }
   const fought = runs.flatMap((played) => played.waves);

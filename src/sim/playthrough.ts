@@ -24,6 +24,10 @@ export interface WaveRecord {
   readonly threat: number;
   readonly population: number;
   readonly parcels: number;
+  /** Lots standing when the wave landed, by business. */
+  readonly byKind: Readonly<Record<BuildingKind, number>>;
+  /** Metres of road drawn, by road type. */
+  readonly roadMetres: Readonly<Record<string, number>>;
   readonly fieldedBatteries: number;
   readonly firepowerPerMinute: number;
   readonly combatDurationSeconds: number;
@@ -193,6 +197,8 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     const threat = waveClock.active!.threat;
     const population = economy.resources.population;
     const parcelsAtWave = parcels.length;
+    const byKind = parcels.reduce((counts, parcel) => ({ ...counts, [parcel.kind]: (counts[parcel.kind] ?? 0) + 1 }), {} as Record<BuildingKind, number>);
+    const roadMetres = graph.allSegments().reduce((metres, segment) => ({ ...metres, [segment.type]: Math.round((metres[segment.type] ?? 0) + segment.length) }), {} as Record<string, number>);
     const opening = batteriesForParcels(parcels, population);
     let assault = createKaijuAssault(v3(-260 + seed, 0, 260));
     let missiles: { readonly damage: number; readonly impactAt: number }[] = [];
@@ -243,6 +249,8 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       threat,
       population,
       parcels: parcelsAtWave,
+      byKind,
+      roadMetres,
       fieldedBatteries: opening.length,
       firepowerPerMinute: firepowerPerMinute(opening),
       combatDurationSeconds: seconds - started,
@@ -279,7 +287,7 @@ export function playFirstRun(seed = 1, rules: Partial<ScenarioRules> = {}): Play
   const played = playRun(seed, rules, 1);
   const first: WaveRecord = played.waves[0] ?? {
     wave: 1, waitedSeconds: played.seconds, threat: 0, population: played.economy.resources.population,
-    parcels: played.parcels.length, fieldedBatteries: 0, firepowerPerMinute: 0, combatDurationSeconds: 0,
+    parcels: played.parcels.length, byKind: {} as Record<BuildingKind, number>, roadMetres: {}, fieldedBatteries: 0, firepowerPerMinute: 0, combatDurationSeconds: 0,
     salvos: 0, held: false, destroyed: 0, rebuildingCost: 0, treasury: played.treasury.money,
     science: played.run.science, shape: "clean_hold",
   };
