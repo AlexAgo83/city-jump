@@ -62,8 +62,10 @@ export interface PlaythroughResult extends RunPlaythrough {
 }
 
 export interface ScenarioRules extends RunRules {
-  /** Place power and water the way a player would, and let buildings go idle without them. */
+  /** Let a building without the utility it needs go idle -- the app always does. */
   readonly utilities: boolean;
+  /** Whether the simulated player actually builds the power and water network. */
+  readonly placeUtilities: boolean;
   /**
    * Keep drawing roads outward while there is money and a shortage to answer.
    *
@@ -74,7 +76,7 @@ export interface ScenarioRules extends RunRules {
   readonly expand: boolean;
 }
 
-export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, expand: false };
+export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, placeUtilities: true, expand: false };
 
 const GROW_STEP_SECONDS = 4;
 const GROW_STEPS_PER_WAVE = 120;
@@ -179,7 +181,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   paint("agricultural", -70, 220);
   paint("commercial", 20, 300);
   paint("military", -70, 360);
-  if (scenario.utilities) {
+  if (scenario.placeUtilities) {
     for (const kind of ["power", "water"] as const) {
       utilities.place(graph, "producer", kind, -250, 260);
       for (const [x, z] of [[-170, 300], [-70, 220], [20, 300], [-70, 360]] as const) utilities.place(graph, "diffuser", kind, x, z);

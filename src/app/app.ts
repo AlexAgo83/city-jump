@@ -388,6 +388,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     zones.paint(-170, 300, 28, "residential");
     zones.paint(-70, 220, 22, "agricultural");
     zones.paint(20, 300, 18, "commercial");
+    // Power and water, because a building without them does not work and a city where nothing
+    // works produces no food and loses its people. Utilities are a system to extend, not a first
+    // lesson to fail: the run opens with enough to keep the starter lots running.
+    for (const kind of ["power", "water"] as const) {
+      utilities.place(graph, "producer", kind, -250, 260);
+      utilities.place(graph, "diffuser", kind, -110, 260);
+      utilities.place(graph, "diffuser", kind, 20, 260);
+    }
   };
   const updateWave = (dt: number): void => {
     if (!runState.rules.kaijuSpawns) {

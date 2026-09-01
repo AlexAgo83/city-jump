@@ -111,9 +111,16 @@ function needText(need: BuildingNeed): string {
   return need.supply >= need.need ? "OK" : `Need ${need.need - need.supply}`;
 }
 
+/**
+ * The worst shortage, not the first one in the list.
+ *
+ * Reading in array order meant this always said "Workers": jobs demanded outrun the workforce from
+ * the first minute and never stop, so no other shortage was ever shown -- not food, not defence.
+ * Ranking by ratio surfaces whichever gauge is actually furthest from being met.
+ */
 function shortage(needs: readonly BuildingNeed[]): string {
-  const short = needs.find((need) => need.need > need.supply);
-  return short ? `${needLabel(short.kind)} ${short.need - short.supply}` : "None";
+  const short = needs.filter((need) => need.need > need.supply).sort((a, b) => a.ratio - b.ratio)[0];
+  return short ? `${needLabel(short.kind)} ${compact(Math.round(short.need - short.supply))}` : "None";
 }
 
 function compact(value: number): string {
