@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ledgerText } from "./ledger";
+import { ledgerRows } from "./ledger";
 import type { CityTerms } from "../sim/economy";
 
 describe("ledger", () => {
@@ -11,8 +11,26 @@ describe("ledger", () => {
       trade: 4,
     };
 
-    expect(ledgerText(terms)).toContain("Population: 42.0 = housing 90 + change 3.50 - shortage 1.25");
-    expect(ledgerText(terms)).toContain("Food: 12.0 = +8.00 - 6.00");
-    expect(ledgerText(terms)).toContain("Trade: 4.00");
+    const rows = ledgerRows(terms);
+    const row = (label: string) => rows.find((candidate) => candidate.label === label)!;
+
+    expect(row("People")).toMatchObject({ value: "42.0", inflow: "+3.5", outflow: "--", short: false });
+    expect(row("Food")).toMatchObject({ value: "12.0", inflow: "+8.0", outflow: "-6.0", short: true });
+    expect(row("Materials")).toMatchObject({ value: "7.0", inflow: "+3.0", outflow: "-2.0", short: false });
+    expect(row("Trade").value).toBe("$4.0/s");
+    expect(ledgerRows(undefined)).toEqual([]);
+  });
+
+  it("flags a resource going out faster than it comes in", () => {
+    const starving: CityTerms = {
+      population: { value: 42, housing: 20, change: -6, foodShortage: 4 },
+      food: { value: 0, produced: 1, consumed: 9 },
+      materials: { value: 0, produced: 0, consumed: 5, shortage: 5 },
+      trade: 0,
+    };
+    const rows = ledgerRows(starving);
+
+    expect(rows.filter((row) => row.short).map((row) => row.label)).toEqual(["People", "Housing", "Food", "Materials"]);
+    expect(rows.find((row) => row.label === "People")!.outflow).toBe("-6.0");
   });
 });

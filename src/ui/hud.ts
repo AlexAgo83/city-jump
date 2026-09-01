@@ -1,7 +1,7 @@
 import type { SelectionInfo } from "../render/drawTool";
 import type { BuildingNeed } from "../sim/buildingKinds";
 import type { CityResources, CityTerms } from "../sim/economy";
-import { ledgerText } from "./ledger";
+import { ledgerRows } from "./ledger";
 
 const toast = document.getElementById("toast") as HTMLDivElement;
 let toastTimer = 0;
@@ -71,11 +71,14 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
       `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
     return row;
   }));
-  ledgerLines.replaceChildren(...ledgerText(terms).map((text) => {
+  ledgerLines.replaceChildren(...ledgerRows(terms).map((row) => {
     const line = document.createElement("div");
-    line.textContent = text;
+    line.className = "ledger-row";
+    if (row.short) line.dataset.short = "true";
+    line.innerHTML = `<span>${row.label}</span><b>${row.value}</b><i>${row.inflow}</i><i>${row.outflow}</i>`;
     return line;
   }));
+  ledgerLines.dataset.empty = String(!terms);
 }
 
 export function showMoney(balance: number, perSecond: number, queue: { rising?: number; rebuilding?: number } = {}): void {
