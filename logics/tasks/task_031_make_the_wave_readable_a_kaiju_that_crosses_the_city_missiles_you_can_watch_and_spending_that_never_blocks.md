@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:24:02
+> Indicators reviewed: 2026-09-01 10:59:22
 
 # AI Context
 - Summary: The executable surface of `req_029`: the kaiju loop first, then the missiles, then the balance, then the construction and the costs.
@@ -26,7 +26,7 @@
 - [ ] 4. Then the missiles, then the balance, then the construction and the costs -- the order the manual test put them in, and the order of how much each one changes what the player sees.
 - [ ] 5. Keep `src/sim/kaiju.ts` pure and seed-replayable throughout; the targeting loop is the part a headless test can actually hold, and `adr_002_keep_simulation_independent_from_babylon_and_the_browser` requires it.
 - [ ] 6. Reuse what exists rather than building beside it: `Treasury.spend`'s `allowDebt` flag, the existing destruction and repaint path, the existing missile flight time, the existing lifecycle states.
-- [ ] 7. Rewrite the balance harness before trusting any retuned number -- the current one proves nothing, and the twenty-to-forty-second target is only a claim until it is measured against the real simulation.
+- [ ] 7. Rewrite the balance harness before trusting any retuned number -- the current one proves nothing, and the twenty-to-forty-second target is only a claim until it is measured against the real simulation. There is one harness across this milestone, not one per request: see `adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision`.
 - [ ] 8. Add no new resource, no debt consequence and no per-kind duration; every one of those is named as later work in the brief and each is a way for this pass to stop being deliverable.
 - [ ] 9. Verify a save from before this loads, and that a building saved mid-construction resumes at its progress.
 - [ ] 10. Run `npm run ci`, `npm run test:e2e` and `npm run balance` locally; the browser suite is the local gate, not something to discover in CI.
@@ -59,6 +59,7 @@
 - request-AC8 -> `item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game`. Proof deferred to slice closeout.
 - request-AC9 -> `item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game`. Proof deferred to slice closeout.
 - request-AC10 -> `item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game`. Proof deferred to slice closeout.
+- request-AC11 -> `item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building`. Proof deferred to slice closeout.
 
 # Validation
 - (no validation recorded yet)

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:49
+> Indicators reviewed: 2026-09-01 10:58:26
 
 # AI Context
 - Summary: The executable surface of `req_032`: the harness first, then the threat rate and the military measurement, then the Gameplay section.
@@ -24,7 +24,7 @@
 - [ ] 2. Consider writing the harness first and letting it fail on each known defect in turn. It is a legitimate order and probably the better one: a harness written after the fixes proves the fixes, while a harness written before them proves the harness.
 - [ ] 3. Build the playthrough on the same entry points the game uses. A test-only shortcut past a decision the player has to make is how `scripts/balance.mjs` came to prove nothing, and it is the one mistake this slice cannot afford to repeat.
 - [ ] 4. Follow the needs, then report what following them does. If the gauges cannot be followed to a surviving city, that is the finding and it goes in the closeout -- do not tune the policy until it passes.
-- [ ] 5. There is one balance harness. If the legibility request has already rewritten `scripts/balance.mjs` onto the real simulation, extend it; if not, build it here and say so, because the other request expects it to exist.
+- [ ] 5. There is one balance harness, per `adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision`. If the legibility request has already rewritten it onto the real simulation, extend it; if not, build it here and say so, because the other request expects it to exist. Milestone 9.0 of `road_002_city_jump_a_city_worth_defending` carries the order across all four chains; this plan carries only this one.
 - [ ] 6. Design the threat rate together with the threat scaling the loop-closure request owns. Building them apart is fine; designing them apart will produce two rules that disagree.
 - [ ] 7. Measure the military gap and report it. Closing it is combat balance and belongs elsewhere -- this slice's job is to make the number exist.
 - [ ] 8. Build each gameplay switch after the thing it switches: free building needs costs to have returned, instant construction needs the construction stage. Neither is buildable before its slice.

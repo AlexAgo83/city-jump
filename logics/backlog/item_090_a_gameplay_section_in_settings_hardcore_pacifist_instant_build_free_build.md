@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:49
+> Indicators reviewed: 2026-09-01 10:58:25
 
 # AI Context
 - Summary: The delivery slice for the Gameplay settings section: hardcore moved off the play screen, a pacifist switch, instant construction and free building.
@@ -28,7 +28,10 @@
   - Move hardcore into it. This supersedes the run-panel request's wording about 'where a run begins'; that slice should note the move rather than making it too.
   - A kaiju spawn switch: off makes a pacifist city builder. Say plainly what stops accruing when it is off -- science, prestige, wave progression -- rather than leaving them silently inert.
   - An instant construction switch and a separate free-building switch, each built after the thing it switches exists: costs come back in the legibility request's construction slice, and the construction stage is shortened there too.
-  - Carry the switches with the run so a saved game resumes with the same rules, and honour them in the headless harness so a scenario can be played with construction instant, costs off, or no kaiju.
+  - Carry the switches with the run so a saved game resumes with the same rules, and honour them in
+    the headless harness so a scenario can be played with construction instant, costs off, or no
+    kaiju. Persist them the way this repository already persists new state -- optional fields with
+    defaults, no version bump -- so a save written before the switches existed loads with them off.
   - Keep the interface slice's rule intact: none of these is needed during a wave, which is why the settings menu is the right home for them.
 - Out:
   - Difficulty tiers, scoring, achievements or modifiers built on top of these switches.

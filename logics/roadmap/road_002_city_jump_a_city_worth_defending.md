@@ -4,7 +4,7 @@
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:05:08
+> Indicators reviewed: 2026-09-01 10:57:57
 
 # AI Context
 - Summary: Eight ordered slices that turn a city editor into a game with something at stake. The
@@ -100,6 +100,42 @@ is the point.
   into an output.
 - Exit signal: the median run ends in evacuation rather than destruction, measured across seeds
   rather than felt.
+
+## 9.0 - The game plays
+- Chain: `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`,
+  `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`,
+  `req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen`,
+  `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
+- Goal: make the game that milestones 1.0 to 8.0 delivered actually be a game. Every one of those
+  eight closed, and the failures all live between them: a wave that ends on the first building
+  destroyed, a run that only ever has one wave, a starting city that starves inside a simulated day,
+  materials nothing consumes, a military zone that never builds, and nine prestige upgrades whose
+  only effect is the colour of their own button.
+- Scope: the wave made legible and the kaiju made to cross the city; the loops closed -- the next
+  wave, a survivable opening, resources with sinks; the prestige web made real and moved off the
+  play screen; and the harness that plays a run from arrival to the first kaiju, which is what would
+  have caught all of it.
+- Exit signal: something other than a person notices when the game stops working. A run plays end to
+  end in the ordinary test gate, and it fails loudly at the first step that stops being possible.
+
+### The order inside 9.0
+The four chains are independent enough to interleave, but three orderings are not optional:
+
+1. **The harness may come first, and probably should.** Written after the fixes it proves the fixes;
+   written before them it proves itself, by failing on each known defect in turn. Either order is
+   defensible; drifting between them is not.
+2. **One harness, not two.** `req_029` rewrites `scripts/balance.mjs` onto the real simulation and
+   `req_032` needs a fuller playthrough over the same modules. Whichever lands first builds it and
+   the other extends it -- see
+   `adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision`.
+3. **A switch is built after the thing it switches.** `req_032`'s free-building switch needs the
+   costs `req_029` restores; its instant-construction switch needs the construction stage the same
+   slice shortens.
+
+Two rules that are one rule seen from two sides, and should be designed together even if built
+apart: `req_030` makes the threat depend on the city, `req_032` makes the wave's *arrival* depend on
+accumulated threat. And `req_031`'s run panel stops carrying the hardcore checkbox, while `req_032`'s
+Gameplay settings section is where it lands -- one move, two chains, not two homes.
 
 # The order to follow
 Take them in the order they are numbered. It is not a preference: each one is either what the next

@@ -8,6 +8,7 @@
 | [adr_002_keep_simulation_independent_from_babylon_and_the_browser](architecture/adr_002_keep_simulation_independent_from_babylon_and_the_browser.md) | Keep simulation independent from Babylon and the browser | Settled |  |  | architecture/adr_002_keep_simulation_independent_from_babylon_and_the_browser.md |
 | [adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views](architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md) | Rebuild terrain roads plots and buildings as derived views | Settled |  |  | architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md |
 | [adr_004_stay_a_static_client_with_no_server_of_its_own](architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md) | Stay a static client with no server of its own | Settled |  |  | architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md |
+| [adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision](architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md) | One harness drives the real simulation, and no test shortcuts a player decision | Proposed |  |  | architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md |
 
 ## Product briefs
 

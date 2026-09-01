@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:24:02
+> Indicators reviewed: 2026-09-01 10:58:25
 
 # AI Context
 - Summary: The delivery slice for what the city shows and pays: a building that visibly rises with a live progress readout, a shorter stage, and building costs deducted without ever refusing a build.
@@ -31,14 +31,26 @@
   - Bring `BUILDING_STAGE_SECONDS` down into the fifteen to thirty second range, as one constant for every kind.
   - Reinstate a per-building cost, deducted when construction starts, using the `allowDebt` path `Treasury.spend` already has -- a shortfall lets the balance go negative and refuses nothing.
   - Apply the same rule to roads: priced, deducted, never refused for lack of funds.
+  - Rebuilding after a wave charges full price. A rebuild goes through the same construction path,
+    so it is billed if construction is, and that is deliberate: a wave that flattens half the city
+    and leaves the balance deeply negative is the most legible signal this game can produce, and it
+    costs no code. The fraction -- charging half because the plot and foundations survived -- is the
+    deferred knob if the negative spiral proves unfun, and the balance harness is what should decide
+    it rather than taste.
+  - Restore the demolition refund for buildings. `demolitionRefund` still exists and is still wired
+    for roads in `src/render/drawTool.ts`; only the building call was deleted, so restoring the
+    price restores the refund for one line.
   - Remove the branches the money removal left unreachable, or make them reachable again, so nothing paints a state that cannot happen.
-  - Confirm a save written before this still loads, and that a building saved mid-construction resumes rather than restarting or completing.
+  - Follow the repository's save convention rather than bumping a version: every new persisted field
+    is optional with a default, which is how `city.run ?? createRun()` and `state.population ?? 12`
+    already keep older saves loading. Confirm a save written before this still loads, that a building
+    saved mid-construction resumes at its progress rather than restarting or completing, and that
+    reloading does not charge its cost a second time.
 - Out:
   - Per-kind construction durations, which are later work.
   - Construction materials, crews, or any resource a site consumes.
   - Consequences of a negative balance: debt, interest, maintenance, penalties, service decay.
   - Reinstating the funding queue or any refusal to build.
-  - Reworking the demolition refund beyond restoring a price for it to halve.
 
 # Acceptance criteria
 - AC1: A building under construction rises over its stage and is unmistakable from a finished one, rebuilds included.
@@ -46,6 +58,8 @@
 - AC3: The construction stage is between fifteen and thirty seconds.
 - AC4: Building a building deducts its cost, and a treasury that cannot cover it goes negative rather than refusing -- proven by a test that builds from a negative balance.
 - AC5: No unreachable building state remains painted, labelled or counted anywhere.
+- AC6: A rebuild after a wave is charged like any construction, and demolishing a building returns half its price.
+- AC7: An older save loads, and a building saved mid-construction resumes at its progress without being charged twice.
 
 # AC Traceability
 - request-AC8 -> This backlog slice. Proof: AC1: A building under construction rises over its stage and is unmistakable from a finished one, rebuilds included.

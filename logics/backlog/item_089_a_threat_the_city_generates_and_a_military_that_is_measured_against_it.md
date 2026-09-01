@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:48
+> Indicators reviewed: 2026-09-01 10:58:25
 
 # AI Context
 - Summary: The delivery slice for the two balance questions nobody has asked: how fast a city brings the wave on itself, and whether the military it can afford matches the kaiju that arrives.
@@ -30,6 +30,11 @@
   - Report the gap rather than closing it by hand -- if a competent city cannot field a battery in time, that is the finding, and the retune belongs where combat balance is owned.
   - Extend the existing balance harness rather than building a second one; if the legibility request has already rewritten it, build on that.
   - Record the numbers and the reasoning so the next change starts from a stated intent.
+  - This is the one persisted field in the whole corpus that is not additive: accumulated threat
+    changes what `nextWaveAtSeconds` means, so an older save cannot be read by defaulting a missing
+    field. Decide what a save written before this becomes -- a fresh accumulator, or a value derived
+    from the city it describes -- and say so, rather than letting it default into a wave that never
+    arrives or arrives at once.
 - Out:
   - Retuning combat duration, hit points or reload, which the legibility request owns.
   - A second balance harness.
@@ -41,6 +46,7 @@
 - AC2: Sprawling and consolidating produce measurably different wave timings.
 - AC3: The military a city can field by its first wave is measured against the threat across seeds, and the gap is reported.
 - AC4: There is one balance harness, extended rather than duplicated, and the numbers chosen are written down.
+- AC5: A save written before accumulated threat existed loads into a stated, deliberate wave schedule.
 
 # AC Traceability
 - request-AC4 -> This backlog slice. Proof: AC1: A wave arrives on accumulated threat the city generated, and the countdown to it stays readable.

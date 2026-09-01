@@ -6,7 +6,7 @@
 > Related task: `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:48
+> Indicators reviewed: 2026-09-01 10:58:26
 
 # Overview
 Three requests' worth of defects share one cause: nothing has ever played this game from beginning to end. Every acceptance criterion was checked inside the slice that introduced it, and the failures all live between slices -- a wave that ends too early, a city that starves before the wave arrives, a currency that buys nothing. None of them needs a clever test to find. They need a harness that arrives on the island, draws roads, paints zones, waits for buildings, reads the gauges, builds what they ask for, and meets the first kaiju. This brief is that harness, the two balance questions it makes answerable -- how fast a city brings the wave on itself, and whether the military it can afford is a match for what arrives -- and the gameplay switches that are both a player's options and the harness's instruments: no kaiju, instant construction, free building.
@@ -49,6 +49,9 @@ flowchart TD
 - Rendering, animation or anything the player looks at, which the legibility request owns.
 - Rebalancing combat duration, which is the legibility request's slice; this brief measures the gap and reports it.
 - Turning the gameplay switches into an achievement, scoring or difficulty-modifier system.
+- Science scaling. `baseScience: 10 * runState.wave` was written for a game with one wave, and the
+  loop-closure request gives it several. A linear ramp is probably fine, and the harness this brief
+  builds is what should say so -- a deliberate deferral with a measurement attached, not an oversight.
 
 # Scope and guardrails
 - In: a headless playthrough over the real simulation, the rule that decides when a wave arrives,

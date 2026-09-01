@@ -7,7 +7,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:21:44
+> Indicators reviewed: 2026-09-01 10:58:26
 
 # AI Context
 - Summary: The correction pass on the attack slice: a kaiju that keeps choosing targets, missiles that fly and explode where the damage lands, a fight long enough to read, a visible construction, and building costs that are deducted without ever refusing a build.
@@ -49,6 +49,10 @@
 - AC8: A building under construction visibly rises over its stage, reads as a site rather than as a finished building, and when selected shows its progress and the time it has left -- the same for a rebuild after a wave.
 - AC9: Buildings cost money to build and the cost is deducted, but a shortfall never refuses construction: the balance may go negative and nothing is blocked by it, roads included.
 - AC10: The states and readouts left unreachable by the earlier money removal are gone or reachable again, with no branch painting a state that cannot happen.
+- AC11: The frame budget survives a wave: this request adds per-frame missile geometry, a building
+  that rises over its stage, a live progress readout, and a kaiju whose destruction triggers a region
+  rebuild per building. `docs/performance.md` is the budget every slice is measured against, and the
+  figure recorded is for a wave rather than for a single road placement.
 
 # Definition of Ready (DoR)
 - [x] Problem statement is explicit and user impact is clear.

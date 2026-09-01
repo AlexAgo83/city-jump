@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:36
+> Indicators reviewed: 2026-09-01 10:58:25
 
 # AI Context
 - Summary: The delivery slice for the play screen: the web moves to between runs, the permanent readouts obey the rule the interface slice set, and the two destructive controls stop being one stray click away.
@@ -27,6 +27,10 @@
   - Move the prestige web to where prestige is earned and spent: between runs, on the screen that follows an evacuation or precedes a new run.
   - Reduce the permanent panel to what a player uses while playing, and apply the interface slice's own rule -- anything that stays permanent displaces something that was.
   - Put a confirmation in front of ending a run, in the shape the app already uses for a refusal or a destructive choice.
+  - Add the one-line alert the interface slice's AC5 promised and never got: a district going dark
+    raises it. The colouring by reason exists; the alert does not. This slice owns what appears on
+    screen, and a transient one-line alert is the natural neighbour of the permanent readouts it is
+    already pruning.
   - Take the hardcore checkbox off the play screen. Where it lands is settled by the end-to-end
     request's Gameplay settings section, which supersedes this slice's earlier wording about
     'where a run begins' -- that slice moves it in, this one only stops it being here. Do not
@@ -43,6 +47,7 @@
 - AC1: The prestige web is not on the play screen and is reachable between runs.
 - AC2: The permanent run readouts obey the rule that nothing is added permanently without something being folded.
 - AC3: Ending a run requires a confirmation.
+- AC5: A district going dark raises a one-line alert, closing the half of the interface slice's AC5 that was never built.
 - AC4: Hardcore is no longer toggleable from the play screen, its new home is the Gameplay settings
   section rather than a second one invented here, and the browser interaction suite still passes.
 
