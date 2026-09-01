@@ -14,6 +14,7 @@ describe("run state", () => {
 
     const lost = settleWave(early, { defeated: false, calledEarly: true, baseScience: 10 });
     expect(lost.science).toBe(early.science);
+    expect(lost.wave).toBe(early.wave + 1);
   });
 
   it("ends by evacuation or population zero", () => {

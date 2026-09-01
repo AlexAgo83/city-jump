@@ -31,7 +31,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { buyUpgrade, carryScience, createRun, defeat, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, type ProfileState, type RunState } from "../sim/run";
+import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -345,11 +345,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
     waveVerdictUntil = waveClock.elapsedSeconds + 3;
-    if (verdict === "held") runState = settleWave(runState, { defeated: true, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave });
-    else runState = defeat(endIfPopulationZero(runState, cityEconomy.resources.population));
+    runState = verdict === "held"
+      ? settleWave(runState, { defeated: true, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave })
+      : endIfPopulationZero(settleWave(runState, { defeated: false, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave }), cityEconomy.resources.population);
     waveClock = runState.ended ? waveClock : scheduleNextWave(waveClock);
     waveCalledEarly = false;
-    deleteRunSaveOnDefeat(profile, runState.ended ?? "defeated");
+    if (runState.ended) deleteRunSaveOnDefeat(profile, runState.ended);
     updateRunHud();
     kaiju.hide();
     waveMarkers.hide();
