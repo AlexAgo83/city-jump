@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CITY_DAY_SECONDS, CityEconomy, STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
+import { CITY_DAY_SECONDS, CityEconomy, STARTING_MONEY, Treasury, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
 import type { BuildingStatus } from "./buildingLifecycle";
 
 const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["state"], frontageCells = 1, depthCells = 1): BuildingStatus => ({
@@ -9,10 +9,9 @@ const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["s
 });
 
 describe("economy", () => {
-  it("prices roads by metre and buildings by parcel", () => {
+  it("prices roads by metre", () => {
     expect(roadBuildCost("street", 12.1)).toBe(97);
     expect(roadBuildCost("tunnel", 10)).toBe(450);
-    expect(buildingBuildCost(status("commercial", "working", 2, 3).parcel)).toBe(660);
   });
 
   it("earns from population tax and staffed commerce", () => {

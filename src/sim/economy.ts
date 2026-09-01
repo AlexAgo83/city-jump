@@ -33,14 +33,6 @@ const ROAD_METRE_COST: Record<string, number> = {
   highway: 32,
 };
 
-const BUILDING_CELL_COST: Record<BuildingKind, number> = {
-  residential: 60,
-  commercial: 110,
-  agricultural: 75,
-  industrial: 140,
-  military: 190,
-};
-
 const output = (parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], population: number, kind: BuildingKind, perCell: number): number => {
   const staffing = allocateWorkforce(parcels, population);
   return staffing.parcels.reduce((sum, status) => {
@@ -99,10 +91,6 @@ export class CityEconomy {
 export function roadBuildCost(type: string, metres: number): number {
   const base = ROAD_METRE_COST[roadType(type).id.split("_")[0]!] ?? 8;
   return Math.ceil(base * metres);
-}
-
-export function buildingBuildCost(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): number {
-  return parcel.frontageCells * parcel.depthCells * BUILDING_CELL_COST[parcel.kind];
 }
 
 export function demolitionRefund(cost: number): number {

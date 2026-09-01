@@ -1,5 +1,4 @@
 import type { BuildingParcel } from "./slots";
-import { buildingBuildCost } from "./economy";
 import { allocateWorkforce } from "./workforce";
 
 export type BuildingState = "waiting" | "rising" | "working" | "idle" | "rebuilding";
@@ -8,11 +7,7 @@ export type SavedBuildingState = [x: number, z: number, state: BuildingState, st
 export interface BuildingStatus {
   readonly parcel: BuildingParcel;
   readonly state: BuildingState;
-  readonly reason?: "construction" | "workers" | "funds" | "power" | "water";
-}
-
-export interface BuildingFunding {
-  spend(parcel: BuildingParcel, cost: number, allowDebt: boolean): boolean;
+  readonly reason?: "construction" | "workers" | "power" | "water";
 }
 
 export const BUILDING_STAGE_SECONDS = 60;
@@ -25,17 +20,17 @@ export class BuildingLifecycle {
     this.replaceWith(saved);
   }
 
-  sync(parcels: readonly BuildingParcel[], population: number, now: number, funding?: BuildingFunding): BuildingStatus[] {
+  sync(parcels: readonly BuildingParcel[], population: number, now: number): BuildingStatus[] {
     const staffing = new Map(allocateWorkforce(parcels, population).parcels.map((parcel) => [parcel.index, parcel.staffed]));
     const live = new Map<string, { state: BuildingState; startedAt: number }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
       const previous = this.states.get(key);
       if (!previous || previous.state === "waiting") {
-        const state: BuildingState = funding?.spend(parcel, buildingBuildCost(parcel), false) === false ? "waiting" : "rising";
+        const state: BuildingState = "rising";
         const startedAt = state === previous?.state ? previous.startedAt : now;
         live.set(key, { state, startedAt });
-        return { parcel, state, reason: state === "waiting" ? "funds" as const : "construction" as const };
+        return { parcel, state, reason: "construction" as const };
       }
       const underWork = (previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < BUILDING_STAGE_SECONDS;
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
@@ -49,8 +44,7 @@ export class BuildingLifecycle {
     return statuses;
   }
 
-  rebuild(parcel: BuildingParcel, now: number, funding: BuildingFunding): boolean {
-    if (!funding.spend(parcel, buildingBuildCost(parcel), true)) return false;
+  rebuild(parcel: BuildingParcel, now: number): boolean {
     this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now });
     return true;
   }

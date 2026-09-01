@@ -17,7 +17,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { CityEconomy, STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
+import { CityEconomy, STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -189,9 +189,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const residents = cityEconomy.resources.population;
     const supplied = currentSuppliedUtilities();
     const diffusers = utilities.diffusers();
-    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, {
-      spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
-    }).map((status) => {
+    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds).map((status) => {
       if (status.state === "rising" || status.state === "waiting" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;
@@ -391,9 +389,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const hit = currentParcels.find((parcel) => distXZ(parcel.position, position) <= WAVE_STARTING_VALUES.destructionRadiusM);
     if (!hit) return;
     rubble.destroy(hit);
-    buildingLifecycle.rebuild(hit, simSeconds, {
-      spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
-    });
+    buildingLifecycle.rebuild(hit, simSeconds);
     syncBuildings();
     history.clear();
     rebuild(parcelBounds(hit));
@@ -479,7 +475,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     {
       building(status) {
         rubble.destroy(status.parcel);
-        treasury.earn(demolitionRefund(buildingBuildCost(status.parcel)));
         currentParcels = currentParcels.filter((parcel) => parcel !== status.parcel);
         syncBuildings();
         rebuild(parcelBounds(status.parcel));
@@ -514,7 +509,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.setRoadType(type);
     },
     roadPrice: (type) => roadBuildCost(type, 1),
-    buildingPrice: (kind) => buildingBuildCost({ kind, frontageCells: 1, depthCells: 1 }),
     onUtility: (kind, role) => tool.setUtility(kind, role),
     onWorldGrid: worldGrid.setVisible,
     onFps: setFpsVisible,

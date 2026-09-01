@@ -20,7 +20,6 @@ export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone" | "utility"): void;
   onRoadType(type: string): void;
   roadPrice(type: string): number;
-  buildingPrice(kind: ZoneKind): number;
   onUtility(kind: UtilityKind, role: UtilityRole): void;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
@@ -206,7 +205,7 @@ export function bindControls(handlers: {
   });
   const zonePrice = document.getElementById("zone-price") as HTMLOutputElement;
   const updateZonePrice = (kind: ZoneKind | "clear"): void => {
-    zonePrice.value = kind === "clear" ? "$0" : `$${handlers.buildingPrice(kind).toLocaleString()}+ each`;
+    zonePrice.value = kind === "clear" ? "Clear" : "Zone";
   };
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
     input.addEventListener("change", () => {
