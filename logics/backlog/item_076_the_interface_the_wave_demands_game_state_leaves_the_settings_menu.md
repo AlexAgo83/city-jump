@@ -1,14 +1,14 @@
 ## item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu - The interface the wave demands: game state leaves the settings menu
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:29
+> Indicators reviewed: 2026-09-01 08:49:20
 
 # AI Context
 - Summary: The delivery slice for game state leaves the settings menu, and the loop gets its screen.
@@ -57,6 +57,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`

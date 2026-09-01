@@ -1,12 +1,12 @@
 ## prod_019_an_interface_for_a_city_you_can_lose - An interface for a city you can lose
 > Date: 2026-08-31
-> Status: Proposed
+> Status: Settled
 > Related request: `req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 > Related backlog: `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 > Related task: `task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-08-31 22:51:18
+> Indicators reviewed: 2026-09-01 08:49:21
 
 # Overview
 The interface city-jump has is the interface of a drawing tool: a collapsible settings menu top

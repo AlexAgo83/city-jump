@@ -1,14 +1,15 @@
 ## task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu - The interface the wave demands: game state leaves the settings menu
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:30
+> Indicators reviewed: 2026-09-01 08:49:21
+> Owner: Codex
 
 # AI Context
 - Summary: Implementing game state leaves the settings menu, and the loop gets its screen.
@@ -21,28 +22,28 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. Move the needs panel out of the settings menu, and with it everything a player consults
+- [x] 1. Move the needs panel out of the settings menu, and with it everything a player consults
       during play. The menu keeps look, performance, saves and a paused-only sun.
-- [ ] 2. The wave banner and the time controls take the top of the screen, together, because they
+- [x] 2. The wave banner and the time controls take the top of the screen, together, because they
       are used together.
-- [ ] 3. The city strip: money and rate, workers assigned against available, food, and one slot for
+- [x] 3. The city strip: money and rate, workers assigned against available, food, and one slot for
       what is short -- one shortage until the gauge panel has been opened once, all of them after.
-- [ ] 4. The ledger behind the gauges: sources and sinks per resource, and formulas with this
+- [x] 4. The ledger behind the gauges: sources and sinks per resource, and formulas with this
       city's values substituted. It displays terms the simulation reported; it computes nothing.
-- [ ] 5. A State view colouring buildings by why they are not working, and the alert line for facts.
-- [ ] 6. The edge glow for a wave, and the layout rules: nothing opens itself, the camera is never
+- [x] 5. A State view colouring buildings by why they are not working, and the alert line for facts.
+- [x] 6. The edge glow for a wave, and the layout rules: nothing opens itself, the camera is never
       taken, colour never speaks about the future.
-- [ ] 7. Check the screen's budget: nothing permanent was added without something being removed.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] 7. Check the screen's budget: nothing permanent was added without something being removed.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: the settings menu holding nothing needed during a wave; proven by an interaction check over its contents.
@@ -56,11 +57,17 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `npm run ci && npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report
 - Not started.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
+- Related request(s): `req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`
 
 # Links
 - Request: `req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu`

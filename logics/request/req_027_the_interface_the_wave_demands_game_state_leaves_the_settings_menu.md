@@ -1,12 +1,13 @@
 ## req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu - The interface the wave demands: game state leaves the settings menu
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 08:49:20
 
 # AI Context
 - Summary: prod_019 end to end: game state leaves the settings menu, the wave banner and the time controls take the top of the screen, the city strip carries what can kill you, the gauges open a ledger that shows the arithmetic, and the map gains the State view and the alerts.
