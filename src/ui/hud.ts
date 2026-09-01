@@ -71,14 +71,14 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
       `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
     return row;
   }));
-  ledgerLines.replaceChildren(...ledgerRows(terms).map((row) => {
+  ledgerLines.replaceChildren(...ledgerRows(terms, resources).map((row) => {
     const line = document.createElement("div");
     line.className = "ledger-row";
     if (row.short) line.dataset.short = "true";
     line.innerHTML = `<span>${row.label}</span><b>${row.value}</b><i>${row.inflow}</i><i>${row.outflow}</i>`;
     return line;
   }));
-  ledgerLines.dataset.empty = String(!terms);
+  ledgerLines.dataset.empty = String(!terms && !resources);
 }
 
 export function showMoney(balance: number, perSecond: number, queue: { rising?: number; rebuilding?: number } = {}): void {

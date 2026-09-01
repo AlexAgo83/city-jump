@@ -1,4 +1,4 @@
-import type { CityTerms } from "../sim/economy";
+import type { CityResources, CityTerms } from "../sim/economy";
 
 /** One resource, read as a balance sheet: what there is, what comes in, what goes out. */
 export interface LedgerRow {
@@ -13,8 +13,20 @@ export interface LedgerRow {
 const round = (value: number): string => (Math.abs(value) >= 100 ? Math.round(value).toLocaleString() : value.toFixed(1));
 const flow = (value: number, sign: "+" | "-"): string => (value <= 0.005 ? "--" : `${sign}${round(value)}`);
 
-export function ledgerRows(terms?: CityTerms): LedgerRow[] {
-  if (!terms) return [];
+/**
+ * @param resources What the city holds right now, which is known before the simulation has ticked
+ * once. The panel showed an empty box until the first tick otherwise, and a panel that is blank
+ * when you open it reads as a broken button.
+ */
+export function ledgerRows(terms?: CityTerms, resources?: CityResources): LedgerRow[] {
+  if (!terms) {
+    if (!resources) return [];
+    return [
+      { label: "People", value: round(resources.population), inflow: "--", outflow: "--", short: false },
+      { label: "Food", value: round(resources.food), inflow: "--", outflow: "--", short: false },
+      { label: "Materials", value: round(resources.materials), inflow: "--", outflow: "--", short: false },
+    ];
+  }
   return [
     {
       label: "People",
