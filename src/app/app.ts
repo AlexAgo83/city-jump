@@ -587,7 +587,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaijuBox.checked = runState.rules.kaijuSpawns;
     instantBox.checked = runState.rules.instantConstruction;
     freeBuildBox.checked = runState.rules.freeBuilding;
-    gameplayNote.textContent = runState.rules.kaijuSpawns ? "Waves fund science and prestige." : "Pacifist: waves, science and prestige pause.";
+    // Only say something when a switch has taken something away. Stating what the normal rules are
+    // reads as an orphan sentence beside four checkboxes.
+    gameplayNote.textContent = runState.rules.kaijuSpawns ? "" : "Pacifist: no waves, so no science and no prestige.";
   };
   const setRunRules = (): void => {
     runState = { ...runState, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked } };

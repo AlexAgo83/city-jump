@@ -155,6 +155,7 @@
   #selection-panel dd { margin: 0; text-align: right; }
   #touch-notice {
     position: fixed; left: 50%; top: 12px; transform: translateX(-50%);
+    cursor: pointer; appearance: none; text-align: center;
     max-width: min(520px, calc(100vw - 24px)); box-sizing: border-box;
     color: #f1e6c8; background: #463a20e8; border: 1px solid #ffffff26;
     border-radius: 6px; font: 12px/1.35 ui-sans-serif, system-ui; padding: 8px 12px;
@@ -308,11 +309,11 @@
     </div>
     <div class="toolbar-row">
       <span class="row-label">Gameplay</span>
-      <label><input id="hardcore-run" type="checkbox" /> Hardcore</label>
-      <label><input id="kaiju-spawns" type="checkbox" checked /> Kaiju</label>
-      <label><input id="instant-construction" type="checkbox" /> Instant build</label>
-      <label><input id="free-building" type="checkbox" /> Free build</label>
-      <span id="gameplay-note">Waves fund science and prestige.</span>
+      <label title="A defeat deletes this run's save."><input id="hardcore-run" type="checkbox" /> Hardcore</label>
+      <label title="Uncheck for a city builder with no attacks at all."><input id="kaiju-spawns" type="checkbox" checked /> Kaiju attacks</label>
+      <label title="Buildings finish the moment they are placed."><input id="instant-construction" type="checkbox" /> Build instantly</label>
+      <label title="Buildings and roads cost nothing."><input id="free-building" type="checkbox" /> Ignore build costs</label>
+      <span id="gameplay-note"></span>
     </div>
     <div class="toolbar-row">
       <span class="row-label">City</span>
@@ -437,9 +438,11 @@
   <dl></dl>
 </div>
 </div>
-<div id="touch-notice" hidden>The build tools need a mouse: hover previews show placement, and right-click cancels. You can still look around the city.</div>
+<button id="touch-notice" type="button" hidden title="Dismiss">Building needs a mouse. Look around freely.</button>
 <div id="toast"></div>
 <script>
-  if (matchMedia("(pointer: coarse)").matches) document.getElementById("touch-notice").hidden = false;
+  const touchNotice = document.getElementById("touch-notice");
+  if (matchMedia("(pointer: coarse)").matches) touchNotice.hidden = false;
+  touchNotice.addEventListener("click", () => { touchNotice.hidden = true; });
 </script>
 <script type="module" src="/src/main.ts"></script>
