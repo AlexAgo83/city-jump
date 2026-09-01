@@ -1,14 +1,15 @@
 ## task_030_runs_science_and_prestige_leaving_an_island_with_something - Runs, science and prestige: leaving an island with something
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:30
+> Indicators reviewed: 2026-09-01 08:51:36
+> Owner: codex
 
 # AI Context
 - Summary: Implementing science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
