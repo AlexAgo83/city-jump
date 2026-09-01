@@ -381,7 +381,7 @@ check("all parcel models load", (await stats()).models === 28, `${(await stats()
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
 check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled())));
-check("an active wave shows the kaiju HP banner", /Kaiju \d+\/900 HP/.test(await waveBanner()), await waveBanner());
+check("an active wave shows the kaiju HP banner", /Kaiju \d+\/\d+ HP - \d+ dmg\/min/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.forceHeldWave());
 check("a held wave shows the held banner", /Wave held/.test(await waveBanner()), await waveBanner());
 const rewardedRun = await stats();
