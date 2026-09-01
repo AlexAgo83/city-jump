@@ -16,7 +16,7 @@ export const WAVE_STARTING_VALUES = {
  * themselves. The bar rises every wave, which is why holding one buys room rather than a countdown.
  */
 export function waveAtPopulation(wave: number): number {
-  return Math.round(50 * Math.pow(Math.max(1, wave), 1.5));
+  return Math.round(250 * Math.pow(Math.max(1, wave), 1.5));
 }
 
 /** How many more residents before the island notices. Infinity is not a thing here; zero means now. */
@@ -68,5 +68,5 @@ export function damageWaveClock(clock: WaveClock, damage: number): WaveClock {
 
 /** How big the kaiju is when it lands -- a separate question from what brought it. */
 export function waveThreat(wave: number, population: number, parcels: number): number {
-  return Math.ceil(WAVE_STARTING_VALUES.kaijuHitPoints + Math.max(0, wave - 1) * 150 + Math.max(0, population) * 2 + Math.max(0, parcels) * 8);
+  return Math.ceil(WAVE_STARTING_VALUES.kaijuHitPoints + Math.max(0, wave - 1) * 150 + Math.max(0, population) * 9 + Math.max(0, parcels) * 8);
 }

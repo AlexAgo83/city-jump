@@ -403,6 +403,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       endRun();
     }
     updateRunHud();
+    // Clear the plan and the walker, not just the mesh. Leaving them meant the next wave found a
+    // plan already set, skipped `startWave`, and resumed the old kaiju exactly where it had
+    // stopped -- in the middle of the city, with no arrival and no reason.
+    kaijuPlan = null;
+    kaijuAssault = null;
     kaiju.hide();
     waveMarkers.hide();
     pendingMissiles = [];
@@ -473,7 +478,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       showWaveBanner("Pacifist: waves, science and prestige are paused.", "waiting");
       return;
     }
-    waveClock = summonIfDue(advanceWaveClock(waveClock, dt), runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+    waveClock = advanceWaveClock(waveClock, dt);
     if (waveVerdict) {
       if (waveClock.elapsedSeconds < waveVerdictUntil) {
         showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
@@ -481,6 +486,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       }
       waveVerdict = null;
     }
+    // Only once the last verdict has cleared the screen.
+    waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
       kaiju.hide();

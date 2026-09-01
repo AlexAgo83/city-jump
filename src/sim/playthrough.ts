@@ -81,7 +81,7 @@ export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, uti
 const GROW_STEP_SECONDS = 4;
 /** A city now grows at a rate rather than converting food into people, so it takes longer
  * to become worth attacking. This is the budget before the harness gives up waiting. */
-const GROW_STEPS_PER_WAVE = 400;
+const GROW_STEPS_PER_WAVE = 900;
 const COMBAT_STEP_SECONDS = 0.25;
 const COMBAT_CAP_SECONDS = 90;
 

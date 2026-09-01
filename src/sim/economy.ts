@@ -21,6 +21,8 @@ export const HOMELESS_LEAVE_PER_DAY = 0.4;
 /** Materials a working commercial cell consumes a day, and a military one. */
 export const MATERIALS_PER_COMMERCE_CELL = 1.5;
 export const MATERIALS_PER_MILITARY_CELL = 2.5;
+/** Stock a shortage has to climb back to before the shops and barracks restart. */
+export const MATERIALS_RECOVERY = 12;
 export const CITY_DAY_SECONDS = 96;
 
 export interface CityResources {
@@ -65,6 +67,8 @@ export class CityEconomy {
   private state: CityResources;
   /** True once the city has ever had a home, so the opening is not read as an eviction. */
   private housed = false;
+  /** Latched while the works are behind, cleared only once the stock has really recovered. */
+  private starved = false;
 
   constructor(state: Partial<CityResources> = {}) {
     this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
@@ -74,9 +78,18 @@ export class CityEconomy {
     return this.state;
   }
 
-  /** True while the works cannot keep the shops supplied, so those shops stop working. */
+  /**
+   * True while the works cannot keep the shops and barracks supplied.
+   *
+   * Hysteresis, not a threshold: at a bare `materials <= 0` the shops stopped, stopped consuming,
+   * the stock crept back above zero, they restarted and drained it again -- a flip between working
+   * and idle every frame. A shortage now begins at empty and only ends once there is a real
+   * buffer again.
+   */
   get materialsShort(): boolean {
-    return this.state.materials <= 0;
+    if (this.state.materials <= 0) this.starved = true;
+    else if (this.state.materials >= MATERIALS_RECOVERY) this.starved = false;
+    return this.starved;
   }
 
   replaceWith(state: Partial<CityResources> = {}): void {
