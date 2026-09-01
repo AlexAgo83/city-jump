@@ -1,14 +1,14 @@
 ## item_093_a_military_road_is_not_unlimited_free_firepower - A military road is not unlimited free firepower
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:49
+> Indicators reviewed: 2026-09-01 15:38:09
 
 # AI Context
 - Summary: The delivery slice for the exploit: unzoned road frontage placing military parcels outside every limit, and batteries that fire unstaffed.
@@ -58,3 +58,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty`
+
+# Notes
+- Task `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty` was finished via `logics-manager flow finish task` on 2026-09-01.

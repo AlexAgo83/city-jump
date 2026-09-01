@@ -1,12 +1,12 @@
 ## prod_024_evidence_that_can_fail - Evidence that can fail
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_033_evidence_that_can_fail_a_harness_that_fights_an_economy_the_corrections_overshot_and_four_criteria_closed_without_being_built`
-> Related backlog: `item_091_a_harness_that_fights_the_wave_it_reports_on`, `item_092_an_economy_back_inside_the_range_it_was_aimed_at`, `item_093_a_military_road_is_not_unlimited_free_firepower`, `item_094_the_four_criteria_that_were_closed_without_being_built`
+> Related backlog: `item_091_a_harness_that_fights_the_wave_it_reports_on`
 > Related task: `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:49
+> Indicators reviewed: 2026-09-01 15:38:09
 
 # Overview
 Milestone 9.0 fixed the game and lost the proof. The combat measurement that showed a first wave lasting 25.5 seconds over 7 salvos was written by one task and deleted by the next, so the retuned balance now rests on nothing a command can reproduce. The playthrough harness that was supposed to catch exactly that takes its outcome as a parameter -- no kaiju walks, no missile flies, no building falls -- and its tests assert the argument they passed in. Beside it, corrections aimed at real defects went past them: commerce lost its income, industry lost its output while keeping the second-highest wage bill, materials became a frozen number that a prestige upgrade still sells, and an ordinary first minute ends a quarter of a million in the red with nothing measuring the treasury. This brief is the pass that makes the evidence real, brings the economy back inside the range it was aimed at, and builds the four criteria that were signed off without being written.
@@ -78,5 +78,5 @@ flowchart TD
 - A military road buys defence rather than an exploit.
 
 # References
-- Product back-reference: `req_033_evidence_that_can_fail_a_harness_that_fights_an_economy_the_corrections_overshot_and_four_criteria_closed_without_being_built`
+- Product back-reference: `item_091_a_harness_that_fights_the_wave_it_reports_on`
 - Task back-reference: `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty`

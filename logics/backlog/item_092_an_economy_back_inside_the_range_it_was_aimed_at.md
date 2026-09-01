@@ -1,14 +1,14 @@
 ## item_092_an_economy_back_inside_the_range_it_was_aimed_at - An economy back inside the range it was aimed at
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:49
+> Indicators reviewed: 2026-09-01 15:38:09
 
 # AI Context
 - Summary: The delivery slice for the economy: trade income restored, industry given an output, materials resolved either way, building prices differentiated again, and a first minute that reads.
@@ -62,3 +62,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty`
+
+# Notes
+- Task `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty` was finished via `logics-manager flow finish task` on 2026-09-01.

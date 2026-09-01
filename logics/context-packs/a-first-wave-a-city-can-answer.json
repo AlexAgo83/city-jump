@@ -1,0 +1,388 @@
+{
+  "budgets": {
+    "max_docs": 48,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it item_096_a_harness_that_reports_the_city_it_played item_097_checks_that_have_been_watched_failing item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them --mode full --profile deep",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "first, wave, city, can, answer, defence, fielded, harness, reports, played, checks, fail",
+        "skip when": "You need the kaiju loop, missiles or construction feedback, which are delivered and working.",
+        "summary": "The fourth correction pass, scoped to numbers a command prints: a first wave a city can actually field a defence against, a harness that reports the run it played instead of a fixture, assertions watched failing, and the services/trade/alert leftovers.",
+        "use when": "Working on the defence balance, population growth, what `npm run balance` reports, the playthrough tests, or the services and trade leftovers."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision"
+        ],
+        "item": [
+          "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+          "item_096_a_harness_that_reports_the_city_it_played",
+          "item_097_checks_that_have_been_watched_failing",
+          "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ]
+      },
+      "path": "logics/request/req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail.md",
+      "ref": "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A city that zoned a military district fields at least three staffed batteries by its first wave, proven by the playthrough rather than by a fixture.",
+          "- AC2: The playthrough's own first wave is held, lasts between 20 and 40 seconds and takes between 5 and 8 salvos -- the same targets the wave balance was set to, now measured on the city that was played.",
+          "- AC3: Population grows: the playthrough reaches its first wave with a population that can staff the defence AC1 requires, and growth stays capped by housing and gated by food.",
+          "- AC4: `npm run balance` prints the playthrough's own combat duration, salvo count, salvo-held verdict, battery count, population and paid-run treasury, and any figure that comes from a fixture is labelled as one wherever it is printed.",
+          "- AC5: The four assertions in `src/sim/playthrough.test.ts` that cannot fail are replaced, and every test this request touches has been watched to fail with the behaviour it names removed.",
+          "- AC6: The needs-following policy builds in response to a gauge -- `src/sim/playthrough.ts` line 92 is the always-false comparison to fix -- and a run logs what it built and why."
+        ],
+        "Needs": [
+          "- The correction pass met seven of its eleven criteria and met the three hardest properly: `npm run balance` reports a combat duration and a salvo count again, the playthrough fights its wave and derives the outcome instead of accepting it as an argument, and a paid run now ends at plus $18,471 where it ended at minus $212,790. What it missed is one class of thing, and it missed it four times: every item that required checking how two correct changes compose.",
+          "- The game is currently undefendable. Two individually correct fixes -- military parcels always passing through `parcelsForDemand`'s limits, and `batteriesForParcels` filtering on staffing -- compose into zero batteries. The smallest parcel a military lot may occupy is 1x4, because `allowedSizes` restricts military to `INDUSTRIAL_SIZES`, and military demands eight workers a cell, so the smallest possible battery needs 32 workers. `workforceFromPopulation` is half the population, so a battery requires a population of 64. The playthrough is at 12.1 when its first wave lands at 134 seconds. It fields nothing, fires nothing, and its own combat measures 90 seconds and 0 salvos.",
+          "- Underneath that, population does not grow. `growth` is `jobs * 0.03 * day`, which over the 134 seconds before the first wave moves a city of 12 people to 12.1. Nothing else in the game can work while that is true: no defence can be staffed, no district can be filled, and every balance number downstream is measured on a city of twelve that never changes.",
+          "- The measurement that was celebrated is not of the game. `npm run balance` prints `combat=25.5s salvos=7.0`, and those come from `fight()` -- a synthetic scenario in `scripts/balance.mjs` with one hardcoded 4x3 battery against three fixed points. The city the harness actually plays measures 90 seconds and 0 salvos, and those figures are computed but never emitted. One JSON record carries both answers and reports only the flattering one, which is why the undefendable city went unseen.",
+          "- Four assertions in `src/sim/playthrough.test.ts` still cannot fail: `toContain` over the three values the return type already guarantees; `rebuildingCost` asserted non-negative when it is a product of positives; `wave.threat` asserted to be the literal zero returned by the pacifist early return; and `Number.isFinite(militaryGap(3))` over ordinary arithmetic. The criterion they were written under says an assertion that cannot fail is replaced rather than supplemented, and the plan said to prove each one by removing the behaviour it names.",
+          "- The needs-following policy was not built, for the second time, and was reported built for the second time. `src/sim/playthrough.ts` line 92 still reads `short.kind !== firstNeeds.find(need => need.kind === short.kind)?.kind` -- a value compared against itself, always false. A full run logs zero `need:` entries. Every zone is still painted before the loop and nothing is ever built in response to a gauge."
+        ]
+      },
+      "status": "Draft",
+      "title": "A first wave a city can answer: a defence that can be fielded, a harness that reports the city it played, and checks that fail"
+    },
+    {
+      "ai_context": {
+        "keywords": "defence, can, actually, fielded, city, grows, enough, staff",
+        "skip when": "You need kaiju hit points, reload or damage per cell, which are already in target.",
+        "summary": "The delivery slice for a defendable first wave: three staffed batteries, a fight held in 20-40 seconds over 5-8 salvos, and a population that grows enough to man it.",
+        "use when": "Working on military parcel sizing, workforce demand, the workforce fraction, or population growth."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/backlog/item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it.md",
+      "ref": "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A playthrough that zoned a military district fields at least three staffed batteries at its first wave.",
+          "- AC2: That playthrough's own fight is held, lasts 20 to 40 seconds and takes 5 to 8 salvos.",
+          "- AC3: Population at the first wave is sufficient to staff that defence, and growth is still capped by housing and gated by food.",
+          "- AC4: The levers moved and the levers rejected are both recorded, with their numbers."
+        ],
+        "Problem": [
+          "- `allowedSizes` forces military into `INDUSTRIAL_SIZES`, whose smallest member is 1x4. `workforceDemand` charges military eight workers a cell. So the smallest possible battery costs 32 workers.",
+          "- `workforceFromPopulation` returns half the population, so a battery requires a population of 64.",
+          "- `growth` is `jobs * 0.03 * day`, which moves a city of 12 to 12.1 across the 134 seconds before the first wave. The population needed is never approached.",
+          "- The result is zero batteries in every mode, a playthrough whose own combat runs to its 90-second cap with 0 salvos, and every balance figure in the game measured on a city of twelve that never changes."
+        ]
+      },
+      "status": "Ready",
+      "title": "A defence that can actually be fielded, and a city that grows enough to staff it"
+    },
+    {
+      "ai_context": {
+        "keywords": "harness, reports, city, played",
+        "skip when": "You need the balance numbers themselves, which the defence slice owns.",
+        "summary": "The delivery slice for honest reporting: the playthrough's own combat figures emitted, the fixture retired or labelled, and every copied simulation quantity imported instead.",
+        "use when": "Working on `scripts/balance.mjs`, what the playthrough emits, or duplicated constants."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "adr": [
+          "adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision"
+        ],
+        "item": [
+          "item_096_a_harness_that_reports_the_city_it_played"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/backlog/item_096_a_harness_that_reports_the_city_it_played.md",
+      "ref": "item_096_a_harness_that_reports_the_city_it_played",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `npm run balance` prints the playthrough's own combat duration, salvos, held verdict, batteries, population and paid treasury.",
+          "- AC2: Any fixture figure is labelled as a fixture wherever it is printed and recorded, or the fixture is gone.",
+          "- AC3: No simulation quantity is copied: `rubble.count() * 140` and any others found are imported from their definition.",
+          "- AC4: The military measurement compares like with like, or is time to kill against the stated target."
+        ],
+        "Problem": [
+          "- `npm run balance` prints `combat=25.5s salvos=7.0` from `fight()`, a fixture with one hardcoded 4x3 battery against three fixed points. The city the harness plays measures 90 seconds and 0 salvos.",
+          "- The playthrough computes its own `combatDurationSeconds` and `salvos` and never emits them, so one JSON record carries both answers and reports the flattering one.",
+          "- It reads those two figures back out of a log line with `log.find(line => line.startsWith(\"combat:\"))?.slice(7)`, parsing numbers out of strings it wrote itself.",
+          "- The treasury it reports is the `freeBuilding: true` run, where nothing is charged. The paid run's figure -- the one that means anything -- is not recorded.",
+          "- `rebuildingCost` is `rubble.count() * 140`, contradicting the `buildingBuildCost` the same function charges the rebuild with three lines earlier.",
+          "- `militaryGap` subtracts hit points divided by a number chosen by an unrelated boolean from damage per minute."
+        ]
+      },
+      "status": "Ready",
+      "title": "A harness that reports the city it played"
+    },
+    {
+      "ai_context": {
+        "keywords": "checks, been, watched, failing",
+        "skip when": "You need the balance numbers or the ledger.",
+        "summary": "The delivery slice for the tests: four assertions that cannot fail replaced, every check watched failing with its behaviour removed, and the needs-following policy finally built.",
+        "use when": "Working on `src/sim/playthrough.test.ts` or the needs policy at `src/sim/playthrough.ts` line 92."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_097_checks_that_have_been_watched_failing"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/backlog/item_097_checks_that_have_been_watched_failing.md",
+      "ref": "item_097_checks_that_have_been_watched_failing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: None of the four named assertions remains, and none of their replacements passes by construction.",
+          "- AC2: Every test this request touches has been watched to fail with its behaviour removed, and the closeout says which behaviours were removed.",
+          "- AC3: A run zones in response to a reported shortage and logs what it built and why, with a non-zero count of such entries.",
+          "- AC4: What following the gauges produces is asserted, and reported honestly if it is not survival."
+        ],
+        "Problem": [
+          "- Four assertions in `src/sim/playthrough.test.ts` cannot fail: `expect([\"total_loss\",\"partial_loss\",\"clean_hold\"]).toContain(played.wave.shape)` over a value the return type already constrains; `expect(played.wave.rebuildingCost).toBeGreaterThanOrEqual(0)` over a product of positives; `expect(playFirstRun(3, { kaijuSpawns: false }).wave.threat).toBe(0)` over a literal returned by the pacifist early return; and `expect(Number.isFinite(militaryGap(3))).toBe(true)` over ordinary arithmetic.",
+          "- They were written under a criterion saying an assertion that cannot fail is replaced rather than supplemented, and a plan step saying to prove each one by removing the behaviour it names.",
+          "- The needs-following policy was reported built twice and has never been built. Line 92 of `src/sim/playthrough.ts` compares `short.kind` against `firstNeeds.find(need => need.kind === short.kind)?.kind` -- the same value -- so it is always false and a full run logs zero `need:` entries.",
+          "- Every zone is still painted before the loop, so nothing is ever built in response to a gauge and the claim that the gauges can be followed has still never been tested."
+        ]
+      },
+      "status": "Ready",
+      "title": "Checks that have been watched failing"
+    },
+    {
+      "ai_context": {
+        "keywords": "services, trade, formula, alert, been, closed, three, times",
+        "skip when": "You need the harness or the defence balance.",
+        "summary": "The delivery slice for the leftovers: services resolved the way materials were, one trade formula, and the district alert that three Done tasks have accepted without it existing.",
+        "use when": "Working on the services resource, the ledger's trade figure, or the district alert."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/backlog/item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times.md",
+      "ref": "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Services are spent by something or are gone from the resources, the saves, `CityTerms`, the ledger and the prestige web.",
+          "- AC2: No prestige node sells a frozen number, and an older save still loads.",
+          "- AC3: One trade formula exists and the ledger displays the one the treasury receives.",
+          "- AC4: A district going dark raises a one-line alert, covered by a check that fails without it."
+        ],
+        "Problem": [
+          "- Growth no longer reads `servicesProduced`, so `resources.services` accumulates and is read by nothing but the ledger -- and `starter-services` still sells 20 of it for 10 prestige. That is the materials defect, removed one field away in the same commit, left standing.",
+          "- `CityTerms.trade` is `servicesProduced + industryTrade` at per-cell-per-day rates of 4 and 3; `incomePerSecond` computes a different trade from the statuses at per-cell-per-second rates of 0.35 and 0.25. The ledger displays the first, the treasury earns the second, so the ledger reports income the city does not receive.",
+          "- The district-going-dark alert has been accepted on three separate Done tasks. The word 'alert' appears nowhere in the repository."
+        ]
+      },
+      "status": "Ready",
+      "title": "Services, one trade formula, and the alert that has been closed three times"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+          "item_096_a_harness_that_reports_the_city_it_played",
+          "item_097_checks_that_have_been_watched_failing",
+          "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/product/prod_025_a_first_wave_a_city_can_answer.md",
+      "ref": "prod_025_a_first_wave_a_city_can_answer",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A first wave a city can answer"
+    },
+    {
+      "ai_context": {},
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision"
+        ],
+        "req": [
+          "req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable"
+        ]
+      },
+      "path": "logics/architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md",
+      "ref": "adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "One harness drives the real simulation, and no test shortcuts a player decision"
+    },
+    {
+      "ai_context": {
+        "keywords": "first, wave, answerable, report, city, played, prove, checks, breaking, them",
+        "skip when": "You need an earlier pass's own design rather than what it left behind.",
+        "summary": "The executable surface of `req_034`: defence first, then honest reporting, then the tests, then the leftovers -- each closed against a number `npm run balance` prints.",
+        "use when": "Implementing or reviewing the fourth correction pass."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+          "item_096_a_harness_that_reports_the_city_it_played",
+          "item_097_checks_that_have_been_watched_failing",
+          "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times"
+        ],
+        "prod": [
+          "prod_025_a_first_wave_a_city_can_answer"
+        ],
+        "req": [
+          "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail"
+        ],
+        "task": [
+          "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+        ]
+      },
+      "path": "logics/tasks/task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them.md",
+      "ref": "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the first wave answerable, report the city that was played, and prove the checks by breaking them"
+    }
+  ],
+  "estimates": {
+    "char_count": 19526,
+    "companion_doc_count": 0,
+    "doc_count": 8
+  },
+  "generated_at": "2026-09-01T14:05:18Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail",
+      "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+      "item_096_a_harness_that_reports_the_city_it_played",
+      "item_097_checks_that_have_been_watched_failing",
+      "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times",
+      "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "deep",
+  "ref": "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail,item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it,item_096_a_harness_that_reports_the_city_it_played,item_097_checks_that_have_been_watched_failing,item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times,task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them",
+  "refs": [
+    "req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail",
+    "item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it",
+    "item_096_a_harness_that_reports_the_city_it_played",
+    "item_097_checks_that_have_been_watched_failing",
+    "item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times",
+    "task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": []
+}

@@ -1,13 +1,13 @@
 ## req_033_evidence_that_can_fail_a_harness_that_fights_an_economy_the_corrections_overshot_and_four_criteria_closed_without_being_built - Evidence that can fail: a harness that fights, an economy the corrections overshot, and four criteria closed without being built
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:49
+> Indicators reviewed: 2026-09-01 15:38:08
 
 # AI Context
 - Summary: The correction pass on milestone 9.0: restore the combat measurement a later task deleted, make the playthrough fight the wave it reports on, bring an over-corrected economy back into range, close the military-road firepower exploit, and build the four criteria that were signed off empty.

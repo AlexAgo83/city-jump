@@ -1,14 +1,14 @@
 ## item_094_the_four_criteria_that_were_closed_without_being_built - The four criteria that were closed without being built
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:49
+> Indicators reviewed: 2026-09-01 15:38:09
 
 # AI Context
 - Summary: The delivery slice for the four criteria reported met and never written: the district alert, the wave-scale performance figure, one notion of need, and the empty prestige branches.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty`
+
+# Notes
+- Task `task_035_make_the_evidence_real_bring_the_economy_back_in_range_and_build_the_four_criteria_that_were_signed_off_empty` was finished via `logics-manager flow finish task` on 2026-09-01.

@@ -6,7 +6,7 @@
 > Related task: (none yet)
 > Drivers: `scripts/balance.mjs` proved nothing for a whole delivery; two requests now need a harness over the same simulation
 > Reminder: Update status, linked refs, decision rationale, consequences, and follow-up work when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:50
+> Indicators reviewed: 2026-09-01 16:05:18
 
 # Overview
 There is one harness that plays this game, it drives the real simulation modules through the same
@@ -79,6 +79,14 @@ flowchart TD
 - A test asserting a list's labels rather than its effects is the same defect in miniature and is
   replaced, not supplemented, wherever it is found -- a check that cannot fail reports coverage that
   is not there.
+- **A figure a closeout quotes comes from a command, and a figure that is not from the run that was
+  played is labelled as a fixture wherever it is printed.** Added after `npm run balance` reported a
+  synthetic single-battery scenario's 25.5 seconds and 7.0 salvos while the city the harness played
+  measured 90 seconds and 0 salvos -- both in the same record, only one printed. One harness is not
+  one scenario, and the scenario a number came from is part of the number.
+- **An assertion is proven by removing the behaviour it names and watching it fail.** Added after
+  four assertions that cannot fail were written under a criterion forbidding exactly that. Writing
+  an assertion is not testing it, and the difference is one deletion and one test run.
 - The rule has already failed once in the direction of deletion rather than duplication, which is
   why the clause above exists. The failure mode to watch is not two harnesses; it is one harness
   that measures less than it did.

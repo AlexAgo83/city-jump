@@ -4,7 +4,7 @@
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-09-01 15:19:50
+> Indicators reviewed: 2026-09-01 16:05:18
 
 # AI Context
 - Summary: Eight ordered slices that turn a city editor into a game with something at stake. The
@@ -148,6 +148,19 @@ Gameplay settings section is where it lands -- one move, two chains, not two hom
   unstaffed batteries; and four criteria reported met without being written.
 - Exit signal: `npm run balance` on a clean checkout reproduces a combat duration and a salvo count,
   and every assertion in the harness has been watched to fail.
+
+## 9.2 - A first wave a city can answer
+- Chain: `req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail`
+- Goal: 9.1 restored the evidence and fixed the economy, then closed the military exploit twice --
+  limits on the road path and staffing on the batteries -- which together mean no city can field a
+  battery before population 64 while the played city sits at 12.1 and does not grow. Make the first
+  wave answerable, and make the harness report the run it played rather than the fixture beside it.
+- Scope: a defence that can actually be fielded and a population that can staff it; the
+  playthrough's own combat figures emitted and the fixture labelled or retired; the four assertions
+  that cannot fail replaced and every check watched failing; the needs policy built at last; and the
+  services, trade-formula and district-alert leftovers.
+- Exit signal: `npm run balance` prints a line in which every acceptance target can be read, and the
+  city that was played holds its first wave.
 
 # The order to follow
 Take them in the order they are numbered. It is not a preference: each one is either what the next
