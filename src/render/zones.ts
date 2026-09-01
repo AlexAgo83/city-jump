@@ -7,19 +7,19 @@ import type { Scene } from "@babylonjs/core/scene";
 
 import { terrainHeight } from "../sim/terrain";
 import { buildableCellCentre, type BuildableCell } from "../sim/slots";
-import { ZONE_CELL_SIZE, type Zones } from "../sim/zones";
+import { ZONE_CELL_SIZE, type ZoneKind, type Zones } from "../sim/zones";
 import { BUILDING_KIND_COLOR } from "../sim/buildingKinds";
 
-/** How much darker an occupied lot is drawn, so taken land reads apart from land still on offer. */
-const OCCUPIED_TINT = 0.45;
-/** How faint paint is on ground no lot can reach, so the brush is visible without promising a lot. */
-const OFF_GRID_ALPHA = 0.3;
+/** A zoned lot still waiting for its building, lighter than one already taken. */
+const EMPTY_ALPHA = 0.68;
+/** Paint on ground no lot can reach: visible, but plainly not a promise of anything. */
+const OFF_GRID_ALPHA = 0.22;
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
   material.diffuseColor = Color3.White();
   material.emissiveColor = Color3.White();
-  material.alpha = 0.42;
+  material.alpha = 0.85;
   material.disableLighting = true;
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
@@ -47,31 +47,32 @@ export function createZoneRenderer(scene: Scene) {
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
+    const covered = new Set<string>();
     for (const cell of cells) {
-      const centre = buildableCellCentre(cell);
-      const kind = zones?.at(centre.x, centre.z) ?? cell.zone;
+      const kind = zoneOver(cell, zones);
       if (!kind) continue;
+      for (const key of zoneKeysOf(cell)) covered.add(key);
       const base = positions.length / 3;
       const [r, g, b] = BUILDING_KIND_COLOR[kind];
-      const taken = occupied?.has(cellKey(cell)) === true;
-      const tint = taken ? [r * OCCUPIED_TINT, g * OCCUPIED_TINT, b * OCCUPIED_TINT, 1] : [r, g, b, 1];
+      // A lot with a building on it is the full colour; one still waiting is the same colour,
+      // lighter, so what is taken and what is on offer read apart at a glance.
+      const alpha = occupied?.has(cellKey(cell)) === true ? 1 : EMPTY_ALPHA;
       for (const corner of cell.corners) {
         positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.18, corner.z);
-        colors.push(...tint);
+        colors.push(r, g, b, alpha);
       }
       indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
-    // The brush stroke itself, faint, wherever it fell outside the lot grid. Painting away from a
-    // road builds nothing -- but a brush that leaves no mark at all reads as a broken tool.
-    const onGrid = new Set(cells.map((cell) => zoneKeyOf(cell)));
+    // Paint that fell on ground no lot can reach, drawn faintly: it builds nothing, but a brush
+    // that leaves no mark at all reads as a broken tool.
     for (const [gx, gz, kind] of zones?.toJSON() ?? []) {
-      if (onGrid.has(`${gx}:${gz}`)) continue;
+      if (covered.has(`${gx}:${gz}`)) continue;
       const base = positions.length / 3;
       const [r, g, b] = BUILDING_KIND_COLOR[kind];
       for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
         const wx = x * ZONE_CELL_SIZE;
         const wz = z * ZONE_CELL_SIZE;
-        positions.push(wx, terrainHeight(wx, wz) + 0.16, wz);
+        positions.push(wx, terrainHeight(wx, wz) + 0.14, wz);
         colors.push(r, g, b, OFF_GRID_ALPHA);
       }
       indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
@@ -98,10 +99,25 @@ export function createZoneRenderer(scene: Scene) {
   };
 }
 
-/** Which zone cell a buildable cell sits in, so the faint layer can skip what the grid already has. */
-function zoneKeyOf(cell: Pick<BuildableCell, "corners">): string {
-  const centre = buildableCellCentre(cell);
-  return `${Math.floor(centre.x / ZONE_CELL_SIZE)}:${Math.floor(centre.z / ZONE_CELL_SIZE)}`;
+/**
+ * The zone painted over any part of a lot, not only over its middle.
+ *
+ * Testing the centre alone left whole rows of the grid blank under a brush stroke that plainly
+ * covered them: a lot is eight metres and so is a zone cell, but they are not aligned, so a stroke
+ * can cover a lot without ever crossing its centre point.
+ */
+function zoneOver(cell: BuildableCell, zones?: Zones): ZoneKind | undefined {
+  if (!zones) return cell.zone;
+  for (const point of [buildableCellCentre(cell), ...cell.corners]) {
+    const kind = zones.at(point.x, point.z);
+    if (kind) return kind;
+  }
+  return undefined;
+}
+
+/** Every zone cell a lot touches, so the faint layer skips what the grid already covers. */
+function zoneKeysOf(cell: BuildableCell): string[] {
+  return [buildableCellCentre(cell), ...cell.corners].map((point) => `${Math.floor(point.x / ZONE_CELL_SIZE)}:${Math.floor(point.z / ZONE_CELL_SIZE)}`);
 }
 
 /** A cell's identity on the ground, so a parcel can say which cells it covers. */
