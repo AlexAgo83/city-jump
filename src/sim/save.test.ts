@@ -164,6 +164,12 @@ describe("city saves", () => {
     expect(older.run?.rules).toEqual({ kaijuSpawns: true, instantConstruction: false, freeBuilding: false });
   });
 
+  it("loads older resource saves that still carried services", () => {
+    const save = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], resources: { population: 20, food: 5, services: 12 } }));
+
+    expect(save?.resources).toEqual({ population: 20, food: 5 });
+  });
+
   it("reads plantings saved before species existed as firs", () => {
     const v2 = JSON.stringify({
       v: 2,

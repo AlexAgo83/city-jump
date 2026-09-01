@@ -29,7 +29,16 @@ cityStrip.addEventListener("click", () => {
 });
 
 export function showRefusal(reason: string): void {
+  showToast(reason, "refusal");
+}
+
+export function showAlert(message: string): void {
+  showToast(message, "alert");
+}
+
+function showToast(reason: string, kind: "refusal" | "alert"): void {
   toast.textContent = reason;
+  toast.dataset.kind = kind;
   toast.style.opacity = "1";
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => (toast.style.opacity = "0"), 2200);

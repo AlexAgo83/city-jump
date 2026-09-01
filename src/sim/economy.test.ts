@@ -17,8 +17,8 @@ describe("economy", () => {
     expect(roadBuildCost("tunnel", 10)).toBe(450);
   });
 
-  it("earns money from population tax only", () => {
-    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4)])).toBeCloseTo(2);
+  it("earns money from population, commerce and industry", () => {
+    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4), status("industrial", "working", 2, 2)])).toBeCloseTo(4.4);
   });
 
   it("spends only what it can unless debt is allowed", () => {
@@ -35,17 +35,17 @@ describe("economy", () => {
     expect(demolitionRefund(660)).toBe(330);
   });
 
-  it("prices buildings by footprint", () => {
-    expect(buildingBuildCost(status("residential", "working", 2, 3).parcel)).toBe(4800);
+  it("prices buildings by footprint and kind", () => {
+    expect(buildingBuildCost(status("residential", "working", 2, 3).parcel)).toBe(360);
+    expect(buildingBuildCost(status("military", "working", 2, 3).parcel)).toBe(1140);
   });
 
-  it("only produces staffed district output and keeps its terms", () => {
+  it("only produces staffed food and reports treasury income as trade", () => {
     const city = new CityEconomy({ population: 20 });
     const terms = city.advance([status("residential", "working").parcel, status("agricultural", "working").parcel, status("industrial", "working").parcel, status("commercial", "working").parcel], CITY_DAY_SECONDS);
 
     expect(terms.food.produced).toBe(8);
-    expect(terms.materials.produced).toBe(0);
-    expect(terms.services.produced).toBe(0); // farms and industry take the six available workers first
+    expect(terms.trade).toBeCloseTo(incomePerSecond(terms.population.value, [status("residential", "working"), status("agricultural", "working"), status("industrial", "working"), status("commercial", "working")]));
     expect(terms.food.consumed).toBe(20);
   });
 

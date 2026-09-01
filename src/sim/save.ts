@@ -221,8 +221,8 @@ function readWaveClock(value: unknown): WaveClock | null {
 
 function readResources(value: unknown): CityResources | null {
   if (value === undefined) return new CityEconomy().resources;
-  if (!isRecord(value) || ![value.population, value.food, value.materials, value.services].every(Number.isFinite)) return null;
-  return { population: value.population as number, food: value.food as number, materials: value.materials as number, services: value.services as number };
+  if (!isRecord(value) || ![value.population, value.food].every(Number.isFinite)) return null;
+  return { population: value.population as number, food: value.food as number };
 }
 
 function isOffshoreSceneryRoad(graph: RoadGraph, a: NodeId, b: NodeId): boolean {

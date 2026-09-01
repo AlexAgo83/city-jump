@@ -1,6 +1,7 @@
 import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 import { housingCapacity } from "./economy";
+import { parcelDemandLimits } from "./slots";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
@@ -32,11 +33,12 @@ export interface BuildingNeed {
 
 export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], residents = population(parcels)): BuildingNeed[] {
   const staffing = allocateWorkforce(parcels, residents);
+  const limits = parcelDemandLimits(residents);
   return [
     need("residential", staffing.workforce, staffing.demand),
-    need("commercial", staffing.byKind.commercial.staffedDemand, staffing.byKind.commercial.demand),
-    need("agricultural", staffing.byKind.agricultural.staffedDemand, staffing.byKind.agricultural.demand),
-    need("industrial", staffing.byKind.industrial.staffedDemand, staffing.byKind.industrial.demand),
+    need("commercial", parcels.filter((parcel) => parcel.kind === "commercial").length, limits.commercial),
+    need("agricultural", parcels.filter((parcel) => parcel.kind === "agricultural").length, limits.agricultural),
+    need("industrial", parcels.filter((parcel) => parcel.kind === "industrial").length, limits.industrial),
     need("military", staffing.byKind.military.staffed, staffing.byKind.military.staffed + staffing.byKind.military.idle),
   ];
 }

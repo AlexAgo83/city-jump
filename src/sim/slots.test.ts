@@ -262,12 +262,13 @@ describe("industrial frontage", () => {
 });
 
 describe("military frontage", () => {
-  it("builds military parcels along military roads", () => {
+  it("limits military parcels along military roads by demand", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0, "military");
 
     const parcels = buildingParcels(buildableCells(g));
     expect(parcels.length).toBeGreaterThan(0);
     expect(parcels.every((parcel) => parcel.kind === "military")).toBe(true);
+    expect(parcelsForDemand(parcels, 12, 20)).toHaveLength(1);
   });
 });

@@ -1,14 +1,14 @@
 ## item_097_checks_that_have_been_watched_failing - Checks that have been watched failing
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 16:04:51
+> Indicators reviewed: 2026-09-01 16:29:39
 
 # AI Context
 - Summary: The delivery slice for the tests: four assertions that cannot fail replaced, every check watched failing with its behaviour removed, and the needs-following policy finally built.
@@ -57,3 +57,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them`
+
+# Notes
+- Task `task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them` was finished via `logics-manager flow finish task` on 2026-09-01.

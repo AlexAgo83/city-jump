@@ -1,12 +1,12 @@
 ## prod_025_a_first_wave_a_city_can_answer - A first wave a city can answer
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail`
-> Related backlog: `item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it`, `item_096_a_harness_that_reports_the_city_it_played`, `item_097_checks_that_have_been_watched_failing`, `item_098_services_one_trade_formula_and_the_alert_that_has_been_closed_three_times`
+> Related backlog: `item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it`
 > Related task: `task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 16:04:50
+> Indicators reviewed: 2026-09-01 16:29:39
 
 # Overview
 Three correction passes have each fixed what they looked at and missed what happens between two fixes. The latest closed the military exploit twice over -- limits on the road path, staffing on the batteries -- and the two together mean no city can field a single battery before population 64, while the city the harness plays sits at 12.1 and never grows. It fires nothing. The number that says otherwise, 25.5 seconds over 7 salvos, comes from a hardcoded fixture beside the real run, whose own 90 seconds and 0 salvos are computed and never printed. This brief makes the first wave answerable, makes the harness report the city it played rather than the one that flatters it, and replaces the checks that cannot fail with checks that have been watched failing. Every criterion in it is a number a command prints.
@@ -82,5 +82,5 @@ flowchart TD
 - `grep -rn alert src` returns something.
 
 # References
-- Product back-reference: `req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail`
+- Product back-reference: `item_095_a_defence_that_can_actually_be_fielded_and_a_city_that_grows_enough_to_staff_it`
 - Task back-reference: `task_036_make_the_first_wave_answerable_report_the_city_that_was_played_and_prove_the_checks_by_breaking_them`

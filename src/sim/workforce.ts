@@ -15,13 +15,13 @@ const PRIORITY: readonly Exclude<BuildingKind, "residential">[] = ["military", "
 type MutableBucket = { demand: number; staffedDemand: number; staffed: number; idle: number };
 
 export function workforceFromPopulation(population: number): number {
-  return Math.floor(population / 2);
+  return Math.floor(population);
 }
 
 export function workforceDemand(parcel: WorkforceParcel): number {
   if (parcel.kind === "residential") return 0;
   const cells = parcel.frontageCells * parcel.depthCells;
-  const perCell = parcel.kind === "military" ? 8 : parcel.kind === "industrial" ? 6 : parcel.kind === "commercial" ? 4 : 1;
+  const perCell = parcel.kind === "military" ? 3 : parcel.kind === "industrial" ? 6 : parcel.kind === "commercial" ? 4 : 1;
   return cells * perCell;
 }
 

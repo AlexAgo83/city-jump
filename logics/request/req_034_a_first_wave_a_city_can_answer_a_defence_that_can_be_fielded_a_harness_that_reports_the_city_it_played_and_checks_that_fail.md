@@ -1,13 +1,13 @@
 ## req_034_a_first_wave_a_city_can_answer_a_defence_that_can_be_fielded_a_harness_that_reports_the_city_it_played_and_checks_that_fail - A first wave a city can answer: a defence that can be fielded, a harness that reports the city it played, and checks that fail
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 16:04:58
+> Indicators reviewed: 2026-09-01 16:29:38
 
 # AI Context
 - Summary: The fourth correction pass, scoped to numbers a command prints: a first wave a city can actually field a defence against, a harness that reports the run it played instead of a fixture, assertions watched failing, and the services/trade/alert leftovers.

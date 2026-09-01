@@ -25,7 +25,8 @@ const flag = (name) => {
   return at >= 0 ? args[at + 1] : undefined;
 };
 const city = flag("city");
-const label = flag("label") ?? (city ? city.replace(/.*\//, "").replace(/\.json$/, "") : "demo");
+const wave = args.includes("--wave");
+const label = flag("label") ?? (wave ? "wave-demo" : city ? city.replace(/.*\//, "").replace(/\.json$/, "") : "demo");
 
 // Three framings, because a city is slow in different ways depending on how much of it is on
 // screen: the whole map at once, a district, and street level with the models at full size.
@@ -105,6 +106,12 @@ const rebuildMs = await page.evaluate(() => {
   window.cityjump.rebuild();
   return Math.round(performance.now() - started);
 });
+const waveMs = wave
+  ? await page.evaluate(() => {
+      const measured = window.cityjump.measureWaveCost(90);
+      return Math.round(measured.ms);
+    })
+  : undefined;
 const fps = {};
 for (const framing of FRAMINGS) {
   await page.evaluate(({ radius, beta }) => window.cityjump.camera(radius, beta), framing);
@@ -120,6 +127,7 @@ const run = {
   dirty: execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0,
   fps,
   rebuildMs,
+  ...(wave ? { waveMs } : {}),
   meshes,
   city: {
     segments: stats.segments,
@@ -150,5 +158,6 @@ for (const framing of FRAMINGS) {
   console.log(`  ${framing.name.padEnd(11)} ${fps[framing.name]} fps${delta(fps[framing.name], previous?.fps?.[framing.name])}`);
 }
 console.log(`  rebuild     ${rebuildMs} ms${delta(rebuildMs, previous?.rebuildMs)}`);
+if (wave) console.log(`  wave        ${waveMs} ms${delta(waveMs, previous?.waveMs)}`);
 console.log(`  meshes      ${Object.entries(meshes).map(([group, count]) => `${group} ${count}${delta(count, previous?.meshes?.[group]).trim()}`).join(", ")}`);
 console.log(previous ? `  compared with ${previous.at.slice(0, 16).replace("T", " ")} (${previous.commit})\n` : "  first run for this label\n");

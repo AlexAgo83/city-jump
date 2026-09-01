@@ -31,7 +31,7 @@ describe("run state", () => {
   });
 
   it("offers only upgrades with starting-condition effects", () => {
-    expect(FIRST_UPGRADE_WEB.map((node) => node.id)).toEqual(["starter-funds", "starter-materials", "starter-services"]);
+    expect(FIRST_UPGRADE_WEB.map((node) => node.id)).toEqual(["starter-funds"]);
     expect(FIRST_UPGRADE_WEB.every((node) => node.name !== node.id && node.description.length > 0)).toBe(true);
     expect(FIRST_UPGRADE_WEB.every((node) => node.branch === "starting")).toBe(true);
 
@@ -42,13 +42,13 @@ describe("run state", () => {
   });
 
   it("applies owned starter upgrades to a new run's opening stocks only", () => {
-    const owned = { prestige: 0, upgrades: ["starter-funds", "starter-materials", "starter-services"], hardcore: false };
-    const resources = { population: 12, food: 0, materials: 0, services: 0 };
+    const owned = { prestige: 0, upgrades: ["starter-funds"], hardcore: false };
+    const resources = { population: 12, food: 0 };
 
     expect(startingMoney(profile())).toBe(40_000);
     expect(startingMoney(owned)).toBe(50_000);
     expect(startingResources(profile(), resources)).toEqual(resources);
-    expect(startingResources(owned, resources)).toEqual({ population: 12, food: 0, materials: 25, services: 20 });
+    expect(startingResources(owned, resources)).toEqual(resources);
     expect(FIRST_UPGRADE_WEB.every((node) => node.effect.kind.startsWith("starting-"))).toBe(true);
   });
 });

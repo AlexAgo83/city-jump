@@ -39,3 +39,11 @@ test("main is only the application bootstrap", async () => {
   const source = await readFile(new URL("main.ts", src), "utf8");
   assert.deepEqual(imports(source), ["./app/app"]);
 });
+
+test("district dark path raises the alert surface", async () => {
+  const hud = await readFile(new URL("ui/hud.ts", src), "utf8");
+  const app = await readFile(new URL("app/app.ts", src), "utf8");
+
+  assert.match(hud, /export function showAlert/);
+  assert.match(app, /showAlert\("A district went dark\."\)/);
+});

@@ -62,6 +62,10 @@ export const PARCEL_SIZES = Array.from({ length: 4 }, (_, frontage) =>
   Array.from({ length: 4 }, (_, depth) => ({ frontageCells: frontage + 1, depthCells: depth + 1 })),
 ).flat();
 
+export function parcelDemandLimits(population: number): Record<BuildingKind, number> {
+  return { residential: Math.max(1, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: Math.ceil(population / 24) };
+}
+
 /**
  * Parcel sizes whose building model is short. A parcel picks its model by size, and model height
  * does NOT follow parcel area -- 1x1 is 9.5m while 4x2 is 28m and 4x4 only 14m -- so a low-rise
@@ -203,10 +207,10 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
 /** Zoned land is intent, not an instant building: demand admits one lot every 20 simulated seconds. */
 export function parcelsForDemand(parcels: readonly BuildingParcel[], population: number, seconds: number): BuildingParcel[] {
   const admitted = Math.floor(Math.max(0, seconds) / 20) + 1;
-  const limits: Record<BuildingKind, number> = { residential: Math.max(1, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: Math.ceil(population / 96) };
+  const limits = parcelDemandLimits(population);
   const used: Record<BuildingKind, number> = { residential: 0, agricultural: 0, commercial: 0, industrial: 0, military: 0 };
   return parcels.filter((parcel) => {
-    if (!parcel.cells.some((cell) => cell.zone)) return true;
+    if (!parcel.cells.some((cell) => cell.zone) && parcel.kind !== "military") return true;
     used[parcel.kind] += 1;
     return used[parcel.kind] <= Math.min(limits[parcel.kind], admitted);
   });
@@ -220,7 +224,8 @@ export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: 
 }
 
 function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, kind: BuildingKind): typeof PARCEL_SIZES {
-  if (kind === "industrial" || kind === "agricultural" || kind === "military") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => INDUSTRIAL_SIZES.has(sizeKey(frontageCells, depthCells)));
+  if (kind === "industrial" || kind === "agricultural") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => INDUSTRIAL_SIZES.has(sizeKey(frontageCells, depthCells)));
+  if (kind === "military") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
   if (zone === "commercial") return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => DENSE_SIZES.has(sizeKey(frontageCells, depthCells)));
   if (zone === "residential" || lowRise) return PARCEL_SIZES.filter(({ frontageCells, depthCells }) => LOW_RISE_SIZES.has(sizeKey(frontageCells, depthCells)));
   return PARCEL_SIZES;

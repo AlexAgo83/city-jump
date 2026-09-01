@@ -10,15 +10,11 @@ export const CITY_DAY_SECONDS = 96;
 export interface CityResources {
   readonly population: number;
   readonly food: number;
-  readonly materials: number;
-  readonly services: number;
 }
 
 export interface CityTerms {
   readonly population: { readonly value: number; readonly housing: number; readonly change: number; readonly foodShortage: number };
   readonly food: { readonly value: number; readonly produced: number; readonly consumed: number };
-  readonly materials: { readonly value: number; readonly produced: number };
-  readonly services: { readonly value: number; readonly produced: number };
   readonly trade: number;
 }
 
@@ -50,7 +46,7 @@ export class CityEconomy {
   private state: CityResources;
 
   constructor(state: Partial<CityResources> = {}) {
-    this.state = { population: state.population ?? 12, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? 0 };
   }
 
   get resources(): CityResources {
@@ -58,32 +54,26 @@ export class CityEconomy {
   }
 
   replaceWith(state: Partial<CityResources> = {}): void {
-    this.state = { population: state.population ?? 12, food: state.food ?? 0, materials: state.materials ?? 0, services: state.services ?? 0 };
+    this.state = { population: state.population ?? 12, food: state.food ?? 0 };
   }
 
   advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {
     const day = Math.max(0, seconds) / CITY_DAY_SECONDS;
     const housing = housingCapacity(parcels);
     const foodProduced = output(parcels, this.state.population, "agricultural", 8) * day;
-    const materialsProduced = 0;
-    const servicesProduced = output(parcels, this.state.population, "commercial", 4) * day;
     const foodConsumed = this.state.population * day;
     const foodAvailable = this.state.food + foodProduced;
     const foodShortage = Math.max(0, foodConsumed - foodAvailable);
-    const jobs = allocateWorkforce(parcels, this.state.population).staffedDemand;
-    const growth = foodShortage > 0 ? -Math.min(this.state.population, foodShortage * 2) : Math.min(housing - this.state.population, Math.max(0, servicesProduced + jobs * 0.02) * day);
+    const foodSurplus = Math.max(0, foodAvailable - foodConsumed);
+    const growth = foodShortage > 0 ? -Math.min(this.state.population, foodShortage * 2) : Math.min(housing - this.state.population, foodSurplus * 0.5);
     this.state = {
       population: Math.max(0, this.state.population + growth),
       food: Math.max(0, foodAvailable - foodConsumed),
-      materials: this.state.materials,
-      services: this.state.services + servicesProduced,
     };
     return {
       population: { value: this.state.population, housing, change: growth, foodShortage },
       food: { value: this.state.food, produced: foodProduced, consumed: foodConsumed },
-      materials: { value: this.state.materials, produced: materialsProduced },
-      services: { value: this.state.services, produced: servicesProduced },
-      trade: servicesProduced,
+      trade: incomePerSecond(this.state.population, parcels.map((parcel) => ({ parcel, state: "working" as const }))),
     };
   }
 }
@@ -93,16 +83,18 @@ export function roadBuildCost(type: string, metres: number): number {
   return Math.ceil(base * metres);
 }
 
-export function buildingBuildCost(parcel: Pick<BuildingParcel, "frontageCells" | "depthCells">): number {
-  return parcel.frontageCells * parcel.depthCells * 800;
+export function buildingBuildCost(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): number {
+  const perCell: Record<BuildingKind, number> = { residential: 60, commercial: 110, agricultural: 75, industrial: 140, military: 190 };
+  return parcel.frontageCells * parcel.depthCells * perCell[parcel.kind];
 }
 
 export function demolitionRefund(cost: number): number {
   return cost / 2;
 }
 
-export function incomePerSecond(population: number, statuses: readonly Pick<BuildingStatus, "parcel" | "state">[]): number {
-  return population * 0.02;
+export function incomePerSecond(population: number, statuses: readonly { readonly parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">; readonly state: BuildingStatus["state"] }[]): number {
+  const trade = statuses.reduce((sum, status) => sum + (status.state === "working" && (status.parcel.kind === "commercial" || status.parcel.kind === "industrial") ? status.parcel.frontageCells * status.parcel.depthCells * (status.parcel.kind === "commercial" ? 0.35 : 0.25) : 0), 0);
+  return population * 0.02 + trade;
 }
 
 export class Treasury {

@@ -17,4 +17,9 @@ describe("batteries", () => {
     expect(batteriesInRange(batteries, v3(200, 0, 0))).toHaveLength(2);
     expect(firepowerPerMinute(batteries)).toBe((48 + 192) * (60 / WAVE_STARTING_VALUES.reloadSeconds));
   });
+
+  it("does not fire unstaffed military parcels", () => {
+    expect(batteriesForParcels([{ kind: "military", frontageCells: 1, depthCells: 4, position: v3(0, 0, 0) }], 11)).toHaveLength(0);
+    expect(batteriesForParcels([{ kind: "military", frontageCells: 1, depthCells: 4, position: v3(0, 0, 0) }], 12)).toHaveLength(1);
+  });
 });

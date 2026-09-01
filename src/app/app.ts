@@ -43,7 +43,7 @@ import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCame
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
-import { showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
+import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -177,6 +177,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let waveCalledEarly = false;
   let buildingRebuildTimer = 0;
   let lastTerms: CityTerms | undefined;
+  let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
   const scheduleBuildingRebuild = (): void => {
     window.clearTimeout(buildingRebuildTimer);
@@ -204,6 +205,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;
     });
+    const nextDark = new Set(currentBuildingStatuses.filter((status) => status.reason === "power" || status.reason === "water").map((status) => `${Math.round(status.parcel.position.x)}:${Math.round(status.parcel.position.z)}`));
+    if ([...nextDark].some((key) => !darkDistricts.has(key))) showAlert("A district went dark.");
+    darkDistricts = nextDark;
     for (const status of currentBuildingStatuses) {
       if (chargeConstructionStarts && status.started) spendBuild(buildingBuildCost(status.parcel), true);
     }
@@ -214,8 +218,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       clearedRubble = true;
     }
     if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
-    showCityStats(residents, buildingNeeds(currentParcels, residents), cityEconomy.resources, lastTerms);
-    showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses), stateCounts());
+    const income = incomePerSecond(residents, currentBuildingStatuses);
+    showCityStats(residents, buildingNeeds(currentParcels, residents), cityEconomy.resources, lastTerms && { ...lastTerms, trade: income });
+    showMoney(treasury.money, income, stateCounts());
   };
   const refreshUtilities = (): void => {
     syncBuildings();
@@ -419,7 +424,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const next = kaijuAssault?.target ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds + 0.1);
     waveMarkers.show(kaijuPlan);
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
-    const batteries = batteriesForParcels(currentParcels);
+    const batteries = batteriesForParcels(currentParcels, cityEconomy.resources.population);
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
         const launchedAt = seconds + index * 0.22;
@@ -914,6 +919,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       syncBuildings();
       buildings.updateStates(currentBuildingStatuses);
       return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
+    },
+    measureWaveCost(maxSeconds = 90) {
+      const started = performance.now();
+      if (!waveClock.active) {
+        waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+        startWave("debug");
+      }
+      const rubbleBefore = rubble.count();
+      for (let elapsed = 0; waveClock.active && !waveVerdict && elapsed < maxSeconds && rubble.count() === rubbleBefore; elapsed += 0.25) updateWave(0.25);
+      return { ms: performance.now() - started, rubble: rubble.count() - rubbleBefore, wave: waveVerdict ?? (waveClock.active ? "active" : "waiting") };
     },
     forceWave(seconds = 0) {
       waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));

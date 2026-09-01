@@ -15,7 +15,7 @@ export interface WaveReward {
   readonly baseScience: number;
 }
 
-export type UpgradeBranch = "capability" | "starting" | "information";
+export type UpgradeBranch = "starting";
 
 export interface PrestigeUpgrade {
   readonly id: string;
@@ -23,7 +23,7 @@ export interface PrestigeUpgrade {
   readonly cost: number;
   readonly name: string;
   readonly description: string;
-  readonly effect: { readonly kind: "starting-money"; readonly amount: number } | { readonly kind: "starting-resource"; readonly resource: "materials" | "services"; readonly amount: number };
+  readonly effect: { readonly kind: "starting-money"; readonly amount: number };
 }
 
 export interface ProfileState {
@@ -41,13 +41,9 @@ export interface RunRules {
 export const EARLY_WAVE_SCIENCE_MULTIPLIER = 2;
 export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false };
 const STARTER_FUNDS_BONUS = 10_000;
-const STARTER_MATERIALS_BONUS = 25;
-const STARTER_SERVICES_BONUS = 20;
 
 export const FIRST_UPGRADE_WEB: readonly PrestigeUpgrade[] = [
   { id: "starter-funds", branch: "starting", cost: 6, name: "Starter grant", description: `Begin each run with $${STARTER_FUNDS_BONUS.toLocaleString()} extra.`, effect: { kind: "starting-money", amount: STARTER_FUNDS_BONUS } },
-  { id: "starter-materials", branch: "starting", cost: 9, name: "Material cache", description: `Begin each run with ${STARTER_MATERIALS_BONUS} materials.`, effect: { kind: "starting-resource", resource: "materials", amount: STARTER_MATERIALS_BONUS } },
-  { id: "starter-services", branch: "starting", cost: 10, name: "Service crew", description: `Begin each run with ${STARTER_SERVICES_BONUS} services.`, effect: { kind: "starting-resource", resource: "services", amount: STARTER_SERVICES_BONUS } },
 ] as const;
 
 export function createRun(rules: Partial<RunRules> = {}): RunState {
@@ -87,8 +83,5 @@ export function startingMoney(profile: Pick<ProfileState, "upgrades">, base = ST
 }
 
 export function startingResources(profile: Pick<ProfileState, "upgrades">, base: CityResources): CityResources {
-  return FIRST_UPGRADE_WEB.reduce((resources, upgrade) => {
-    if (upgrade.effect.kind !== "starting-resource" || !profile.upgrades.includes(upgrade.id)) return resources;
-    return { ...resources, [upgrade.effect.resource]: resources[upgrade.effect.resource] + upgrade.effect.amount };
-  }, base);
+  return base;
 }
