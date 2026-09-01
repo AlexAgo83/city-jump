@@ -79,7 +79,9 @@ export interface ScenarioRules extends RunRules {
 export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, placeUtilities: true, expand: false };
 
 const GROW_STEP_SECONDS = 4;
-const GROW_STEPS_PER_WAVE = 120;
+/** A city now grows at a rate rather than converting food into people, so it takes longer
+ * to become worth attacking. This is the budget before the harness gives up waiting. */
+const GROW_STEPS_PER_WAVE = 400;
 const COMBAT_STEP_SECONDS = 0.25;
 const COMBAT_CAP_SECONDS = 90;
 

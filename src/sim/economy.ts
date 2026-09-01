@@ -14,6 +14,8 @@ export const STARTING_MONEY = 40_000;
 export const STARTING_FOOD = 30;
 /** A stock to open with, so the first shops run before the first works is up. */
 export const STARTING_MATERIALS = 40;
+/** Share of itself a fed, housed city adds in a day. A curve, not a conversion rate. */
+export const GROWTH_PER_DAY = 0.25;
 /** Materials a working commercial cell consumes a day, and a military one. */
 export const MATERIALS_PER_COMMERCE_CELL = 1.5;
 export const MATERIALS_PER_MILITARY_CELL = 2.5;
@@ -98,7 +100,15 @@ export class CityEconomy {
     // and it is the whole reason the cap exists.
     this.housed ||= housing > 0;
     const room = this.housed ? housing - this.state.population : 0;
-    const growth = foodShortage > 0 ? -Math.min(this.state.population, foodShortage * 2) : Math.min(room, foodSurplus * 0.5);
+    // A city grows at a rate, not by turning every spare loaf into a resident. Growth used to be
+    // half the food surplus, so one 3x4 farm -- 96 food a day against twelve mouths -- added
+    // forty-two people a day and a town of twelve became two hundred in three minutes. Food and
+    // housing gate it; the pace is the city's own.
+    const canGrow = foodSurplus > 0 && room > 0;
+    const growth = foodShortage > 0
+      ? -Math.min(this.state.population, foodShortage * 2)
+      : room < 0 ? room  // more people than homes, because a wave took the homes: they leave
+      : canGrow ? Math.min(room, this.state.population * GROWTH_PER_DAY * day, foodSurplus) : 0;
     this.state = {
       population: Math.max(0, this.state.population + growth),
       food: Math.max(0, foodAvailable - foodConsumed),
