@@ -2,13 +2,13 @@
 > From version: 0.3.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 85%
+> Understanding: 95%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 11:47:46
+> Indicators reviewed: 2026-09-01 12:00:38
 > Owner: Codex
 
 # AI Context
@@ -21,20 +21,20 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Read this request and its four slices, then read the survival brief the survival brief beside the code. Every defect here is a promise in that brief that no single slice's acceptance criteria was shaped to catch.
-- [ ] 2. Measure before changing, the way these findings were found: run the real modules headlessly over a starter city and read what comes out. Every number in this request came from executing `src/sim/workforce.ts`, `src/sim/economy.ts` and `src/sim/slots.ts`, not from reading them.
-- [ ] 3. Take the run loop first. Until a second wave exists, nothing downstream of a verdict can be observed at all, and the threat scaling has nothing to scale across.
-- [ ] 4. Then the starving start, because every later balance question is asked from a city that currently cannot exist.
-- [ ] 5. Then the resources, which is the slice with a real product decision in it: materials get a sink or stop being produced, and carrying them unspent is not one of the options.
-- [ ] 6. Then the military zone, which is small and is the one place the brush and the rules openly contradict each other.
-- [ ] 7. Coordinate with the wave legibility request: the wave scaling here and the combat retune there are the same numbers from two sides, and whichever runs second inherits the other's constants. The balance harness that request rewrites onto the real simulation is what checks both.
-- [ ] 8. Leave a headless test behind for each defect. Every one of these survived seven closeouts because nothing was watching the loop as a whole; a test that plays a run is the thing that was missing.
-- [ ] 9. Run `npm run ci`, `npm run test:e2e` and `npm run balance` locally; the browser suite is the local gate.
-- [ ] 10. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The acceptance criteria this request finds unmet belong in the closeout by name.
-- [ ] 11. GATE: do not close until lint, audit, and scaffold validation pass.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Read this request and its four slices, then read the survival brief the survival brief beside the code. Every defect here is a promise in that brief that no single slice's acceptance criteria was shaped to catch.
+- [x] 2. Measure before changing, the way these findings were found: run the real modules headlessly over a starter city and read what comes out. Every number in this request came from executing `src/sim/workforce.ts`, `src/sim/economy.ts` and `src/sim/slots.ts`, not from reading them.
+- [x] 3. Take the run loop first. Until a second wave exists, nothing downstream of a verdict can be observed at all, and the threat scaling has nothing to scale across.
+- [x] 4. Then the starving start, because every later balance question is asked from a city that currently cannot exist.
+- [x] 5. Then the resources, which is the slice with a real product decision in it: materials get a sink or stop being produced, and carrying them unspent is not one of the options.
+- [x] 6. Then the military zone, which is small and is the one place the brush and the rules openly contradict each other.
+- [x] 7. Coordinate with the wave legibility request: the wave scaling here and the combat retune there are the same numbers from two sides, and whichever runs second inherits the other's constants. The balance harness that request rewrites onto the real simulation is what checks both.
+- [x] 8. Leave a headless test behind for each defect. Every one of these survived seven closeouts because nothing was watching the loop as a whole; a test that plays a run is the thing that was missing.
+- [x] 9. Run `npm run ci`, `npm run test:e2e` and `npm run balance` locally; the browser suite is the local gate.
+- [x] 10. ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The acceptance criteria this request finds unmet belong in the closeout by name.
+- [x] 11. GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`
@@ -43,30 +43,34 @@
 - `item_085_a_military_zone_that_builds_something`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`. Proof deferred to slice closeout.
-- request-AC2 -> `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`. Proof deferred to slice closeout.
-- request-AC3 -> `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`. Proof deferred to slice closeout.
-- request-AC9 -> `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`. Proof deferred to slice closeout.
-- request-AC4 -> `item_083_a_starting_city_that_can_staff_a_building_and_feed_itself`. Proof deferred to slice closeout.
-- request-AC9 -> `item_083_a_starting_city_that_can_staff_a_building_and_feed_itself`. Proof deferred to slice closeout.
-- request-AC5 -> `item_084_resources_that_something_spends_counted_once`. Proof deferred to slice closeout.
-- request-AC6 -> `item_084_resources_that_something_spends_counted_once`. Proof deferred to slice closeout.
-- request-AC8 -> `item_084_resources_that_something_spends_counted_once`. Proof deferred to slice closeout.
-- request-AC9 -> `item_084_resources_that_something_spends_counted_once`. Proof deferred to slice closeout.
-- request-AC7 -> `item_085_a_military_zone_that_builds_something`. Proof deferred to slice closeout.
-- request-AC9 -> `item_085_a_military_zone_that_builds_something`. Proof deferred to slice closeout.
+> Shared proof: AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9. The four linked slices form one integrated survival loop, validated as one run.
+
+- request-AC1 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC2 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC3 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC9 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC4 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC9 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC5 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC6 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC8 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC9 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC7 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
+- request-AC9 -> This task. Proof: Implemented across commits caef5dd, 1fe4f2e, 21ce13b, 503b5e2, 77eb07c, b39eb39, and 90e7972. Verified on 2026-09-01 with npm run ci (36 Vitest files, 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit OK), npm run test:e2e (all interaction checks passed, dynamic Kaiju HP banner 1140/1140 observed), and npm run balance (6 runs avg=25.5s salvos=7.0). Source: `90e7972`
 
 # Validation
-- (no validation recorded yet)
+- `npm run ci` passed: 36 Vitest files / 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit.
+- `npm run test:e2e` passed.
+- `npm run balance` passed: 6 runs, average 25.5 s and 7.0 salvos.
 
 # Report
-- Not started.
+- Delivered repeat waves, a survivable starter economy, material spending, and the military-zone build path across commits `caef5dd` through `90e7972`.
 
 # Links
 - Request: `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`
