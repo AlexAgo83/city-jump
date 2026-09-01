@@ -34,6 +34,8 @@ export interface Segment {
   readonly length: number;
   /** A rendered road deck that must not reshape the terrain below it. */
   readonly elevated?: boolean;
+  /** Bitmask of utilities carried by this road segment. */
+  utilities: number;
 }
 
 export interface PointOnSegment {
@@ -129,22 +131,22 @@ export class RoadGraph {
     return id;
   }
 
-  addSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number): SegmentId {
+  addSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number, utilities = 0): SegmentId {
     const na = this.node(a);
     const nb = this.node(b);
     roadType(type); // rejects an unknown type here rather than at render time
     const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
     this.nextStreetId = Math.max(this.nextStreetId, id + 1);
-    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type));
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type), false, utilities);
   }
 
-  addElevatedSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number): SegmentId {
+  addElevatedSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number, utilities = 0): SegmentId {
     const na = this.node(a);
     const nb = this.node(b);
     roadType(type);
     const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
     this.nextStreetId = Math.max(this.nextStreetId, id + 1);
-    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type, true), true);
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type, true), true, utilities);
   }
 
   private nextStreetId = 1;
@@ -157,12 +159,17 @@ export class RoadGraph {
     streetId: number,
     built: Pick<Segment, "samples" | "ts" | "cumulative" | "length">,
     elevated = false,
+    utilities = 0,
   ): SegmentId {
     const id = this.nextSegmentId++;
-    this.segments.set(id, { id, a, b, control, type, streetId, ...built, ...(elevated ? { elevated } : {}) });
+    this.segments.set(id, { id, a, b, control, type, streetId, utilities, ...built, ...(elevated ? { elevated } : {}) });
     this.node(a).segments.add(id);
     this.node(b).segments.add(id);
     return id;
+  }
+
+  setSegmentUtilities(id: SegmentId, utilities: number): void {
+    this.segment(id).utilities = utilities;
   }
 
   /** Returns false when the node cannot carry one, which the caller reports to the player. */
@@ -285,8 +292,8 @@ export class RoadGraph {
     const midId = this.addNodeAt(mid);
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left, !!seg.elevated);
-    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right, !!seg.elevated);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left, !!seg.elevated, seg.utilities);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right, !!seg.elevated, seg.utilities);
     this.removeSegment(id);
     return midId;
   }

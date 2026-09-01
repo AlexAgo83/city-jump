@@ -26,7 +26,7 @@ const OFFSHORE_SCENERY_Z = 2000;
  * `lanes` only means anything alongside that flag, and is omitted rather than written as 1.
  */
 export type SavedNode = [id: NodeId, x: number, y: number, z: number, roundabout?: 1, lanes?: 2];
-export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string, streetId?: number, elevated?: 1];
+export type SavedSegment = [a: NodeId, b: NodeId, cx: number, cy: number, cz: number, type: string, streetId?: number, elevated?: 0 | 1, utilities?: number];
 /**
  * A hand-planted tree or a cleared spot. The species is optional so that saves written before
  * there was a choice still load; they were all firs.
@@ -83,11 +83,12 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
     segments: graph
       .allSegments()
       .filter((segment) => !isOffshoreSceneryRoad(graph, segment.a, segment.b))
-      .map((segment): SavedSegment =>
-        segment.elevated
-          ? [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId, 1]
-          : [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId],
-      ),
+      .map((segment): SavedSegment => {
+        const base: SavedSegment = [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId];
+        if (segment.elevated || segment.utilities) base.push(segment.elevated ? 1 : 0);
+        if (segment.utilities) base.push(segment.utilities);
+        return base;
+      }),
   };
 }
 
@@ -116,12 +117,12 @@ function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: 
     ids.set(id, placed);
     if (roundabout) roundabouts.push({ id: placed, lanes: lanes === 2 ? 2 : 1 });
   }
-  for (const [a, b, cx, cy, cz, type, streetId, elevated] of save.segments) {
+  for (const [a, b, cx, cy, cz, type, streetId, elevated, utilities] of save.segments) {
     const from = ids.get(a);
     const to = ids.get(b);
     if (from === undefined || to === undefined) throw new Error(`segment references a missing node (${a} -> ${b})`);
-    if (elevated) graph.addElevatedSegment(from, to, v3(cx, cy, cz), type, streetId);
-    else graph.addSegment(from, to, v3(cx, cy, cz), type, streetId);
+    if (elevated) graph.addElevatedSegment(from, to, v3(cx, cy, cz), type, streetId, utilities ?? 0);
+    else graph.addSegment(from, to, v3(cx, cy, cz), type, streetId, utilities ?? 0);
   }
   // After the segments, since a roundabout is refused on a node with nothing meeting it yet.
   for (const node of roundabouts) graph.setRoundabout(node.id, true, node.lanes);
@@ -163,11 +164,12 @@ export function parseCity(text: string): CitySave | null {
     (segment): segment is SavedSegment =>
       Array.isArray(segment) &&
       segment.length >= 6 &&
-      segment.length <= 8 &&
+      segment.length <= 9 &&
       segment.slice(0, 5).every(Number.isFinite) &&
       typeof segment[5] === "string" &&
       (segment.length === 6 || Number.isFinite(segment[6])) &&
-      (segment.length < 8 || segment[7] === 1),
+      (segment.length < 8 || segment[7] === 0 || segment[7] === 1) &&
+      (segment.length < 9 || Number.isFinite(segment[8])),
   );
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 

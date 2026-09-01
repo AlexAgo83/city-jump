@@ -71,6 +71,17 @@ describe("city saves", () => {
     expect(highway?.elevated).toBe(true);
   });
 
+  it("carries road utility flags through a save", () => {
+    const graph = city();
+    graph.setSegmentUtilities(graph.allSegments()[0]!.id, 3);
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14)))!;
+    const restored = new RoadGraph();
+    restoreCity(restored, new Plantings(), new Zones(), save);
+
+    expect(restored.allSegments()[0]!.utilities).toBe(3);
+  });
+
   it("carries hand-planted and cleared trees through a save", () => {
     const plantings = new Plantings();
     plantings.plant(10, 20, "oak");

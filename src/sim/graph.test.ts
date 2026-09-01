@@ -88,6 +88,16 @@ describe("graph basics", () => {
       setTerrain(flatTerrain);
     }
   });
+
+  it("preserves carried utilities when splitting a segment", () => {
+    const g = new RoadGraph();
+    const { id } = straight(g, 0, 0, 100, 0);
+    g.setSegmentUtilities(id, 3);
+
+    g.splitSegment(id, 50);
+
+    expect(g.allSegments().map((segment) => segment.utilities)).toEqual([3, 3]);
+  });
 });
 
 describe("arc-length parameterisation", () => {
