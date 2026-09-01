@@ -9,13 +9,34 @@ import { createRun, DEFAULT_RUN_RULES, defeat, endIfPopulationZero, settleWave, 
 import { buildableCells, buildingParcels, parcelsForDemand, type BuildingParcel } from "./slots";
 import { setTerrain, flatTerrain } from "./terrain";
 import { distXZ, v3 } from "./vec";
+import { missingUtility, suppliedDiffusers, Utilities } from "./utilities";
 import { advanceWaveClockWithThreat, createWaveClock, damageWaveClock, scheduleNextWave, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
 import { Zones } from "./zones";
 import { advanceKaijuAssault, createKaijuAssault } from "./kaiju";
 
 export type FirstWaveShape = "total_loss" | "partial_loss" | "clean_hold";
 
-export interface PlaythroughResult {
+/** One wave, as it happened: what arrived, what the city answered with, and what it cost. */
+export interface WaveRecord {
+  readonly wave: number;
+  /** Seconds of city-building between the previous wave ending and this one arriving. */
+  readonly waitedSeconds: number;
+  readonly threat: number;
+  readonly population: number;
+  readonly parcels: number;
+  readonly fieldedBatteries: number;
+  readonly firepowerPerMinute: number;
+  readonly combatDurationSeconds: number;
+  readonly salvos: number;
+  readonly held: boolean;
+  readonly destroyed: number;
+  readonly rebuildingCost: number;
+  readonly treasury: number;
+  readonly science: number;
+  readonly shape: FirstWaveShape;
+}
+
+export interface RunPlaythrough {
   readonly seed: number;
   readonly seconds: number;
   readonly graph: RoadGraph;
@@ -27,38 +48,52 @@ export interface PlaythroughResult {
   readonly waveClock: WaveClock;
   readonly treasury: Treasury;
   readonly economy: CityEconomy;
-  readonly wave: {
-    readonly shape: FirstWaveShape;
-    readonly threat: number;
-    readonly fieldedBatteries: number;
-    readonly firepowerPerMinute: number;
-    readonly rebuildingCost: number;
-    readonly combatDurationSeconds: number;
-    readonly salvos: number;
-    readonly nextWaveReachable: boolean;
-  };
+  readonly waves: readonly WaveRecord[];
   readonly log: readonly string[];
 }
 
-export function playFirstRun(seed = 1, rules: Partial<RunRules> = {}): PlaythroughResult {
+/** Kept for callers that only care about the opening wave; it is `playRun` stopped after one. */
+export interface PlaythroughResult extends RunPlaythrough {
+  readonly wave: WaveRecord & { readonly nextWaveReachable: boolean };
+}
+
+export interface ScenarioRules extends RunRules {
+  /** Place power and water the way a player would, and let buildings go idle without them. */
+  readonly utilities: boolean;
+}
+
+export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true };
+
+const GROW_STEP_SECONDS = 4;
+const GROW_STEPS_PER_WAVE = 120;
+const COMBAT_STEP_SECONDS = 0.25;
+const COMBAT_CAP_SECONDS = 90;
+
+/**
+ * Plays a run: arrive, road, zone, grow, meet a kaiju, rebuild, meet the next one, until the run
+ * ends or `maxWaves` have been fought.
+ *
+ * It drives the same rules the app drives, from the same entry points -- roads through
+ * `commitSegment`, parcels through `parcelsForDemand`, damage through `damageWaveClock` -- and it
+ * mirrors the two app rules the single-wave version skipped: a destroyed parcel stays in play while
+ * it rebuilds, and a building without the utility it needs is idle.
+ */
+export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves = 1): RunPlaythrough {
   setTerrain(flatTerrain);
   const graph = new RoadGraph();
   const zones = new Zones();
   const lifecycle = new BuildingLifecycle();
   const rubble = new Rubble();
+  const utilities = new Utilities();
   const treasury = new Treasury();
   const economy = new CityEconomy();
-  const runRules = { ...DEFAULT_RUN_RULES, ...rules };
-  let run = createRun(runRules);
+  const scenario = { ...DEFAULT_SCENARIO_RULES, ...rules };
+  let run = createRun(scenario);
   let waveClock = createWaveClock();
   let seconds = 0;
   let statuses: BuildingStatus[] = [];
   let parcels: BuildingParcel[] = [];
-  let waveFieldedBatteries = 0;
-  let waveFirepowerPerMinute = 0;
-  let waveRebuildingCost = 0;
-  let waveCombatDurationSeconds = 0;
-  let waveSalvos = 0;
+  const waves: WaveRecord[] = [];
   const log: string[] = [];
 
   const road = (name: string, x0: number, z0: number, x1: number, z1: number, type = "street") => {
@@ -77,14 +112,31 @@ export function playFirstRun(seed = 1, rules: Partial<RunRules> = {}): Playthrou
     industrial: [20, 260],
     military: [-70, 360],
   };
-  const step = (dt: number) => {
+
+  /** The app's `syncBuildings`, minus the renderer: demand, lifecycle, utilities, rubble, bills. */
+  const sync = (charge: boolean): void => {
+    parcels = parcelsForDemand(buildingParcels(buildableCells(graph, zones), zones), economy.resources.population, seconds)
+      .filter((parcel) => !rubble.blocks(parcel) || lifecycle.stateOf(parcel) === "rebuilding");
+    const supplied = scenario.utilities ? suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()) : null;
+    const diffusers = utilities.diffusers();
+    statuses = lifecycle.sync(parcels, economy.resources.population, seconds, scenario.instantConstruction ? 0 : BUILDING_STAGE_SECONDS).map((status) => {
+      if (!supplied || status.state === "rising" || status.state === "rebuilding") return status;
+      const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
+      return missing ? { ...status, state: "idle" as const, reason: missing } : status;
+    });
+    if (charge && !scenario.freeBuilding) for (const status of statuses) if (status.started) treasury.spend(buildingBuildCost(status.parcel), true);
+    // A finished rebuild clears its rubble, the way the app does, so the lot is buildable again.
+    for (const status of statuses) if (status.state !== "rebuilding" && rubble.blocks(status.parcel)) rubble.clear(status.parcel);
+  };
+
+  const step = (dt: number): void => {
     seconds += dt;
-    parcels = parcelsForDemand(buildingParcels(buildableCells(graph, zones), zones), economy.resources.population, seconds).filter((parcel) => !rubble.blocks(parcel));
-    statuses = lifecycle.sync(parcels, economy.resources.population, seconds, runRules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS);
-    for (const status of statuses) if (status.started && !runRules.freeBuilding) treasury.spend(buildingBuildCost(status.parcel), true);
+    sync(true);
     economy.advance(parcels, dt);
     treasury.earn(incomePerSecond(economy.resources.population, statuses) * dt);
-    if (runRules.kaijuSpawns && !waveClock.active) waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(run.wave, economy.resources.population, parcels.length));
+    if (scenario.kaijuSpawns && !waveClock.active) {
+      waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(run.wave, economy.resources.population, parcels.length));
+    }
   };
 
   road("bridge", -260, 260, 40, 260);
@@ -95,36 +147,113 @@ export function playFirstRun(seed = 1, rules: Partial<RunRules> = {}): Playthrou
   paint("agricultural", -70, 220);
   paint("commercial", 20, 300);
   paint("military", -70, 360);
+  if (scenario.utilities) {
+    for (const kind of ["power", "water"] as const) {
+      utilities.place(graph, "producer", kind, -250, 260);
+      for (const [x, z] of [[-170, 300], [-70, 220], [20, 300], [-70, 360]] as const) utilities.place(graph, "diffuser", kind, x, z);
+    }
+    log.push(`utilities:${utilities.producers().length}p/${utilities.diffusers().length}d`);
+  }
 
-  let firstNeeds = buildingNeeds([], economy.resources.population);
   const followedNeeds = new Set<BuildingKind>();
-  for (let i = 0; i < 80 && !waveClock.active; i++) {
-    step(4);
-    const needs = buildingNeeds(parcels, economy.resources.population);
-    const short = needs.find((need) => need.need > need.supply);
-    if (short && !followedNeeds.has(short.kind) && short.ratio < (firstNeeds.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
-      followedNeeds.add(short.kind);
-      const [x, z] = needZones[short.kind];
-      paint(short.kind, x, z, 60);
-      log.push(`need:${short.kind}->zone:${short.kind} supply=${short.supply} need=${short.need}`);
-    }
-    firstNeeds = needs;
+  for (let wave = 1; wave <= maxWaves && !run.ended; wave++) {
+    if (!grow()) break;
+    waves.push(fight(wave));
   }
 
-  if (!runRules.kaijuSpawns) {
-    return result("clean_hold", 0, false);
-  }
-  if (!waveClock.active) throw new Error("first wave never arrived");
-  parcels = parcelsForDemand(buildingParcels(buildableCells(graph, zones), zones), economy.resources.population, seconds).filter((parcel) => !rubble.blocks(parcel));
-  statuses = lifecycle.sync(parcels, economy.resources.population, seconds, runRules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS);
-  return fightWave();
+  return snapshot();
 
-  function result(waveShape: FirstWaveShape, threat: number, applyOutcome: boolean): PlaythroughResult {
-    const batteries = batteriesForParcels(parcels, economy.resources.population);
-    if (applyOutcome) {
-      run = waveShape === "clean_hold" ? settleWave(run, { defeated: true, calledEarly: false, baseScience: 10 }) : { ...settleWave(run, { defeated: false, calledEarly: false, baseScience: 10 }), ended: waveShape === "total_loss" ? "defeated" : null };
-      if (!run.ended) waveClock = scheduleNextWave(waveClock);
+  /** Builds until the wave lands. False when none is coming -- pacifist, or the budget ran out. */
+  function grow(): boolean {
+    const opened = seconds;
+    let previous = buildingNeeds(parcels, economy.resources.population);
+    for (let i = 0; i < GROW_STEPS_PER_WAVE && !waveClock.active; i++) {
+      step(GROW_STEP_SECONDS);
+      const needs = buildingNeeds(parcels, economy.resources.population);
+      const short = needs.find((need) => need.need > need.supply);
+      if (short && !followedNeeds.has(short.kind) && short.ratio < (previous.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
+        followedNeeds.add(short.kind);
+        const [x, z] = needZones[short.kind];
+        paint(short.kind, x, z, 60);
+        log.push(`need:${short.kind}->zone:${short.kind} supply=${short.supply} need=${short.need}`);
+      }
+      previous = needs;
     }
+    if (waveClock.active) log.push(`wait:${(seconds - opened).toFixed(1)}`);
+    return Boolean(waveClock.active);
+  }
+
+  function fight(wave: number): WaveRecord {
+    sync(false);
+    const started = seconds;
+    const waitedSeconds = started - (waves.at(-1)?.waitedSeconds ?? 0) - waves.reduce((sum, record) => sum + record.combatDurationSeconds, 0);
+    const threat = waveClock.active!.threat;
+    const population = economy.resources.population;
+    const parcelsAtWave = parcels.length;
+    const opening = batteriesForParcels(parcels, population);
+    let assault = createKaijuAssault(v3(-260 + seed, 0, 260));
+    let missiles: { readonly damage: number; readonly impactAt: number }[] = [];
+    let nextSalvoAt = 0;
+    let salvos = 0;
+    let destroyed = 0;
+    let rebuildingCost = 0;
+    log.push(`defence:wave=${wave} population=${population.toFixed(1)} batteries=${opening.length} threat=${threat}`);
+
+    while (waveClock.active && waveClock.active.hitPoints > 0 && seconds - started < COMBAT_CAP_SECONDS && parcels.length) {
+      const live = statuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel.position);
+      assault = advanceKaijuAssault(assault, live, COMBAT_STEP_SECONDS);
+      const batteries = batteriesForParcels(parcels, economy.resources.population);
+      if (seconds - started >= nextSalvoAt) {
+        const firing = batteriesInRange(batteries, assault.position);
+        salvos += firing.length ? 1 : 0;
+        missiles.push(...firing.map((shot) => ({
+          damage: shot.damage,
+          impactAt: seconds + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(shot.position, assault.position) / shot.range),
+        })));
+        nextSalvoAt += WAVE_STARTING_VALUES.reloadSeconds;
+      }
+      const hits = missiles.filter((missile) => missile.impactAt <= seconds);
+      if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
+      missiles = missiles.filter((missile) => missile.impactAt > seconds);
+      const hit = assault.destroyed ? parcels.find((parcel) => distXZ(parcel.position, assault.destroyed!) < 0.01) : null;
+      if (hit) {
+        destroyed += 1;
+        rebuildingCost += buildingBuildCost(hit);
+        rubble.destroy(hit);
+        treasury.spend(buildingBuildCost(hit), true);
+        lifecycle.rebuild(hit, seconds);
+        parcels = parcels.filter((parcel) => parcel !== hit);
+        statuses = statuses.filter((status) => status.parcel !== hit);
+      }
+      seconds += COMBAT_STEP_SECONDS;
+    }
+
+    const held = (waveClock.active?.hitPoints ?? 0) <= 0;
+    log.push(`wave:${held ? "held" : "breached"}`, `combat:${seconds - started}`, `salvos:${salvos}`);
+    run = held
+      ? settleWave(run, { defeated: true, calledEarly: false, baseScience: 10 * run.wave })
+      : endIfPopulationZero(defeat(settleWave(run, { defeated: false, calledEarly: false, baseScience: 10 * run.wave })), economy.resources.population);
+    if (!run.ended) waveClock = scheduleNextWave(waveClock);
+    return {
+      wave,
+      waitedSeconds,
+      threat,
+      population,
+      parcels: parcelsAtWave,
+      fieldedBatteries: opening.length,
+      firepowerPerMinute: firepowerPerMinute(opening),
+      combatDurationSeconds: seconds - started,
+      salvos,
+      held,
+      destroyed,
+      rebuildingCost,
+      treasury: treasury.money,
+      science: run.science,
+      shape: held ? (destroyed ? "partial_loss" : "clean_hold") : parcels.length ? "partial_loss" : "total_loss",
+    };
+  }
+
+  function snapshot(): RunPlaythrough {
     return {
       seed,
       seconds,
@@ -137,66 +266,21 @@ export function playFirstRun(seed = 1, rules: Partial<RunRules> = {}): Playthrou
       waveClock,
       treasury,
       economy,
-      wave: {
-        shape: waveShape,
-        threat,
-        fieldedBatteries: waveFieldedBatteries || batteries.length,
-        firepowerPerMinute: waveFirepowerPerMinute || firepowerPerMinute(batteries),
-        rebuildingCost: waveRebuildingCost,
-        combatDurationSeconds: waveCombatDurationSeconds,
-        salvos: waveSalvos,
-        nextWaveReachable: !run.ended,
-      },
+      waves,
       log,
     };
   }
+}
 
-  function fightWave(): PlaythroughResult {
-    let assault = createKaijuAssault(v3(-260 + seed, 0, 260));
-    let nextSalvoAt = 0;
-    let salvos = 0;
-    let missiles: { readonly damage: number; readonly impactAt: number }[] = [];
-    const started = seconds;
-    const threat = waveClock.active!.threat;
-    const openingBatteries = batteriesForParcels(parcels, economy.resources.population);
-    waveFieldedBatteries = openingBatteries.length;
-    waveFirepowerPerMinute = firepowerPerMinute(openingBatteries);
-    log.push(`defence:population=${economy.resources.population.toFixed(1)} batteries=${waveFieldedBatteries}`);
-    while (waveClock.active && waveClock.active.hitPoints > 0 && seconds - started < 90 && parcels.length) {
-      const live = statuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel.position);
-      assault = advanceKaijuAssault(assault, live, 0.25);
-      const position = assault.position;
-      const batteries = batteriesForParcels(parcels, economy.resources.population);
-      if (seconds - started >= nextSalvoAt) {
-        const firing = batteriesInRange(batteries, position);
-        salvos += firing.length ? 1 : 0;
-        missiles.push(...firing.map((shot) => ({ damage: shot.damage, impactAt: seconds + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(shot.position, position) / shot.range) })));
-        nextSalvoAt += WAVE_STARTING_VALUES.reloadSeconds;
-      }
-      const hits = missiles.filter((missile) => missile.impactAt <= seconds);
-      if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
-      missiles = missiles.filter((missile) => missile.impactAt > seconds);
-      const hit = assault.destroyed ? parcels.find((parcel) => distXZ(parcel.position, assault.destroyed!) < 0.01) : null;
-      if (hit) {
-        rubble.destroy(hit);
-        waveRebuildingCost += buildingBuildCost(hit);
-        treasury.spend(buildingBuildCost(hit), true);
-        lifecycle.rebuild(hit, seconds);
-        parcels = parcels.filter((parcel) => parcel !== hit);
-        statuses = lifecycle.sync(parcels, economy.resources.population, seconds, 0);
-      }
-      seconds += 0.25;
-    }
-    const held = (waveClock.active?.hitPoints ?? 0) <= 0;
-    waveCombatDurationSeconds = seconds - started;
-    waveSalvos = salvos;
-    log.push(`wave:${held ? "held" : "breached"}`);
-    log.push(`combat:${waveCombatDurationSeconds}`);
-    log.push(`salvos:${salvos}`);
-    run = held ? settleWave(run, { defeated: true, calledEarly: false, baseScience: 10 }) : endIfPopulationZero(defeat(settleWave(run, { defeated: false, calledEarly: false, baseScience: 10 })), economy.resources.population);
-    if (held) waveClock = scheduleNextWave(waveClock);
-    return result(held ? (rubble.count() ? "partial_loss" : "clean_hold") : parcels.length ? "partial_loss" : "total_loss", threat, false);
-  }
+export function playFirstRun(seed = 1, rules: Partial<ScenarioRules> = {}): PlaythroughResult {
+  const played = playRun(seed, rules, 1);
+  const first: WaveRecord = played.waves[0] ?? {
+    wave: 1, waitedSeconds: played.seconds, threat: 0, population: played.economy.resources.population,
+    parcels: played.parcels.length, fieldedBatteries: 0, firepowerPerMinute: 0, combatDurationSeconds: 0,
+    salvos: 0, held: false, destroyed: 0, rebuildingCost: 0, treasury: played.treasury.money,
+    science: played.run.science, shape: "clean_hold",
+  };
+  return { ...played, wave: { ...first, nextWaveReachable: !played.run.ended } };
 }
 
 export function militaryGap(seed = 1): number {

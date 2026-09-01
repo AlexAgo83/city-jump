@@ -18,7 +18,8 @@
     "ci": "npm test && npm run test:architecture && npm run build && npm run logics:validate",
     "release:static": "npm run ci",
     "verify": "npm run test:visual",
-    "check": "npm run test:e2e"
+    "check": "npm run test:e2e",
+    "scenarios": "node -e \"require('node:fs').mkdirSync('.tmp/balance',{recursive:true});require('node:fs').writeFileSync('.tmp/balance/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && tsc --ignoreConfig --rootDir src --outDir .tmp/balance --module CommonJS --target ES2022 --strict --noUncheckedIndexedAccess --skipLibCheck --noEmit false src/sim/playthrough.ts && node scripts/run-scenarios.mjs"
   },
   "keywords": [
     "city-builder",
