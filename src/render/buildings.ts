@@ -908,7 +908,7 @@ function tintFor(kind: BuildingKind, strength: number): [number, number, number]
   return [1 + (r - 1) * strength, 1 + (g - 1) * strength, 1 + (b - 1) * strength];
 }
 
-function matrixFor(parcel: BuildingParcel, centerX: number, status?: Pick<BuildingStatus, "state">): Matrix {
+function matrixFor(parcel: BuildingParcel, centerX: number, status?: Pick<BuildingStatus, "state" | "progress">): Matrix {
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // Along-frontage direction is the model's +X once rotated.
   const alongX = Math.cos(parcel.rotationY);
@@ -948,16 +948,16 @@ function distantColor(parcel: BuildingParcel): [number, number, number] {
 }
 
 export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
-  const color = status?.state === "waiting" ? [0.18, 0.2, 0.23] : status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.reason === "power" ? [0.95, 0.74, 0.2] : status?.reason === "water" ? [0.2, 0.56, 0.9] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
+  const color = status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.reason === "power" ? [0.95, 0.74, 0.2] : status?.reason === "water" ? [0.2, 0.56, 0.9] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
   return color as [number, number, number];
 }
 
-function buildingStateScaleY(status?: Pick<BuildingStatus, "state">): number {
-  return status?.state === "waiting" || status?.state === "rising" || status?.state === "rebuilding" ? 0.28 : 1;
+function buildingStateScaleY(status?: Pick<BuildingStatus, "state" | "progress">): number {
+  return status?.state === "rising" || status?.state === "rebuilding" ? 0.18 + 0.82 * status.progress : 1;
 }
 
 /** A box the size of the building that would stand on this parcel, seated on its frontage. */
-function distantBoxMatrix(parcel: BuildingParcel, height: number, status?: Pick<BuildingStatus, "state">): Matrix {
+function distantBoxMatrix(parcel: BuildingParcel, height: number, status?: Pick<BuildingStatus, "state" | "progress">): Matrix {
   const width = parcel.frontageCells * GRID.cellSize - 1.5;
   const depth = parcel.depthCells * GRID.cellSize - 1.5;
   const scaledHeight = height * buildingStateScaleY(status);

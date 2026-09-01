@@ -130,7 +130,7 @@ describe("city saves", () => {
     const restored = new BuildingLifecycle();
     restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), restored);
 
-    expect(restored.toJSON()).toEqual([[1, 2, "waiting", 12]]);
+    expect(restored.toJSON()).toEqual([[1, 2, "rising", 12]]);
   });
 
   it("carries treasury money through a save", () => {

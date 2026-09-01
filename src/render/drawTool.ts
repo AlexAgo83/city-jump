@@ -14,7 +14,7 @@ import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Sn
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
-import { demolitionRefund } from "../sim/economy";
+import { buildingBuildCost, demolitionRefund } from "../sim/economy";
 import { UTILITY_CATALOG, type SavedUtility, type UtilityKind, type UtilityRole } from "../sim/utilities";
 import type { BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
@@ -52,7 +52,7 @@ type SelectTarget =
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
-  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"] }
+  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"]; x: number; z: number; progress: number; remainingSeconds: number }
   | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
   | { kind: "tree" }
@@ -137,7 +137,7 @@ export interface HistoryTools {
 export interface EconomyTools {
   roadCost(type: RoadTypeId, metres: number): number;
   canSpend(cost: number): boolean;
-  spend(cost: number): boolean;
+  spend(cost: number, allowDebt?: boolean): boolean;
   refund(amount: number): void;
   money(): number;
 }
@@ -270,6 +270,10 @@ export function createDrawTool(
         footprint: `${target.status.parcel.frontageCells}x${target.status.parcel.depthCells}`,
         buildingKind: target.status.parcel.kind,
         state: target.status.state,
+        x: target.status.parcel.position.x,
+        z: target.status.parcel.position.z,
+        progress: target.status.progress,
+        remainingSeconds: target.status.remainingSeconds,
         ...(target.status.reason ? { reason: target.status.reason } : {}),
       });
       return;
@@ -472,7 +476,12 @@ export function createDrawTool(
       }
       history?.beforeChange();
       if (target.kind === "building") {
-        window.setTimeout(() => history?.afterChange(demolition?.building(target.status) ?? false), DEMOLITION_MS);
+        const refund = demolitionRefund(buildingBuildCost(target.status.parcel));
+        window.setTimeout(() => {
+          const changed = demolition?.building(target.status) ?? false;
+          if (changed) economy?.refund(refund);
+          history?.afterChange(changed);
+        }, DEMOLITION_MS);
         return;
       }
       if (target.kind === "utility") {
@@ -569,18 +578,13 @@ export function createDrawTool(
     const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position)), TERRAIN_DIRTY_PAD);
     history?.beforeChange();
     const cost = economy?.roadCost(typeId, quadraticLengthXZ(from.position, control, to.position)) ?? 0;
-    if (cost > 0 && !economy?.canSpend(cost)) {
-      onRefused(`Need $${cost.toLocaleString()} for this road; treasury has $${Math.floor(economy?.money() ?? 0).toLocaleString()}.`);
-      history?.afterChange(false);
-      return;
-    }
     const result = commitSegment(graph, from, to, control, typeId);
     if (!result.ok) {
       onRefused(result.reason);
       history?.afterChange(false);
       return; // the refused segment never entered the graph; keep drawing from the same start
     }
-    if (cost > 0) economy?.spend(cost);
+    if (cost > 0) economy?.spend(cost, true);
     stage = { phase: "idle" };
     clearPreview();
     history?.afterChange(true);

@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { CITY_DAY_SECONDS, CityEconomy, STARTING_MONEY, Treasury, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
+import { buildingBuildCost, CITY_DAY_SECONDS, CityEconomy, STARTING_MONEY, Treasury, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
 import type { BuildingStatus } from "./buildingLifecycle";
 
 const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["state"], frontageCells = 1, depthCells = 1): BuildingStatus => ({
   state,
+  startedAt: 0,
+  progress: 1,
+  remainingSeconds: 0,
   parcel: { kind, frontageCells, depthCells, position: { x: 0, y: 0, z: 0 }, rotationY: 0, cells: [] },
 });
 
@@ -30,6 +33,10 @@ describe("economy", () => {
 
   it("returns half the original cost on demolition", () => {
     expect(demolitionRefund(660)).toBe(330);
+  });
+
+  it("prices buildings by footprint", () => {
+    expect(buildingBuildCost(status("residential", "working", 2, 3).parcel)).toBe(4800);
   });
 
   it("only produces staffed district output and keeps its terms", () => {

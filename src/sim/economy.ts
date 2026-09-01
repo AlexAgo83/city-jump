@@ -93,6 +93,10 @@ export function roadBuildCost(type: string, metres: number): number {
   return Math.ceil(base * metres);
 }
 
+export function buildingBuildCost(parcel: Pick<BuildingParcel, "frontageCells" | "depthCells">): number {
+  return parcel.frontageCells * parcel.depthCells * 800;
+}
+
 export function demolitionRefund(cost: number): number {
   return cost / 2;
 }

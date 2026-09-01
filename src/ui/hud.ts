@@ -69,9 +69,9 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
   }));
 }
 
-export function showMoney(balance: number, perSecond: number, queue: { rising?: number; waiting?: number } = {}): void {
+export function showMoney(balance: number, perSecond: number, queue: { rising?: number; rebuilding?: number } = {}): void {
   moneyText.textContent = `$${Math.floor(balance).toLocaleString()} ${perSecond >= 0 ? "+" : ""}$${perSecond.toFixed(1)}/s`;
-  moneyText.title = `${queue.rising ?? 0} rising, ${queue.waiting ?? 0} waiting`;
+  moneyText.title = `${queue.rising ?? 0} rising, ${queue.rebuilding ?? 0} rebuilding`;
 }
 
 export function showWaveBanner(text: string, state: "waiting" | "active" | "held" | "breached" = "waiting"): void {
@@ -113,7 +113,7 @@ function compact(value: number): string {
 }
 
 function stateLabel(state: string): string {
-  return state === "waiting" ? "Waiting" : state === "rising" ? "Construction" : state === "idle" ? "Idle" : state === "rebuilding" ? "Rebuilding" : "Working";
+  return state === "rising" ? "Construction" : state === "idle" ? "Idle" : state === "rebuilding" ? "Rebuilding" : "Working";
 }
 
 const selectionPanel = document.getElementById("selection-panel") as HTMLDivElement;
@@ -140,11 +140,14 @@ export function showSelection(info: SelectionInfo | null): void {
   }
   if (info.kind === "building") {
     selectionKind.textContent = "Building";
+    const construction = info.state === "rising" || info.state === "rebuilding"
+      ? `${stateLabel(info.state)} -- ${Math.round(info.progress * 100)} % -- ${Math.ceil(info.remainingSeconds)} s remaining`
+      : stateLabel(info.state);
     selectionRows.innerHTML =
       row("Address", info.address) +
       row("Type", label(info.buildingKind)) +
       row("Footprint", info.footprint) +
-      row("State", stateLabel(info.state)) +
+      row("State", construction) +
       (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : info.reason === "power" ? "No power" : info.reason === "water" ? "No water" : "Under construction") : "");
     return;
   }

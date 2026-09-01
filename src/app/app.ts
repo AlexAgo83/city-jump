@@ -17,7 +17,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { CityEconomy, STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
+import { buildingBuildCost, CityEconomy, STARTING_MONEY, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -175,6 +175,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let waveVerdict: WaveVerdict | null = null;
   let buildingRebuildTimer = 0;
   let lastTerms: CityTerms | undefined;
+  let chargeConstructionStarts = true;
   const scheduleBuildingRebuild = (): void => {
     window.clearTimeout(buildingRebuildTimer);
     // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
@@ -195,10 +196,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const supplied = currentSuppliedUtilities();
     const diffusers = utilities.diffusers();
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds).map((status) => {
-      if (status.state === "rising" || status.state === "waiting" || status.state === "rebuilding") return status;
+      if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;
     });
+    for (const status of currentBuildingStatuses) {
+      if (chargeConstructionStarts && status.started) treasury.spend(buildingBuildCost(status.parcel), true);
+    }
     let clearedRubble = false;
     for (const status of currentBuildingStatuses) {
       if (status.state === "rebuilding" || !rubble.blocks(status.parcel)) continue;
@@ -424,6 +428,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const hit = kaijuAssault?.destroyed ? currentParcels.find((parcel) => samePosition(parcel.position, kaijuAssault!.destroyed!)) : null;
     if (!hit) return;
     rubble.destroy(hit);
+    treasury.spend(buildingBuildCost(hit), true);
     buildingLifecycle.rebuild(hit, simSeconds);
     syncBuildings();
     history.clear();
@@ -496,8 +501,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     {
       roadCost: roadBuildCost,
       canSpend: (cost) => treasury.canSpend(cost),
-      spend(cost) {
-        const spent = treasury.spend(cost);
+      spend(cost, allowDebt) {
+        const spent = treasury.spend(cost, allowDebt);
         updateMoneyHud();
         return spent;
       },
@@ -679,7 +684,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     simDay = 1;
     setClockHour(city.hour);
     addOffshoreBridge();
+    chargeConstructionStarts = false;
     rebuild();
+    chargeConstructionStarts = true;
     if (city.camera) applyCamera(city.camera);
     updateUndoRedo();
     return true;
@@ -717,6 +724,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       treasury.earn(income * simDt);
       updateMoneyHud();
       buildings.updateStates(currentBuildingStatuses);
+      if (selectedInfo?.kind === "building") {
+        const info = selectedInfo;
+        const selected = currentBuildingStatuses.find((status) => samePosition(status.parcel.position, info));
+        if (selected) showSelection((selectedInfo = { ...selectedInfo, state: selected.state, reason: selected.reason, progress: selected.progress, remainingSeconds: selected.remainingSeconds }));
+      }
     }
     updateWave(simDt);
     detail.update();

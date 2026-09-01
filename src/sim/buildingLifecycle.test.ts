@@ -20,7 +20,20 @@ describe("building lifecycle", () => {
     const parcels = [parcel("residential", 0, 2, 2), parcel("military", 20), parcel("commercial", 40, 4, 4)];
 
     expect(lifecycle.sync(parcels, 48, 10).map((status) => status.state)).toEqual(["rising", "rising", "rising"]);
+    expect(BUILDING_STAGE_SECONDS).toBeGreaterThanOrEqual(15);
+    expect(BUILDING_STAGE_SECONDS).toBeLessThanOrEqual(30);
     expect(lifecycle.sync(parcels, 48, 10 + BUILDING_STAGE_SECONDS).map((status) => status.state)).toEqual(["working", "working", "idle"]);
+  });
+
+  it("reports live construction progress", () => {
+    const lifecycle = new BuildingLifecycle();
+    const [started] = lifecycle.sync([parcel("residential", 0)], 12, 10);
+    const [half] = lifecycle.sync([parcel("residential", 0)], 12, 10 + BUILDING_STAGE_SECONDS / 2);
+
+    expect(started!.started).toBe(true);
+    expect(half!.progress).toBe(0.5);
+    expect(half!.remainingSeconds).toBe(BUILDING_STAGE_SECONDS / 2);
+    expect(half!.started).toBeUndefined();
   });
 
   it("rebuilds damaged parcels while new parcels rise", () => {

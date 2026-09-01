@@ -1,20 +1,26 @@
 import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 
-export type BuildingState = "waiting" | "rising" | "working" | "idle" | "rebuilding";
-export type SavedBuildingState = [x: number, z: number, state: BuildingState, startedAt: number];
+export type BuildingState = "rising" | "working" | "idle" | "rebuilding";
+type LegacyBuildingState = BuildingState | "waiting";
+export type SavedBuildingState = [x: number, z: number, state: LegacyBuildingState, startedAt: number];
+type StoredBuildingState = [x: number, z: number, state: BuildingState, startedAt: number];
 
 export interface BuildingStatus {
   readonly parcel: BuildingParcel;
   readonly state: BuildingState;
   readonly reason?: "construction" | "workers" | "power" | "water";
+  readonly startedAt: number;
+  readonly progress: number;
+  readonly remainingSeconds: number;
+  readonly started?: boolean;
 }
 
-export const BUILDING_STAGE_SECONDS = 60;
+export const BUILDING_STAGE_SECONDS = 24;
 
 export class BuildingLifecycle {
   private readonly states = new Map<string, { state: BuildingState; startedAt: number }>();
-  private last: SavedBuildingState[] = [];
+  private last: StoredBuildingState[] = [];
 
   constructor(saved: readonly SavedBuildingState[] = []) {
     this.replaceWith(saved);
@@ -26,17 +32,17 @@ export class BuildingLifecycle {
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
       const previous = this.states.get(key);
-      if (!previous || previous.state === "waiting") {
-        const state: BuildingState = "rising";
-        const startedAt = state === previous?.state ? previous.startedAt : now;
+      if (!previous) {
+        const state = "rising";
+        const startedAt = now;
         live.set(key, { state, startedAt });
-        return { parcel, state, reason: "construction" as const };
+        return status(parcel, state, startedAt, now, "construction", true);
       }
       const underWork = (previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < BUILDING_STAGE_SECONDS;
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
       const startedAt = state === previous.state ? previous.startedAt : now;
       live.set(key, { state, startedAt });
-      return { parcel, state, ...(state === "rising" || state === "rebuilding" ? { reason: "construction" as const } : state === "idle" ? { reason: "workers" as const } : {}) };
+      return status(parcel, state, startedAt, now, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
     this.states.clear();
     for (const [key, state] of live) this.states.set(key, state);
@@ -55,13 +61,25 @@ export class BuildingLifecycle {
 
   replaceWith(saved: readonly SavedBuildingState[]): void {
     this.states.clear();
-    this.last = [...saved];
-    for (const [x, z, state, startedAt] of saved) this.states.set(key(x, z), { state, startedAt });
+    this.last = saved.map(([x, z, state, startedAt]) => [x, z, normalizeState(state), startedAt]);
+    for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt });
   }
 
   toJSON(): SavedBuildingState[] {
     return [...this.last].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   }
+}
+
+function status(parcel: BuildingParcel, state: BuildingState, startedAt: number, now: number, reason?: BuildingStatus["reason"], started?: boolean): BuildingStatus {
+  const underWork = state === "rising" || state === "rebuilding";
+  const elapsed = underWork ? Math.max(0, now - startedAt) : BUILDING_STAGE_SECONDS;
+  const progress = Math.min(1, elapsed / BUILDING_STAGE_SECONDS);
+  const remainingSeconds = underWork ? Math.max(0, BUILDING_STAGE_SECONDS - elapsed) : 0;
+  return { parcel, state, startedAt, progress, remainingSeconds, ...(reason ? { reason } : {}), ...(started ? { started } : {}) };
+}
+
+function normalizeState(state: LegacyBuildingState): BuildingState {
+  return state === "waiting" ? "rising" : state;
 }
 
 function parcelKey(parcel: Pick<BuildingParcel, "position">): string {
