@@ -889,6 +889,7 @@ const utilityDiffuserPoint = await screenPoint(`(() => {
   return graph.pointAt(segment.id, segment.length * 0.75).position;
 })()`);
 await page.locator("#save-slot").blur();
+const utilitiesBefore = (await stats()).utilities;
 await page.locator('[data-tool="water"]').click();
 await page.locator('input[name="utility-role"][value="producer"]').check();
 await click(utilityProducerPoint.x, utilityProducerPoint.y);
@@ -897,11 +898,13 @@ await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="utilities"]').check();
 const utilitiesView = await utilityOverlayState();
+// The starter kit now opens a run with power and water already running, so count what this check
+// placed rather than what the city holds: a city that begins with none cannot feed itself.
 check("the Utilities view shows carried roads and diffuser reach", utilitiesView.roads > 0 && utilitiesView.radii > 0 && utilitiesView.markers >= 2, JSON.stringify(utilitiesView));
-check("placing utilities spends money and records them", (await stats()).utilities === 2 && (await stats()).money < 200_000, JSON.stringify(await stats()));
+check("placing utilities spends money and records them", (await stats()).utilities === utilitiesBefore + 2 && (await stats()).money < 200_000, JSON.stringify(await stats()));
 await page.locator('[data-tool="bulldoze"]').click();
 await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
-await page.waitForFunction(() => window.cityjump.stats().utilities === 1, null, { timeout: 5_000 });
+await page.waitForFunction((expected) => window.cityjump.stats().utilities === expected, utilitiesBefore + 1, { timeout: 5_000 });
 check("destroying a diffuser tells the player", /diffuser destroyed/.test(await toast()), await toast());
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
