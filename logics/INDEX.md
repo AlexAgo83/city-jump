@@ -34,6 +34,7 @@
 | [prod_019_an_interface_for_a_city_you_can_lose](product/prod_019_an_interface_for_a_city_you_can_lose.md) | An interface for a city you can lose | Settled |  |  | product/prod_019_an_interface_for_a_city_you_can_lose.md |
 | [prod_020_a_wave_the_player_can_actually_watch](product/prod_020_a_wave_the_player_can_actually_watch.md) | A wave the player can actually watch | Proposed |  |  | product/prod_020_a_wave_the_player_can_actually_watch.md |
 | [prod_021_a_run_that_is_more_than_one_wave](product/prod_021_a_run_that_is_more_than_one_wave.md) | A run that is more than one wave | Proposed |  |  | product/prod_021_a_run_that_is_more_than_one_wave.md |
+| [prod_022_a_purchase_screen_is_not_a_play_screen](product/prod_022_a_purchase_screen_is_not_a_play_screen.md) | A purchase screen is not a play screen | Proposed |  |  | product/prod_022_a_purchase_screen_is_not_a_play_screen.md |
 
 ## Roadmaps
 
@@ -77,6 +78,7 @@
 | [req_028_runs_science_and_prestige_leaving_an_island_with_something](request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md) | Runs, science and prestige: leaving an island with something | Done |  |  | request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md |
 | [req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Draft |  |  | request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
 | [req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes](request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md) | The loops that never close: a run of one wave, a city that starves on day one, and resources nothing consumes | Draft |  |  | request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md |
+| [req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen](request/req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen.md) | A panel that sells nothing: nine upgrades with no effect, permanently on the play screen | Draft |  |  | request/req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen.md |
 
 ## Backlog
 
@@ -167,6 +169,8 @@
 | [item_083_a_starting_city_that_can_staff_a_building_and_feed_itself](backlog/item_083_a_starting_city_that_can_staff_a_building_and_feed_itself.md) | A starting city that can staff a building and feed itself | Ready |  | 0% | backlog/item_083_a_starting_city_that_can_staff_a_building_and_feed_itself.md |
 | [item_084_resources_that_something_spends_counted_once](backlog/item_084_resources_that_something_spends_counted_once.md) | Resources that something spends, counted once | Ready |  | 0% | backlog/item_084_resources_that_something_spends_counted_once.md |
 | [item_085_a_military_zone_that_builds_something](backlog/item_085_a_military_zone_that_builds_something.md) | A military zone that builds something | Ready |  | 0% | backlog/item_085_a_military_zone_that_builds_something.md |
+| [item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered](backlog/item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered.md) | Upgrades that do something, or upgrades that are not offered | Ready |  | 0% | backlog/item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered.md |
+| [item_087_a_run_panel_that_carries_what_the_player_is_playing_with](backlog/item_087_a_run_panel_that_carries_what_the_player_is_playing_with.md) | A run panel that carries what the player is playing with | Ready |  | 0% | backlog/item_087_a_run_panel_that_carries_what_the_player_is_playing_with.md |
 
 ## Tasks
 
@@ -204,6 +208,7 @@
 | [task_030_runs_science_and_prestige_leaving_an_island_with_something](tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md) | Runs, science and prestige: leaving an island with something | Done | codex | 100% | tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md |
 | [task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Ready |  | 0% | tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
 | [task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent](tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md) | Close the loops: a run of several waves, a city that survives its first day, and resources that are spent | Ready |  | 0% | tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md |
+| [task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen](tasks/task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen.md) | Make the prestige web real, and take it off the play screen | Ready |  | 0% | tasks/task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen.md |
 
 ## Runbooks
 

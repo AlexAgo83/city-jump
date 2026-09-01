@@ -1,0 +1,358 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered item_087_a_run_panel_that_carries_what_the_player_is_playing_with task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen --mode full --profile normal",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "panel, sells, nothing, nine, upgrades, effect, permanently, play, screen",
+        "skip when": "You need the wave, the city economy, or how a run ends.",
+        "summary": "The prestige web sells nine upgrades that change nothing and sits permanently on the play screen beside two unconfirmed destructive controls: make the nodes real or drop them, and move the purchase screen off the game.",
+        "use when": "Working on the prestige web, the run panel, or what stays permanently on screen during play."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+          "item_087_a_run_panel_that_carries_what_the_player_is_playing_with"
+        ],
+        "prod": [
+          "prod_019_an_interface_for_a_city_you_can_lose",
+          "prod_022_a_purchase_screen_is_not_a_play_screen"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+          "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen"
+        ]
+      },
+      "path": "logics/request/req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen.md",
+      "ref": "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every upgrade the web offers changes something the player can observe, or it is not offered.",
+          "- AC2: That each upgrade has an effect is proven by a test over the effect, not by a test over the list's branch labels.",
+          "- AC3: The prestige web is reached where prestige is earned and spent -- between runs -- rather than sitting permanently on the play screen.",
+          "- AC4: Upgrades are named and described by what they do, not by their identifier and a number.",
+          "- AC5: The permanent run readouts obey the rule the interface slice set: nothing is added permanently without something being removed or folded.",
+          "- AC6: Ending a run is not a single unconfirmed click, and the hardcore setting is chosen where a run begins rather than toggled during the run it governs."
+        ],
+        "Needs": [
+          "- Not one of the nine prestige upgrades does anything. `battery-readiness`, `utility-survey`, `evac-drill`, `starter-funds`, `starter-materials`, `starter-services`, `wave-forecast`, `coverage-map` and `risk-ledger` appear exactly twice in the codebase each: in the list that declares them and in the tests over that list. `profile.upgrades` is written, persisted, read back on load, and consulted in one place -- `button.dataset.owned`, which turns the button green. The web spends a currency to recolour itself.",
+          "- The acceptance criterion that covers this is satisfied vacuously. the run slice's AC3 says prestige is spent on capabilities, starting conditions and information and never on multipliers over the loop's own scarcities, proven by a test asserting no node touches a core rate. The test asserts that the three branch *labels* are present. No node touches a core rate because no node touches anything, and no test that could be written over the current code would fail.",
+          "- That web is permanently on the play screen. `#run-panel` is `position: fixed` with no hidden state, and it carries a wave counter, a science counter, a prestige counter, a hardcore checkbox, an Evacuate button, and nine upgrade buttons that wrap across up to 560 pixels. Their labels are the raw identifiers with the price appended -- `battery-readiness 5` -- which is a developer surface shown to a player.",
+          "- The interface slice immediately before it decided the opposite rule. the interface slice's AC6: no permanent readout is added without another being removed or folded. The very next task added six permanent elements and folded nothing.",
+          "- Prestige is a between-runs currency and there is nothing to do with it during a run. Science only becomes prestige through `carryScience`, which fires on evacuation, so the number the panel shows cannot change while the player is playing. The buttons are therefore not merely ineffective -- for most of a run they are also unspendable, and they sit in the corner of the screen throughout.",
+          "- Two of the panel's controls are destructive and both are one unconfirmed click away, permanently. Evacuate ends the run outright the moment it is pressed. The hardcore checkbox decides whether a defeat deletes the run's save, and it can be toggled at any point during the run it governs, next to nothing that asks whether that was meant."
+        ]
+      },
+      "status": "Draft",
+      "title": "A panel that sells nothing: nine upgrades with no effect, permanently on the play screen"
+    },
+    {
+      "ai_context": {
+        "keywords": "interface, wave, demands, game, state, leaves, settings, menu",
+        "skip when": "You need a simulation rule -- what a number means belongs to prod_018.",
+        "summary": "prod_019 end to end: game state leaves the settings menu, the wave banner and the time controls take the top of the screen, the city strip carries what can kill you, the gauges open a ledger that shows the arithmetic, and the map gains the State view and the alerts.",
+        "use when": "Working on layout, readouts, the ledger, alerts, or anything about where information lives on screen."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_076_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ],
+        "prod": [
+          "prod_019_an_interface_for_a_city_you_can_lose"
+        ],
+        "req": [
+          "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu"
+        ]
+      },
+      "path": "logics/request/req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+      "ref": "req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The settings menu contains nothing a player needs during a wave.",
+          "- AC2: The wave banner and the time controls are permanent, and the compact city strip carries",
+          "  money, workers, food and what is short.",
+          "- AC3: Clicking the gauges opens a ledger: sources and sinks per resource, and formulas with this",
+          "  city's values substituted into them.",
+          "- AC4: No formula is written down twice -- the ledger displays terms the simulation reported."
+        ],
+        "Needs": [
+          "- Four slices will have added things to read by the time this lands, which is why it lands after",
+          "  them: laying out a screen before knowing what goes on it is how a screen gets laid out twice.",
+          "- The needs panel lives inside a menu that folds away. That was fine while it was decoration and",
+          "  is wrong now that it is the thing being played against.",
+          "- The ledger is what makes the rest honest: a rule returns the number and the terms that made it,",
+          "  and the panel displays what the calculation reported rather than recomputing it."
+        ]
+      },
+      "status": "Done",
+      "title": "The interface the wave demands: game state leaves the settings menu"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need a rule inside a single run -- the economy and the wave are earlier slices.",
+        "summary": "The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.",
+        "use when": "Working on runs, evacuation, science, prestige, the upgrade web, or balancing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A defeated kaiju leaves science; calling a wave early multiplies what a defeated one leaves",
+          "  and pays nothing if it is not.",
+          "- AC2: A run ends by evacuation or by the population reaching zero, and both are explicable.",
+          "- AC3: Science carried off an island becomes prestige, spent on a web of capabilities, starting",
+          "  conditions and information -- never on multipliers over the loop's own scarcities.",
+          "- AC4: A run's city and the profile that outlives it are separate saves, and a hardcore setting"
+        ],
+        "Needs": [
+          "- Science comes only from waves and only leaves the island with the player, which is the tension",
+          "  the whole game is built on: never let a wave land and never progress.",
+          "- Leaving is a decision with a price on both sides. If a defeat carries as much as a departure,",
+          "  nobody will ever choose to leave.",
+          "- Balance stops being taste here: the harness runs the simulation headless over many seeds against",
+          "  scripted policies, and the constants are its outputs."
+        ]
+      },
+      "status": "Done",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {
+        "keywords": "upgrades, something, not, offered",
+        "skip when": "You need where the web is displayed, which is the panel slice.",
+        "summary": "The delivery slice for the web itself: each node gets a real effect along its own branch or leaves the web, and the branch-label test is replaced by tests over effects.",
+        "use when": "Working on what a prestige upgrade does or on `FIRST_UPGRADE_WEB`."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered"
+        ],
+        "prod": [
+          "prod_022_a_purchase_screen_is_not_a_play_screen"
+        ],
+        "req": [
+          "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen"
+        ],
+        "task": [
+          "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+        ]
+      },
+      "path": "logics/backlog/item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered.md",
+      "ref": "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every node still in the web changes an observable outcome; nodes that do not are gone.",
+          "- AC2: Each node's effect is covered by a test that fails when the effect is removed.",
+          "- AC3: No node touches a core rate, proven against its effect rather than its branch label.",
+          "- AC4: Nodes are named and described by what they do."
+        ],
+        "Problem": [
+          "- Each of the nine upgrade identifiers appears twice in the codebase: in `FIRST_UPGRADE_WEB` and in the tests over it. Nothing else reads them.",
+          "- `profile.upgrades` is persisted and restored and consulted in exactly one place, `button.dataset.owned`, which sets the button's colour.",
+          "- The acceptance criterion covering this is proven by a test asserting the three branch labels exist. It cannot fail, and would not fail if every upgrade were deleted from the game's rules -- which is the state the code is in.",
+          "- The labels are the raw identifiers with a price appended, so what a player is offered is `battery-readiness 5`."
+        ]
+      },
+      "status": "Ready",
+      "title": "Upgrades that do something, or upgrades that are not offered"
+    },
+    {
+      "ai_context": {
+        "keywords": "prestige, web, real, take, off, play, screen",
+        "skip when": "You need the wave, the economy, or the run's own rules.",
+        "summary": "The executable surface of `req_031`: the effects first, then where the web lives.",
+        "use when": "Implementing or reviewing the prestige web and the run panel."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+          "item_087_a_run_panel_that_carries_what_the_player_is_playing_with"
+        ],
+        "prod": [
+          "prod_022_a_purchase_screen_is_not_a_play_screen"
+        ],
+        "req": [
+          "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen"
+        ],
+        "task": [
+          "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+        ]
+      },
+      "path": "logics/tasks/task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen.md",
+      "ref": "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the prestige web real, and take it off the play screen"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+          "item_087_a_run_panel_that_carries_what_the_player_is_playing_with"
+        ],
+        "prod": [
+          "prod_022_a_purchase_screen_is_not_a_play_screen"
+        ],
+        "req": [
+          "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen"
+        ],
+        "task": [
+          "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+        ]
+      },
+      "path": "logics/product/prod_022_a_purchase_screen_is_not_a_play_screen.md",
+      "ref": "prod_022_a_purchase_screen_is_not_a_play_screen",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A purchase screen is not a play screen"
+    },
+    {
+      "ai_context": {
+        "keywords": "run, panel, carries, player, playing",
+        "skip when": "You need what the upgrades do, which is the other slice.",
+        "summary": "The delivery slice for the play screen: the web moves to between runs, the permanent readouts obey the rule the interface slice set, and the two destructive controls stop being one stray click away.",
+        "use when": "Working on the run panel, what is permanent on screen, or the evacuate and hardcore controls."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_087_a_run_panel_that_carries_what_the_player_is_playing_with"
+        ],
+        "prod": [
+          "prod_022_a_purchase_screen_is_not_a_play_screen"
+        ],
+        "req": [
+          "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen"
+        ],
+        "task": [
+          "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+        ]
+      },
+      "path": "logics/backlog/item_087_a_run_panel_that_carries_what_the_player_is_playing_with.md",
+      "ref": "item_087_a_run_panel_that_carries_what_the_player_is_playing_with",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The prestige web is not on the play screen and is reachable between runs.",
+          "- AC2: The permanent run readouts obey the rule that nothing is added permanently without something being folded.",
+          "- AC3: Ending a run requires a confirmation.",
+          "- AC4: Hardcore is chosen where a run begins, not toggled during it, and the browser interaction suite still passes."
+        ],
+        "Problem": [
+          "- `#run-panel` is `position: fixed` with no hidden state and carries a wave counter, a science counter, a prestige counter, a hardcore checkbox, an Evacuate button and nine upgrade buttons wrapping across up to 560 pixels of the play screen.",
+          "- The interface slice immediately before it decided that no permanent readout is added without another being removed or folded. Six permanent elements were added and nothing was folded.",
+          "- Prestige cannot change during a run -- science becomes prestige only through `carryScience` on evacuation -- so for most of a run the web is not merely ineffective but unspendable, and still on screen throughout.",
+          "- Evacuate ends the run on a single click with no confirmation, and the hardcore checkbox decides whether a defeat deletes the run's save while being toggleable at any moment during that run."
+        ]
+      },
+      "status": "Ready",
+      "title": "A run panel that carries what the player is playing with"
+    }
+  ],
+  "estimates": {
+    "char_count": 15409,
+    "companion_doc_count": 0,
+    "doc_count": 7
+  },
+  "generated_at": "2026-09-01T08:38:29Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen",
+      "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+      "item_087_a_run_panel_that_carries_what_the_player_is_playing_with",
+      "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen,item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered,item_087_a_run_panel_that_carries_what_the_player_is_playing_with,task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen",
+  "refs": [
+    "req_031_a_panel_that_sells_nothing_nine_upgrades_with_no_effect_permanently_on_the_play_screen",
+    "item_086_upgrades_that_do_something_or_upgrades_that_are_not_offered",
+    "item_087_a_run_panel_that_carries_what_the_player_is_playing_with",
+    "task_033_make_the_prestige_web_real_and_take_it_off_the_play_screen"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": []
+}

@@ -1,0 +1,148 @@
+{
+  "title": "A panel that sells nothing: nine upgrades with no effect, permanently on the play screen",
+  "references": [
+    "src/sim/run.ts",
+    "src/app/app.ts",
+    "src/ui/saves.ts",
+    "src/sim/run.test.ts",
+    "index.html",
+    "logics/request/req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md",
+    "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md",
+    "logics/product/prod_019_an_interface_for_a_city_you_can_lose.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Operator workflow",
+    "needs": [
+      "Not one of the nine prestige upgrades does anything. `battery-readiness`, `utility-survey`, `evac-drill`, `starter-funds`, `starter-materials`, `starter-services`, `wave-forecast`, `coverage-map` and `risk-ledger` appear exactly twice in the codebase each: in the list that declares them and in the tests over that list. `profile.upgrades` is written, persisted, read back on load, and consulted in one place -- `button.dataset.owned`, which turns the button green. The web spends a currency to recolour itself.",
+      "The acceptance criterion that covers this is satisfied vacuously. `req_028` AC3 says prestige is spent on capabilities, starting conditions and information and never on multipliers over the loop's own scarcities, proven by a test asserting no node touches a core rate. The test asserts that the three branch *labels* are present. No node touches a core rate because no node touches anything, and no test that could be written over the current code would fail.",
+      "That web is permanently on the play screen. `#run-panel` is `position: fixed` with no hidden state, and it carries a wave counter, a science counter, a prestige counter, a hardcore checkbox, an Evacuate button, and nine upgrade buttons that wrap across up to 560 pixels. Their labels are the raw identifiers with the price appended -- `battery-readiness 5` -- which is a developer surface shown to a player.",
+      "The interface slice immediately before it decided the opposite rule. `req_027` AC6: no permanent readout is added without another being removed or folded. The very next task added six permanent elements and folded nothing.",
+      "Prestige is a between-runs currency and there is nothing to do with it during a run. Science only becomes prestige through `carryScience`, which fires on evacuation, so the number the panel shows cannot change while the player is playing. The buttons are therefore not merely ineffective -- for most of a run they are also unspendable, and they sit in the corner of the screen throughout.",
+      "Two of the panel's controls are destructive and both are one unconfirmed click away, permanently. Evacuate ends the run outright the moment it is pressed. The hardcore checkbox decides whether a defeat deletes the run's save, and it can be toggled at any point during the run it governs, next to nothing that asks whether that was meant.",
+      "What this costs is not only screen space. A player learning the game reads that panel as a promise: nine capabilities to work towards. Every one of them is a promise the game does not keep, and the first time that is noticed it is the whole prestige loop that stops being believed."
+    ],
+    "context": [
+      "The prestige web itself is a good design and the survival brief is specific about it: capabilities, starting conditions and information, never multipliers over the loop's own scarcities. Nothing here argues against the web. The argument is that a node which changes nothing should not be purchasable, and that a purchase screen is not a play screen.",
+      "Each branch says plainly what it should reach: `starting` upgrades belong to how a run opens, which `req_028` AC5 already describes as the bridge, the road and the starter kit; `capability` upgrades belong to the batteries, the utilities and the evacuation; `information` upgrades belong to what the gauges and the wave banner are allowed to tell the player before the wave lands.",
+      "The starting-condition upgrades are the cheapest to make real and the easiest to test: `starter-funds`, `starter-materials` and `starter-services` are three numbers that a new run already reads from constants.",
+      "The information upgrades interact with the interface slice's own rule about permanent readouts, and are the natural answer to it: an upgrade that unlocks a readout is a readout the player asked for, which is a better reason for it to be permanent than the one the panel currently has.",
+      "`prod_019_an_interface_for_a_city_you_can_lose` is the brief that governs where things belong on screen. This request is that brief applied to the panel the run slice added after it.",
+      "There is a smaller answer available for any node that turns out to be expensive: remove it from the web until it does something. A web of four upgrades that work is better than nine that do not, and shrinking it costs nothing but a list.",
+      "Nothing here needs new prestige, new branches or new currency. Every defect is a control that exists and reaches nothing, or a control that exists in the wrong place."
+    ],
+    "acceptance_criteria": [
+      "AC1: Every upgrade the web offers changes something the player can observe, or it is not offered.",
+      "AC2: That each upgrade has an effect is proven by a test over the effect, not by a test over the list's branch labels.",
+      "AC3: The prestige web is reached where prestige is earned and spent -- between runs -- rather than sitting permanently on the play screen.",
+      "AC4: Upgrades are named and described by what they do, not by their identifier and a number.",
+      "AC5: The permanent run readouts obey the rule the interface slice set: nothing is added permanently without something being removed or folded.",
+      "AC6: Ending a run is not a single unconfirmed click, and the hardcore setting is chosen where a run begins rather than toggled during the run it governs."
+    ]
+  },
+  "product": {
+    "title": "A purchase screen is not a play screen",
+    "overview": "The run slice put a prestige web on the play screen: nine buttons, labelled with their own source identifiers and a price, fixed in the corner for the whole game. None of the nine does anything. Their identifiers appear twice each in the codebase -- once in the list that declares them, once in the test over that list -- and the only thing owning one changes is the colour of the button. Beside them sit a checkbox that decides whether a defeat deletes the save and a button that ends the run, both one unconfirmed click away, both permanent. The interface slice immediately before this one had just decided that no permanent readout may be added without another being folded away. This brief is that rule applied to the panel that broke it, and the honest treatment of a web that sells nine things and delivers none: make them real, or stop offering them.",
+    "goals": [
+      "Every purchasable thing changes the game, or is not purchasable.",
+      "Prestige is spent where prestige is earned: between runs, not over the city.",
+      "The play screen carries what the player needs while playing and nothing else.",
+      "A control that ends a run or deletes a save is not something a stray click can reach.",
+      "A player who reads the interface as a promise is not being misled."
+    ],
+    "non_goals": [
+      "New prestige branches, new currencies, or a larger web -- shrinking it is an acceptable outcome.",
+      "Rebalancing prestige costs beyond what making an upgrade real requires.",
+      "Reworking science, evacuation, or how a run ends.",
+      "A general settings or menu framework.",
+      "Cosmetic restyling of the panel for its own sake."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Upgrades that do something, or upgrades that are not offered",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": ["AC1", "AC2", "AC4"],
+      "problem": [
+        "Each of the nine upgrade identifiers appears twice in the codebase: in `FIRST_UPGRADE_WEB` and in the tests over it. Nothing else reads them.",
+        "`profile.upgrades` is persisted and restored and consulted in exactly one place, `button.dataset.owned`, which sets the button's colour.",
+        "The acceptance criterion covering this is proven by a test asserting the three branch labels exist. It cannot fail, and would not fail if every upgrade were deleted from the game's rules -- which is the state the code is in.",
+        "The labels are the raw identifiers with a price appended, so what a player is offered is `battery-readiness 5`."
+      ],
+      "scope_in": [
+        "Give each node a real effect along its own branch, or remove it from the web until it has one -- a web of four that work beats nine that do not.",
+        "The starting-condition nodes are the cheapest to make real: `starter-funds`, `starter-materials` and `starter-services` are three numbers a new run already reads from constants.",
+        "Capability nodes reach the batteries, the utilities and the evacuation; information nodes reach what the gauges and the wave banner may show before a wave lands.",
+        "Name and describe each node by what it does, so the player is reading an offer rather than an identifier.",
+        "Replace the branch-label test with tests over the effects: owning a node changes an observable outcome, and not owning it does not.",
+        "Keep the survival brief's rule intact -- capabilities, starting conditions and information, never multipliers over the loop's own scarcities -- and prove it against what the nodes do rather than what they are called."
+      ],
+      "scope_out": [
+        "New branches, new currencies, or new nodes beyond what the existing nine become.",
+        "Rebalancing prestige costs beyond what making a node real requires.",
+        "Where the web is displayed, which is the other slice."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every node still in the web changes an observable outcome; nodes that do not are gone.",
+        "AC2: Each node's effect is covered by a test that fails when the effect is removed.",
+        "AC3: No node touches a core rate, proven against its effect rather than its branch label.",
+        "AC4: Nodes are named and described by what they do."
+      ]
+    },
+    {
+      "title": "A run panel that carries what the player is playing with",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": ["AC3", "AC5", "AC6"],
+      "problem": [
+        "`#run-panel` is `position: fixed` with no hidden state and carries a wave counter, a science counter, a prestige counter, a hardcore checkbox, an Evacuate button and nine upgrade buttons wrapping across up to 560 pixels of the play screen.",
+        "The interface slice immediately before it decided that no permanent readout is added without another being removed or folded. Six permanent elements were added and nothing was folded.",
+        "Prestige cannot change during a run -- science becomes prestige only through `carryScience` on evacuation -- so for most of a run the web is not merely ineffective but unspendable, and still on screen throughout.",
+        "Evacuate ends the run on a single click with no confirmation, and the hardcore checkbox decides whether a defeat deletes the run's save while being toggleable at any moment during that run."
+      ],
+      "scope_in": [
+        "Move the prestige web to where prestige is earned and spent: between runs, on the screen that follows an evacuation or precedes a new run.",
+        "Reduce the permanent panel to what a player uses while playing, and apply the interface slice's own rule -- anything that stays permanent displaces something that was.",
+        "Put a confirmation in front of ending a run, in the shape the app already uses for a refusal or a destructive choice.",
+        "Move the hardcore setting to where a run starts, so it is chosen rather than toggled mid-run.",
+        "Check the interaction script still drives what it needs to drive, since it clicks these controls.",
+        "Keep every readout reachable -- this is about what is permanent, not about hiding the run's state."
+      ],
+      "scope_out": [
+        "What the upgrades do, which is the other slice.",
+        "A general menu or settings framework.",
+        "Restyling the panel beyond what moving things out of it requires.",
+        "Changing how evacuation or defeat resolves."
+      ],
+      "acceptance_criteria": [
+        "AC1: The prestige web is not on the play screen and is reachable between runs.",
+        "AC2: The permanent run readouts obey the rule that nothing is added permanently without something being folded.",
+        "AC3: Ending a run requires a confirmation.",
+        "AC4: Hardcore is chosen where a run begins, not toggled during it, and the browser interaction suite still passes."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Make the prestige web real, and take it off the play screen",
+    "plan": [
+      "Read this request and its two slices. Confirm the central finding yourself before designing anything: grep each of the nine upgrade identifiers across the repository and count where it appears. If a node has a third occurrence somewhere, this request is wrong about it and should say so.",
+      "Take the effects first. Where the web goes is an easier question once it is known which nodes survive, and a web that shrinks to four is a smaller thing to place.",
+      "Start with the starting-condition nodes: they are three numbers a new run already reads, and they are the cheapest proof that the loop can close at all.",
+      "Replace the branch-label test rather than adding beside it. A test that cannot fail is worse than no test, because it reports coverage that is not there.",
+      "Then the panel. Apply the interface slice's own rule to it, and let the moved web be the thing that pays for whatever stays.",
+      "Put a confirmation in front of Evacuate and move the hardcore setting to where a run begins. Both are destructive and both are currently a stray click away.",
+      "Run the browser interaction suite locally: it clicks these controls, and moving them is exactly the kind of change it exists to catch.",
+      "Do not grow the web. Fewer nodes that work is the preferred outcome, and adding branches or currency is out of scope.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. The run slice's AC3 needs restating in the closeout against evidence that can fail.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/a-panel-that-sells-nothing.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}
