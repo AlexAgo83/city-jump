@@ -1,14 +1,14 @@
 ## item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build - A Gameplay section in settings: hardcore, pacifist, instant build, free build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:39:38
+> Indicators reviewed: 2026-09-01 14:54:14
 
 # AI Context
 - Summary: The delivery slice for the Gameplay settings section: hardcore moved off the play screen, a pacifist switch, instant construction and free building.
@@ -66,3 +66,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`
+
+# Notes
+- Task `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section` was finished via `logics-manager flow finish task` on 2026-09-01.

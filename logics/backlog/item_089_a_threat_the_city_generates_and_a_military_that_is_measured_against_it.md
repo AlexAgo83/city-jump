@@ -1,14 +1,14 @@
 ## item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it - A threat the city generates, and a military that is measured against it
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:39:38
+> Indicators reviewed: 2026-09-01 14:54:14
 
 # AI Context
 - Summary: The delivery slice for the two balance questions nobody has asked: how fast a city brings the wave on itself, and whether the military it can afford matches the kaiju that arrives.
@@ -65,3 +65,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`
+
+# Notes
+- Task `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section` was finished via `logics-manager flow finish task` on 2026-09-01.

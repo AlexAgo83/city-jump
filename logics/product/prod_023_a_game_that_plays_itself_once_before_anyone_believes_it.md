@@ -1,12 +1,12 @@
 ## prod_023_a_game_that_plays_itself_once_before_anyone_believes_it - A game that plays itself, once, before anyone believes it
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
-> Related backlog: `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`, `item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it`, `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`
+> Related backlog: `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`
 > Related task: `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:26
+> Indicators reviewed: 2026-09-01 14:54:14
 
 # Overview
 Three requests' worth of defects share one cause: nothing has ever played this game from beginning to end. Every acceptance criterion was checked inside the slice that introduced it, and the failures all live between slices -- a wave that ends too early, a city that starves before the wave arrives, a currency that buys nothing. None of them needs a clever test to find. They need a harness that arrives on the island, draws roads, paints zones, waits for buildings, reads the gauges, builds what they ask for, and meets the first kaiju. This brief is that harness, the two balance questions it makes answerable -- how fast a city brings the wave on itself, and whether the military it can afford is a match for what arrives -- and the gameplay switches that are both a player's options and the harness's instruments: no kaiju, instant construction, free building.
@@ -84,5 +84,5 @@ flowchart TD
 - A player can switch the kaiju off and keep building.
 
 # References
-- Product back-reference: `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
+- Product back-reference: `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`
 - Task back-reference: `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`

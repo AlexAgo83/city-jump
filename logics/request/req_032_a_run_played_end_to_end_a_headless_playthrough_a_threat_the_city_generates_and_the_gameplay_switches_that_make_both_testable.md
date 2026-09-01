@@ -1,13 +1,13 @@
 ## req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable - A run played end to end: a headless playthrough, a threat the city generates, and the gameplay switches that make both testable
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:48
+> Indicators reviewed: 2026-09-01 14:54:13
 
 # AI Context
 - Summary: The harness that would have caught the last three requests' defects: a headless playthrough from arrival to the first kaiju, a wave that arrives on threat the city generated, a military measured against it, and a Gameplay settings section whose switches are both player options and test instruments.

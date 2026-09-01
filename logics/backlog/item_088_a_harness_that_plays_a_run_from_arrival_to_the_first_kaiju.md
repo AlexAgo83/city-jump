@@ -1,14 +1,14 @@
 ## item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju - A harness that plays a run from arrival to the first kaiju
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Progress: 100%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:39:38
+> Indicators reviewed: 2026-09-01 14:54:14
 
 # AI Context
 - Summary: The delivery slice for the playthrough: arrive, road, zone, watch parcels rise and needs move, follow the gauges, and meet the first kaiju in each of its three shapes.
@@ -60,3 +60,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section`
+
+# Notes
+- Task `task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section` was finished via `logics-manager flow finish task` on 2026-09-01.

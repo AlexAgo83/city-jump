@@ -1,14 +1,14 @@
 ## task_034_play_a_run_end_to_end_price_the_threat_the_city_makes_and_give_the_settings_a_gameplay_section - Play a run end to end, price the threat the city makes, and give the settings a Gameplay section
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 14:39:38
+> Indicators reviewed: 2026-09-01 14:54:13
 > Owner: Codex
 
 # AI Context
@@ -49,21 +49,24 @@
 - [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`. Proof deferred to slice closeout.
-- request-AC2 -> `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`. Proof deferred to slice closeout.
-- request-AC3 -> `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`. Proof deferred to slice closeout.
-- request-AC4 -> `item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it`. Proof deferred to slice closeout.
-- request-AC5 -> `item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it`. Proof deferred to slice closeout.
-- request-AC6 -> `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`. Proof deferred to slice closeout.
-- request-AC7 -> `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`. Proof deferred to slice closeout.
-- request-AC8 -> `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`. Proof deferred to slice closeout.
-- request-AC9 -> `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`. Proof deferred to slice closeout.
-- request-AC10 -> `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC2 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC3 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC4 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC5 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC6 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC7 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC8 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC9 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
+- request-AC10 -> This task. Proof: Implemented in 6f20382; validated with npm run ci, npm run test:e2e, and npm run balance. Source: `6f20382`
 
 # Validation
 - `npm run ci` passed.
 - `npm run test:e2e` passed.
 - `npm run balance` passed: 6 playthrough runs, average first wave 40.0s, average military gap 15765.7.
+- command: `npm run ci; npm run test:e2e; npm run balance` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
 
 # Report
 - Added `src/sim/playthrough.ts` and `src/sim/playthrough.test.ts`: the harness builds roads through graph snapping/commit, paints zones, advances lifecycle/economy/wave state, follows a basic needs policy, and asserts first-wave outcomes for total loss, partial loss and clean hold.
@@ -71,6 +74,9 @@
 - Extended the single balance path in `scripts/balance.mjs` to run the playthrough harness and report military capacity versus first-wave threat across seeds.
 - Added run-carried gameplay rules for kaiju spawn, instant construction and free building; saves default older runs deliberately to normal rules.
 - Added Gameplay settings controls in `index.html`/`src/app/app.ts`; pacifist mode states that waves, science and prestige pause, and e2e covers persistence/reset.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju`, `item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it`, `item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build`
+- Related request(s): `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
 
 # Links
 - Request: `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
