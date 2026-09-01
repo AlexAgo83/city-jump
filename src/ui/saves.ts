@@ -5,6 +5,7 @@
  * which is tens of thousands of segments away.
  */
 import { parseCity, type CitySave } from "../sim/save";
+import type { ProfileState, RunEndReason } from "../sim/run";
 
 const PREFIX = "cityjump.save.";
 const INDEX_KEY = "cityjump.saves";
@@ -47,6 +48,33 @@ export function writeAutosave(city: CitySave): boolean {
 export function readAutosave(): CitySave | null {
   const raw = read(AUTOSAVE_KEY);
   return raw === null ? null : parseCity(raw);
+}
+
+const PROFILE_KEY = "cityjump.profile";
+
+export function readProfile(): ProfileState {
+  const raw = read(PROFILE_KEY);
+  if (!raw) return { prestige: 0, upgrades: [], hardcore: false };
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return { prestige: 0, upgrades: [], hardcore: false };
+    const profile = parsed as Partial<ProfileState>;
+    return {
+      prestige: typeof profile.prestige === "number" && Number.isFinite(profile.prestige) ? profile.prestige : 0,
+      upgrades: Array.isArray(profile.upgrades) ? profile.upgrades.filter((id): id is string => typeof id === "string") : [],
+      hardcore: profile.hardcore === true,
+    };
+  } catch {
+    return { prestige: 0, upgrades: [], hardcore: false };
+  }
+}
+
+export function writeProfile(profile: ProfileState): boolean {
+  return write(PROFILE_KEY, JSON.stringify(profile));
+}
+
+export function deleteRunSaveOnDefeat(profile: Pick<ProfileState, "hardcore">, reason: RunEndReason): void {
+  if (profile.hardcore && reason === "defeated") write(AUTOSAVE_KEY, null);
 }
 
 /** The toolbar's own checkboxes, not the city -- so a reload comes back exactly as it was left. */
