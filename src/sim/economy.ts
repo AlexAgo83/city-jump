@@ -15,7 +15,7 @@ export const STARTING_FOOD = 30;
 /** A stock to open with, so the first shops run before the first works is up. */
 export const STARTING_MATERIALS = 40;
 /** Share of itself a fed, housed city adds in a day. A curve, not a conversion rate. */
-export const GROWTH_PER_DAY = 0.5;
+export const GROWTH_PER_DAY = 1.2;
 /** Share of a homeless population that leaves in a day. Losing homes costs time, not the city. */
 export const HOMELESS_LEAVE_PER_DAY = 0.4;
 /** Materials a working commercial cell consumes a day, and a military one. */
