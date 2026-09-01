@@ -202,7 +202,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const advanceClock = (dt: number): void => {
     if (dt <= 0) return;
     simSeconds += dt;
-    if (Math.floor(simSeconds / 20) !== demandStep) {
+    if (currentBuildableCells.length && Math.floor(simSeconds / 20) !== demandStep) {
       demandStep = Math.floor(simSeconds / 20);
       rebuild();
     }
