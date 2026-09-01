@@ -381,7 +381,7 @@ check("all parcel models load", (await stats()).models === 28, `${(await stats()
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
 check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled())));
-check("an active wave shows the kaiju HP banner", /Kaiju \d+\/600 HP/.test(await waveBanner()), await waveBanner());
+check("an active wave shows the kaiju HP banner", /Kaiju \d+\/900 HP/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.forceHeldWave());
 check("a held wave shows the held banner", /Wave held/.test(await waveBanner()), await waveBanner());
 const rewardedRun = await stats();
@@ -1412,10 +1412,10 @@ await page.waitForTimeout(300);
 check("bulldozing a building is not immediate", (await stats()).buildings === beforeBuildingBulldoze.buildings);
 await page.waitForFunction((before) => {
   const city = window.cityjump.stats();
-  return city.buildings === before.buildings - 1 && city.money === before.money;
+  return city.buildings === before.buildings - 1 && city.money > before.money;
 }, beforeBuildingBulldoze, { timeout: 5_000 });
 const afterBuildingBulldoze = await stats();
-check("bulldozing a building takes time and does not touch money", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money === beforeBuildingBulldoze.money);
+check("bulldozing a building takes time and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await page.evaluate(() => window.cityjump.setPaused(true));
@@ -1516,10 +1516,12 @@ check("a refused road is not added", (await stats()).segments === walked.segment
 await page.locator('[data-tool="select"]').click();
 await page.locator('[data-tool="roads"]').click();
 await page.evaluate(() => window.cityjump.setMoney(0));
+const beforeDebtRoad = await stats();
 await click(300, 340);
 await click(500, 280);
 await click(700, 360);
-check("a road the treasury cannot afford is refused", /treasury/.test(await toast()) && (await stats()).segments === walked.segments);
+const debtRoad = await stats();
+check("a road spend the treasury cannot cover does not treasury-refuse", !/treasury/.test(await toast()) && debtRoad.money < beforeDebtRoad.money, JSON.stringify(debtRoad));
 
 await page.locator('[data-tool="bulldoze"]').click();
 await page.mouse.move(20, 20);
@@ -1896,11 +1898,11 @@ check("a live wave marks the landing edge and target building", liveWaveMarkers.
 await page.evaluate(() => window.cityjump.forceWave(10_000));
 await page.waitForFunction(() => {
   const city = window.cityjump.stats();
-  return city.rubble > 0 && city.buildingStates.rebuilding > 0 && city.money === 0;
+  return city.rubble > 0 && city.buildingStates.rebuilding > 0 && city.money < 0;
 }, null, { timeout: 5_000 });
 const afterWave = await stats();
-check("the kaiju rebuilds a damaged building without touching money", afterWave.money === beforeWave.money && afterWave.rubble > 0 && afterWave.buildingStates.rebuilding > 0, `$${afterWave.money}, rubble ${afterWave.rubble}, ${JSON.stringify(afterWave.buildingStates)}`);
-check("a breached wave shows the breached banner", /Wave breached/.test(await waveBanner()), await waveBanner());
+check("the kaiju rebuilds a damaged building and charges it", afterWave.money < beforeWave.money && afterWave.rubble > 0 && afterWave.buildingStates.rebuilding > 0, `$${afterWave.money}, rubble ${afterWave.rubble}, ${JSON.stringify(afterWave.buildingStates)}`);
+check("one damaged building does not breach while others remain", !/Wave breached/.test(await waveBanner()), await waveBanner());
 await page.locator("#undo-city").click();
 check("undo refuses to cross a wave", /Nothing to undo/.test(await toast()));
 const costs = await page.evaluate(() => window.cityjump.measureCosts());

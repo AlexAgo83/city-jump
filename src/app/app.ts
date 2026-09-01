@@ -847,6 +847,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
       startWave("debug");
       waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
+      if (seconds > 0) updateWave(seconds);
     },
     forceHeldWave() {
       if (!waveClock.active) {
