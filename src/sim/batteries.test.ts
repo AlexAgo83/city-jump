@@ -15,7 +15,6 @@ describe("batteries", () => {
     expect(batteries.map((battery) => battery.damage)).toEqual([48, 192]);
     expect(batteries.every((battery) => battery.range === WAVE_STARTING_VALUES.batteryRangeM)).toBe(true);
     expect(batteriesInRange(batteries, v3(200, 0, 0))).toHaveLength(2);
-    expect(firepowerPerMinute(batteries)).toBe((48 + 192) * 24);
+    expect(firepowerPerMinute(batteries)).toBe((48 + 192) * (60 / WAVE_STARTING_VALUES.reloadSeconds));
   });
 });
-

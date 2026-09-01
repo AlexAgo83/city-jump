@@ -1,5 +1,5 @@
-import { distXZ, lerp, type Vec3 } from "./vec";
-import { WAVE_STARTING_VALUES } from "./wave";
+import { distXZ, lerp, type Vec3 } from "./vec.js";
+import { WAVE_STARTING_VALUES } from "./wave.js";
 
 export interface MapBounds {
   readonly minX: number;

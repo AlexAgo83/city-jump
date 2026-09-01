@@ -1,6 +1,6 @@
 import type { BuildingParcel } from "./slots";
-import { distXZ, type Vec3 } from "./vec";
-import { WAVE_STARTING_VALUES } from "./wave";
+import { distXZ, type Vec3 } from "./vec.js";
+import { WAVE_STARTING_VALUES } from "./wave.js";
 
 export interface Battery {
   readonly position: Vec3;
@@ -25,4 +25,3 @@ export function batteriesInRange(batteries: readonly Battery[], target: Vec3): B
 export function firepowerPerMinute(batteries: readonly Battery[]): number {
   return batteries.reduce((sum, battery) => sum + battery.damage, 0) * (60 / WAVE_STARTING_VALUES.reloadSeconds);
 }
-

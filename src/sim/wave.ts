@@ -1,10 +1,10 @@
 export const WAVE_STARTING_VALUES = {
   firstWaveSeconds: 60,
   kaijuSpeedMps: 16,
-  kaijuHitPoints: 600,
+  kaijuHitPoints: 900,
   batteryRangeM: 220,
   damagePerParcelCell: 12,
-  reloadSeconds: 2.5,
+  reloadSeconds: 4,
   missileTravelSecondsAtRange: 1.5,
   destructionRadiusM: 25,
 } as const;

@@ -18,8 +18,8 @@ describe("wave clock", () => {
 
   it("applies damage without going below zero", () => {
     const active = advanceWaveClock(createWaveClock(), WAVE_STARTING_VALUES.firstWaveSeconds);
-    expect(damageWaveClock(active, 250).active?.hitPoints).toBe(350);
-    expect(damageWaveClock(active, 900).active?.hitPoints).toBe(0);
+    expect(damageWaveClock(active, 250).active?.hitPoints).toBe(WAVE_STARTING_VALUES.kaijuHitPoints - 250);
+    expect(damageWaveClock(active, WAVE_STARTING_VALUES.kaijuHitPoints * 2).active?.hitPoints).toBe(0);
     expect(damageWaveClock(active, -50).active?.hitPoints).toBe(WAVE_STARTING_VALUES.kaijuHitPoints);
   });
 });
