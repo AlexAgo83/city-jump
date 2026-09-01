@@ -5,11 +5,13 @@ import { Rubble } from "./rubble";
 import { BuildingLifecycle } from "./buildingLifecycle";
 import { STARTING_MONEY, Treasury } from "./economy";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
+import { scheduleNextWave } from "./wave";
 import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
 import { Utilities } from "./utilities";
+import { createRun } from "./run";
 
 function city(): RoadGraph {
   const graph = new RoadGraph();
@@ -141,6 +143,15 @@ describe("city saves", () => {
 
     expect(save.money).toBe(1234);
     expect(restored.money).toBe(1234);
+  });
+
+  it("carries the repeat-wave clock through a save and defaults older saves", () => {
+    const waveClock = scheduleNextWave({ elapsedSeconds: 100, nextWaveAtSeconds: 100, active: null }, 45);
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, createRun(), waveClock)))!;
+    const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))!;
+
+    expect(save.waveClock).toEqual(waveClock);
+    expect(older.waveClock?.nextWaveAtSeconds).toBe(60);
   });
 
   it("reads plantings saved before species existed as firs", () => {
