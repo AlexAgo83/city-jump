@@ -10,16 +10,30 @@ import { buildableCellCentre, type BuildableCell } from "../sim/slots";
 import { ZONE_CELL_SIZE, type ZoneKind, type Zones } from "../sim/zones";
 import { BUILDING_KIND_COLOR } from "../sim/buildingKinds";
 
-/** A zoned lot still waiting for its building, lighter than one already taken. */
-const EMPTY_ALPHA = 0.68;
+/**
+ * A zoned lot is drawn opaque, so the ground never shows through it.
+ *
+ * Blending the overlay over the map meant residential green sat on a green field and came out
+ * green: the grid read as unpainted however much of it was zoned. Taken and free lots are told
+ * apart by tone instead -- a free lot is the same colour, lighter.
+ */
+const FREE_LOT_LIFT = 0.5;
+/**
+ * How far each zone colour is lifted towards white for the overlay.
+ *
+ * The building palette is read against a building. Laid flat on grass, residential green sat on
+ * top of a green field and disappeared -- the grid looked unpainted however much of it was zoned.
+ * Lifting every kind the same amount keeps them apart from each other and away from the ground.
+ */
+const LIFT = 0.12;
 /** Paint on ground no lot can reach: visible, but plainly not a promise of anything. */
-const OFF_GRID_ALPHA = 0.22;
+const OFF_GRID_ALPHA = 0.16;
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
   material.diffuseColor = Color3.White();
   material.emissiveColor = Color3.White();
-  material.alpha = 0.85;
+  material.alpha = 1;
   material.disableLighting = true;
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
@@ -53,13 +67,11 @@ export function createZoneRenderer(scene: Scene) {
       if (!kind) continue;
       for (const key of zoneKeysOf(cell)) covered.add(key);
       const base = positions.length / 3;
-      const [r, g, b] = BUILDING_KIND_COLOR[kind];
-      // A lot with a building on it is the full colour; one still waiting is the same colour,
-      // lighter, so what is taken and what is on offer read apart at a glance.
-      const alpha = occupied?.has(cellKey(cell)) === true ? 1 : EMPTY_ALPHA;
+      const taken = occupied?.has(cellKey(cell)) === true;
+      const [r, g, b] = lift(kind, taken ? 0 : FREE_LOT_LIFT);
       for (const corner of cell.corners) {
         positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.18, corner.z);
-        colors.push(r, g, b, alpha);
+        colors.push(r, g, b, 1);
       }
       indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
@@ -68,7 +80,7 @@ export function createZoneRenderer(scene: Scene) {
     for (const [gx, gz, kind] of zones?.toJSON() ?? []) {
       if (covered.has(`${gx}:${gz}`)) continue;
       const base = positions.length / 3;
-      const [r, g, b] = BUILDING_KIND_COLOR[kind];
+      const [r, g, b] = lift(kind);
       for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
         const wx = x * ZONE_CELL_SIZE;
         const wz = z * ZONE_CELL_SIZE;
@@ -113,6 +125,13 @@ function zoneOver(cell: BuildableCell, zones?: Zones): ZoneKind | undefined {
     if (kind) return kind;
   }
   return undefined;
+}
+
+/** A zone's colour as the overlay draws it, optionally lightened for a lot still on offer. */
+function lift(kind: ZoneKind, extra = 0): [number, number, number] {
+  const [r, g, b] = BUILDING_KIND_COLOR[kind];
+  const amount = LIFT + extra;
+  return [r + (1 - r) * amount, g + (1 - g) * amount, b + (1 - b) * amount];
 }
 
 /** Every zone cell a lot touches, so the faint layer skips what the grid already covers. */
