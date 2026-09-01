@@ -1,0 +1,504 @@
+{
+  "budgets": {
+    "max_docs": 24,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call item_083_a_starting_city_that_can_staff_a_building_and_feed_itself item_084_resources_that_something_spends_counted_once item_085_a_military_zone_that_builds_something task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent --mode full --profile normal",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "loops, never, close, run, wave, city, starves, day, resources, nothing, consumes",
+        "skip when": "You need what a wave looks like while it happens, which is the legibility request.",
+        "summary": "The connective pass on the survival direction: a run that schedules more than one wave, a threat that scales with the city, a starting city that can staff a building instead of starving, resources that are spent, and one notion of need.",
+        "use when": "Working on the wave schedule, the threat, the run loop, the workforce and food rules, the resource stocks, or the zone limits."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+          "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+          "item_084_resources_that_something_spends_counted_once",
+          "item_085_a_military_zone_that_builds_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea",
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ]
+      },
+      "path": "logics/request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md",
+      "ref": "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A finished wave schedules the next one, so a run is a sequence of waves rather than a single verdict the game never leaves.",
+          "- AC2: The threat is derived from the city and the wave number rather than being a constant, and stays fixed once a wave has started.",
+          "- AC3: A wave can be called early, which makes the science multiplier that already exists reachable from the game.",
+          "- AC4: A new run can be staffed and fed: the starter kit's own parcels are within reach of the starting workforce, and a fresh city does not fall to zero population in its first simulated day.",
+          "- AC5: Materials are consumed by something, or they stop being produced, persisted and displayed as a resource.",
+          "- AC6: Commercial output is counted once -- no single calculation is simultaneously a stock, the growth driver and an income."
+        ],
+        "Needs": [
+          "- The seven slices delivered against the survival brief each work on their own and do not join up into the loop the brief describes. A run is one wave long, the starting city dies in its first simulated day, and two of the resources it produces feed nothing. None of that is visible from any single slice's acceptance criteria, which is why it survived seven closeouts.",
+          "- A run is one wave long. `finishWave` sets a verdict and nothing ever clears it: `updateWave` returns on that verdict every frame afterwards, `resetWave` is only reachable from loading a city or from the debug API, and `nextWaveAtSeconds` is never advanced past the first sixty seconds. `settleWave` dutifully increments `runState.wave`, and no second wave is ever scheduled to match it. The brief's spine -- a city that grows, holds its waves, and at some point cannot hold another -- has no second wave to fail to hold.",
+          "- The threat is a constant. `advanceWaveClock` sets `threat` to `WAVE_STARTING_VALUES.kaijuHitPoints`, the same six hundred every time, derived from nothing about the city. The brief's rule that the threat scales with the city -- which is what prices growth and makes consolidating a real choice -- is not implemented anywhere.",
+          "- A wave cannot be called early. `finishWave` passes `calledEarly: false` as a literal, so `EARLY_WAVE_SCIENCE_MULTIPLIER` can never apply. The multiplier is tested and unreachable, and the half of `req_028` AC1 that depends on it describes behaviour the game does not have.",
+          "- The starting city cannot survive its first day, and the numbers are not close. The starting population is twelve, so the workforce is six. The smallest parcel any farm is allowed to occupy is 1x4 -- agricultural, industrial and military are all restricted to `INDUSTRIAL_SIZES`, whose smallest member is four cells -- and a 1x4 farm demands twelve workers. Nothing in a new city can be staffed by anybody. Running the real modules over the starter kit's own parcels gives `staffed=0`, no food produced against twelve consumed, and a population that reaches zero inside one simulated day of ninety-six seconds. The starter kit is described as the few buildings that make the first minutes possible; it is a city that ends the run.",
+          "- Materials are produced and nothing consumes them. `CityEconomy.advance` accumulates them, `save.ts` persists them, the ledger prints them, and no rule anywhere reads the stock. Industrial parcels demand six workers a cell -- the second-highest cost in the game -- to fill a number that only ever goes up."
+        ]
+      },
+      "status": "Draft",
+      "title": "The loops that never close: a run of one wave, a city that starves on day one, and resources nothing consumes"
+    },
+    {
+      "ai_context": {
+        "keywords": "city, fed, food, materials, population, grows",
+        "skip when": "You need utilities, the wave, or the run.",
+        "summary": "The districts start owing each other something: farms make food and food gates population, industry makes materials, commerce makes services and trade, population grows over time within what the city can feed and staff, and a zoned parcel waits for demand instead of filling on sight.",
+        "use when": "Working on the resource loop, population growth, or when a zoned parcel becomes a building."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_074_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows"
+        ]
+      },
+      "path": "logics/request/req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows.md",
+      "ref": "req_025_a_city_that_has_to_be_fed_food_materials_and_a_population_that_grows",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Farms produce food, industry materials, commerce services and trade, each only while",
+          "  staffed.",
+          "- AC2: Population grows over time, capped by housing and gated by food, and falls when food is",
+          "  short for long enough or when the homes holding it are destroyed.",
+          "- AC3: A zoned parcel stays empty until something wants it, and fills over time when it does.",
+          "- AC4: A city of nothing but housing stalls, and the reason is visible in the gauges."
+        ],
+        "Needs": [
+          "- The needs gauges have shown supply against demand since 0.3.0 and gated nothing. This is where",
+          "  they start to bite.",
+          "- Food decides whether the population exists, commerce decides how fast it grows, industry",
+          "  supplies the army and the shops, and the military produces nothing the economy can use -- which",
+          "  is what makes under-building it tempting and the wave's job to price.",
+          "- A parcel that waits for demand is the smallest change that makes a city feel alive rather than"
+        ]
+      },
+      "status": "Done",
+      "title": "A city that has to be fed: food, materials and a population that grows"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need a rule inside a single run -- the economy and the wave are earlier slices.",
+        "summary": "The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.",
+        "use when": "Working on runs, evacuation, science, prestige, the upgrade web, or balancing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A defeated kaiju leaves science; calling a wave early multiplies what a defeated one leaves",
+          "  and pays nothing if it is not.",
+          "- AC2: A run ends by evacuation or by the population reaching zero, and both are explicable.",
+          "- AC3: Science carried off an island becomes prestige, spent on a web of capabilities, starting",
+          "  conditions and information -- never on multipliers over the loop's own scarcities.",
+          "- AC4: A run's city and the profile that outlives it are separate saves, and a hardcore setting"
+        ],
+        "Needs": [
+          "- Science comes only from waves and only leaves the island with the player, which is the tension",
+          "  the whole game is built on: never let a wave land and never progress.",
+          "- Leaving is a decision with a price on both sides. If a defeat carries as much as a departure,",
+          "  nobody will ever choose to leave.",
+          "- Balance stops being taste here: the harness runs the simulation headless over many seeds against",
+          "  scripted policies, and the constants are its outputs."
+        ]
+      },
+      "status": "Done",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave, you, can, read, kaiju, crosses, city, missiles, watch, spending, never, blocks",
+        "skip when": "You need the original attack slice's design rather than its corrections, or the run and prestige economy above it.",
+        "summary": "The correction pass on the attack slice: a kaiju that keeps choosing targets, missiles that fly and explode where the damage lands, a fight long enough to read, a visible construction, and building costs that are deducted without ever refusing a build.",
+        "use when": "Working on the wave loop, the kaiju's targeting, missile rendering, wave balance, the construction readout, or building prices."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_002_keep_simulation_independent_from_babylon_and_the_browser"
+        ],
+        "item": [
+          "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+          "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+          "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+          "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md",
+      "ref": "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A wave no longer ends when the first building falls: it is held when the kaiju dies, and breached when the last living building is destroyed.",
+          "- AC2: The kaiju picks the nearest living building from where it currently stands, walks to it, and picks again after each kill, for as long as it is alive -- a loop, not a route fixed at wave start.",
+          "- AC3: Destroying a building takes time rather than happening on contact, so the attack is something the player can watch and interrupt.",
+          "- AC4: Batteries launch visible missiles that climb, travel and dive onto the kaiju, with a trail and a short impact explosion, and several batteries no longer fire as one perfectly synchronised salvo.",
+          "- AC5: Damage still lands at the moment of impact and the impact is drawn where the damage is applied -- the health bar and the explosion agree, on a kaiju that has moved since the shot left.",
+          "- AC6: A first wave against a competent defence lasts roughly twenty to forty seconds and takes five to eight significant salvos, reached by revisiting hit points, damage, reload and wave scaling together."
+        ],
+        "Needs": [
+          "- A manual test of the first wave found the attack is over before it is legible. The kaiju lands, walks to one building, and the wave ends -- `updateWave` in `src/app/app.ts` calls `finishWave(\"breached\")` on the first parcel inside the 25 m destruction radius. The player sees a monster arrive and a banner appear. There is no attack to watch, no city crossed, and no decision taken during it.",
+          "- Underneath that, the kaiju's route is decided once and never revisited. `planKaiju` in `src/sim/kaiju.ts` returns `landing -> coast -> target` with the target picked from the building positions at wave start, and `kaijuPositionAt` walks that fixed polyline forever. Even with the end-of-wave rule fixed, the monster would stand on a destroyed parcel for the rest of the wave. What the design needs is a loop: nearest living building, walk, attack until it falls, pick the next.",
+          "- That loop is also the prerequisite for the bait the product brief already promises. Sacrificing a building to bend the kaiju's path is only a strategy if the kaiju chooses again after each kill.",
+          "- The military answer is not visible either. `src/render/missiles.ts` draws a `LineSystem` from each battery straight to the kaiju the instant the salvo fires, disposes and recreates the whole mesh every frame, and freezes `to` at the position the kaiju held when the shot left -- so by the time the damage lands the yellow line is pointing at empty ground. The intent is missiles leaving the city, arcing through the sky and coming down on the monster; what exists is a wire.",
+          "- The simulation is honest and the rendering is not, which is the one gap worth naming precisely. `updateWave` already holds each missile until `impactAt` and only then subtracts its damage, so the health bar already drops on impact rather than on launch. Nothing about the damage timing needs inventing: the work is making the picture agree with the arithmetic that is already correct.",
+          "- The fight is far too short even when it is allowed to run. The kaiju has 600 hit points; a single 4x3 military parcel yields a battery doing 144 damage a salvo, and the reload is 2.5 seconds. Four salvos, ten seconds, and a well-defended first wave is over before the player has found the monster on screen. The fix is the whole set of numbers -- hit points, damage per cell, reload, wave scaling -- not the hit points alone."
+        ]
+      },
+      "status": "Draft",
+      "title": "A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks"
+    },
+    {
+      "ai_context": {
+        "keywords": "run, keeps, going, next, wave, threat, scales, player, can, call",
+        "skip when": "You need what happens during a wave, or the city's economy.",
+        "summary": "The delivery slice for the run loop: a verdict that schedules the next wave, a threat derived from the city and the wave number, and a wave the player can call early.",
+        "use when": "Working on the wave clock, the wave schedule, threat scaling, or the early call."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/backlog/item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call.md",
+      "ref": "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A held wave and a breached one both schedule the next, and the countdown to it is readable.",
+          "- AC2: The threat rises with the city and the wave number, and does not move once a wave has started.",
+          "- AC3: A wave can be called early and the science multiplier applies when it is.",
+          "- AC4: A run of several waves is proven headlessly from a seed and survives a save and reload."
+        ],
+        "Problem": [
+          "- `finishWave` sets `waveVerdict` and nothing clears it. `updateWave` returns on that verdict on every later frame, `resetWave` is reachable only from loading a city or the debug API, and `nextWaveAtSeconds` is never moved past sixty. The first wave is the last wave.",
+          "- `settleWave` increments `runState.wave` for a second wave that is never scheduled, so the run counter and the game disagree from the first verdict onwards.",
+          "- `advanceWaveClock` sets the threat to the constant `WAVE_STARTING_VALUES.kaijuHitPoints`, derived from nothing about the city, so growing the city costs the player nothing and consolidating buys nothing.",
+          "- `finishWave` passes `calledEarly: false` as a literal. `EARLY_WAVE_SCIENCE_MULTIPLIER` is tested and unreachable, and the decision the science economy is built to price cannot be taken."
+        ]
+      },
+      "status": "Ready",
+      "title": "A run that keeps going: the next wave, a threat that scales, and a wave the player can call"
+    },
+    {
+      "ai_context": {
+        "keywords": "close, loops, run, several, waves, city, survives, first, day, resources, spent",
+        "skip when": "You need a single slice's own design rather than what falls between them.",
+        "summary": "The executable surface of `req_030`: the run loop first, then the starving start, then the resources, then the military zone.",
+        "use when": "Implementing or reviewing the connective work across the survival slices."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+          "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+          "item_084_resources_that_something_spends_counted_once",
+          "item_085_a_military_zone_that_builds_something"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md",
+      "ref": "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Close the loops: a run of several waves, a city that survives its first day, and resources that are spent"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+          "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+          "item_084_resources_that_something_spends_counted_once",
+          "item_085_a_military_zone_that_builds_something"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/product/prod_021_a_run_that_is_more_than_one_wave.md",
+      "ref": "prod_021_a_run_that_is_more_than_one_wave",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A run that is more than one wave"
+    },
+    {
+      "ai_context": {
+        "keywords": "starting, city, can, staff, building, feed, itself",
+        "skip when": "You need the wave, or resources beyond what survival requires.",
+        "summary": "The delivery slice for the opening: a starting city whose workforce can staff a building, so a fresh run does not starve to zero in its first simulated day.",
+        "use when": "Working on the starting balance, the workforce rules, or the starter kit's viability."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/backlog/item_083_a_starting_city_that_can_staff_a_building_and_feed_itself.md",
+      "ref": "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A fresh run can staff at least one producing building with its starting workforce.",
+          "- AC2: A fresh run does not fall to zero population in its first simulated day, proven by a headless test over the real economy.",
+          "- AC3: The staffing rule's all-or-nothing behaviour is either changed or kept with the reasoning recorded.",
+          "- AC4: The chosen numbers and the lever they were chosen over are written down."
+        ],
+        "Problem": [
+          "- A new run starts with twelve people, so `workforceFromPopulation` gives six workers. The smallest parcel a farm may occupy is 1x4, because agricultural, industrial and military are all restricted to `INDUSTRIAL_SIZES`, and a 1x4 farm demands twelve workers.",
+          "- Run against the starter kit's own parcels, `allocateWorkforce` returns `staffed=0`. No farm can be staffed by anyone, at any point, in a fresh city.",
+          "- With no food produced and twelve consumed, `CityEconomy.advance` reports a shortage of twelve and a change of minus twelve: the population reaches zero within one simulated day of ninety-six seconds, which ends the run through `endIfPopulationZero`.",
+          "- `allocateWorkforce` is all-or-nothing per parcel, so a building one worker short produces exactly as much as an empty one -- which is what turns a small shortfall into a dead city rather than a slow one."
+        ]
+      },
+      "status": "Ready",
+      "title": "A starting city that can staff a building and feed itself"
+    },
+    {
+      "ai_context": {
+        "keywords": "resources, something, spends, counted, once",
+        "skip when": "You need the wave, the run loop, or the zone limits.",
+        "summary": "The delivery slice for the resource loop: materials get a sink or stop being produced, commercial output is counted once, and the gauges show what the rules use.",
+        "use when": "Working on `CityEconomy`, the resource stocks, income, or the needs panel."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_084_resources_that_something_spends_counted_once"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/backlog/item_084_resources_that_something_spends_counted_once.md",
+      "ref": "item_084_resources_that_something_spends_counted_once",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Materials are spent by something, or are no longer produced, persisted or displayed.",
+          "- AC2: No single calculation is a stock, a growth driver and an income at the same time.",
+          "- AC3: The gauges the player reads are derived from the rules that gate construction.",
+          "- AC4: The loop replays identically from a fixed seed, and an older save still loads."
+        ],
+        "Problem": [
+          "- Materials are produced by `CityEconomy.advance`, persisted by `save.ts` and printed by the ledger, and no rule reads the stock. Industrial parcels demand six workers a cell -- the second-highest in the game -- for a number that only goes up.",
+          "- `servicesProduced` is added to the services stock, used as the term that drives population growth, and returned as `trade`, while `incomePerSecond` pays separately for the same commercial parcels. One calculation is a stock, a growth rate and an income at once.",
+          "- `buildingNeeds`, which the needs panel shows, is derived from workforce staffing ratios. `parcelsForDemand`, which decides whether a zoned parcel may appear at all, uses a separate set of population thresholds. The panel and the rule are unrelated.",
+          "- A player reading the gauges to decide what to build next is reading something that gates nothing -- the exact complaint the survival brief opens with about the game as it was before this direction started."
+        ]
+      },
+      "status": "Ready",
+      "title": "Resources that something spends, counted once"
+    },
+    {
+      "ai_context": {
+        "keywords": "military, zone, builds, something",
+        "skip when": "You need batteries, military roads, or anything about the wave itself.",
+        "summary": "The delivery slice for the one place the zone brush and the growth rules openly contradict each other: a painted military zone that is silently dropped at every population.",
+        "use when": "Working on zone limits or on how military parcels reach the city."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_085_a_military_zone_that_builds_something"
+        ],
+        "prod": [
+          "prod_021_a_run_that_is_more_than_one_wave"
+        ],
+        "req": [
+          "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes"
+        ],
+        "task": [
+          "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+        ]
+      },
+      "path": "logics/backlog/item_085_a_military_zone_that_builds_something.md",
+      "ref": "item_085_a_military_zone_that_builds_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A painted military zone either builds at a reachable population or is refused with a stated reason.",
+          "- AC2: No zone the brush offers is silently dropped.",
+          "- AC3: The rule is covered by a test over the real filter."
+        ],
+        "Problem": [
+          "- `parcelsForDemand` sets the military limit to zero and filters every parcel whose cells carry a zone against it, so a zoned military parcel is dropped at every population -- verified at twelve and at four hundred.",
+          "- Military parcels reach the city only through a military *road*, whose unzoned cells return before the limits are consulted.",
+          "- The zone brush was extended to all five businesses by the wave slice precisely so a military district could be put where a wave could be tested against it. Four of the five build.",
+          "- The survival brief is explicit that defence is bought by urbanism and that the military parcels growing along a military road are the towers -- so whether the brush should build them too is a product question, and the limit of zero answers it silently and by accident."
+        ]
+      },
+      "status": "Ready",
+      "title": "A military zone that builds something"
+    }
+  ],
+  "estimates": {
+    "char_count": 27251,
+    "companion_doc_count": 0,
+    "doc_count": 10
+  },
+  "generated_at": "2026-09-01T08:34:39Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes",
+      "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+      "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+      "item_084_resources_that_something_spends_counted_once",
+      "item_085_a_military_zone_that_builds_something",
+      "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes,item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call,item_083_a_starting_city_that_can_staff_a_building_and_feed_itself,item_084_resources_that_something_spends_counted_once,item_085_a_military_zone_that_builds_something,task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent",
+  "refs": [
+    "req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes",
+    "item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call",
+    "item_083_a_starting_city_that_can_staff_a_building_and_feed_itself",
+    "item_084_resources_that_something_spends_counted_once",
+    "item_085_a_military_zone_that_builds_something",
+    "task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": []
+}

@@ -33,6 +33,7 @@
 | [prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea](product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md) | A city that has to survive what comes out of the sea | Settled |  |  | product/prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea.md |
 | [prod_019_an_interface_for_a_city_you_can_lose](product/prod_019_an_interface_for_a_city_you_can_lose.md) | An interface for a city you can lose | Settled |  |  | product/prod_019_an_interface_for_a_city_you_can_lose.md |
 | [prod_020_a_wave_the_player_can_actually_watch](product/prod_020_a_wave_the_player_can_actually_watch.md) | A wave the player can actually watch | Proposed |  |  | product/prod_020_a_wave_the_player_can_actually_watch.md |
+| [prod_021_a_run_that_is_more_than_one_wave](product/prod_021_a_run_that_is_more_than_one_wave.md) | A run that is more than one wave | Proposed |  |  | product/prod_021_a_run_that_is_more_than_one_wave.md |
 
 ## Roadmaps
 
@@ -75,6 +76,7 @@
 | [req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu](request/req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md) | The interface the wave demands: game state leaves the settings menu | Done |  |  | request/req_027_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md |
 | [req_028_runs_science_and_prestige_leaving_an_island_with_something](request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md) | Runs, science and prestige: leaving an island with something | Done |  |  | request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md |
 | [req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Draft |  |  | request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
+| [req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes](request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md) | The loops that never close: a run of one wave, a city that starves on day one, and resources nothing consumes | Draft |  |  | request/req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes.md |
 
 ## Backlog
 
@@ -161,6 +163,10 @@
 | [item_079_missiles_that_fly_and_explode_where_the_damage_lands](backlog/item_079_missiles_that_fly_and_explode_where_the_damage_lands.md) | Missiles that fly, and explode where the damage lands | Ready |  | 0% | backlog/item_079_missiles_that_fly_and_explode_where_the_damage_lands.md |
 | [item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it](backlog/item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it.md) | A fight long enough to have a shape, and a harness that can prove it | Ready |  | 0% | backlog/item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it.md |
 | [item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game](backlog/item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game.md) | A construction you can see, and a bill that never stops the game | Ready |  | 0% | backlog/item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game.md |
+| [item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call](backlog/item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call.md) | A run that keeps going: the next wave, a threat that scales, and a wave the player can call | Ready |  | 0% | backlog/item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call.md |
+| [item_083_a_starting_city_that_can_staff_a_building_and_feed_itself](backlog/item_083_a_starting_city_that_can_staff_a_building_and_feed_itself.md) | A starting city that can staff a building and feed itself | Ready |  | 0% | backlog/item_083_a_starting_city_that_can_staff_a_building_and_feed_itself.md |
+| [item_084_resources_that_something_spends_counted_once](backlog/item_084_resources_that_something_spends_counted_once.md) | Resources that something spends, counted once | Ready |  | 0% | backlog/item_084_resources_that_something_spends_counted_once.md |
+| [item_085_a_military_zone_that_builds_something](backlog/item_085_a_military_zone_that_builds_something.md) | A military zone that builds something | Ready |  | 0% | backlog/item_085_a_military_zone_that_builds_something.md |
 
 ## Tasks
 
@@ -197,6 +203,7 @@
 | [task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu](tasks/task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md) | The interface the wave demands: game state leaves the settings menu | Done | Codex | 100% | tasks/task_029_the_interface_the_wave_demands_game_state_leaves_the_settings_menu.md |
 | [task_030_runs_science_and_prestige_leaving_an_island_with_something](tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md) | Runs, science and prestige: leaving an island with something | Done | codex | 100% | tasks/task_030_runs_science_and_prestige_leaving_an_island_with_something.md |
 | [task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks](tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md) | Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks | Ready |  | 0% | tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md |
+| [task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent](tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md) | Close the loops: a run of several waves, a city that survives its first day, and resources that are spent | Ready |  | 0% | tasks/task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent.md |
 
 ## Runbooks
 
