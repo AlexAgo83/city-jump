@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 09:11:15
+> Indicators reviewed: 2026-09-01 10:22:21
 > Owner: codex
 
 # AI Context
@@ -57,14 +57,19 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+  `CONTRIBUTING.md`.
 - command: `npm run ci; npm run test:e2e; npm run balance` | result: passed | date: 2026-09-01
 - Finish workflow executed on 2026-09-01.
 - Linked backlog/request close verification passed.
-  `CONTRIBUTING.md`.
-- (no validation recorded yet)
 
 # Report
-- Not started.
+- Delivered the run loop: science from a defeated wave with the early-call multiplier, the two run
+  endings, a prestige web that buys capability and information only, separate run and profile
+  saves with the hardcore deletion, and the starter run's bridge, road and kit.
+- Recorded in `balance/history.jsonl`, and re-opened afterwards: `scripts/balance.mjs` drives an
+  invented defence score rather than the real wave simulation, so AC6's evidence does not hold.
+  That defect and its fix are carried by
+  `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`.
 - Finished on 2026-09-01.
 - Linked backlog item(s): `item_077_runs_science_and_prestige_leaving_an_island_with_something`
 - Related request(s): `req_028_runs_science_and_prestige_leaving_an_island_with_something`

@@ -1,0 +1,507 @@
+{
+  "budgets": {
+    "max_docs": 24,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building item_079_missiles_that_fly_and_explode_where_the_damage_lands item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks --mode full --profile normal",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "wave, you, can, read, kaiju, crosses, city, missiles, watch, spending, never, blocks",
+        "skip when": "You need the original attack slice's design rather than its corrections, or the run and prestige economy above it.",
+        "summary": "The correction pass on the attack slice: a kaiju that keeps choosing targets, missiles that fly and explode where the damage lands, a fight long enough to read, a visible construction, and building costs that are deducted without ever refusing a build.",
+        "use when": "Working on the wave loop, the kaiju's targeting, missile rendering, wave balance, the construction readout, or building prices."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_002_keep_simulation_independent_from_babylon_and_the_browser"
+        ],
+        "item": [
+          "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+          "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+          "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+          "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/request/req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md",
+      "ref": "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A wave no longer ends when the first building falls: it is held when the kaiju dies, and breached when the last living building is destroyed.",
+          "- AC2: The kaiju picks the nearest living building from where it currently stands, walks to it, and picks again after each kill, for as long as it is alive -- a loop, not a route fixed at wave start.",
+          "- AC3: Destroying a building takes time rather than happening on contact, so the attack is something the player can watch and interrupt.",
+          "- AC4: Batteries launch visible missiles that climb, travel and dive onto the kaiju, with a trail and a short impact explosion, and several batteries no longer fire as one perfectly synchronised salvo.",
+          "- AC5: Damage still lands at the moment of impact and the impact is drawn where the damage is applied -- the health bar and the explosion agree, on a kaiju that has moved since the shot left.",
+          "- AC6: A first wave against a competent defence lasts roughly twenty to forty seconds and takes five to eight significant salvos, reached by revisiting hit points, damage, reload and wave scaling together."
+        ],
+        "Needs": [
+          "- A manual test of the first wave found the attack is over before it is legible. The kaiju lands, walks to one building, and the wave ends -- `updateWave` in `src/app/app.ts` calls `finishWave(\"breached\")` on the first parcel inside the 25 m destruction radius. The player sees a monster arrive and a banner appear. There is no attack to watch, no city crossed, and no decision taken during it.",
+          "- Underneath that, the kaiju's route is decided once and never revisited. `planKaiju` in `src/sim/kaiju.ts` returns `landing -> coast -> target` with the target picked from the building positions at wave start, and `kaijuPositionAt` walks that fixed polyline forever. Even with the end-of-wave rule fixed, the monster would stand on a destroyed parcel for the rest of the wave. What the design needs is a loop: nearest living building, walk, attack until it falls, pick the next.",
+          "- That loop is also the prerequisite for the bait the product brief already promises. Sacrificing a building to bend the kaiju's path is only a strategy if the kaiju chooses again after each kill.",
+          "- The military answer is not visible either. `src/render/missiles.ts` draws a `LineSystem` from each battery straight to the kaiju the instant the salvo fires, disposes and recreates the whole mesh every frame, and freezes `to` at the position the kaiju held when the shot left -- so by the time the damage lands the yellow line is pointing at empty ground. The intent is missiles leaving the city, arcing through the sky and coming down on the monster; what exists is a wire.",
+          "- The simulation is honest and the rendering is not, which is the one gap worth naming precisely. `updateWave` already holds each missile until `impactAt` and only then subtracts its damage, so the health bar already drops on impact rather than on launch. Nothing about the damage timing needs inventing: the work is making the picture agree with the arithmetic that is already correct.",
+          "- The fight is far too short even when it is allowed to run. The kaiju has 600 hit points; a single 4x3 military parcel yields a battery doing 144 damage a salvo, and the reload is 2.5 seconds. Four salvos, ten seconds, and a well-defended first wave is over before the player has found the monster on screen. The fix is the whole set of numbers -- hit points, damage per cell, reload, wave scaling -- not the hit points alone."
+        ]
+      },
+      "status": "Draft",
+      "title": "A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave, slice, kaiju, lands, city, holds, does, not",
+        "skip when": "You need the economy, the run, prestige, or any number that a balance harness should be producing.",
+        "summary": "The vertical slice of an attack, hardcoded: a countdown, a kaiju that lands at a random coast and walks at the nearest building, military parcels that fire on a reload, destruction that leaves rubble, and a banner that says held or breached. It exists to answer whether a wave is worth watching before anything is built to serve one.",
+        "use when": "Building or reviewing the first attack, the kaiju's model and gait, or the fight between batteries and a wave."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_070_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+      "ref": "req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A countdown runs to a wave; when it lands a kaiju arrives at a random map edge away from",
+          "  the bridge, makes for the nearest point of the coast and then for the building nearest to it.",
+          "- AC2: The kaiju destroys buildings on contact, leaving rubble; the city's graph, saves and undo",
+          "  history stay coherent through it, and undo cannot take back what the wave did.",
+          "- AC3: Every military parcel that exists is a battery: one range for all, damage per salvo",
+          "  proportional to the parcel's area, firing on a fixed reload while the kaiju is in range."
+        ],
+        "Needs": [
+          "- A city that cannot be lost is a drawing tool. Before the economy, the runs and the prestige that",
+          "  `prod_018` describes are built, one wave has to exist and be watched, because everything else in",
+          "  that brief is worth building only if this is worth watching.",
+          "- Nothing in this slice is a number anyone should defend: the threat, the reload, the range and the",
+          "  kaiju's speed are constants chosen to make one wave playable in a minute. The balance harness is",
+          "  a later slice and these values are its input, not its output."
+        ]
+      },
+      "status": "Done",
+      "title": "The wave, in one slice: a kaiju lands and the city holds or does not"
+    },
+    {
+      "ai_context": {
+        "keywords": "money, queue, city, can, afford, build",
+        "skip when": "You need what money is spent *on* to produce anything -- that is the food and materials slice.",
+        "summary": "Money as the build meter: roads priced by the metre, buildings priced to build, a city that raises what it can afford and queues the rest, rebuilding allowed to go negative, and demolition that takes time and returns half.",
+        "use when": "Working on prices, the treasury, the build queue, or demolition."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_073_money_and_the_queue_what_a_city_can_afford_to_build"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_024_money_and_the_queue_what_a_city_can_afford_to_build"
+        ]
+      },
+      "path": "logics/request/req_024_money_and_the_queue_what_a_city_can_afford_to_build.md",
+      "ref": "req_024_money_and_the_queue_what_a_city_can_afford_to_build",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Roads cost by the metre and buildings cost to build; both prices are shown before the",
+          "  click, and what cannot be afforded looks unavailable.",
+          "- AC2: The city raises what the treasury covers and queues the rest, and the queue is readable --",
+          "  how many are going up, how many are waiting for funds.",
+          "- AC3: Rebuilding after a wave proceeds even into a negative balance, and while the balance is",
+          "  negative nothing new starts."
+        ],
+        "Needs": [
+          "- Workers limit what runs; they do not limit what gets built, and with waves to prepare for the",
+          "  rate of building is exactly what needs a meter.",
+          "- The player zones an intention rather than ordering a building, so nobody may be billed for",
+          "  something they did not order: the city builds what it can pay for and the rest waits, visibly.",
+          "- Rebuilding may push the balance below zero and only new work waits, because a city recovers from",
+          "  a bad wave by definition; what it cannot do while recovering is expand."
+        ]
+      },
+      "status": "Done",
+      "title": "Money and the queue: what a city can afford to build"
+    },
+    {
+      "ai_context": {
+        "keywords": "runs, science, prestige, leaving, island, something",
+        "skip when": "You need a rule inside a single run -- the economy and the wave are earlier slices.",
+        "summary": "The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.",
+        "use when": "Working on runs, evacuation, science, prestige, the upgrade web, or balancing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_077_runs_science_and_prestige_leaving_an_island_with_something"
+        ],
+        "prod": [
+          "prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea"
+        ],
+        "req": [
+          "req_028_runs_science_and_prestige_leaving_an_island_with_something"
+        ]
+      },
+      "path": "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md",
+      "ref": "req_028_runs_science_and_prestige_leaving_an_island_with_something",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A defeated kaiju leaves science; calling a wave early multiplies what a defeated one leaves",
+          "  and pays nothing if it is not.",
+          "- AC2: A run ends by evacuation or by the population reaching zero, and both are explicable.",
+          "- AC3: Science carried off an island becomes prestige, spent on a web of capabilities, starting",
+          "  conditions and information -- never on multipliers over the loop's own scarcities.",
+          "- AC4: A run's city and the profile that outlives it are separate saves, and a hardcore setting"
+        ],
+        "Needs": [
+          "- Science comes only from waves and only leaves the island with the player, which is the tension",
+          "  the whole game is built on: never let a wave land and never progress.",
+          "- Leaving is a decision with a price on both sides. If a defeat carries as much as a departure,",
+          "  nobody will ever choose to leave.",
+          "- Balance stops being taste here: the harness runs the simulation headless over many seeds against",
+          "  scripted policies, and the constants are its outputs."
+        ]
+      },
+      "status": "Done",
+      "title": "Runs, science and prestige: leaving an island with something"
+    },
+    {
+      "ai_context": {
+        "keywords": "kaiju, crosses, city, instead, stopping, first, building",
+        "skip when": "You need the missile rendering, the balance numbers, or anything about money.",
+        "summary": "The delivery slice that turns the attack into a loop: the kaiju keeps choosing the nearest living building, attacking takes time, and the wave ends on a death rather than on a single loss.",
+        "use when": "Working on the kaiju's targeting, the attack duration, or when a wave ends."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "adr": [
+          "adr_002_keep_simulation_independent_from_babylon_and_the_browser"
+        ],
+        "item": [
+          "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/backlog/item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building.md",
+      "ref": "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The kaiju destroys several buildings in one wave, choosing the nearest living one from its current position each time.",
+          "- AC2: A building takes a visible span of time to fall rather than vanishing on contact.",
+          "- AC3: The wave ends only on the kaiju's death or on the last building's, proven from a seed in a headless test.",
+          "- AC4: The targeting loop is deterministic and replays identically from the same seed with no renderer present."
+        ],
+        "Problem": [
+          "- `updateWave` in `src/app/app.ts` ends the wave with `finishWave(\"breached\")` the moment any parcel falls inside the 25 m destruction radius. One building is the whole attack.",
+          "- `planKaiju` fixes `landing -> coast -> target` at wave start and `kaijuPositionAt` walks that polyline forever, so even without the end-of-wave rule the monster would stand still on a ruin.",
+          "- Destruction is instantaneous on contact, so steps four through seven of the intended loop -- attack until it falls, choose again, walk again -- have nowhere to happen.",
+          "- The bait strategy the product brief describes cannot exist while the target is chosen once."
+        ]
+      },
+      "status": "Ready",
+      "title": "A kaiju that crosses the city instead of stopping on the first building"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave, readable, kaiju, crosses, city, missiles, you, can, watch, spending, never, blocks",
+        "skip when": "You need the original attack slice's design rather than its corrections.",
+        "summary": "The executable surface of `req_029`: the kaiju loop first, then the missiles, then the balance, then the construction and the costs.",
+        "use when": "Implementing or reviewing the corrections to the attack slice."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "adr": [
+          "adr_002_keep_simulation_independent_from_babylon_and_the_browser"
+        ],
+        "item": [
+          "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+          "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+          "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+          "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/tasks/task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks.md",
+      "ref": "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+          "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+          "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+          "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/product/prod_020_a_wave_the_player_can_actually_watch.md",
+      "ref": "prod_020_a_wave_the_player_can_actually_watch",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A wave the player can actually watch"
+    },
+    {
+      "ai_context": {
+        "keywords": "missiles, fly, explode, damage, lands",
+        "skip when": "You need the damage rule itself, which is already correct, or the battery numbers.",
+        "summary": "The delivery slice for the military answer: real projectiles that climb, travel and dive, staggered launches, and an explosion drawn where the damage is already applied.",
+        "use when": "Working on missile rendering, impact effects, or salvo timing."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_079_missiles_that_fly_and_explode_where_the_damage_lands"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/backlog/item_079_missiles_that_fly_and_explode_where_the_damage_lands.md",
+      "ref": "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Missiles are visible objects that climb, travel and dive over their flight time rather than a line drawn at launch.",
+          "- AC2: The impact is drawn at the kaiju's position at impact, and the health bar drops on the same frame.",
+          "- AC3: Several batteries stagger their launches instead of firing as one frame's salvo.",
+          "- AC4: The renderer no longer disposes and recreates its whole mesh every frame, and the frame budget is respected."
+        ],
+        "Problem": [
+          "- `src/render/missiles.ts` draws a straight `LineSystem` from battery to kaiju the instant the salvo fires, and disposes and rebuilds the whole mesh every frame.",
+          "- Each trail's `to` is frozen at the kaiju's launch-time position, so at impact the line points at ground the monster has already left -- the picture contradicts the arithmetic.",
+          "- One shared `nextSalvoAt` fires every battery on the same frame, so a defended city produces one synchronised flash instead of several launches.",
+          "- The damage timing itself is already right: `updateWave` holds each missile until `impactAt` before subtracting. This slice must not disturb that -- only make the rendering tell the same story."
+        ]
+      },
+      "status": "Ready",
+      "title": "Missiles that fly, and explode where the damage lands"
+    },
+    {
+      "ai_context": {
+        "keywords": "fight, long, enough, shape, harness, can, prove",
+        "skip when": "You need the kaiju's behaviour, the missile rendering, or the run economy above the wave.",
+        "summary": "The delivery slice for combat length: hit points, damage, reload and wave scaling retuned together, and a balance harness rewritten to drive the real simulation instead of a random number.",
+        "use when": "Working on wave balance numbers or on `scripts/balance.mjs`."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/backlog/item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it.md",
+      "ref": "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A competent first defence takes roughly twenty to forty seconds and five to eight significant salvos to kill the first kaiju.",
+          "- AC2: The retune covers hit points, damage, reload and wave scaling together, with the chosen numbers and their reasoning documented.",
+          "- AC3: `npm run balance` drives the real wave simulation from `src/` and reports combat duration and salvo count.",
+          "- AC4: A recorded harness run in `balance/history.jsonl` shows the duration target met."
+        ],
+        "Problem": [
+          "- 600 hit points against a 4x3 military parcel's 144 damage every 2.5 seconds is four salvos and about ten seconds. A competent first defence deletes the wave before the player has found it.",
+          "- Raising hit points alone would make the fight longer and no more legible: the numbers that matter are hit points, damage per parcel cell, reload, and how a wave scales after the first.",
+          "- `scripts/balance.mjs` imports nothing from `src/`. Its defence score is `0.44 + rnd() * 0.42`, so `balance/history.jsonl` records the behaviour of a random number generator and the run slice's AC6 cites it as evidence.",
+          "- Without a harness on the real simulation, any new balance is an opinion and the next change to the numbers silently invalidates it."
+        ]
+      },
+      "status": "Ready",
+      "title": "A fight long enough to have a shape, and a harness that can prove it"
+    },
+    {
+      "ai_context": {
+        "keywords": "construction, you, can, see, bill, never, stops, game",
+        "skip when": "You need the wave itself, or the consequences of a negative balance, which are later work.",
+        "summary": "The delivery slice for what the city shows and pays: a building that visibly rises with a live progress readout, a shorter stage, and building costs deducted without ever refusing a build.",
+        "use when": "Working on construction feedback, the building lifecycle, building prices, or the treasury."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game"
+        ],
+        "prod": [
+          "prod_020_a_wave_the_player_can_actually_watch"
+        ],
+        "req": [
+          "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ],
+        "task": [
+          "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+        ]
+      },
+      "path": "logics/backlog/item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game.md",
+      "ref": "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A building under construction rises over its stage and is unmistakable from a finished one, rebuilds included.",
+          "- AC2: A selected parcel under construction shows its percentage and its remaining seconds, both live.",
+          "- AC3: The construction stage is between fifteen and thirty seconds.",
+          "- AC4: Building a building deducts its cost, and a treasury that cannot cover it goes negative rather than refusing -- proven by a test that builds from a negative balance.",
+          "- AC5: No unreachable building state remains painted, labelled or counted anywhere."
+        ],
+        "Problem": [
+          "- `buildingStateScaleY` returns a flat 0.28 for the whole of `BUILDING_STAGE_SECONDS`, so a building under construction is a stub at a fixed height for sixty seconds and then it is finished. Nothing rises and nothing reads as a site.",
+          "- Selecting the parcel says \"Construction\" and nothing else -- no percentage, no time left -- and the state is only recomputed on the twenty-second demand step, so a readout would be stale even if it existed.",
+          "- Buildings cost nothing: `e1567fa` removed `buildingBuildCost`, the funding queue and the demolition refund, which were AC1 to AC3 of the money slice, from a request still marked Done at 100%.",
+          "- The queue is not wanted back. Refusing to build when the treasury is empty is a soft-lock, and the player who most needs to build is the one who just lost a wave.",
+          "- That removal left dead branches: `waiting` is unreachable in `src/sim/buildingLifecycle.ts` while `src/render/buildings.ts` still paints it, `stateLabel` still names it, and the money tooltip still reports a count that is always zero."
+        ]
+      },
+      "status": "Ready",
+      "title": "A construction you can see, and a bill that never stops the game"
+    }
+  ],
+  "estimates": {
+    "char_count": 25049,
+    "companion_doc_count": 0,
+    "doc_count": 10
+  },
+  "generated_at": "2026-09-01T08:24:03Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+      "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+      "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+      "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+      "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game",
+      "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "full",
+  "profile": "normal",
+  "ref": "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks,item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building,item_079_missiles_that_fly_and_explode_where_the_damage_lands,item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it,item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game,task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+  "refs": [
+    "req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks",
+    "item_078_a_kaiju_that_crosses_the_city_instead_of_stopping_on_the_first_building",
+    "item_079_missiles_that_fly_and_explode_where_the_damage_lands",
+    "item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it",
+    "item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game",
+    "task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": []
+}

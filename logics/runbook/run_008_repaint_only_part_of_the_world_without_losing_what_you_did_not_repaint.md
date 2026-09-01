@@ -6,6 +6,7 @@
 > Related backlog: `item_052_make_a_partial_rebuild_unable_to_lose_geometry`
 > Related task: `task_017_close_the_ten_review_findings_from_the_dirty_region_rebuild_and_zoning_work`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
+> Indicators reviewed: 2026-09-01 10:22:21
 
 # Trigger
 - Teaching a renderer to rebuild only part of itself, or extending the existing dirty-region rebuild to one that still rebuilds in full (trees, world grid, streetlights, signals).
@@ -52,7 +53,7 @@
 - `src/app/app.ts` -- `rebuild(dirty?: TerrainBounds)`, the one place the box is threaded to every renderer.
 - `src/sim/heightmap.ts` -- `TerrainBounds`, `gridBounds`, and the clipped `stamp` / `stampPolygon` / `stampParcel`.
 - `src/render/ground.ts` -- `groundGridBounds`, `uploadRows`, and the one-ring normal expansion.
-- `src/render/roadMesh.ts` -- `meshTouchesBounds` and `pointsTouchBounds`, the two predicates rung 3 is about.
+- `src/render/roadMesh.ts` -- `segmentMeshTouchesBounds` and `pointsTouchBounds`, the two predicates rung 3 is about.
 - `src/render/traffic.ts` -- `segmentTouchesBounds`, and the queue bookkeeping that survives a partial rebuild.
 - `src/render/drawTool.ts` -- `boundsOf`, `expandBounds`, `TERRAIN_DIRTY_PAD`, and the spray throttle rung 9 is about.
 - `adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views` -- why everything is derived in the first place.

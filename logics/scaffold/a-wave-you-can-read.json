@@ -1,0 +1,237 @@
+{
+  "title": "A wave you can read: a kaiju that crosses the city, missiles you can watch, and spending that never blocks",
+  "references": [
+    "src/sim/kaiju.ts",
+    "src/sim/wave.ts",
+    "src/sim/batteries.ts",
+    "src/sim/buildingLifecycle.ts",
+    "src/sim/economy.ts",
+    "src/render/missiles.ts",
+    "src/render/kaiju.ts",
+    "src/render/buildings.ts",
+    "src/ui/hud.ts",
+    "src/app/app.ts",
+    "scripts/balance.mjs",
+    "logics/request/req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not.md",
+    "logics/request/req_024_money_and_the_queue_what_a_city_can_afford_to_build.md",
+    "logics/request/req_028_runs_science_and_prestige_leaving_an_island_with_something.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "A manual test of the first wave found the attack is over before it is legible. The kaiju lands, walks to one building, and the wave ends -- `updateWave` in `src/app/app.ts` calls `finishWave(\"breached\")` on the first parcel inside the 25 m destruction radius. The player sees a monster arrive and a banner appear. There is no attack to watch, no city crossed, and no decision taken during it.",
+      "Underneath that, the kaiju's route is decided once and never revisited. `planKaiju` in `src/sim/kaiju.ts` returns `landing -> coast -> target` with the target picked from the building positions at wave start, and `kaijuPositionAt` walks that fixed polyline forever. Even with the end-of-wave rule fixed, the monster would stand on a destroyed parcel for the rest of the wave. What the design needs is a loop: nearest living building, walk, attack until it falls, pick the next.",
+      "That loop is also the prerequisite for the bait the product brief already promises. Sacrificing a building to bend the kaiju's path is only a strategy if the kaiju chooses again after each kill.",
+      "The military answer is not visible either. `src/render/missiles.ts` draws a `LineSystem` from each battery straight to the kaiju the instant the salvo fires, disposes and recreates the whole mesh every frame, and freezes `to` at the position the kaiju held when the shot left -- so by the time the damage lands the yellow line is pointing at empty ground. The intent is missiles leaving the city, arcing through the sky and coming down on the monster; what exists is a wire.",
+      "The simulation is honest and the rendering is not, which is the one gap worth naming precisely. `updateWave` already holds each missile until `impactAt` and only then subtracts its damage, so the health bar already drops on impact rather than on launch. Nothing about the damage timing needs inventing: the work is making the picture agree with the arithmetic that is already correct.",
+      "The fight is far too short even when it is allowed to run. The kaiju has 600 hit points; a single 4x3 military parcel yields a battery doing 144 damage a salvo, and the reload is 2.5 seconds. Four salvos, ten seconds, and a well-defended first wave is over before the player has found the monster on screen. The fix is the whole set of numbers -- hit points, damage per cell, reload, wave scaling -- not the hit points alone.",
+      "There is no way to check that any new balance is right. `scripts/balance.mjs` imports nothing from `src/`: it invents a defence score as `0.44 + rnd() * 0.42` and writes the distribution of that to `balance/history.jsonl`. `req_028` AC6 cites that file as proof of the run distribution, so that acceptance criterion currently rests on a random number generator. A target of twenty to forty seconds of combat is not verifiable until the harness runs the real wave.",
+      "Construction is invisible. `BUILDING_STAGE_SECONDS` is 60, and for all sixty of them `buildingStateScaleY` returns a flat 0.28 -- the building is a stub at a fixed height, then it is finished. Nothing rises, nothing reads as a site, and selecting the parcel says only \"Construction\". The player cannot tell a building going up from one that is broken.",
+      "Buildings cost nothing to build. `e1567fa` (\"Make money road-only\") removed `buildingBuildCost`, the funding queue and the demolition refund, which were AC1, AC2 and AC3 of `req_024_money_and_the_queue_what_a_city_can_afford_to_build` -- a request still recorded as Done at 100%. The queue is not wanted back: refusing to build was a soft-lock, and a player who cannot build cannot recover. The price is. Spending should be counted and allowed to go negative, so money is a reading of the city's health rather than a gate on playing it.",
+      "That removal left dead branches behind it. The `waiting` state in `src/sim/buildingLifecycle.ts` is now unreachable -- `sync` maps every unknown parcel straight to `rising` -- while `src/render/buildings.ts` still paints a colour for it, `stateLabel` in `src/ui/hud.ts` still names it, and the money tooltip still reports a waiting count that is always zero."
+    ],
+    "context": [
+      "Everything here is a correction to systems that already exist. The wave clock, the kaiju plan, the battery model, the missile flight time, the building lifecycle and the treasury are all in place and all tested; nothing in this request wants a parallel mechanic beside one of them.",
+      "`Treasury.spend` already takes an `allowDebt` flag and already lets the balance go below zero when it is set. Allowing debt is a matter of how it is called, not of new machinery.",
+      "`src/sim/kaiju.ts` is pure and Babylon-free by `adr_002_keep_simulation_independent_from_babylon_and_the_browser`, and `req_021` AC5 pins that: the retargeting loop must stay replayable from a seed with no renderer, which also makes it the part a test can hold.",
+      "The building states are only recomputed when `syncBuildings` runs, which outside an edit means the twenty-second demand step in `advanceClock`. A construction readout that shows a percentage and a countdown needs the progress derived from `startedAt` and the current time at read, not a state that is only refreshed three times a minute.",
+      "The destruction path itself is fine and should be kept: `rubble.destroy`, `buildingLifecycle.rebuild`, the dirty-box repaint. What is missing before it is a duration -- the kaiju attacking a building for some seconds -- because instant destruction on contact is what makes both the loop and the bait unreadable.",
+      "A wave that no longer ends on the first loss needs a rule for when it does end. The deliberately simple one: the wave is held when the kaiju's hit points reach zero, and breached when it has destroyed the last living building. Time limits, morale and partial verdicts are all richer and all out of scope here.",
+      "The missile trajectory is meant to be stylised, not ballistic: a strong near-vertical climb over the first quarter of the flight, travel at altitude through the middle, and a fast dive over the last third. The flight time already exists as `missileTravelSecondsAtRange` scaled by distance, so the arc is a function of the progress between launch and `impactAt` rather than a new physics step.",
+      "Salvos are currently perfectly synchronised because one `nextSalvoAt` gates every battery. Giving each battery its own small offset is what turns a salvo into several launches.",
+      "This request deliberately adds no new resources: no construction materials, no build crews, no debt interest, no maintenance penalties, no reduced services while negative. Those consequences are named in the product brief as later work and stay there."
+    ],
+    "acceptance_criteria": [
+      "AC1: A wave no longer ends when the first building falls: it is held when the kaiju dies, and breached when the last living building is destroyed.",
+      "AC2: The kaiju picks the nearest living building from where it currently stands, walks to it, and picks again after each kill, for as long as it is alive -- a loop, not a route fixed at wave start.",
+      "AC3: Destroying a building takes time rather than happening on contact, so the attack is something the player can watch and interrupt.",
+      "AC4: Batteries launch visible missiles that climb, travel and dive onto the kaiju, with a trail and a short impact explosion, and several batteries no longer fire as one perfectly synchronised salvo.",
+      "AC5: Damage still lands at the moment of impact and the impact is drawn where the damage is applied -- the health bar and the explosion agree, on a kaiju that has moved since the shot left.",
+      "AC6: A first wave against a competent defence lasts roughly twenty to forty seconds and takes five to eight significant salvos, reached by revisiting hit points, damage, reload and wave scaling together.",
+      "AC7: `npm run balance` runs the real wave simulation from `src/` rather than an invented defence score, so the combat-duration target is a measured number and `req_028` AC6 stops resting on a random number generator.",
+      "AC8: A building under construction visibly rises over its stage, reads as a site rather than as a finished building, and when selected shows its progress and the time it has left -- the same for a rebuild after a wave.",
+      "AC9: Buildings cost money to build and the cost is deducted, but a shortfall never refuses construction: the balance may go negative and nothing is blocked by it, roads included.",
+      "AC10: The states and readouts left unreachable by the earlier money removal are gone or reachable again, with no branch painting a state that cannot happen."
+    ]
+  },
+  "product": {
+    "title": "A wave the player can actually watch",
+    "overview": "The attack slice shipped every part it promised and none of them are legible. The kaiju lands and the wave ends on the first building it touches, so nothing is crossed and nothing is chosen. The batteries answer with a yellow wire that points at where the monster used to be. A well-defended first wave is over in ten seconds, and the harness that is supposed to prove the balance never runs the game. Meanwhile a building goes up as a stub at a fixed height for a minute, and costs nothing, because the price was removed along with the queue that refused to build. This brief is the pass that turns those mechanisms into something a player can read: a monster that crosses the city building by building, missiles that leave the ground and come down, a fight long enough to have a shape, and money that records what the city spent instead of stopping it from playing.",
+    "goals": [
+      "A wave lasts long enough, and moves far enough, to be watched and reacted to.",
+      "The kaiju chooses again after every kill, which is what makes bait a strategy rather than a note in a brief.",
+      "What the player sees and what the simulation does are the same event: the explosion is where the damage is.",
+      "The balance target is a measured number from the real simulation, not an assertion.",
+      "A building under construction is obviously under construction.",
+      "Money is a reading of the city's health, never a reason the player cannot keep playing."
+    ],
+    "non_goals": [
+      "Kaiju target preferences, densities, or several kaiju with different behaviours -- nearest living building is the whole rule for now.",
+      "Ballistic simulation, guided missiles, misses, or interception.",
+      "Consequences of a negative balance: debt, interest, maintenance, service decay, penalties.",
+      "New construction resources -- materials, crews, or anything the player has to supply to a site.",
+      "Per-kind construction durations, which are named as later work and deliberately not built here.",
+      "Reinstating the funding queue that refused to build, which is the soft-lock this pass exists to remove.",
+      "New destruction geometry -- rubble remains what a destroyed building leaves behind."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "A kaiju that crosses the city instead of stopping on the first building",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC1", "AC2", "AC3"],
+      "problem": [
+        "`updateWave` in `src/app/app.ts` ends the wave with `finishWave(\"breached\")` the moment any parcel falls inside the 25 m destruction radius. One building is the whole attack.",
+        "`planKaiju` fixes `landing -> coast -> target` at wave start and `kaijuPositionAt` walks that polyline forever, so even without the end-of-wave rule the monster would stand still on a ruin.",
+        "Destruction is instantaneous on contact, so steps four through seven of the intended loop -- attack until it falls, choose again, walk again -- have nowhere to happen.",
+        "The bait strategy the product brief describes cannot exist while the target is chosen once."
+      ],
+      "scope_in": [
+        "Replace the fixed path with a loop in `src/sim/kaiju.ts`: from the current position, take the nearest living building, walk to it, attack it until it is destroyed, then choose again while alive.",
+        "Keep the landing and the coast approach: they are the arrival and they read well.",
+        "Give the attack a duration, and expose the progress of it so a renderer can show a building being worked on rather than blinking out.",
+        "Move the end-of-wave rule: held when the kaiju's hit points reach zero, breached when the last living building is gone.",
+        "Keep the existing destruction path -- `rubble.destroy`, `buildingLifecycle.rebuild`, the dirty-box repaint -- and call it from the new loop rather than beside it.",
+        "Keep `src/sim/kaiju.ts` pure and replayable from a seed with no Babylon, per `adr_002_keep_simulation_independent_from_babylon_and_the_browser` and `req_021` AC5."
+      ],
+      "scope_out": [
+        "Target preferences by building kind, density seeking, or several kaiju behaviours.",
+        "Pathfinding around obstacles -- straight lines between targets are enough.",
+        "Balance numbers, which are their own slice.",
+        "Any change to what rubble is or how a destroyed parcel repaints."
+      ],
+      "acceptance_criteria": [
+        "AC1: The kaiju destroys several buildings in one wave, choosing the nearest living one from its current position each time.",
+        "AC2: A building takes a visible span of time to fall rather than vanishing on contact.",
+        "AC3: The wave ends only on the kaiju's death or on the last building's, proven from a seed in a headless test.",
+        "AC4: The targeting loop is deterministic and replays identically from the same seed with no renderer present."
+      ]
+    },
+    {
+      "title": "Missiles that fly, and explode where the damage lands",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC4", "AC5"],
+      "problem": [
+        "`src/render/missiles.ts` draws a straight `LineSystem` from battery to kaiju the instant the salvo fires, and disposes and rebuilds the whole mesh every frame.",
+        "Each trail's `to` is frozen at the kaiju's launch-time position, so at impact the line points at ground the monster has already left -- the picture contradicts the arithmetic.",
+        "One shared `nextSalvoAt` fires every battery on the same frame, so a defended city produces one synchronised flash instead of several launches.",
+        "The damage timing itself is already right: `updateWave` holds each missile until `impactAt` before subtracting. This slice must not disturb that -- only make the rendering tell the same story."
+      ],
+      "scope_in": [
+        "Replace the line with a projectile that exists for its flight: a strong climb over roughly the first quarter, travel at altitude through the middle, a fast dive over the last third, positioned from the progress between launch and `impactAt`.",
+        "A trail behind the missile, a flash and short explosion at impact, and a small reaction on the kaiju when it is hit.",
+        "Track the kaiju's live position so the dive and the explosion land on the monster as it is, not as it was.",
+        "A small per-battery offset on the salvo so launches stagger.",
+        "Stop rebuilding the whole mesh every frame -- move the missiles that exist rather than recreating them, the treatment `rebuildLights` already applies to the streetlights.",
+        "Keep the damage applied at `impactAt` exactly as it is now, and make the health bar drop on the frame the explosion is drawn."
+      ],
+      "scope_out": [
+        "Ballistics, guidance, misses, or interception -- the missile always hits, as `req_021` decided.",
+        "Changing battery range, damage or reload, which belong to the balance slice.",
+        "Smoke that persists after the explosion, or damage decals."
+      ],
+      "acceptance_criteria": [
+        "AC1: Missiles are visible objects that climb, travel and dive over their flight time rather than a line drawn at launch.",
+        "AC2: The impact is drawn at the kaiju's position at impact, and the health bar drops on the same frame.",
+        "AC3: Several batteries stagger their launches instead of firing as one frame's salvo.",
+        "AC4: The renderer no longer disposes and recreates its whole mesh every frame, and the frame budget is respected."
+      ]
+    },
+    {
+      "title": "A fight long enough to have a shape, and a harness that can prove it",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC6", "AC7"],
+      "problem": [
+        "600 hit points against a 4x3 military parcel's 144 damage every 2.5 seconds is four salvos and about ten seconds. A competent first defence deletes the wave before the player has found it.",
+        "Raising hit points alone would make the fight longer and no more legible: the numbers that matter are hit points, damage per parcel cell, reload, and how a wave scales after the first.",
+        "`scripts/balance.mjs` imports nothing from `src/`. Its defence score is `0.44 + rnd() * 0.42`, so `balance/history.jsonl` records the behaviour of a random number generator and `req_028` AC6 cites it as evidence.",
+        "Without a harness on the real simulation, any new balance is an opinion and the next change to the numbers silently invalidates it."
+      ],
+      "scope_in": [
+        "Retune `WAVE_STARTING_VALUES` as a set so a competent first defence runs roughly twenty to forty seconds and five to eight significant salvos.",
+        "Revisit how a wave scales after the first, so later waves stay in a readable band rather than collapsing to the same ten seconds with bigger numbers.",
+        "Rewrite `scripts/balance.mjs` to drive the actual wave simulation from `src/` -- the kaiju loop, the batteries, the clock -- and report combat duration and salvo count alongside the run distribution.",
+        "Record the retained numbers and the reasoning in the closeout, so the next change to them starts from a stated intent.",
+        "Run the harness after the retune and keep the recorded figures in `balance/history.jsonl`."
+      ],
+      "scope_out": [
+        "Wave special abilities, resistances, or several kaiju types.",
+        "Changing the science or prestige economy that `req_028` settled.",
+        "Performance gating the harness in CI."
+      ],
+      "acceptance_criteria": [
+        "AC1: A competent first defence takes roughly twenty to forty seconds and five to eight significant salvos to kill the first kaiju.",
+        "AC2: The retune covers hit points, damage, reload and wave scaling together, with the chosen numbers and their reasoning documented.",
+        "AC3: `npm run balance` drives the real wave simulation from `src/` and reports combat duration and salvo count.",
+        "AC4: A recorded harness run in `balance/history.jsonl` shows the duration target met."
+      ]
+    },
+    {
+      "title": "A construction you can see, and a bill that never stops the game",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": ["AC8", "AC9", "AC10"],
+      "problem": [
+        "`buildingStateScaleY` returns a flat 0.28 for the whole of `BUILDING_STAGE_SECONDS`, so a building under construction is a stub at a fixed height for sixty seconds and then it is finished. Nothing rises and nothing reads as a site.",
+        "Selecting the parcel says \"Construction\" and nothing else -- no percentage, no time left -- and the state is only recomputed on the twenty-second demand step, so a readout would be stale even if it existed.",
+        "Buildings cost nothing: `e1567fa` removed `buildingBuildCost`, the funding queue and the demolition refund, which were `req_024` AC1 to AC3, from a request still marked Done at 100%.",
+        "The queue is not wanted back. Refusing to build when the treasury is empty is a soft-lock, and the player who most needs to build is the one who just lost a wave.",
+        "That removal left dead branches: `waiting` is unreachable in `src/sim/buildingLifecycle.ts` while `src/render/buildings.ts` still paints it, `stateLabel` still names it, and the money tooltip still reports a count that is always zero."
+      ],
+      "scope_in": [
+        "Make a building rise progressively over its stage and read as a site rather than as a short finished building.",
+        "Derive construction progress from `startedAt` and the current time when it is read, so a selected parcel can show a live percentage and a countdown rather than a state refreshed three times a minute.",
+        "Show the progress on the selection panel, in the shape `Construction -- 42 % -- 12 s remaining`, and the same for a rebuild after a wave.",
+        "Bring `BUILDING_STAGE_SECONDS` down into the fifteen to thirty second range, as one constant for every kind.",
+        "Reinstate a per-building cost, deducted when construction starts, using the `allowDebt` path `Treasury.spend` already has -- a shortfall lets the balance go negative and refuses nothing.",
+        "Apply the same rule to roads: priced, deducted, never refused for lack of funds.",
+        "Remove the branches the money removal left unreachable, or make them reachable again, so nothing paints a state that cannot happen.",
+        "Confirm a save written before this still loads, and that a building saved mid-construction resumes rather than restarting or completing."
+      ],
+      "scope_out": [
+        "Per-kind construction durations, which are later work.",
+        "Construction materials, crews, or any resource a site consumes.",
+        "Consequences of a negative balance: debt, interest, maintenance, penalties, service decay.",
+        "Reinstating the funding queue or any refusal to build.",
+        "Reworking the demolition refund beyond restoring a price for it to halve."
+      ],
+      "acceptance_criteria": [
+        "AC1: A building under construction rises over its stage and is unmistakable from a finished one, rebuilds included.",
+        "AC2: A selected parcel under construction shows its percentage and its remaining seconds, both live.",
+        "AC3: The construction stage is between fifteen and thirty seconds.",
+        "AC4: Building a building deducts its cost, and a treasury that cannot cover it goes negative rather than refusing -- proven by a test that builds from a negative balance.",
+        "AC5: No unreachable building state remains painted, labelled or counted anywhere."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks",
+    "plan": [
+      "Read this request and its four slices, then read `updateWave` in `src/app/app.ts` end to end before touching anything -- the wave's end condition, the targeting, the salvo and the damage timing all live in that one function and three of the four slices land in it.",
+      "Correct nothing that is already correct. The damage is already applied at `impactAt` and the health bar already drops on impact; the defect is the rendering, and a slice that 'fixes' the timing will break what works.",
+      "Take the kaiju loop first. It is the one everything else is watched through: missiles look no better against a monster that has stopped, and no balance target means anything for a wave that ends in ten seconds on the first building.",
+      "Then the missiles, then the balance, then the construction and the costs -- the order the manual test put them in, and the order of how much each one changes what the player sees.",
+      "Keep `src/sim/kaiju.ts` pure and seed-replayable throughout; the targeting loop is the part a headless test can actually hold, and `adr_002_keep_simulation_independent_from_babylon_and_the_browser` requires it.",
+      "Reuse what exists rather than building beside it: `Treasury.spend`'s `allowDebt` flag, the existing destruction and repaint path, the existing missile flight time, the existing lifecycle states.",
+      "Rewrite the balance harness before trusting any retuned number -- the current one proves nothing, and the twenty-to-forty-second target is only a claim until it is measured against the real simulation.",
+      "Add no new resource, no debt consequence and no per-kind duration; every one of those is named as later work in the brief and each is a way for this pass to stop being deliverable.",
+      "Verify a save from before this loads, and that a building saved mid-construction resumes at its progress.",
+      "Run `npm run ci`, `npm run test:e2e` and `npm run balance` locally; the browser suite is the local gate, not something to discover in CI.",
+      "ADR 009 checkpoint: update affected Logics docs and leave the repo commit-ready. `req_024`'s reinstated criteria and `req_028` AC6's new evidence both need saying out loud in the closeout.",
+      "GATE: do not close until lint, audit, and scaffold validation pass."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/a-wave-you-can-read.json",
+    "mode": "full",
+    "profile": "normal"
+  }
+}

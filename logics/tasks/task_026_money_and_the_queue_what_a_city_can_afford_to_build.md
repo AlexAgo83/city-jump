@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 06:31:06
+> Indicators reviewed: 2026-09-01 10:22:34
 > Owner: Codex
 
 # AI Context
@@ -77,6 +77,12 @@
 - 2026-09-01: Buildings now spend from the treasury before rising; unaffordable parcels wait and the HUD reports rising and waiting counts.
 - 2026-09-01: Wave-damaged buildings now enter rebuilding, spend even into debt, keep rubble visible during the work, and leave new builds waiting while money is negative.
 - 2026-09-01: Zone tools now show the minimum building price, alongside the existing road metre price and city money strip.
+- 2026-09-01, after closeout: commit `e1567fa` ("Make money road-only") removed the building price,
+  the funding queue and the demolition refund, reverting AC1, AC2 and AC3 of
+  `req_024_money_and_the_queue_what_a_city_can_afford_to_build` with no doc of its own. Manual
+  testing then found the queue was a soft-lock. The price returns without the refusal under
+  `req_029_a_wave_you_can_read_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks`;
+  the queue does not.
 - 2026-09-01: Buildings and roads now demolish after one second and refund half their original calculated cost; pure and interaction checks cover the amount and delay.
 - 2026-09-01: `npm run test:e2e` and `npm run ci` passed for the final demolition wave.
 - Finished on 2026-09-01.
