@@ -17,8 +17,9 @@ describe("economy", () => {
     expect(roadBuildCost("tunnel", 10)).toBe(450);
   });
 
-  it("earns money from population, commerce and industry", () => {
-    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4), status("industrial", "working", 2, 2)])).toBeCloseTo(4.4);
+  it("earns money from population and trade, but not from the works", () => {
+    // Industry supplies the shops and the barracks; it does not sell anything itself.
+    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4), status("industrial", "working", 2, 2)])).toBeCloseTo(3.4);
   });
 
   it("spends only what it can unless debt is allowed", () => {

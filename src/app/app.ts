@@ -222,7 +222,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       const ignored = missing === "power" ? runState.rules.ignorePower : missing === "water" ? runState.rules.ignoreWater : false;
-      return missing && !ignored ? { ...status, state: "idle" as const, reason: missing } : status;
+      if (missing && !ignored) return { ...status, state: "idle" as const, reason: missing };
+      // Shops run on what the works make. No materials, no trade -- that is what industry is for.
+      if ((status.parcel.kind === "commercial" || status.parcel.kind === "military") && cityEconomy.materialsShort) return { ...status, state: "idle" as const, reason: "materials" as const };
+      return status;
     });
     const nextDark = new Set(currentBuildingStatuses.filter((status) => status.reason === "power" || status.reason === "water").map((status) => `${Math.round(status.parcel.position.x)}:${Math.round(status.parcel.position.z)}`));
     if ([...nextDark].some((key) => !darkDistricts.has(key))) showAlert("A district went dark.");
@@ -376,7 +379,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       : endIfPopulationZero(settleWave(runState, { defeated: false, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave }), cityEconomy.resources.population);
     waveClock = runState.ended ? waveClock : scheduleNextWave(waveClock);
     waveCalledEarly = false;
-    if (runState.ended) deleteRunSaveOnDefeat(profile, runState.ended);
+    if (runState.ended) {
+      deleteRunSaveOnDefeat(profile, runState.ended);
+      endRun();
+    }
     updateRunHud();
     kaiju.hide();
     waveMarkers.hide();
@@ -426,6 +432,18 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }
   };
   const updateWave = (dt: number): void => {
+    // A finished run is finished. Without this the clock kept running over a dead city, gathered
+    // the next wave and sent the kaiju back in -- and evacuating did nothing a player could see.
+    if (runState.ended) {
+      kaijuPlan = null;
+      kaijuAssault = null;
+      pendingMissiles = [];
+      kaiju.hide();
+      waveMarkers.hide();
+      missiles.rebuild([]);
+      showWaveBanner(runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science` : runState.ended === "population_zero" ? "The island emptied" : "The city fell", runState.ended === "evacuated" ? "held" : "breached");
+      return;
+    }
     if (!runState.rules.kaijuSpawns) {
       kaijuPlan = null;
       kaijuAssault = null;
@@ -613,6 +631,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const gameplayNote = document.getElementById("gameplay-note") as HTMLSpanElement;
   const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
+  const runOutcome = document.getElementById("run-outcome") as HTMLSpanElement;
+  const newRunButton = document.getElementById("new-run") as HTMLButtonElement;
   const renderGameplayRules = (): void => {
     kaijuBox.checked = runState.rules.kaijuSpawns;
     instantBox.checked = runState.rules.instantConstruction;
@@ -650,6 +670,22 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return button;
     }));
     betweenRuns.hidden = !runState.ended;
+    runOutcome.textContent = runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science.`
+      : runState.ended === "population_zero" ? "The island emptied."
+      : runState.ended === "defeated" ? "The city fell." : "";
+  };
+  /** A new island: the same path a save takes, then framed on the kit the run opens with. */
+  const startFreshRun = (): void => {
+    loadCity(emptyCity());
+    addStarterKit();
+    rebuild();
+    applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
+  };
+  const endRun = (): void => {
+    setTimeRate(0);
+    updateWave(0);
+    updateRunHud();
+    renderUpgradeWeb();
   };
   const finishByEvacuation = (): void => {
     if (runState.ended) return;
@@ -657,9 +693,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     profile = carryScience(profile, runState);
     writeProfile(profile);
     writeAutosave(snapshot(true));
-    updateRunHud();
-    renderUpgradeWeb();
-    showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
+    endRun();
+    showRefusal(`Evacuated with ${Math.floor(runState.science)} science. Start a new run when you are ready.`);
   };
   hardcoreBox.checked = profile.hardcore;
   hardcoreBox.addEventListener("change", () => {
@@ -668,6 +703,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   });
   for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) box.addEventListener("change", setRunRules);
   renderGameplayRules();
+  // The run is over and the city is frozen; the only useful thing left is the next island.
+  newRunButton.addEventListener("click", () => {
+    if (!window.confirm("Leave for a new island?")) return;
+    startFreshRun();
+  });
   evacuateButton.addEventListener("click", () => {
     if (!window.confirm("Evacuate this run?")) return;
     finishByEvacuation();
@@ -759,16 +799,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     canRedo: () => history.canRedo,
     onSave: () => snapshot(true),
     onLoad: loadCity,
-    onNew() {
-      // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity(emptyCity());
-      addStarterKit();
-      rebuild();
-      // Looking at the starter kit, which is where the run opens. This used to frame the origin --
-      // the middle of the island, a hilltop with nothing on it and twelve hundred metres from
-      // anything the player owns.
-      applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
-    },
+    onNew: startFreshRun,
   });
   updateUndoRedo = controls.updateUndoRedo;
   updateUndoRedo();

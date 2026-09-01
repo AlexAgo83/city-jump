@@ -43,7 +43,7 @@ describe("run state", () => {
 
   it("applies owned starter upgrades to a new run's opening stocks only", () => {
     const owned = { prestige: 0, upgrades: ["starter-funds"], hardcore: false };
-    const resources = { population: 12, food: 0 };
+    const resources = { population: 12, food: 0, materials: 0 };
 
     expect(startingMoney(profile())).toBe(40_000);
     expect(startingMoney(owned)).toBe(50_000);

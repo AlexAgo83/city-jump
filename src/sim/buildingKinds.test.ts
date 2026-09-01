@@ -20,7 +20,7 @@ describe("building kinds", () => {
 
     // A barracks costs three workers a cell, so four one-cell lots already outrun a single house.
     expect(needs.find((need) => need.kind === "residential")).toMatchObject({ supply: 12, need: 13, ratio: 12 / 13 });
-    expect(needs.find((need) => need.kind === "industrial")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
+    expect(needs.find((need) => need.kind === "industrial")).toMatchObject({ supply: 5, ratio: 1 });
     expect(needs.find((need) => need.kind === "military")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
   });
 
@@ -50,7 +50,7 @@ describe("building kinds", () => {
     ]);
 
     expect(needs.find((need) => need.kind === "agricultural")).toMatchObject({ supply: 1, need: 2, ratio: 0.5 });
-    expect(needs.find((need) => need.kind === "industrial")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
+    expect(needs.find((need) => need.kind === "industrial")).toMatchObject({ supply: 5, ratio: 1 });
     expect(needs.find((need) => need.kind === "military")).toMatchObject({ supply: 1, need: 1, ratio: 1 });
     expect(needs.map((need) => need.kind)).toContain("agricultural");
   });

@@ -1,6 +1,6 @@
 import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
-import { housingCapacity } from "./economy";
+import { housingCapacity, MATERIALS_PER_COMMERCE_CELL, MATERIALS_PER_MILITARY_CELL } from "./economy";
 import { parcelDemandLimits } from "./slots";
 import { batteriesForParcels } from "./batteries";
 
@@ -58,11 +58,18 @@ export function buildingNeeds(
     need("residential", staffing.workforce, staffing.demand),
     need("commercial", parcels.filter((parcel) => parcel.kind === "commercial").length, limits.commercial),
     need("agricultural", parcels.filter((parcel) => parcel.kind === "agricultural").length, limits.agricultural),
-    need("industrial", parcels.filter((parcel) => parcel.kind === "industrial").length, limits.industrial),
+    // What the works supply against what the shops and barracks draw: industry is not a quota, it
+    // is the other half of a circle -- residents staff the works, the works keep the shops trading
+    // and the batteries firing, and the trade pays for both.
+    need("industrial", cells(parcels, "industrial") * 5, cells(parcels, "commercial") * MATERIALS_PER_COMMERCE_CELL + cells(parcels, "military") * MATERIALS_PER_MILITARY_CELL),
     firepower === null
       ? need("military", staffing.byKind.military.staffed, staffing.byKind.military.staffed + staffing.byKind.military.idle)
       : need("military", Math.round(firepower), Math.round(projectedThreat!)),
   ];
+}
+
+function cells(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], kind: BuildingKind): number {
+  return parcels.filter((parcel) => parcel.kind === kind).reduce((sum, parcel) => sum + parcel.frontageCells * parcel.depthCells, 0);
 }
 
 export function population(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[]): number {

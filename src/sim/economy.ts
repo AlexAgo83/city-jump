@@ -12,16 +12,24 @@ export const STARTING_MONEY = 40_000;
  * that starts an empty larder eats through a third of its population before it can grow anything.
  */
 export const STARTING_FOOD = 30;
+/** A stock to open with, so the first shops run before the first works is up. */
+export const STARTING_MATERIALS = 40;
+/** Materials a working commercial cell consumes a day, and a military one. */
+export const MATERIALS_PER_COMMERCE_CELL = 1.5;
+export const MATERIALS_PER_MILITARY_CELL = 2.5;
 export const CITY_DAY_SECONDS = 96;
 
 export interface CityResources {
   readonly population: number;
   readonly food: number;
+  /** Industry makes them, commerce runs on them. Nothing else touches them. */
+  readonly materials: number;
 }
 
 export interface CityTerms {
   readonly population: { readonly value: number; readonly housing: number; readonly change: number; readonly foodShortage: number };
   readonly food: { readonly value: number; readonly produced: number; readonly consumed: number };
+  readonly materials: { readonly value: number; readonly produced: number; readonly consumed: number; readonly shortage: number };
   readonly trade: number;
 }
 
@@ -55,21 +63,30 @@ export class CityEconomy {
   private housed = false;
 
   constructor(state: Partial<CityResources> = {}) {
-    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD };
+    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
   }
 
   get resources(): CityResources {
     return this.state;
   }
 
+  /** True while the works cannot keep the shops supplied, so those shops stop working. */
+  get materialsShort(): boolean {
+    return this.state.materials <= 0;
+  }
+
   replaceWith(state: Partial<CityResources> = {}): void {
-    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD };
+    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
   }
 
   advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {
     const day = Math.max(0, seconds) / CITY_DAY_SECONDS;
     const housing = housingCapacity(parcels);
     const foodProduced = output(parcels, this.state.population, "agricultural", 8) * day;
+    const materialsProduced = output(parcels, this.state.population, "industrial", 5) * day;
+    const materialsConsumed = (output(parcels, this.state.population, "commercial", MATERIALS_PER_COMMERCE_CELL) + output(parcels, this.state.population, "military", MATERIALS_PER_MILITARY_CELL)) * day;
+    const materialsAvailable = this.state.materials + materialsProduced;
+    const materialsShortage = Math.max(0, materialsConsumed - materialsAvailable);
     const foodConsumed = this.state.population * day;
     const foodAvailable = this.state.food + foodProduced;
     const foodShortage = Math.max(0, foodConsumed - foodAvailable);
@@ -85,10 +102,12 @@ export class CityEconomy {
     this.state = {
       population: Math.max(0, this.state.population + growth),
       food: Math.max(0, foodAvailable - foodConsumed),
+      materials: Math.max(0, materialsAvailable - materialsConsumed),
     };
     return {
       population: { value: this.state.population, housing, change: growth, foodShortage },
       food: { value: this.state.food, produced: foodProduced, consumed: foodConsumed },
+      materials: { value: this.state.materials, produced: materialsProduced, consumed: materialsConsumed, shortage: materialsShortage },
       trade: incomePerSecond(this.state.population, parcels.map((parcel) => ({ parcel, state: "working" as const }))),
     };
   }
@@ -109,7 +128,7 @@ export function demolitionRefund(cost: number): number {
 }
 
 export function incomePerSecond(population: number, statuses: readonly { readonly parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">; readonly state: BuildingStatus["state"] }[]): number {
-  const trade = statuses.reduce((sum, status) => sum + (status.state === "working" && (status.parcel.kind === "commercial" || status.parcel.kind === "industrial") ? status.parcel.frontageCells * status.parcel.depthCells * (status.parcel.kind === "commercial" ? 0.35 : 0.25) : 0), 0);
+  const trade = statuses.reduce((sum, status) => sum + (status.state === "working" && status.parcel.kind === "commercial" ? status.parcel.frontageCells * status.parcel.depthCells * 0.35 : 0), 0);
   return population * 0.02 + trade;
 }
 

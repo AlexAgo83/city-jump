@@ -9,7 +9,7 @@ type StoredBuildingState = [x: number, z: number, state: BuildingState, startedA
 export interface BuildingStatus {
   readonly parcel: BuildingParcel;
   readonly state: BuildingState;
-  readonly reason?: "construction" | "workers" | "power" | "water";
+  readonly reason?: "construction" | "workers" | "power" | "water" | "materials";
   readonly startedAt: number;
   readonly progress: number;
   readonly remainingSeconds: number;

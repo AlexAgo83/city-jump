@@ -530,7 +530,7 @@ function bindSaves(
     remove.disabled = names.length === 0;
   };
 
-  create.addEventListener("click", () => {
+  const startNewCity = (): void => {
     // Nothing here is recoverable through undo -- a new city is not a city change, it is another
     // city -- so this is the one place that asks before throwing work away.
     if (!window.confirm("Start a new city? Anything not saved is lost.")) return;
@@ -538,7 +538,8 @@ function bindSaves(
     writeActiveSave(null);
     refresh();
     showRefusal("New city.");
-  });
+  };
+  create.addEventListener("click", startNewCity);
 
   store.addEventListener("click", () => {
     // The city being edited, not whichever name the picker happens to be showing -- suggesting

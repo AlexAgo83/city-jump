@@ -7,6 +7,7 @@ describe("ledger", () => {
     const terms: CityTerms = {
       population: { value: 42, housing: 90, change: 3.5, foodShortage: 1.25 },
       food: { value: 12, produced: 8, consumed: 6 },
+      materials: { value: 7, produced: 3, consumed: 2, shortage: 0 },
       trade: 4,
     };
 
