@@ -386,9 +386,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const a = graph.addNodeAt(v3(-260, heightmap.baseHeightAt(-260, 260), 260));
     const b = graph.addNodeAt(v3(40, heightmap.baseHeightAt(40, 260), 260));
     graph.addSegment(a, b, v3(-110, 0, 260), "street");
-    zones.paint(-170, 300, 28, "residential");
-    zones.paint(-70, 220, 22, "agricultural");
-    zones.paint(20, 300, 18, "commercial");
+    // Painted along the road, not beside it: buildable land is the frontage strip either side of a
+    // street, so a circle centred 40 m off it -- which is where these three used to sit -- covers
+    // ground nothing can ever be built on. The agricultural one reached no buildable cell at all,
+    // which is why a new city opened with no farm and no food.
+    zones.paint(-200, 260, 45, "agricultural");
+    zones.paint(-110, 260, 45, "residential");
+    zones.paint(0, 260, 45, "commercial");
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
