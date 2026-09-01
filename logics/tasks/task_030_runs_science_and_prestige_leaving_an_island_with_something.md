@@ -1,14 +1,14 @@
 ## task_030_runs_science_and_prestige_leaving_an_island_with_something - Runs, science and prestige: leaving an island with something
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 80%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 08:51:36
+> Indicators reviewed: 2026-09-01 09:11:15
 > Owner: codex
 
 # AI Context
@@ -22,28 +22,28 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/run.ts`: a run's state -- wave number, science, and the two ways it ends. Science from
+- [x] 1. `sim/run.ts`: a run's state -- wave number, science, and the two ways it ends. Science from
       a defeated kaiju, multiplied when the wave was called early and worth nothing when it is not.
-- [ ] 2. How a run opens: the bridge, a road inland, and the starter kit that makes the first
+- [x] 2. How a run opens: the bridge, a road inland, and the starter kit that makes the first
       minutes possible. No scripted sequence -- the gauges are the tutorial.
-- [ ] 3. `ui/saves.ts`: the run's city and the profile that outlives it as separate saves, and a
+- [x] 3. `ui/saves.ts`: the run's city and the profile that outlives it as separate saves, and a
       hardcore setting that deletes the run's save on defeat.
-- [ ] 4. The panels that open and close a run, over the map rather than as screens.
-- [ ] 5. The first upgrade web: nine nodes, three branches, capabilities and information only.
-- [ ] 6. `scripts/balance.mjs` and `npm run balance`: the simulation headless over many seeds
+- [x] 4. The panels that open and close a run, over the map rather than as screens.
+- [x] 5. The first upgrade web: nine nodes, three branches, capabilities and information only.
+- [x] 6. `scripts/balance.mjs` and `npm run balance`: the simulation headless over many seeds
       against scripted policies, writing `balance/history.jsonl` the way perf writes its own.
-- [ ] 7. Tune until the four criteria in the brief hold, and record which run produced each
+- [x] 7. Tune until the four criteria in the brief hold, and record which run produced each
       constant.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_077_runs_science_and_prestige_leaving_an_island_with_something`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: science from a defeated kaiju and the call multiplier; proven by unit tests over won and lost waves.
@@ -57,11 +57,17 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `npm run ci; npm run test:e2e; npm run balance` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report
 - Not started.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_077_runs_science_and_prestige_leaving_an_island_with_something`
+- Related request(s): `req_028_runs_science_and_prestige_leaving_an_island_with_something`
 
 # Links
 - Request: `req_028_runs_science_and_prestige_leaving_an_island_with_something`

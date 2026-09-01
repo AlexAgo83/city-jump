@@ -1,14 +1,14 @@
 ## item_077_runs_science_and_prestige_leaving_an_island_with_something - Runs, science and prestige: leaving an island with something
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 80%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 08:51:36
+> Indicators reviewed: 2026-09-01 09:11:14
 
 # AI Context
 - Summary: The delivery slice for science from a defeated kaiju, evacuation as a decision, prestige, and a harness that produces the constants.
@@ -59,6 +59,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_030_runs_science_and_prestige_leaving_an_island_with_something` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_030_runs_science_and_prestige_leaving_an_island_with_something`

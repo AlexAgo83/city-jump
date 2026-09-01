@@ -1,12 +1,12 @@
 ## prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea - A city that has to survive what comes out of the sea
 > Date: 2026-08-31
 > Status: Settled
-> Related request: `req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach`
-> Related backlog: `item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach`
-> Related task: `task_028_power_and_water_a_producer_a_diffuser_and_what_they_reach`
+> Related request: `req_028_runs_science_and_prestige_leaving_an_island_with_something`
+> Related backlog: `item_077_runs_science_and_prestige_leaving_an_island_with_something`
+> Related task: `task_030_runs_science_and_prestige_leaving_an_island_with_something`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 08:34:24
+> Indicators reviewed: 2026-09-01 09:11:15
 
 # Overview
 city-jump can draw a city and cannot lose one. Every zoned parcel fills the instant it is drawn,
@@ -388,8 +388,8 @@ play instead of frames.
   answers this one: a multiplier that makes calling always correct is as bad as one nobody uses.
 
 # References
-- Product back-reference: `item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach`
-- Task back-reference: `task_028_power_and_water_a_producer_a_diffuser_and_what_they_reach`
+- Product back-reference: `item_077_runs_science_and_prestige_leaving_an_island_with_something`
+- Task back-reference: `task_030_runs_science_and_prestige_leaving_an_island_with_something`
 - Interface: `prod_019_an_interface_for_a_city_you_can_lose` -- what these rules demand of the
   screen, which is a move rather than an addition.
 - Roadmap: `road_001_city_jump_playable_city` -- strands E2 (what grows on the land) and E3 (life

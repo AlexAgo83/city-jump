@@ -1,13 +1,13 @@
 ## req_028_runs_science_and_prestige_leaving_an_island_with_something - Runs, science and prestige: leaving an island with something
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:01:18
+> Indicators reviewed: 2026-09-01 09:11:14
 
 # AI Context
 - Summary: The loop closes: a defeated kaiju leaves science, evacuation ends a run as a decision, panels open and close a run, a first upgrade web spends what was carried off, a hardcore option deletes the save, and a balance harness turns every constant into an output.
