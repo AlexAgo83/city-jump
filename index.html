@@ -294,7 +294,9 @@
   <output id="sim-time">Day 1 18:30</output>
 </div>
 </div>
-<div id="toolbar">
+<!-- Collapsed in the markup, not just by script: the menu was painted open on every load and
+     only closed once the module had run. -->
+<div id="toolbar" class="collapsed">
   <div id="toolbar-content">
     <div class="toolbar-row">
       <span class="row-label">World</span>
@@ -384,7 +386,7 @@
       <button id="save-delete" type="button" title="Delete the selected city">Delete</button>
     </div>
   </div>
-  <button id="toolbar-toggle" type="button" aria-expanded="true" aria-controls="toolbar-content" title="Collapse settings">
+  <button id="toolbar-toggle" type="button" aria-expanded="false" aria-controls="toolbar-content" title="Expand settings">
     <span class="toolbar-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
   </button>
 </div>
