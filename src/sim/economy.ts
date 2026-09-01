@@ -65,7 +65,7 @@ export class CityEconomy {
     const day = Math.max(0, seconds) / CITY_DAY_SECONDS;
     const housing = housingCapacity(parcels);
     const foodProduced = output(parcels, this.state.population, "agricultural", 8) * day;
-    const materialsProduced = output(parcels, this.state.population, "industrial", 5) * day;
+    const materialsProduced = 0;
     const servicesProduced = output(parcels, this.state.population, "commercial", 4) * day;
     const foodConsumed = this.state.population * day;
     const foodAvailable = this.state.food + foodProduced;
@@ -75,7 +75,7 @@ export class CityEconomy {
     this.state = {
       population: Math.max(0, this.state.population + growth),
       food: Math.max(0, foodAvailable - foodConsumed),
-      materials: this.state.materials + materialsProduced,
+      materials: this.state.materials,
       services: this.state.services + servicesProduced,
     };
     return {
@@ -102,11 +102,7 @@ export function demolitionRefund(cost: number): number {
 }
 
 export function incomePerSecond(population: number, statuses: readonly Pick<BuildingStatus, "parcel" | "state">[]): number {
-  const tax = population * 0.02;
-  const trade = statuses
-    .filter((status) => status.state === "working" && status.parcel.kind === "commercial")
-    .reduce((sum, status) => sum + status.parcel.frontageCells * status.parcel.depthCells * 0.8, 0);
-  return tax + trade;
+  return population * 0.02;
 }
 
 export class Treasury {

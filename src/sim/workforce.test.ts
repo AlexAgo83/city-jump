@@ -10,6 +10,7 @@ describe("workforce", () => {
     expect(workforceFromPopulation(23)).toBe(11);
     expect(workforceDemand(parcel("residential", 4, 4))).toBe(0);
     expect(workforceDemand(parcel("commercial", 2, 3))).toBe(24);
+    expect(workforceDemand(parcel("agricultural", 1, 4))).toBe(4);
     expect(workforceDemand(parcel("military", 2, 3))).toBe(48);
   });
 

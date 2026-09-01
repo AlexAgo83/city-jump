@@ -17,8 +17,8 @@ describe("economy", () => {
     expect(roadBuildCost("tunnel", 10)).toBe(450);
   });
 
-  it("earns from population tax and staffed commerce", () => {
-    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4)])).toBeCloseTo(5.2);
+  it("earns money from population tax only", () => {
+    expect(incomePerSecond(100, [status("commercial", "working", 2, 2), status("commercial", "idle", 4, 4)])).toBeCloseTo(2);
   });
 
   it("spends only what it can unless debt is allowed", () => {
@@ -44,7 +44,7 @@ describe("economy", () => {
     const terms = city.advance([status("residential", "working").parcel, status("agricultural", "working").parcel, status("industrial", "working").parcel, status("commercial", "working").parcel], CITY_DAY_SECONDS);
 
     expect(terms.food.produced).toBe(8);
-    expect(terms.materials.produced).toBe(5);
+    expect(terms.materials.produced).toBe(0);
     expect(terms.services.produced).toBe(0); // farms and industry take the six available workers first
     expect(terms.food.consumed).toBe(20);
   });
@@ -57,6 +57,15 @@ describe("economy", () => {
     expect(grown.population.value).toBeLessThanOrEqual(24);
     city.replaceWith({ population: 10 });
     expect(city.advance([homes[0]!], CITY_DAY_SECONDS).population.change).toBeLessThan(0);
+  });
+
+  it("keeps the opening fed with one starter farm", () => {
+    const city = new CityEconomy({ population: 12 });
+    const farm = status("agricultural", "working", 1, 4).parcel;
+    const terms = city.advance([status("residential", "working", 1, 1).parcel, farm], CITY_DAY_SECONDS);
+
+    expect(terms.food.produced).toBeGreaterThan(terms.food.consumed);
+    expect(city.resources.population).toBeGreaterThan(0);
   });
 
   it("is deterministic and loses residents when homes disappear", () => {

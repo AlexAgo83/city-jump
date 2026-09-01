@@ -178,12 +178,12 @@ describe("slots", () => {
 });
 
 describe("pedestrian frontage", () => {
-  it("keeps zoned military land empty without demand", () => {
+  it("lets painted military land build when population can support it", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0);
     const zones = new Zones();
     zones.paint(0, 20, 220, "military");
-    expect(parcelsForDemand(buildingParcels(buildableCells(g, zones), zones), 12, 0)).toHaveLength(0);
+    expect(parcelsForDemand(buildingParcels(buildableCells(g, zones), zones), 96, 20).some((parcel) => parcel.kind === "military")).toBe(true);
   });
   it("only offers parcel sizes whose building model is short", () => {
     const g = new RoadGraph();

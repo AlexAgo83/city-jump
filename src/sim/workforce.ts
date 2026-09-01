@@ -21,7 +21,7 @@ export function workforceFromPopulation(population: number): number {
 export function workforceDemand(parcel: WorkforceParcel): number {
   if (parcel.kind === "residential") return 0;
   const cells = parcel.frontageCells * parcel.depthCells;
-  const perCell = parcel.kind === "military" ? 8 : parcel.kind === "industrial" ? 6 : parcel.kind === "commercial" ? 4 : 3;
+  const perCell = parcel.kind === "military" ? 8 : parcel.kind === "industrial" ? 6 : parcel.kind === "commercial" ? 4 : 1;
   return cells * perCell;
 }
 
