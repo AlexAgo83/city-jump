@@ -71,8 +71,8 @@
   }
   #left-stack > * { pointer-events: auto; }
   #time-controls {
-    display: flex; align-items: center; gap: 8px; padding: 5px;
-    max-width: calc(100vw - 24px); box-sizing: border-box;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px;
+    width: 210px; box-sizing: border-box;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px;
     font: 12px/1.2 ui-sans-serif, system-ui;
   }
@@ -273,15 +273,6 @@
 </div>
 <div id="wave-banner" hidden></div>
 <div id="left-stack">
-<div id="time-controls" aria-label="Simulation time">
-  <div class="segmented">
-    <button type="button" data-time-rate="0" aria-pressed="true" title="Pause">Pause</button>
-    <button type="button" data-time-rate="1" aria-pressed="false" title="Play">Play</button>
-    <button type="button" data-time-rate="2" aria-pressed="false" title="Double speed">x2</button>
-    <button type="button" data-time-rate="4" aria-pressed="false" title="Quadruple speed">x4</button>
-  </div>
-  <output id="sim-time">Day 1 18:30</output>
-</div>
 <div id="ledger" hidden>
   <div id="ledger-lines"></div>
 </div>
@@ -293,6 +284,15 @@
   <span>Short</span><b id="shortage">None</b>
   <span id="needs-panel" aria-label="City needs"></span>
 </button>
+<div id="time-controls" aria-label="Simulation time">
+  <div class="segmented">
+    <button type="button" data-time-rate="0" aria-pressed="true" title="Pause">Pause</button>
+    <button type="button" data-time-rate="1" aria-pressed="false" title="Play">Play</button>
+    <button type="button" data-time-rate="2" aria-pressed="false" title="Double speed">x2</button>
+    <button type="button" data-time-rate="4" aria-pressed="false" title="Quadruple speed">x4</button>
+  </div>
+  <output id="sim-time">Day 1 18:30</output>
+</div>
 </div>
 <div id="toolbar">
   <div id="toolbar-content">
