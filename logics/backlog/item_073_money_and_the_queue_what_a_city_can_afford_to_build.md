@@ -1,14 +1,14 @@
 ## item_073_money_and_the_queue_what_a_city_can_afford_to_build - Money and the queue: what a city can afford to build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 78%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:57:33
+> Indicators reviewed: 2026-09-01 06:31:05
 
 # AI Context
 - Summary: The delivery slice for prices, a treasury, a build queue, and a demolition that gives half back.
@@ -56,6 +56,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_026_money_and_the_queue_what_a_city_can_afford_to_build` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_026_money_and_the_queue_what_a_city_can_afford_to_build`

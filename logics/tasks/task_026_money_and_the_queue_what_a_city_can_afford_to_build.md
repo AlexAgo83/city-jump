@@ -1,14 +1,14 @@
 ## task_026_money_and_the_queue_what_a_city_can_afford_to_build - Money and the queue: what a city can afford to build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 95%
-> Confidence: 88%
-> Progress: 78%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 00:57:33
+> Indicators reviewed: 2026-09-01 06:31:06
 > Owner: Codex
 
 # AI Context
@@ -30,18 +30,18 @@
       how many rising, how many waiting for funds.
 - [x] 4. Rebuilding after a wave proceeds into a negative balance; while it is negative nothing new
       starts. This is the rule with teeth, and it needs its own test.
-- [ ] 5. Demolition takes time and returns half, for buildings and for roads.
+- [x] 5. Demolition takes time and returns half, for buildings and for roads.
 - [x] 6. The city strip shows money and its rate; prices appear on the tools that spend it.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_073_money_and_the_queue_what_a_city_can_afford_to_build`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: prices before the click and refusal after it; proven by an interaction check on a road and a zone.
@@ -54,6 +54,9 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `npm run ci && npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - 2026-09-01: `npx vitest run src/sim/economy.test.ts src/sim/save.test.ts src/sim/share.test.ts src/ui/saves.test.ts src/sim/rules.test.ts` passed.
 - 2026-09-01: `npm run test:e2e` passed.
@@ -74,7 +77,11 @@
 - 2026-09-01: Buildings now spend from the treasury before rising; unaffordable parcels wait and the HUD reports rising and waiting counts.
 - 2026-09-01: Wave-damaged buildings now enter rebuilding, spend even into debt, keep rubble visible during the work, and leave new builds waiting while money is negative.
 - 2026-09-01: Zone tools now show the minimum building price, alongside the existing road metre price and city money strip.
-- 2026-09-01: Not yet built: delayed demolition/refund.
+- 2026-09-01: Buildings and roads now demolish after one second and refund half their original calculated cost; pure and interaction checks cover the amount and delay.
+- 2026-09-01: `npm run test:e2e` and `npm run ci` passed for the final demolition wave.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_073_money_and_the_queue_what_a_city_can_afford_to_build`
+- Related request(s): `req_024_money_and_the_queue_what_a_city_can_afford_to_build`
 
 # Links
 - Request: `req_024_money_and_the_queue_what_a_city_can_afford_to_build`

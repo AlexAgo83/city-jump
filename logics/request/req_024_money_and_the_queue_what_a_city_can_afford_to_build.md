@@ -1,12 +1,13 @@
 ## req_024_money_and_the_queue_what_a_city_can_afford_to_build - Money and the queue: what a city can afford to build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 06:31:05
 
 # AI Context
 - Summary: Money as the build meter: roads priced by the metre, buildings priced to build, a city that raises what it can afford and queues the rest, rebuilding allowed to go negative, and demolition that takes time and returns half.
