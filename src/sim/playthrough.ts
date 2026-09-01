@@ -64,9 +64,11 @@ export interface PlaythroughResult extends RunPlaythrough {
 export interface ScenarioRules extends RunRules {
   /** Place power and water the way a player would, and let buildings go idle without them. */
   readonly utilities: boolean;
+  /** Keep drawing roads outward while there is money and a shortage to answer. */
+  readonly expand: boolean;
 }
 
-export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true };
+export const DEFAULT_SCENARIO_RULES: ScenarioRules = { ...DEFAULT_RUN_RULES, utilities: true, expand: true };
 
 const GROW_STEP_SECONDS = 4;
 const GROW_STEPS_PER_WAVE = 120;
@@ -108,6 +110,23 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   const paint = (kind: BuildingKind, x: number, z: number, radius = 40) => {
     zones.paint(x, z, radius, kind);
     log.push(`zone:${kind}`);
+  };
+  /**
+   * A player who has money and room keeps drawing. Each expansion is one street further out plus a
+   * zone on it, so the city grows in network as well as in density -- which is what decides how
+   * much can be built between two waves.
+   */
+  let expansions = 0;
+  const expand = (kind: BuildingKind): boolean => {
+    if (expansions >= 8) return false;
+    const z = 410 + expansions * 50;
+    const spine = commitSegment(graph, resolveSnap(graph, -200, z - 50), resolveSnap(graph, -200, z), v3(-200, 0, z - 25), "street");
+    const street = commitSegment(graph, resolveSnap(graph, -220, z), resolveSnap(graph, 80, z), v3(-70, 0, z), kind === "military" ? "military" : "street");
+    if (!spine.ok || !street.ok) return false;
+    zones.paint(-70, z, 70, kind);
+    expansions += 1;
+    log.push(`expand:${kind}@z=${z}`);
+    return true;
   };
   const needZones: Record<BuildingKind, readonly [x: number, z: number]> = {
     residential: [-170, 300],
@@ -178,11 +197,15 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       step(GROW_STEP_SECONDS);
       const needs = buildingNeeds(parcels, economy.resources.population);
       const short = needs.find((need) => need.need > need.supply);
-      if (short && !followedNeeds.has(short.kind) && short.ratio < (previous.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
-        followedNeeds.add(short.kind);
-        const [x, z] = needZones[short.kind];
-        paint(short.kind, x, z, 60);
-        log.push(`need:${short.kind}->zone:${short.kind} supply=${short.supply} need=${short.need}`);
+      if (short && short.ratio < (previous.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
+        if (!followedNeeds.has(short.kind)) {
+          followedNeeds.add(short.kind);
+          const [x, z] = needZones[short.kind];
+          paint(short.kind, x, z, 60);
+          log.push(`need:${short.kind}->zone:${short.kind} supply=${short.supply} need=${short.need}`);
+        } else if (scenario.expand && treasury.money > 5_000 && expand(short.kind)) {
+          log.push(`need:${short.kind}->expand supply=${short.supply} need=${short.need}`);
+        }
       }
       previous = needs;
     }
