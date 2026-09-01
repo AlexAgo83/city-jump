@@ -86,6 +86,7 @@ export function installDebugApi(
       rebuild();
     },
     demoCity() {
+      api.reset();
       // Curved avenues with cross streets that end on them, so the streets snap and the
       // avenues split: the frame-rate figure is measured over real junctions, not over
       // roads that merely overlap.
