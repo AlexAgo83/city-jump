@@ -14,11 +14,13 @@ import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Sn
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
+import { demolitionRefund } from "../sim/economy";
 import type { BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
-import { type Vec3, v3, lerp } from "../sim/vec";
+import { distXZ, type Vec3, v3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
+import { GRID } from "../sim/slots";
 import { toBabylon } from "./convert";
 
 const ACCEPTED = new Color3(0.45, 0.85, 0.5);
@@ -26,6 +28,7 @@ const REFUSED = new Color3(0.95, 0.35, 0.25);
 const SELECTED = new Color3(0.4, 0.7, 0.95);
 const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
 const TERRAIN_DIRTY_PAD = 140;
+const DEMOLITION_MS = 1_000;
 
 /**
  * Three clicks: start, control point, end. No drag state to manage, and the bend is
@@ -33,6 +36,7 @@ const TERRAIN_DIRTY_PAD = 140;
  */
 type BulldozeTarget =
   | { kind: "road"; segment: Segment }
+  | { kind: "building"; status: BuildingStatus }
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
 
@@ -130,7 +134,12 @@ export interface EconomyTools {
   roadCost(type: RoadTypeId, metres: number): number;
   canSpend(cost: number): boolean;
   spend(cost: number): boolean;
+  refund(amount: number): void;
   money(): number;
+}
+
+export interface DemolitionTools {
+  building(status: BuildingStatus): boolean;
 }
 
 export function createDrawTool(
@@ -146,6 +155,7 @@ export function createDrawTool(
   initialTypeId: RoadTypeId = "street",
   history?: HistoryTools,
   economy?: EconomyTools,
+  demolition?: DemolitionTools,
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "view";
@@ -389,6 +399,7 @@ export function createDrawTool(
       targetHighlight.setEnabled(false);
       if (!target) return;
       if (target.kind === "road") return drawPreview([...target.segment.samples], false);
+      if (target.kind === "building") return highlightCircle(target.status.parcel.position.x, target.status.parcel.position.z, Math.max(target.status.parcel.frontageCells, target.status.parcel.depthCells) * GRID.cellSize * 0.5);
       if (target.kind === "tree") return highlightCircle(target.x, target.z, 3);
       return highlightCircle(target.x, target.z, target.radius);
     }
@@ -432,6 +443,10 @@ export function createDrawTool(
         return;
       }
       history?.beforeChange();
+      if (target.kind === "building") {
+        window.setTimeout(() => history?.afterChange(demolition?.building(target.status) ?? false), DEMOLITION_MS);
+        return;
+      }
       if (target.kind === "roundabout") {
         const radius = target.radius + TERRAIN_DIRTY_PAD;
         graph.setRoundabout(target.node, false);
@@ -439,9 +454,13 @@ export function createDrawTool(
         onCommitted({ minX: target.x - radius, maxX: target.x + radius, minZ: target.z - radius, maxZ: target.z + radius });
       } else {
         const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
-        graph.removeSegment(target.segment.id);
-        history?.afterChange(true);
-        onCommitted(dirty);
+        const refund = demolitionRefund(economy?.roadCost(target.segment.type, pathLength(target.segment.samples)) ?? 0);
+        window.setTimeout(() => {
+          graph.removeSegment(target.segment.id);
+          if (refund > 0) economy?.refund(refund);
+          history?.afterChange(true);
+          onCommitted(dirty);
+        }, DEMOLITION_MS);
       }
       return;
     }
@@ -600,6 +619,9 @@ export function createDrawTool(
       }
     }
 
+    const building = selection.buildingAt(x, z);
+    if (building) return { kind: "building", status: building };
+
     const nearest = graph.nearestOnSegment(x, z, 20);
     if (nearest) {
       const hit = Math.hypot(x - nearest.position.x, z - nearest.position.z);
@@ -726,4 +748,8 @@ export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
 
 export function brushMovedFarEnough(last: { x: number; z: number } | null, at: { x: number; z: number }, radius: number): boolean {
   return !last || Math.hypot(at.x - last.x, at.z - last.z) >= radius / 2;
+}
+
+function pathLength(points: readonly Vec3[]): number {
+  return points.slice(1).reduce((sum, point, index) => sum + distXZ(points[index]!, point), 0);
 }

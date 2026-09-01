@@ -33,6 +33,10 @@ export function buildingBuildCost(parcel: Pick<BuildingParcel, "kind" | "frontag
   return parcel.frontageCells * parcel.depthCells * BUILDING_CELL_COST[parcel.kind];
 }
 
+export function demolitionRefund(cost: number): number {
+  return cost / 2;
+}
+
 export function incomePerSecond(population: number, statuses: readonly Pick<BuildingStatus, "parcel" | "state">[]): number {
   const tax = population * 0.02;
   const trade = statuses

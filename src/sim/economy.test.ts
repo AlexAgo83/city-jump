@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { STARTING_MONEY, Treasury, buildingBuildCost, incomePerSecond, roadBuildCost } from "./economy";
+import { STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
 import type { BuildingStatus } from "./buildingLifecycle";
 
 const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["state"], frontageCells = 1, depthCells = 1): BuildingStatus => ({
@@ -27,5 +27,9 @@ describe("economy", () => {
     expect(treasury.money).toBe(-20);
     treasury.replaceWith();
     expect(treasury.money).toBe(STARTING_MONEY);
+  });
+
+  it("returns half the original cost on demolition", () => {
+    expect(demolitionRefund(660)).toBe(330);
   });
 });

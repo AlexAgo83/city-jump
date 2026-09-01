@@ -16,7 +16,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { STARTING_MONEY, Treasury, buildingBuildCost, incomePerSecond, roadBuildCost } from "../sim/economy";
+import { STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -445,7 +445,21 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
         updateMoneyHud();
         return spent;
       },
+      refund(amount) {
+        treasury.earn(amount);
+        updateMoneyHud();
+      },
       money: () => treasury.money,
+    },
+    {
+      building(status) {
+        rubble.destroy(status.parcel);
+        treasury.earn(demolitionRefund(buildingBuildCost(status.parcel)));
+        currentParcels = currentParcels.filter((parcel) => parcel !== status.parcel);
+        syncBuildings();
+        rebuild(parcelBounds(status.parcel));
+        return true;
+      },
     },
   );
 

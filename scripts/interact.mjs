@@ -1339,6 +1339,18 @@ const selectedBuilding = await page.evaluate(() => ({
 }));
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
 check("a building panel shows its state", Boolean(selectedBuilding.rows.State), JSON.stringify(selectedBuilding.rows));
+await page.locator('[data-tool="bulldoze"]').click();
+const beforeBuildingBulldoze = await stats();
+await click(buildingPoint.x, buildingPoint.y);
+await page.waitForTimeout(300);
+check("bulldozing a building is not immediate", (await stats()).buildings === beforeBuildingBulldoze.buildings);
+await page.waitForFunction((before) => {
+  const city = window.cityjump.stats();
+  return city.buildings === before.buildings - 1 && city.money > before.money;
+}, beforeBuildingBulldoze, { timeout: 5_000 });
+const afterBuildingBulldoze = await stats();
+check("bulldozing a building takes time and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
+await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await page.evaluate(() => window.cityjump.setPaused(true));
 check("there is a vehicle to select", await page.evaluate(() => window.cityjump.selectVehicle()));
@@ -1451,11 +1463,13 @@ await waitForPreview();
 check("the bulldozer highlights a road under the pointer", await previewVisible());
 const beforeBulldoze = await stats();
 await click(805, 465);
+await page.waitForTimeout(300);
+check("the bulldozer does not remove a road immediately", (await stats()).segments === beforeBulldoze.segments);
 await page.waitForFunction((segments) => window.cityjump.stats().segments === segments - 1, beforeBulldoze.segments, {
   timeout: 5_000,
 });
 const afterBulldoze = await stats();
-check("the bulldozer removes the clicked road", afterBulldoze.segments === beforeBulldoze.segments - 1);
+check("the bulldozer removes the clicked road after a delay and refunds half", afterBulldoze.segments === beforeBulldoze.segments - 1 && afterBulldoze.money > beforeBulldoze.money);
 
 // The rugged map is no longer offered in the toolbar, but a city saved on it still has to come
 // back on it. Loading is the only way in now, so that is how it gets tested.
