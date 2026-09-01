@@ -106,7 +106,7 @@ function needLabel(kind: string): string {
 
 function needText(need: BuildingNeed): string {
   // Compact: the panel is read at a glance, and stays visible with the settings folded away.
-  if (need.kind === "military") return `${need.supply} of ${need.need}`;
+  if (need.kind === "military") return `${compact(Math.round(need.supply))} of ${compact(Math.round(need.need))} dmg`;
   if (need.need === 0) return need.supply > 0 ? "OK" : "No demand";
   return need.supply >= need.need ? "OK" : `Need ${need.need - need.supply}`;
 }

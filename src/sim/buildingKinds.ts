@@ -2,6 +2,7 @@ import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 import { housingCapacity } from "./economy";
 import { parcelDemandLimits } from "./slots";
+import { batteriesForParcels } from "./batteries";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
@@ -31,15 +32,36 @@ export interface BuildingNeed {
   readonly ratio: number;
 }
 
-export function buildingNeeds(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], residents = population(parcels)): BuildingNeed[] {
+/** Salvos a defence should need to kill a wave -- the top of the readable band. */
+export const SALVO_TARGET = 8;
+
+/**
+ * What the city is short of.
+ *
+ * The military row answers the only question the player actually has about defence: can what I
+ * have kill what is coming? It compares the damage the staffed batteries land over a readable
+ * fight against the threat of the next wave. Comparing staffed lots against staffed-plus-idle --
+ * what it used to do -- reads "satisfied" for a fully staffed district of any size, so the panel
+ * never once asked for defence.
+ */
+export function buildingNeeds(
+  parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">[],
+  residents = population(parcels),
+  projectedThreat?: number,
+): BuildingNeed[] {
   const staffing = allocateWorkforce(parcels, residents);
   const limits = parcelDemandLimits(residents);
+  const firepower = projectedThreat === undefined
+    ? null
+    : batteriesForParcels(parcels as Parameters<typeof batteriesForParcels>[0], residents).reduce((sum, battery) => sum + battery.damage, 0) * SALVO_TARGET;
   return [
     need("residential", staffing.workforce, staffing.demand),
     need("commercial", parcels.filter((parcel) => parcel.kind === "commercial").length, limits.commercial),
     need("agricultural", parcels.filter((parcel) => parcel.kind === "agricultural").length, limits.agricultural),
     need("industrial", parcels.filter((parcel) => parcel.kind === "industrial").length, limits.industrial),
-    need("military", staffing.byKind.military.staffed, staffing.byKind.military.staffed + staffing.byKind.military.idle),
+    firepower === null
+      ? need("military", staffing.byKind.military.staffed, staffing.byKind.military.staffed + staffing.byKind.military.idle)
+      : need("military", Math.round(firepower), Math.round(projectedThreat!)),
   ];
 }
 

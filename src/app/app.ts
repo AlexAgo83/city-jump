@@ -195,6 +195,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
   const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
+  /** What the next wave will bring, so the needs panel can price the defence against it. */
+  const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
   const workingParcels = (): BuildingParcel[] => currentBuildingStatuses.filter((status) => status.state === "working").map((status) => status.parcel);
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
@@ -220,7 +222,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }
     if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
     const income = incomePerSecond(residents, currentBuildingStatuses);
-    showCityStats(residents, buildingNeeds(currentParcels, residents), cityEconomy.resources, lastTerms && { ...lastTerms, trade: income });
+    showCityStats(residents, buildingNeeds(currentParcels, residents, projectedThreat()), cityEconomy.resources, lastTerms && { ...lastTerms, trade: income });
     showMoney(treasury.money, income, stateCounts());
   };
   const refreshUtilities = (): void => {
@@ -854,7 +856,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
     buildings: buildings.count(),
     population: cityEconomy.resources.population,
-    needs: buildingNeeds(currentParcels, cityEconomy.resources.population),
+    needs: buildingNeeds(currentParcels, cityEconomy.resources.population, projectedThreat()),
     avenues: graph.allSegments().filter((segment) => baseRoadTypeId(segment.type) === "avenue").length,
     tunnels: graph.allSegments().filter((segment) => roadType(segment.type).tunnelDepth !== undefined).length,
     cars: traffic.count(),

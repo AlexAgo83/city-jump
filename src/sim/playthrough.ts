@@ -80,8 +80,6 @@ const GROW_STEP_SECONDS = 4;
 const GROW_STEPS_PER_WAVE = 120;
 const COMBAT_STEP_SECONDS = 0.25;
 const COMBAT_CAP_SECONDS = 90;
-/** Salvos a defence should need to kill a wave -- the top of the readable band. */
-const SALVO_TARGET = 8;
 
 /**
  * Plays a run: arrive, road, zone, grow, meet a kaiju, rebuild, meet the next one, until the run
@@ -203,7 +201,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     let previous = buildingNeeds(parcels, economy.resources.population);
     for (let i = 0; i < GROW_STEPS_PER_WAVE && !waveClock.active; i++) {
       step(GROW_STEP_SECONDS);
-      const needs = buildingNeeds(parcels, economy.resources.population);
+      const needs = buildingNeeds(parcels, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length));
       const short = needs.find((need) => need.need > need.supply);
       if (short && short.ratio < (previous.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
         if (!followedNeeds.has(short.kind)) {
@@ -218,10 +216,10 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       // The needs panel never asks for defence -- its military row compares staffed lots against
       // staffed-plus-idle, so a fully staffed district reads as satisfied however small it is. A
       // player reads the banner instead: threat against firepower. This does the same.
+      // Read the gauge the player reads, rather than keeping a second copy of the rule here.
       if (scenario.expand && treasury.money > 5_000) {
-        const projected = waveThreat(run.wave, economy.resources.population, parcels.length);
-        const salvoDamage = batteriesForParcels(parcels, economy.resources.population).reduce((sum, battery) => sum + battery.damage, 0);
-        if (salvoDamage * SALVO_TARGET < projected && expand("military")) log.push(`threat:${projected}>firepower:${salvoDamage * SALVO_TARGET}->expand:military`);
+        const defence = needs.find((entry) => entry.kind === "military");
+        if (defence && defence.supply < defence.need && expand("military")) log.push(`gauge:military ${Math.round(defence.supply)}<${Math.round(defence.need)}->expand:military`);
       }
       previous = needs;
     }
