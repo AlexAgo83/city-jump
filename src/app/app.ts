@@ -275,6 +275,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
 
   // Debounced, so dragging a long road writes once rather than on every rebuild.
   // ponytail: a timer, not a dirty-flag scheduler.
+  // And nothing is written while one is on the island, so the save on disk is never mid-wave.
   let autosaveTimer = 0;
   let autosaveRefusedShown = false;
   const cameraSnapshot = (): SavedCamera => ({
@@ -293,6 +294,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
+    // Not while a kaiju is on the island: the save cannot describe one, so it must not claim to.
+    if (waveClock.active) return;
     autosaveTimer = window.setTimeout(() => {
       if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
@@ -837,7 +840,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     pendingHistorySnapshot = null;
     resetWave();
     runState = city.run ?? createRun();
-    waveClock = city.waveClock ?? createWaveClock();
+    // Never restore a wave in progress. Nothing about the kaiju is saved -- not where it stands,
+    // not what it was walking towards, not the missiles in the air -- so reloading rebuilt the plan
+    // from a fresh seed and dropped a new monster on the other side of the island with the old
+    // hit points. A reload puts the city back to just before the wave; the city is still big
+    // enough to summon it, so it comes again.
+    waveClock = { ...(city.waveClock ?? createWaveClock()), active: null };
     updateRunHud();
     renderGameplayRules();
     renderUpgradeWeb();
