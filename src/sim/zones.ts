@@ -13,6 +13,19 @@ export class Zones {
     this.replaceWith(saved);
   }
 
+  /**
+   * A rectangle of land, for laying a district along a street rather than dropping a circle on it.
+   * The brush is round because a brush should be; a planned block is not.
+   */
+  paintRect(minX: number, minZ: number, maxX: number, maxZ: number, kind: ZoneKind | null): void {
+    for (let gx = Math.floor(minX / ZONE_CELL_SIZE); gx <= Math.floor(maxX / ZONE_CELL_SIZE); gx++) {
+      for (let gz = Math.floor(minZ / ZONE_CELL_SIZE); gz <= Math.floor(maxZ / ZONE_CELL_SIZE); gz++) {
+        if (kind) this.cells.set(key(gx, gz), kind);
+        else this.cells.delete(key(gx, gz));
+      }
+    }
+  }
+
   paint(x: number, z: number, radius: number, kind: ZoneKind | null): void {
     const minX = Math.floor((x - radius) / ZONE_CELL_SIZE);
     const maxX = Math.floor((x + radius) / ZONE_CELL_SIZE);

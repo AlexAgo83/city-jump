@@ -409,13 +409,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // One segment, not two meeting in the middle: a junction trims the frontage either side of it,
     // and splitting a 300 m street in half cost sixteen building lots and left a visible gap.
     graph.addSegment(landing, graph.addNodeAt(v3(x + 300, heightmap.baseHeightAt(x + 300, z), z)), v3(x + 150, 0, z), "street");
-    // Painted along the road, not beside it: buildable land is the frontage strip either side of a
-    // street, so a circle centred well off it covers ground nothing can ever be built on. The
-    // agricultural one reached no buildable cell at all, which is why a new city opened with no
-    // farm and no food.
-    zones.paint(x + 55, z, 45, "agricultural");
-    zones.paint(x + 150, z, 45, "residential");
-    zones.paint(x + 245, z, 45, "commercial");
+    // Three blocks along the street, as rectangles. The brush is a circle -- which is right for a
+    // brush -- but three circles on a rectangular frontage leave round edges, holes in the middle
+    // and gaps between them. A district laid out at the start should look laid out.
+    const depth = 40;
+    zones.paintRect(x, z - depth, x + 100, z + depth, "agricultural");
+    zones.paintRect(x + 100, z - depth, x + 200, z + depth, "residential");
+    zones.paintRect(x + 200, z - depth, x + 300, z + depth, "commercial");
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
