@@ -6,14 +6,17 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 
 import { terrainHeight } from "../sim/terrain";
-import { ZONE_CELL_SIZE, type ZoneKind, type Zones } from "../sim/zones";
+import type { BuildableCell } from "../sim/slots";
 import { BUILDING_KIND_COLOR } from "../sim/buildingKinds";
+
+/** How much darker an occupied lot is drawn, so taken land reads apart from land still on offer. */
+const OCCUPIED_TINT = 0.45;
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
   material.diffuseColor = Color3.White();
   material.emissiveColor = Color3.White();
-  material.alpha = 0.34;
+  material.alpha = 0.42;
   material.disableLighting = true;
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
 
@@ -21,24 +24,31 @@ export function createZoneRenderer(scene: Scene) {
   let visible = false;
 
   /**
-   * @param buildable Zone cells that some road frontage actually reaches, as `gx:gz` keys. The
-   * brush paints a circle over the ground; only part of that circle is land anything can be built
-   * on, and colouring the rest drew blocks floating on empty grass with no grid under them.
+   * Colours the lot grid itself, not the brush stroke that painted it.
+   *
+   * The overlay used to draw the zone's own eight-metre cells, so a round brush left round edges,
+   * holes and blocks of colour on ground no lot could ever sit on -- a stain on the grass rather
+   * than a plan. Every quad here is a buildable cell, the same one the white grid outlines, and a
+   * cell with a building already on it is drawn darker so what is taken reads apart from what is
+   * still on offer.
+   *
+   * @param cells Every buildable cell, each already carrying the zone painted over it.
+   * @param occupied Cells a standing building covers, as `x:z` keys rounded to the metre.
    */
-  function rebuild(zones: Zones, buildable?: ReadonlySet<string>): void {
+  function rebuild(cells: readonly BuildableCell[], occupied?: ReadonlySet<string>): void {
     mesh?.dispose();
     mesh = null;
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
-    for (const [gx, gz, kind] of zones.toJSON()) {
-      if (buildable && !buildable.has(`${gx}:${gz}`)) continue;
+    for (const cell of cells) {
+      if (!cell.zone) continue;
       const base = positions.length / 3;
-      const tint = [...BUILDING_KIND_COLOR[kind], 1];
-      for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
-        const wx = x * ZONE_CELL_SIZE;
-        const wz = z * ZONE_CELL_SIZE;
-        positions.push(wx, terrainHeight(wx, wz) + 0.18, wz);
+      const [r, g, b] = BUILDING_KIND_COLOR[cell.zone];
+      const taken = occupied?.has(cellKey(cell)) === true;
+      const tint = taken ? [r * OCCUPIED_TINT, g * OCCUPIED_TINT, b * OCCUPIED_TINT, 1] : [r, g, b, 1];
+      for (const corner of cell.corners) {
+        positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.18, corner.z);
         colors.push(...tint);
       }
       indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
@@ -62,4 +72,11 @@ export function createZoneRenderer(scene: Scene) {
       mesh?.setEnabled(next);
     },
   };
+}
+
+/** A cell's identity on the ground, so a parcel can say which cells it covers. */
+export function cellKey(cell: Pick<BuildableCell, "corners">): string {
+  const x = cell.corners.reduce((sum, corner) => sum + corner.x, 0) / 4;
+  const z = cell.corners.reduce((sum, corner) => sum + corner.z, 0) / 4;
+  return `${Math.round(x)}:${Math.round(z)}`;
 }

@@ -14,8 +14,7 @@ import { createUtilityRenderer } from "../render/utilities";
 import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
-import { createZoneRenderer } from "../render/zones";
-import { ZONE_CELL_SIZE } from "../sim/zones";
+import { cellKey, createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
 import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
@@ -30,7 +29,7 @@ import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, planKaiju, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
-import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildableCellCentre, buildingParcels, buildableCells, parcelDemandLimits, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
@@ -154,7 +153,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("streetlights", () => streetlights.rebuild(junctions, dirty));
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
-    measure("zones", () => zoneOverlay.rebuild(zones, buildableZoneCells()));
+    measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, occupiedCells()));
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -195,6 +194,20 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   let simSeconds = 0;
   let demandStep = 0;
+  /**
+   * How many lots of each kind the rules would admit right now.
+   *
+   * `parcelsForDemand` caps each kind at the lesser of a population limit and one more lot every
+   * twenty seconds, so once the clock has outrun the limit, more time admits nothing. Comparing
+   * this signature says whether a rebuild could possibly change the city, without solving the
+   * parcel layout to find out.
+   */
+  const admittedCap = (): string => {
+    const admitted = Math.floor(Math.max(0, simSeconds) / 20) + 1;
+    const limits = parcelDemandLimits(cityEconomy.resources.population);
+    return Object.entries(limits).map(([kind, limit]) => `${kind}:${Math.min(limit as number, admitted)}`).join(",");
+  };
+  let lastAdmittedCap = "";
   const stateCounts = (): Record<string, number> =>
     currentBuildingStatuses.reduce((counts, status) => {
       counts[status.state] = (counts[status.state] ?? 0) + 1;
@@ -207,15 +220,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   /** What the next wave will bring, so the needs panel can price the defence against it. */
   const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
   const workingParcels = (): BuildingParcel[] => currentBuildingStatuses.filter((status) => status.state === "working").map((status) => status.parcel);
-  /** The zone cells some road frontage reaches, so the overlay stops colouring open ground. */
-  const buildableZoneCells = (): Set<string> => {
+  /** The cells a standing building covers, so the zone overlay can shade taken land. */
+  const occupiedCells = (): Set<string> => {
     const keys = new Set<string>();
-    for (const cell of currentBuildableCells) {
-      // The cell's centre, not its corners: corners land in the next zone cell over, which marked
-      // a ring of open ground around every built strip as if it were buildable.
-      const centre = buildableCellCentre(cell);
-      keys.add(`${Math.floor(centre.x / ZONE_CELL_SIZE)}:${Math.floor(centre.z / ZONE_CELL_SIZE)}`);
-    }
+    for (const parcel of currentParcels) for (const cell of parcel.cells) keys.add(cellKey(cell));
     return keys;
   };
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
@@ -266,7 +274,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     simSeconds += dt;
     if (currentBuildableCells.length && Math.floor(simSeconds / 20) !== demandStep) {
       demandStep = Math.floor(simSeconds / 20);
-      rebuild();
+      // Only when another lot could actually go up. This used to rebuild the whole world every
+      // twenty simulated seconds -- five real ones at quadruple speed -- whether or not anything
+      // had changed, so the city flickered through a full repaint on a timer.
+      const cap = admittedCap();
+      if (cap !== lastAdmittedCap) {
+        lastAdmittedCap = cap;
+        rebuild();
+      }
     }
     // Five minutes of real time for a full day and night at normal speed. At a quarter of an hour
     // per second the sky strobed -- a whole day every twenty-four seconds at x4 -- and half of a
