@@ -122,7 +122,7 @@
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   .tool-options input[type="range"] { width: 92px; }
   #selection-panel {
-    position: fixed; top: 12px; right: 12px; min-width: 150px; max-width: 240px;
+    position: fixed; top: 62px; right: 12px; min-width: 150px; max-width: 240px;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.4 ui-sans-serif, system-ui; padding: 8px 12px;
     box-sizing: border-box;
@@ -134,7 +134,7 @@
     padding: 7px 9px; text-align: right; text-shadow: 0 1px 2px #000;
   }
   #fps-counter[hidden] { display: none; }
-  #fps-counter:not([hidden]) ~ #selection-panel { top: 48px; }
+  #fps-counter:not([hidden]) ~ #selection-panel { top: 96px; }
   #selection-panel[hidden] { display: none; }
   #selection-panel .selection-kind {
     font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #7f8b95;
@@ -159,7 +159,7 @@
     pointer-events: none;
   }
   #wave-banner {
-    position: fixed; top: 88px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
     max-width: min(360px, calc(100vw - 24px)); box-sizing: border-box;
     color: #f4fbff; background: #171b20e8; border: 1px solid #ffffff2b;
     border-radius: 6px; font: 12px/1.25 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
@@ -175,11 +175,26 @@
     width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
     border-bottom: 11px solid #75b9d1; transform-origin: 50% 70%;
   }
-  #population, #money { color: #c8d2d9; font-size: 11px; }
+  #city-strip {
+    position: fixed; left: 12px; bottom: 58px; display: grid; grid-template-columns: repeat(10, auto);
+    align-items: center; gap: 10px; max-width: calc(100vw - 220px); box-sizing: border-box;
+    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px;
+    font: 11px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-align: left; cursor: pointer;
+  }
+  #city-strip span { color: #8fa0aa; }
+  #city-strip b { color: #f4fbff; font-weight: 600; }
+  #ledger {
+    position: fixed; left: 12px; bottom: 190px; width: min(420px, calc(100vw - 24px));
+    color: #e6ebef; background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
+    box-shadow: 0 5px 18px #0000004d; font: 11px/1.35 ui-sans-serif, system-ui; padding: 9px;
+    box-sizing: border-box;
+  }
+  #ledger[hidden] { display: none; }
   #needs-panel {
-    display: grid; gap: 4px; width: 100%; min-width: 250px; color: #e6ebef;
+    grid-column: 1 / -1; display: grid; gap: 4px; width: 100%; min-width: 250px; color: #e6ebef;
     font: 11px/1 ui-sans-serif, system-ui; box-sizing: border-box;
   }
+  #ledger-lines { display: grid; gap: 3px; margin-top: 8px; color: #c8d2d9; }
   .need-row { display: grid; grid-template-columns: 54px 70px 1fr; align-items: center; gap: 8px; }
   .need-row meter { width: 100%; height: 8px; }
   .need-row b { color: #c8d2d9; font-weight: 500; text-align: right; white-space: nowrap; }
@@ -195,8 +210,6 @@
     <span class="compass-needle" aria-hidden="true"></span>
     <span class="compass-direction">N</span>
   </div>
-  <div id="population">0 habitants</div>
-  <div id="money">$20,000 +$0.0/s | 0 rising, 0 waiting</div>
 </div>
 <div id="wave-banner" hidden></div>
 <div id="time-controls" aria-label="Simulation time">
@@ -208,12 +221,19 @@
   </div>
   <output id="sim-time">Day 1 18:30</output>
 </div>
+<button id="city-strip" type="button" aria-expanded="false" aria-controls="ledger">
+  <span>Pop</span><b id="population">0 residents</b>
+  <span>Money</span><b id="money">$40,000 +$0.0/s</b>
+  <span>Workers</span><b id="workers">0/0</b>
+  <span>Food</span><b id="food">0</b>
+  <span>Short</span><b id="shortage">None</b>
+  <span id="needs-panel" aria-label="City needs"></span>
+</button>
+<div id="ledger" hidden>
+  <div id="ledger-lines"></div>
+</div>
 <div id="toolbar">
   <div id="toolbar-content">
-    <div class="toolbar-row needs-row">
-      <span class="row-label">Needs</span>
-      <div id="needs-panel" aria-label="City needs"></div>
-    </div>
     <div class="toolbar-row">
       <span class="row-label">World</span>
       <label><input id="show-grid" type="checkbox" /> Grid</label>
@@ -297,6 +317,7 @@
       <label><input type="radio" name="select-view" value="no-buildings" /><span>Zones</span></label>
       <label><input type="radio" name="select-view" value="traffic" /><span>Traffic</span></label>
       <label><input type="radio" name="select-view" value="utilities" /><span>Utilities</span></label>
+      <label><input type="radio" name="select-view" value="state" /><span>State</span></label>
     </div>
   </div>
   <div id="road-type-options" class="tool-options" hidden>

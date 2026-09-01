@@ -1,5 +1,7 @@
 import type { SelectionInfo } from "../render/drawTool";
 import type { BuildingNeed } from "../sim/buildingKinds";
+import type { CityResources, CityTerms } from "../sim/economy";
+import { ledgerText } from "./ledger";
 
 const toast = document.getElementById("toast") as HTMLDivElement;
 let toastTimer = 0;
@@ -9,8 +11,19 @@ const compassNeedle = compass.querySelector(".compass-needle") as HTMLSpanElemen
 const compassDirection = compass.querySelector(".compass-direction") as HTMLSpanElement;
 const populationText = document.getElementById("population") as HTMLDivElement;
 const moneyText = document.getElementById("money") as HTMLDivElement;
+const workersText = document.getElementById("workers") as HTMLDivElement;
+const foodText = document.getElementById("food") as HTMLDivElement;
+const shortageText = document.getElementById("shortage") as HTMLDivElement;
 const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
+const cityStrip = document.getElementById("city-strip") as HTMLButtonElement;
+const ledger = document.getElementById("ledger") as HTMLDivElement;
+const ledgerLines = document.getElementById("ledger-lines") as HTMLDivElement;
 const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
+
+cityStrip.addEventListener("click", () => {
+  ledger.hidden = !ledger.hidden;
+  cityStrip.setAttribute("aria-expanded", String(!ledger.hidden));
+});
 
 export function showRefusal(reason: string): void {
   toast.textContent = reason;
@@ -32,8 +45,12 @@ export function showCompass(alpha: number): void {
   compassDirection.textContent = names[Math.round(heading / (Math.PI / 4)) % names.length]!;
 }
 
-export function showCityStats(population: number, needs: readonly BuildingNeed[]): void {
+export function showCityStats(population: number, needs: readonly BuildingNeed[], resources?: CityResources, terms?: CityTerms): void {
   populationText.textContent = `${compact(Math.round(population))} residents`;
+  const workers = needs.find((need) => need.kind === "residential");
+  workersText.textContent = workers ? `${workers.supply}/${workers.need}` : "0/0";
+  foodText.textContent = compact(Math.floor(resources?.food ?? 0));
+  shortageText.textContent = shortage(needs);
   needsPanel.replaceChildren(...needs.map((need) => {
     const row = document.createElement("div");
     row.className = "need-row";
@@ -42,10 +59,16 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
       `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
     return row;
   }));
+  ledgerLines.replaceChildren(...ledgerText(terms).map((text) => {
+    const line = document.createElement("div");
+    line.textContent = text;
+    return line;
+  }));
 }
 
 export function showMoney(balance: number, perSecond: number, queue: { rising?: number; waiting?: number } = {}): void {
-  moneyText.textContent = `$${Math.floor(balance).toLocaleString()} ${perSecond >= 0 ? "+" : ""}$${perSecond.toFixed(1)}/s | ${queue.rising ?? 0} rising, ${queue.waiting ?? 0} waiting`;
+  moneyText.textContent = `$${Math.floor(balance).toLocaleString()} ${perSecond >= 0 ? "+" : ""}$${perSecond.toFixed(1)}/s`;
+  moneyText.title = `${queue.rising ?? 0} rising, ${queue.waiting ?? 0} waiting`;
 }
 
 export function showWaveBanner(text: string, state: "waiting" | "active" | "held" | "breached" = "waiting"): void {
@@ -68,6 +91,11 @@ function needText(need: BuildingNeed): string {
   if (need.kind === "military") return `${need.supply} of ${need.need}`;
   if (need.need === 0) return need.supply > 0 ? "OK" : "No demand";
   return need.supply >= need.need ? "OK" : `Need ${need.need - need.supply}`;
+}
+
+function shortage(needs: readonly BuildingNeed[]): string {
+  const short = needs.find((need) => need.need > need.supply);
+  return short ? `${needLabel(short.kind)} ${short.need - short.supply}` : "None";
 }
 
 function compact(value: number): string {

@@ -36,7 +36,7 @@ export function bindControls(handlers: {
   onZoneKind(kind: ZoneKind | "clear"): void;
   onZoneRadius(radius: number): void;
   onBuildings(visible: boolean): void;
-  onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities"): void;
+  onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
   onCameraMode(mode: "free" | "orbit" | "follow"): void;
@@ -126,7 +126,7 @@ export function bindControls(handlers: {
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="select-view"]')) {
     input.addEventListener("change", () => {
       if (!input.checked) return;
-      handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : input.value === "utilities" ? "utilities" : "all");
+      handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : input.value === "utilities" ? "utilities" : input.value === "state" ? "state" : "all");
     });
   }
 

@@ -947,8 +947,8 @@ function distantColor(parcel: BuildingParcel): [number, number, number] {
   return WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
 }
 
-export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state">): [number, number, number] {
-  const color = status?.state === "waiting" ? [0.18, 0.2, 0.23] : status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
+export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
+  const color = status?.state === "waiting" ? [0.18, 0.2, 0.23] : status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.reason === "power" ? [0.95, 0.74, 0.2] : status?.reason === "water" ? [0.2, 0.56, 0.9] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);
   return color as [number, number, number];
 }
 

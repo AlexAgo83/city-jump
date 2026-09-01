@@ -78,6 +78,9 @@ const cityHudText = () =>
   page.evaluate(() => ({
     population: document.getElementById("population")?.textContent ?? "",
     money: document.getElementById("money")?.textContent ?? "",
+    workers: document.getElementById("workers")?.textContent ?? "",
+    food: document.getElementById("food")?.textContent ?? "",
+    shortage: document.getElementById("shortage")?.textContent ?? "",
     needs: document.getElementById("needs-panel")?.textContent ?? "",
   }));
 const toast = () => page.evaluate(() => document.getElementById("toast").textContent);
@@ -391,10 +394,10 @@ check("road actions are absent from the top toolbar", (await page.locator("#tool
 const expandedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
 await page.locator("#toolbar-toggle").click();
 const collapsedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
-check("the settings toolbar collapses but keeps needs visible", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#needs-panel").isVisible());
+check("the settings toolbar collapses without hiding game state", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#city-strip").isVisible());
 await page.reload({ waitUntil: "load" });
 await waitForApp();
-check("the settings toolbar remembers being collapsed", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#needs-panel").isVisible());
+check("the settings toolbar remembers being collapsed", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#city-strip").isVisible());
 await page.locator("#toolbar-toggle").click();
 check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#show-fps").isVisible());
 check(
@@ -444,6 +447,17 @@ await uncapFrames();
 
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 check("time controls are permanent", await page.locator("#time-controls").isVisible() && /Day 1 \d\d:\d\d/.test(await page.locator("#sim-time").textContent()));
+check("compass remains visible at the top", await page.evaluate(() => {
+  const compass = document.getElementById("compass").getBoundingClientRect();
+  return compass.top < 24 && compass.left > window.innerWidth * 0.35 && compass.right < window.innerWidth * 0.65;
+}));
+check("wave banner stays top and clock sits below city stats", await page.evaluate(() => {
+  const time = document.getElementById("time-controls").getBoundingClientRect();
+  const strip = document.getElementById("city-strip").getBoundingClientRect();
+  const wave = document.getElementById("wave-banner").getBoundingClientRect();
+  return wave.top < 90 && strip.left === time.left && strip.bottom <= time.top;
+}));
+check("settings menu contains no wave-critical gauges", await page.evaluate(() => !/Needs|Money|Workers|Food|Shortage/.test(document.getElementById("toolbar").textContent)));
 check("time controls do not cover the compass", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
   const compass = document.getElementById("compass").getBoundingClientRect();
@@ -740,13 +754,19 @@ check(
 );
 const cityHud = await cityHudText();
 check(
-  "the city HUD shows population and one readable gauge per business",
+  "the city strip shows population, money, workers, food and one shortage",
   /residents$/.test(cityHud.population) &&
     /\$\d/.test(cityHud.money) &&
-    /rising|waiting/.test(cityHud.money) &&
-    ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => cityHud.needs.includes(label)),
+    /\d+\/\d+/.test(cityHud.workers) &&
+    cityHud.food.length > 0 &&
+    cityHud.shortage.length > 0,
   JSON.stringify(cityHud),
 );
+await page.locator("#city-strip").click();
+check("clicking the city strip opens the resource ledger", await page.locator("#ledger").isVisible() && /Population:|Food:/.test(await page.locator("#ledger-lines").textContent()));
+const ledgerNeeds = await page.locator("#needs-panel").textContent();
+check("the ledger carries the detailed city gauges", ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => ledgerNeeds.includes(label)));
+await page.locator("#city-strip").click();
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
 check("streetlights use clustered lighting", await clusteredStreetlights());
@@ -1378,6 +1398,8 @@ const selectedBuilding = await page.evaluate(() => ({
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
 check("a building panel shows its state", Boolean(selectedBuilding.rows.State), JSON.stringify(selectedBuilding.rows));
 check("a building without a required utility says why it is idle", selectedBuilding.rows.State === "Idle" && /^No (power|water)$/.test(selectedBuilding.rows.Reason ?? ""), JSON.stringify(selectedBuilding.rows));
+await page.locator('input[name="select-view"][value="state"]').check();
+check("the State view keeps buildings visible for status colours", (await stats()).buildings > 0);
 await page.locator('[data-tool="bulldoze"]').click();
 const beforeBuildingBulldoze = await stats();
 await click(buildingPoint.x, buildingPoint.y);

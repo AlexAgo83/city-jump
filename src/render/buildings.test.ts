@@ -113,6 +113,12 @@ describe("roof props", () => {
     expect(buildingStateColor(p, { state: "rebuilding" })).not.toEqual(buildingStateColor(p, { state: "working" }));
   });
 
+  it("uses distinct idle colours for missing utilities", () => {
+    const p = parcel(0, 0, 2, 2);
+    expect(buildingStateColor(p, { state: "idle", reason: "power" })).not.toEqual(buildingStateColor(p, { state: "idle", reason: "water" }));
+    expect(buildingStateColor(p, { state: "idle", reason: "power" })).not.toEqual(buildingStateColor(p, { state: "idle", reason: "workers" }));
+  });
+
   it("skips foot decorations on faces touching another building cell", () => {
     const first = parcel(0, 0, 2, 2);
     const second = parcel(2, 0, 1, 2);

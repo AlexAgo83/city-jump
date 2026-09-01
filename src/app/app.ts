@@ -17,7 +17,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { CityEconomy, STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost } from "../sim/economy";
+import { CityEconomy, STARTING_MONEY, Treasury, buildingBuildCost, demolitionRefund, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones } from "../sim/zones";
@@ -170,6 +170,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let nextSalvoAt = 0;
   let waveVerdict: WaveVerdict | null = null;
   let buildingRebuildTimer = 0;
+  let lastTerms: CityTerms | undefined;
   const scheduleBuildingRebuild = (): void => {
     window.clearTimeout(buildingRebuildTimer);
     // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
@@ -202,7 +203,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       clearedRubble = true;
     }
     if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
-    showCityStats(residents, buildingNeeds(currentParcels, residents));
+    showCityStats(residents, buildingNeeds(currentParcels, residents), cityEconomy.resources, lastTerms);
     showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses), stateCounts());
   };
   const refreshUtilities = (): void => {
@@ -550,15 +551,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
       // "Traffic" hides them outright -- the lane overlay is meant to be read from above, and a
       // building in the way defeats the point.
-      buildings.setVisible(view === "all" ? buildingsVisible : false);
+      buildings.setVisible(view === "all" ? buildingsVisible : view === "state");
       buildings.setGridVisible(view === "no-buildings");
       zoneOverlay.setVisible(view === "no-buildings");
       roads.setShowTraffic(view === "traffic");
       utilityOverlay.setVisible(view === "utilities");
       // The road surface, sidewalks and the streetlights standing on them fade back so the lane
       // overlay is the thing that actually reads.
-      roads.setFaded(view === "traffic" || view === "utilities");
-      streetlights.setFaded(view === "traffic" || view === "utilities");
+      roads.setFaded(view === "traffic" || view === "utilities" || view === "state");
+      streetlights.setFaded(view === "traffic" || view === "utilities" || view === "state");
     },
     onSunHour(hour) {
       setClockHour(hour);
@@ -636,7 +637,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const simDt = dt * timeRate;
     advanceClock(simDt);
     if (simDt > 0 && currentParcels.length) {
-      cityEconomy.advance(currentParcels, simDt);
+      lastTerms = cityEconomy.advance(currentParcels, simDt);
       syncBuildings();
       const income = incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses);
       treasury.earn(income * simDt);
