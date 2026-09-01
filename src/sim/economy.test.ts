@@ -52,4 +52,17 @@ describe("economy", () => {
     city.replaceWith({ population: 10 });
     expect(city.advance([homes[0]!], CITY_DAY_SECONDS).population.change).toBeLessThan(0);
   });
+
+  it("is deterministic and loses residents when homes disappear", () => {
+    const parcels = [status("residential", "working", 2, 2).parcel, status("agricultural", "working").parcel];
+    const run = () => {
+      const city = new CityEconomy({ population: 24, food: 50 });
+      city.advance(parcels, CITY_DAY_SECONDS);
+      return city.resources;
+    };
+    expect(run()).toEqual(run());
+    const city = new CityEconomy({ population: 24, food: 50 });
+    city.advance(parcels, CITY_DAY_SECONDS);
+    expect(city.advance([parcels[1]!], CITY_DAY_SECONDS).population.value).toBe(0);
+  });
 });
