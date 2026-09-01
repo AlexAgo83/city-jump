@@ -184,6 +184,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
   const scheduleBuildingRebuild = (): void => {
+    // Not while a kaiju is walking. This schedules a whole-world rebuild -- terrain, trees, roads,
+    // lights, signals, traffic -- and a wave destroys a building every few seconds, so the city
+    // was rebuilding itself from scratch over and over while the player watched. The destruction
+    // itself already repaints its own region; the parcel re-packing can wait for the wave to end.
+    if (waveClock.active) return;
     window.clearTimeout(buildingRebuildTimer);
     // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
     buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
@@ -408,6 +413,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // stopped -- in the middle of the city, with no arrival and no reason.
     kaijuPlan = null;
     kaijuAssault = null;
+    // The one full rebuild the wave deferred: re-pack the parcels now that the dust has settled.
+    rebuild();
     kaiju.hide();
     waveMarkers.hide();
     pendingMissiles = [];
