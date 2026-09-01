@@ -1,14 +1,14 @@
 ## item_079_missiles_that_fly_and_explode_where_the_damage_lands - Missiles that fly, and explode where the damage lands
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:24:02
+> Indicators reviewed: 2026-09-01 11:26:11
 
 # AI Context
 - Summary: The delivery slice for the military answer: real projectiles that climb, travel and dive, staggered launches, and an explosion drawn where the damage is already applied.

@@ -26,7 +26,7 @@ import { buildingNeeds } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
-import { kaijuPositionAt, planKaiju, type KaijuPlan } from "../sim/kaiju";
+import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, planKaiju, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -169,6 +169,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let runState: RunState = createRun();
   let profile: ProfileState = readProfile();
   let kaijuPlan: KaijuPlan | null = null;
+  let kaijuAssault: KaijuAssaultState | null = null;
   let pendingMissiles: PendingMissile[] = [];
   let nextSalvoAt = 0;
   let waveVerdict: WaveVerdict | null = null;
@@ -330,6 +331,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       v3(-360, 0, 1500),
     );
     pendingMissiles = [];
+    kaijuAssault = null;
     nextSalvoAt = 0;
     waveVerdict = null;
   };
@@ -348,6 +350,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const resetWave = (): void => {
     waveClock = createWaveClock();
     kaijuPlan = null;
+    kaijuAssault = null;
     pendingMissiles = [];
     waveVerdict = null;
     kaiju.hide();
@@ -378,8 +381,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
-    const position = kaijuPositionAt(kaijuPlan, seconds);
-    const next = kaijuPositionAt(kaijuPlan, seconds + 0.1);
+    const coastSeconds = distXZ(kaijuPlan.landing, kaijuPlan.coast) / WAVE_STARTING_VALUES.kaijuSpeedMps;
+    const livingBuildings = currentBuildingStatuses.filter((status) => status.state !== "rebuilding");
+    if (seconds >= coastSeconds) {
+      kaijuAssault ??= createKaijuAssault(kaijuPlan.coast);
+      kaijuAssault = advanceKaijuAssault(kaijuAssault, livingBuildings.map((status) => status.parcel.position), dt);
+    }
+    const position = kaijuAssault?.position ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds);
+    const next = kaijuAssault?.target ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds + 0.1);
     waveMarkers.show(kaijuPlan);
     kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
     const batteries = batteriesForParcels(currentParcels);
@@ -403,14 +412,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       finishWave("held");
       return;
     }
-    const hit = currentParcels.find((parcel) => distXZ(parcel.position, position) <= WAVE_STARTING_VALUES.destructionRadiusM);
+    const hit = kaijuAssault?.destroyed ? currentParcels.find((parcel) => samePosition(parcel.position, kaijuAssault!.destroyed!)) : null;
     if (!hit) return;
     rubble.destroy(hit);
     buildingLifecycle.rebuild(hit, simSeconds);
     syncBuildings();
     history.clear();
     rebuild(parcelBounds(hit));
-    finishWave("breached");
+    if (!currentBuildingStatuses.some((status) => status.state !== "rebuilding")) finishWave("breached");
   };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
@@ -846,6 +855,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       minZ: Math.min(...points.map((point) => point.z)) - 16,
       maxZ: Math.max(...points.map((point) => point.z)) + 16,
     };
+  }
+
+  function samePosition(a: { x: number; z: number }, b: { x: number; z: number }): boolean {
+    return Math.abs(a.x - b.x) < 0.01 && Math.abs(a.z - b.z) < 0.01;
   }
 }
 

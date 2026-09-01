@@ -1,14 +1,15 @@
 ## task_031_make_the_wave_readable_a_kaiju_that_crosses_the_city_missiles_you_can_watch_and_spending_that_never_blocks - Make the wave readable: a kaiju that crosses the city, missiles you can watch, and spending that never blocks
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:59:22
+> Indicators reviewed: 2026-09-01 11:26:11
+> Owner: Codex
 
 # AI Context
 - Summary: The executable surface of `req_029`: the kaiju loop first, then the missiles, then the balance, then the construction and the costs.

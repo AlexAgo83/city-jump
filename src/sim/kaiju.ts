@@ -15,6 +15,16 @@ export interface KaijuPlan {
   readonly path: readonly Vec3[];
 }
 
+export interface KaijuAssaultState {
+  readonly position: Vec3;
+  readonly target: Vec3 | null;
+  readonly mode: "walking" | "attacking" | "idle";
+  readonly attackSeconds: number;
+  readonly destroyed: Vec3 | null;
+}
+
+export const KAIJU_ATTACK_SECONDS = 5;
+
 type Edge =
   | { readonly side: "west" | "east"; readonly x: number; readonly z0: number; readonly z1: number }
   | { readonly side: "north" | "south"; readonly z: number; readonly x0: number; readonly x1: number };
@@ -39,6 +49,42 @@ export function kaijuPositionAt(plan: KaijuPlan, seconds: number, speed = WAVE_S
   return plan.path[plan.path.length - 1]!;
 }
 
+export function createKaijuAssault(position: Vec3): KaijuAssaultState {
+  return { position, target: null, mode: "idle", attackSeconds: 0, destroyed: null };
+}
+
+export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonly Vec3[], dtSeconds: number, speed: number = WAVE_STARTING_VALUES.kaijuSpeedMps, attackDuration = KAIJU_ATTACK_SECONDS): KaijuAssaultState {
+  const targets = state.destroyed ? buildings.filter((building) => !sameXZ(building, state.destroyed!)) : [...buildings];
+  let position = state.position;
+  let target = state.target && targets.some((building) => sameXZ(building, state.target!)) ? state.target : nearest(targets, state.position);
+  let mode: KaijuAssaultState["mode"] = !target ? "idle" : state.mode === "attacking" && sameXZ(target, state.position) ? "attacking" : "walking";
+  let attackSeconds = mode === "attacking" ? state.attackSeconds : 0;
+  let remaining = Math.max(0, dtSeconds);
+  let destroyed: Vec3 | null = null;
+
+  while (target && remaining > 0 && !destroyed) {
+    const distance = distXZ(position, target);
+    if (distance > 0) {
+      const travel = Math.min(distance, remaining * speed);
+      position = lerp(position, target, travel / distance);
+      remaining -= travel / speed;
+      mode = distance === travel ? "attacking" : "walking";
+      if (mode === "walking") break;
+    }
+    const attack = Math.min(remaining, attackDuration - attackSeconds);
+    attackSeconds += attack;
+    remaining -= attack;
+    if (attackSeconds >= attackDuration) {
+      destroyed = target;
+      target = nearest(targets.filter((building) => !sameXZ(building, destroyed!)), position);
+      mode = target ? "walking" : "idle";
+      attackSeconds = 0;
+    }
+  }
+
+  return { position, target, mode, attackSeconds, destroyed };
+}
+
 export function landingPoint(seed: string, bounds: MapBounds, bridge: Vec3): Vec3 {
   const edges: Edge[] = [
     { side: "west", x: bounds.minX, z0: bounds.minZ, z1: bounds.maxZ },
@@ -58,6 +104,10 @@ export function landingPoint(seed: string, bounds: MapBounds, bridge: Vec3): Vec
 
 function nearest(points: readonly Vec3[], from: Vec3): Vec3 | null {
   return points.reduce<Vec3 | null>((best, point) => (!best || distXZ(point, from) < distXZ(best, from) ? point : best), null);
+}
+
+function sameXZ(a: Vec3, b: Vec3): boolean {
+  return Math.abs(a.x - b.x) < 0.01 && Math.abs(a.z - b.z) < 0.01;
 }
 
 function edgeDistance(edge: Edge, point: Vec3): number {

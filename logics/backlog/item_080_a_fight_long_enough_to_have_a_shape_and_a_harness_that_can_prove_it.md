@@ -1,14 +1,14 @@
 ## item_080_a_fight_long_enough_to_have_a_shape_and_a_harness_that_can_prove_it - A fight long enough to have a shape, and a harness that can prove it
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:24:02
+> Indicators reviewed: 2026-09-01 11:26:11
 
 # AI Context
 - Summary: The delivery slice for combat length: hit points, damage, reload and wave scaling retuned together, and a balance harness rewritten to drive the real simulation instead of a random number.

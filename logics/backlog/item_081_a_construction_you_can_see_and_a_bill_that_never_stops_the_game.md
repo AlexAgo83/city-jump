@@ -1,14 +1,14 @@
 ## item_081_a_construction_you_can_see_and_a_bill_that_never_stops_the_game - A construction you can see, and a bill that never stops the game
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:25
+> Indicators reviewed: 2026-09-01 11:26:11
 
 # AI Context
 - Summary: The delivery slice for what the city shows and pays: a building that visibly rises with a live progress readout, a shorter stage, and building costs deducted without ever refusing a build.
