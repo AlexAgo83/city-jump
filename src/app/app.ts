@@ -47,7 +47,7 @@ import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 
 /** Where a run opens: the far side of the island from the bridge. */
-const STARTER_KIT_AT = { x: 360, z: -1350 } as const;
+const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -206,7 +206,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const buildableZoneCells = (): Set<string> => {
     const keys = new Set<string>();
     for (const cell of currentBuildableCells) {
-      for (const corner of cell.corners) keys.add(`${Math.floor(corner.x / ZONE_CELL_SIZE)}:${Math.floor(corner.z / ZONE_CELL_SIZE)}`);
+      // The cell's centre, not its corners: corners land in the next zone cell over, which marked
+      // a ring of open ground around every built strip as if it were buildable.
+      const centre = buildableCellCentre(cell);
+      keys.add(`${Math.floor(centre.x / ZONE_CELL_SIZE)}:${Math.floor(centre.z / ZONE_CELL_SIZE)}`);
     }
     return keys;
   };
@@ -403,24 +406,23 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const z = STARTER_KIT_AT.z;
     const landing = graph.addNodeAt(v3(STARTER_KIT_AT.x, heightmap.baseHeightAt(STARTER_KIT_AT.x, z), z));
     const x = STARTER_KIT_AT.x;
-    const west = graph.addNodeAt(v3(x - 150, heightmap.baseHeightAt(x - 150, z), z));
-    const east = graph.addNodeAt(v3(x + 150, heightmap.baseHeightAt(x + 150, z), z));
-    graph.addSegment(west, landing, v3(x - 75, 0, z), "street");
-    graph.addSegment(landing, east, v3(x + 75, 0, z), "street");
+    // One segment, not two meeting in the middle: a junction trims the frontage either side of it,
+    // and splitting a 300 m street in half cost sixteen building lots and left a visible gap.
+    graph.addSegment(landing, graph.addNodeAt(v3(x + 300, heightmap.baseHeightAt(x + 300, z), z)), v3(x + 150, 0, z), "street");
     // Painted along the road, not beside it: buildable land is the frontage strip either side of a
     // street, so a circle centred well off it covers ground nothing can ever be built on. The
     // agricultural one reached no buildable cell at all, which is why a new city opened with no
     // farm and no food.
-    zones.paint(x - 90, z, 45, "agricultural");
-    zones.paint(x, z, 45, "residential");
-    zones.paint(x + 90, z, 45, "commercial");
+    zones.paint(x + 55, z, 45, "agricultural");
+    zones.paint(x + 150, z, 45, "residential");
+    zones.paint(x + 245, z, 45, "commercial");
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
     for (const kind of ["power", "water"] as const) {
-      utilities.place(graph, "producer", kind, x - 140, z);
-      utilities.place(graph, "diffuser", kind, x - 40, z);
-      utilities.place(graph, "diffuser", kind, x + 80, z);
+      utilities.place(graph, "producer", kind, x + 20, z);
+      utilities.place(graph, "diffuser", kind, x + 110, z);
+      utilities.place(graph, "diffuser", kind, x + 230, z);
     }
   };
   const updateWave = (dt: number): void => {
@@ -765,7 +767,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // Looking at the starter kit, which is where the run opens. This used to frame the origin --
       // the middle of the island, a hilltop with nothing on it and twelve hundred metres from
       // anything the player owns.
-      applyCamera({ targetX: STARTER_KIT_AT.x, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
+      applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
     },
   });
   updateUndoRedo = controls.updateUndoRedo;
