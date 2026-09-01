@@ -15,6 +15,7 @@ import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { createZoneRenderer } from "../render/zones";
+import { ZONE_CELL_SIZE } from "../sim/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
 import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
@@ -44,6 +45,9 @@ import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
+
+/** Where a run opens: just inland of the bridge, on the low ground beside the landing. */
+const STARTER_KIT_AT = { x: -360, z: 1350 } as const;
 
 type CameraMode = "free" | "orbit" | "follow";
 type WaveVerdict = "held" | "breached";
@@ -150,7 +154,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("streetlights", () => streetlights.rebuild(junctions, dirty));
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
-    measure("zones", () => zoneOverlay.rebuild(zones));
+    measure("zones", () => zoneOverlay.rebuild(zones, buildableZoneCells()));
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -198,6 +202,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   /** What the next wave will bring, so the needs panel can price the defence against it. */
   const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
   const workingParcels = (): BuildingParcel[] => currentBuildingStatuses.filter((status) => status.state === "working").map((status) => status.parcel);
+  /** The zone cells some road frontage reaches, so the overlay stops colouring open ground. */
+  const buildableZoneCells = (): Set<string> => {
+    const keys = new Set<string>();
+    for (const cell of currentBuildableCells) {
+      for (const corner of cell.corners) keys.add(`${Math.floor(corner.x / ZONE_CELL_SIZE)}:${Math.floor(corner.z / ZONE_CELL_SIZE)}`);
+    }
+    return keys;
+  };
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
@@ -382,24 +394,33 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     missiles.rebuild([]);
   };
   const addStarterKit = (): void => {
-    if (graph.allSegments().some((segment) => Math.max(Math.abs(graph.node(segment.a).pos.z), Math.abs(graph.node(segment.b).pos.z)) < 900)) return;
-    const a = graph.addNodeAt(v3(-260, heightmap.baseHeightAt(-260, 260), 260));
-    const b = graph.addNodeAt(v3(40, heightmap.baseHeightAt(40, 260), 260));
-    graph.addSegment(a, b, v3(-110, 0, 260), "street");
+    // The bridge is the only road a fresh island carries, so anything else means this is a city
+    // that already exists. Checking the type is exact; the old check was a z threshold that the
+    // kit's own road had to stay behind, which is how it ended up marooned in the middle.
+    if (graph.allSegments().some((segment) => segment.type !== "highway_2lane")) return;
+    // Just inland of the bridge, on the low ground beside it. The kit used to sit at z=260 -- the
+    // island's summit, eighty metres above the landing and twelve hundred from it, reachable only
+    // by a road the player had to draw first. A run opens where the player arrives.
+    const z = STARTER_KIT_AT.z;
+    const landing = graph.addNodeAt(v3(STARTER_KIT_AT.x, heightmap.baseHeightAt(STARTER_KIT_AT.x, z), z));
+    const west = graph.addNodeAt(v3(-510, heightmap.baseHeightAt(-510, z), z));
+    const east = graph.addNodeAt(v3(-210, heightmap.baseHeightAt(-210, z), z));
+    graph.addSegment(west, landing, v3(-435, 0, z), "street");
+    graph.addSegment(landing, east, v3(-285, 0, z), "street");
     // Painted along the road, not beside it: buildable land is the frontage strip either side of a
-    // street, so a circle centred 40 m off it -- which is where these three used to sit -- covers
-    // ground nothing can ever be built on. The agricultural one reached no buildable cell at all,
-    // which is why a new city opened with no farm and no food.
-    zones.paint(-200, 260, 45, "agricultural");
-    zones.paint(-110, 260, 45, "residential");
-    zones.paint(0, 260, 45, "commercial");
+    // street, so a circle centred well off it covers ground nothing can ever be built on. The
+    // agricultural one reached no buildable cell at all, which is why a new city opened with no
+    // farm and no food.
+    zones.paint(-450, z, 45, "agricultural");
+    zones.paint(-360, z, 45, "residential");
+    zones.paint(-270, z, 45, "commercial");
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
     for (const kind of ["power", "water"] as const) {
-      utilities.place(graph, "producer", kind, -250, 260);
-      utilities.place(graph, "diffuser", kind, -110, 260);
-      utilities.place(graph, "diffuser", kind, 20, 260);
+      utilities.place(graph, "producer", kind, -500, z);
+      utilities.place(graph, "diffuser", kind, -400, z);
+      utilities.place(graph, "diffuser", kind, -280, z);
     }
   };
   const updateWave = (dt: number): void => {
@@ -741,12 +762,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       loadCity(emptyCity());
       addStarterKit();
       rebuild();
-      // And framed the way the game opens: an empty city carries no camera, and leaving the last
-      // one is leaving the player looking at a patch of grass where their city used to be.
-      // Far enough out to see the island rather than the patch of grass in front of it: a new
-      // city is a place to choose, and the choice is where the coast is.
-      applyCamera({ targetX: 0, targetY: 0, targetZ: 0, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 800 });
-      frameTerrain();
+      // Looking at the starter kit, which is where the run opens. This used to frame the origin --
+      // the middle of the island, a hilltop with nothing on it and twelve hundred metres from
+      // anything the player owns.
+      applyCamera({ targetX: STARTER_KIT_AT.x, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
     },
   });
   updateUndoRedo = controls.updateUndoRedo;

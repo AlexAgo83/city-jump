@@ -20,13 +20,19 @@ export function createZoneRenderer(scene: Scene) {
   let mesh: Mesh | null = null;
   let visible = false;
 
-  function rebuild(zones: Zones): void {
+  /**
+   * @param buildable Zone cells that some road frontage actually reaches, as `gx:gz` keys. The
+   * brush paints a circle over the ground; only part of that circle is land anything can be built
+   * on, and colouring the rest drew blocks floating on empty grass with no grid under them.
+   */
+  function rebuild(zones: Zones, buildable?: ReadonlySet<string>): void {
     mesh?.dispose();
     mesh = null;
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
     for (const [gx, gz, kind] of zones.toJSON()) {
+      if (buildable && !buildable.has(`${gx}:${gz}`)) continue;
       const base = positions.length / 3;
       const tint = [...BUILDING_KIND_COLOR[kind], 1];
       for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
