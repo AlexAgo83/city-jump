@@ -8,7 +8,7 @@ export type SavedBuildingState = [x: number, z: number, state: BuildingState, st
 export interface BuildingStatus {
   readonly parcel: BuildingParcel;
   readonly state: BuildingState;
-  readonly reason?: "construction" | "workers" | "funds";
+  readonly reason?: "construction" | "workers" | "funds" | "power" | "water";
 }
 
 export interface BuildingFunding {

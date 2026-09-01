@@ -10,6 +10,7 @@ import { createScene } from "../render/scene";
 import { createFpsMeter } from "../render/fps";
 import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
+import { createUtilityRenderer } from "../render/utilities";
 import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
@@ -27,6 +28,7 @@ import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { kaijuPositionAt, planKaiju, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
+import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { streetForSegment } from "../sim/streets";
@@ -63,6 +65,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const plantings = new Plantings();
   const zones = new Zones();
   const rubble = new Rubble();
+  const utilities = new Utilities();
   const buildingLifecycle = new BuildingLifecycle();
   const treasury = new Treasury();
   const cityEconomy = new CityEconomy();
@@ -77,6 +80,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
+  const utilityOverlay = createUtilityRenderer(scene, graph, utilities);
   const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
   const missiles = createMissileRenderer(scene);
@@ -146,6 +150,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(zones));
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
+    measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentBuildingStatuses));
     invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
@@ -178,10 +183,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return counts;
     }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
+  const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
+    const supplied = currentSuppliedUtilities();
+    const diffusers = utilities.diffusers();
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, {
       spend: (_parcel, cost, allowDebt) => treasury.spend(cost, allowDebt),
+    }).map((status) => {
+      if (status.state === "rising" || status.state === "waiting" || status.state === "rebuilding") return status;
+      const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
+      return missing ? { ...status, state: "idle" as const, reason: missing } : status;
     });
     let clearedRubble = false;
     for (const status of currentBuildingStatuses) {
@@ -192,6 +204,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
     showCityStats(residents, buildingNeeds(currentParcels, residents));
     showMoney(treasury.money, incomePerSecond(residents, currentBuildingStatuses), stateCounts());
+  };
+  const refreshUtilities = (): void => {
+    syncBuildings();
+    buildings.updateStates(currentBuildingStatuses);
+    utilityOverlay.rebuild(currentSuppliedUtilities());
+    scheduleAutosave();
   };
   let sunHour = DEFAULT_HOUR;
   const setClockHour = (hour: number): void => {
@@ -237,7 +255,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -249,11 +267,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
-    restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury, cityEconomy);
+    restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
     addOffshoreBridge();
     rebuild();
     updateUndoRedo();
@@ -467,6 +485,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
         return true;
       },
     },
+    {
+      place: (role, kind, x, z) => Boolean(utilities.place(graph, role, kind, x, z)),
+      removeAt(x, z) {
+        const removed = utilities.removeNear(x, z, 10);
+        if (removed) rebuild();
+        return removed;
+      },
+      nearest: (x, z, within) => utilities.nearest(x, z, within),
+      refresh: refreshUtilities,
+    },
   );
 
   await seedDefaultDemoSave();
@@ -486,6 +514,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     roadPrice: (type) => roadBuildCost(type, 1),
     buildingPrice: (kind) => buildingBuildCost({ kind, frontageCells: 1, depthCells: 1 }),
+    onUtility: (kind, role) => tool.setUtility(kind, role),
     onWorldGrid: worldGrid.setVisible,
     onFps: setFpsVisible,
     onShadows: setShadowsEnabled,
@@ -525,10 +554,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       buildings.setGridVisible(view === "no-buildings");
       zoneOverlay.setVisible(view === "no-buildings");
       roads.setShowTraffic(view === "traffic");
+      utilityOverlay.setVisible(view === "utilities");
       // The road surface, sidewalks and the streetlights standing on them fade back so the lane
       // overlay is the thing that actually reads.
-      roads.setFaded(view === "traffic");
-      streetlights.setFaded(view === "traffic");
+      roads.setFaded(view === "traffic" || view === "utilities");
+      streetlights.setFaded(view === "traffic" || view === "utilities");
     },
     onSunHour(hour) {
       setClockHour(hour);
@@ -550,7 +580,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onLoad: loadCity,
     onNew() {
       // Through the same path a save takes: pristine terrain, cleared history, one rebuild.
-      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, resources: new CityEconomy().resources, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] });
+      loadCity({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: STARTING_MONEY, resources: new CityEconomy().resources, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
       // And framed the way the game opens: an empty city carries no camera, and leaving the last
       // one is leaving the player looking at a patch of grass where their city used to be.
       // Far enough out to see the island rather than the patch of grass in front of it: a new
@@ -569,7 +599,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       // The terrain has to be pristine before the replay: node elevations were recorded against
       // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
       applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury, cityEconomy);
+      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
     } catch (error) {
       showRefusal(`This city could not be loaded: ${(error as Error).message}`);
       return false;
@@ -677,6 +707,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     trees: trees.count(),
     zones: zones.count(),
     rubble: rubble.count(),
+    utilities: utilities.toJSON().length,
     buildingStates: stateCounts(),
     money: treasury.money,
     income: incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses),
@@ -716,9 +747,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     measureBuildingStateChange() {
       const started = performance.now();
-      currentBuildingStatuses = buildingLifecycle.sync(currentParcels, 0, simSeconds + BUILDING_STAGE_SECONDS, {
-        spend: (_parcel, cost, allowDebt) => allowDebt && treasury.spend(cost, true),
-      });
+      simSeconds += BUILDING_STAGE_SECONDS;
+      syncBuildings();
       buildings.updateStates(currentBuildingStatuses);
       return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
     },

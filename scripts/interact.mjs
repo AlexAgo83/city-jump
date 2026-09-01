@@ -234,6 +234,15 @@ const industrialBuildingCount = () =>
   );
 const zonesOverlayVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("zones-overlay")?.isEnabled() ?? false);
+const utilityOverlayState = () =>
+  page.evaluate(() => {
+    const visible = (prefix) => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(prefix) && mesh.isEnabled()).length;
+    return {
+      roads: visible("utility-road-"),
+      radii: visible("utility-radius-"),
+      markers: visible("utility-marker-"),
+    };
+  });
 const trafficOverlayCounts = () =>
   page.evaluate(() => {
     const visible = (prefix) => window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(prefix) && mesh.isEnabled()).length;
@@ -570,7 +579,10 @@ await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
 await page.locator("#grid-snap").check();
-check("unfinished power and water categories are disabled", await page.locator('[data-tool="power"]').isDisabled() && await page.locator('[data-tool="water"]').isDisabled());
+await page.locator('[data-tool="power"]').click();
+check("power tools are placeable and priced", await page.locator("#utility-options").isVisible() && /\$\d/.test(await page.locator("#utility-price").textContent()));
+await page.locator('input[name="utility-role"][value="diffuser"]').check();
+check("a diffuser shows its own price and staffing", /staff/.test(await page.locator("#utility-price").textContent()));
 await page.locator('[data-tool="select"]').click();
 
 const afternoonSun = await sunState();
@@ -816,6 +828,31 @@ await setSettingsOpen(true);
 await page.locator("#save-slot").focus();
 await page.keyboard.press(`${shortcut}+Z`);
 check("undo shortcut is inert while a field has focus", (await stats()).segments === drawn.segments);
+const utilityProducerPoint = await screenPoint(`(() => {
+  const graph = window.cityjump._graph;
+  const segment = graph.allSegments().find((s) => s.type !== "highway_2lane");
+  return graph.pointAt(segment.id, segment.length * 0.25).position;
+})()`);
+const utilityDiffuserPoint = await screenPoint(`(() => {
+  const graph = window.cityjump._graph;
+  const segment = graph.allSegments().find((s) => s.type !== "highway_2lane");
+  return graph.pointAt(segment.id, segment.length * 0.75).position;
+})()`);
+await page.locator("#save-slot").blur();
+await page.locator('[data-tool="water"]').click();
+await page.locator('input[name="utility-role"][value="producer"]').check();
+await click(utilityProducerPoint.x, utilityProducerPoint.y);
+await page.locator('input[name="utility-role"][value="diffuser"]').check();
+await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
+await page.locator('[data-tool="select"]').click();
+await page.locator('input[name="select-view"][value="utilities"]').check();
+const utilitiesView = await utilityOverlayState();
+check("the Utilities view shows carried roads and diffuser reach", utilitiesView.roads > 0 && utilitiesView.radii > 0 && utilitiesView.markers >= 2, JSON.stringify(utilitiesView));
+check("placing utilities spends money and records them", (await stats()).utilities === 2 && (await stats()).money < 200_000, JSON.stringify(await stats()));
+await page.locator('[data-tool="bulldoze"]').click();
+await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
+await page.waitForFunction(() => window.cityjump.stats().utilities === 1, null, { timeout: 5_000 });
+check("destroying a diffuser tells the player", /diffuser destroyed/.test(await toast()), await toast());
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
 await page.locator("#zone-radius").evaluate((input) => {
@@ -1329,6 +1366,7 @@ check(
 );
 const buildingPoint = await screenPoint("window.cityjump.buildingPoint()");
 check("there is a building to select", buildingPoint !== null);
+await page.evaluate(() => window.cityjump.measureBuildingStateChange());
 await click(buildingPoint.x, buildingPoint.y);
 const selectedBuilding = await page.evaluate(() => ({
   hidden: document.getElementById("selection-panel").hidden,
@@ -1339,6 +1377,7 @@ const selectedBuilding = await page.evaluate(() => ({
 }));
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
 check("a building panel shows its state", Boolean(selectedBuilding.rows.State), JSON.stringify(selectedBuilding.rows));
+check("a building without a required utility says why it is idle", selectedBuilding.rows.State === "Idle" && /^No (power|water)$/.test(selectedBuilding.rows.Reason ?? ""), JSON.stringify(selectedBuilding.rows));
 await page.locator('[data-tool="bulldoze"]').click();
 const beforeBuildingBulldoze = await stats();
 await click(buildingPoint.x, buildingPoint.y);

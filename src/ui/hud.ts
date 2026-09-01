@@ -108,7 +108,14 @@ export function showSelection(info: SelectionInfo | null): void {
       row("Type", label(info.buildingKind)) +
       row("Footprint", info.footprint) +
       row("State", stateLabel(info.state)) +
-      (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : info.reason === "funds" ? "Waiting for funds" : "Under construction") : "");
+      (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : info.reason === "funds" ? "Waiting for funds" : info.reason === "power" ? "No power" : info.reason === "water" ? "No water" : "Under construction") : "");
+    return;
+  }
+  if (info.kind === "utility") {
+    selectionKind.textContent = info.utility === "power" ? "Power" : "Water";
+    selectionRows.innerHTML =
+      row("Role", info.role === "producer" ? "Producer" : "Diffuser") +
+      row("Staff", String(info.staff));
     return;
   }
   if (info.kind === "vehicle") {

@@ -15,6 +15,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
 import { demolitionRefund } from "../sim/economy";
+import { UTILITY_CATALOG, type SavedUtility, type UtilityKind, type UtilityRole } from "../sim/utilities";
 import type { BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
@@ -37,6 +38,7 @@ const DEMOLITION_MS = 1_000;
 type BulldozeTarget =
   | { kind: "road"; segment: Segment }
   | { kind: "building"; status: BuildingStatus }
+  | { kind: "utility"; utility: SavedUtility }
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
 
@@ -51,6 +53,7 @@ type SelectTarget =
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
   | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"] }
+  | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
   | { kind: "tree" }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number };
@@ -70,11 +73,12 @@ export interface DrawTool {
   setSprayRadius(radius: number): void;
   setZoneKind(kind: ZoneKind | "clear"): void;
   setZoneRadius(radius: number): void;
+  setUtility(kind: UtilityKind, role: UtilityRole): void;
 }
 
 export type DrawMode = "straight" | "curve";
 export type PlantMode = "plant" | "spray";
-export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | DrawMode | PlantMode;
+export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | "utility" | DrawMode | PlantMode;
 /** Any key `ROAD_TYPES` recognizes -- a base id, or one composed with lanes/one-way. */
 export type RoadTypeId = string;
 
@@ -142,6 +146,13 @@ export interface DemolitionTools {
   building(status: BuildingStatus): boolean;
 }
 
+export interface UtilityTools {
+  place(role: UtilityRole, kind: UtilityKind, x: number, z: number): boolean;
+  removeAt(x: number, z: number): SavedUtility | null;
+  nearest(x: number, z: number, within: number): SavedUtility | null;
+  refresh(): void;
+}
+
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
@@ -156,6 +167,7 @@ export function createDrawTool(
   history?: HistoryTools,
   economy?: EconomyTools,
   demolition?: DemolitionTools,
+  utilities?: UtilityTools,
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "view";
@@ -163,6 +175,8 @@ export function createDrawTool(
   let typeId = initialTypeId;
   let treeSpecies = "fir";
   let zoneKind: ZoneKind | "clear" = "residential";
+  let utilityKind: UtilityKind = "power";
+  let utilityRole: UtilityRole = "producer";
   let sprayRadius = SPRAY_RADIUS;
   let zoneRadius = ZONE_RADIUS;
   let preview: LinesMesh | null = null;
@@ -258,6 +272,10 @@ export function createDrawTool(
         state: target.status.state,
         ...(target.status.reason ? { reason: target.status.reason } : {}),
       });
+      return;
+    }
+    if (target.kind === "utility") {
+      onSelect({ kind: "utility", role: target.utility[0], utility: target.utility[1], staff: UTILITY_CATALOG[target.utility[1]][target.utility[0]].staff });
       return;
     }
     if (target.kind === "vehicle") {
@@ -400,8 +418,18 @@ export function createDrawTool(
       if (!target) return;
       if (target.kind === "road") return drawPreview([...target.segment.samples], false);
       if (target.kind === "building") return highlightCircle(target.status.parcel.position.x, target.status.parcel.position.z, Math.max(target.status.parcel.frontageCells, target.status.parcel.depthCells) * GRID.cellSize * 0.5);
+      if (target.kind === "utility") return highlightCircle(target.utility[2], target.utility[3], target.utility[0] === "diffuser" ? target.utility[4] ?? UTILITY_CATALOG[target.utility[1]].diffuser.radius : 8);
       if (target.kind === "tree") return highlightCircle(target.x, target.z, 3);
       return highlightCircle(target.x, target.z, target.radius);
+    }
+    if (mode === "utility") {
+      nodeHighlight.setEnabled(false);
+      const hit = graph.nearestOnSegment(at.x, at.z, 24);
+      clearPreview();
+      if (!hit) return moveSprayRing(null, 1);
+      drawPreview([...hit.segment.samples], true);
+      moveSprayRing(utilityRole === "diffuser" ? hit.position : null, UTILITY_CATALOG[utilityKind].diffuser.radius);
+      return;
     }
     targetHighlight.setEnabled(false);
     const snap = resolveDrawingSnap(at.x, at.z);
@@ -445,6 +473,15 @@ export function createDrawTool(
       history?.beforeChange();
       if (target.kind === "building") {
         window.setTimeout(() => history?.afterChange(demolition?.building(target.status) ?? false), DEMOLITION_MS);
+        return;
+      }
+      if (target.kind === "utility") {
+        window.setTimeout(() => {
+          const removed = utilities?.removeAt(target.utility[2], target.utility[3]);
+          if (removed?.[0] === "diffuser") onRefused(`${removed[1] === "power" ? "Power" : "Water"} diffuser destroyed. Covered district is out.`);
+          utilities?.refresh();
+          history?.afterChange(Boolean(removed));
+        }, DEMOLITION_MS);
         return;
       }
       if (target.kind === "roundabout") {
@@ -495,6 +532,19 @@ export function createDrawTool(
       zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
       history?.afterChange(true);
       onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
+      return;
+    }
+    if (mode === "utility") {
+      const cost = UTILITY_CATALOG[utilityKind][utilityRole].cost;
+      if (!economy?.canSpend(cost)) return onRefused(`Need $${cost.toLocaleString()} for ${utilityKind} ${utilityRole}; treasury has $${Math.floor(economy?.money() ?? 0).toLocaleString()}.`);
+      history?.beforeChange();
+      const placed = utilities?.place(utilityRole, utilityKind, at.x, at.z) ?? false;
+      if (!placed) onRefused("Place utilities on a road.");
+      else {
+        economy?.spend(cost);
+        utilities?.refresh();
+      }
+      history?.afterChange(placed);
       return;
     }
     const snap = resolveDrawingSnap(at.x, at.z);
@@ -622,6 +672,9 @@ export function createDrawTool(
     const building = selection.buildingAt(x, z);
     if (building) return { kind: "building", status: building };
 
+    const utility = utilities?.nearest(x, z, 10);
+    if (utility) return { kind: "utility", utility };
+
     const nearest = graph.nearestOnSegment(x, z, 20);
     if (nearest) {
       const hit = Math.hypot(x - nearest.position.x, z - nearest.position.z);
@@ -684,7 +737,7 @@ export function createDrawTool(
   return {
     mode: () => mode,
     cancel,
-    setMode(next) {
+      setMode(next) {
       mode = next;
       setCameraDrag(next !== "spray" && next !== "zone");
       cancel();
@@ -710,6 +763,11 @@ export function createDrawTool(
     },
     setZoneRadius(next) {
       zoneRadius = next;
+      resetDrawing();
+    },
+    setUtility(kind, role) {
+      utilityKind = kind;
+      utilityRole = role;
       resetDrawing();
     },
   };

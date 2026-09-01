@@ -9,6 +9,7 @@ import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
+import { Utilities } from "./utilities";
 
 function city(): RoadGraph {
   const graph = new RoadGraph();
@@ -80,6 +81,19 @@ describe("city saves", () => {
     restoreCity(restored, new Plantings(), new Zones(), save);
 
     expect(restored.allSegments()[0]!.utilities).toBe(3);
+  });
+
+  it("carries utility placements through a save", () => {
+    const graph = city();
+    const utilities = new Utilities();
+    utilities.place(graph, "producer", "power", 0, 0);
+    utilities.place(graph, "diffuser", "power", 100, 0);
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, utilities)))!;
+    const restored = new Utilities();
+    restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, restored);
+
+    expect(restored.toJSON().map((item) => item.slice(0, 2))).toEqual([["producer", "power"], ["diffuser", "power"]]);
   });
 
   it("carries hand-planted and cleared trees through a save", () => {

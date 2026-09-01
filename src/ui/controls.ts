@@ -1,6 +1,7 @@
 import { parseCity, type CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
 import { decodeShare, encodeShare } from "../sim/share";
+import { UTILITY_CATALOG, type UtilityKind, type UtilityRole } from "../sim/utilities";
 import type { ZoneKind } from "../sim/zones";
 import {
   listSaves,
@@ -16,10 +17,11 @@ import {
 import { showRefusal } from "./hud";
 
 export function bindControls(handlers: {
-  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone"): void;
+  onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone" | "utility"): void;
   onRoadType(type: string): void;
   roadPrice(type: string): number;
   buildingPrice(kind: ZoneKind): number;
+  onUtility(kind: UtilityKind, role: UtilityRole): void;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
@@ -34,7 +36,7 @@ export function bindControls(handlers: {
   onZoneKind(kind: ZoneKind | "clear"): void;
   onZoneRadius(radius: number): void;
   onBuildings(visible: boolean): void;
-  onSelectView(view: "all" | "no-buildings" | "traffic"): void;
+  onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
   onCameraMode(mode: "free" | "orbit" | "follow"): void;
@@ -67,9 +69,12 @@ export function bindControls(handlers: {
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
   const zoneOptions = document.getElementById("zone-options")!;
+  const utilityOptions = document.getElementById("utility-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
   let roadMode: "straight" | "curve" | "roundabout" = "straight";
   let plantMode: "plant" | "spray" = "plant";
+  let utilityKind: UtilityKind = "power";
+  let utilityRole: UtilityRole = "producer";
   const undo = document.getElementById("undo-city") as HTMLButtonElement;
   const redo = document.getElementById("redo-city") as HTMLButtonElement;
   const updateUndoRedo = (): void => {
@@ -94,8 +99,13 @@ export function bindControls(handlers: {
       roadOptions.hidden = tool !== "roads";
       natureOptions.hidden = tool !== "nature";
       zoneOptions.hidden = tool !== "zones";
+      utilityOptions.hidden = tool !== "power" && tool !== "water";
+      if (tool === "power" || tool === "water") {
+        utilityKind = tool;
+        emitUtility();
+      }
       handlers.onRoadMode(
-        tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "zones" ? "zone" : tool === "bulldoze" ? "bulldoze" : "view",
+        tool === "roads" ? roadMode : tool === "nature" ? plantMode : tool === "zones" ? "zone" : tool === "power" || tool === "water" ? "utility" : tool === "bulldoze" ? "bulldoze" : "view",
       );
       // Zones checks "no-buildings" on the shared select-view radio to reuse its render path.
       // Select tool coming back after that must not just read the radio -- it would inherit
@@ -116,7 +126,7 @@ export function bindControls(handlers: {
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="select-view"]')) {
     input.addEventListener("change", () => {
       if (!input.checked) return;
-      handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : "all");
+      handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : input.value === "utilities" ? "utilities" : "all");
     });
   }
 
@@ -209,6 +219,20 @@ export function bindControls(handlers: {
   document.getElementById("zone-radius")!.addEventListener("input", (event) => {
     handlers.onZoneRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
+
+  const utilityPrice = document.getElementById("utility-price") as HTMLOutputElement;
+  function emitUtility(): void {
+    const spec = UTILITY_CATALOG[utilityKind][utilityRole];
+    utilityPrice.value = `$${spec.cost.toLocaleString()} | ${spec.staff} staff`;
+    handlers.onUtility(utilityKind, utilityRole);
+  }
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="utility-role"]')) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      utilityRole = input.value === "diffuser" ? "diffuser" : "producer";
+      emitUtility();
+    });
+  }
 
   const roadLanes = document.getElementById("road-lanes") as HTMLInputElement;
   const roadOneway = document.getElementById("road-oneway") as HTMLInputElement;

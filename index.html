@@ -296,6 +296,7 @@
       <label><input type="radio" name="select-view" value="all" checked /><span>All</span></label>
       <label><input type="radio" name="select-view" value="no-buildings" /><span>Zones</span></label>
       <label><input type="radio" name="select-view" value="traffic" /><span>Traffic</span></label>
+      <label><input type="radio" name="select-view" value="utilities" /><span>Utilities</span></label>
     </div>
   </div>
   <div id="road-type-options" class="tool-options" hidden>
@@ -348,12 +349,19 @@
     <label>Brush <input id="zone-radius" type="range" min="8" max="96" step="8" value="45" aria-label="Zone brush size" /></label>
     <output id="zone-price">$60+ each</output>
   </div>
+  <div id="utility-options" class="tool-options" hidden>
+    <div class="segmented" role="group" aria-label="Utility role">
+      <label><input type="radio" name="utility-role" value="producer" checked /><span>Producer</span></label>
+      <label><input type="radio" name="utility-role" value="diffuser" /><span>Diffuser</span></label>
+    </div>
+    <output id="utility-price">$3,200 | 6 staff</output>
+  </div>
   <div id="action-palette" role="toolbar" aria-label="Build tools">
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
     <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
     <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
-    <button class="tool-button" type="button" data-tool="power" aria-pressed="false" disabled>Power</button>
-    <button class="tool-button" type="button" data-tool="water" aria-pressed="false" disabled>Water</button>
+    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
+    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
     <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
     <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>

@@ -14,10 +14,11 @@ import { BuildingLifecycle, type SavedBuildingState } from "./buildingLifecycle"
 import { CityEconomy, type CityResources, STARTING_MONEY, Treasury } from "./economy";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { Rubble, type SavedRubble } from "./rubble";
+import { Utilities, type SavedUtility } from "./utilities";
 import { v3 } from "./vec";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 11;
+export const SAVE_VERSION = 12;
 const OFFSHORE_SCENERY_Z = 2000;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
@@ -54,11 +55,12 @@ export interface CitySave {
   readonly rubble: readonly SavedRubble[];
   readonly buildingStates: readonly SavedBuildingState[];
   readonly money: number;
+  readonly utilities?: readonly SavedUtility[];
   /** Absent on pre-resource saves; restore uses the bootstrap economy. */
   readonly resources?: CityResources;
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities()): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
@@ -71,6 +73,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
     zones: zones.toJSON(),
     rubble: rubble.toJSON(),
     buildingStates: buildingLifecycle.toJSON(),
+    utilities: utilities.toJSON(),
     nodes: graph
       .allNodes()
       .map((node) =>
@@ -97,12 +100,12 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
  * has had segments removed no longer numbers its nodes from 1.
  * Throws on a segment the current rules reject, so a partially replayed city never passes silently.
  */
-export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): void {
-  replayCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble());
-  replayCity(graph, plantings, zones, save, rubble, buildingLifecycle, treasury, cityEconomy);
+export function restoreCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities()): void {
+  replayCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), new BuildingLifecycle(), new Treasury(), new CityEconomy(), new Utilities());
+  replayCity(graph, plantings, zones, save, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
 }
 
-function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble, buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy()): void {
+function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: CitySave, rubble: Rubble, buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities()): void {
   plantings.replaceWith(toPlantings(save.planted), toPlantings(save.cleared));
   zones.replaceWith(save.zones);
   rubble.replaceWith(save.rubble);
@@ -126,6 +129,7 @@ function replayCity(graph: RoadGraph, plantings: Plantings, zones: Zones, save: 
   }
   // After the segments, since a roundabout is refused on a node with nothing meeting it yet.
   for (const node of roundabouts) graph.setRoundabout(node.id, true, node.lanes);
+  utilities.replaceWith(save.utilities ?? [], graph);
 }
 
 /**
@@ -153,8 +157,9 @@ export function parseCity(text: string): CitySave | null {
   const zones = readZones(value.zones);
   const rubble = readRubble(value.rubble);
   const buildingStates = readBuildingStates(value.buildingStates);
+  const utilities = readUtilities(value.utilities);
   const camera = readCamera(value.camera);
-  if (planted === null || cleared === null || zones === null || rubble === null || buildingStates === null) return null;
+  if (planted === null || cleared === null || zones === null || rubble === null || buildingStates === null || utilities === null) return null;
 
   const nodes = value.nodes.filter(
     (node): node is SavedNode =>
@@ -174,7 +179,7 @@ export function parseCity(text: string): CitySave | null {
   if (nodes.length !== value.nodes.length || segments.length !== value.segments.length) return null;
 
   if (camera === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, nodes, segments, planted, cleared, zones, rubble, buildingStates, ...(camera ? { camera } : {}) };
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
 }
 
 function readResources(value: unknown): CityResources | null {
@@ -245,6 +250,22 @@ function readBuildingStates(value: unknown): SavedBuildingState[] | null {
       Number.isFinite(state[3]),
   );
   return states.length === value.length ? states : null;
+}
+
+function readUtilities(value: unknown): SavedUtility[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) return null;
+  const utilities = value.filter(
+    (item): item is SavedUtility =>
+      Array.isArray(item) &&
+      (item.length === 4 || item.length === 5) &&
+      (item[0] === "producer" || item[0] === "diffuser") &&
+      (item[1] === "power" || item[1] === "water") &&
+      Number.isFinite(item[2]) &&
+      Number.isFinite(item[3]) &&
+      (item.length === 4 || Number.isFinite(item[4])),
+  );
+  return utilities.length === value.length ? utilities : null;
 }
 
 function readCamera(value: unknown): SavedCamera | undefined | null {

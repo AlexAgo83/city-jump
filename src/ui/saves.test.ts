@@ -3,7 +3,7 @@ import { readAutosave, writeAutosave } from "./saves";
 import { CityEconomy, STARTING_MONEY } from "../sim/economy";
 import { SAVE_VERSION, type CitySave } from "../sim/save";
 
-const city: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, money: STARTING_MONEY, resources: new CityEconomy().resources, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [] };
+const city: CitySave = { v: SAVE_VERSION, terrain: "rolling", hour: 14, money: STARTING_MONEY, resources: new CityEconomy().resources, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] };
 
 describe("autosave storage", () => {
   afterEach(() => {

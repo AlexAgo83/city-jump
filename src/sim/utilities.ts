@@ -1,4 +1,5 @@
 import type { RoadGraph, SegmentId } from "./graph";
+import type { BuildingKind } from "./buildingKinds";
 import { distXZ, type Vec3 } from "./vec";
 
 export type UtilityKind = "power" | "water";
@@ -16,6 +17,86 @@ export interface UtilityDiffuser {
   readonly segmentId: SegmentId;
   readonly position: Vec3;
   readonly radius: number;
+}
+
+export type UtilityRole = "producer" | "diffuser";
+export type SavedUtility = [role: UtilityRole, kind: UtilityKind, x: number, z: number, radius?: number];
+
+export const UTILITY_CATALOG: Record<UtilityKind, Record<UtilityRole, { readonly cost: number; readonly staff: number; readonly radius: number }>> = {
+  power: {
+    producer: { cost: 3200, staff: 6, radius: 0 },
+    diffuser: { cost: 900, staff: 2, radius: 120 },
+  },
+  water: {
+    producer: { cost: 2400, staff: 4, radius: 0 },
+    diffuser: { cost: 750, staff: 2, radius: 120 },
+  },
+};
+
+export class Utilities {
+  private items: AttachedUtility[] = [];
+
+  place(graph: RoadGraph, role: UtilityRole, kind: UtilityKind, x: number, z: number): SavedUtility | null {
+    const hit = graph.nearestOnSegment(x, z, 24);
+    if (!hit) return null;
+    const radius = role === "diffuser" ? UTILITY_CATALOG[kind].diffuser.radius : undefined;
+    const saved: SavedUtility = radius ? [role, kind, hit.position.x, hit.position.z, radius] : [role, kind, hit.position.x, hit.position.z];
+    this.items.push(attach(saved, hit.segment.id));
+    graph.setSegmentUtilities(hit.segment.id, withUtility(hit.segment.utilities, kind));
+    if (role === "diffuser") {
+      const path = pathToProducer(graph, hit.segment.id, this.producers().filter((producer) => producer.kind === kind).map((producer) => producer.segmentId));
+      for (const segmentId of path) graph.setSegmentUtilities(segmentId, withUtility(graph.segment(segmentId).utilities, kind));
+    } else {
+      for (const diffuser of this.diffusers().filter((candidate) => candidate.kind === kind)) {
+        const path = pathToProducer(graph, diffuser.segmentId, [hit.segment.id]);
+        for (const segmentId of path) graph.setSegmentUtilities(segmentId, withUtility(graph.segment(segmentId).utilities, kind));
+      }
+    }
+    return saved;
+  }
+
+  removeNear(x: number, z: number, within: number): SavedUtility | null {
+    const index = this.items.findIndex((item) => distXZ({ x: item[2], y: 0, z: item[3] }, { x, y: 0, z }) <= within);
+    if (index < 0) return null;
+    return this.items.splice(index, 1)[0]!;
+  }
+
+  producers(): UtilityProducer[] {
+    return this.items
+      .filter((item) => item[0] === "producer")
+      .map((item) => ({ id: itemId(item), kind: item[1], segmentId: item.segmentId }));
+  }
+
+  diffusers(): UtilityDiffuser[] {
+    return this.items
+      .filter((item) => item[0] === "diffuser")
+      .map((item) => ({ id: itemId(item), kind: item[1], segmentId: item.segmentId, position: { x: item[2], y: 0, z: item[3] }, radius: item[4] ?? UTILITY_CATALOG[item[1]].diffuser.radius }));
+  }
+
+  nearest(x: number, z: number, within: number): AttachedUtility | null {
+    let best: AttachedUtility | null = null;
+    let bestDistance = within;
+    for (const item of this.items) {
+      const distance = distXZ({ x: item[2], y: 0, z: item[3] }, { x, y: 0, z });
+      if (distance <= bestDistance) {
+        best = item;
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }
+
+  replaceWith(saved: readonly SavedUtility[], graph: RoadGraph): void {
+    this.items = [];
+    for (const item of saved) {
+      const hit = graph.nearestOnSegment(item[2], item[3], 32);
+      if (hit) this.items.push(attach(item, hit.segment.id));
+    }
+  }
+
+  toJSON(): SavedUtility[] {
+    return this.items.map((item) => [item[0], item[1], item[2], item[3], ...(item[4] ? [item[4]] : [])] as SavedUtility);
+  }
 }
 
 export function carriesUtility(segment: { readonly utilities?: number }, kind: UtilityKind): boolean {
@@ -39,6 +120,25 @@ export function coversPoint(diffuser: UtilityDiffuser, point: Pick<Vec3, "x" | "
   return distXZ(diffuser.position, { x: point.x, y: 0, z: point.z }) <= diffuser.radius;
 }
 
+export function requiredUtilities(kind: BuildingKind): UtilityKind[] {
+  return kind === "commercial" ? ["power", "water"] : kind === "residential" || kind === "agricultural" ? ["water"] : ["power"];
+}
+
+export function missingUtility(
+  kind: BuildingKind,
+  position: Pick<Vec3, "x" | "z">,
+  supplied: ReadonlySet<string>,
+  diffusers: readonly UtilityDiffuser[],
+): UtilityKind | null {
+  return requiredUtilities(kind).find((utility) => !diffusers.some((diffuser) => diffuser.kind === utility && supplied.has(diffuser.id) && coversPoint(diffuser, position))) ?? null;
+}
+
+type AttachedUtility = SavedUtility & { segmentId: SegmentId };
+
+function attach(item: SavedUtility, segmentId: SegmentId): AttachedUtility {
+  return Object.assign([...item] as SavedUtility, { segmentId });
+}
+
 function connectedUtilitySegments(graph: RoadGraph, kind: UtilityKind, starts: readonly SegmentId[]): Set<SegmentId> {
   const seen = new Set<SegmentId>();
   const queue = starts.filter((id) => graph.hasSegment(id) && carriesUtility(graph.segment(id), kind));
@@ -54,4 +154,33 @@ function connectedUtilitySegments(graph: RoadGraph, kind: UtilityKind, starts: r
     }
   }
   return seen;
+}
+
+function pathToProducer(graph: RoadGraph, start: SegmentId, goals: readonly SegmentId[]): SegmentId[] {
+  const goal = new Set(goals.filter((id) => graph.hasSegment(id)));
+  const seen = new Set<SegmentId>([start]);
+  const queue = [start];
+  const cameFrom = new Map<SegmentId, SegmentId>();
+  for (let i = 0; i < queue.length; i++) {
+    const current = queue[i]!;
+    if (goal.has(current)) {
+      const path = [current];
+      while (path[path.length - 1] !== start) path.push(cameFrom.get(path[path.length - 1]!)!);
+      return path;
+    }
+    const segment = graph.segment(current);
+    for (const nodeId of [segment.a, segment.b]) {
+      for (const next of graph.node(nodeId).segments) {
+        if (seen.has(next)) continue;
+        seen.add(next);
+        cameFrom.set(next, current);
+        queue.push(next);
+      }
+    }
+  }
+  return [start];
+}
+
+function itemId(item: SavedUtility): string {
+  return `${item[0]}:${item[1]}:${Math.round(item[2] * 10) / 10}:${Math.round(item[3] * 10) / 10}`;
 }
