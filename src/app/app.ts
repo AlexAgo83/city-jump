@@ -36,7 +36,7 @@ import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClock, createWaveClock, damageWaveClock, waveCountdownSeconds, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClockWithThreat, callWaveNow, createWaveClock, damageWaveClock, scheduleNextWave, waveCountdownSeconds, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
@@ -173,6 +173,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let pendingMissiles: PendingMissile[] = [];
   let nextSalvoAt = 0;
   let waveVerdict: WaveVerdict | null = null;
+  let waveVerdictUntil = 0;
+  let waveCalledEarly = false;
   let buildingRebuildTimer = 0;
   let lastTerms: CityTerms | undefined;
   let chargeConstructionStarts = true;
@@ -338,11 +340,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaijuAssault = null;
     nextSalvoAt = 0;
     waveVerdict = null;
+    waveVerdictUntil = 0;
   };
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
-    if (verdict === "held") runState = settleWave(runState, { defeated: true, calledEarly: false, baseScience: 10 * runState.wave });
+    waveVerdictUntil = waveClock.elapsedSeconds + 3;
+    if (verdict === "held") runState = settleWave(runState, { defeated: true, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave });
     else runState = defeat(endIfPopulationZero(runState, cityEconomy.resources.population));
+    waveClock = runState.ended ? waveClock : scheduleNextWave(waveClock);
+    waveCalledEarly = false;
     deleteRunSaveOnDefeat(profile, runState.ended ?? "defeated");
     updateRunHud();
     kaiju.hide();
@@ -357,6 +363,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaijuAssault = null;
     pendingMissiles = [];
     waveVerdict = null;
+    waveVerdictUntil = 0;
+    waveCalledEarly = false;
     kaiju.hide();
     waveMarkers.hide();
     missiles.rebuild([]);
@@ -371,10 +379,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     zones.paint(20, 300, 18, "commercial");
   };
   const updateWave = (dt: number): void => {
-    if (dt > 0) waveClock = advanceWaveClock(waveClock, dt);
+    waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveVerdict) {
-      showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
-      return;
+      if (waveClock.elapsedSeconds < waveVerdictUntil) {
+        showWaveBanner(waveVerdict === "held" ? "Wave held" : "Wave breached", waveVerdict);
+        return;
+      }
+      waveVerdict = null;
     }
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
@@ -535,6 +546,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
 
   await seedDefaultDemoSave();
   const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
+  const callWaveButton = document.getElementById("call-wave") as HTMLButtonElement;
   const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
   const renderUpgradeWeb = (): void => {
@@ -566,6 +578,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     writeAutosave(snapshot(true));
     updateRunHud();
     showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
+  });
+  callWaveButton.addEventListener("click", () => {
+    if (waveClock.active || runState.ended) return;
+    waveClock = callWaveNow(waveClock);
+    waveCalledEarly = true;
+    updateWave(0);
   });
   renderUpgradeWeb();
 
@@ -844,14 +862,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
     },
     forceWave(seconds = 0) {
-      waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
+      waveClock = advanceWaveClockWithThreat({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
       startWave("debug");
       waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
       if (seconds > 0) updateWave(seconds);
     },
     forceHeldWave() {
       if (!waveClock.active) {
-        waveClock = advanceWaveClock({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0);
+        waveClock = advanceWaveClockWithThreat({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
         startWave("debug");
       }
       waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);
