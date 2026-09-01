@@ -1,14 +1,14 @@
 ## item_083_a_starting_city_that_can_staff_a_building_and_feed_itself - A starting city that can staff a building and feed itself
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:33
+> Indicators reviewed: 2026-09-01 11:47:46
 
 # AI Context
 - Summary: The delivery slice for the opening: a starting city whose workforce can staff a building, so a fresh run does not starve to zero in its first simulated day.

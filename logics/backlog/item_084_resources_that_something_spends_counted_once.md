@@ -1,14 +1,14 @@
 ## item_084_resources_that_something_spends_counted_once - Resources that something spends, counted once
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:33
+> Indicators reviewed: 2026-09-01 11:47:46
 
 # AI Context
 - Summary: The delivery slice for the resource loop: materials get a sink or stop being produced, commercial output is counted once, and the gauges show what the rules use.

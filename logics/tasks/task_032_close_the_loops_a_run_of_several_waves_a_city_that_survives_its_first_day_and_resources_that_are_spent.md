@@ -1,14 +1,15 @@
 ## task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent - Close the loops: a run of several waves, a city that survives its first day, and resources that are spent
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:34
+> Indicators reviewed: 2026-09-01 11:47:46
+> Owner: Codex
 
 # AI Context
 - Summary: The executable surface of `req_030`: the run loop first, then the starving start, then the resources, then the military zone.

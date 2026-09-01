@@ -1,14 +1,14 @@
 ## item_085_a_military_zone_that_builds_something - A military zone that builds something
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:34
+> Indicators reviewed: 2026-09-01 11:47:46
 
 # AI Context
 - Summary: The delivery slice for the one place the zone brush and the growth rules openly contradict each other: a painted military zone that is silently dropped at every population.
