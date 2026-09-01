@@ -1,13 +1,13 @@
 ## req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes - The loops that never close: a run of one wave, a city that starves on day one, and resources nothing consumes
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:33
+> Indicators reviewed: 2026-09-01 12:06:39
 
 # AI Context
 - Summary: The connective pass on the survival direction: a run that schedules more than one wave, a threat that scales with the city, a starting city that can staff a building instead of starving, resources that are spent, and one notion of need.

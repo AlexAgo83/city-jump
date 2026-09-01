@@ -1,12 +1,12 @@
 ## prod_021_a_run_that_is_more_than_one_wave - A run that is more than one wave
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`
-> Related backlog: `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`, `item_083_a_starting_city_that_can_staff_a_building_and_feed_itself`, `item_084_resources_that_something_spends_counted_once`, `item_085_a_military_zone_that_builds_something`
+> Related backlog: `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`
 > Related task: `task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:34:33
+> Indicators reviewed: 2026-09-01 12:06:40
 
 # Overview
 The survival direction was delivered in seven slices and each of them passed. Put together they do not make a run. The first wave ends and no second one is ever scheduled, so the verdict banner is where the game stops. The threat is the same six hundred hit points whatever the city has become, so growing costs nothing. A wave cannot be called early, so the one decision the science economy prices does not exist. Underneath, a new city cannot staff a single building -- the smallest farm the rules permit needs twelve workers and a starting city has six -- so it starves to zero inside one simulated day. Industry fills a stock nothing spends. Commerce is paid three times for one calculation. A military zone, painted with the brush the wave slice added for exactly this purpose, never builds anything. This brief is not new direction: it is the connective work that turns seven working slices into the loop they were each a part of.
@@ -80,5 +80,5 @@ flowchart TD
 - A player deciding what to build next can read the gauges and be right.
 
 # References
-- Product back-reference: `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`
+- Product back-reference: `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`
 - Task back-reference: `task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent`

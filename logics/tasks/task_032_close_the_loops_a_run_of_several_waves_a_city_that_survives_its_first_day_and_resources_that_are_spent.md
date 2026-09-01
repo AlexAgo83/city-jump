@@ -1,14 +1,14 @@
 ## task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent - Close the loops: a run of several waves, a city that survives its first day, and resources that are spent
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 95%
 > Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-01 12:00:38
+> Indicators reviewed: 2026-09-01 12:06:39
 > Owner: Codex
 
 # AI Context
@@ -68,9 +68,15 @@
 - `npm run ci` passed: 36 Vitest files / 251 tests, 6 architecture tests, build/typecheck, Logics lint/audit.
 - `npm run test:e2e` passed.
 - `npm run balance` passed: 6 runs, average 25.5 s and 7.0 salvos.
+- command: `npm run ci && npm run test:e2e && npm run balance` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
 
 # Report
 - Delivered repeat waves, a survivable starter economy, material spending, and the military-zone build path across commits `caef5dd` through `90e7972`.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_082_a_run_that_keeps_going_the_next_wave_a_threat_that_scales_and_a_wave_the_player_can_call`, `item_083_a_starting_city_that_can_staff_a_building_and_feed_itself`, `item_084_resources_that_something_spends_counted_once`, `item_085_a_military_zone_that_builds_something`
+- Related request(s): `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`
 
 # Links
 - Request: `req_030_the_loops_that_never_close_a_run_of_one_wave_a_city_that_starves_on_day_one_and_resources_nothing_consumes`

@@ -1,14 +1,14 @@
 ## item_083_a_starting_city_that_can_staff_a_building_and_feed_itself - A starting city that can staff a building and feed itself
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 85%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 11:47:46
+> Indicators reviewed: 2026-09-01 12:06:40
 
 # AI Context
 - Summary: The delivery slice for the opening: a starting city whose workforce can staff a building, so a fresh run does not starve to zero in its first simulated day.
@@ -58,3 +58,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent`
+
+# Notes
+- Task `task_032_close_the_loops_a_run_of_several_waves_a_city_that_survives_its_first_day_and_resources_that_are_spent` was finished via `logics-manager flow finish task` on 2026-09-01.
