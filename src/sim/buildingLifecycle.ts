@@ -26,23 +26,23 @@ export class BuildingLifecycle {
     this.replaceWith(saved);
   }
 
-  sync(parcels: readonly BuildingParcel[], population: number, now: number): BuildingStatus[] {
+  sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS): BuildingStatus[] {
     const staffing = new Map(allocateWorkforce(parcels, population).parcels.map((parcel) => [parcel.index, parcel.staffed]));
     const live = new Map<string, { state: BuildingState; startedAt: number }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
       const previous = this.states.get(key);
       if (!previous) {
-        const state = "rising";
+        const state = stageSeconds <= 0 ? (staffing.get(index) === false ? "idle" : "working") : "rising";
         const startedAt = now;
         live.set(key, { state, startedAt });
-        return status(parcel, state, startedAt, now, "construction", true);
+        return status(parcel, state, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
       }
-      const underWork = (previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < BUILDING_STAGE_SECONDS;
+      const underWork = (previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < stageSeconds;
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
       const startedAt = state === previous.state ? previous.startedAt : now;
       live.set(key, { state, startedAt });
-      return status(parcel, state, startedAt, now, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
+      return status(parcel, state, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
     this.states.clear();
     for (const [key, state] of live) this.states.set(key, state);
@@ -70,11 +70,11 @@ export class BuildingLifecycle {
   }
 }
 
-function status(parcel: BuildingParcel, state: BuildingState, startedAt: number, now: number, reason?: BuildingStatus["reason"], started?: boolean): BuildingStatus {
+function status(parcel: BuildingParcel, state: BuildingState, startedAt: number, now: number, stageSeconds: number, reason?: BuildingStatus["reason"], started?: boolean): BuildingStatus {
   const underWork = state === "rising" || state === "rebuilding";
   const elapsed = underWork ? Math.max(0, now - startedAt) : BUILDING_STAGE_SECONDS;
-  const progress = Math.min(1, elapsed / BUILDING_STAGE_SECONDS);
-  const remainingSeconds = underWork ? Math.max(0, BUILDING_STAGE_SECONDS - elapsed) : 0;
+  const progress = stageSeconds <= 0 ? 1 : Math.min(1, elapsed / stageSeconds);
+  const remainingSeconds = underWork ? Math.max(0, stageSeconds - elapsed) : 0;
   return { parcel, state, startedAt, progress, remainingSeconds, ...(reason ? { reason } : {}), ...(started ? { started } : {}) };
 }
 

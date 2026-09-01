@@ -4,15 +4,15 @@ import { advanceWaveClock, advanceWaveClockWithThreat, callWaveNow, createWaveCl
 
 describe("wave clock", () => {
   it("counts down and fixes the first threat when the wave starts", () => {
-    const waiting = advanceWaveClock(createWaveClock(), WAVE_STARTING_VALUES.firstWaveSeconds / 2);
-    expect(waveCountdownSeconds(waiting)).toBe(WAVE_STARTING_VALUES.firstWaveSeconds / 2);
+    const waiting = advanceWaveClockWithThreat(createWaveClock(), 20, waveThreat(1, 12, 2));
+    expect(waveCountdownSeconds(waiting)).toBeGreaterThan(0);
     expect(waiting.active).toBeNull();
 
-    const active = advanceWaveClock(waiting, WAVE_STARTING_VALUES.firstWaveSeconds / 2);
+    const active = advanceWaveClockWithThreat(waiting, WAVE_STARTING_VALUES.firstWaveSeconds, waveThreat(1, 12, 2));
     expect(active.active).toEqual({
-      startedAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds,
-      threat: WAVE_STARTING_VALUES.kaijuHitPoints,
-      hitPoints: WAVE_STARTING_VALUES.kaijuHitPoints,
+      startedAtSeconds: active.elapsedSeconds,
+      threat: waveThreat(1, 12, 2),
+      hitPoints: waveThreat(1, 12, 2),
     });
   });
 
@@ -33,5 +33,12 @@ describe("wave clock", () => {
 
   it("derives higher threat from wave, population and parcels", () => {
     expect(waveThreat(2, 40, 20)).toBeGreaterThan(waveThreat(1, 12, 2));
+  });
+
+  it("prices sprawling cities into earlier waves", () => {
+    const small = advanceWaveClockWithThreat(createWaveClock(), 30, waveThreat(1, 12, 2));
+    const large = advanceWaveClockWithThreat(createWaveClock(), 30, waveThreat(1, 80, 60));
+
+    expect(large.nextWaveAtSeconds).toBeLessThan(small.nextWaveAtSeconds);
   });
 });

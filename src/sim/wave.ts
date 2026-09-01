@@ -13,6 +13,7 @@ export const WAVE_STARTING_VALUES = {
 export interface WaveClock {
   readonly elapsedSeconds: number;
   readonly nextWaveAtSeconds: number;
+  readonly accumulatedThreat: number;
   readonly active: ActiveWave | null;
 }
 
@@ -23,7 +24,7 @@ export interface ActiveWave {
 }
 
 export function createWaveClock(): WaveClock {
-  return { elapsedSeconds: 0, nextWaveAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds, active: null };
+  return { elapsedSeconds: 0, nextWaveAtSeconds: WAVE_STARTING_VALUES.firstWaveSeconds, accumulatedThreat: 0, active: null };
 }
 
 export function advanceWaveClock(clock: WaveClock, dtSeconds: number): WaveClock {
@@ -32,16 +33,22 @@ export function advanceWaveClock(clock: WaveClock, dtSeconds: number): WaveClock
 
 export function advanceWaveClockWithThreat(clock: WaveClock, dtSeconds: number, threat: number): WaveClock {
   const elapsedSeconds = clock.elapsedSeconds + Math.max(0, dtSeconds);
-  if (clock.active || elapsedSeconds < clock.nextWaveAtSeconds) return { ...clock, elapsedSeconds };
-  return { elapsedSeconds, nextWaveAtSeconds: clock.nextWaveAtSeconds, active: { startedAtSeconds: clock.nextWaveAtSeconds, threat, hitPoints: threat } };
+  if (clock.active) return { ...clock, elapsedSeconds };
+  const rate = threatRate(threat);
+  const accumulatedThreat = clock.accumulatedThreat + rate * Math.max(0, dtSeconds);
+  const nextWaveAtSeconds = accumulatedThreat >= WAVE_STARTING_VALUES.kaijuHitPoints
+    ? elapsedSeconds
+    : elapsedSeconds + (WAVE_STARTING_VALUES.kaijuHitPoints - accumulatedThreat) / rate;
+  if (accumulatedThreat < WAVE_STARTING_VALUES.kaijuHitPoints) return { ...clock, elapsedSeconds, accumulatedThreat, nextWaveAtSeconds };
+  return { elapsedSeconds, nextWaveAtSeconds, accumulatedThreat, active: { startedAtSeconds: elapsedSeconds, threat, hitPoints: threat } };
 }
 
 export function callWaveNow(clock: WaveClock): WaveClock {
-  return clock.active ? clock : { ...clock, nextWaveAtSeconds: clock.elapsedSeconds };
+  return clock.active ? clock : { ...clock, accumulatedThreat: WAVE_STARTING_VALUES.kaijuHitPoints, nextWaveAtSeconds: clock.elapsedSeconds };
 }
 
 export function scheduleNextWave(clock: WaveClock, delaySeconds: number = WAVE_STARTING_VALUES.betweenWaveSeconds): WaveClock {
-  return { elapsedSeconds: clock.elapsedSeconds, nextWaveAtSeconds: clock.elapsedSeconds + delaySeconds, active: null };
+  return { elapsedSeconds: clock.elapsedSeconds, nextWaveAtSeconds: clock.elapsedSeconds + delaySeconds, accumulatedThreat: 0, active: null };
 }
 
 export function damageWaveClock(clock: WaveClock, damage: number): WaveClock {
@@ -56,4 +63,8 @@ export function waveCountdownSeconds(clock: WaveClock): number {
 
 export function waveThreat(wave: number, population: number, parcels: number): number {
   return Math.ceil(WAVE_STARTING_VALUES.kaijuHitPoints + Math.max(0, wave - 1) * 150 + Math.max(0, population) * 2 + Math.max(0, parcels) * 8);
+}
+
+export function threatRate(threat: number): number {
+  return Math.max(1, threat / WAVE_STARTING_VALUES.firstWaveSeconds);
 }

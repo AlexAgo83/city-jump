@@ -388,6 +388,22 @@ const rewardedRun = await stats();
 check("a held wave adds science to the run", rewardedRun.run.science > 0 && rewardedRun.run.wave === 2, JSON.stringify(rewardedRun.run));
 check("the prestige web is off the play panel during a run", (await page.locator("#run-panel #upgrade-web").count()) === 0 && await page.locator("#between-runs").isHidden());
 check("hardcore is in Gameplay settings, not the play panel", (await page.locator("#run-panel #hardcore-run").count()) === 0 && await page.locator("#toolbar #hardcore-run").isVisible());
+check(
+  "Gameplay settings expose kaiju, instant build and free build",
+  await page.locator("#kaiju-spawns").isVisible() && await page.locator("#instant-construction").isVisible() && await page.locator("#free-building").isVisible() && await page.locator("#gameplay-note").isVisible(),
+);
+await page.locator("#kaiju-spawns").setChecked(false);
+await nextFrame();
+check("pacifist mode pauses waves", !(await stats()).rules.kaijuSpawns && /Pacifist/.test(await waveBanner()) && !(await stats()).kaiju, await waveBanner());
+await page.locator("#instant-construction").setChecked(true);
+await page.locator("#free-building").setChecked(true);
+await realTime(2200);
+await page.reload({ waitUntil: "load" });
+await waitForApp();
+const savedRules = (await stats()).rules;
+check("gameplay switches are saved with the run", !savedRules.kaijuSpawns && savedRules.instantConstruction && savedRules.freeBuilding, JSON.stringify(savedRules));
+await page.locator("#settings-reset").click();
+await nextFrame();
 page.once("dialog", (dialog) => dialog.dismiss());
 await page.locator("#evacuate-run").click();
 check("evacuation asks before ending a run", (await stats()).run.ended === null);
@@ -448,10 +464,13 @@ const afterReset = await page.evaluate(() => ({
   cap: document.getElementById("frame-cap").value,
   hour: document.getElementById("sun-hour").value,
   camera: document.querySelector('input[name="camera-mode"]:checked').value,
+  kaiju: document.getElementById("kaiju-spawns").checked,
+  instant: document.getElementById("instant-construction").checked,
+  free: document.getElementById("free-building").checked,
 }));
 check(
   "Reset puts every setting back to its default",
-  !afterReset.grid && afterReset.shadows && afterReset.cap === "60" && afterReset.hour === "18.5" && afterReset.camera === "free",
+  !afterReset.grid && afterReset.shadows && afterReset.cap === "60" && afterReset.hour === "18.5" && afterReset.camera === "free" && afterReset.kaiju && !afterReset.instant && !afterReset.free,
   JSON.stringify(afterReset),
 );
 await uncapFrames();
@@ -1481,6 +1500,7 @@ await page.evaluate((state) => {
 }, cameraBeforeOrbit);
 // Back to bulldoze mode: everything from here on still expects that, same as before this check.
 await page.locator('[data-tool="bulldoze"]').click();
+await setSettingsOpen(false);
 await nextFrame();
 
 // And a roundabout can be taken off without touching the roads that meet it.

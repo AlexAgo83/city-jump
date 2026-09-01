@@ -146,12 +146,22 @@ describe("city saves", () => {
   });
 
   it("carries the repeat-wave clock through a save and defaults older saves", () => {
-    const waveClock = scheduleNextWave({ elapsedSeconds: 100, nextWaveAtSeconds: 100, active: null }, 45);
+    const waveClock = scheduleNextWave({ elapsedSeconds: 100, nextWaveAtSeconds: 100, accumulatedThreat: 10, active: null }, 45);
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, createRun(), waveClock)))!;
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))!;
 
     expect(save.waveClock).toEqual(waveClock);
     expect(older.waveClock?.nextWaveAtSeconds).toBe(60);
+    expect(older.waveClock?.accumulatedThreat).toBe(0);
+  });
+
+  it("carries run rules through a save and defaults older saves", () => {
+    const run = createRun({ kaijuSpawns: false, instantConstruction: true, freeBuilding: true });
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, run)))!;
+    const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], run: { wave: 1, science: 0, ended: null } }))!;
+
+    expect(save.run?.rules).toEqual(run.rules);
+    expect(older.run?.rules).toEqual({ kaijuSpawns: true, instantConstruction: false, freeBuilding: false });
   });
 
   it("reads plantings saved before species existed as firs", () => {

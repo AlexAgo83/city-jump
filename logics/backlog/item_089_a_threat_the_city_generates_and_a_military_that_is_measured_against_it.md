@@ -1,14 +1,14 @@
 ## item_089_a_threat_the_city_generates_and_a_military_that_is_measured_against_it - A threat the city generates, and a military that is measured against it
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:25
+> Indicators reviewed: 2026-09-01 14:39:38
 
 # AI Context
 - Summary: The delivery slice for the two balance questions nobody has asked: how fast a city brings the wave on itself, and whether the military it can afford matches the kaiju that arrives.
@@ -49,8 +49,8 @@
 - AC5: A save written before accumulated threat existed loads into a stated, deliberate wave schedule.
 
 # AC Traceability
-- request-AC4 -> This backlog slice. Proof: AC1: A wave arrives on accumulated threat the city generated, and the countdown to it stays readable.
-- request-AC5 -> This backlog slice. Proof: AC2: Sprawling and consolidating produce measurably different wave timings.
+- request-AC4 -> This backlog slice. Proof: `src/sim/wave.ts` accumulates threat and keeps `nextWaveAtSeconds` readable; `src/sim/wave.test.ts` covers arrival and countdown.
+- request-AC5 -> This backlog slice. Proof: `src/sim/wave.test.ts` proves sprawling and consolidated cities reach different first-wave times; `npm run balance` reports military gap across six playthrough seeds.
 
 # Decision framing
 - Product framing: Not needed

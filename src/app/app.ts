@@ -193,18 +193,19 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
   const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+  const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
   const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
     const supplied = currentSuppliedUtilities();
     const diffusers = utilities.diffusers();
-    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds).map((status) => {
+    currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS).map((status) => {
       if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
       return missing ? { ...status, state: "idle" as const, reason: missing } : status;
     });
     for (const status of currentBuildingStatuses) {
-      if (chargeConstructionStarts && status.started) treasury.spend(buildingBuildCost(status.parcel), true);
+      if (chargeConstructionStarts && status.started) spendBuild(buildingBuildCost(status.parcel), true);
     }
     let clearedRubble = false;
     for (const status of currentBuildingStatuses) {
@@ -381,6 +382,16 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     zones.paint(20, 300, 18, "commercial");
   };
   const updateWave = (dt: number): void => {
+    if (!runState.rules.kaijuSpawns) {
+      kaijuPlan = null;
+      kaijuAssault = null;
+      pendingMissiles = [];
+      kaiju.hide();
+      waveMarkers.hide();
+      missiles.rebuild([]);
+      showWaveBanner("Pacifist: waves, science and prestige are paused.", "waiting");
+      return;
+    }
     waveClock = advanceWaveClockWithThreat(waveClock, dt, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveVerdict) {
       if (waveClock.elapsedSeconds < waveVerdictUntil) {
@@ -515,7 +526,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       roadCost: roadBuildCost,
       canSpend: (cost) => treasury.canSpend(cost),
       spend(cost, allowDebt) {
-        const spent = treasury.spend(cost, allowDebt);
+        const spent = spendBuild(cost, allowDebt);
         updateMoneyHud();
         return spent;
       },
@@ -550,8 +561,25 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
   const callWaveButton = document.getElementById("call-wave") as HTMLButtonElement;
   const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
+  const kaijuBox = document.getElementById("kaiju-spawns") as HTMLInputElement;
+  const instantBox = document.getElementById("instant-construction") as HTMLInputElement;
+  const freeBuildBox = document.getElementById("free-building") as HTMLInputElement;
+  const gameplayNote = document.getElementById("gameplay-note") as HTMLSpanElement;
   const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
+  const renderGameplayRules = (): void => {
+    kaijuBox.checked = runState.rules.kaijuSpawns;
+    instantBox.checked = runState.rules.instantConstruction;
+    freeBuildBox.checked = runState.rules.freeBuilding;
+    gameplayNote.textContent = runState.rules.kaijuSpawns ? "Waves fund science and prestige." : "Pacifist: waves, science and prestige pause.";
+  };
+  const setRunRules = (): void => {
+    runState = { ...runState, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked } };
+    renderGameplayRules();
+    syncBuildings();
+    buildings.updateStates(currentBuildingStatuses);
+    scheduleAutosave();
+  };
   const renderUpgradeWeb = (): void => {
     upgradeWeb.replaceChildren(...FIRST_UPGRADE_WEB.map((upgrade) => {
       const button = document.createElement("button");
@@ -586,12 +614,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     profile = { ...profile, hardcore: hardcoreBox.checked };
     writeProfile(profile);
   });
+  for (const box of [kaijuBox, instantBox, freeBuildBox]) box.addEventListener("change", setRunRules);
+  renderGameplayRules();
   evacuateButton.addEventListener("click", () => {
     if (!window.confirm("Evacuate this run?")) return;
     finishByEvacuation();
   });
   callWaveButton.addEventListener("click", () => {
     if (waveClock.active || runState.ended) return;
+    if (!runState.rules.kaijuSpawns) return showRefusal("Pacifist mode pauses waves, science and prestige.");
     waveClock = callWaveNow(waveClock);
     waveCalledEarly = true;
     updateWave(0);
@@ -710,6 +741,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     runState = city.run ?? createRun();
     waveClock = city.waveClock ?? createWaveClock();
     updateRunHud();
+    renderGameplayRules();
     renderUpgradeWeb();
     simSeconds = 0;
     simDay = 1;
@@ -838,6 +870,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     waveHp: waveClock.active?.hitPoints ?? null,
     run: runState,
     profile,
+    rules: runState.rules,
     timeRate,
     simDay,
     simHour: sunHour,
@@ -849,6 +882,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       resetWave();
       runState = createRun();
       updateRunHud();
+      renderGameplayRules();
       debugReset?.();
     },
     buildingPoint: () => buildings.buildingPoint(),
@@ -867,6 +901,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       treasury.replaceWith(money);
       updateMoneyHud();
     },
+    setRunRules(rules: Partial<typeof runState.rules>) {
+      runState = { ...runState, rules: { ...runState.rules, ...rules } };
+      renderGameplayRules();
+      syncBuildings();
+      buildings.updateStates(currentBuildingStatuses);
+      return runState.rules;
+    },
     measureBuildingStateChange() {
       const started = performance.now();
       simSeconds += BUILDING_STAGE_SECONDS;
@@ -875,14 +916,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       return { buildings: currentParcels.length, ms: performance.now() - started, states: stateCounts() };
     },
     forceWave(seconds = 0) {
-      waveClock = advanceWaveClockWithThreat({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+      waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
       startWave("debug");
       waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
       if (seconds > 0) updateWave(seconds);
     },
     forceHeldWave() {
       if (!waveClock.active) {
-        waveClock = advanceWaveClockWithThreat({ ...waveClock, elapsedSeconds: waveClock.nextWaveAtSeconds }, 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+        waveClock = advanceWaveClockWithThreat(callWaveNow(waveClock), 0, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
         startWave("debug");
       }
       waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);

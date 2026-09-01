@@ -1,14 +1,14 @@
 ## item_088_a_harness_that_plays_a_run_from_arrival_to_the_first_kaiju - A harness that plays a run from arrival to the first kaiju
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 100%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:46:48
+> Indicators reviewed: 2026-09-01 14:39:38
 
 # AI Context
 - Summary: The delivery slice for the playthrough: arrive, road, zone, watch parcels rise and needs move, follow the gauges, and meet the first kaiju in each of its three shapes.
@@ -43,9 +43,9 @@
 - AC4: The harness is deterministic from a seed and runs inside the ordinary test gate.
 
 # AC Traceability
-- request-AC1 -> This backlog slice. Proof: AC1: A run plays headlessly from arrival to the first wave and fails loudly at the first step that stops being possible.
-- request-AC2 -> This backlog slice. Proof: AC2: A needs-following policy exists, and what happens when it is followed is asserted rather than assumed.
-- request-AC3 -> This backlog slice. Proof: AC3: The three wave shapes are each played and each has an asserted consequence.
+- request-AC1 -> This backlog slice. Proof: `src/sim/playthrough.ts` plays roads, zones, lifecycle, economy and first wave headlessly; `src/sim/playthrough.test.ts` asserts the stop points.
+- request-AC2 -> This backlog slice. Proof: `playFirstRun` records the needs-following steps and the test asserts the city reaches the first wave with resources and needs observed.
+- request-AC3 -> This backlog slice. Proof: `src/sim/playthrough.test.ts` covers total loss, partial loss and clean hold consequences.
 
 # Decision framing
 - Product framing: Not needed

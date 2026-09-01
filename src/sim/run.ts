@@ -6,6 +6,7 @@ export interface RunState {
   readonly wave: number;
   readonly science: number;
   readonly ended: RunEndReason | null;
+  readonly rules: RunRules;
 }
 
 export interface WaveReward {
@@ -31,7 +32,14 @@ export interface ProfileState {
   readonly hardcore: boolean;
 }
 
+export interface RunRules {
+  readonly kaijuSpawns: boolean;
+  readonly instantConstruction: boolean;
+  readonly freeBuilding: boolean;
+}
+
 export const EARLY_WAVE_SCIENCE_MULTIPLIER = 2;
+export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false };
 const STARTER_FUNDS_BONUS = 10_000;
 const STARTER_MATERIALS_BONUS = 25;
 const STARTER_SERVICES_BONUS = 20;
@@ -42,14 +50,14 @@ export const FIRST_UPGRADE_WEB: readonly PrestigeUpgrade[] = [
   { id: "starter-services", branch: "starting", cost: 10, name: "Service crew", description: `Begin each run with ${STARTER_SERVICES_BONUS} services.`, effect: { kind: "starting-resource", resource: "services", amount: STARTER_SERVICES_BONUS } },
 ] as const;
 
-export function createRun(): RunState {
-  return { wave: 1, science: 0, ended: null };
+export function createRun(rules: Partial<RunRules> = {}): RunState {
+  return { wave: 1, science: 0, ended: null, rules: { ...DEFAULT_RUN_RULES, ...rules } };
 }
 
 export function settleWave(run: RunState, reward: WaveReward): RunState {
   if (run.ended) return run;
   const earned = reward.defeated ? reward.baseScience * (reward.calledEarly ? EARLY_WAVE_SCIENCE_MULTIPLIER : 1) : 0;
-  return { wave: run.wave + 1, science: run.science + earned, ended: null };
+  return { ...run, wave: run.wave + 1, science: run.science + earned, ended: null };
 }
 
 export function evacuate(run: RunState): RunState {

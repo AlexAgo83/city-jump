@@ -14,7 +14,7 @@ import { BuildingLifecycle, type SavedBuildingState } from "./buildingLifecycle"
 import { CityEconomy, type CityResources, STARTING_MONEY, Treasury } from "./economy";
 import { DEFAULT_TREE_SPECIES, Plantings, type Planting } from "./plantings";
 import { Rubble, type SavedRubble } from "./rubble";
-import { createRun, type RunState } from "./run";
+import { createRun, DEFAULT_RUN_RULES, type RunState } from "./run";
 import { Utilities, type SavedUtility } from "./utilities";
 import { v3 } from "./vec";
 import { createWaveClock, type WaveClock } from "./wave";
@@ -197,7 +197,18 @@ function readRun(value: unknown): RunState | null {
   if (value === undefined) return createRun();
   if (!isRecord(value) || !Number.isFinite(value.wave) || !Number.isFinite(value.science)) return null;
   if (value.ended !== null && value.ended !== "evacuated" && value.ended !== "population_zero" && value.ended !== "defeated") return null;
-  return { wave: value.wave as number, science: value.science as number, ended: value.ended };
+  const rules = value.rules;
+  if (rules !== undefined && !isRecord(rules)) return null;
+  return {
+    wave: value.wave as number,
+    science: value.science as number,
+    ended: value.ended,
+    rules: {
+      kaijuSpawns: rules?.kaijuSpawns === undefined ? DEFAULT_RUN_RULES.kaijuSpawns : rules.kaijuSpawns === true,
+      instantConstruction: rules?.instantConstruction === undefined ? DEFAULT_RUN_RULES.instantConstruction : rules.instantConstruction === true,
+      freeBuilding: rules?.freeBuilding === undefined ? DEFAULT_RUN_RULES.freeBuilding : rules.freeBuilding === true,
+    },
+  };
 }
 
 function readWaveClock(value: unknown): WaveClock | null {
@@ -205,7 +216,7 @@ function readWaveClock(value: unknown): WaveClock | null {
   if (!isRecord(value) || !Number.isFinite(value.elapsedSeconds) || !Number.isFinite(value.nextWaveAtSeconds)) return null;
   const active = value.active;
   if (active !== null && active !== undefined && (!isRecord(active) || !Number.isFinite(active.startedAtSeconds) || !Number.isFinite(active.threat) || !Number.isFinite(active.hitPoints))) return null;
-  return { elapsedSeconds: value.elapsedSeconds as number, nextWaveAtSeconds: value.nextWaveAtSeconds as number, active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null };
+  return { elapsedSeconds: value.elapsedSeconds as number, nextWaveAtSeconds: value.nextWaveAtSeconds as number, accumulatedThreat: Number.isFinite(value.accumulatedThreat) ? value.accumulatedThreat as number : 0, active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null };
 }
 
 function readResources(value: unknown): CityResources | null {

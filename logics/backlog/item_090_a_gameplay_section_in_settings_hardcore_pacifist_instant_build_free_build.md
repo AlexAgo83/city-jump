@@ -1,14 +1,14 @@
 ## item_090_a_gameplay_section_in_settings_hardcore_pacifist_instant_build_free_build - A Gameplay section in settings: hardcore, pacifist, instant build, free build
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Status: In progress
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-01 10:58:25
+> Indicators reviewed: 2026-09-01 14:39:38
 
 # AI Context
 - Summary: The delivery slice for the Gameplay settings section: hardcore moved off the play screen, a pacifist switch, instant construction and free building.
@@ -47,11 +47,11 @@
 - AC5: The switches survive a save and a reload, and the headless harness honours them.
 
 # AC Traceability
-- request-AC6 -> This backlog slice. Proof: AC1: The settings menu has a Gameplay section carrying hardcore, kaiju spawn, instant construction and free building.
-- request-AC7 -> This backlog slice. Proof: AC2: Hardcore is no longer on the play screen.
-- request-AC8 -> This backlog slice. Proof: AC3: With the kaiju spawn off no wave arrives, and what stops accruing is stated in the interface rather than silently inert.
-- request-AC9 -> This backlog slice. Proof: AC4: Instant construction and free building each do what they say, and each is covered by a test.
-- request-AC10 -> This backlog slice. Proof: AC5: The switches survive a save and a reload, and the headless harness honours them.
+- request-AC6 -> This backlog slice. Proof: `index.html` and `scripts/interact.mjs` cover Gameplay controls for hardcore, kaiju spawn, instant construction and free building.
+- request-AC7 -> This backlog slice. Proof: `scripts/interact.mjs` asserts hardcore is in settings and absent from the play panel.
+- request-AC8 -> This backlog slice. Proof: `src/app/app.ts` pauses wave visuals/progression in pacifist mode and states that waves, science and prestige pause; e2e asserts it.
+- request-AC9 -> This backlog slice. Proof: `src/sim/playthrough.test.ts` and e2e cover instant construction and free building behavior.
+- request-AC10 -> This backlog slice. Proof: `src/sim/save.test.ts` and e2e cover save/reload defaults and persisted run rules; `src/sim/playthrough.test.ts` covers harness rules.
 
 # Decision framing
 - Product framing: Not needed
