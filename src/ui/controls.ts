@@ -262,6 +262,9 @@ export function bindControls(handlers: {
       if (!input.checked) return;
       roadTypeValue = input.value;
       emitRoadType();
+  // The brush kept its own default until the slider was first dragged, so what the tool painted and
+  // what the slider read were two different numbers on every fresh page.
+  handlers.onZoneRadius(Number((document.getElementById("zone-radius") as HTMLInputElement).value));
     });
   }
   roadLanes.addEventListener("change", emitRoadType);

@@ -84,7 +84,15 @@ export type RoadTypeId = string;
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
 const SPRAY_RADIUS = 45;
-const ZONE_RADIUS = SPRAY_RADIUS;
+/**
+ * Kept equal to the `#zone-radius` slider's own default in `index.html`.
+ *
+ * The tool used to start on the tree brush's radius while the slider read something else, so what
+ * was painted and what the slider said were two different numbers until the slider was first
+ * dragged. `bindControls` now emits the slider's value at startup as well; this keeps them equal
+ * even if that emit is ever lost.
+ */
+const ZONE_RADIUS = 32;
 /** Trees attempted per press, and again each time the brush has moved half its own width. */
 const SPRAY_PER_BURST = 8;
 const SPRAY_RING_POINTS = 56;
