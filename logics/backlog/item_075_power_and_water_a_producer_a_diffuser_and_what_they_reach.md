@@ -1,14 +1,14 @@
 ## item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach - Power and water: a producer, a diffuser and what they reach
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:29
+> Indicators reviewed: 2026-09-01 08:34:23
 
 # AI Context
 - Summary: The delivery slice for the second placement verb: a producer, a network on the roads, and a diffuser with a radius.
@@ -55,6 +55,7 @@
 
 # Notes
 - Sequenced by `road_002_city_jump_a_city_worth_defending`; the order there is a risk order.
+- Task `task_028_power_and_water_a_producer_a_diffuser_and_what_they_reach` was finished via `logics-manager flow finish task` on 2026-09-01.
 
 # Tasks
 - `task_028_power_and_water_a_producer_a_diffuser_and_what_they_reach`

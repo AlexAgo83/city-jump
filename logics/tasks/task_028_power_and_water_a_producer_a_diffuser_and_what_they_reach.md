@@ -1,14 +1,15 @@
 ## task_028_power_and_water_a_producer_a_diffuser_and_what_they_reach - Power and water: a producer, a diffuser and what they reach
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-08-31 23:10:30
+> Indicators reviewed: 2026-09-01 08:34:24
+> Owner: Codex
 
 # AI Context
 - Summary: Implementing the second placement verb: a producer, a network on the roads, and a diffuser with a radius.
@@ -21,26 +22,26 @@
 - Scope and boundaries are on the linked backlog item; the reasoning is in the linked briefs.
 
 # Plan
-- [ ] 1. `sim/utilities.ts`: a producer, a diffuser with a radius, and a network solved over road
+- [x] 1. `sim/utilities.ts`: a producer, a diffuser with a radius, and a network solved over road
       segments that carry power or water. Pure, tested from a seed.
-- [ ] 2. `sim/roadTypes.ts` and the save: carrying power or water is a property of a segment, which
+- [x] 2. `sim/roadTypes.ts` and the save: carrying power or water is a property of a segment, which
       is what keeps this out of a second graph. Option B stays unbuilt.
-- [ ] 3. A Build tool in the dock, with a catalogue, prices and a coverage preview while placing.
-- [ ] 4. Per-district needs: water for homes and farms, power for industry and the military, both
+- [x] 3. A Build tool in the dock, with a catalogue, prices and a coverage preview while placing.
+- [x] 4. Per-district needs: water for homes and farms, power for industry and the military, both
       for commerce. A building missing one is idle and says which.
-- [ ] 5. A Utilities view beside Zones and Traffic: coverage circles and which roads carry what.
-- [ ] 6. A diffuser destroyed puts its district out, and raises the one-line alert the interface
+- [x] 5. A Utilities view beside Zones and Traffic: coverage circles and which roads carry what.
+- [x] 6. A diffuser destroyed puts its district out, and raises the one-line alert the interface
       brief allows facts to raise.
-- [ ] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
+- [x] GATE: do not close a wave or step until the relevant automated tests and quality checks have been run successfully.
 
 # Backlog
 - `item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach`
 
 # Definition of Done (DoD)
-- [ ] Code is implemented and reviewed.
-- [ ] Validation passes.
-- [ ] Linked docs are synchronized.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Code is implemented and reviewed.
+- [x] Validation passes.
+- [x] Linked docs are synchronized.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> This task. Proof: producer, diffuser and radius; proven by `sim/utilities.ts` unit tests.
@@ -53,11 +54,17 @@
 
 # Validation
 - Expected: `npm run ci`, and `npm run test:e2e` locally -- browser coverage is local, see
+- command: `rtk npm run ci; rtk npm run test:e2e` | result: passed | date: 2026-09-01
+- Finish workflow executed on 2026-09-01.
+- Linked backlog/request close verification passed.
   `CONTRIBUTING.md`.
 - (no validation recorded yet)
 
 # Report
 - Not started.
+- Finished on 2026-09-01.
+- Linked backlog item(s): `item_075_power_and_water_a_producer_a_diffuser_and_what_they_reach`
+- Related request(s): `req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach`
 
 # Links
 - Request: `req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach`

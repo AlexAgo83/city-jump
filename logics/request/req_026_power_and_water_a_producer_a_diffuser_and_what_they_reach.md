@@ -1,12 +1,13 @@
 ## req_026_power_and_water_a_producer_a_diffuser_and_what_they_reach - Power and water: a producer, a diffuser and what they reach
 > From version: 0.3.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-01 08:34:23
 
 # AI Context
 - Summary: The second placement verb: a producer and a diffuser the player positions, power and water carried by road segments, districts that need one or the other or both, a Utilities view, and a district that goes dark when its diffuser falls.
