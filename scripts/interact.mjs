@@ -388,6 +388,8 @@ const rewardedRun = await stats();
 check("a held wave adds science to the run", rewardedRun.run.science > 0 && rewardedRun.run.wave === 2, JSON.stringify(rewardedRun.run));
 const evacuatedRun = await page.evaluate(() => window.cityjump.evacuateRun());
 check("evacuation carries run science into profile prestige", evacuatedRun.run.ended === "evacuated" && evacuatedRun.profile.prestige >= rewardedRun.run.science, JSON.stringify(evacuatedRun));
+await page.locator('#upgrade-web button').first().click();
+check("prestige can buy an upgrade from the run panel", (await stats()).profile.upgrades.length === 1 && (await stats()).profile.prestige < evacuatedRun.profile.prestige, JSON.stringify((await stats()).profile));
 await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);

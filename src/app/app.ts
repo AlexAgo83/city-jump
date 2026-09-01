@@ -31,7 +31,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildableCellCentre, buildingParcels, buildableCells, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { carryScience, createRun, defeat, endIfPopulationZero, evacuate, settleWave, type ProfileState, type RunState } from "../sim/run";
+import { buyUpgrade, carryScience, createRun, defeat, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -513,6 +513,24 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   await seedDefaultDemoSave();
   const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
   const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
+  const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
+  const renderUpgradeWeb = (): void => {
+    upgradeWeb.replaceChildren(...FIRST_UPGRADE_WEB.map((upgrade) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = `${upgrade.id} ${upgrade.cost}`;
+      button.dataset.owned = String(profile.upgrades.includes(upgrade.id));
+      button.addEventListener("click", () => {
+        const next = buyUpgrade(profile, upgrade.id);
+        if (next === profile) return showRefusal("Not enough prestige.");
+        profile = next;
+        writeProfile(profile);
+        updateRunHud();
+        renderUpgradeWeb();
+      });
+      return button;
+    }));
+  };
   hardcoreBox.checked = profile.hardcore;
   hardcoreBox.addEventListener("change", () => {
     profile = { ...profile, hardcore: hardcoreBox.checked };
@@ -526,6 +544,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     updateRunHud();
     showRefusal(`Evacuated with ${Math.floor(runState.science)} science.`);
   });
+  renderUpgradeWeb();
 
   controls = bindControls({
     onRoadMode(mode) {
