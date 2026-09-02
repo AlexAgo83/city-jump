@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { playFirstRun, militaryGap } from "./playthrough";
 
-describe("headless playthrough", () => {
+// A whole run, played out in full. Two seconds here is close to ten on a CI runner, and vitest's
+// own five-second default failed the release tag rather than the code.
+describe("headless playthrough", { timeout: 60_000 }, () => {
   it("plays from arrival to the first wave through roads, zones, buildings and needs", () => {
     // Utilities off: this check is about roads, zones, buildings and gauges. With them on, every
     // lot in the scenario reports idle for want of power or water and none is "working" -- which is
@@ -31,7 +33,7 @@ describe("headless playthrough", () => {
   });
 
   // Six full runs of a city that now reaches several hundred people: seconds, not milliseconds.
-  it("is deterministic, honours gameplay switches and reports the military gap", { timeout: 60_000 }, () => {
+  it("is deterministic, honours gameplay switches and reports the military gap", () => {
     expect(playFirstRun(3, { instantConstruction: true, freeBuilding: true }).wave).toEqual(playFirstRun(3, { instantConstruction: true, freeBuilding: true }).wave);
     expect(playFirstRun(3, { kaijuSpawns: false }).log.some((line) => line.startsWith("wave:"))).toBe(false);
     expect(playFirstRun(3, { instantConstruction: true }).statuses.some((status) => status.remainingSeconds === 0)).toBe(true);
