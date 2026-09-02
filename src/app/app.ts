@@ -620,11 +620,26 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       treeAt: (x, z, within) => trees.nearestTree(x, z, within),
     },
     {
+      /**
+       * The brush zones lots, not ground.
+       *
+       * It used to stamp a 5.66 m circle at each lot's centre, which is smaller than the gap
+       * between two zone-cell centres -- so a lot often caught one cell and sometimes none, and
+       * the grid stayed unpainted under a stroke that plainly covered it. Stamping the lot's whole
+       * footprint means every zone cell it touches carries the kind, and the overlay fills it.
+       */
       paint(x, z, radius, kind) {
         for (const cell of currentBuildableCells) {
           const centre = buildableCellCentre(cell);
-          if (Math.hypot(centre.x - x, centre.z - z) <= radius) zones.paint(centre.x, centre.z, GRID.cellSize / Math.SQRT2, kind);
+          if (Math.hypot(centre.x - x, centre.z - z) > radius) continue;
+          const xs = cell.corners.map((corner) => corner.x);
+          const zs = cell.corners.map((corner) => corner.z);
+          zones.paintRect(Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs), kind);
         }
+        // Zoning changes what can be built, so the cell and parcel solve has to run again. Painting
+        // only ever triggered a dirty-box repaint, which skips that solve -- so the overlay kept
+        // drawing the cells as they were before the stroke.
+        scheduleBuildingRebuild();
       },
     },
     {

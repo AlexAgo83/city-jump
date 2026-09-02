@@ -6,9 +6,25 @@ import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 
 import { terrainHeight } from "../sim/terrain";
-import { buildableCellCentre, type BuildableCell } from "../sim/slots";
+import type { BuildableCell } from "../sim/slots";
 import { ZONE_CELL_SIZE, type ZoneKind, type Zones } from "../sim/zones";
-import { BUILDING_KIND_COLOR } from "../sim/buildingKinds";
+import type { BuildingKind } from "../sim/buildingKinds";
+
+/**
+ * The overlay's own palette, not the buildings'.
+ *
+ * A building's colour is read against a building. Laid flat on a green island, the residential
+ * green sat on grass and vanished: a fully zoned city looked untouched, and only the brown, blue
+ * and yellow districts ever showed. These are the same five identities, chosen to be read against
+ * the ground instead.
+ */
+const OVERLAY_COLOR: Record<BuildingKind, readonly [number, number, number]> = {
+  residential: [0.45, 0.95, 0.62],
+  commercial: [0.24, 0.62, 1],
+  industrial: [1, 0.86, 0.2],
+  agricultural: [0.78, 0.5, 0.22],
+  military: [0.74, 0.44, 1],
+};
 
 /**
  * A zoned lot is drawn opaque, so the ground never shows through it.
@@ -31,8 +47,11 @@ const OFF_GRID_ALPHA = 0.16;
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
-  material.diffuseColor = Color3.White();
+  material.diffuseColor = Color3.Black();
   material.emissiveColor = Color3.White();
+  // The overlay is information, not scenery: it must read the same at midnight as at noon, and
+  // the vertex colour must be the whole of it rather than a tint over an already-lit surface.
+  material.useEmissiveAsIllumination = true;
   material.alpha = 1;
   material.disableLighting = true;
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
@@ -118,25 +137,42 @@ export function createZoneRenderer(scene: Scene) {
  * covered them: a lot is eight metres and so is a zone cell, but they are not aligned, so a stroke
  * can cover a lot without ever crossing its centre point.
  */
-function zoneOver(cell: BuildableCell, zones?: Zones): ZoneKind | undefined {
-  if (!zones) return cell.zone;
-  for (const point of [buildableCellCentre(cell), ...cell.corners]) {
-    const kind = zones.at(point.x, point.z);
-    if (kind) return kind;
-  }
-  return undefined;
-}
-
 /** A zone's colour as the overlay draws it, optionally lightened for a lot still on offer. */
 function lift(kind: ZoneKind, extra = 0): [number, number, number] {
-  const [r, g, b] = BUILDING_KIND_COLOR[kind];
+  const [r, g, b] = OVERLAY_COLOR[kind];
   const amount = LIFT + extra;
   return [r + (1 - r) * amount, g + (1 - g) * amount, b + (1 - b) * amount];
 }
 
+function zoneOver(cell: BuildableCell, zones?: Zones): ZoneKind | undefined {
+  if (!zones) return cell.zone;
+  for (const [x, z] of zonePointsOf(cell)) {
+    const kind = zones.at(x, z);
+    if (kind) return kind;
+  }
+  return cell.zone;
+}
+
+/**
+ * Every zone cell a lot's footprint overlaps.
+ *
+ * Sampling the middle and the four corners was not enough: a lot and a zone cell are both eight
+ * metres and they are not aligned, so the cell a stroke actually stamped could sit between the
+ * points being tested and the lot came back unzoned. This walks the footprint instead.
+ */
+function zonePointsOf(cell: BuildableCell): [number, number][] {
+  const xs = cell.corners.map((corner) => corner.x);
+  const zs = cell.corners.map((corner) => corner.z);
+  const points: [number, number][] = [];
+  for (let x = Math.min(...xs); x <= Math.max(...xs) + ZONE_CELL_SIZE; x += ZONE_CELL_SIZE / 2) {
+    for (let z = Math.min(...zs); z <= Math.max(...zs) + ZONE_CELL_SIZE; z += ZONE_CELL_SIZE / 2) points.push([x, z]);
+  }
+  return points;
+}
+
 /** Every zone cell a lot touches, so the faint layer skips what the grid already covers. */
 function zoneKeysOf(cell: BuildableCell): string[] {
-  return [buildableCellCentre(cell), ...cell.corners].map((point) => `${Math.floor(point.x / ZONE_CELL_SIZE)}:${Math.floor(point.z / ZONE_CELL_SIZE)}`);
+  return zonePointsOf(cell).map(([x, z]) => `${Math.floor(x / ZONE_CELL_SIZE)}:${Math.floor(z / ZONE_CELL_SIZE)}`);
 }
 
 /** A cell's identity on the ground, so a parcel can say which cells it covers. */
