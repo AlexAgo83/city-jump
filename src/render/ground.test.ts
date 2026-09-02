@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { writeTerrainColor } from "./ground";
+import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
+
+import { Heightmap, rollingHills } from "../sim/heightmap";
+import { writeHeightfieldNormals, writeTerrainColor } from "./ground";
 
 describe("ground terrain color", () => {
   it("adds deterministic terrain variation and dusty road edges", () => {
@@ -40,5 +43,40 @@ describe("ground terrain color", () => {
     expect(flatPeak[0]! - steepPeak[0]!).toBeGreaterThan(0.08);
     expect(flatPeak[1]! - steepPeak[1]!).toBeGreaterThan(0.08);
     expect(flatPeak[2]! - steepPeak[2]!).toBeGreaterThan(0.08);
+  });
+});
+
+describe("heightfield normals", () => {
+  it("matches what ComputeNormals derives from the triangles", () => {
+    const heightmap = new Heightmap({ size: 480, cell: 8, generator: rollingHills(18, 450, 18) });
+    const n = heightmap.count;
+    const positions = new Float32Array(n * n * 3);
+    const indices: number[] = [];
+    for (let iz = 0; iz < n; iz++) {
+      for (let ix = 0; ix < n; ix++) {
+        const i = iz * n + ix;
+        positions[i * 3] = heightmap.worldX(ix);
+        positions[i * 3 + 1] = heightmap.at(ix, iz);
+        positions[i * 3 + 2] = heightmap.worldZ(iz);
+        if (ix < n - 1 && iz < n - 1) indices.push(i, i + 1, i + n, i + 1, i + n + 1, i + n);
+      }
+    }
+    const fromTriangles = new Float32Array(n * n * 3);
+    VertexData.ComputeNormals(positions as unknown as number[], indices, fromTriangles as unknown as number[]);
+    const fromHeights = new Float32Array(n * n * 3);
+    writeHeightfieldNormals(heightmap, fromHeights, n, { minIx: 0, maxIx: n - 1, minIz: 0, maxIz: n - 1 });
+
+    // The border vertices are the ones ComputeNormals has fewer triangles for; the interior is
+    // where the two have to agree. They are not the same estimator -- one averages the triangles
+    // that meet the vertex, the other takes the slope through it -- so they are compared by the
+    // angle between them.
+    let worst = 1;
+    for (let iz = 1; iz < n - 1; iz++) {
+      for (let ix = 1; ix < n - 1; ix++) {
+        const i = (iz * n + ix) * 3;
+        worst = Math.min(worst, [0, 1, 2].reduce((dot, axis) => dot + fromHeights[i + axis]! * fromTriangles[i + axis]!, 0));
+      }
+    }
+    expect(worst).toBeGreaterThan(Math.cos(Math.PI / 180)); // within a degree, on the steep preset
   });
 });

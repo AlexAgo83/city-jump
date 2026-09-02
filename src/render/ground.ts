@@ -77,8 +77,10 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
       mesh.updateVerticesData(VertexBuffer.ColorKind, colors);
     }
 
-    VertexData.ComputeNormals(positions, indices, normals as unknown as number[]);
-    if (dirty) uploadRows(mesh, VertexBuffer.NormalKind, normals, n, 3, expandGridBounds(bounds, n, 1));
+    // A vertex's normal moves when its neighbours' heights do, so one ring wider than the patch.
+    const normalBounds = expandGridBounds(bounds, n, 1);
+    writeHeightfieldNormals(heightmap, normals, n, normalBounds);
+    if (dirty) uploadRows(mesh, VertexBuffer.NormalKind, normals, n, 3, normalBounds);
     else mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
     mesh.refreshBoundingInfo();
   }
@@ -171,6 +173,33 @@ function terrainBumpTexture(scene: Scene): DynamicTexture {
   texture.vScale = GROUND_SIZE / 28;
   texture.level = 0.13;
   return texture;
+}
+
+/**
+ * Normals straight out of the heightfield instead of out of the triangles.
+ *
+ * `VertexData.ComputeNormals` walks all 913k triangles of the ground and costs ~48ms whatever
+ * bounds it was given -- the whole cost of refreshing a patch, which then uploads a few rows of
+ * the answer and throws the rest away. The grid is a regular heightfield, so a vertex normal is
+ * the central difference of its four neighbours, and only the patch needs computing.
+ */
+export function writeHeightfieldNormals(
+  heightmap: Heightmap,
+  normals: Float32Array,
+  count: number,
+  bounds: { minIx: number; maxIx: number; minIz: number; maxIz: number },
+): void {
+  for (let iz = bounds.minIz; iz <= bounds.maxIz; iz++) {
+    for (let ix = bounds.minIx; ix <= bounds.maxIx; ix++) {
+      const dx = (heightmap.at(ix + 1, iz) - heightmap.at(ix - 1, iz)) / (heightmap.cell * 2);
+      const dz = (heightmap.at(ix, iz + 1) - heightmap.at(ix, iz - 1)) / (heightmap.cell * 2);
+      const scale = 1 / Math.hypot(dx, 1, dz);
+      const i = (iz * count + ix) * 3;
+      normals[i] = -dx * scale;
+      normals[i + 1] = scale;
+      normals[i + 2] = -dz * scale;
+    }
+  }
 }
 
 function terrainSlope(heightmap: Heightmap, ix: number, iz: number): number {
