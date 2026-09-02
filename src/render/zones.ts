@@ -25,8 +25,7 @@ const OVERLAY_COLOR: Record<BuildingKind, readonly [number, number, number]> = {
   military: [0.74, 0.44, 1],
 };
 
-/** A zoned lot is drawn opaque; unzoned cells stay as grid lines only. */
-const FREE_LOT_LIFT = 0;
+const FREE_LOT_ALPHA = 0.45;
 /**
  * How far each zone colour is lifted towards white for the overlay.
  *
@@ -74,7 +73,7 @@ export function createZoneRenderer(scene: Scene) {
       data.positions = bucket.positions;
       data.indices = bucket.indices;
       data.applyToMesh(mesh);
-      mesh.material = materialFor(kind, state === "free" ? FREE_LOT_LIFT : 0);
+      mesh.material = materialFor(kind, state === "free" ? FREE_LOT_ALPHA : 1);
       mesh.isPickable = false;
       mesh.setEnabled(visible);
       meshes.push(mesh);
@@ -89,18 +88,18 @@ export function createZoneRenderer(scene: Scene) {
     },
   };
 
-  function materialFor(kind: ZoneKind, extra: number): StandardMaterial {
-    const key = `${kind}:${extra}`;
+  function materialFor(kind: ZoneKind, alpha: number): StandardMaterial {
+    const key = `${kind}:${alpha}`;
     const cached = materials.get(key);
     if (cached) return cached;
-    const [r, g, b] = lift(kind, extra);
+    const [r, g, b] = lift(kind);
     const material = new StandardMaterial(`zones-overlay-${key}`, scene);
     material.diffuseColor = new Color3(r, g, b);
     material.emissiveColor = new Color3(r, g, b);
     material.specularColor = Color3.Black();
-    material.alpha = 1;
+    material.alpha = alpha;
     material.disableLighting = true;
-    material.transparencyMode = Material.MATERIAL_OPAQUE;
+    material.transparencyMode = alpha < 1 ? Material.MATERIAL_ALPHABLEND : Material.MATERIAL_OPAQUE;
     material.backFaceCulling = false;
     materials.set(key, material);
     return material;
