@@ -710,6 +710,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
         // Zoning changes what can be built, so the cell and parcel solve has to run again.
         scheduleBuildingRebuild();
       },
+      /**
+       * The overlay answers straight away -- it reads the zoning per cell, so it does not need the
+       * cells re-solved to show the stroke -- and the lots follow on the debounced re-pack that
+       * `paint` just asked for. Nothing else moves: a zone does not touch the terrain, the trees,
+       * the roads or the traffic, and rebuilding those over the brush was what made the trees
+       * blink.
+       */
+      painted() {
+        zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells());
+        scheduleAutosave();
+      },
     },
     {
       buildingAt: (x, z) => buildings.buildingAt(x, z),

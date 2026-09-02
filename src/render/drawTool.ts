@@ -131,6 +131,13 @@ export interface NatureTools {
 
 export interface ZoneTools {
   paint(x: number, z: number, radius: number, kind: ZoneKind | null): void;
+  /**
+   * What a stroke of the brush actually changes: the zoning, and the lots that follow from it. The
+   * ordinary commit rebuilds the world over its dirty box -- terrain, trees, roads, traffic,
+   * signals -- and a zone moves none of that, so painting made the trees blink as they were torn
+   * down and put back under the brush.
+   */
+  painted(): void;
 }
 
 export interface SelectionTools {
@@ -551,7 +558,7 @@ export function createDrawTool(
       history?.beforeChange();
       zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
       history?.afterChange(true);
-      onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
+      zones.painted();
       return;
     }
     if (mode === "utility") {
@@ -779,7 +786,7 @@ export function createDrawTool(
     /** The same paint the brush commits, addressable from a script. */
     paintZoneAt(x: number, z: number, radius: number, kind: ZoneKind | null) {
       zones.paint(x, z, radius, kind);
-      onCommitted(expandBounds({ minX: x - radius, maxX: x + radius, minZ: z - radius, maxZ: z + radius }, TERRAIN_DIRTY_PAD));
+      zones.painted(); // the same light path a brush stroke takes: see `ZoneTools.painted`
     },
     setZoneRadius(next) {
       zoneRadius = next;

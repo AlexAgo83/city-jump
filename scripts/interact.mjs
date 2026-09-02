@@ -977,6 +977,9 @@ await page.locator('input[name="zone-kind"][value="commercial"]').check();
 // plan, nothing goes up on it and nothing is charged for it until the player presses play.
 const beforePausedPaint = await stats();
 await click(500, 350);
+// A zone moves no tree. The stroke used to commit through the ordinary dirty rebuild, which tears
+// down and re-scatters the trees under the brush -- they blinked at every stroke.
+check("zoning leaves the trees alone", (await stats()).trees === beforePausedPaint.trees, `${(await stats()).trees} vs ${beforePausedPaint.trees}`);
 await page.waitForTimeout(600);
 const afterPausedPaint = await stats();
 check(
