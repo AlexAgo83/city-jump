@@ -166,6 +166,9 @@ export function showSelection(info: SelectionInfo | null): void {
       row("Address", info.address) +
       row("Type", label(info.buildingKind)) +
       row("Footprint", info.footprint) +
+      // A lot is staffed whole or not at all, so this is either the full shift or none of it. A
+      // home asks for nobody, and says so rather than showing an empty pair of zeroes.
+      row("Workers", info.workers === 0 ? "None needed" : `${info.staffed ? info.workers : 0}/${info.workers}`) +
       row("State", construction) +
       (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : info.reason === "power" ? "No power" : info.reason === "water" ? "No water" : "Under construction") : "");
     return;

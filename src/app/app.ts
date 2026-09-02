@@ -1017,7 +1017,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       if (selectedInfo?.kind === "building") {
         const info = selectedInfo;
         const selected = currentBuildingStatuses.find((status) => samePosition(status.parcel.position, info));
-        if (selected) showSelection((selectedInfo = { ...selectedInfo, state: selected.state, reason: selected.reason, progress: selected.progress, remainingSeconds: selected.remainingSeconds }));
+        if (selected) showSelection((selectedInfo = { ...selectedInfo, state: selected.state, reason: selected.reason, progress: selected.progress, remainingSeconds: selected.remainingSeconds, staffed: selected.staffed }));
       }
     }
     updateWave(simDt);

@@ -17,6 +17,7 @@ import { addressForParcel, streetForSegment } from "../sim/streets";
 import { buildingBuildCost, demolitionRefund } from "../sim/economy";
 import { UTILITY_CATALOG, type SavedUtility, type UtilityKind, type UtilityRole } from "../sim/utilities";
 import type { BuildingKind } from "../sim/buildingKinds";
+import { workforceDemand } from "../sim/workforce";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
 import { distXZ, type Vec3, v3, lerp } from "../sim/vec";
@@ -52,7 +53,7 @@ type SelectTarget =
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
   | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
-  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"]; x: number; z: number; progress: number; remainingSeconds: number }
+  | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"]; x: number; z: number; progress: number; remainingSeconds: number; workers: number; staffed: boolean }
   | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
   | { kind: "tree" }
@@ -283,6 +284,8 @@ export function createDrawTool(
         z: target.status.parcel.position.z,
         progress: target.status.progress,
         remainingSeconds: target.status.remainingSeconds,
+        workers: workforceDemand(target.status.parcel),
+        staffed: target.status.staffed,
         ...(target.status.reason ? { reason: target.status.reason } : {}),
       });
       return;

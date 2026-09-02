@@ -1535,6 +1535,13 @@ const selectedBuilding = await page.evaluate(() => ({
 }));
 check("clicking a building opens its address", !selectedBuilding.hidden && /^\d+ .+/.test(selectedBuilding.rows.Address ?? ""), JSON.stringify(selectedBuilding));
 check("a building panel shows its state", Boolean(selectedBuilding.rows.State), JSON.stringify(selectedBuilding.rows));
+// A lot is staffed whole or not at all, so the pair is either full or empty -- and a home, which
+// asks for nobody, says that instead.
+check(
+  "a building panel says how many workers it has",
+  /^(None needed|\d+\/\d+)$/.test(selectedBuilding.rows.Workers ?? ""),
+  JSON.stringify(selectedBuilding.rows),
+);
 // Which building is short of which supply is not something this suite can arrange any more: the
 // starter kit opens with power and water covering the city it opens on, and a lot far enough away
 // from them to be dark is a lot the demand has to admit first. What the panel does with a reason

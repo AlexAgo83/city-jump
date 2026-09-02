@@ -9,6 +9,12 @@ type StoredBuildingState = [x: number, z: number, state: BuildingState, startedA
 export interface BuildingStatus {
   readonly parcel: BuildingParcel;
   readonly state: BuildingState;
+  /**
+   * Whether the workforce reached this lot. A lot is staffed whole or not at all, and a lot that
+   * is still going up holds its share of the pool all the same -- the shift is hired before the
+   * doors open.
+   */
+  readonly staffed: boolean;
   readonly reason?: "construction" | "workers" | "power" | "water" | "materials";
   readonly startedAt: number;
   readonly progress: number;
@@ -52,7 +58,7 @@ export class BuildingLifecycle {
         const state = stageSeconds <= 0 ? (staffing.get(index) === false ? "idle" : "working") : "rising";
         const startedAt = now;
         live.set(key, { state, startedAt, seenAt: now });
-        return status(parcel, state, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
+        return status(parcel, state, staffing.get(index) !== false, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
       }
       const held = previous.state === "rebuilding" && rebuildPaused;
       const underWork = held || ((previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < stageSeconds);
@@ -60,7 +66,7 @@ export class BuildingLifecycle {
       // A held rebuild keeps restarting its stage, so the work begins when the wave lifts.
       const startedAt = held ? now : state === previous.state ? previous.startedAt : now;
       live.set(key, { state, startedAt, seenAt: now });
-      return status(parcel, state, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
+      return status(parcel, state, staffing.get(index) !== false, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
     // The lots that were not in this tick's list keep their state for a while rather than being
     // dropped: see MEMORY_SECONDS.
@@ -90,12 +96,12 @@ export class BuildingLifecycle {
   }
 }
 
-function status(parcel: BuildingParcel, state: BuildingState, startedAt: number, now: number, stageSeconds: number, reason?: BuildingStatus["reason"], started?: boolean): BuildingStatus {
+function status(parcel: BuildingParcel, state: BuildingState, staffed: boolean, startedAt: number, now: number, stageSeconds: number, reason?: BuildingStatus["reason"], started?: boolean): BuildingStatus {
   const underWork = state === "rising" || state === "rebuilding";
   const elapsed = underWork ? Math.max(0, now - startedAt) : BUILDING_STAGE_SECONDS;
   const progress = stageSeconds <= 0 ? 1 : Math.min(1, elapsed / stageSeconds);
   const remainingSeconds = underWork ? Math.max(0, stageSeconds - elapsed) : 0;
-  return { parcel, state, startedAt, progress, remainingSeconds, ...(reason ? { reason } : {}), ...(started ? { started } : {}) };
+  return { parcel, state, staffed, startedAt, progress, remainingSeconds, ...(reason ? { reason } : {}), ...(started ? { started } : {}) };
 }
 
 function normalizeState(state: LegacyBuildingState): BuildingState {

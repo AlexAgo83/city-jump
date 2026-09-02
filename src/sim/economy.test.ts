@@ -5,6 +5,7 @@ import type { BuildingStatus } from "./buildingLifecycle";
 
 const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["state"], frontageCells = 1, depthCells = 1): BuildingStatus => ({
   state,
+  staffed: state === "working",
   startedAt: 0,
   progress: 1,
   remainingSeconds: 0,
