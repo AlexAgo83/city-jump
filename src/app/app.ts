@@ -189,6 +189,22 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const repackParcels = (): void => {
     const before = new Map(currentParcels.map((parcel) => [parcelId(parcel), parcel]));
     currentBuildableCells = solveBuildableCells();
+    // While the clock is stopped the city is a plan, not a building site: the paint lands on the
+    // map and the lots stay as they are. Without this, zoning during a pause put buildings up and
+    // charged the treasury for them on a clock that was not running. The overlay still repaints,
+    // so the plan is visible; `setTimeRate` asks for this pass again the moment the clock starts,
+    // and that is when the city answers it. Bulldozing is not affected: it takes its lot out of
+    // the list itself rather than waiting for a re-pack.
+    if (simPaused) {
+      // The picture still has to tell the truth about the lots that are there: a bulldozed
+      // building takes itself out of the list, and nothing else would repaint after it.
+      buildings.rebuild(currentBuildableCells, currentBuildingStatuses);
+      zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells());
+      invalidateShadows();
+      detail.invalidate();
+      scheduleAutosave();
+      return;
+    }
     currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
     syncBuildings();
     // `delete` answers whether the lot was already standing, so one pass leaves the arrivals in
@@ -635,9 +651,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let controls: ReturnType<typeof bindControls> | undefined;
   let selectedInfo: SelectionInfo | null = null;
   const setTimeRate = (rate: TimeRate): void => {
+    const wasPaused = simPaused;
     timeRate = rate;
     if (rate === 1 || rate === 2 || rate === 4) lastRunRate = rate;
     simPaused = rate === 0;
+    // Starting the clock builds what was planned while it was stopped, rather than leaving the
+    // player to wait for the next demand step twenty simulated seconds later.
+    if (wasPaused && !simPaused) repackParcels();
     traffic.setTimeScale(rate);
     signals.setTimeScale(rate);
     controls?.setClock(sunHour, simDay, rate);

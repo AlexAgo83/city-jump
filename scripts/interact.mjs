@@ -931,7 +931,8 @@ await page.waitForFunction((expected) => window.cityjump.stats().utilities === e
 check("destroying a diffuser tells the player", /diffuser destroyed/.test(await toast()), await toast());
 // A lot is admitted by demand, not by being drawn: a dozen residents justify one shop and the
 // city never changes shape however it is painted. Give the island the residents to answer with,
-// short of the 250 that would bring a kaiju in the middle of the check.
+// short of the 250 that would bring a kaiju in the middle of the check -- and start the clock,
+// since a paused city takes the paint as a plan and builds none of it until it runs.
 await page.evaluate(() => window.cityjump.growCity(2000, 200));
 await nextFrame();
 const unzonedModels = await buildingModelCounts();
@@ -941,7 +942,22 @@ await page.locator("#zone-radius").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.locator('input[name="zone-kind"][value="commercial"]').check();
+// Paint first with the clock stopped. A pause stops the city, not only its clock: the paint is a
+// plan, nothing goes up on it and nothing is charged for it until the player presses play.
+const beforePausedPaint = await stats();
 await click(500, 350);
+await page.waitForTimeout(600);
+const afterPausedPaint = await stats();
+check(
+  "zoning while paused plans without building or spending",
+  afterPausedPaint.zones > beforePausedPaint.zones &&
+    JSON.stringify(await buildingModelCounts()) === JSON.stringify(unzonedModels) &&
+    afterPausedPaint.money === beforePausedPaint.money,
+  JSON.stringify({ zones: [beforePausedPaint.zones, afterPausedPaint.zones], money: [beforePausedPaint.money, afterPausedPaint.money] }),
+);
+// Press play: the check below, that zoning changes what gets built, is now also the check that the
+// clock is what builds it.
+await page.evaluate(() => window.cityjump.setPaused(false));
 await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
 await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
   .filter((mesh) => mesh.name.startsWith("building_lot_"))
@@ -966,6 +982,7 @@ await page.waitForFunction((zonedMix) => JSON.stringify(window.cityjump._scene.m
   .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== zonedMix, JSON.stringify(Object.entries(commercialModels)), { timeout: 5_000 });
 check("a zone can be cleared from the toolbar", (await stats()).zones < zoned.zones);
 check("clearing a zone takes back what it built", JSON.stringify(await buildingModelCounts()) !== JSON.stringify(commercialModels));
+await page.evaluate(() => window.cityjump.setPaused(true));
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="all"]').check();
 await page.locator('[data-tool="roads"]').click();
