@@ -36,19 +36,43 @@ if (scenario === "rugged") {
 
 const report = await page.evaluate(async (which) => {
   const api = window.cityjump;
+  // `camera` only sets radius and angles, and the app opens framed on the starter kit -- half the
+  // shot was the empty ground south of the demo network. The demo lays itself out around 0,0.
+  const frameOrigin = () => api._scene.activeCamera.target.set(0, 0, 0);
+  // A road no longer builds its own frontage: a lot has to be zoned, and the demand rules then
+  // admit it on elapsed time and population. A scripted city has to do both, or the shot is of
+  // empty streets.
+  const populate = (radius, seconds, population) => {
+    // A city this size summons a kaiju on the spot, and the camera then follows the monster out to
+    // sea. The shot is of the city, so the scenario runs pacifist.
+    api.setRunRules({ kaijuSpawns: false });
+    api.zone(0, 0, radius, "residential");
+    api.zone(-radius / 2, -radius / 2, radius / 3, "commercial");
+    api.zone(radius / 2, radius / 2, radius / 3, "industrial");
+    api.growCity(seconds, population);
+    // Twice: the first call raises the lots, the second lets their construction stage run out, so
+    // the shot is of a finished city rather than of a field of scaffolding.
+    api.growCity(seconds + 60, population);
+  };
   api.reset();
   if (which === "city") {
     api.demoCity();
+    populate(1400, 40_000, 40_000);
     api.camera(1400, Math.PI / 3.2);
+    frameOrigin();
   } else if (which === "rugged") {
     api.reset();
     api.demoNetwork();
+    populate(1500, 8_000, 8_000);
     api._scene.getMeshByName("buildable-grid")?.setEnabled(false);
     api.camera(1450, Math.PI / 5, -Math.PI / 2);
+    frameOrigin();
   } else {
     api.demoNetwork();
+    populate(1500, 8_000, 8_000);
     api._scene.getMeshByName("buildable-grid")?.setEnabled(false);
     api.camera(1450, Math.PI / 5, -Math.PI / 2);
+    frameOrigin();
   }
   const fps = await api.measureFps(3000);
   const gl = document.createElement("canvas").getContext("webgl2");

@@ -1073,6 +1073,19 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       treasury.replaceWith(money);
       updateMoneyHud();
     },
+    /**
+     * A grown city without playing one. Lot demand answers to elapsed time and to population, so a
+     * scripted screenshot of a full city has to set both -- drawing roads and zoning them admits
+     * two houses and nothing else.
+     */
+    growCity(seconds: number, population: number) {
+      simSeconds = seconds;
+      cityEconomy.replaceWith({ ...cityEconomy.resources, population });
+      chargeConstructionStarts = false;
+      rebuild();
+      chargeConstructionStarts = true;
+      return { buildings: currentParcels.length };
+    },
     setRunRules(rules: Partial<typeof runState.rules>) {
       runState = { ...runState, rules: { ...runState.rules, ...rules } };
       renderGameplayRules();
