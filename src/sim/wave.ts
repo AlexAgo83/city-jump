@@ -23,9 +23,15 @@ export const WAVE_STARTING_VALUES = {
  * Nothing is on a schedule. A city is attacked because it has become worth attacking, so a player
  * who does not build is not attacked at all, and one who grows fast brings the next one on
  * themselves. The bar rises every wave, which is why holding one buys room rather than a countdown.
+ *
+ * Squared, not to the power of one and a half: at 1.5 the bar rose by 457 residents from the first
+ * wave to the second and 592 from the second to the third, while a city coming out of a fight puts
+ * on some five residents a second -- so it was already standing at the next bar as the last kaiju
+ * fell, and the one after it walked in behind. Squared, each step is 750, 1250, 1750, 2250, which
+ * is a city's worth of building rather than a minute of it.
  */
 export function waveAtPopulation(wave: number): number {
-  return Math.round(250 * Math.pow(Math.max(1, wave), 1.5));
+  return Math.round(250 * Math.pow(Math.max(1, wave), 2));
 }
 
 /** How many more residents before the island notices. Infinity is not a thing here; zero means now. */
