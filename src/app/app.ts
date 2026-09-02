@@ -1099,7 +1099,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.paintZoneAt(x, z, radius, kind);
       return currentBuildableCells.filter((cell) => cell.zone).length;
     },
-    buildingPoint: () => buildings.buildingPoint(),
+    buildingPoint: (nearX?: number, nearZ?: number) => buildings.buildingPoint(nearX, nearZ),
     vehiclePoint: () => traffic.vehiclePoint(),
     selectVehicle() {
       const target = traffic.firstVehicle();

@@ -521,7 +521,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       if (!visible) return null;
       return lastStatuses.find((status) => status.parcel.cells.some((cell) => pointInCell(x, z, cell))) ?? null;
     },
-    buildingPoint(): { x: number; y: number; z: number } | null {
+    /** @param nearX @param nearZ Which building: the one closest to here, the origin by default. */
+    buildingPoint(nearX = 0, nearZ = 0): { x: number; y: number; z: number } | null {
       const points = lastParcels
         .map((parcel) => parcel.cells[0])
         .filter((cell): cell is BuildableCell => cell !== undefined)
@@ -530,7 +531,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
           y: cell.corners.reduce((sum, p) => sum + p.y, 0) / 4,
           z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
         }));
-      return points.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z))[0] ?? null;
+      return points.sort((a, b) => Math.hypot(a.x - nearX, a.z - nearZ) - Math.hypot(b.x - nearX, b.z - nearZ))[0] ?? null;
     },
     get modelCount() {
       return available.length;
