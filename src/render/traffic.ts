@@ -1106,9 +1106,12 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
    */
   function arrive(mover: Mover, now: number): void {
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
-    const planned = mover.plan?.node === nodeId ? mover.plan : null;
+    // A plan is made a junction ahead of time, and the road it names can be bulldozed or split
+    // before the car gets there -- `graph.segment` then threw out of the render loop, which stops
+    // the picture dead. A plan whose exit is gone is no plan, and the choice is made again here.
+    const planned = mover.plan?.node === nodeId && graph.hasSegment(mover.plan.exit) ? mover.plan : null;
     const next = planned?.exit ?? pickExit(graph, nodeId, mover.segment.id, roll(mover), mover.walk);
-    if (next === null) {
+    if (next === null || !graph.hasSegment(next)) {
       // A one-way into a dead end leaves no legal move at all. Turning round beats freezing.
       leaveQueue(mover);
       mover.direction = -mover.direction as 1 | -1;

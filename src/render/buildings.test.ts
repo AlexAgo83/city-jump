@@ -116,7 +116,20 @@ describe("roof props", () => {
     const p = parcel(0, 0, 2, 2);
     expect(buildingModelColor(p, { state: "working" })).toEqual([1, 1, 1]);
     expect(buildingStateColor(p, { state: "working" })).not.toEqual([1, 1, 1]);
-    expect(buildingModelColor(p, { state: "idle" })).toEqual(buildingStateColor(p, { state: "idle" }));
+    // An idle model takes the same colour, at half strength: see the next case.
+    expect(buildingModelColor(p, { state: "idle" })).not.toEqual([1, 1, 1]);
+  });
+
+  it("dims a stopped building rather than painting it out", () => {
+    const p = parcel(0, 0, 2, 2);
+    const [r] = buildingModelColor(p, { state: "idle", reason: "workers" });
+    const [boxR] = buildingStateColor(p, { state: "idle", reason: "workers" });
+
+    expect(boxR).toBeLessThan(0.35); // the stand-in box is flat grey, and reads as one
+    expect(r).toBeGreaterThan(0.6); // the model keeps its own texture under the grey
+    expect(r).toBeLessThan(1); // but is still visibly not working
+    // A site is a site: it keeps its colour in full.
+    expect(buildingModelColor(p, { state: "rising" })).toEqual(buildingStateColor(p, { state: "rising" }));
   });
 
   it("uses distinct idle colours for missing utilities", () => {

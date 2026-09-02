@@ -157,6 +157,18 @@ export function demolitionRefund(cost: number): number {
   return cost / 2;
 }
 
+/**
+ * A wave's rebuilding is charged at a quarter of what the building cost to put up.
+ *
+ * Not free, so a wave through a dense district is felt in the budget as well as the clock; not
+ * full price, so a bad wave does not bankrupt a city that was already short -- which is the spiral
+ * the rule exists to avoid, and which full price produced: the treasury went from +$11k before a
+ * second wave to -$17k after it, and a city of four thousand ended a run at -$144k.
+ */
+export function rebuildingCost(cost: number): number {
+  return cost / 4;
+}
+
 export function incomePerSecond(population: number, statuses: readonly { readonly parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">; readonly state: BuildingStatus["state"] }[]): number {
   const trade = statuses.reduce((sum, status) => sum + (status.state === "working" && status.parcel.kind === "commercial" ? status.parcel.frontageCells * status.parcel.depthCells * 0.35 : 0), 0);
   return population * 0.02 + trade;

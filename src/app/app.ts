@@ -17,7 +17,7 @@ import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { cellKey, createZoneRenderer } from "../render/zones";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
+import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, rebuildingCost, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones, type ZoneKind } from "../sim/zones";
@@ -645,7 +645,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const hit = kaijuAssault?.destroyed ? currentParcels.find((parcel) => samePosition(parcel.position, kaijuAssault!.destroyed!)) : null;
     if (!hit) return;
     rubble.destroy(hit);
-    treasury.spend(buildingBuildCost(hit), true);
+    treasury.spend(rebuildingCost(buildingBuildCost(hit)), true);
     buildingLifecycle.rebuild(hit, simSeconds);
     syncBuildings();
     history.clear();
@@ -919,6 +919,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     onDecor(visible) {
       buildings.setDecor(visible);
     },
+    onBoxes(boxes) {
+      buildings.setDistant(boxes);
+    },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
@@ -1044,8 +1047,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }
     updateWave(simDt);
     detail.update();
-    // Above this the models are indistinguishable from the boxes that stand in for them.
-    buildings.setDistant(camera.radius > 1100);
     postFx.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     showCompass(camera.alpha);

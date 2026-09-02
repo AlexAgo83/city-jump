@@ -1,7 +1,7 @@
 import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "./batteries";
 import { buildingNeeds, type BuildingNeed, type BuildingKind } from "./buildingKinds";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "./buildingLifecycle";
-import { buildingBuildCost, CityEconomy, incomePerSecond, Treasury } from "./economy";
+import { buildingBuildCost, CityEconomy, incomePerSecond, rebuildingCost as rebuildCharge, Treasury } from "./economy";
 import { RoadGraph } from "./graph";
 import { Rubble } from "./rubble";
 import { commitSegment, resolveSnap } from "./rules";
@@ -276,9 +276,9 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       const hit = assault.destroyed ? parcels.find((parcel) => distXZ(parcel.position, assault.destroyed!) < 0.01) : null;
       if (hit) {
         destroyed += 1;
-        rebuildingCost += buildingBuildCost(hit);
+        rebuildingCost += rebuildCharge(buildingBuildCost(hit));
         rubble.destroy(hit);
-        treasury.spend(buildingBuildCost(hit), true);
+        treasury.spend(rebuildCharge(buildingBuildCost(hit)), true);
         lifecycle.rebuild(hit, seconds);
       }
       seconds += COMBAT_STEP_SECONDS;

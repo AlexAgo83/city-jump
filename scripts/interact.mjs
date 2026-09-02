@@ -811,31 +811,36 @@ check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${draw
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("building a road spends money", drawn.money < moneyBeforeRoad, `$${drawn.money} vs $${moneyBeforeRoad}`);
 await page.evaluate(() => window.cityjump.setMoney(200_000));
-check(
-  "far enough out the city is drawn as boxes, and the models come back on the way in",
-  await page.evaluate(async () => {
-    const scene = window.cityjump._scene;
-    const camera = scene.activeCamera;
-    const before = { radius: camera.radius, beta: camera.beta, alpha: camera.alpha };
-    const boxes = scene.getMeshByName("building_distant");
-    const models = () => scene.meshes.filter((m) => /^building_(lot|farm|industrial|military)_/.test(m.name) && m.isEnabled()).length;
-    const frame = () => new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
-    window.cityjump.camera(1600, Math.PI / 3.4);
-    await frame();
-    await frame();
-    const far = { boxes: boxes.isEnabled(), models: models(), instances: boxes.thinInstanceCount };
-    window.cityjump.camera(400, Math.PI / 3.4);
-    await frame();
-    await frame();
-    const near = { boxes: boxes.isEnabled(), models: models() };
-    // Put the camera back: everything after this check is framed the way it was.
-    camera.radius = before.radius;
-    camera.beta = before.beta;
-    camera.alpha = before.alpha;
-    await frame();
-    return far.boxes && far.models === 0 && far.instances > 0 && !near.boxes && near.models > 0;
-  }),
-);
+// Boxes are the player's own switch now, not something the camera decides: pulling out used to
+// swap the city for them past 1100 m, which took the city away from anyone who wanted to look at
+// it from above.
+await setSettingsOpen(true);
+const boxState = () => page.evaluate(() => {
+  const scene = window.cityjump._scene;
+  const boxes = scene.getMeshByName("building_distant");
+  return {
+    boxes: boxes.isEnabled(),
+    instances: boxes.thinInstanceCount,
+    models: scene.meshes.filter((m) => /^building_(lot|farm|industrial|military)_/.test(m.name) && m.isEnabled()).length,
+  };
+});
+await page.evaluate(async () => {
+  const scene = window.cityjump._scene;
+  window.cityjump.camera(1600, Math.PI / 3.4);
+  await new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
+});
+const highUp = await boxState();
+check("pulling the camera out leaves the models where they are", !highUp.boxes && highUp.models > 0, JSON.stringify(highUp));
+await page.locator("#show-boxes").check();
+await nextFrame();
+const boxed = await boxState();
+check("the Boxes switch draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
+await page.locator("#show-boxes").uncheck();
+await nextFrame();
+const unboxed = await boxState();
+check("and turning it off brings the models back", !unboxed.boxes && unboxed.models > 0, JSON.stringify(unboxed));
+await page.evaluate(() => window.cityjump.camera(520, Math.PI / 3.4));
+await nextFrame();
 const cityHud = await cityHudText();
 check(
   "the city strip shows population, money, workers, food and one shortage",

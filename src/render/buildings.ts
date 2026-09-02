@@ -1001,8 +1001,20 @@ function distantColor(parcel: BuildingParcel): [number, number, number] {
  * building that was drawn as a model.
  */
 export function buildingModelColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
-  return status?.state === "working" ? [1, 1, 1] : buildingStateColor(parcel, status);
+  if (status?.state === "working") return [1, 1, 1];
+  const [r, g, b] = buildingStateColor(parcel, status);
+  // A building under construction wears its state: sand-coloured and eighteen per cent of its
+  // height, it is a site and should look like one. A building that has stopped is still a
+  // building, and a state colour is a multiplier on its own texture -- idle at 0.28 painted a
+  // whole district black every time the workforce moved. Half strength keeps the grey, the
+  // no-power yellow and the no-water blue readable as a tint over the model rather than instead
+  // of it.
+  if (status?.state === "rising" || status?.state === "rebuilding") return [r, g, b];
+  return [1 + (r - 1) * STOPPED_TINT, 1 + (g - 1) * STOPPED_TINT, 1 + (b - 1) * STOPPED_TINT];
 }
+
+/** How much of its state colour a standing building takes. The stand-in boxes take all of it. */
+const STOPPED_TINT = 0.5;
 
 export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
   const color = status?.state === "rising" ? [0.86, 0.72, 0.42] : status?.reason === "power" ? [0.95, 0.74, 0.2] : status?.reason === "water" ? [0.2, 0.56, 0.9] : status?.state === "idle" ? [0.28, 0.29, 0.3] : status?.state === "rebuilding" ? [0.58, 0.42, 0.34] : distantColor(parcel);

@@ -82,6 +82,7 @@ export interface UiSettings {
   grid?: boolean;
   buildings?: boolean;
   decor?: boolean;
+  boxes?: boolean;
   gridSnap?: boolean;
   fps?: boolean;
   shadows?: boolean;

@@ -37,6 +37,8 @@ export function bindControls(handlers: {
   onBuildings(visible: boolean): void;
   /** Street furniture and roof clutter: everything a building wears once it is finished. */
   onDecor(visible: boolean): void;
+  /** Draw the city as coloured boxes rather than models, whatever the camera is doing. */
+  onBoxes(boxes: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
@@ -160,6 +162,7 @@ export function bindControls(handlers: {
   const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
   const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
   const showDecor = document.getElementById("show-decor") as HTMLInputElement;
+  const showBoxes = document.getElementById("show-boxes") as HTMLInputElement;
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
@@ -183,6 +186,11 @@ export function bindControls(handlers: {
 
   showDecor.addEventListener("change", () => {
     handlers.onDecor(showDecor.checked);
+    persistSettings();
+  });
+
+  showBoxes.addEventListener("change", () => {
+    handlers.onBoxes(showBoxes.checked);
     persistSettings();
   });
 
@@ -396,6 +404,7 @@ export function bindControls(handlers: {
       grid: showGrid.checked,
       buildings: showBuildings.checked,
       decor: showDecor.checked,
+      boxes: showBoxes.checked,
       gridSnap: gridSnap.checked,
       fps: showFps.checked,
       shadows: showShadows.checked,
@@ -469,6 +478,7 @@ export function bindControls(handlers: {
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showDecor, stored.decor);
+  applySetting(showBoxes, stored.boxes);
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
