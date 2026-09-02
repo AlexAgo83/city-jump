@@ -253,6 +253,8 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   // -- the very first setFaded(false) is then correctly a no-op too, not just repeats of it.
   let lastFaded = false;
   let lastPlaced = 0;
+  let decorVisible = true;
+  let decorSignature = "";
   let lastCells: readonly BuildableCell[] = [];
   let lastParcels: readonly BuildingParcel[] = [];
   let lastStatuses: readonly BuildingStatus[] = [];
@@ -270,6 +272,104 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
    * `cells` and `parcels` are the caller's, so the layout is solved once per rebuild rather than
    * once here and once again for the terrain that has to be flattened under it.
    */
+  /**
+   * A building is decorated once it stands. Not while it is rising, and not while it is being
+   * rebuilt after a wave: a lot at eighteen per cent of its height used to come with its benches
+   * and its rooftop plant already in place.
+   */
+  function decorated(status: BuildingStatus): boolean {
+    return status.state === "working" || status.state === "idle";
+  }
+
+  /**
+   * Which buildings are wearing their clutter, as one cheap value. Compared every tick, so that a
+   * lot finishing its construction gets its decorations then rather than at the next rebuild --
+   * which, for a city nobody is editing, is never.
+   */
+  function decorKey(statuses: readonly BuildingStatus[]): string {
+    let count = 0;
+    let sum = 0;
+    for (const status of statuses) {
+      if (!decorated(status)) continue;
+      count += 1;
+      sum += Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z);
+    }
+    return `${count}:${sum}`;
+  }
+
+  /**
+   * What stands on a roof and what stands at the foot of a building, for every building that is
+   * finished. Its own pass because three things ask for it: a rebuild, the settings switch that
+   * turns it off, and a construction stage running out.
+   *
+   * Turned off, the buffers are simply not filled. Hiding the meshes would not hold: the distance
+   * culler re-enables anything named `footdecor_` or `roofprop_` as soon as the camera comes back
+   * in, and it has no idea the player asked for none.
+   */
+  function applyDecor(): void {
+    decorSignature = decorKey(lastStatuses);
+    const standing = decorVisible ? lastStatuses.filter(decorated).map((status) => status.parcel) : [];
+    // Every parcel, not only the standing ones: a face that touches the lot next door gets no
+    // furniture whether or not that lot has finished going up.
+    const occupiedCells = buildingCellSet(lastParcels);
+    const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
+    for (const parcel of standing) {
+      for (const placement of buildingFootDecorMatrices(parcel, terrainHeight, buildingBlockedDecorFaces(parcel, occupiedCells))) {
+        const bucket = footDecorMatrices.get(placement.kind);
+        if (bucket) bucket.push(placement.matrix);
+        else footDecorMatrices.set(placement.kind, [placement.matrix]);
+      }
+    }
+
+    // Whatever stands on each roof: picked once per parcel from `ROOF_LAYOUTS`, by its own
+    // model's roof height and its own footprint, then bucketed by kind the same way a building
+    // itself is bucketed by model.
+    const propMatrices = new Map<PropKind, Matrix[]>();
+    for (const parcel of standing) {
+      // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
+      if (buildingModelId(parcel) !== `lot_${parcel.frontageCells}x${parcel.depthCells}`) continue;
+      const model = available.find((m) => m.id === buildingModelId(parcel));
+      if (!model) continue;
+      const cells = parcel.frontageCells * parcel.depthCells;
+      const pitched = hasPitchedRoof(model.roof);
+      const offered = ROOF_LAYOUTS.filter(
+        (layout) => layout.minCells <= cells && layout.props.length <= roofObjectLimit(cells) && (layout.pitched ?? false) === pitched,
+      );
+      const layout = offered[roofSeed(parcel) % offered.length]!;
+      // `parcel.position` is the frontage edge, not the roof's centre -- the footprint runs
+      // back from it by its own full depth, on the building's own local -Z. A prop's small
+      // offset lands relative to the actual middle of the roof only once that run-back is
+      // added in, through the same matrix that already seats the building itself correctly.
+      const buildingMatrix = matrixFor(parcel, model.centerX);
+      const halfDepth = (parcel.depthCells * GRID.cellSize - 1.5) / 2;
+      for (const prop of layout.props) {
+        const localX = prop.x + model.centerX;
+        const localZ = -halfDepth + prop.z;
+        const local = new Vector3(localX, roofPropY(model.roof, localX, localZ, model.roofY), localZ);
+        const matrix = Matrix.Compose(
+          Vector3.OneReadOnly,
+          Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
+          Vector3.TransformCoordinates(local, buildingMatrix),
+        );
+        const bucket = propMatrices.get(prop.kind);
+        if (bucket) bucket.push(matrix);
+        else propMatrices.set(prop.kind, [matrix]);
+      }
+    }
+    for (const [kind, mesh] of Object.entries(roofProps) as [PropKind, Mesh][]) writeDecorBuffer(mesh, propMatrices.get(kind) ?? []);
+    for (const [kind, mesh] of Object.entries(footDecor) as [FootDecorKind, Mesh][]) writeDecorBuffer(mesh, footDecorMatrices.get(kind) ?? []);
+  }
+
+  function writeDecorBuffer(mesh: Mesh, list: readonly Matrix[]): void {
+    mesh.thinInstanceCount = 0;
+    mesh.setEnabled(visible && list.length > 0);
+    if (list.length === 0) return;
+    const buffer = new Float32Array(list.length * 16);
+    list.forEach((m, i) => m.copyToArray(buffer, i * 16));
+    mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: the count changes with the city
+    mesh.thinInstanceCount = list.length;
+  }
+
   function rebuild(cells: readonly BuildableCell[], statuses: readonly BuildingStatus[]): number {
     lastCells = cells;
     lastStatuses = statuses;
@@ -327,16 +427,6 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     groundPad.thinInstanceSetBuffer("matrix", padMatrices, 16, false);
     groundPad.thinInstanceSetBuffer("color", padColors, 4, false);
     groundPad.thinInstanceCount = lastParcels.length;
-    const occupiedCells = buildingCellSet(lastParcels);
-    const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
-    for (const parcel of lastParcels) {
-      for (const placement of buildingFootDecorMatrices(parcel, terrainHeight, buildingBlockedDecorFaces(parcel, occupiedCells))) {
-        const bucket = footDecorMatrices.get(placement.kind);
-        if (bucket) bucket.push(placement.matrix);
-        else footDecorMatrices.set(placement.kind, [placement.matrix]);
-      }
-    }
-
     // The stand-in boxes: same footprint, same colour, and as tall as the model that would have
     // stood there -- built every rebuild whether or not they are being drawn, since they are a
     // matrix each and the alternative is a stall the first time the camera pulls out.
@@ -380,61 +470,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       placed += chosen.length;
     }
 
-    // Whatever stands on each roof: picked once per parcel from `ROOF_LAYOUTS`, by its own
-    // model's roof height and its own footprint, then bucketed by kind the same way a building
-    // itself is bucketed by model.
-    const propMatrices = new Map<PropKind, Matrix[]>();
-    for (const parcel of lastParcels) {
-      // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
-      if (buildingModelId(parcel) !== `lot_${parcel.frontageCells}x${parcel.depthCells}`) continue;
-      const model = available.find((m) => m.id === buildingModelId(parcel));
-      if (!model) continue;
-      const cells = parcel.frontageCells * parcel.depthCells;
-      const pitched = hasPitchedRoof(model.roof);
-      const offered = ROOF_LAYOUTS.filter(
-        (layout) => layout.minCells <= cells && layout.props.length <= roofObjectLimit(cells) && (layout.pitched ?? false) === pitched,
-      );
-      const layout = offered[roofSeed(parcel) % offered.length]!;
-      // `parcel.position` is the frontage edge, not the roof's centre -- the footprint runs
-      // back from it by its own full depth, on the building's own local -Z. A prop's small
-      // offset lands relative to the actual middle of the roof only once that run-back is
-      // added in, through the same matrix that already seats the building itself correctly.
-      const buildingMatrix = matrixFor(parcel, model.centerX);
-      const halfDepth = (parcel.depthCells * GRID.cellSize - 1.5) / 2;
-      for (const prop of layout.props) {
-        const localX = prop.x + model.centerX;
-        const localZ = -halfDepth + prop.z;
-        const local = new Vector3(localX, roofPropY(model.roof, localX, localZ, model.roofY), localZ);
-        const matrix = Matrix.Compose(
-          Vector3.OneReadOnly,
-          Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
-          Vector3.TransformCoordinates(local, buildingMatrix),
-        );
-        const bucket = propMatrices.get(prop.kind);
-        if (bucket) bucket.push(matrix);
-        else propMatrices.set(prop.kind, [matrix]);
-      }
-    }
-    for (const [kind, mesh] of Object.entries(roofProps) as [PropKind, Mesh][]) {
-      const list = propMatrices.get(kind) ?? [];
-      mesh.thinInstanceCount = 0;
-      mesh.setEnabled(visible && list.length > 0);
-      if (list.length === 0) continue;
-      const buffer = new Float32Array(list.length * 16);
-      list.forEach((m, i) => m.copyToArray(buffer, i * 16));
-      mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: count changes every rebuild
-      mesh.thinInstanceCount = list.length;
-    }
-    for (const [kind, mesh] of Object.entries(footDecor) as [FootDecorKind, Mesh][]) {
-      const list = footDecorMatrices.get(kind) ?? [];
-      mesh.thinInstanceCount = 0;
-      mesh.setEnabled(visible && list.length > 0);
-      if (list.length === 0) continue;
-      const buffer = new Float32Array(list.length * 16);
-      list.forEach((m, i) => m.copyToArray(buffer, i * 16));
-      mesh.thinInstanceSetBuffer("matrix", buffer, 16, false);
-      mesh.thinInstanceCount = list.length;
-    }
+    applyDecor();
 
     lastPlaced = placed;
     // Models arrive over several frames and rebuild the city as they land, outside the app's own
@@ -470,6 +506,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     }
     distant.thinInstanceSetBuffer("matrix", distantMatrices, 16, false);
     distant.thinInstanceSetBuffer("color", distantColors, 4, false);
+    // A construction stage running out is what earns a building its clutter, and this is the pass
+    // that notices.
+    if (decorKey(statuses) !== decorSignature) applyDecor();
   }
 
   // The 16 lot models resolve over a few frames, and each used to trigger its own full rebuild --
@@ -493,6 +532,12 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       visible = next;
       applyBuildingVisibility();
       return visible ? lastPlaced : 0;
+    },
+    /** The player's own switch for street furniture and roof clutter. */
+    setDecor(next: boolean) {
+      if (next === decorVisible) return;
+      decorVisible = next;
+      applyDecor();
     },
     /** Draw the city as boxes rather than models -- for when the camera is too high to tell. */
     setDistant(next: boolean) {

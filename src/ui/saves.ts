@@ -81,6 +81,7 @@ export function deleteRunSaveOnDefeat(profile: Pick<ProfileState, "hardcore">, r
 export interface UiSettings {
   grid?: boolean;
   buildings?: boolean;
+  decor?: boolean;
   gridSnap?: boolean;
   fps?: boolean;
   shadows?: boolean;

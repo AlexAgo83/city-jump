@@ -237,6 +237,14 @@ const buildingLightPipeline = () =>
       .filter((mesh) => mesh.name.startsWith("building_") && mesh.isEnabled())
       .every((mesh) => materialIsStandard(mesh.material));
   });
+// Street furniture and roof clutter, counted as instances rather than meshes: the meshes are always
+// there, what changes is how many of each are drawn.
+const decorInstances = () =>
+  page.evaluate(() =>
+    window.cityjump._scene.meshes
+      .filter((mesh) => mesh.name.startsWith("footdecor_") || mesh.name.startsWith("roofprop_"))
+      .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0),
+  );
 const buildingModelCounts = () =>
   page.evaluate(() =>
     Object.fromEntries(
@@ -604,6 +612,29 @@ check(
 await page.locator("#show-shadows").check();
 await page.locator("#show-lights").check();
 check("shadows can be restored", (await shadowState()).sunShadowEnabled);
+// The starter kit is still going up at this point, and a building site wears nothing: push its
+// stage through so there is something decorated to switch off.
+await page.evaluate(() => window.cityjump.measureBuildingStateChange());
+await nextFrame();
+check("details are on by default", await page.locator("#show-decor").isChecked() && (await decorInstances()) > 0, `${await decorInstances()} instances`);
+await page.locator("#show-decor").uncheck();
+await nextFrame();
+check("details can be switched off", (await decorInstances()) === 0, `${await decorInstances()} instances`);
+await reloadApp();
+check("the details setting is remembered across reload", !(await page.locator("#show-decor").isChecked()) && (await decorInstances()) === 0);
+// Off, and still off after the camera has been out past the distance the culler works at: hiding
+// the meshes would not survive that, since it puts them back.
+await page.evaluate(() => window.cityjump.camera(1600, Math.PI / 3.4));
+await nextFrame();
+await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3.4));
+await nextFrame();
+check("details stay off through a trip past the detail culler", (await decorInstances()) === 0, `${await decorInstances()} instances`);
+await page.locator("#show-decor").check();
+// The city that came back from the reload is a building site again -- it was saved as one -- so
+// finish a stage before asking for its clutter.
+await page.evaluate(() => window.cityjump.measureBuildingStateChange());
+await nextFrame();
+check("details come back", (await decorInstances()) > 0, `${await decorInstances()} instances`);
 check("traffic is on by default", await page.locator("#show-traffic").isChecked());
 await page.locator("#show-traffic").uncheck();
 await reloadApp();
@@ -966,6 +997,12 @@ const zoned = await stats();
 const commercialModels = await buildingModelCounts();
 check("a zone can be painted from the toolbar", zoned.zones > 0, `${zoned.zones} cells`);
 check("zoning changes what gets built", JSON.stringify(commercialModels) !== JSON.stringify(unzonedModels));
+// A lot at eighteen per cent of its height is a building site, not an address: no bench, no
+// rooftop plant. The stage running out is what hands it its own.
+const risingDecor = await decorInstances();
+await page.evaluate(() => window.cityjump.measureBuildingStateChange());
+await nextFrame();
+check("a building wears its decorations only once it is finished", (await decorInstances()) > risingDecor, `${risingDecor} while rising, ${await decorInstances()} once finished`);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="no-buildings"]').check();
 check("the Zones view shows the player's zones", await zonesOverlayVisible());

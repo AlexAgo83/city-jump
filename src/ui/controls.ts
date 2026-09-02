@@ -35,6 +35,8 @@ export function bindControls(handlers: {
   onZoneKind(kind: ZoneKind | "clear"): void;
   onZoneRadius(radius: number): void;
   onBuildings(visible: boolean): void;
+  /** Street furniture and roof clutter: everything a building wears once it is finished. */
+  onDecor(visible: boolean): void;
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
@@ -157,6 +159,7 @@ export function bindControls(handlers: {
   const showGrid = document.getElementById("show-grid") as HTMLInputElement;
   const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
   const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
+  const showDecor = document.getElementById("show-decor") as HTMLInputElement;
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
@@ -175,6 +178,11 @@ export function bindControls(handlers: {
 
   showBuildings.addEventListener("change", () => {
     handlers.onBuildings(showBuildings.checked);
+    persistSettings();
+  });
+
+  showDecor.addEventListener("change", () => {
+    handlers.onDecor(showDecor.checked);
     persistSettings();
   });
 
@@ -387,6 +395,7 @@ export function bindControls(handlers: {
     writeSettings({
       grid: showGrid.checked,
       buildings: showBuildings.checked,
+      decor: showDecor.checked,
       gridSnap: gridSnap.checked,
       fps: showFps.checked,
       shadows: showShadows.checked,
@@ -459,6 +468,7 @@ export function bindControls(handlers: {
   setToolbarOpen(false);
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
+  applySetting(showDecor, stored.decor);
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);

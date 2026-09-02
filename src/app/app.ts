@@ -898,6 +898,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       buildingsVisible = visible;
       buildings.setVisible(visible);
     },
+    onDecor(visible) {
+      buildings.setDecor(visible);
+    },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
