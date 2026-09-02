@@ -36,7 +36,7 @@ export const BUILDING_STAGE_SECONDS = 24;
 const MEMORY_SECONDS = 120;
 
 export class BuildingLifecycle {
-  private states = new Map<string, { state: BuildingState; startedAt: number; seenAt: number }>();
+  private states = new Map<string, { state: BuildingState; startedAt: number; seenAt: number; staffed: boolean }>();
   private last: StoredBuildingState[] = [];
 
   constructor(saved: readonly SavedBuildingState[] = []) {
@@ -49,15 +49,17 @@ export class BuildingLifecycle {
    * held rather than merely checked, so a long wave cannot let a rebuild slip through.
    */
   sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS, rebuildPaused = false): BuildingStatus[] {
-    const staffing = new Map(allocateWorkforce(parcels, population).parcels.map((parcel) => [parcel.index, parcel.staffed]));
-    const live = new Map<string, { state: BuildingState; startedAt: number; seenAt: number }>();
+    // Whoever had the shift keeps it: see `allocateWorkforce`. Without this the lot on the line
+    // where the workforce runs out flipped between working and idle every tick.
+    const staffing = new Map(allocateWorkforce(parcels, population, (parcel) => this.states.get(parcelKey(parcel))?.staffed === true).parcels.map((parcel) => [parcel.index, parcel.staffed]));
+    const live = new Map<string, { state: BuildingState; startedAt: number; seenAt: number; staffed: boolean }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
       const previous = this.states.get(key);
       if (!previous) {
         const state = stageSeconds <= 0 ? (staffing.get(index) === false ? "idle" : "working") : "rising";
         const startedAt = now;
-        live.set(key, { state, startedAt, seenAt: now });
+        live.set(key, { state, startedAt, seenAt: now, staffed: staffing.get(index) !== false });
         return status(parcel, state, staffing.get(index) !== false, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
       }
       const held = previous.state === "rebuilding" && rebuildPaused;
@@ -65,7 +67,7 @@ export class BuildingLifecycle {
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
       // A held rebuild keeps restarting its stage, so the work begins when the wave lifts.
       const startedAt = held ? now : state === previous.state ? previous.startedAt : now;
-      live.set(key, { state, startedAt, seenAt: now });
+      live.set(key, { state, startedAt, seenAt: now, staffed: staffing.get(index) !== false });
       return status(parcel, state, staffing.get(index) !== false, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
     // The lots that were not in this tick's list keep their state for a while rather than being
@@ -77,7 +79,7 @@ export class BuildingLifecycle {
   }
 
   rebuild(parcel: BuildingParcel, now: number): boolean {
-    this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now, seenAt: now });
+    this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now, seenAt: now, staffed: this.states.get(parcelKey(parcel))?.staffed === true });
     return true;
   }
 
@@ -85,10 +87,15 @@ export class BuildingLifecycle {
     return this.states.get(parcelKey(parcel))?.state;
   }
 
+  /** Whether the workforce reached this lot on the last pass -- what the guns and the panel read. */
+  staffedOf(parcel: Pick<BuildingParcel, "position">): boolean {
+    return this.states.get(parcelKey(parcel))?.staffed === true;
+  }
+
   replaceWith(saved: readonly SavedBuildingState[]): void {
     this.states.clear();
     this.last = saved.map(([x, z, state, startedAt]) => [x, z, normalizeState(state), startedAt]);
-    for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt, seenAt: startedAt });
+    for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt, seenAt: startedAt, staffed: state === "working" });
   }
 
   toJSON(): SavedBuildingState[] {

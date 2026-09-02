@@ -25,14 +25,32 @@ export function workforceDemand(parcel: WorkforceParcel): number {
   return cells * perCell;
 }
 
-export function allocateWorkforce(parcels: readonly WorkforceParcel[], population: number): Staffing {
+/**
+ * @param wasStaffed Which lots had the workforce a moment ago, if the caller remembers.
+ *
+ * The allocation is re-dealt from scratch every tick, and a lot is staffed whole or not at all, so
+ * the lot sitting on the line where the pool runs out flipped between working and idle as the
+ * population moved by a resident or two. It lands on the barracks by construction: military is
+ * served first and asks for the most, so the cut falls inside it -- which is why a military
+ * district read as flickering black, `idle` being drawn dark.
+ *
+ * Whoever had the shift keeps it, all else equal. No threshold to tune: the same number of lots is
+ * staffed, it is simply the same lots from one tick to the next.
+ */
+export function allocateWorkforce<T extends WorkforceParcel>(parcels: readonly T[], population: number, wasStaffed?: (parcel: T) => boolean): Staffing {
   let available = workforceFromPopulation(population);
   const byKind = Object.fromEntries(PRIORITY.map((kind) => [kind, { demand: 0, staffedDemand: 0, staffed: 0, idle: 0 }])) as Record<Exclude<BuildingKind, "residential">, MutableBucket>;
   const staffed = new Map<number, boolean>();
   const jobs = parcels
     .map((parcel, index) => ({ parcel, index, demand: workforceDemand(parcel) }))
-    .filter((job): job is { parcel: WorkforceParcel & { kind: Exclude<BuildingKind, "residential"> }; index: number; demand: number } => job.demand > 0)
-    .sort((a, b) => PRIORITY.indexOf(a.parcel.kind) - PRIORITY.indexOf(b.parcel.kind) || b.demand - a.demand || a.index - b.index);
+    .filter((job): job is { parcel: T & { kind: Exclude<BuildingKind, "residential"> }; index: number; demand: number } => job.demand > 0)
+    .sort(
+      (a, b) =>
+        PRIORITY.indexOf(a.parcel.kind) - PRIORITY.indexOf(b.parcel.kind) ||
+        Number(wasStaffed?.(b.parcel as T) ?? false) - Number(wasStaffed?.(a.parcel as T) ?? false) ||
+        b.demand - a.demand ||
+        a.index - b.index,
+    );
 
   for (const job of jobs) {
     const bucket = byKind[job.parcel.kind];

@@ -612,7 +612,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // down at the edge of the map -- and a kaiju coming out of the sea wades in rather than
     // walking along the bottom of it.
     kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
-    const batteries = batteriesForParcels(currentParcels, cityEconomy.resources.population);
+    const batteries = batteriesForParcels(currentParcels, cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel));
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
         const launchedAt = seconds + index * 0.22;

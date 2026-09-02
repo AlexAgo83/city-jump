@@ -9,8 +9,12 @@ export interface Battery {
   readonly damage: number;
 }
 
-export function batteriesForParcels(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">[], population?: number): Battery[] {
-  const staffed = population === undefined ? null : new Set(allocateWorkforce(parcels, population).parcels.filter((parcel) => parcel.staffed).map((parcel) => parcel.index));
+/**
+ * @param wasStaffed Passed straight to the allocation, so the guns that fire are the ones the
+ * city says are staffed rather than a second, independent deal of the same workforce.
+ */
+export function batteriesForParcels<T extends Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">>(parcels: readonly T[], population?: number, wasStaffed?: (parcel: T) => boolean): Battery[] {
+  const staffed = population === undefined ? null : new Set(allocateWorkforce(parcels, population, wasStaffed).parcels.filter((parcel) => parcel.staffed).map((parcel) => parcel.index));
   return parcels
     .filter((parcel, index) => parcel.kind === "military" && (!staffed || staffed.has(index)))
     .map((parcel) => ({
