@@ -111,15 +111,107 @@ buildings, traffic — is a derived view, rebuilt after an edit. The simulation 
 Babylon nor the DOM, so the geometry and rules run headless in Vitest, and a test enforces that
 boundary rather than trusting it.
 
+### The loop
+
+Roads make lots, lots make people, people bring the kaiju. Nothing is on a schedule: the next wave
+waits on the city being worth attacking.
+
 ```mermaid
-flowchart LR
-    UI[UI and pointer input] --> APP[Application composition]
-    APP --> SIM[Pure road simulation]
-    APP --> RENDER[Babylon rendering]
-    SIM --> GRAPH[(Road graph)]
-    GRAPH --> RENDER
-    RENDER --> VIEW[Terrain, roads, plots, buildings]
+flowchart TD
+    ROADS[Draw a road: lots appear along its frontage] --> ZONE[Zone them: housing, farms, works, shops, barracks]
+    ZONE --> DEMAND{"Does demand admit one more?<br/>a lot per 24 to 72 residents by kind,<br/>and one more every 20 seconds"}
+    DEMAND -->|not yet| ZONE
+    DEMAND -->|yes| SITE["Construction, 24 seconds<br/>the cost is charged when it starts"]
+    SITE --> WORKING[A working lot: food, materials, trade, housing]
+    WORKING --> POP[("Population")]
+    POP --> DEMAND
+    POP -->|reaches zero| OVER([The run is over])
+    POP --> BAR{"Population past 250 x wave squared?"}
+    BAR -->|not yet| ROADS
+    BAR -->|yes| LANDS(["A kaiju lands -- threat fixed on the spot:<br/>900 + 150 a wave + 9 a resident + 8 a lot"])
+    LANDS --> FIGHT[It flattens a lot every few seconds<br/>staffed barracks in range fire every 4 seconds]
+    FIGHT --> RUBBLE["Rubble: the lot rebuilds itself once the wave is over"]
+    RUBBLE --> POP
+    FIGHT --> DOWN{Is it dead?}
+    DOWN -->|yes| HELD["Wave held: science = 10 x wave,<br/>doubled if it was called early"]
+    DOWN -->|"no, and nothing is left standing"| BREACHED[Wave breached: no science]
+    HELD --> ROADS
+    BREACHED --> ROADS
+    HELD --> LEAVE{Evacuate?}
+    LEAVE -->|yes| PRESTIGE([Science becomes prestige, and the next island])
 ```
+
+### What feeds what
+
+Two meters, two pressures: money decides how much can be **built** before the next wave, the
+workforce decides how much of it **runs**. Neither substitutes for the other.
+
+```mermaid
+flowchart TD
+    MONEY[("Money<br/>what gets built")] --> BUILD[Zoning and building]
+    WORKERS[("Workforce<br/>what actually runs")] --> FARM[Farms]
+    WORKERS --> WORKS[Works]
+    WORKERS --> SHOPS[Shops]
+    WORKERS --> BARRACKS[Barracks]
+    BUILD --> FARM
+    BUILD --> WORKS
+    BUILD --> SHOPS
+    BUILD --> BARRACKS
+    BUILD --> HOMES[Housing]
+    BUILD --> UTIL["Utilities: a producer, the road network, a diffuser"]
+    UTIL -.->|"power and water in range,<br/>when the run rules ask for them"| FARM
+    UTIL -.-> WORKS
+    UTIL -.-> SHOPS
+    UTIL -.-> BARRACKS
+    WORKS -->|materials| SHOPS
+    WORKS -->|materials| BARRACKS
+    FARM -->|food| PEOPLE[("Population")]
+    HOMES -->|"room to grow, and the cap on it"| PEOPLE
+    PEOPLE -->|workers| WORKERS
+    PEOPLE -->|taxes| MONEY
+    SHOPS -->|trade| MONEY
+    BARRACKS -->|defence| WAVE{Wave}
+    PEOPLE -->|"population sets the threat"| WAVE
+    WAVE -->|held| SCIENCE[("Science<br/>only a wave gives it")]
+    WAVE -->|breached| RUINS["Buildings flattened<br/>they rebuild, and do nothing while they do"]
+    RUINS --> PEOPLE
+    SCIENCE -->|carried off the island| PRESTIGE[Prestige: persistent upgrades]
+    PRESTIGE --> ISLAND[The next island, a new run]
+    PEOPLE -->|reaches zero| OVER[Game over]
+```
+
+Food shortage costs the city twice what it is short. Losing homes costs it 40% of the homeless a
+day, not all of them at once. Shops and barracks stop when the works cannot supply them, and only
+restart on a real buffer rather than on the first material back in stock.
+
+### How the workers are dispatched
+
+One global stock, re-dealt from scratch every tick. Nobody is assigned to a building: the whole
+allocation is recomputed from the population of the moment, so a city that loses people does not
+lay anyone off, it simply comes out of the deal differently.
+
+```mermaid
+flowchart TD
+    POP[("Population")] -->|"every resident is a worker"| POOL[("Workforce pool")]
+    LOSS["Famine, or more people than homes"] -->|fewer residents| POP
+    LOTS[Every standing lot that is not housing] --> ORDER[["Sorted: barracks, then farms,<br/>then works, then shops<br/>-- biggest demand first"]]
+    ORDER --> ASK{"Is there enough left for the whole lot?<br/>cells x 3 barracks, 1 farm, 6 works, 4 shop"}
+    POOL --> ASK
+    ASK -->|yes| ON["Staffed: working"]
+    ASK -->|"no -- it is skipped, and a smaller lot behind it can still fit"| OFF["Unstaffed: idle, 'No workers'"]
+    ON --> DOES[Produces, earns, and fires during a wave]
+    OFF --> NOT[Produces nothing, earns nothing, does not fire]
+    HOMES[Housing] -->|asks for nobody| FREE[Never queued: always working,<br/>and it is what the pool lives in]
+    SITE["Under construction, or rebuilding after a wave"] --> HOLD[Still in the queue: it holds its share<br/>of the pool while it is useless]
+    DOES --> POP
+    FREE --> POP
+```
+
+A flattened lot is not deleted: it keeps its place, is paid for again on the spot, and its rebuild
+is held until the wave is over — so the hole in the economy is exactly where the kaiju walked, and
+it lasts a stage rather than for ever.
+
+### The code behind it
 
 | Path | Responsibility |
 | --- | --- |
