@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "./wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, quietSecondsLeft, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "./wave";
 
 describe("waves", () => {
   it("summons nothing until the city is worth attacking", () => {
@@ -19,6 +19,23 @@ describe("waves", () => {
     const landed = summonIfDue(createWaveClock(), 1, bar, 1234);
     expect(landed.active).toEqual({ startedAtSeconds: 0, threat: 1234, hitPoints: 1234 });
     expect(residentsUntilWave(1, bar)).toBe(0);
+  });
+
+  it("leaves the island alone for a while after a wave, however big the city is", () => {
+    const huge = waveAtPopulation(9) * 10;
+    let clock = scheduleNextWave({ elapsedSeconds: 500, quietUntilSeconds: 0, active: { startedAtSeconds: 400, threat: 900, hitPoints: 0 } });
+    expect(quietSecondsLeft(clock)).toBe(WAVE_STARTING_VALUES.peaceSeconds);
+
+    clock = summonIfDue(advanceWaveClock(clock, WAVE_STARTING_VALUES.peaceSeconds - 1), 2, huge, 1000);
+    expect(clock.active).toBeNull();
+
+    clock = summonIfDue(advanceWaveClock(clock, 1), 2, huge, 1000);
+    expect(clock.active).not.toBeNull();
+  });
+
+  it("still comes when the player calls it, quiet or not", () => {
+    const clock = scheduleNextWave({ elapsedSeconds: 500, quietUntilSeconds: 0, active: { startedAtSeconds: 400, threat: 900, hitPoints: 0 } });
+    expect(callWaveNow(clock, 1000).active).not.toBeNull();
   });
 
   it("raises the bar every wave, so holding one buys room rather than a delay", () => {

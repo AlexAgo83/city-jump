@@ -227,7 +227,14 @@ function readWaveClock(value: unknown): WaveClock | null {
   if (!isRecord(value) || !Number.isFinite(value.elapsedSeconds)) return null;
   const active = value.active;
   if (active !== null && active !== undefined && (!isRecord(active) || !Number.isFinite(active.startedAtSeconds) || !Number.isFinite(active.threat) || !Number.isFinite(active.hitPoints))) return null;
-  return { elapsedSeconds: value.elapsedSeconds as number, active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null };
+  const quiet = value.quietUntilSeconds;
+  if (quiet !== undefined && !Number.isFinite(quiet)) return null;
+  return {
+    elapsedSeconds: value.elapsedSeconds as number,
+    // Absent on a save from before the island was owed any peace: it simply gets none.
+    quietUntilSeconds: quiet === undefined ? 0 : quiet as number,
+    active: active && isRecord(active) ? { startedAtSeconds: active.startedAtSeconds as number, threat: active.threat as number, hitPoints: active.hitPoints as number } : null,
+  };
 }
 
 function readResources(value: unknown): CityResources | null {
