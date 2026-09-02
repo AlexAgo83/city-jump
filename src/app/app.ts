@@ -383,10 +383,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   const scheduleAutosave = (): void => {
     window.clearTimeout(autosaveTimer);
-    // Not while a kaiju is on the island: the save cannot describe one, so it must not claim to.
-    if (waveClock.active) return;
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock, simSeconds)) || autosaveRefusedShown) return;
+      // The wave itself is not written -- nothing about a kaiju can be, and a reload puts the city
+      // back to just before one anyway. The city is. Refusing to save at all while one walked meant
+      // a wave that lasted, or a city big enough to summon the next one on the spot, stopped the
+      // autosave for good: a refresh then came back to whatever was saved before the attack, with
+      // the buildings, the money and the rubble of a much younger city.
+      const saved = { ...waveClock, active: null };
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, saved, simSeconds)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -589,7 +593,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       waveVerdict = null;
     }
     // Only once the last verdict has cleared the screen.
-    waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+    // Only while the clock runs. A kaiju summoned during a pause landed on a city that was not
+    // playing, and stayed pending for as long as the player left the game stopped.
+    if (dt > 0) waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
       kaiju.hide();

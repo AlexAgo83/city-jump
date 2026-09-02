@@ -2074,8 +2074,24 @@ await page.evaluate(() => {
 });
 await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 10_000 });
 await page.evaluate(() => window.cityjump.setMoney(0));
-const beforeWave = await stats();
+// The city is saved while a kaiju is on it. Refusing to -- which is what "the save cannot
+// describe a wave" used to mean -- stopped the autosave for as long as the attack lasted, and a
+// city big enough to summon the next one on the spot never saved again: a refresh came back to a
+// much younger city, with a kaiju walking towards buildings that were no longer there.
+const lotsNow = () => page.evaluate(() => Object.values(window.cityjump.stats().buildingStates).reduce((sum, count) => sum + count, 0));
+const beforeWaveLots = await lotsNow();
 await page.evaluate(() => window.cityjump.forceWave());
+await realTime(2400);
+const savedDuringWave = await page.evaluate(() => {
+  const city = JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}");
+  return { lots: (city.buildingStates ?? []).length, wave: city.waveClock?.active ?? null };
+});
+check(
+  "the city is autosaved while a kaiju is on it, without the wave",
+  savedDuringWave.lots >= beforeWaveLots * 0.9 && savedDuringWave.wave === null,
+  JSON.stringify({ ...savedDuringWave, beforeWaveLots }),
+);
+const beforeWave = await stats();
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
 const liveWaveMarkers = await waveMarkersVisible();
 check("a live wave marks the landing edge and target building", liveWaveMarkers.edge && liveWaveMarkers.target, JSON.stringify(liveWaveMarkers));
