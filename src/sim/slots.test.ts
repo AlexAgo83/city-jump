@@ -294,4 +294,21 @@ describe("military frontage", () => {
     const parcels = buildingParcels(buildableCells(g, zones), zones);
     expect(parcelsForDemand(parcels, 12, 20)).toHaveLength(1);
   });
+
+  it("keeps a standing lot until the city is a clear step short of it", () => {
+    const g = new RoadGraph();
+    straight(g, -200, 0, 200, 0, "military");
+    const zones = new Zones();
+    zones.paintLots(lotsInRect(buildableCells(g), -200, -40, 200, 40), "military");
+    const parcels = buildingParcels(buildableCells(g, zones), zones);
+    const standing = () => true;
+
+    // Two lots at 25 residents; one at 24, since the limit is one lot per 24.
+    expect(parcelsForDemand(parcels, 25, 200)).toHaveLength(2);
+    expect(parcelsForDemand(parcels, 24, 200)).toHaveLength(1);
+    // A lot already built survives the wobble that would have taken it, and goes when the city
+    // really has shrunk.
+    expect(parcelsForDemand(parcels, 24, 200, standing)).toHaveLength(2);
+    expect(parcelsForDemand(parcels, 6, 200, standing)).toHaveLength(1);
+  });
 });

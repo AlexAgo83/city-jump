@@ -17,9 +17,20 @@ export interface BuildingStatus {
 }
 
 export const BUILDING_STAGE_SECONDS = 24;
+/**
+ * How long a lot that is no longer standing keeps its state.
+ *
+ * The demand cap is a lot per so many residents, so it crosses an integer whenever the population
+ * wobbles and the marginal lot leaves the list for a tick. Forgetting it there made it come back
+ * as a brand new parcel -- a fresh construction stage, restarted before it could ever finish,
+ * which is what read on screen as buildings flickering between "Under construction" and
+ * "No workers". Long enough to outlast that wobble, short enough that a lot the player actually
+ * bulldozed and re-zoned builds itself again.
+ */
+const MEMORY_SECONDS = 120;
 
 export class BuildingLifecycle {
-  private readonly states = new Map<string, { state: BuildingState; startedAt: number }>();
+  private states = new Map<string, { state: BuildingState; startedAt: number; seenAt: number }>();
   private last: StoredBuildingState[] = [];
 
   constructor(saved: readonly SavedBuildingState[] = []) {
@@ -33,14 +44,14 @@ export class BuildingLifecycle {
    */
   sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS, rebuildPaused = false): BuildingStatus[] {
     const staffing = new Map(allocateWorkforce(parcels, population).parcels.map((parcel) => [parcel.index, parcel.staffed]));
-    const live = new Map<string, { state: BuildingState; startedAt: number }>();
+    const live = new Map<string, { state: BuildingState; startedAt: number; seenAt: number }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
       const previous = this.states.get(key);
       if (!previous) {
         const state = stageSeconds <= 0 ? (staffing.get(index) === false ? "idle" : "working") : "rising";
         const startedAt = now;
-        live.set(key, { state, startedAt });
+        live.set(key, { state, startedAt, seenAt: now });
         return status(parcel, state, startedAt, now, stageSeconds, state === "rising" ? "construction" : state === "idle" ? "workers" : undefined, true);
       }
       const held = previous.state === "rebuilding" && rebuildPaused;
@@ -48,17 +59,19 @@ export class BuildingLifecycle {
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
       // A held rebuild keeps restarting its stage, so the work begins when the wave lifts.
       const startedAt = held ? now : state === previous.state ? previous.startedAt : now;
-      live.set(key, { state, startedAt });
+      live.set(key, { state, startedAt, seenAt: now });
       return status(parcel, state, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
-    this.states.clear();
-    for (const [key, state] of live) this.states.set(key, state);
+    // The lots that were not in this tick's list keep their state for a while rather than being
+    // dropped: see MEMORY_SECONDS.
+    for (const [key, entry] of this.states) if (!live.has(key) && now - entry.seenAt < MEMORY_SECONDS) live.set(key, entry);
+    this.states = live;
     this.last = statuses.map(({ parcel, state }) => [round(parcel.position.x), round(parcel.position.z), state, this.states.get(parcelKey(parcel))!.startedAt]);
     return statuses;
   }
 
   rebuild(parcel: BuildingParcel, now: number): boolean {
-    this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now });
+    this.states.set(parcelKey(parcel), { state: "rebuilding", startedAt: now, seenAt: now });
     return true;
   }
 
@@ -69,7 +82,7 @@ export class BuildingLifecycle {
   replaceWith(saved: readonly SavedBuildingState[]): void {
     this.states.clear();
     this.last = saved.map(([x, z, state, startedAt]) => [x, z, normalizeState(state), startedAt]);
-    for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt });
+    for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt, seenAt: startedAt });
   }
 
   toJSON(): SavedBuildingState[] {

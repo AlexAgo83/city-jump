@@ -25,6 +25,26 @@ describe("building lifecycle", () => {
     expect(lifecycle.sync(parcels, 48, 10 + BUILDING_STAGE_SECONDS).map((status) => status.state)).toEqual(["working", "working", "idle"]);
   });
 
+  it("keeps a lot's state through a tick the demand cap left it out of", () => {
+    const lifecycle = new BuildingLifecycle();
+    const parcels = [parcel("residential", 0, 2, 2)];
+    lifecycle.sync(parcels, 48, 10);
+    expect(lifecycle.sync(parcels, 48, 10 + BUILDING_STAGE_SECONDS).map((status) => status.state)).toEqual(["working"]);
+
+    lifecycle.sync([], 48, 50); // the population wobbled and the lot fell outside the cap
+    expect(lifecycle.sync(parcels, 48, 60).map((status) => status.state)).toEqual(["working"]);
+  });
+
+  it("forgets a lot that has been gone long enough to have been bulldozed", () => {
+    const lifecycle = new BuildingLifecycle();
+    const parcels = [parcel("residential", 0, 2, 2)];
+    lifecycle.sync(parcels, 48, 10);
+    lifecycle.sync(parcels, 48, 10 + BUILDING_STAGE_SECONDS);
+
+    lifecycle.sync([], 48, 200);
+    expect(lifecycle.sync(parcels, 48, 400).map((status) => status.state)).toEqual(["rising"]);
+  });
+
   it("reports live construction progress", () => {
     const lifecycle = new BuildingLifecycle();
     const [started] = lifecycle.sync([parcel("residential", 0)], 12, 10);

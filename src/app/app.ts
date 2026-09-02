@@ -137,7 +137,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = buildableCells(graph, zones);
-      currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
+      currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
       syncBuildings();
     });
     let junctions: ReturnType<typeof allJunctions>;
@@ -164,6 +164,36 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
 
+  /**
+   * The lot layout on its own, for when the only thing that changed is which lots are admitted.
+   *
+   * A house going up moves no road, no signal, no car and no tree, and a full rebuild spends about
+   * 480ms of its 500ms on exactly those (`api.measureCosts()` on a 561-building city: ground 231,
+   * parcels 103, roads 82, signals 27, traffic 16 -- buildings themselves 10). Here the ground is
+   * reconformed over the lots that appeared or left rather than over the whole map.
+   */
+  const repackParcels = (): void => {
+    const before = new Map(currentParcels.map((parcel) => [parcelId(parcel), parcel]));
+    currentBuildableCells = buildableCells(graph, zones);
+    currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
+    syncBuildings();
+    // `delete` answers whether the lot was already standing, so one pass leaves the arrivals in
+    // `changed` and the departures in `before`.
+    const changed = currentParcels.filter((parcel) => !before.delete(parcelId(parcel))).concat([...before.values()]);
+    if (changed.length) {
+      // One union box, not one call per lot: `ground.refresh` recomputes the normals of the whole
+      // grid whatever bounds it is given, so its cost is per call, not per square metre.
+      const dirty = changed.map(parcelBounds).reduce((a, b) => ({ minX: Math.min(a.minX, b.minX), maxX: Math.max(a.maxX, b.maxX), minZ: Math.min(a.minZ, b.minZ), maxZ: Math.max(a.maxZ, b.maxZ) }));
+      heightmap.conformToRoads(graph, currentParcels, dirty, allJunctions(graph));
+      ground.refresh(dirty);
+    }
+    buildings.rebuild(currentBuildableCells, currentBuildingStatuses);
+    zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells());
+    invalidateShadows();
+    detail.invalidate();
+    scheduleAutosave();
+  };
+
   // No longer chosen in the UI, but still carried by saves and honoured on load, so a city built
   // on the rugged map comes back on the rugged map.
   let terrainPreset = "rolling";
@@ -184,14 +214,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
   const scheduleBuildingRebuild = (): void => {
-    // Not while a kaiju is walking. This schedules a whole-world rebuild -- terrain, trees, roads,
-    // lights, signals, traffic -- and a wave destroys a building every few seconds, so the city
-    // was rebuilding itself from scratch over and over while the player watched. The destruction
-    // itself already repaints its own region; the parcel re-packing can wait for the wave to end.
+    // Not while a kaiju is walking. A wave destroys a building every few seconds, and the
+    // destruction already repaints its own region; the parcel re-packing can wait for the wave to
+    // end rather than run on every hit.
     if (waveClock.active) return;
     window.clearTimeout(buildingRebuildTimer);
-    // ponytail: debounce global parcel packing; replace with dirty parcel packing if this delay is visible.
-    buildingRebuildTimer = window.setTimeout(() => rebuild(), 250);
+    buildingRebuildTimer = window.setTimeout(repackParcels, 250);
   };
   let simSeconds = 0;
   let demandStep = 0;
@@ -284,7 +312,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       const cap = admittedCap();
       if (cap !== lastAdmittedCap) {
         lastAdmittedCap = cap;
-        rebuild();
+        repackParcels();
       }
     }
     // Five minutes of real time for a full day and night at normal speed. At a quarter of an hour
@@ -1134,6 +1162,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     return graph
       .allNodes()
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
+  }
+
+  /** A lot's identity across re-packs: where it stands. */
+  function parcelId(parcel: BuildingParcel): string {
+    return `${Math.round(parcel.position.x)}:${Math.round(parcel.position.z)}`;
   }
 
   function parcelBounds(parcel: BuildingParcel): TerrainBounds {

@@ -208,9 +208,24 @@ export function buildingParcels(cells: readonly BuildableCell[], zones?: Zones):
 }
 
 /** Zoned land is intent, not an instant building: demand admits one lot every 20 simulated seconds. */
-export function parcelsForDemand(parcels: readonly BuildingParcel[], population: number, seconds: number): BuildingParcel[] {
+/**
+ * Residents a standing lot is carried past before it is given up.
+ *
+ * Population moves by a few residents every tick and the steepest cap is one lot per 24, so the
+ * limit crossed an integer constantly and the marginal lot left the list and came back -- starting
+ * a new construction stage each time, which is what read on screen as a building flickering
+ * between "Under construction" and "No workers". Half a lot's worth of deadband: a lot is admitted
+ * the moment the city can carry it, and demolished only once the city is a clear step short.
+ */
+const DEMAND_HYSTERESIS = 12;
+
+/**
+ * @param standing Whether this lot is already built, so it can be judged on the wider limit.
+ */
+export function parcelsForDemand(parcels: readonly BuildingParcel[], population: number, seconds: number, standing?: (parcel: BuildingParcel) => boolean): BuildingParcel[] {
   const admitted = Math.floor(Math.max(0, seconds) / 20) + 1;
   const limits = parcelDemandLimits(population);
+  const keep = parcelDemandLimits(population + DEMAND_HYSTERESIS);
   const used: Record<BuildingKind, number> = { residential: 0, agricultural: 0, commercial: 0, industrial: 0, military: 0 };
   return parcels.filter((parcel) => {
     // No zone, no building. A road is a road: drawing one used to fill both its frontages by
@@ -218,7 +233,8 @@ export function parcelsForDemand(parcels: readonly BuildingParcel[], population:
     // all -- so the city built itself and the player's zoning decided almost nothing.
     if (!parcel.cells.some((cell) => cell.zone)) return false;
     used[parcel.kind] += 1;
-    return used[parcel.kind] <= Math.min(limits[parcel.kind], admitted);
+    const limit = standing?.(parcel) ? keep[parcel.kind] : limits[parcel.kind];
+    return used[parcel.kind] <= Math.min(limit, admitted);
   });
 }
 
