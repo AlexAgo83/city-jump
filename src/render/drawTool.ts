@@ -73,6 +73,7 @@ export interface DrawTool {
   setSprayRadius(radius: number): void;
   setZoneKind(kind: ZoneKind | "clear"): void;
   setZoneRadius(radius: number): void;
+  paintZoneAt(x: number, z: number, radius: number, kind: ZoneKind | null): void;
   setUtility(kind: UtilityKind, role: UtilityRole): void;
 }
 
@@ -772,6 +773,11 @@ export function createDrawTool(
     setZoneKind(next) {
       zoneKind = next;
       resetDrawing();
+    },
+    /** The same paint the brush commits, addressable from a script. */
+    paintZoneAt(x: number, z: number, radius: number, kind: ZoneKind | null) {
+      zones.paint(x, z, radius, kind);
+      onCommitted(expandBounds({ minX: x - radius, maxX: x + radius, minZ: z - radius, maxZ: z + radius }, TERRAIN_DIRTY_PAD));
     },
     setZoneRadius(next) {
       zoneRadius = next;

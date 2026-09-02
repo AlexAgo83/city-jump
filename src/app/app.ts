@@ -20,7 +20,7 @@ import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "
 import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
-import { Zones } from "../sim/zones";
+import { Zones, type ZoneKind } from "../sim/zones";
 import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "../sim/batteries";
 import { buildingNeeds } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
@@ -629,6 +629,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
        * footprint means every zone cell it touches carries the kind, and the overlay fills it.
        */
       paint(x, z, radius, kind) {
+        // Paint the ground first. Stamping only the lots in `currentBuildableCells` meant a stroke
+        // did nothing at all whenever that list was a rebuild behind -- which it is after every
+        // road, since a road only repaints its own region. The ground carries the zone regardless;
+        // the lot stamps below just make sure a lot the stroke clipped is fully covered.
+        zones.paint(x, z, radius, kind);
         for (const cell of currentBuildableCells) {
           const centre = buildableCellCentre(cell);
           if (Math.hypot(centre.x - x, centre.z - z) > radius) continue;
@@ -1051,6 +1056,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       updateRunHud();
       renderGameplayRules();
       debugReset?.();
+    },
+    /** Paint a zone from a script, so zoning can be checked without driving the pointer. */
+    zone(x: number, z: number, radius: number, kind: ZoneKind | null) {
+      tool.paintZoneAt(x, z, radius, kind);
+      return currentBuildableCells.filter((cell) => cell.zone).length;
     },
     buildingPoint: () => buildings.buildingPoint(),
     vehiclePoint: () => traffic.vehiclePoint(),
