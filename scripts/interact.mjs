@@ -1995,13 +1995,33 @@ check(
   `${reloaded.buildings} vs ${loaded.buildings}`,
 );
 
+// Paint a district first, so the reload below has zoning to lose.
+await page.evaluate(() => {
+  const graph = window.cityjump._graph;
+  const road = graph.allSegments().find((segment) => !segment.type.startsWith("highway"));
+  const at = graph.pointAt(road.id, road.length * 0.5).position;
+  window.cityjump.zone(at.x, at.z, 400, "residential");
+});
 await realTime(2400); // let the debounced autosave land
 const beforeReload = await stats();
+// Zoned lots are counted through the brush itself: painting nothing anywhere answers with how
+// many of the city's lots currently carry a zone.
+const zonedLots = () => page.evaluate(() => window.cityjump.zone(0, 0, 0, null));
+const zonedBeforeReload = await zonedLots();
 await reloadApp();
 check(
   "a page reload resumes the autosaved city",
   (await stats()).segments === beforeReload.segments,
   `${(await stats()).segments}/${beforeReload.segments}`,
+);
+// A replayed city does not cut itself into exactly the same lots -- they slide by about a metre
+// along a street -- and the zoning is re-laid onto the ones it did cut. Without that, one painted
+// lot in seven came back blank, which is what a district full of holes was.
+const zonedAfterReload = await zonedLots();
+check(
+  "a reload keeps the zoning on the city it comes back with",
+  zonedBeforeReload > 0 && zonedAfterReload >= zonedBeforeReload * 0.9,
+  `${zonedAfterReload}/${zonedBeforeReload} zoned lots`,
 );
 
 // A city saved by an older build has to keep loading. Take the current autosave, strip the

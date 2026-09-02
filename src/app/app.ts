@@ -22,7 +22,7 @@ import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones, type ZoneKind } from "../sim/zones";
 import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "../sim/batteries";
-import { buildingNeeds } from "../sim/buildingKinds";
+import { buildingNeeds, BUILDING_KIND_COLOR } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
@@ -195,7 +195,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // so the plan is visible; `setTimeRate` asks for this pass again the moment the clock starts,
     // and that is when the city answers it. Bulldozing is not affected: it takes its lot out of
     // the list itself rather than waiting for a re-pack.
-    if (simPaused) {
+    // Same rule for a wave as for a pause: the lots stay as they are while a kaiju walks the city
+    // -- it is destroying them, this is no moment to re-pack -- but the paint still has to land on
+    // the map. The buildable cells carry the zoning, and this pass is the only thing that
+    // re-solves them: without it, zoning during an attack changed nothing on screen until the
+    // wave was over.
+    if (simPaused || waveClock.active) {
       // The picture still has to tell the truth about the lots that are there: a bulldozed
       // building takes itself out of the list, and nothing else would repaint after it.
       buildings.rebuild(currentBuildableCells, currentBuildingStatuses);
@@ -244,10 +249,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
   const scheduleBuildingRebuild = (): void => {
-    // Not while a kaiju is walking. A wave destroys a building every few seconds, and the
-    // destruction already repaints its own region; the parcel re-packing can wait for the wave to
-    // end rather than run on every hit.
-    if (waveClock.active) return;
+    // A wave destroys a building every few seconds and the destruction repaints its own region;
+    // the re-pack itself is held for the duration inside `repackParcels`, which still repaints
+    // what the player painted.
     window.clearTimeout(buildingRebuildTimer);
     buildingRebuildTimer = window.setTimeout(repackParcels, 250);
   };
@@ -604,7 +608,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const position = kaijuAssault?.position ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds);
     const next = kaijuAssault?.target ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds + 0.1);
     waveMarkers.show(kaijuPlan);
-    kaiju.show(v3(position.x, heightmap.heightAt(position.x, position.z), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
+    // Never below the waterline: offshore, the ground it is standing on is the sea floor -- 136 m
+    // down at the edge of the map -- and a kaiju coming out of the sea wades in rather than
+    // walking along the bottom of it.
+    kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
     const batteries = batteriesForParcels(currentParcels, cityEconomy.resources.population);
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
@@ -965,6 +972,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     updateRunHud();
     renderGameplayRules();
     renderUpgradeWeb();
+    // The replay does not cut the city into exactly the same lots, so the zoning is moved onto the
+    // ones it did cut before anything is drawn from it. See `Zones.snapTo`.
+    const relaid = zones.snapTo(solveBuildableCells());
+    if (relaid) showAlert(`${relaid} zoned lots were re-laid onto the city as it came back.`);
     simSeconds = city.elapsed ?? 0;
     simDay = 1;
     setClockHour(city.hour);
@@ -1119,6 +1130,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     /** Paint a zone from a script, so zoning can be checked without driving the pointer. */
     zone(x: number, z: number, radius: number, kind: ZoneKind | null) {
+      // The toolbar turns its "clear" button into a null before it gets here; a script calling
+      // this directly should not be able to paint a zone kind the overlay has no colour for.
+      if (kind !== null && !(kind in BUILDING_KIND_COLOR)) throw new Error(`unknown zone kind: ${kind}`);
       tool.paintZoneAt(x, z, radius, kind);
       return currentBuildableCells.filter((cell) => cell.zone).length;
     },

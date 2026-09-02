@@ -70,3 +70,42 @@ describe("zones", () => {
     expect(buildingParcels(buildableCells(graph, zones), zones)).toEqual(unzoned);
   });
 });
+
+describe("zones after a replay", () => {
+  const lotAt = (x: number, z: number) => ({
+    corners: [
+      { x: x - 4, z: z - 4 },
+      { x: x + 4, z: z - 4 },
+      { x: x + 4, z: z + 4 },
+      { x: x - 4, z: z + 4 },
+    ],
+  });
+
+  it("follows a lot that came back a metre from where it was painted", () => {
+    const zones = new Zones();
+    zones.paintLots([lotAt(100, 200)], "commercial");
+    expect(zones.ofLot(lotAt(100, 200))).toBe("commercial");
+
+    // The same street, replayed: its lots have slid along it, far enough to fall in the next
+    // four-metre bucket -- which is the one lot in seven that lost its zoning on a reload.
+    const replayed = [lotAt(102.5, 200)];
+    expect(zones.ofLot(replayed[0]!)).toBeUndefined();
+    expect(zones.snapTo(replayed)).toBe(1);
+    expect(zones.ofLot(replayed[0]!)).toBe("commercial");
+  });
+
+  it("leaves a zone where it is when the nearest lot is a different lot", () => {
+    const zones = new Zones();
+    zones.paintLots([lotAt(100, 200)], "industrial");
+    // Lots sit eight metres apart: the neighbour is not the lot that was painted.
+    expect(zones.snapTo([lotAt(108, 200)])).toBe(0);
+    expect(zones.ofLot(lotAt(108, 200))).toBeUndefined();
+  });
+
+  it("keeps a zone whose own lot is still there", () => {
+    const zones = new Zones();
+    zones.paintLots([lotAt(100, 200)], "residential");
+    expect(zones.snapTo([lotAt(100, 200), lotAt(108, 200)])).toBe(0);
+    expect(zones.ofLot(lotAt(100, 200))).toBe("residential");
+  });
+});
