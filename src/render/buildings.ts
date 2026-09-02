@@ -373,7 +373,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
       const colors = new Float32Array(chosen.length * 4);
       for (const [i, status] of chosen.entries()) {
-        colors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
+        colors.set([...buildingModelColor(status.parcel, status), 1], i * 4);
       }
       model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
       model.mesh.thinInstanceCount = chosen.length;
@@ -456,7 +456,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       const colors = new Float32Array(chosen.length * 4);
       for (const [i, status] of chosen.entries()) {
         matrixFor(status.parcel, model.centerX, status).copyToArray(matrices, i * 16);
-        colors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
+        colors.set([...buildingModelColor(status.parcel, status), 1], i * 4);
       }
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
       model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
@@ -945,6 +945,17 @@ const WORKS_COLORS: Partial<Record<BuildingKind, [number, number, number]>> = {
 
 function distantColor(parcel: BuildingParcel): [number, number, number] {
   return WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
+}
+
+/**
+ * The same states on a real model rather than on a stand-in box. The state colours are per-instance
+ * vertex colours, and those multiply the model's own texture, so `working` -- the one state that is
+ * not saying anything -- has to multiply by nothing. `buildingStateColor` answers a wall colour
+ * there, which is right for the untextured boxes and halved the brightness of every finished
+ * building that was drawn as a model.
+ */
+export function buildingModelColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
+  return status?.state === "working" ? [1, 1, 1] : buildingStateColor(parcel, status);
 }
 
 export function buildingStateColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {

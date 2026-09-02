@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BuildableCell, BuildingParcel } from "../sim/slots";
-import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingStateColor, roofObjectLimit, roofPropY } from "./buildings";
+import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -110,6 +110,13 @@ describe("roof props", () => {
     expect(buildingStateColor(p, { state: "rising" })).not.toEqual(buildingStateColor(p, { state: "working" }));
     expect(buildingStateColor(p, { state: "idle" })).not.toEqual(buildingStateColor(p, { state: "working" }));
     expect(buildingStateColor(p, { state: "rebuilding" })).not.toEqual(buildingStateColor(p, { state: "working" }));
+  });
+
+  it("leaves a working model's own texture alone, and still colours its stand-in box", () => {
+    const p = parcel(0, 0, 2, 2);
+    expect(buildingModelColor(p, { state: "working" })).toEqual([1, 1, 1]);
+    expect(buildingStateColor(p, { state: "working" })).not.toEqual([1, 1, 1]);
+    expect(buildingModelColor(p, { state: "idle" })).toEqual(buildingStateColor(p, { state: "idle" }));
   });
 
   it("uses distinct idle colours for missing utilities", () => {
