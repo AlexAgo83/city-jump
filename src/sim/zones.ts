@@ -19,6 +19,8 @@ export interface ZonableLot {
  * itself, the question "what is this lot zoned for" has one answer and no geometry in the way.
  */
 export class Zones {
+  /** Bumped by every change, so a caller can tell whether what it derived from the zoning holds. */
+  revision = 0;
   private readonly lots = new Map<string, ZoneKind>();
 
   constructor(saved: readonly SavedZone[] = []) {
@@ -27,6 +29,7 @@ export class Zones {
 
   /** Zones the given lots, or clears them when the kind is null. */
   paintLots(lots: Iterable<ZonableLot>, kind: ZoneKind | null): void {
+    this.revision++;
     for (const lot of lots) {
       const id = lotKey(lot);
       if (kind) this.lots.set(id, kind);
@@ -45,6 +48,7 @@ export class Zones {
   }
 
   replaceWith(saved: readonly SavedZone[]): void {
+    this.revision++;
     this.lots.clear();
     for (const [x, z, kind] of saved) {
       const migrated = migrateZoneKind(kind);

@@ -114,6 +114,11 @@ function smoothHeights(heights: number[]): number[] {
 }
 
 export class RoadGraph {
+  /**
+   * Bumped by every change to the roads, so a caller can tell whether an answer it derived from
+   * the graph -- the buildable cells, above all, which cost 65ms to solve -- is still current.
+   */
+  revision = 0;
   private readonly nodes = new Map<NodeId, RoadNode>();
   private readonly segments = new Map<SegmentId, Segment>();
   private nextNodeId = 1;
@@ -128,6 +133,7 @@ export class RoadGraph {
   addNodeAt(pos: Vec3): NodeId {
     const id = this.nextNodeId++;
     this.nodes.set(id, { id, pos, segments: new Set(), roundabout: false, roundaboutLanes: 1 });
+    this.revision++;
     return id;
   }
 
@@ -165,11 +171,13 @@ export class RoadGraph {
     this.segments.set(id, { id, a, b, control, type, streetId, utilities, ...built, ...(elevated ? { elevated } : {}) });
     this.node(a).segments.add(id);
     this.node(b).segments.add(id);
+    this.revision++;
     return id;
   }
 
   setSegmentUtilities(id: SegmentId, utilities: number): void {
     this.segment(id).utilities = utilities;
+    this.revision++;
   }
 
   /** Returns false when the node cannot carry one, which the caller reports to the player. */
@@ -178,12 +186,14 @@ export class RoadGraph {
     if (on && node.segments.size < 2) return false;
     node.roundabout = on;
     if (on) node.roundaboutLanes = lanes;
+    this.revision++;
     return true;
   }
 
   removeSegment(id: SegmentId): void {
     const seg = this.segments.get(id);
     if (!seg) return;
+    this.revision++;
     this.segments.delete(id);
     for (const nodeId of [seg.a, seg.b]) {
       const node = this.nodes.get(nodeId);

@@ -136,7 +136,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // Solving the parcel layout is the most expensive step in here, so it happens once and both
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
-      currentBuildableCells = buildableCells(graph, zones);
+      currentBuildableCells = solveBuildableCells();
       currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
       syncBuildings();
     });
@@ -165,6 +165,20 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
 
   /**
+   * The buildable cells, re-solved only when the roads, the zoning or the ground have moved.
+   *
+   * Walking every block of every segment costs ~65ms on a city-sized graph, and it is the bulk of
+   * a re-pack -- but a demand tick, which is what triggers most of them, changes none of its three
+   * inputs, so it was 65ms spent to get the same array back.
+   */
+  let cachedCells: { key: string; cells: readonly BuildableCell[] } | null = null;
+  const solveBuildableCells = (): readonly BuildableCell[] => {
+    const key = `${graph.revision}:${zones.revision}:${heightmap.generation}`;
+    if (cachedCells?.key !== key) cachedCells = { key, cells: buildableCells(graph, zones) };
+    return cachedCells.cells;
+  };
+
+  /**
    * The lot layout on its own, for when the only thing that changed is which lots are admitted.
    *
    * A house going up moves no road, no signal, no car and no tree, and a full rebuild spends about
@@ -174,7 +188,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
    */
   const repackParcels = (): void => {
     const before = new Map(currentParcels.map((parcel) => [parcelId(parcel), parcel]));
-    currentBuildableCells = buildableCells(graph, zones);
+    currentBuildableCells = solveBuildableCells();
     currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
     syncBuildings();
     // `delete` answers whether the lot was already standing, so one pass leaves the arrivals in

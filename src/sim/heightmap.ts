@@ -61,6 +61,15 @@ export class Heightmap implements Terrain {
   /** Distance from the nearest road that claimed each cell, so the nearest one wins. */
   private readonly claim: Float32Array;
 
+  /**
+   * Bumped when the ground is generated afresh, so a caller can tell whether what it sampled from
+   * it still holds -- a buildable cell records its corners' height. The road cuts and building
+   * pads `conformToRoads` carves on top are not counted here: they are derived from the graph and
+   * the parcels, which carry their own revisions, and a pad is levelled to the height its own
+   * parcel was given rather than to a new one.
+   */
+  generation = 0;
+
   constructor(options: HeightmapOptions) {
     this.size = options.size;
     this.cell = options.cell;
@@ -74,6 +83,7 @@ export class Heightmap implements Terrain {
   }
 
   regenerate(generator: (x: number, z: number) => number): void {
+    this.generation++;
     for (let iz = 0; iz < this.count; iz++) {
       for (let ix = 0; ix < this.count; ix++) {
         this.base[iz * this.count + ix] = generator(this.worldX(ix), this.worldZ(iz));
