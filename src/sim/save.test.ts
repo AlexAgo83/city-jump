@@ -151,7 +151,7 @@ describe("city saves", () => {
   });
 
   it("carries the wave state through a save and defaults older saves", () => {
-    const waveClock = scheduleNextWave({ elapsedSeconds: 100, quietUntilSeconds: 0, active: { startedAtSeconds: 80, threat: 900, hitPoints: 0 } });
+    const waveClock = scheduleNextWave({ elapsedSeconds: 100, active: { startedAtSeconds: 80, threat: 900, hitPoints: 0 } });
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, createRun(), waveClock)))!;
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] }))!;
 

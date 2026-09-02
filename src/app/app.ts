@@ -36,7 +36,7 @@ import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, quietSecondsLeft, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
@@ -575,13 +575,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       kaiju.hide();
       waveMarkers.hide();
       missiles.rebuild([]);
-      const quiet = quietSecondsLeft(waveClock);
-      showWaveBanner(
-        quiet > 0
-          ? `The island is quiet for ${Math.ceil(quiet)}s`
-          : `Kaiju at ${waveAtPopulation(runState.wave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population))} to go`,
-        "waiting",
-      );
+      showWaveBanner(`Kaiju at ${waveAtPopulation(runState.wave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population))} to go`, "waiting");
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
