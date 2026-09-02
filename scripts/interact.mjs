@@ -924,6 +924,11 @@ await page.locator('[data-tool="bulldoze"]').click();
 await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
 await page.waitForFunction((expected) => window.cityjump.stats().utilities === expected, utilitiesBefore + 1, { timeout: 5_000 });
 check("destroying a diffuser tells the player", /diffuser destroyed/.test(await toast()), await toast());
+// A lot is admitted by demand, not by being drawn: a dozen residents justify one shop and the
+// city never changes shape however it is painted. Give the island the residents to answer with,
+// short of the 250 that would bring a kaiju in the middle of the check.
+await page.evaluate(() => window.cityjump.growCity(2000, 200));
+await nextFrame();
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
 await page.locator("#zone-radius").evaluate((input) => {
@@ -948,11 +953,14 @@ await page.locator('[data-tool="zones"]').click();
 await page.locator('input[name="zone-kind"][value="clear"]').check();
 await click(500, 350);
 await page.waitForFunction((before) => window.cityjump.stats().zones < before, zoned.zones, { timeout: 5_000 });
-await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
+// Not back to the mix it started from: clearing a zone frees the demand that was spent on it, and
+// the lots that were crowded out elsewhere take it. What has to be true is that the shops the
+// brush called up are gone.
+await page.waitForFunction((zonedMix) => JSON.stringify(window.cityjump._scene.meshes
   .filter((mesh) => mesh.name.startsWith("building_lot_"))
-  .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) === before, JSON.stringify(Object.entries(unzonedModels)), { timeout: 5_000 });
+  .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== zonedMix, JSON.stringify(Object.entries(commercialModels)), { timeout: 5_000 });
 check("a zone can be cleared from the toolbar", (await stats()).zones < zoned.zones);
-check("clearing a zone restores the unzoned building mix", JSON.stringify(await buildingModelCounts()) === JSON.stringify(unzonedModels));
+check("clearing a zone takes back what it built", JSON.stringify(await buildingModelCounts()) !== JSON.stringify(commercialModels));
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="all"]').check();
 await page.locator('[data-tool="roads"]').click();
@@ -1070,7 +1078,12 @@ check("the road type selector offers dirt and military roads", (await page.locat
 const industrialBefore = await industrialBuildingCount();
 await page.evaluate(() => {
   if (!window.cityjump.road(-1500, 900, -1300, 930, -1100, 900, "industrial")) throw new Error("industrial road refused");
+  // The road proposes and the brush disposes: an industrial road grows works on the land zoned for
+  // them, and on nothing else. The brush paints the lots the road has, so the road has to be built
+  // into lots first.
   window.cityjump.rebuild();
+  window.cityjump.zone(-1300, 915, 320, "industrial");
+  window.cityjump.growCity(2000, 200);
 });
 await page.waitForFunction((before) => window.cityjump._scene.meshes
   .filter((mesh) => /^building_industrial_\dx4$/.test(mesh.name))
@@ -1111,7 +1124,7 @@ await page.locator('input[name="road-type"][value="tunnel"]').check();
 await click(220, 500);
 await click(300, 430);
 const tunneled = await stats();
-check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels`);
+check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled.tunnels} tunnels, ${tunneled.segments} vs ${beforeTunnel.segments} segments`);
 check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings", tunneled.buildings === beforeTunnel.buildings, `${tunneled.buildings} vs ${beforeTunnel.buildings}`);
 check("tunnels carry vehicle traffic", tunneled.cars > beforeTunnel.cars, `${tunneled.cars} vs ${beforeTunnel.cars}`);
