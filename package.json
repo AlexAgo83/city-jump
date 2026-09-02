@@ -10,7 +10,7 @@
     "test:e2e": "node scripts/with-dev-server.mjs scripts/interact.mjs",
     "test:visual": "node scripts/with-dev-server.mjs scripts/shot.mjs",
     "perf": "node scripts/with-dev-server.mjs scripts/perf.mjs",
-    "balance": "node -e \"require('node:fs').mkdirSync('.tmp/balance',{recursive:true});require('node:fs').writeFileSync('.tmp/balance/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && tsc --ignoreConfig --rootDir src --outDir .tmp/balance --module CommonJS --target ES2022 --strict --noUncheckedIndexedAccess --skipLibCheck --noEmit false src/sim/playthrough.ts && node scripts/balance.mjs",
+    "balance": "node scripts/build-sim.mjs && node scripts/balance.mjs",
     "ablate": "node scripts/with-dev-server.mjs scripts/ablate.mjs",
     "typecheck": "tsc",
     "lint": "npm run typecheck",
@@ -19,7 +19,7 @@
     "release:static": "npm run ci",
     "verify": "npm run test:visual",
     "check": "npm run test:e2e",
-    "scenarios": "node -e \"require('node:fs').mkdirSync('.tmp/balance',{recursive:true});require('node:fs').writeFileSync('.tmp/balance/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && tsc --ignoreConfig --rootDir src --outDir .tmp/balance --module CommonJS --target ES2022 --strict --noUncheckedIndexedAccess --skipLibCheck --noEmit false src/sim/playthrough.ts && node scripts/run-scenarios.mjs"
+    "scenarios": "node scripts/build-sim.mjs && node scripts/run-scenarios.mjs"
   },
   "keywords": [
     "city-builder",

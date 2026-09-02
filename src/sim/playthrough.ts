@@ -152,9 +152,24 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     military: [-70, 360],
   };
 
+  /**
+   * The lot layout, solved again only when the roads or the zoning have moved.
+   *
+   * A run steps nine hundred times between two waves and again every quarter second of a fight,
+   * and every one of those steps re-solved the whole city to get the same array back -- the same
+   * ~65ms pass the app now caches behind its revision counters. The scenario does not reshape the
+   * ground, so the graph and the zoning are the whole key here.
+   */
+  let packed: { key: string; parcels: BuildingParcel[] } | null = null;
+  const layout = (): BuildingParcel[] => {
+    const key = `${graph.revision}:${zones.revision}`;
+    if (packed?.key !== key) packed = { key, parcels: buildingParcels(buildableCells(graph, zones), zones) };
+    return packed.parcels;
+  };
+
   /** The app's `syncBuildings`, minus the renderer: demand, lifecycle, utilities, rubble, bills. */
   const sync = (charge: boolean): void => {
-    parcels = parcelsForDemand(buildingParcels(buildableCells(graph, zones), zones), economy.resources.population, seconds)
+    parcels = parcelsForDemand(layout(), economy.resources.population, seconds)
       .filter((parcel) => !rubble.blocks(parcel) || lifecycle.stateOf(parcel) === "rebuilding");
     const supplied = scenario.utilities ? suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()) : null;
     const diffusers = utilities.diffusers();

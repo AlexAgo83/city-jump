@@ -20,7 +20,11 @@ function scenario(label, rules) {
   console.log(`\n=== ${label} ===`);
   const runs = [];
   for (let seed = 1; seed <= seeds; seed++) {
+    // A seed takes a while and says nothing until it is done: say which one is being played, so a
+    // long wait reads as progress rather than as a hang.
+    process.stdout.write(`playing seed ${seed}/${seeds}... `);
     const played = playRun(seed, rules, waves);
+    process.stdout.write("\r");
     runs.push(played);
     const reached = played.waves.length;
     console.log(
@@ -53,5 +57,8 @@ function scenario(label, rules) {
 }
 
 scenario(`expanding city, with utilities (${waves} waves)`, { instantConstruction: true, expand: true });
-scenario(`expanding city, no utilities (${waves} waves)`, { instantConstruction: true, expand: true, utilities: false });
+// The same city that never builds its power and water, rather than the same city with the rule
+// switched off: with `placeUtilities` left on, the scenario laid its own producer and diffusers,
+// nothing was ever short, and this block printed the one above it character for character.
+scenario(`expanding city, no utilities built (${waves} waves)`, { instantConstruction: true, expand: true, placeUtilities: false });
 scenario(`static city (the balance gate's scenario, ${waves} waves)`, { instantConstruction: true });
