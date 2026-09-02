@@ -42,8 +42,6 @@ const FREE_LOT_LIFT = 0.5;
  * Lifting every kind the same amount keeps them apart from each other and away from the ground.
  */
 const LIFT = 0.12;
-/** Paint on ground no lot can reach: visible, but plainly not a promise of anything. */
-const OFF_GRID_ALPHA = 0.16;
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
@@ -80,31 +78,15 @@ export function createZoneRenderer(scene: Scene) {
     const positions: number[] = [];
     const colors: number[] = [];
     const indices: number[] = [];
-    const covered = new Set<string>();
     for (const cell of cells) {
       const kind = zoneOver(cell, zones);
       if (!kind) continue;
-      for (const key of zoneKeysOf(cell)) covered.add(key);
       const base = positions.length / 3;
       const taken = occupied?.has(cellKey(cell)) === true;
       const [r, g, b] = lift(kind, taken ? 0 : FREE_LOT_LIFT);
       for (const corner of cell.corners) {
         positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.18, corner.z);
         colors.push(r, g, b, 1);
-      }
-      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
-    }
-    // Paint that fell on ground no lot can reach, drawn faintly: it builds nothing, but a brush
-    // that leaves no mark at all reads as a broken tool.
-    for (const [gx, gz, kind] of zones?.toJSON() ?? []) {
-      if (covered.has(`${gx}:${gz}`)) continue;
-      const base = positions.length / 3;
-      const [r, g, b] = lift(kind);
-      for (const [x, z] of [[gx, gz], [gx + 1, gz], [gx + 1, gz + 1], [gx, gz + 1]] as const) {
-        const wx = x * ZONE_CELL_SIZE;
-        const wz = z * ZONE_CELL_SIZE;
-        positions.push(wx, terrainHeight(wx, wz) + 0.14, wz);
-        colors.push(r, g, b, OFF_GRID_ALPHA);
       }
       indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     }
@@ -170,10 +152,6 @@ function zonePointsOf(cell: BuildableCell): [number, number][] {
   return points;
 }
 
-/** Every zone cell a lot touches, so the faint layer skips what the grid already covers. */
-function zoneKeysOf(cell: BuildableCell): string[] {
-  return zonePointsOf(cell).map(([x, z]) => `${Math.floor(x / ZONE_CELL_SIZE)}:${Math.floor(z / ZONE_CELL_SIZE)}`);
-}
 
 /** A cell's identity on the ground, so a parcel can say which cells it covers. */
 export function cellKey(cell: Pick<BuildableCell, "corners">): string {
