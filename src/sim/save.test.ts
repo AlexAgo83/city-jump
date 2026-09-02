@@ -3,9 +3,9 @@ import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
 import { Rubble } from "./rubble";
 import { BuildingLifecycle } from "./buildingLifecycle";
-import { STARTING_MONEY, Treasury } from "./economy";
+import { CityEconomy, STARTING_MONEY, Treasury } from "./economy";
 import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } from "./save";
-import { scheduleNextWave } from "./wave";
+import { createWaveClock, scheduleNextWave } from "./wave";
 import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
@@ -25,6 +25,11 @@ function city(): RoadGraph {
 
 describe("city saves", () => {
   beforeEach(() => setTerrain(flatTerrain));
+
+  it("round-trips the simulation clock, which lot demand and build stages are timed against", () => {
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), new CityEconomy(), new Utilities(), createRun(), createWaveClock(), 512)))!;
+    expect(save.elapsed).toBe(512);
+  });
 
   it("round-trips a city through JSON", () => {
     const save = parseCity(JSON.stringify(serializeCity(city(), new Plantings(), new Zones(), "rugged", 18.5)));

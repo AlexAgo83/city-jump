@@ -64,9 +64,15 @@ export interface CitySave {
   readonly run?: RunState;
   /** Absent on pre-repeat-wave saves; restore starts at the first countdown. */
   readonly waveClock?: WaveClock;
+  /**
+   * The simulation clock. Lot demand and every building's construction stage are timed against it,
+   * so a reload that restarted it at zero un-built the city: one lot per kind admitted again, and
+   * every standing building back under scaffolding with a start time in the future.
+   */
+  readonly elapsed?: number;
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun(), waveClock = createWaveClock()): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun(), waveClock = createWaveClock(), elapsed = 0): CitySave {
   return {
     v: SAVE_VERSION,
     terrain,
@@ -75,6 +81,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
     resources: cityEconomy.resources,
     run,
     waveClock,
+    elapsed,
     ...(camera ? { camera } : {}),
     planted: plantings.plantedTrees.map((tree) => [tree.x, tree.z, tree.species]),
     cleared: plantings.clearedPoints.map((point) => [point.x, point.z]),
@@ -190,7 +197,9 @@ export function parseCity(text: string): CitySave | null {
   const run = readRun(value.run);
   const waveClock = readWaveClock(value.waveClock);
   if (run === null || waveClock === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, run, waveClock, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
+  const elapsed = value.elapsed === undefined ? 0 : Number.isFinite(value.elapsed) ? value.elapsed as number : null;
+  if (elapsed === null) return null;
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, run, waveClock, elapsed, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
 }
 
 function readRun(value: unknown): RunState | null {

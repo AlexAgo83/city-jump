@@ -216,7 +216,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
-  const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+  const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), elapsed: 0, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
   /** What the next wave will bring, so the needs panel can price the defence against it. */
   const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
@@ -324,7 +324,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // Not while a kaiju is on the island: the save cannot describe one, so it must not claim to.
     if (waveClock.active) return;
     autosaveTimer = window.setTimeout(() => {
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock)) || autosaveRefusedShown) return;
+      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock, simSeconds)) || autosaveRefusedShown) return;
       autosaveRefusedShown = true;
       showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
     }, 2000);
@@ -336,7 +336,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock, simSeconds);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
@@ -900,7 +900,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     updateRunHud();
     renderGameplayRules();
     renderUpgradeWeb();
-    simSeconds = 0;
+    simSeconds = city.elapsed ?? 0;
     simDay = 1;
     setClockHour(city.hour);
     addOffshoreBridge();
