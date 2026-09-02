@@ -43,8 +43,7 @@
   #toolbar-toggle:hover { color: #fff; background: #2b343b; }
   #toolbar-toggle:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   #toolbar.collapsed #toolbar-toggle { border-left: 0; }
-  #toolbar.collapsed #toolbar-content { display: flex; }
-  #toolbar.collapsed .toolbar-row:not(.needs-row) { display: none; }
+  #toolbar.collapsed #toolbar-content { display: none; }
   .toolbar-glyph {
     display: inline-grid; gap: 4px; width: 18px; padding: 2px 0;
   }
@@ -294,8 +293,6 @@
   <output id="sim-time">Day 1 18:30</output>
 </div>
 </div>
-<!-- Collapsed in the markup, not just by script: the menu was painted open on every load and
-     only closed once the module had run. -->
 <div id="toolbar" class="collapsed">
   <div id="toolbar-content">
     <div class="toolbar-row">

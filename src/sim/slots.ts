@@ -222,12 +222,9 @@ export function parcelsForDemand(parcels: readonly BuildingParcel[], population:
   });
 }
 
-/** The lots a round brush covers: any lot whose centre falls inside it. */
+/** The lots a round brush covers: any lot the brush disc touches. */
 export function lotsWithin(cells: readonly BuildableCell[], x: number, z: number, radius: number): BuildableCell[] {
-  return cells.filter((cell) => {
-    const centre = buildableCellCentre(cell);
-    return Math.hypot(centre.x - x, centre.z - z) <= radius;
-  });
+  return cells.filter((cell) => cellTouchesCircle(cell, x, z, radius));
 }
 
 /** The lots inside a rectangle, for laying a district out rather than brushing it. */
@@ -243,6 +240,25 @@ export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: 
     x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,
     z: cell.corners.reduce((sum, p) => sum + p.z, 0) / 4,
   };
+}
+
+function cellTouchesCircle(cell: BuildableCell, x: number, z: number, radius: number): boolean {
+  const centre = buildableCellCentre(cell);
+  if (Math.hypot(centre.x - x, centre.z - z) <= radius) return true;
+  if (cell.corners.some((corner) => Math.hypot(corner.x - x, corner.z - z) <= radius)) return true;
+  for (let i = 0; i < cell.corners.length; i++) {
+    const a = cell.corners[i]!;
+    const b = cell.corners[(i + 1) % cell.corners.length]!;
+    if (distanceToSegment(x, z, a.x, a.z, b.x, b.z) <= radius) return true;
+  }
+  return pointInCell(v3(x, 0, z), cell);
+}
+
+function distanceToSegment(x: number, z: number, ax: number, az: number, bx: number, bz: number): number {
+  const dx = bx - ax;
+  const dz = bz - az;
+  const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
+  return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
 function allowedSizes(zone: ZoneKind | undefined, lowRise: boolean, kind: BuildingKind): typeof PARCEL_SIZES {

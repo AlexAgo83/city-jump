@@ -5,7 +5,6 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 
-import { terrainHeight } from "../sim/terrain";
 import type { BuildableCell } from "../sim/slots";
 import type { ZoneKind, Zones } from "../sim/zones";
 import type { BuildingKind } from "../sim/buildingKinds";
@@ -19,21 +18,15 @@ import type { BuildingKind } from "../sim/buildingKinds";
  * the ground instead.
  */
 const OVERLAY_COLOR: Record<BuildingKind, readonly [number, number, number]> = {
-  residential: [0.45, 0.95, 0.62],
+  residential: [0.25, 1, 0.35],
   commercial: [0.24, 0.62, 1],
   industrial: [1, 0.86, 0.2],
   agricultural: [0.78, 0.5, 0.22],
   military: [0.74, 0.44, 1],
 };
 
-/**
- * A zoned lot is drawn opaque, so the ground never shows through it.
- *
- * Blending the overlay over the map meant residential green sat on a green field and came out
- * green: the grid read as unpainted however much of it was zoned. Taken and free lots are told
- * apart by tone instead -- a free lot is the same colour, lighter.
- */
-const FREE_LOT_LIFT = 0.5;
+/** A zoned lot is drawn opaque; unzoned cells stay as grid lines only. */
+const FREE_LOT_LIFT = 0;
 /**
  * How far each zone colour is lifted towards white for the overlay.
  *
@@ -41,32 +34,15 @@ const FREE_LOT_LIFT = 0.5;
  * top of a green field and disappeared -- the grid looked unpainted however much of it was zoned.
  * Lifting every kind the same amount keeps them apart from each other and away from the ground.
  */
-const LIFT = 0.12;
-/** Buildable land with no zone on it: neutral, but plainly land and not grass. */
-const UNZONED: readonly [number, number, number] = [0.82, 0.85, 0.86];
-
+const LIFT = 0.1;
 export function createZoneRenderer(scene: Scene) {
-  const material = new StandardMaterial("zones-overlay", scene);
-  material.diffuseColor = Color3.Black();
-  material.emissiveColor = Color3.White();
-  // The overlay is information, not scenery: it must read the same at midnight as at noon, and
-  // the vertex colour must be the whole of it rather than a tint over an already-lit surface.
-  material.useEmissiveAsIllumination = true;
-  material.alpha = 1;
-  material.disableLighting = true;
-  material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+  const materials = new Map<string, StandardMaterial>();
 
-  let mesh: Mesh | null = null;
+  let meshes: Mesh[] = [];
   let visible = false;
 
   /**
-   * Colours the lot grid itself, not the brush stroke that painted it.
-   *
-   * The overlay used to draw the zone's own eight-metre cells, so a round brush left round edges,
-   * holes and blocks of colour on ground no lot could ever sit on -- a stain on the grass rather
-   * than a plan. Every quad here is a buildable cell, the same one the white grid outlines, and a
-   * cell with a building already on it is drawn darker so what is taken reads apart from what is
-   * still on offer.
+   * Colours only the zoned buildable cells the brush touched.
    *
    * @param cells Every buildable cell.
    * @param zones Read live rather than from each cell's baked `zone`: painting only repaints the
@@ -75,52 +51,60 @@ export function createZoneRenderer(scene: Scene) {
    * @param occupied Cells a standing building covers, as `x:z` keys rounded to the metre.
    */
   function rebuild(cells: readonly BuildableCell[], zones?: Zones, occupied?: ReadonlySet<string>): void {
-    mesh?.dispose();
-    mesh = null;
-    const positions: number[] = [];
-    const colors: number[] = [];
-    const indices: number[] = [];
+    for (const mesh of meshes) mesh.dispose();
+    meshes = [];
+    const buckets = new Map<string, { positions: number[]; indices: number[] }>();
     for (const cell of cells) {
       const kind = zoneOver(cell, zones);
-      const base = positions.length / 3;
-      if (!kind) {
-        // Buildable land nobody has zoned yet: filled too, in a neutral tone, so the whole grid
-        // reads as land a building can stand on rather than as an outline over grass.
-        for (const corner of cell.corners) {
-          positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.17, corner.z);
-          colors.push(...UNZONED, 1);
-        }
-        indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
-        continue;
-      }
+      if (!kind) continue;
       const taken = occupied?.has(cellKey(cell)) === true;
-      const [r, g, b] = lift(kind, taken ? 0 : FREE_LOT_LIFT);
+      const key = `${kind}:${taken ? "taken" : "free"}`;
+      const bucket = buckets.get(key) ?? { positions: [], indices: [] };
+      const base = bucket.positions.length / 3;
       for (const corner of cell.corners) {
-        positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.18, corner.z);
-        colors.push(r, g, b, 1);
+        bucket.positions.push(corner.x, corner.y + 0.16, corner.z);
       }
-      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      bucket.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      buckets.set(key, bucket);
     }
-    if (!positions.length) return;
-    mesh = new Mesh("zones-overlay", scene);
-    const data = new VertexData();
-    data.positions = positions;
-    data.indices = indices;
-    data.colors = colors;
-    data.applyToMesh(mesh);
-    mesh.material = material;
-    mesh.hasVertexAlpha = true;
-    mesh.isPickable = false;
-    mesh.setEnabled(visible);
+    for (const [key, bucket] of buckets) {
+      const [kind, state] = key.split(":") as [ZoneKind, string];
+      const mesh = new Mesh("zones-overlay", scene);
+      const data = new VertexData();
+      data.positions = bucket.positions;
+      data.indices = bucket.indices;
+      data.applyToMesh(mesh);
+      mesh.material = materialFor(kind, state === "free" ? FREE_LOT_LIFT : 0);
+      mesh.isPickable = false;
+      mesh.setEnabled(visible);
+      meshes.push(mesh);
+    }
   }
 
   return {
     rebuild,
     setVisible(next: boolean) {
       visible = next;
-      mesh?.setEnabled(next);
+      for (const mesh of meshes) mesh.setEnabled(next);
     },
   };
+
+  function materialFor(kind: ZoneKind, extra: number): StandardMaterial {
+    const key = `${kind}:${extra}`;
+    const cached = materials.get(key);
+    if (cached) return cached;
+    const [r, g, b] = lift(kind, extra);
+    const material = new StandardMaterial(`zones-overlay-${key}`, scene);
+    material.diffuseColor = new Color3(r, g, b);
+    material.emissiveColor = new Color3(r, g, b);
+    material.specularColor = Color3.Black();
+    material.alpha = 1;
+    material.disableLighting = true;
+    material.transparencyMode = Material.MATERIAL_OPAQUE;
+    material.backFaceCulling = false;
+    materials.set(key, material);
+    return material;
+  }
 }
 
 /**

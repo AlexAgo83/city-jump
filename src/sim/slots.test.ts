@@ -177,6 +177,16 @@ describe("slots", () => {
     );
     expect(parcels.reduce((area, parcel) => area + parcel.frontageCells * parcel.depthCells, 0)).toBeLessThanOrEqual(cells.length);
   });
+
+  it("brushes every buildable cell the circle touches", () => {
+    const g = new RoadGraph();
+    straight(g, -80, 0, 80, 0);
+    const cell = buildableCells(g).find((candidate) => candidate.row === 0)!;
+    const edgeX = Math.max(...cell.corners.map((corner) => corner.x));
+    const edgeZ = cell.corners.reduce((sum, corner) => sum + corner.z, 0) / cell.corners.length;
+
+    expect(lotsWithin([cell], edgeX + 1, edgeZ, 3)).toEqual([cell]);
+  });
 });
 
 describe("pedestrian frontage", () => {

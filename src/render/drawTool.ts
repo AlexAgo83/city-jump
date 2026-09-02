@@ -408,7 +408,6 @@ export function createDrawTool(
     const at = groundPoint();
     moveSprayRing(at, zoneRadius);
     if (!at || !painting) return;
-    if (!brushMovedFarEnough(lastSprayed, at, zoneRadius)) return;
     if (!lastSprayed) history?.beforeChange();
     zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
     lastSprayed = at;
