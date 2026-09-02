@@ -62,6 +62,21 @@ const waitCameraStill = () =>
 const setSettingsOpen = async (open) => {
   if (((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true") !== open) await page.locator("#toolbar-toggle").click();
 };
+// The settings menu opens closed -- a run opens on the city, not on the menu -- so every reload
+// leaves it shut, and a control nobody can see cannot be clicked. Reload through this.
+// Power and water are rules a run can ignore, and a fresh run ignores them: the tools they turn off
+// are disabled, and no building is ever idle for want of a supply nobody is asked for. The checks
+// that are about utilities turn the rules back on around themselves.
+const setUtilityRules = async (enforced) => {
+  await setSettingsOpen(true);
+  await page.locator("#ignore-power").setChecked(!enforced);
+  await page.locator("#ignore-water").setChecked(!enforced);
+};
+const reloadApp = async () => {
+  await page.reload({ waitUntil: "load" });
+  await waitForApp();
+  await setSettingsOpen(true);
+};
 // Only for checks that need real elapsed time: animation, movement, held keys, or debounced autosave.
 const realTime = (ms) => page.waitForTimeout(ms);
 
@@ -70,6 +85,8 @@ await waitForApp();
 // The game caps itself at 60 to spare a laptop; these checks step frame by frame and want the
 // machine flat out. The cap has its own check further down, which puts this back afterwards.
 const uncapFrames = () => page.selectOption("#frame-cap", "0");
+// The settings menu opens closed now, and a select nobody can see cannot be chosen from.
+await setSettingsOpen(true);
 await uncapFrames();
 check("coarse pointer visitors see the desktop input notice", await page.locator("#touch-notice").isVisible());
 
@@ -398,8 +415,7 @@ check("pacifist mode pauses waves", !(await stats()).rules.kaijuSpawns && /Pacif
 await page.locator("#instant-construction").setChecked(true);
 await page.locator("#free-building").setChecked(true);
 await realTime(2200);
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 const savedRules = (await stats()).rules;
 check("gameplay switches are saved with the run", !savedRules.kaijuSpawns && savedRules.instantConstruction && savedRules.freeBuilding, JSON.stringify(savedRules));
 await page.locator("#settings-reset").click();
@@ -412,6 +428,14 @@ check("evacuation carries run science into profile prestige", evacuatedRun.run.e
 check("the prestige web is reachable between runs", await page.locator("#between-runs").isVisible() && (await page.locator("#upgrade-web button").count()) > 0);
 await page.locator('#upgrade-web button').first().click();
 check("prestige can buy an upgrade between runs", (await stats()).profile.upgrades.length === 1 && (await stats()).profile.prestige < evacuatedRun.profile.prestige, JSON.stringify((await stats()).profile));
+// Leave for the next island before carrying on. An ended run keeps the between-runs panel over the
+// map -- which is the point of it -- and every check below this one clicks on the map.
+page.once("dialog", (dialog) => dialog.accept());
+await page.locator("#new-run").click();
+await waitForApp();
+check("a new run clears the panel and puts the player back on an island", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
+// And let the autosave catch up, or the next reload brings the evacuated run back with it.
+await page.waitForFunction(() => (JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run ?? {}).ended === null, null, { timeout: 20_000 });
 await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
@@ -424,7 +448,7 @@ const collapsedToolbarHeight = (await page.locator("#toolbar").boundingBox()).he
 check("the settings toolbar collapses without hiding game state", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#city-strip").isVisible());
 await page.reload({ waitUntil: "load" });
 await waitForApp();
-check("the settings toolbar remembers being collapsed", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#city-strip").isVisible());
+check("the settings toolbar opens closed, whatever it was left as", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#city-strip").isVisible());
 await page.locator("#toolbar-toggle").click();
 check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#show-fps").isVisible());
 check(
@@ -442,8 +466,7 @@ await page.locator("#fx-ao").setChecked(false);
 await page.locator("#fx-tilt").setChecked(false);
 await nextFrame();
 await page.locator("#fx-antialias").setChecked(false);
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
 await page.locator("#fx-antialias").setChecked(true);
 // Reset puts every kind of control back: a checkbox, a select, a range and a radio.
@@ -500,8 +523,7 @@ check("time controls do not cover the action palette", await page.evaluate(() =>
 }));
 check("reload starts paused", await page.evaluate(() => window.cityjump.paused()) && await page.locator('[data-time-rate="0"]').getAttribute("aria-pressed") === "true");
 await page.locator('[data-time-rate="4"]').click();
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("reload keeps the chosen run rate but stays paused", await page.evaluate(() => window.cityjump.paused()) && await page.locator('[data-time-rate="0"]').getAttribute("aria-pressed") === "true");
 await page.evaluate(() => window.cityjump.setPaused(false));
 check("resume uses the stored run rate", await page.evaluate(() => window.cityjump.stats().timeRate === 4));
@@ -563,8 +585,7 @@ check(
   fpsSample.displayed > 0 && Math.abs(fpsSample.displayed - fpsSample.measured) <= 1,
   `${JSON.stringify(fpsSample)}`,
 );
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("fps setting is remembered across reload", await page.locator("#show-fps").isChecked() && await page.locator("#fps-counter").isVisible());
 await page.locator("#show-fps").uncheck();
 check("fps counter turns off immediately", await page.locator("#fps-counter").isHidden());
@@ -573,8 +594,7 @@ check("shadows are switched on at the sun light", (await shadowState()).sunShado
 await page.locator("#show-shadows").uncheck();
 await page.locator("#show-lights").uncheck();
 check("shadows can be turned off without touching casters", !(await shadowState()).sunShadowEnabled);
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check(
   "shadow and light settings are remembered across reload",
   !(await page.locator("#show-shadows").isChecked()) && !(await page.locator("#show-lights").isChecked()) && !(await shadowState()).sunShadowEnabled,
@@ -584,16 +604,14 @@ await page.locator("#show-lights").check();
 check("shadows can be restored", (await shadowState()).sunShadowEnabled);
 check("traffic is on by default", await page.locator("#show-traffic").isChecked());
 await page.locator("#show-traffic").uncheck();
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("traffic setting is remembered across reload", !(await page.locator("#show-traffic").isChecked()) && await page.locator("#traffic-density").isDisabled());
 await page.locator("#show-traffic").check();
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1.75";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("traffic density is remembered across reload", (await page.locator("#traffic-density").inputValue()) === "1.75");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1";
@@ -623,6 +641,7 @@ await page.locator('[data-tool="roads"]').click();
 await page.locator("#grid-snap").uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
 await page.locator("#grid-snap").check();
+await setUtilityRules(true);
 await page.locator('[data-tool="power"]').click();
 check("power tools are placeable and priced", await page.locator("#utility-options").isVisible() && /\$\d/.test(await page.locator("#utility-price").textContent()));
 await page.locator('input[name="utility-role"][value="diffuser"]').check();
@@ -645,8 +664,7 @@ await nextFrame();
 // before that and the city comes back at the hour it was last saved at, settings or no settings.
 await page.evaluate(() => window.cityjump.rebuild());
 await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").hour === 20, null, { timeout: 20_000 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("sun hour is remembered across reload", (await page.locator("#sun-hour").inputValue()) === "20");
 const eveningSun = await sunState();
 const eveningSky = await skyState();
@@ -1303,8 +1321,7 @@ await page.waitForFunction(() => {
     return false;
   }
 }, null, { timeout: 5_000 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);
 await page.locator('[data-tool="roads"]').click();
 await page.locator('input[name="road-shape"][value="straight"]').check();
@@ -1433,6 +1450,7 @@ check("a building panel shows its state", Boolean(selectedBuilding.rows.State), 
 check("a building without a required utility says why it is idle", selectedBuilding.rows.State === "Idle" && /^No (power|water)$/.test(selectedBuilding.rows.Reason ?? ""), JSON.stringify(selectedBuilding.rows));
 await page.locator('input[name="select-view"][value="state"]').check();
 check("the State view keeps buildings visible for status colours", (await stats()).buildings > 0);
+await setUtilityRules(false);
 await page.locator('[data-tool="bulldoze"]').click();
 const beforeBuildingBulldoze = await stats();
 await click(buildingPoint.x, buildingPoint.y);
@@ -1579,8 +1597,7 @@ await page.evaluate(() => {
   );
   window.localStorage.setItem("cityjump.saves", JSON.stringify(["Rugged"]));
 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 await setSettingsOpen(true);
 await page.locator("#save-slot").selectOption("Rugged");
 await page.locator("#save-load").click();
@@ -1613,8 +1630,7 @@ await page.evaluate(() => {
   camera.beta = 1;
   camera.radius = 111;
 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 await setSettingsOpen(true);
 await page.locator("#save-slot").selectOption("Camera");
 await page.locator("#save-load").click();
@@ -1873,8 +1889,7 @@ check(
 
 await realTime(2400); // let the debounced autosave land
 const beforeReload = await stats();
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check(
   "a page reload resumes the autosaved city",
   (await stats()).segments === beforeReload.segments,
@@ -1892,8 +1907,7 @@ await page.evaluate(() => {
   raw.v = 1;
   window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
 });
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check(
   "a city saved by an older build still loads",
   (await stats()).segments === beforeReload.segments,
@@ -1913,8 +1927,7 @@ check(
 );
 
 await page.evaluate(() => window.localStorage.setItem("cityjump.autosave", "{not json"));
-await page.reload({ waitUntil: "load" });
-await waitForApp();
+await reloadApp();
 check("a corrupted autosave is ignored rather than fatal", (await stats()).segments === fresh.segments);
 await page.evaluate(() => window.cityjump.demoCity());
 await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 10_000 });
