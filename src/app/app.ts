@@ -29,7 +29,7 @@ import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, planKaiju, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
-import { buildableCellCentre, buildingParcels, buildableCells, parcelDemandLimits, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildableCellCentre, buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
@@ -154,6 +154,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
+    if (starterDistricts.length) window.setTimeout(layStarterDistricts, 0);
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -451,6 +452,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     waveMarkers.hide();
     missiles.rebuild([]);
   };
+  /** Districts waiting for the lots they belong to, laid out on the next rebuild. */
+  let starterDistricts: [kind: ZoneKind, fromX: number, toX: number][] = [];
+  const layStarterDistricts = (): void => {
+    if (!starterDistricts.length || !currentBuildableCells.length) return;
+    const z = STARTER_KIT_AT.z;
+    for (const [kind, fromX, toX] of starterDistricts) {
+      zones.paintLots(lotsInRect(currentBuildableCells, fromX, z - 40, toX, z + 40), kind);
+    }
+    starterDistricts = [];
+    rebuild();
+  };
   const addStarterKit = (): void => {
     // The bridge is the only road a fresh island carries, so anything else means this is a city
     // that already exists. Checking the type is exact; the old check was a z threshold that the
@@ -467,10 +479,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // Three blocks along the street, as rectangles. The brush is a circle -- which is right for a
     // brush -- but three circles on a rectangular frontage leave round edges, holes in the middle
     // and gaps between them. A district laid out at the start should look laid out.
-    const depth = 40;
-    zones.paintRect(x, z - depth, x + 100, z + depth, "agricultural");
-    zones.paintRect(x + 100, z - depth, x + 200, z + depth, "residential");
-    zones.paintRect(x + 200, z - depth, x + 300, z + depth, "commercial");
+    // Laid out after the lots exist: a zone belongs to a lot, and the lots come from the road that
+    // was just drawn, so the districts are painted on the far side of the first rebuild.
+    starterDistricts = [
+      ["agricultural", x, x + 100],
+      ["residential", x + 100, x + 200],
+      ["commercial", x + 200, x + 300],
+    ];
     // Power and water, because a building without them does not work and a city where nothing
     // works produces no food and loses its people. Utilities are a system to extend, not a first
     // lesson to fail: the run opens with enough to keep the starter lots running.
@@ -620,30 +635,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       treeAt: (x, z, within) => trees.nearestTree(x, z, within),
     },
     {
-      /**
-       * The brush zones lots, not ground.
-       *
-       * It used to stamp a 5.66 m circle at each lot's centre, which is smaller than the gap
-       * between two zone-cell centres -- so a lot often caught one cell and sometimes none, and
-       * the grid stayed unpainted under a stroke that plainly covered it. Stamping the lot's whole
-       * footprint means every zone cell it touches carries the kind, and the overlay fills it.
-       */
+      /** The brush zones the lots it covers. There is no ground paint any more. */
       paint(x, z, radius, kind) {
-        // Paint the ground first. Stamping only the lots in `currentBuildableCells` meant a stroke
-        // did nothing at all whenever that list was a rebuild behind -- which it is after every
-        // road, since a road only repaints its own region. The ground carries the zone regardless;
-        // the lot stamps below just make sure a lot the stroke clipped is fully covered.
-        zones.paint(x, z, radius, kind);
-        for (const cell of currentBuildableCells) {
-          const centre = buildableCellCentre(cell);
-          if (Math.hypot(centre.x - x, centre.z - z) > radius) continue;
-          const xs = cell.corners.map((corner) => corner.x);
-          const zs = cell.corners.map((corner) => corner.z);
-          zones.paintRect(Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs), kind);
-        }
-        // Zoning changes what can be built, so the cell and parcel solve has to run again. Painting
-        // only ever triggered a dirty-box repaint, which skips that solve -- so the overlay kept
-        // drawing the cells as they were before the stroke.
+        zones.paintLots(lotsWithin(currentBuildableCells, x, z, radius), kind);
+        // Zoning changes what can be built, so the cell and parcel solve has to run again.
         scheduleBuildingRebuild();
       },
     },

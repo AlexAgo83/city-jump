@@ -11,6 +11,8 @@ import {
   SLOT,
   LOW_RISE_SIZES,
   parcelsForDemand,
+  lotsInRect,
+  lotsWithin,
 } from "./slots";
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
@@ -182,7 +184,7 @@ describe("pedestrian frontage", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0);
     const zones = new Zones();
-    zones.paint(0, 20, 220, "military");
+    zones.paintLots(lotsWithin(buildableCells(g), 0, 20, 220), "military");
     expect(parcelsForDemand(buildingParcels(buildableCells(g, zones), zones), 96, 20).some((parcel) => parcel.kind === "military")).toBe(true);
   });
   it("only offers parcel sizes whose building model is short", () => {
@@ -213,7 +215,7 @@ describe("pedestrian frontage", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0, "street");
     const zones = new Zones();
-    zones.paint(0, 20, 220, "commercial");
+    zones.paintLots(lotsWithin(buildableCells(g), 0, 20, 220), "commercial");
 
     expect(buildingParcels(buildableCells(g, zones), zones).some((parcel) => parcel.kind === "commercial")).toBe(true);
   });
@@ -223,7 +225,7 @@ describe("pedestrian frontage", () => {
       const g = new RoadGraph();
       straight(g, -200, 0, 200, 0, "street");
       const zones = new Zones();
-      zones.paint(0, 20, 220, kind);
+      zones.paintLots(lotsWithin(buildableCells(g), 0, 20, 220), kind);
 
       expect(buildingParcels(buildableCells(g, zones), zones).some((parcel) => parcel.kind === kind)).toBe(true);
     }
@@ -277,7 +279,7 @@ describe("military frontage", () => {
     const g = new RoadGraph();
     straight(g, -200, 0, 200, 0, "military");
     const zones = new Zones();
-    zones.paintRect(-200, -40, 200, 40, "military");
+    zones.paintLots(lotsInRect(buildableCells(g), -200, -40, 200, 40), "military");
 
     const parcels = buildingParcels(buildableCells(g, zones), zones);
     expect(parcelsForDemand(parcels, 12, 20)).toHaveLength(1);

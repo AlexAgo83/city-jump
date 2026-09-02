@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
 import { restoreCity, serializeCity, parseCity } from "./save";
-import { buildableCells, buildingParcels, LOW_RISE_SIZES } from "./slots";
+import { buildableCells, buildingParcels, lotsWithin, LOW_RISE_SIZES } from "./slots";
 import { v3 } from "./vec";
 import { Zones } from "./zones";
 
@@ -14,17 +14,15 @@ function road(graph: RoadGraph, z = 0): number {
 }
 
 describe("zones", () => {
-  it("survives roads being split, moved and deleted under it", () => {
-    const zones = new Zones();
-    zones.paint(0, 20, 32, "residential");
+  it("keeps a lot's zone when the road under it is split", () => {
     const graph = new RoadGraph();
     const id = road(graph);
+    const zones = new Zones();
+    zones.paintLots(lotsWithin(buildableCells(graph), 0, 20, 32), "residential");
 
     expect(buildableCells(graph, zones).some((cell) => cell.zone === "residential")).toBe(true);
+    // A split changes the segments, not where the lots stand, so their zoning is untouched.
     graph.splitSegment(id, graph.segment(id).length / 2);
-    expect(buildableCells(graph, zones).some((cell) => cell.zone === "residential")).toBe(true);
-    for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
-    road(graph, 24);
     expect(buildableCells(graph, zones).some((cell) => cell.zone === "residential")).toBe(true);
     for (const segment of graph.allSegments()) graph.removeSegment(segment.id);
     expect(zones.count()).toBeGreaterThan(0);
@@ -34,7 +32,7 @@ describe("zones", () => {
     const graph = new RoadGraph();
     road(graph);
     const zones = new Zones();
-    zones.paint(0, 20, 16, "commercial");
+    zones.paintLots(lotsWithin(buildableCells(graph), 0, 20, 16), "commercial");
 
     const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), zones, "rolling", 14)))!;
     const restoredZones = new Zones();
@@ -45,16 +43,16 @@ describe("zones", () => {
     expect(old.zones).toEqual([]);
   });
 
-  it("reads older density zones and keeps military paint", () => {
+  it("reads older density names as what they always meant", () => {
     const zones = new Zones([
       [0, 0, "low"],
-      [1, 0, "dense"],
-      [2, 0, "military"],
+      [16, 0, "dense"],
+      [32, 0, "military"],
     ]);
 
-    expect(zones.at(4, 4)).toBe("residential");
-    expect(zones.at(12, 4)).toBe("commercial");
-    expect(zones.at(20, 4)).toBe("military");
+    expect(zones.at(0, 0)).toBe("residential");
+    expect(zones.at(16, 0)).toBe("commercial");
+    expect(zones.at(32, 0)).toBe("military");
   });
 
   it("clearing a zone returns parcels to the unzoned choices", () => {
@@ -62,13 +60,13 @@ describe("zones", () => {
     road(graph);
     const zones = new Zones();
     const unzoned = buildingParcels(buildableCells(graph));
-    zones.paint(0, 20, 220, "residential");
+    zones.paintLots(lotsWithin(buildableCells(graph), 0, 20, 220), "residential");
     expect(
       buildingParcels(buildableCells(graph, zones), zones).every((parcel) =>
         LOW_RISE_SIZES.has(`${parcel.frontageCells}x${parcel.depthCells}`),
       ),
     ).toBe(true);
-    zones.paint(0, 20, 220, null);
+    zones.paintLots(lotsWithin(buildableCells(graph), 0, 20, 220), null);
     expect(buildingParcels(buildableCells(graph, zones), zones)).toEqual(unzoned);
   });
 });

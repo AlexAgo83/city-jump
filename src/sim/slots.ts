@@ -222,6 +222,22 @@ export function parcelsForDemand(parcels: readonly BuildingParcel[], population:
   });
 }
 
+/** The lots a round brush covers: any lot whose centre falls inside it. */
+export function lotsWithin(cells: readonly BuildableCell[], x: number, z: number, radius: number): BuildableCell[] {
+  return cells.filter((cell) => {
+    const centre = buildableCellCentre(cell);
+    return Math.hypot(centre.x - x, centre.z - z) <= radius;
+  });
+}
+
+/** The lots inside a rectangle, for laying a district out rather than brushing it. */
+export function lotsInRect(cells: readonly BuildableCell[], minX: number, minZ: number, maxX: number, maxZ: number): BuildableCell[] {
+  return cells.filter((cell) => {
+    const centre = buildableCellCentre(cell);
+    return centre.x >= minX && centre.x <= maxX && centre.z >= minZ && centre.z <= maxZ;
+  });
+}
+
 export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: number; z: number } {
   return {
     x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,

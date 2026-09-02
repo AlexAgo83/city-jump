@@ -7,7 +7,7 @@ import type { Scene } from "@babylonjs/core/scene";
 
 import { terrainHeight } from "../sim/terrain";
 import type { BuildableCell } from "../sim/slots";
-import { ZONE_CELL_SIZE, type ZoneKind, type Zones } from "../sim/zones";
+import type { ZoneKind, Zones } from "../sim/zones";
 import type { BuildingKind } from "../sim/buildingKinds";
 
 /**
@@ -42,6 +42,8 @@ const FREE_LOT_LIFT = 0.5;
  * Lifting every kind the same amount keeps them apart from each other and away from the ground.
  */
 const LIFT = 0.12;
+/** Buildable land with no zone on it: neutral, but plainly land and not grass. */
+const UNZONED: readonly [number, number, number] = [0.82, 0.85, 0.86];
 
 export function createZoneRenderer(scene: Scene) {
   const material = new StandardMaterial("zones-overlay", scene);
@@ -80,8 +82,17 @@ export function createZoneRenderer(scene: Scene) {
     const indices: number[] = [];
     for (const cell of cells) {
       const kind = zoneOver(cell, zones);
-      if (!kind) continue;
       const base = positions.length / 3;
+      if (!kind) {
+        // Buildable land nobody has zoned yet: filled too, in a neutral tone, so the whole grid
+        // reads as land a building can stand on rather than as an outline over grass.
+        for (const corner of cell.corners) {
+          positions.push(corner.x, terrainHeight(corner.x, corner.z) + 0.17, corner.z);
+          colors.push(...UNZONED, 1);
+        }
+        indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+        continue;
+      }
       const taken = occupied?.has(cellKey(cell)) === true;
       const [r, g, b] = lift(kind, taken ? 0 : FREE_LOT_LIFT);
       for (const corner of cell.corners) {
@@ -127,31 +138,8 @@ function lift(kind: ZoneKind, extra = 0): [number, number, number] {
 }
 
 function zoneOver(cell: BuildableCell, zones?: Zones): ZoneKind | undefined {
-  if (!zones) return cell.zone;
-  for (const [x, z] of zonePointsOf(cell)) {
-    const kind = zones.at(x, z);
-    if (kind) return kind;
-  }
-  return cell.zone;
+  return zones ? zones.ofLot(cell) : cell.zone;
 }
-
-/**
- * Every zone cell a lot's footprint overlaps.
- *
- * Sampling the middle and the four corners was not enough: a lot and a zone cell are both eight
- * metres and they are not aligned, so the cell a stroke actually stamped could sit between the
- * points being tested and the lot came back unzoned. This walks the footprint instead.
- */
-function zonePointsOf(cell: BuildableCell): [number, number][] {
-  const xs = cell.corners.map((corner) => corner.x);
-  const zs = cell.corners.map((corner) => corner.z);
-  const points: [number, number][] = [];
-  for (let x = Math.min(...xs); x <= Math.max(...xs) + ZONE_CELL_SIZE; x += ZONE_CELL_SIZE / 2) {
-    for (let z = Math.min(...zs); z <= Math.max(...zs) + ZONE_CELL_SIZE; z += ZONE_CELL_SIZE / 2) points.push([x, z]);
-  }
-  return points;
-}
-
 
 /** A cell's identity on the ground, so a parcel can say which cells it covers. */
 export function cellKey(cell: Pick<BuildableCell, "corners">): string {

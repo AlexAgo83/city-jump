@@ -6,7 +6,7 @@ import { RoadGraph } from "./graph";
 import { Rubble } from "./rubble";
 import { commitSegment, resolveSnap } from "./rules";
 import { createRun, DEFAULT_RUN_RULES, defeat, endIfPopulationZero, settleWave, type RunRules, type RunState } from "./run";
-import { buildableCells, buildingParcels, parcelsForDemand, type BuildingParcel } from "./slots";
+import { buildableCells, buildingParcels, lotsInRect, lotsWithin, parcelsForDemand, type BuildingParcel } from "./slots";
 import { setTerrain, flatTerrain } from "./terrain";
 import { distXZ, v3 } from "./vec";
 import { missingUtility, suppliedDiffusers, Utilities } from "./utilities";
@@ -119,12 +119,12 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     log.push(`road:${name}`);
   };
   const paint = (kind: BuildingKind, x: number, z: number, radius = 40) => {
-    zones.paint(x, z, radius, kind);
+    zones.paintLots(lotsWithin(buildableCells(graph), x, z, radius), kind);
     log.push(`zone:${kind}`);
   };
   /** A district laid along a road, the way a player draws one. */
   const band = (kind: BuildingKind, z: number, fromX: number, toX: number, depth = 40) => {
-    zones.paintRect(fromX, z - depth, toX, z + depth, kind);
+    zones.paintLots(lotsInRect(buildableCells(graph), fromX, z - depth, toX, z + depth), kind);
     log.push(`zone:${kind}`);
   };
   /**
@@ -139,7 +139,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     const spine = commitSegment(graph, resolveSnap(graph, -200, z - 50), resolveSnap(graph, -200, z), v3(-200, 0, z - 25), "street");
     const street = commitSegment(graph, resolveSnap(graph, -220, z), resolveSnap(graph, 80, z), v3(-70, 0, z), kind === "military" ? "military" : "street");
     if (!spine.ok || !street.ok) return false;
-    zones.paint(-70, z, 70, kind);
+    zones.paintLots(lotsWithin(buildableCells(graph), -70, z, 70), kind);
     expansions += 1;
     log.push(`expand:${kind}@z=${z}`);
     return true;
