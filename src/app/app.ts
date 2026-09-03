@@ -32,12 +32,12 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { carryScience, createRun, endIfPopulationZero, evacuate, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
+import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
@@ -46,7 +46,7 @@ import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
-import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, type PendingMissile, type WaveVerdict } from "./waveLoop";
+import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, settleWaveOutcome, type PendingMissile, type WaveVerdict } from "./waveLoop";
 
 /** Where a run opens: the far side of the island from the bridge. */
 const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
@@ -452,10 +452,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;
     waveVerdictUntil = waveClock.elapsedSeconds + 3;
-    runState = verdict === "held"
-      ? settleWave(runState, { defeated: true, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave })
-      : endIfPopulationZero(settleWave(runState, { defeated: false, calledEarly: waveCalledEarly, baseScience: 10 * runState.wave }), cityEconomy.resources.population);
-    waveClock = runState.ended ? waveClock : scheduleNextWave(waveClock);
+    const next = settleWaveOutcome(runState, waveClock, verdict, waveCalledEarly, cityEconomy.resources.population);
+    runState = next.run;
+    waveClock = next.clock;
     waveCalledEarly = false;
     if (runState.ended) {
       deleteRunSaveOnDefeat(profile, runState.ended);
