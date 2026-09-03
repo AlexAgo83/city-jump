@@ -1,14 +1,14 @@
 ## item_111_fail_the_gate_when_a_shipped_document_misstates_the_version - Fail the gate when a shipped document misstates the version
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # AI Context
 - Summary: Not cosmetic: the release workflow hard-fails unless the tag matches package.json, so following the blueprint's v0.2.0 produces a failed deploy. SECURITY.md declares the shipping line unsupported.
@@ -51,3 +51,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_038_orchestrate_the_verification_gates`
+
+# Notes
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.

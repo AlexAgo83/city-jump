@@ -1,14 +1,14 @@
 ## item_108_let_the_scenario_harness_exit_non_zero - Let the scenario harness exit non-zero
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # AI Context
 - Summary: Verified: scenario() returns offTarget and all three call sites discard it, and the file contains no process.exit. Note the blind spot: offTarget only filters waves that were fought, so a run where no wave ever arrives is invisible to it -- which is the actual current failure.
@@ -43,6 +43,7 @@
 # Notes
 - Wave evidence, 2026-09-03: `npm run scenarios` exits non-zero for off-band waves, no-wave seeds, and zero-population seeds, and `npm run ci` now includes `npm run scenarios` after the item_109 band/bar changes made the gate green on HEAD.
 - Passing run summary now prints the actual declared band: 13-85s / 4-21 salvos.
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.
 
 # AC Traceability
 - request-AC1 -> This backlog slice. Proof: AC1: A run with a wave outside the band exits non-zero and names the scenario and seed.
@@ -60,3 +61,6 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_038_orchestrate_the_verification_gates`

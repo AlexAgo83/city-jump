@@ -1,11 +1,12 @@
 ## prod_027_evidence_that_stops_the_build - Evidence that stops the build
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Settled
 > Related request: `req_036_make_the_verification_gates_able_to_fail`
-> Related backlog: item_108_let_the_scenario_harness_exit_non_zero, item_109_bring_the_first_run_back_inside_its_declared_band, item_110_refuse_a_performance_measurement_from_a_dirty_tree, item_111_fail_the_gate_when_a_shipped_document_misstates_the_version, item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone, item_132_stop_a_city_with_no_utilities_dying_outright
+> Related backlog: `item_108_let_the_scenario_harness_exit_non_zero`
 > Related task: `task_038_orchestrate_the_verification_gates`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # Overview
 Every harness that produces a signal can fail the gate that reads it.
@@ -68,5 +69,5 @@ flowchart TD
 - item_112 moves logics-manager into devDependencies. Confirm the pinned 2.23.0 is the intended version to carry in the manifest rather than tracking a range.
 
 # References
-- Product back-reference: `req_036_make_the_verification_gates_able_to_fail`
+- Product back-reference: `item_108_let_the_scenario_harness_exit_non_zero`
 - Task back-reference: `task_038_orchestrate_the_verification_gates`

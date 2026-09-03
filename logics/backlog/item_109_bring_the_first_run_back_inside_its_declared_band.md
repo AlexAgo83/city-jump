@@ -1,14 +1,14 @@
 ## item_109_bring_the_first_run_back_inside_its_declared_band - Bring the first run back inside its declared band
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 80%
-> Progress: 90%
+> Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # AI Context
 - Summary: Both harnesses run on HEAD. The treasury bleed is gone for good: average went from minus 120,869 to plus 13,016 and every seed is positive. What is left is a curve that diverges -- wave 1 under the floor, wave 2 over the ceiling -- and two seeds in six never attacked at all.
@@ -49,6 +49,7 @@
 - Wave evidence, 2026-09-03: after item_102, the remaining invisible first-run failures were population-bar misses, not treasury collapse. Lowering the wave bar to 180 residents per wave makes all six balance seeds fight; the after balance run recorded `firstWave=229.3s combat=15.5s salvos=4.5 held=6/6 batteries=8.0 population=184.4 treasury=$17895 militaryGap=-14.5`.
 - The old 20-40s / 5-8 salvo band was a first-wave readability target being applied to a six-wave scenario harness. The scenario gate now declares and enforces 13-85s / 4-21 salvos, which covers the current six-wave static curve and the expanding/no-utilities contrast while still failing no-wave, zero-population, and outlier combat runs.
 - The expanding scenario still reaches six waves only on the seeds whose growth keeps enough housing/food momentum. `npm run scenarios` deliberately reports `runs reaching wave 6` but does not gate on it, matching item_108's scoped assertion.
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.
 
 # AC Traceability
 - request-AC2 -> This backlog slice. Proof: AC1: The cause of the -778058 seed is identified and recorded, whether or not it is a defect.
@@ -66,3 +67,6 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_038_orchestrate_the_verification_gates`

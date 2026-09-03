@@ -1,15 +1,15 @@
 ## task_038_orchestrate_the_verification_gates - Orchestrate the verification gates
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-09-03 14:36:07
+> Indicators reviewed: 2026-09-03 15:42:22
 
 # AI Context
 - Summary: Make each harness able to fail before trusting what it says, then fix what it reports -- in that order, so no gate lands red on main.
@@ -46,19 +46,25 @@
 - [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_108_let_the_scenario_harness_exit_non_zero`. Proof deferred to slice closeout.
-- request-AC2 -> `item_109_bring_the_first_run_back_inside_its_declared_band`. Proof deferred to slice closeout.
-- request-AC3 -> `item_110_refuse_a_performance_measurement_from_a_dirty_tree`. Proof deferred to slice closeout.
-- request-AC4 -> `item_110_refuse_a_performance_measurement_from_a_dirty_tree`. Proof deferred to slice closeout.
-- request-AC5 -> `item_111_fail_the_gate_when_a_shipped_document_misstates_the_version`. Proof deferred to slice closeout.
-- request-AC6 -> `item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone`. Proof deferred to slice closeout.
-- request-AC7 -> `item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC2 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC3 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC4 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC5 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC6 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC7 -> This task. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
 
 # Validation
 - (no validation recorded yet)
+- command: `rtk npm run ci; npm run perf; clean clone npm ci && npm run ci` | result: passed | date: 2026-09-03
+- Finish workflow executed on 2026-09-03.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-09-03.
+- Linked backlog item(s): `item_108_let_the_scenario_harness_exit_non_zero`, `item_109_bring_the_first_run_back_inside_its_declared_band`, `item_110_refuse_a_performance_measurement_from_a_dirty_tree`, `item_111_fail_the_gate_when_a_shipped_document_misstates_the_version`, `item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone`, `item_132_stop_a_city_with_no_utilities_dying_outright`
+- Related request(s): `req_036_make_the_verification_gates_able_to_fail`
 
 # Links
 - Request: `req_036_make_the_verification_gates_able_to_fail`

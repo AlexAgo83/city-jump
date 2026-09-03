@@ -1,14 +1,14 @@
 ## item_132_stop_a_city_with_no_utilities_dying_outright - Stop a city with no utilities dying outright
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:22
 
 # AI Context
 - Summary: Measured live on HEAD: the no-utilities scenario ends with population ZERO on all six seeds while banking about 34k. Not a harder game -- a total collapse, and one no band filter can see.
@@ -61,3 +61,13 @@
 - Found by running the harness during review follow-up, not by reading balance/history.jsonl, which was stale.
 - Wave evidence, 2026-09-03: the no-utilities scenario was a harness defect, not a product decision. The smoke test intended to ignore utility shortages used `utilities:false`, but the scenario used `placeUtilities:false` while leaving shortage enforcement on; that made every lot idle forever. The harness now respects `ignorePower` and `ignoreWater` when deciding whether a missing utility idles a lot, so the no-utilities scenario contrasts against the utilities-built run without collapsing to zero population.
 - `npm run scenarios` still gates zero-population seeds so this cannot pass invisibly again.
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# AC Traceability
+- request-AC1 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC2 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC3 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC4 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC5 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC6 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`
+- request-AC7 -> This backlog slice. Proof: Implemented by task_038 commits cf61916, a2477c1, 363a79c, ba8bd5b, 6023f5d, and supported by post-frame-cost perf evidence 6255a43. Validated with rtk npm run ci, dirty perf/balance guard checks, npm run perf clean rows, and a clean clone npm ci && npm run ci. Source: `6255a43`

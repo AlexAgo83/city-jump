@@ -1,14 +1,14 @@
 ## item_110_refuse_a_performance_measurement_from_a_dirty_tree - Refuse a performance measurement from a dirty tree
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # AI Context
 - Summary: The record did not go stale through neglect: the harness was broken. b5af5ca closed the settings menu, #frame-cap went display:none, and perf.mjs timed out on it for 47 commits. Fixed in 418c133. The dirty-tree guard is the remaining half.
@@ -42,6 +42,7 @@
 - Wave evidence, 2026-09-03: `node scripts/perf.mjs` and `node scripts/build-sim.mjs && node scripts/balance.mjs` both refused to append from a dirty tree without `--allow-dirty`.
 - New balance entries now include `commit` and `dirty`, matching the perf record shape. Clean proof recorded in `balance/history.jsonl` for `363a79c` with `dirty:false`.
 - `.gitattributes` marks `perf/history.jsonl` and `balance/history.jsonl` as `merge=union` append-only records.
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.
 
 # AC Traceability
 - request-AC3 -> This backlog slice. Proof: AC1: A perf run on a dirty tree does not append without --allow-dirty.
@@ -60,3 +61,6 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_038_orchestrate_the_verification_gates`

@@ -1,12 +1,13 @@
 ## req_036_make_the_verification_gates_able_to_fail - Make the verification gates able to fail
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:42:22
 
 # AI Context
 - Summary: Three harnesses that already produce the right signal and gate nothing, plus a version drift across three documents that would fail a real deploy.

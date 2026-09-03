@@ -1,14 +1,14 @@
 ## item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone - Run the CI gate once per push, and from a clean clone
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 15:42:23
 
 # AI Context
 - Summary: Two identical runs per push on a repo that has a product brief about respecting the Actions budget, and npm run ci -- the documented pre-PR gate -- fails on a clean clone because logics-manager is an undocumented global install.
@@ -42,6 +42,7 @@
 - Wave evidence, 2026-09-03: `.github/workflows/ci.yml` now limits push runs to `main`, keeps `pull_request`, adds a branch/ref concurrency group with `cancel-in-progress: true`, and sets `timeout-minutes: 15`.
 - `@grifhinz/logics-manager@2.23.0` is now a devDependency, so `npm ci` supplies the `logics-manager` binary used by `npm run ci`.
 - Clean-clone proof, 2026-09-03: cloned `363a79c` to a temporary directory; `npm ci && npm run ci` passed with no global `logics-manager` install.
+- Task `task_038_orchestrate_the_verification_gates` was finished via `logics-manager flow finish task` on 2026-09-03.
 
 # AC Traceability
 - request-AC6 -> This backlog slice. Proof: AC1: A push to a pull request branch triggers one CI run.
@@ -60,3 +61,6 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_038_orchestrate_the_verification_gates`
