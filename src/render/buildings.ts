@@ -39,6 +39,26 @@ export function buildingModelId(parcel: Pick<BuildingParcel, "kind" | "frontageC
   const own = parcel.kind === "agricultural" ? "farm" : parcel.kind === "industrial" || parcel.kind === "military" ? parcel.kind : null;
   return own && parcel.depthCells === 4 ? `${own}_${size}` : `lot_${size}`;
 }
+
+const STATE_CODE = { rising: 1, working: 2, idle: 3, rebuilding: 4 } as const;
+const REASON_CODE = { construction: 1, workers: 2, power: 3, water: 4, materials: 5 } as const;
+
+export function buildingStateSignature(
+  statuses: readonly Pick<BuildingStatus, "parcel" | "state" | "progress" | "staffed" | "reason">[],
+): number {
+  let hash = statuses.length;
+  for (const status of statuses) {
+    const parcel = status.parcel;
+    hash = Math.imul(hash ^ Math.round(parcel.position.x * 4), 16777619);
+    hash = Math.imul(hash ^ Math.round(parcel.position.z * 4), 16777619);
+    hash = Math.imul(hash ^ (parcel.frontageCells * 31 + parcel.depthCells * 7), 16777619);
+    hash = Math.imul(hash ^ STATE_CODE[status.state], 16777619);
+    hash = Math.imul(hash ^ Math.round(status.progress * 20), 16777619);
+    hash = Math.imul(hash ^ (status.staffed ? 1 : 0), 16777619);
+    hash = Math.imul(hash ^ (status.reason ? REASON_CODE[status.reason] : 0), 16777619);
+  }
+  return hash >>> 0;
+}
 let glassReflectionTexture: RawCubeTexture | null = null;
 
 type RoofGeometry =
@@ -255,9 +275,11 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   let lastPlaced = 0;
   let decorVisible = true;
   let decorSignature = "";
+  let stateSignature = 0;
   let lastCells: readonly BuildableCell[] = [];
   let lastParcels: readonly BuildingParcel[] = [];
   let lastStatuses: readonly BuildingStatus[] = [];
+  const modelById = new Map<string, Model>();
 
   function applyBuildingVisibility(): void {
     for (const model of available) model.mesh.setEnabled(visible && !far && model.mesh.thinInstanceCount > 0);
@@ -295,6 +317,10 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
       sum += Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z);
     }
     return `${count}:${sum}`;
+  }
+
+  function modelFor(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): Model | undefined {
+    return modelById.get(buildingModelId(parcel));
   }
 
   /**
@@ -374,6 +400,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     lastCells = cells;
     lastStatuses = statuses;
     lastParcels = statuses.map((status) => status.parcel);
+    stateSignature = buildingStateSignature(statuses);
     grid?.dispose();
     grid = cells.length
       ? MeshBuilder.CreateLineSystem(
@@ -434,7 +461,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     const distantColors = new Float32Array(statuses.length * 4);
     for (const [i, status] of statuses.entries()) {
       const parcel = status.parcel;
-      const model = available.find((m) => m.id === buildingModelId(parcel));
+      const model = modelFor(parcel);
       distantBoxMatrix(parcel, model?.roofY ?? 12, status).copyToArray(distantMatrices, i * 16);
       distantColors.set([...buildingStateColor(parcel, status), 1], i * 4);
     }
@@ -483,6 +510,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
   function updateStates(statuses: readonly BuildingStatus[]): void {
     lastStatuses = statuses;
     if (!lastParcels.length) return;
+    const nextSignature = buildingStateSignature(statuses);
+    if (nextSignature === stateSignature) return;
+    stateSignature = nextSignature;
     const buckets = new Map<string, BuildingStatus[]>(available.map((m) => [m.id, []]));
     for (const status of statuses) buckets.get(buildingModelId(status.parcel))?.push(status);
     for (const model of available) {
@@ -500,7 +530,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     const distantMatrices = new Float32Array(statuses.length * 16);
     const distantColors = new Float32Array(statuses.length * 4);
     for (const [i, status] of statuses.entries()) {
-      const model = available.find((m) => m.id === buildingModelId(status.parcel));
+      const model = modelFor(status.parcel);
       distantBoxMatrix(status.parcel, model?.roofY ?? 12, status).copyToArray(distantMatrices, i * 16);
       distantColors.set([...buildingStateColor(status.parcel, status), 1], i * 4);
     }
@@ -521,6 +551,7 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     void loadModel(scene, id, shadows, manifest.models[id]).then((model) => {
       if (!model) return;
       available.push(model);
+      modelById.set(model.id, model);
       clearTimeout(modelLoadRebuildTimer);
       modelLoadRebuildTimer = window.setTimeout(() => rebuild(lastCells, lastStatuses), 50);
     });

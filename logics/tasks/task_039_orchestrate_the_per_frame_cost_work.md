@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 15%
+> Progress: 30%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -63,6 +63,10 @@
 - 2026-09-03 wave item_133: `npm run ci` passed after the harness change.
 - 2026-09-03 wave item_133: clean `npm run perf` on `c9321ea` appended a `dirty:false` built-demo baseline with `101 buildings`.
 - 2026-09-03 wave item_133: `npm run ablate -- --rounds 1 --ms 1200` recorded built-demo ratios; traffic off was the clearest single toggle at x1.09 overview / x1.18 street.
+- 2026-09-03 wave item_113: `rtk npm exec -- vitest run src/render/buildings.test.ts && npm run typecheck` passed.
+- 2026-09-03 wave item_113: live Playwright probe counted zero building `thinInstanceSetBuffer` writes after a repeated settled update on the 101-building demo.
+- 2026-09-03 wave item_113: `rtk npm run ci` passed.
+- 2026-09-03 wave item_113: `rtk npm run test:e2e` fails at `scripts/interact.mjs:1021` waiting for zone-clear to reduce `stats().zones`; comparison worktree `bd2ee98` fails the same way, so this is a pre-existing gate gap outside item_113.
 
 # Report
 - Not started.

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 15%
+> Progress: 30%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -54,3 +54,10 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `buildings.updateStates` now returns early when a cheap status signature is unchanged. The signature covers parcel position/size, state, quantised progress, staffing, and idle reason because reason changes alter colours.
+- The distant-box path now uses a `modelById` map instead of `available.find(...)` per status.
+- Live probe proof: after the built demo settled at `101` buildings and all `28` models loaded, a repeated `setRunRules({ instantConstruction: true, freeBuilding: true })` produced zero building `thinInstanceSetBuffer` writes.
+- Validation proof: `rtk npm exec -- vitest run src/render/buildings.test.ts && npm run typecheck` passed; `rtk npm run ci` passed.
+- E2E note: `rtk npm run test:e2e` still fails at `scripts/interact.mjs:1021` waiting for the zone-clear click to reduce `stats().zones`; the same failure reproduces from comparison worktree `bd2ee98`, before this wave, so it is not caused by the building-state gate.

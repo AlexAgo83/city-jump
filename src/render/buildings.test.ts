@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BuildableCell, BuildingParcel } from "../sim/slots";
-import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, roofObjectLimit, roofPropY } from "./buildings";
+import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -136,6 +136,17 @@ describe("roof props", () => {
     const p = parcel(0, 0, 2, 2);
     expect(buildingStateColor(p, { state: "idle", reason: "power" })).not.toEqual(buildingStateColor(p, { state: "idle", reason: "water" }));
     expect(buildingStateColor(p, { state: "idle", reason: "power" })).not.toEqual(buildingStateColor(p, { state: "idle", reason: "workers" }));
+  });
+
+  it("changes the upload signature only when visible building state changes", () => {
+    const p = parcel(0, 0, 2, 2);
+    const base = { parcel: p, state: "rising" as const, progress: 0.5, staffed: true };
+
+    expect(buildingStateSignature([base])).toBe(buildingStateSignature([{ ...base }]));
+    expect(buildingStateSignature([base])).not.toBe(buildingStateSignature([{ ...base, progress: 0.6 }]));
+    expect(buildingStateSignature([base])).not.toBe(buildingStateSignature([{ ...base, state: "working" }]));
+    expect(buildingStateSignature([base])).not.toBe(buildingStateSignature([{ ...base, staffed: false }]));
+    expect(buildingStateSignature([{ ...base, state: "idle", reason: "power" }])).not.toBe(buildingStateSignature([{ ...base, state: "idle", reason: "water" }]));
   });
 
   it("skips foot decorations on faces touching another building cell", () => {
