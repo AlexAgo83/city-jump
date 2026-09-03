@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 65%
+> Progress: 70%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -67,3 +67,5 @@
 - 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed. `rtk npm run test:e2e` reached the wave/persistence path and failed later at the existing zone-clear timeout at `scripts/interact.mjs:1021`.
 - 2026-09-03 wave 3e: commit `4d310b5` moved the deterministic wave plan and camera framing calculation into `src/app/waveLoop.ts`; `startApp` still owns mutable wave state and rendering side effects.
 - 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
+- 2026-09-03 wave 3f: commit `9675795` moved wave verdict settlement into `settleWaveOutcome` and added focused coverage for held-wave scheduling and breached-empty-city end state.
+- 2026-09-03 validation: `rtk npm exec -- vitest run src/app/waveLoop.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
