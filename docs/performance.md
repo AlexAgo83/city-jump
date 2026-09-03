@@ -30,6 +30,10 @@ standing buildings. Built-demo entries start after the 2026-09-03 harness fix th
 existing debug `growCity(2000, 3000)` path and waits for `stats().buildings > 0`.
 The first clean built-demo baseline is `c9321ea`: 237 segments, 101 buildings, 42 active
 meshes, and 98 / 116 / 77 fps at overview / district / street.
+The clean after row for req_037 is `6d25554`, with the same label and city: 237 segments,
+101 buildings, 42 active meshes, and 85 / 108 / 73 fps, with rebuild at 522 ms. That single
+software-rasterizer sample did not show a frame-rate win; it showed the same mesh counts and a
+slower rebuild. Keep the CPU-side gates, but do not cite this row as an fps improvement.
 
 **Trust the mesh counts; be careful with the fps.** The same build measured 75 fps and 42 fps at
 the same framing an hour apart on this machine -- whatever else it was doing moved the number more
@@ -84,6 +88,12 @@ ablation measured traffic as the clearest current win, not buildings: overview t
 street traffic off x1.18, and all three of buildings / traffic / shadows off x1.17 overview and
 x1.30 street. That keeps the current chain order honest: building upload work may still matter for
 CPU churn, but it is no longer justified by an empty-city `buildings off` ratio.
+
+The req_037 CPU gates are still worth keeping for churn: building state uploads are skipped when
+the visible state signature is unchanged, supplied utilities are cached on `graph.revision`, the
+sun fan-out only runs when the displayed minute changes, and traffic yield/crossing occupancy is
+indexed once per frame. They do not reduce mesh counts, and the final clean perf row above did not
+prove an fps gain.
 
 Traffic is free. Buildings and shadows are each worth half the frame -- and they are the same
 cost twice, because what was expensive was **drawing every building into the shadow map, once per

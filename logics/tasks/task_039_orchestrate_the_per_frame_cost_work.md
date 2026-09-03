@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 80%
+> Progress: 90%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -78,6 +78,8 @@
 - 2026-09-03 wave item_116: traffic now builds one frame occupancy index for roundabout yielding, exiting rides, crossing walkers, and ring-room spacing.
 - 2026-09-03 wave item_116: roundabout lane-blocking behaviour is intentionally unchanged; same-lane-only yielding belongs to req_035 if product wants it.
 - 2026-09-03 wave item_116: `npm run typecheck`, `rtk npx vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed; `rtk npm run test:e2e` passed traffic movement checks before the known zone-clear timeout at `scripts/interact.mjs:1021`.
+- 2026-09-03 wave item_118: `rtk npm run perf` appended clean built-demo row `6d25554`, 237 segments, 101 buildings, 42 active meshes.
+- 2026-09-03 wave item_118: final row did not prove fps improvement: 85 / 108 / 73 fps and 522 ms rebuild; `docs/performance.md` records the non-improvement.
 
 # Report
 - Not started.

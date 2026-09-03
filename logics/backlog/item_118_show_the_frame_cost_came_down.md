@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 70%
-> Progress: 80%
+> Progress: 90%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -51,3 +51,8 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `npm run perf` appended a clean `demo` row for commit `6d25554` with the same built-demo city as baseline `c9321ea`: 237 segments, 101 buildings, 42 active meshes.
+- Result: the row did not show an fps improvement in this software-rasterizer sample: 85 / 108 / 73 fps versus `6b63046` at 99 / 110 / 79, and rebuild rose to 522 ms. `docs/performance.md` records that plainly.
+- Validation proof: `rtk npm run perf` passed and wrote `dirty:false`; `logics-manager lint --require-status && logics-manager audit --group-by-doc && logics-manager i18n validate` passed after doc updates.
