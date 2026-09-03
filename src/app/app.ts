@@ -31,7 +31,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
+import { carryScience, createRun, endIfPopulationZero, evacuate, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -44,6 +44,7 @@ import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
+import { bindRunPanel, type RunPanel } from "../ui/runPanel";
 
 /** Where a run opens: the far side of the island from the bridge. */
 const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
@@ -783,59 +784,11 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   );
 
   await seedDefaultDemoSave();
-  const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
-  const callWaveButton = document.getElementById("call-wave") as HTMLButtonElement;
-  const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
-  const kaijuBox = document.getElementById("kaiju-spawns") as HTMLInputElement;
-  const instantBox = document.getElementById("instant-construction") as HTMLInputElement;
-  const freeBuildBox = document.getElementById("free-building") as HTMLInputElement;
-  const ignorePowerBox = document.getElementById("ignore-power") as HTMLInputElement;
-  const ignoreWaterBox = document.getElementById("ignore-water") as HTMLInputElement;
-  const gameplayNote = document.getElementById("gameplay-note") as HTMLSpanElement;
-  const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
-  const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
-  const runOutcome = document.getElementById("run-outcome") as HTMLSpanElement;
-  const newRunButton = document.getElementById("new-run") as HTMLButtonElement;
-  const renderGameplayRules = (): void => {
-    kaijuBox.checked = runState.rules.kaijuSpawns;
-    instantBox.checked = runState.rules.instantConstruction;
-    freeBuildBox.checked = runState.rules.freeBuilding;
-    ignorePowerBox.checked = runState.rules.ignorePower;
-    ignoreWaterBox.checked = runState.rules.ignoreWater;
-    // Only say something when a switch has taken something away. Stating what the normal rules are
-    // reads as an orphan sentence beside four checkboxes.
-    gameplayNote.textContent = runState.rules.kaijuSpawns ? "" : "Pacifist: no waves, so no science and no prestige.";
-    controls?.setToolEnabled("power", !runState.rules.ignorePower);
-    controls?.setToolEnabled("water", !runState.rules.ignoreWater);
-  };
-  const setRunRules = (): void => {
-    runState = { ...runState, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked, ignorePower: ignorePowerBox.checked, ignoreWater: ignoreWaterBox.checked } };
-    renderGameplayRules();
+  let runPanel: RunPanel;
+  const applyRunRuleEffects = (): void => {
     syncBuildings();
     buildings.updateStates(currentBuildingStatuses);
     scheduleAutosave();
-  };
-  const renderUpgradeWeb = (): void => {
-    upgradeWeb.replaceChildren(...FIRST_UPGRADE_WEB.map((upgrade) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = `${upgrade.name} ${upgrade.cost}`;
-      button.title = upgrade.description;
-      button.dataset.owned = String(profile.upgrades.includes(upgrade.id));
-      button.addEventListener("click", () => {
-        const next = buyUpgrade(profile, upgrade.id);
-        if (next === profile) return showRefusal("Not enough prestige.");
-        profile = next;
-        writeProfile(profile);
-        updateRunHud();
-        renderUpgradeWeb();
-      });
-      return button;
-    }));
-    betweenRuns.hidden = !runState.ended;
-    runOutcome.textContent = runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science.`
-      : runState.ended === "population_zero" ? "The island emptied."
-      : runState.ended === "defeated" ? "The city fell." : "";
   };
   /** A new island: the same path a save takes, then framed on the kit the run opens with. */
   const startFreshRun = (): void => {
@@ -844,7 +797,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     rebuild();
     // The run panel and the banner both remember the run that just ended, and neither is refreshed
     // by loading a city. Without this, a new island opened still reading "The island emptied".
-    renderUpgradeWeb();
+    runPanel.renderUpgradeWeb();
     updateWave(0);
     applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
   };
@@ -852,7 +805,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     setTimeRate(0);
     updateWave(0);
     updateRunHud();
-    renderUpgradeWeb();
+    runPanel.renderUpgradeWeb();
   };
   const finishByEvacuation = (): void => {
     if (runState.ended) return;
@@ -863,30 +816,30 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     endRun();
     showRefusal(`Evacuated with ${Math.floor(runState.science)} science. Start a new run when you are ready.`);
   };
-  hardcoreBox.checked = profile.hardcore;
-  hardcoreBox.addEventListener("change", () => {
-    profile = { ...profile, hardcore: hardcoreBox.checked };
-    writeProfile(profile);
+  runPanel = bindRunPanel({
+    getRun: () => runState,
+    setRun: (run) => {
+      runState = run;
+    },
+    getProfile: () => profile,
+    setProfile: (next) => {
+      profile = next;
+      writeProfile(profile);
+    },
+    updateRunHud,
+    onRulesChanged: applyRunRuleEffects,
+    onNewRun: startFreshRun,
+    onEvacuate: finishByEvacuation,
+    onCallWave() {
+      if (waveClock.active || runState.ended) return;
+      if (!runState.rules.kaijuSpawns) return showRefusal("Pacifist mode pauses waves, science and prestige.");
+      waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+      waveCalledEarly = true;
+      updateWave(0);
+    },
+    setToolEnabled: (tool, enabled) => controls?.setToolEnabled(tool, enabled),
+    showRefusal,
   });
-  for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) box.addEventListener("change", setRunRules);
-  renderGameplayRules();
-  // The run is over and the city is frozen; the only useful thing left is the next island.
-  newRunButton.addEventListener("click", () => {
-    if (!window.confirm("Leave for a new island?")) return;
-    startFreshRun();
-  });
-  evacuateButton.addEventListener("click", () => {
-    if (!window.confirm("Evacuate this run?")) return;
-    finishByEvacuation();
-  });
-  callWaveButton.addEventListener("click", () => {
-    if (waveClock.active || runState.ended) return;
-    if (!runState.rules.kaijuSpawns) return showRefusal("Pacifist mode pauses waves, science and prestige.");
-    waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
-    waveCalledEarly = true;
-    updateWave(0);
-  });
-  renderUpgradeWeb();
 
   controls = bindControls({
     onRoadMode(mode) {
@@ -1001,8 +954,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // enough to summon it, so it comes again.
     waveClock = { ...(city.waveClock ?? createWaveClock()), active: null };
     updateRunHud();
-    renderGameplayRules();
-    renderUpgradeWeb();
+    runPanel.renderGameplayRules();
+    runPanel.renderUpgradeWeb();
     // The replay does not cut the city into exactly the same lots, so both the zoning and the
     // buildings standing on it are moved onto the ones it did cut, before anything is drawn from
     // them. See `Zones.snapTo` and `BuildingLifecycle.snapTo`.
@@ -1173,7 +1126,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       resetWave();
       runState = createRun();
       updateRunHud();
-      renderGameplayRules();
+      runPanel.renderGameplayRules();
       debugReset?.();
     },
     /** Paint a zone from a script, so zoning can be checked without driving the pointer. */
@@ -1215,9 +1168,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     },
     setRunRules(rules: Partial<typeof runState.rules>) {
       runState = { ...runState, rules: { ...runState.rules, ...rules } };
-      renderGameplayRules();
-      syncBuildings();
-      buildings.updateStates(currentBuildingStatuses);
+      runPanel.renderGameplayRules();
+      applyRunRuleEffects();
       return runState.rules;
     },
     measureBuildingStateChange() {
