@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 30%
+> Progress: 40%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -54,3 +54,8 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave 3a: commit `61ea53f` moved the run-panel DOM binding, gameplay rule checkboxes, hardcore checkbox, prestige upgrade buttons, new-run button, evacuation button, and call-wave button into `src/ui/runPanel.ts`.
+- 2026-09-03 wave 3a: `src/app/app.ts` still owns `runState`, `profile`, wave scheduling, city rebuild side effects, autosave, and player feedback; the extraction only moved DOM wiring.
+- 2026-09-03 validation: `rtk npm run ci` passed. `rtk npm run test:e2e` passed the run-panel/gameplay checks before the existing zone-clear timeout at `scripts/interact.mjs:1021`.

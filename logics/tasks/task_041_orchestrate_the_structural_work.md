@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 30%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -80,4 +80,6 @@
 - 2026-09-03 wave 2: commit `82b27fe` added Biome, `npm run lint`, `npm run format`, the `ci` lint gate, `engines.node >=22`, and the stricter TypeScript flags.
 - 2026-09-03 wave 2: commit `17204a9` fixed the strict unused-code and Biome error findings without changing player behavior.
 - 2026-09-03 validation: `rtk npm run ci` passed with Biome lint, 40 Vitest files / 306 tests, 12 architecture tests, scenarios, build/typecheck, Logics lint/audit, and i18n validation.
+- 2026-09-03 wave 3a: commit `61ea53f` extracted the run-panel DOM wiring from `startApp` into `src/ui/runPanel.ts`; app state ownership and callbacks stayed in `src/app/app.ts`.
+- 2026-09-03 validation: `rtk npm run ci` passed after the run-panel extraction. `rtk npm run test:e2e` passed the run-panel, gameplay settings, evacuation, prestige, new-run, reload, and toolbar checks, then failed later at the existing zone-clear timeout at `scripts/interact.mjs:1021`.
 - Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.
