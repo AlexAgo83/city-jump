@@ -1,12 +1,12 @@
 ## prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page - A release that proves it shipped, and a link that cannot write to the page
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Settled
 > Related request: `req_038_harden_the_release_path_and_the_shared_link_surface`
-> Related backlog: item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch, item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome, item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model, item_122_let_a_missing_asset_be_missing, item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand, item_134_configure_the_release_contract_and_record_what_shipped
+> Related backlog: `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`
 > Related task: `task_040_orchestrate_the_release_and_client_hardening`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
-> Indicators reviewed: 2026-09-03 11:51:00
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # Overview
 The deploy path verifies its own outcome and the client renders untrusted cities as text.
@@ -67,5 +67,5 @@ flowchart TD
 - item_122: is there any intended future client-side routing? Removing the SPA rewrite is only free if the answer is no.
 
 # References
-- Product back-reference: `req_038_harden_the_release_path_and_the_shared_link_surface`
+- Product back-reference: `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`
 - Task back-reference: `task_040_orchestrate_the_release_and_client_hardening`

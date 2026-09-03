@@ -1,14 +1,14 @@
 ## item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch - Take the release tag out of the shell and refuse a branch
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # AI Context
 - Summary: The three later steps in the same file already pass values through env correctly, so this is an inconsistency rather than a house style -- in a job holding the deploy hook secret.
@@ -58,3 +58,7 @@
 - The release SHA now comes from `git rev-parse --verify "refs/tags/${release_tag}^{commit}"`, so `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9` and `main` fails before the deploy hook.
 - `actions/checkout` is pinned to `11d5960a326750d5838078e36cf38b85af677262`; `tests/architecture.mjs` guards the no-template-run-block, tag-only resolution, and SHA-pinned action rules.
 - Validation proof: `rtk npm run test:architecture` passed.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_040_orchestrate_the_release_and_client_hardening`

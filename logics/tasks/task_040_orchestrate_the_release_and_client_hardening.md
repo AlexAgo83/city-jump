@@ -1,14 +1,14 @@
 ## task_040_orchestrate_the_release_and_client_hardening - Orchestrate the release and client hardening
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:48
 > Owner: Codex
 
 # AI Context
@@ -21,15 +21,15 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Wave 1: answer the Render ref question first -- it decides whether the deploy verification is a small addition or the most important item here.
-- [ ] 2. Wave 2: the tag through env:, the tag-not-branch check and the SHA pins; these are mechanical and independent.
-- [ ] 3. Wave 3: the deploy outcome verification, shaped by what wave 1 established.
-- [ ] 4. Wave 4: node construction in the HUD, then the CSP, then the threat model control -- in that order, so the policy lands on code that already complies.
-- [ ] 5. Wave 5: the rewrite scoping and the derived asset version.
-- [ ] 6. Do not drop the immutable cache on /buildings/*: the ?v= parameter is what makes it correct.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Wave 1: answer the Render ref question first -- it decides whether the deploy verification is a small addition or the most important item here.
+- [x] 2. Wave 2: the tag through env:, the tag-not-branch check and the SHA pins; these are mechanical and independent.
+- [x] 3. Wave 3: the deploy outcome verification, shaped by what wave 1 established.
+- [x] 4. Wave 4: node construction in the HUD, then the CSP, then the threat model control -- in that order, so the policy lands on code that already complies.
+- [x] 5. Wave 5: the rewrite scoping and the derived asset version.
+- [x] 6. Do not drop the immutable cache on /buildings/*: the ?v= parameter is what makes it correct.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`
@@ -40,25 +40,33 @@
 - `item_134_configure_the_release_contract_and_record_what_shipped`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`. Proof deferred to slice closeout.
-- request-AC2 -> `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`. Proof deferred to slice closeout.
-- request-AC3 -> `item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome`. Proof deferred to slice closeout.
-- request-AC4 -> `item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model`. Proof deferred to slice closeout.
-- request-AC5 -> `item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model`. Proof deferred to slice closeout.
-- request-AC6 -> `item_122_let_a_missing_asset_be_missing`. Proof deferred to slice closeout.
-- request-AC7 -> `item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: `.github/workflows/render-release-deploy.yml` passes release tags through `env:` and `tests/architecture.mjs` asserts no `${{ ... }}` template expression appears inside shell `run:` blocks.
+- request-AC2 -> This task. Proof: release commit resolution now uses `git rev-parse --verify refs/tags/<tag>^{commit}`; `main` failed locally with `Needed a single revision` before any deploy step.
+- request-AC3 -> This task. Proof: Render deploy verification now polls `/v1/services/${RENDER_SERVICE_ID}/deploys?limit=20` for `RELEASE_SHA`, passes only `live`/`deactivated`, and fails `build_failed`/`canceled`/timeout; 0.4.0 release evidence records Render deploy `dep-dac1i8favr4c73b545a0` live on `b7f551cf25c63b13c2a624812496b5d02e2d9ad9`.
+- request-AC4 -> This task. Proof: `src/ui/hud.ts` no longer contains `.innerHTML`; HUD, ledger, and selection rows use node construction plus `textContent`/element properties, and `tests/architecture.mjs` asserts this.
+- request-AC5 -> This task. Proof: `render.yaml` serves a CSP with `default-src 'self'`, `object-src 'none'`, `base-uri 'none'`, hashed inline script/style, and no `style-src 'unsafe-inline'`; `docs/shared-link-threat-model.md` records the rendering rule.
+- request-AC6 -> This task. Proof: the Render catch-all rewrite was removed from `render.yaml`, and `tests/architecture.mjs` asserts no rewrite route remains so absent asset paths can 404 instead of receiving `index.html`.
+- request-AC7 -> This task. Proof: `src/render/assets.ts` exports one package-derived `ASSET_VERSION` injected by `vite.config.mjs`; both building and kaiju model URLs use it, and architecture tests reject the old separate constants.
 
 # Validation
 - (no validation recorded yet)
+- rtk npm run ci passed on 2026-09-03: version check, 40 Vitest files / 306 tests, 10 architecture tests, scenarios, build/typecheck, Logics lint/audit/i18n
+- rtk npm run test:visual passed on 2026-09-03: browser rendered 551 buildings
+- logics-manager release validate 0.4.0 passed on 2026-09-03: release evidence complete for metadata, changelog, local validation, git push, CI, and Render deployment
+- Finish workflow executed on 2026-09-03.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-09-03.
+- Linked backlog item(s): `item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch`, `item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome`, `item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model`, `item_122_let_a_missing_asset_be_missing`, `item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand`, `item_134_configure_the_release_contract_and_record_what_shipped`
+- Related request(s): `req_038_harden_the_release_path_and_the_shared_link_surface`
 
 # Links
 - Request: `req_038_harden_the_release_path_and_the_shared_link_surface`

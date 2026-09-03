@@ -1,14 +1,14 @@
 ## item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome - Establish whether the deploy hook honours the commit, then verify the outcome
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # AI Context
 - Summary: Proven against the live service, not just the docs: all three deploy_hook deploys landed exactly on the v0.2.0, v0.3.0 and v0.4.0 tag commits with autoDeploy off, so ?ref= is honoured. Two deploys in the same history are build_failed, so the 200-then-fail risk is real and has already happened here.
@@ -60,3 +60,7 @@
 - 2026-09-03 implementation wave: `.github/workflows/render-release-deploy.yml` now polls `GET /v1/services/${RENDER_SERVICE_ID}/deploys?limit=20` after the deploy hook returns, matches the deploy whose commit is `RELEASE_SHA`, and only exits success for `live` or already-superseded `deactivated`.
 - 2026-09-03 implementation wave: `build_failed` and `canceled` statuses fail the release job, while a missing/slow deploy times out separately after 900 seconds with 15 second polling.
 - 2026-09-03 validation: `rtk npm run test:architecture` passed and asserts the Render API secrets, explicit timeout/interval, commit-specific deploy lookup, and status handling stay in the workflow.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_040_orchestrate_the_release_and_client_hardening`

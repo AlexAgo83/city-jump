@@ -1,14 +1,14 @@
 ## item_122_let_a_missing_asset_be_missing - Let a missing asset be missing
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # AI Context
 - Summary: The app has no client-side routing -- only the hash city fragment -- so the rewrite buys nothing and costs diagnosability: JSON.parse on a doctype and the GLB loader both fail confusingly.
@@ -54,3 +54,7 @@
 # Notes
 - 2026-09-03 implementation wave: removed the Render catch-all rewrite to `/index.html`; the root document and `#city=` fragments still use `/`, while absent asset paths can return real 404s instead of HTML.
 - 2026-09-03 validation: `rtk npm run test:architecture` passed and asserts `render.yaml` has no rewrite route.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_040_orchestrate_the_release_and_client_hardening`

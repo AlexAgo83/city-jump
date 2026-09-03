@@ -1,13 +1,13 @@
 ## req_038_harden_the_release_path_and_the_shared_link_surface - Harden the release path and the shared-link surface
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:46:10
+> Indicators reviewed: 2026-09-03 16:02:48
 
 # AI Context
 - Summary: A well-built deploy workflow with three gaps around it, and a HUD that interpolates city values into innerHTML just as naming becomes a product direction.

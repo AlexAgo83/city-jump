@@ -1,14 +1,14 @@
 ## item_134_configure_the_release_contract_and_record_what_shipped - Configure the release contract and record what shipped
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:48
 
 # AI Context
 - Summary: `logics-manager release status` answers not_configured, so the contract Logics expects for release readiness has never existed -- while three versions have been tagged and deployed. This chain hardens the release path without it.
@@ -61,3 +61,13 @@
 - 2026-09-03 evidence wave: recorded 0.4.0 evidence in `logics/release/evidence.jsonl` for version metadata, changelog, local validation, pushed git commit, GitHub CI, and Render production deployment.
 - 2026-09-03 evidence wave: `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9`; GitHub CI success is run `33630578942`; Render deploy `dep-dac1i8favr4c73b545a0` is live for the same commit.
 - 2026-09-03 validation: a detached worktree at `b7f551cf25c63b13c2a624812496b5d02e2d9ad9` passed `npm ci`, `npm run lint`, `npm test`, and `npm run build`.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# AC Traceability
+- request-AC1 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC2 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC3 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC4 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC5 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC6 -> This backlog slice. Proof deferred to slice closeout.
+- request-AC7 -> This backlog slice. Proof deferred to slice closeout.

@@ -1,14 +1,14 @@
 ## item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand - Derive the asset version instead of maintaining two by hand
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # AI Context
 - Summary: The immutable cache is correct and must stay -- the version query parameter is what makes it safe. The residual risk is only that two constants are hand-maintained, in two files, at diverging dates.
@@ -57,3 +57,7 @@
 - 2026-09-03 implementation wave: added `vite.config.mjs` to read `package.json` and inject `__APP_VERSION__`, then added one shared `src/render/assets.ts` `ASSET_VERSION` for building and kaiju model URLs.
 - 2026-09-03 implementation wave: removed the hand-maintained `BUILDING_ASSET_VERSION` and `KAIJU_ASSET_VERSION`; `logics/runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md` now says asset cache busting follows the shipped package version.
 - 2026-09-03 validation: `rtk npm run typecheck` and `rtk npm run test:architecture` passed; the architecture check asserts both model paths use `ASSET_VERSION`.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_040_orchestrate_the_release_and_client_hardening`

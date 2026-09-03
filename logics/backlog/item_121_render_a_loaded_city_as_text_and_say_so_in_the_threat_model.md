@@ -1,14 +1,14 @@
 ## item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model - Render a loaded city as text, and say so in the threat model
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 15:45:34
+> Indicators reviewed: 2026-09-03 16:02:49
 
 # AI Context
 - Summary: Safe today only because streetName composes from a fixed word list and city names use textContent. prod_007 points at naming as a direction, which is what makes this worth fixing while it is free.
@@ -62,3 +62,7 @@
 - 2026-09-03 implementation wave: `docs/shared-link-threat-model.md` now requires loaded-city values to render through `textContent` or equivalent node properties, never `innerHTML`.
 - 2026-09-03 validation: `rtk npm run ci` passed; `rtk npm run test:visual` passed with 551 buildings rendered in a real browser.
 - 2026-09-03 validation: `rtk npm run test:e2e` passed the HUD/ledger/save checks before timing out at `scripts/interact.mjs:1021` on the known zone-clear wait that predates this slice.
+- Task `task_040_orchestrate_the_release_and_client_hardening` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_040_orchestrate_the_release_and_client_hardening`
