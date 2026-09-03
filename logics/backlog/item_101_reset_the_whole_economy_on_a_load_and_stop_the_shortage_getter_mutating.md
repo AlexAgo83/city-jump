@@ -1,13 +1,14 @@
 ## item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating - Reset the whole economy on a load, and stop the shortage getter mutating
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: Two defects in one getter: it mutates on read, and it rewrites shortSince on every read while the stock is at zero, so the recovery window the comment describes can never elapse.

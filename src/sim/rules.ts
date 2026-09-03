@@ -129,23 +129,39 @@ export function commitSegment(
 
   const crossings = elevated || roadType(type).tunnelDepth ? [] : allCrossings(graph, from.position, control, to.position);
   if (crossings.length) {
-    const nodes = [a];
+    const stops = [{ node: a, t: 0 }];
     for (const crossing of crossings) {
-      const near = graph.nearestNode(crossing.point.x, crossing.point.z, RULES.nodeSnapRadius);
-      nodes.push(near?.id ?? graph.splitSegment(crossing.segmentId, crossing.distance));
+      const node = resolveCrossing(graph, crossing);
+      if (node !== stops[stops.length - 1]!.node) stops.push({ node, t: crossing.t });
     }
-    nodes.push(b);
+    if (b !== stops[stops.length - 1]!.node) stops.push({ node: b, t: 1 });
 
-    let lastSegment = 0 as SegmentId;
-    const ts = [0, ...crossings.map((crossing) => crossing.t), 1];
-    for (let i = 1; i < nodes.length; i++) {
-      if (nodes[i - 1] === nodes[i]) continue;
-      lastSegment = graph.addSegment(nodes[i - 1]!, nodes[i]!, subControl(from.position, control, to.position, ts[i - 1]!, ts[i]!), type);
+    let lastSegment: SegmentId | null = null;
+    for (let i = 1; i < stops.length; i++) {
+      lastSegment = graph.addSegment(
+        stops[i - 1]!.node,
+        stops[i]!.node,
+        subControl(from.position, control, to.position, stops[i - 1]!.t, stops[i]!.t),
+        type,
+      );
     }
-    return { ok: true, segmentId: lastSegment };
+    return lastSegment ? { ok: true, segmentId: lastSegment } : { ok: false, reason: "A road cannot start and end at the same point." };
   }
 
   return { ok: true, segmentId: elevated ? graph.addElevatedSegment(a, b, control, type) : graph.addSegment(a, b, control, type) };
+}
+
+function resolveCrossing(graph: RoadGraph, crossing: { segmentId: SegmentId; distance: number; point: Vec3 }): NodeId {
+  const near = graph.nearestNode(crossing.point.x, crossing.point.z, RULES.nodeSnapRadius);
+  if (near) return near.id;
+
+  if (graph.hasSegment(crossing.segmentId)) return graph.splitSegment(crossing.segmentId, crossing.distance);
+
+  const hit = graph.nearestOnSegment(crossing.point.x, crossing.point.z, RULES.segmentSnapRadius, (segment) => !roadType(segment.type).tunnelDepth);
+  if (!hit || hit.distance < RULES.minLength || hit.segment.length - hit.distance < RULES.minLength) {
+    return graph.addNodeAt(crossing.point);
+  }
+  return graph.splitSegment(hit.segment.id, hit.distance);
 }
 
 function touchesElevated(graph: RoadGraph, snap: Snap): boolean {

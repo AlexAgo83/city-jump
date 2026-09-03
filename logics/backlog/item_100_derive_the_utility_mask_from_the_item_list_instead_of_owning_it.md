@@ -1,13 +1,14 @@
 ## item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it - Derive the utility mask from the item list instead of owning it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: The mask on a segment is derived from the item list, so removal clears and re-lays rather than subtracting: two diffusers can share a run of road. Changes removeNear's signature; one caller at src/app/app.ts:765.

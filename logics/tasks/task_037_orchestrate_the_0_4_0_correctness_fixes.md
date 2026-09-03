@@ -1,13 +1,15 @@
 ## task_037_orchestrate_the_0_4_0_correctness_fixes - Orchestrate the 0.4.0 correctness fixes
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: Six waves landing the 0.4.0 correctness fixes, starting from the reproduced crossing throw and ending with the comment-and-test bundle.

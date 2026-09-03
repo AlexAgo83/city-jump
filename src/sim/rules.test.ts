@@ -90,6 +90,26 @@ describe("snapping", () => {
     expect(g.allNodes().filter((n) => n.segments.size === 4)).toHaveLength(2);
   });
 
+  it("splits one curved road twice when one stroke crosses it twice", () => {
+    const g = new RoadGraph();
+    expect(commitSegment(g, resolveSnap(g, -60, 0), resolveSnap(g, 60, 0), v3(0, 0, 240), "street").ok).toBe(true);
+
+    const result = road(g, -42, 60, 100, 60);
+
+    expect(result.ok).toBe(true);
+    expect(g.allSegments()).toHaveLength(5);
+    expect(result.ok && g.allSegments().some((segment) => segment.id === result.segmentId)).toBe(true);
+  });
+
+  it("does not report success with a missing segment id", () => {
+    const g = new RoadGraph();
+    expect(commitSegment(g, resolveSnap(g, -60, 0), resolveSnap(g, 60, 0), v3(0, 0, 240), "street").ok).toBe(true);
+
+    const result = road(g, -42, 60, 100, 60);
+
+    expect(result.ok && g.allSegments().some((segment) => segment.id === result.segmentId)).toBe(true);
+  });
+
   it("merges a crossing into an existing node inside the snap radius", () => {
     const g = new RoadGraph();
     road(g, -60, 0, 60, 0);

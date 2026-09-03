@@ -1,13 +1,14 @@
 ## item_099_cut_a_segment_as_many_times_as_one_road_crosses_it - Cut a segment as many times as one road crosses it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: Reproduced: a quadratic street with control (0,0,240) crossed at z=60 throws `unknown segment: 1` after the first split has committed. The trap is that returning ok:false here moves the partial mutation instead of removing it.

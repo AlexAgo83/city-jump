@@ -1,13 +1,14 @@
 ## item_103_make_a_building_pad_stamp_idempotent_between_neighbours - Make a building pad stamp idempotent between neighbours
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: The only stamp that never records into this.claim, so it blends against a surface a previous parcel in the same pass may already have moved. The road and junction stamps are nearest-wins and do not have this.

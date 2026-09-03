@@ -1,13 +1,14 @@
 ## item_104_bound_the_cleared_tree_record - Bound the cleared-tree record
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: Every miss pushes a point, including clicks on bare ground and repeats on one spot, and all of it is saved. isCleared is a linear scan per generated tree per rebuild, so cost is quadratic in session length.

@@ -1,13 +1,14 @@
 ## item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks - Take the undo snapshot when the wrecking ball lands, not when the player clicks
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: beforeChange fires at click, afterChange a second later, and app.ts:415 uses ??=, so two bulldozes in one second collapse to one undo entry. The timers are also unclearable across a load.

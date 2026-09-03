@@ -1,13 +1,14 @@
 ## item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel - Make house numbering locale-independent and stop rebuilding every street per parcel
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 16%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:50:27
 
 # AI Context
 - Summary: localeCompare makes house numbers depend on the runtime locale for one city, and streetForSegment rebuilds every street from every segment once per parcel.
