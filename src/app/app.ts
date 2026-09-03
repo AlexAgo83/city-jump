@@ -15,6 +15,7 @@ import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { cellKey, createZoneRenderer } from "../render/zones";
+import { applyCamera as applyCameraState, cameraSnapshot as snapshotCamera, createAutosave } from "./persistence";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
 import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, rebuildingCost, roadBuildCost, type CityTerms } from "../sim/economy";
@@ -374,39 +375,18 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     frameTerrain();
   };
 
-  // Debounced, so dragging a long road writes once rather than on every rebuild.
-  // ponytail: a timer, not a dirty-flag scheduler.
-  // And nothing is written while one is on the island, so the save on disk is never mid-wave.
-  let autosaveTimer = 0;
-  let autosaveRefusedShown = false;
-  const cameraSnapshot = (): SavedCamera => ({
-    targetX: camera.target.x,
-    targetY: camera.target.y,
-    targetZ: camera.target.z,
-    alpha: camera.alpha,
-    beta: camera.beta,
-    radius: camera.radius,
-  });
-  const applyCamera = (state: SavedCamera): void => {
-    camera.target.set(state.targetX, state.targetY, state.targetZ);
-    camera.alpha = state.alpha;
-    camera.beta = state.beta;
-    camera.radius = state.radius;
-  };
-  const scheduleAutosave = (): void => {
-    window.clearTimeout(autosaveTimer);
-    autosaveTimer = window.setTimeout(() => {
+  const cameraSnapshot = (): SavedCamera => snapshotCamera(camera);
+  const applyCamera = (state: SavedCamera): void => applyCameraState(camera, state);
+  const scheduleAutosave = createAutosave(
+    () => {
       // The wave itself is not written -- nothing about a kaiju can be, and a reload puts the city
-      // back to just before one anyway. The city is. Refusing to save at all while one walked meant
-      // a wave that lasted, or a city big enough to summon the next one on the spot, stopped the
-      // autosave for good: a refresh then came back to whatever was saved before the attack, with
-      // the buildings, the money and the rubble of a much younger city.
+      // back to just before one anyway.
       const saved = { ...waveClock, active: null };
-      if (writeAutosave(serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, saved, simSeconds)) || autosaveRefusedShown) return;
-      autosaveRefusedShown = true;
-      showRefusal("Autosave could not be written. Browser storage may be full or disabled.");
-    }, 2000);
-  };
+      return serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, saved, simSeconds);
+    },
+    writeAutosave,
+    () => showRefusal("Autosave could not be written. Browser storage may be full or disabled."),
+  );
 
   /** A tree changes no road, so only the scenery is rebuilt. */
   const refreshTrees = (): void => {
