@@ -1324,7 +1324,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     if (dirty) {
       const live = new Set(segments.map((segment) => segment.id));
       movers = movers.filter((mover) => {
-        if (live.has(mover.segment.id) && !segmentTouchesBounds(mover.segment, dirty)) return true;
+        if (live.has(mover.segment.id) && !segmentTouchesBounds(mover.segment, dirty)) {
+          mover.segment = graph.segment(mover.segment.id);
+          return true;
+        }
         leaveQueue(mover);
         mover.mesh.dispose();
         return false;

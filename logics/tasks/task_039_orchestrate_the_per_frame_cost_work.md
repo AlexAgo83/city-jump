@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 55%
+> Progress: 65%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -73,6 +73,8 @@
 - 2026-09-03 wave item_115: `npm run typecheck && rtk npm run ci` passed.
 - 2026-09-03 wave item_114: `app.ts` caches supplied utilities and diffusers on `graph.revision`; utility restake already invalidates that key.
 - 2026-09-03 wave item_114: `npm run typecheck && rtk npm run ci` passed.
+- 2026-09-03 wave item_117: dirty traffic rebuilds keep eligible movers but re-resolve their segment object from the graph first.
+- 2026-09-03 wave item_117: `rtk npx vitest run src/render/traffic.test.ts` and `npm run typecheck` passed.
 
 # Report
 - Not started.

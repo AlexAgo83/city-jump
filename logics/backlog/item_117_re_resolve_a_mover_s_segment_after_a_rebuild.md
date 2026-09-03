@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 55%
+> Progress: 65%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -47,3 +47,7 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `traffic.rebuild(dirty)` now rebinds retained movers to `graph.segment(mover.segment.id)` before keeping them.
+- Validation proof: `rtk npx vitest run src/render/traffic.test.ts` and `npm run typecheck` passed; the new traffic test swaps the graph segment object under the same id and verifies the retained vehicle exposes the replacement segment.
