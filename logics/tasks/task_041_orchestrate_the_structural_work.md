@@ -2,8 +2,8 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -69,3 +69,6 @@
 - Request: `req_039_give_the_code_its_seams_back`
 - Product brief(s): `prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach`
 - Architecture decision(s): (none yet)
+
+# Notes
+- Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 removed the last standing question in this chain.

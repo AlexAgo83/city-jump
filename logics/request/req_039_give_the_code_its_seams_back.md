@@ -2,8 +2,8 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
@@ -12,7 +12,7 @@
 - Summary: The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.
 - Keywords: startApp split, traffic seam, terrain global, drawTool controller, dispose contract, save migration hook, linter coverage
 - Use when: reconsidering a module boundary, after reqs 035 to 038 are done.
-- Skip when: any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts.
+- Skip when: any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts. Do not skip the traffic split for want of a decision -- adr_006 settled it conditionally.
 
 # Needs
 - The file that changes most often is not the one nobody can test.

@@ -2,7 +2,7 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
+> Understanding: 95%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
@@ -62,3 +62,6 @@
 - Request: `req_036_make_the_verification_gates_able_to_fail`
 - Product brief(s): `prod_027_evidence_that_stops_the_build`
 - Architecture decision(s): (none yet)
+
+# Notes
+- Arbitration for the runner. May decide alone: (1) the order of item_108 -- make the harness able to fail, read what it says, fix the cause, and only then add it to the ci script; a gate that is red on main is not a gate. (2) Which of item_109's two directions to attack first, since wave 1 sits at the floor and wave 2 over the ceiling and one constant will not move both. Reserved for the owner: (a) changing the target band itself, which decides how hard a first run should be; (b) item_132 AC1, whether a city that never builds power and water is meant to end with nobody in it. Both are product taste, not measurement.

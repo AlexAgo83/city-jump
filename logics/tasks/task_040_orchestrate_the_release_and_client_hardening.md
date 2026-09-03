@@ -2,8 +2,8 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -61,3 +61,6 @@
 - Request: `req_038_harden_the_release_path_and_the_shared_link_surface`
 - Product brief(s): `prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page`
 - Architecture decision(s): (none yet)
+
+# Notes
+- Arbitration for the runner. May decide alone: everything in this chain. item_120's question is answered and proven against the live service, so the work is polling for live and treating deactivated as an already superseded success. The CSP's exact shape, including whether to extract the inline stylesheet or hash the four-line inline script, is a technical choice. Reserved for the owner: nothing. Two standing prohibitions instead: do not drop the immutable cache on /buildings/* -- the version query parameter is what makes it correct -- and do not weaken the CSP to style-src unsafe-inline to avoid extracting the stylesheet.

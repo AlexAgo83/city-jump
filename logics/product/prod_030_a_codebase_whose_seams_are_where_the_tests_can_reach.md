@@ -4,7 +4,7 @@
 > Related request: `req_039_give_the_code_its_seams_back`
 > Related backlog: `item_124_take_the_isolated_pieces_out_of_startapp`, `item_125_move_the_driving_logic_where_a_test_can_reach_it`, `item_126_make_the_terrain_dependency_visible`, `item_127_move_road_drawing_into_the_layer_that_owns_the_city`, `item_128_give_every_renderer_a_dispose`, `item_129_give_the_save_format_somewhere_to_migrate`, `item_130_make_lint_mean_lint_and_cover_the_scripts`, `item_131_write_down_the_conventions_the_code_already_follows`
 > Related task: `task_041_orchestrate_the_structural_work`
-> Related architecture: (none yet)
+> Related architecture: adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
 
 # Overview
@@ -62,10 +62,10 @@ flowchart TD
 - npm run lint runs a real linter over src, scripts and tests.
 
 # Open questions
-- item_125 proposes moving the driving logic out of render and into sim. This is the largest architectural change in the corpus and a scope decision, not an implementation one. The recommendation is to split it: the vehicle catalogue extraction (about 580 lines, no behavioural surface) is an unambiguous win and can ship on its own, while the sim move waits for an explicit yes.
+- item_125 is no longer an open question: adr_006 splits it into three steps and gates the third on an observable condition -- the driving logic moves to sim if and only if headless tests for it exist and pass. Verified that nothing blocks it: Mover carries one Babylon field, Ride is platform-neutral, and the two render imports are three constants and a pure predicate. An implementer may act on the gate without asking.
 - item_129 is decided by the project's own document, not open: docs/shared-link-threat-model.md:20 states that only the shared payload is quantised and local saves keep full precision. Zones.toJSON writing back key x KEY_STEP contradicts that control, so it is a defect. save.test.ts:61 passes only because it re-quantises to compare.
 - item_130: which linter? Biome is the suggestion -- one dependency for lint and format -- but ESLint plus Prettier is the conventional pair. Not decided.
-- item_126 and item_127 may warrant ADRs rather than only backlog items, per LOGICS.md's rule about couplings and layer boundaries. Decide at grooming whether to raise them with flow companion architecture.
+- item_126 and item_127 may warrant ADRs rather than only backlog items. The runner may decide: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Recorded as arbitration in task_041.
 
 # References
 - Product back-reference: `req_039_give_the_code_its_seams_back`

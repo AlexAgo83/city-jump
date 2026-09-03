@@ -3,7 +3,7 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 70%
+> Confidence: 75%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -66,3 +66,6 @@
 - Request: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
 - Product brief(s): `prod_028_a_city_that_costs_what_it_is_changing`
 - Architecture decision(s): (none yet)
+
+# Notes
+- Arbitration for the runner. May decide alone: (1) abandon any optimisation here whose measurement shows no gain -- a null result closes the item, and item_133 exists so that the measurement can be trusted. (2) In item_116, if ring lanes turn out not to be meant to block each other, raise the fix against req_035 and close the perf half separately rather than fixing right-of-way inside a performance change. Reserved for the owner: whether a 10.5 s startup and a 2.5 s demo build are acceptable. That number surfaced while measuring, belongs to no slice here, and needs its own decision rather than being folded into per-frame work.

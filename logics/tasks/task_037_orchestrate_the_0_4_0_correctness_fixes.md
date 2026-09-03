@@ -3,7 +3,7 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 85%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -69,3 +69,6 @@
 - Request: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`
 - Product brief(s): `prod_026_a_city_that_survives_the_roads_you_draw_on_it`
 - Architecture decision(s): (none yet)
+
+# Notes
+- Arbitration for the runner. May decide alone: (1) close item_102, item_103, item_104 or item_105 as no-change when the failing test written first turns out to pass -- those four are reported, not reproduced, and a passing test means the finding was wrong; record which. (2) In item_107, whether node()/allNodes() returns a read-only view or only documents the invariant at the declaration: take the view if it stays under roughly twenty call sites, otherwise document and say why. Reserved for the owner: nothing in this chain. Every item here is a defect with an objective test.

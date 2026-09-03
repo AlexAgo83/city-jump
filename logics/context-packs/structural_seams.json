@@ -9,6 +9,9 @@
     {
       "kind": "product",
       "linked_refs": {
+        "adr": [
+          "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before"
+        ],
         "item": [
           "item_124_take_the_isolated_pieces_out_of_startapp",
           "item_125_move_the_driving_logic_where_a_test_can_reach_it",
@@ -33,13 +36,35 @@
       "ref": "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach",
       "status": "Proposed",
       "title": "A codebase whose seams are where the tests can reach"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_002_keep_simulation_independent_from_babylon_and_the_browser",
+          "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before"
+        ],
+        "item": [
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md",
+      "ref": "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before",
+      "status": "Proposed",
+      "title": "Move the driving logic to sim when its tests exist, not before"
     }
   ],
   "docs": [
     {
       "ai_context": {
         "keywords": "startApp split, traffic seam, terrain global, drawTool controller, dispose contract, save migration hook, linter coverage",
-        "skip when": "any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts.",
+        "skip when": "any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts. Do not skip the traffic split for want of a decision -- adr_006 settled it conditionally.",
         "summary": "The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.",
         "use when": "reconsidering a module boundary, after reqs 035 to 038 are done."
       },
@@ -98,13 +123,16 @@
     },
     {
       "ai_context": {
-        "keywords": "traffic split, vehicleModels, sim/traffic, decorMeshes, traffic overlay rebuild",
-        "skip when": "changing driving, yielding or lane behaviour, or adding an abstraction over Babylon.",
-        "summary": "The seam is already proven: eight pure functions are exported and unit-tested at traffic.ts:155-259. Moving the driving logic to sim also puts it under the architecture test that keeps sim browser-free.",
+        "keywords": "traffic split, vehicleModels, driving.ts, Mover mesh field, conditional gate, adr_006",
+        "skip when": "changing driving, yielding or lane behaviour, or adding an abstraction over Babylon. Do not skip step C for lack of a decision -- adr_006 already made it conditional.",
+        "summary": "Three steps, and the third is gated on an observable condition instead of an owner's call: the move to sim happens if and only if headless tests for the driving logic exist and pass. Verified that nothing blocks it -- the two render imports are three constants and a pure predicate.",
         "use when": "splitting traffic.ts, buildings.ts or roadMesh.ts, after req_037 has finished with those hot paths."
       },
       "kind": "backlog",
       "linked_refs": {
+        "adr": [
+          "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before"
+        ],
         "item": [
           "item_125_move_the_driving_logic_where_a_test_can_reach_it"
         ],
@@ -301,13 +329,13 @@
     }
   ],
   "estimates": {
-    "char_count": 10752,
-    "companion_doc_count": 1,
+    "char_count": 11820,
+    "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T09:33:55Z",
+  "generated_at": "2026-09-03T10:01:55Z",
   "handoff": {
-    "companion_doc_count": 1,
+    "companion_doc_count": 2,
     "enabled": true,
     "source_refs": [
       "req_039_give_the_code_its_seams_back",

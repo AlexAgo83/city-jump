@@ -9,6 +9,7 @@
 | [adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views](architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md) | Rebuild terrain roads plots and buildings as derived views | Settled |  |  | architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md |
 | [adr_004_stay_a_static_client_with_no_server_of_its_own](architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md) | Stay a static client with no server of its own | Settled |  |  | architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md |
 | [adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision](architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md) | One harness drives the real simulation, and no test shortcuts a player decision | Proposed |  |  | architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md |
+| [adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before](architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md) | Move the driving logic to sim when its tests exist, not before | Proposed |  |  | architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md |
 
 ## Product briefs
 
