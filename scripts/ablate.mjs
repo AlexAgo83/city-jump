@@ -51,7 +51,9 @@ if (city) {
   await page.evaluate(() => {
     window.cityjump.reset();
     window.cityjump.demoCity();
-    window.cityjump.growCity(2000, 200);
+    window.cityjump.setRunRules({ instantConstruction: true, freeBuilding: true });
+    window.cityjump.zone(0, 0, 1200, "residential");
+    window.cityjump.growCity(2000, 3000);
     window.cityjump.rebuild();
   });
 }
