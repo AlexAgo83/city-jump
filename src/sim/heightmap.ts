@@ -352,6 +352,7 @@ export class Heightmap implements Terrain {
     const maxIx = region ? Math.min(region.maxIx, hi(parcel.position.x)) : hi(parcel.position.x);
     const minIz = region ? Math.max(region.minIz, lo(parcel.position.z)) : lo(parcel.position.z);
     const maxIz = region ? Math.min(region.maxIz, hi(parcel.position.z)) : hi(parcel.position.z);
+    const bias = parcelStampBias(parcel);
 
     for (let iz = minIz; iz <= maxIz; iz++) {
       for (let ix = minIx; ix <= maxIx; ix++) {
@@ -363,12 +364,18 @@ export class Heightmap implements Terrain {
         if (outside > reach) continue;
 
         const index = iz * this.count + ix;
-        if (Number.isFinite(this.claim[index]!)) continue;
+        const claim = outside + bias;
+        if (claim >= this.claim[index]!) continue;
+        this.claim[index] = claim;
         const t = smoothstep(outside / reach);
-        this.current[index] = parcel.position.y + (this.current[index]! - parcel.position.y) * t;
+        this.current[index] = parcel.position.y + (this.base[index]! - parcel.position.y) * t;
       }
     }
   }
+}
+
+function parcelStampBias(parcel: BuildingParcel): number {
+  return (Math.abs(Math.round(parcel.position.x * 100) * 31 + Math.round(parcel.position.z * 100) * 17) % 997) * 1e-9;
 }
 
 const smoothstep = (t: number): number => {

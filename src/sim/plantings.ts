@@ -28,6 +28,7 @@ export const REMOVAL_RADIUS = 3;
 export class Plantings {
   private readonly added: Planting[] = [];
   private readonly removed: Planting[] = [];
+  private readonly removedBuckets = new Map<string, Planting[]>();
 
   plant(x: number, z: number, species: TreeSpecies): void {
     this.added.push({ x, z, species });
@@ -37,22 +38,29 @@ export class Plantings {
    * Records that whatever grows at this point has been cleared. If it was a hand-planted tree it
    * is dropped outright, since nothing else would ever put one back there.
    */
-  clear(x: number, z: number): void {
+  clear(x: number, z: number, generated = false): boolean {
     const index = this.added.findIndex((tree) => Math.hypot(tree.x - x, tree.z - z) <= REMOVAL_RADIUS);
     if (index >= 0) {
       this.added.splice(index, 1);
-      return;
+      return true;
     }
-    this.removed.push({ x, z, species: DEFAULT_TREE_SPECIES });
+    if (!generated || this.isCleared(x, z)) return false;
+    const point = { x, z, species: DEFAULT_TREE_SPECIES };
+    this.removed.push(point);
+    const key = bucketKey(x, z);
+    this.removedBuckets.set(key, [...(this.removedBuckets.get(key) ?? []), point]);
+    return true;
   }
 
-  /**
-   * ponytail: a linear scan. Every generated tree asks this once per rebuild, so it is
-   * trees x removals -- fine while removals are in the hundreds. Bucket them by grid square if
-   * anyone ever clears a forest one click at a time.
-   */
   isCleared(x: number, z: number): boolean {
-    return this.removed.some((point) => Math.hypot(point.x - x, point.z - z) <= REMOVAL_RADIUS);
+    const bx = Math.floor(x / REMOVAL_RADIUS);
+    const bz = Math.floor(z / REMOVAL_RADIUS);
+    for (let oz = -1; oz <= 1; oz++) {
+      for (let ox = -1; ox <= 1; ox++) {
+        if ((this.removedBuckets.get(`${bx + ox}:${bz + oz}`) ?? []).some((point) => Math.hypot(point.x - x, point.z - z) <= REMOVAL_RADIUS)) return true;
+      }
+    }
+    return false;
   }
 
   get plantedTrees(): readonly Planting[] {
@@ -70,7 +78,16 @@ export class Plantings {
   replaceWith(added: readonly Planting[], removed: readonly Planting[]): void {
     this.added.length = 0;
     this.removed.length = 0;
+    this.removedBuckets.clear();
     this.added.push(...added);
-    this.removed.push(...removed);
+    for (const point of removed) {
+      this.removed.push(point);
+      const key = bucketKey(point.x, point.z);
+      this.removedBuckets.set(key, [...(this.removedBuckets.get(key) ?? []), point]);
+    }
   }
+}
+
+function bucketKey(x: number, z: number): string {
+  return `${Math.floor(x / REMOVAL_RADIUS)}:${Math.floor(z / REMOVAL_RADIUS)}`;
 }

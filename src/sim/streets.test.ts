@@ -58,12 +58,22 @@ describe("streets", () => {
   it("gives parcels distinct odd and even addresses", () => {
     const graph = new RoadGraph();
     segment(graph, -220, 0, 220, 0);
-    const addresses = buildingParcels(buildableCells(graph)).map((parcel) => addressForParcel(graph, parcel));
+    const allStreets = streets(graph);
+    const addresses = buildingParcels(buildableCells(graph)).map((parcel) => addressForParcel(graph, parcel, allStreets));
     const numbers = addresses.map((address) => address.number);
 
     expect(addresses.every((address) => address.street.name.endsWith("Street"))).toBe(true);
     expect(new Set(numbers).size).toBe(numbers.length);
     expect(numbers.some((number) => number % 2 === 0)).toBe(true);
     expect(numbers.some((number) => number % 2 === 1)).toBe(true);
+  });
+
+  it("pins a known city address without locale-sensitive ordering", () => {
+    const graph = new RoadGraph();
+    segment(graph, -220, 0, 220, 0);
+    const allStreets = streets(graph);
+    const parcel = buildingParcels(buildableCells(graph))[0]!;
+
+    expect(addressForParcel(graph, parcel, allStreets)).toEqual({ number: 17, street: allStreets[0] });
   });
 });

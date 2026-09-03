@@ -2,13 +2,22 @@ import { describe, it, expect, afterEach } from "vitest";
 import { Heightmap, EMBANKMENT, ROAD_BED_DROP, SEA_LEVEL, rollingHills } from "./heightmap";
 import { RoadGraph } from "./graph";
 import { setTerrain, flatTerrain, terrainHeight } from "./terrain";
-import { allSlots, buildingParcels, buildableCells } from "./slots";
+import { allSlots, buildingParcels, buildableCells, type BuildingParcel } from "./slots";
 import { v3 } from "./vec";
 import { RULES } from "./rules";
 import { junctionGeometry, ringElevation } from "./junction";
 
 const map = () =>
   new Heightmap({ size: 600, cell: 4, generator: (x, z) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70) });
+
+const parcelAt = (x: number, y: number): BuildingParcel => ({
+  kind: "residential",
+  position: v3(x, y, 0),
+  rotationY: 0,
+  frontageCells: 1,
+  depthCells: 1,
+  cells: [],
+});
 
 afterEach(() => setTerrain(flatTerrain));
 
@@ -234,6 +243,41 @@ describe("heightmap", () => {
 
     const p = g.pointAt(road, g.segment(road).length / 2).position;
     expect(h.heightAt(p.x, p.z)).toBeCloseTo(p.y - ROAD_BED_DROP, 1);
+  });
+
+  it("stamps adjacent parcels independent of order", () => {
+    const parcels = [parcelAt(0, 10), parcelAt(8, 20)];
+    const heights = (order: BuildingParcel[]) => {
+      const h = map();
+      h.conformToRoads(new RoadGraph(), order);
+      return Array.from({ length: h.count * h.count }, (_, i) => h.at(i % h.count, Math.floor(i / h.count)));
+    };
+
+    expect(heights(parcels)).toEqual(heights([...parcels].reverse()));
+  });
+
+  it("stamping the same parcel twice changes nothing the second time", () => {
+    const once = map();
+    const twice = map();
+    const parcel = parcelAt(0, 10);
+
+    once.conformToRoads(new RoadGraph(), [parcel]);
+    twice.conformToRoads(new RoadGraph(), [parcel, parcel]);
+
+    for (let iz = 0; iz < once.count; iz++) for (let ix = 0; ix < once.count; ix++) expect(twice.at(ix, iz)).toBe(once.at(ix, iz));
+  });
+
+  it("matches a full conform when a dirty region includes parcel stamps", () => {
+    const parcels = [parcelAt(0, 10), parcelAt(8, 20)];
+    const full = map();
+    const incremental = map();
+    const graph = new RoadGraph();
+
+    incremental.conformToRoads(graph, [parcels[0]!]);
+    incremental.conformToRoads(graph, parcels, { minX: -20, maxX: 28, minZ: -20, maxZ: 20 });
+    full.conformToRoads(graph, parcels);
+
+    for (let iz = 0; iz < full.count; iz++) for (let ix = 0; ix < full.count; ix++) expect(incremental.at(ix, iz)).toBeCloseTo(full.at(ix, iz), 6);
   });
 
   it("leaves the graph untouched: roads and slots follow the ground through the interface", () => {

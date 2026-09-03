@@ -702,7 +702,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       clearTree(x, z) {
         const tree = trees.nearestTree(x, z, TREE_REACH);
         if (!tree) return false;
-        plantings.clear(tree.x, tree.z);
+        plantings.clear(tree.x, tree.z, true);
         refreshTrees();
         return true;
       },

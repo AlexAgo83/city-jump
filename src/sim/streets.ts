@@ -41,14 +41,14 @@ export function streets(graph: RoadGraph): Street[] {
     .map(([id, segments]) => ({ id, name: streetName(id, segments[0]?.type ?? "street"), segments }));
 }
 
-export function streetForSegment(graph: RoadGraph, segmentId: SegmentId): Street {
+export function streetForSegment(graph: RoadGraph, segmentId: SegmentId, allStreets = streets(graph)): Street {
   const segment = graph.segment(segmentId);
-  return streets(graph).find((street) => street.id === segment.streetId)!;
+  return allStreets.find((street) => street.id === segment.streetId)!;
 }
 
-export function addressForParcel(graph: RoadGraph, parcel: BuildingParcel): Address {
+export function addressForParcel(graph: RoadGraph, parcel: BuildingParcel, allStreets = streets(graph)): Address {
   const front = parcel.cells.find((cell) => cell.row === 0) ?? parcel.cells[0]!;
-  const street = streetForSegment(graph, front.segment);
+  const street = streetForSegment(graph, front.segment, allStreets);
   const offsets = segmentOffsets(graph, street);
   const near = graph.nearestOnSegment(parcel.position.x, parcel.position.z, GRID.cellSize * 2, (segment) => segment.id === front.segment);
   const along = (offsets.get(front.segment) ?? 0) + (near?.distance ?? front.column * GRID.cellSize);
@@ -86,7 +86,11 @@ function ordinal(n: number): string {
 }
 
 function segmentOffsets(graph: RoadGraph, street: Street): Map<SegmentId, number> {
-  const ordered = [...street.segments].sort((a, b) => originKey(graph, a).localeCompare(originKey(graph, b)));
+  const ordered = [...street.segments].sort((a, b) => {
+    const left = originKey(graph, a);
+    const right = originKey(graph, b);
+    return left < right ? -1 : left > right ? 1 : 0;
+  });
   let offset = 0;
   const out = new Map<SegmentId, number>();
   for (const segment of ordered) {

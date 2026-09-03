@@ -61,7 +61,7 @@ describe("city saves", () => {
   it("is a fixed point: save, load, save gives the same data", () => {
     const planted = new Plantings();
     planted.plant(10, 20, "oak");
-    planted.clear(-40, 5);
+    planted.clear(-40, 5, true);
     const once = serializeCity(city(), planted, new Zones(), "rolling", 14);
 
     const restoredGraph = new RoadGraph();
@@ -135,7 +135,7 @@ describe("city saves", () => {
     const plantings = new Plantings();
     plantings.plant(10, 20, "oak");
     plantings.plant(-5, 60, "palm");
-    plantings.clear(300, 300); // a generated tree, so it is recorded as a clearing
+    plantings.clear(300, 300, true); // a generated tree, so it is recorded as a clearing
     plantings.clear(10, 20); // one we planted, so it is simply dropped again
 
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), plantings, new Zones(), "rolling", 14)));
