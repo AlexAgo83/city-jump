@@ -1118,16 +1118,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     timeRate,
     simDay,
     simHour: sunHour,
-  }), { setWorldGridVisible: worldGrid.setVisible, measureFps });
-  const debugApi = (window as unknown as { cityjump?: Record<string, unknown> }).cityjump ?? {};
-  const debugReset = debugApi.reset as (() => void) | undefined;
-  Object.assign(debugApi, {
+  }), { setWorldGridVisible: worldGrid.setVisible, measureFps, extra: (debugApi) => ({
     reset() {
       resetWave();
       runState = createRun();
       updateRunHud();
       runPanel.renderGameplayRules();
-      debugReset?.();
+      debugApi.reset();
     },
     /** Paint a zone from a script, so zoning can be checked without driving the pointer. */
     zone(x: number, z: number, radius: number, kind: ZoneKind | null) {
@@ -1207,7 +1204,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       finishByEvacuation();
       return { run: runState, profile };
     },
-  });
+  }) });
 
   function surfaceJunctions(): number {
     return graph
