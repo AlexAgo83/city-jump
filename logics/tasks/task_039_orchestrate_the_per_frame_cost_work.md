@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -59,7 +59,10 @@
 - request-AC8 -> `item_118_show_the_frame_cost_came_down`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- 2026-09-03 wave item_133: Playwright probe of the perf setup settled at `237 segments`, `101 buildings`, `101 working`, `237 cars`, `42 active meshes`.
+- 2026-09-03 wave item_133: `npm run ci` passed after the harness change.
+- 2026-09-03 wave item_133: clean `npm run perf` on `c9321ea` appended a `dirty:false` built-demo baseline with `101 buildings`.
+- 2026-09-03 wave item_133: `npm run ablate -- --rounds 1 --ms 1200` recorded built-demo ratios; traffic off was the clearest single toggle at x1.09 overview / x1.18 street.
 
 # Report
 - Not started.
@@ -71,3 +74,4 @@
 
 # Notes
 - Arbitration for the runner. May decide alone: (1) abandon any optimisation here whose measurement shows no gain -- a null result closes the item, and item_133 exists so that the measurement can be trusted. (2) In item_116, if ring lanes turn out not to be meant to block each other, raise the fix against req_035 and close the perf half separately rather than fixing right-of-way inside a performance change. Reserved for the owner: whether a 10.5 s startup and a 2.5 s demo build are acceptable. That number surfaced while measuring, belongs to no slice here, and needs its own decision rather than being folded into per-frame work.
+- item_133 closed the baseline blocker for this task: entries before `c9321ea` are clean but empty-city and not comparable with the built-demo baseline.

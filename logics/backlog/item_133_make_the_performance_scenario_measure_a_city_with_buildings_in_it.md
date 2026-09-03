@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 10%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -63,3 +63,8 @@
 
 # Notes
 - Found by running the harness and then probing the debug API, not by reading perf/history.jsonl.
+- 2026-09-03 wave: `scripts/perf.mjs` and `scripts/ablate.mjs` now build the demo through the existing debug path before measurement: `demoCity(); setRunRules({ instantConstruction: true, freeBuilding: true }); zone(0, 0, 1200, "residential"); growCity(2000, 3000); rebuild();`.
+- Guard proof: a Playwright probe against the same setup settled at `segments=237`, `buildings=101`, `buildingStates.working=101`, `population=3000`, `cars=237`, `activeMeshes=42`; the guard waits on stable `stats().buildings > 0` plus loaded models, so the old empty city times out instead of recording.
+- Clean baseline proof: `npm run perf` from clean commit `c9321ea` appended `dirty:false` with `237 segments`, `101 buildings`, `237 cars`, `42 active meshes`, fps `overview=98`, `district=116`, `street=77`, `rebuild=437 ms`.
+- Built-city ablate proof: `npm run ablate -- --rounds 1 --ms 1200` on the same harness measured overview `buildings off x1.01`, `traffic off x1.09`, `shadows off x0.91`, `lights off x0.86`, `all three off x1.17`; street `buildings off x1.01`, `traffic off x1.18`, `shadows off x1.00`, `lights off x0.99`, `all three off x1.30`.
+- Priority note: the built-demo ablation does not support treating buildings as the largest per-frame toggle on this small harness. Keep the current item order only because item_113 also gates CPU upload churn, and let item_116's traffic occupancy work carry the stronger measured toggle gain.

@@ -27,7 +27,9 @@ last run carrying the same `--label`.
 Entries from `418c133` through `2258a5c` are clean but not comparable with built-city records:
 the harness loaded the demo roads and models, then measured before construction produced any
 standing buildings. Built-demo entries start after the 2026-09-03 harness fix that calls the
-existing debug `growCity(2000, 200)` path and waits for `stats().buildings > 0`.
+existing debug `growCity(2000, 3000)` path and waits for `stats().buildings > 0`.
+The first clean built-demo baseline is `c9321ea`: 237 segments, 101 buildings, 42 active
+meshes, and 98 / 116 / 77 fps at overview / district / street.
 
 **Trust the mesh counts; be careful with the fps.** The same build measured 75 fps and 42 fps at
 the same framing an hour apart on this machine -- whatever else it was doing moved the number more
@@ -75,6 +77,13 @@ city, at 1024 x 4 cascades:
 Re-run after the two fixes below, the same table flattens out -- buildings x1.43, shadows x1.59,
 traffic x1.46, lights x1.41 at overview, and nothing above x1.21 at street level. There is no
 single hot spot left: what remains is spread across the whole frame.
+
+The 2026-09-03 built-demo harness run on `c9321ea` is smaller than the reference city but no
+longer empty: 101 buildings, 237 cars, and 42 active meshes. Its one-round software-rasteriser
+ablation measured traffic as the clearest current win, not buildings: overview traffic off x1.09,
+street traffic off x1.18, and all three of buildings / traffic / shadows off x1.17 overview and
+x1.30 street. That keeps the current chain order honest: building upload work may still matter for
+CPU churn, but it is no longer justified by an empty-city `buildings off` ratio.
 
 Traffic is free. Buildings and shadows are each worth half the frame -- and they are the same
 cost twice, because what was expensive was **drawing every building into the shadow map, once per
