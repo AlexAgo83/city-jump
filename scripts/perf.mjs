@@ -85,6 +85,14 @@ await page.waitForFunction(
 );
 await page.waitForTimeout(2000);
 
+// The toolbar ships collapsed and its content is display:none, so every control inside it is
+// invisible to a click until it is opened. `interact.mjs` has done this since the settings menu
+// started closed; this script did not, and silently timed out on the frame cap instead -- which is
+// why the record in perf/history.jsonl stops at the commit before that change.
+if ((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) !== "true") {
+  await page.locator("#toolbar-toggle").click();
+}
+
 // The game caps itself to spare a laptop; a measurement wants the machine flat out.
 await page.selectOption("#frame-cap", "0");
 await page.waitForTimeout(500);
