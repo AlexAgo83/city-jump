@@ -2,43 +2,47 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 85%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: `logics-manager i18n status` answers absent -- neither initialised nor declared not-applicable -- on a game whose entire interface is authored English. LOGICS.md allows either answer but not silence.
-- Keywords: i18n status, translation contract, source locale, not applicable, user-facing copy
+- Summary: Decided by the owner: English is the source locale and further languages come later, so the contract is initialised as applicable rather than not-applicable. The remaining work is extraction -- the catalogue exists and is empty while every string is still inline.
+- Keywords: i18n contract, source locale en, catalogue extraction, src/i18n/en.json, inline strings
 - Use when: adding or restructuring any user-facing string.
 - Skip when: the change touches no player-visible text.
 
 # Problem
-- `logics-manager i18n status` reports `i18n: absent`, with next action `i18n init --source-locale <locale>` for a project that owns user-facing copy.
-- LOGICS.md says to run it before adding or restructuring user-facing copy, and that a project owning no such copy may explicitly initialise the contract as not applicable. This project owns a great deal: every label, tooltip, alert and banner in index.html and src/ui/ is authored English.
-- So the current state is neither of the two answers the instruction allows. It is silence, and silence means the next contributor adding a string has no rule to follow.
-- This is a decision about the product's reach, not a technical task. Initialising a source locale commits to a structure for every string; declaring not-applicable commits to English-only.
+- `logics-manager i18n status` reported `absent` -- neither initialised nor declared not-applicable -- on a game whose entire interface is authored English. That was the one answer LOGICS.md does not allow.
+- Now decided and initialised: `applicability: applicable`, `source_locale: en`, catalogue at `src/i18n/{locale}.json`. English is the default and further languages are expected later, so the structure is in place rather than deferred until a translation is actually wanted.
+- What is not done is the part that costs something. `src/i18n/en.json` is `{}` and every string is still inline: labels, tooltips, alerts and banners live in index.html's markup and in `src/ui/`. `logics-manager i18n status` reads valid because an empty catalogue is consistent, not because the copy has moved.
+- So the contract now describes an intention the code does not yet meet, and the next contributor adding a string still has no rule telling them where to put it. That is the gap this slice closes.
 
 # Scope
 - In:
-  - Decide and record which of the two answers applies: a source locale, or an explicit not-applicable.
-  - Initialise the contract accordingly with the CLI, not by hand.
-  - If a source locale is chosen, run `i18n validate` and note in CONTRIBUTING.md what adding a string now requires.
+  - Extract user-facing strings into `src/i18n/en.json` under semantic keys, starting with what `src/ui/` owns rather than attempting index.html's markup in the same pass.
+  - A lookup at the UI boundary, small enough not to become a framework -- LOGICS.md forbids introducing one without a measured need and a decision.
+  - Note in CONTRIBUTING.md that a new user-facing string goes in the catalogue, and that `i18n validate` is part of the local gate.
+  - Add `i18n validate` to the `logics:validate` script so the contract cannot drift unnoticed.
 - Out:
-  - Actually translating anything.
-  - Extracting existing strings into catalogues, unless the chosen answer requires it.
-  - Changing any user-facing wording.
+  - Translating anything, or adding a second locale. The decision is English first, others later.
+  - A locale switcher in the interface.
+  - Extracting index.html's static markup, unless the UI pass proves it cheap -- 220 lines of accessible markup is a separate job.
+  - Changing any wording.
 
 # Acceptance criteria
-- AC1: `logics-manager i18n status` reports a configured contract, whichever answer was chosen.
-- AC2: The choice and its reason are recorded where a contributor adding a string will meet them.
-- AC3: If a source locale was chosen, `i18n validate` passes.
+- AC1: `logics-manager i18n validate` passes with a catalogue that is no longer empty.
+- AC2: Every string `src/ui/` renders comes from the catalogue rather than a literal.
+- AC3: `i18n validate` runs as part of the local gate.
+- AC4: CONTRIBUTING.md says where a new user-facing string goes.
+- AC5: No wording visible to a player changes.
 
 # Decision framing
-- Product framing: Needed
-- Architecture framing: Not needed
+- Product framing: Settled by the owner -- English source locale, further languages later
+- Architecture framing: Not needed, provided the lookup stays a lookup
 
 # Links
 - Product brief(s): `prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach`
@@ -48,10 +52,11 @@
 
 # Priority
 - Priority: Low
-- Rationale: Nothing is blocked, but the answer is cheap and its absence leaves a documented instruction unfollowable.
+- Rationale: The contract is in place so nothing is blocked; the extraction is real work with no caller waiting for it.
 
 # Tasks
 - `task_041_orchestrate_the_structural_work`
 
 # Notes
-- Reserved for the owner: which of the two answers applies is a product decision about reach, not a measurement.
+- The contract was initialised through `logics-manager i18n init --source-locale en`, not by hand.
+- Nothing broke: `tsc` and the architecture tests both pass with `src/i18n/en.json` present.

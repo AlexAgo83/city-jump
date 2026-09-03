@@ -238,7 +238,6 @@
 | [item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it](backlog/item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it.md) | Make the performance scenario measure a city with buildings in it | Ready |  | 0% | backlog/item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it.md |
 | [item_134_configure_the_release_contract_and_record_what_shipped](backlog/item_134_configure_the_release_contract_and_record_what_shipped.md) | Configure the release contract and record what shipped | Ready |  | 0% | backlog/item_134_configure_the_release_contract_and_record_what_shipped.md |
 | [item_135_declare_where_this_project_stands_on_translation](backlog/item_135_declare_where_this_project_stands_on_translation.md) | Declare where this project stands on translation | Ready |  | 0% | backlog/item_135_declare_where_this_project_stands_on_translation.md |
-| [item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release](backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md) | Decide whether the fifteen commits past 0.4.0 are a release | Ready |  | 0% | backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md |
 
 ## Tasks
 

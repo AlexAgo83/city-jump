@@ -36,8 +36,7 @@
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
           "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
-          "item_134_configure_the_release_contract_and_record_what_shipped",
-          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
+          "item_134_configure_the_release_contract_and_record_what_shipped"
         ],
         "prod": [
           "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
@@ -71,8 +70,7 @@
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
           "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
-          "item_134_configure_the_release_contract_and_record_what_shipped",
-          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
+          "item_134_configure_the_release_contract_and_record_what_shipped"
         ],
         "prod": [
           "prod_007_a_city_you_can_point_at_and_name",
@@ -257,32 +255,27 @@
       "title": "Configure the release contract and record what shipped"
     },
     {
-      "ai_context": {
-        "keywords": "undeployed commits, v0.4.0, 0.4.1, release decision, production drift",
-        "skip when": "hardening the deploy mechanism, which item_119, item_120 and item_134 own.",
-        "summary": "Production runs v0.4.0 exactly (b7f551cf, verified against the live Render service). HEAD is fifteen commits ahead and those commits carry real fixes, including a saved simulation clock without which a reload un-built the city.",
-        "use when": "deciding whether to cut a version, or asking what players are actually running."
-      },
-      "kind": "backlog",
+      "ai_context": {},
+      "kind": "product",
       "linked_refs": {
         "item": [
-          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
         ],
         "prod": [
-          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+          "prod_007_a_city_you_can_point_at_and_name"
         ],
         "req": [
-          "req_038_harden_the_release_path_and_the_shared_link_surface"
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
         ],
         "task": [
-          "task_040_orchestrate_the_release_and_client_hardening"
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
         ]
       },
-      "path": "logics/backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md",
-      "ref": "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release",
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
       "schema_version": "1.0",
-      "status": "Ready",
-      "title": "Decide whether the fifteen commits past 0.4.0 are a release"
+      "status": "Settled",
+      "title": "A city you can point at and name"
     },
     {
       "ai_context": {
@@ -299,8 +292,7 @@
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
           "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
-          "item_134_configure_the_release_contract_and_record_what_shipped",
-          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
+          "item_134_configure_the_release_contract_and_record_what_shipped"
         ],
         "prod": [
           "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
@@ -320,11 +312,11 @@
     }
   ],
   "estimates": {
-    "char_count": 12792,
+    "char_count": 11998,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:41:05Z",
+  "generated_at": "2026-09-03T10:46:26Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,
@@ -336,17 +328,31 @@
   },
   "i18n": {
     "actions": [
-      "Choose the source locale for app-owned user-facing copy.",
-      "Run logics-manager i18n init --source-locale <locale>.",
-      "Route new UI copy through stable semantic keys."
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
     ],
-    "applicable": null,
-    "configured": false,
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
     "contract_path": "logics/i18n/contract.json",
     "findings": [],
-    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "next_action": "The i18n contract is valid.",
     "ok": true,
-    "state": "absent"
+    "state": "valid"
   },
   "mode": "summary-only",
   "profile": "deep",

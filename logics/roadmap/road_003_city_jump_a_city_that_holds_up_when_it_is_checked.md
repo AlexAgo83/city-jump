@@ -4,7 +4,7 @@
 > Related product: `prod_026_a_city_that_survives_the_roads_you_draw_on_it`
 > Related request: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:40:52
+> Indicators reviewed: 2026-09-03 12:46:10
 
 # AI Context
 - Summary: Five chains that follow 0.4.0, ordered by what unblocks what rather than by feature. The through-line is trust: a city that keeps its shape, harnesses that can fail, a cost that is measured rather than argued, a release that proves it shipped, and seams a test can reach.
@@ -125,7 +125,6 @@ produce could not be produced at all.
 
 
 
-- `item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release`: Decide whether the fifteen commits past 0.4.0 are a release
 - `item_134_configure_the_release_contract_and_record_what_shipped`: Configure the release contract and record what shipped
 - `task_040_orchestrate_the_release_and_client_hardening`: Orchestrate the release and client hardening
 - `item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand`: Derive the asset version instead of maintaining two by hand
@@ -141,9 +140,9 @@ produce could not be produced at all.
   missing asset that 404s. One derived asset version instead of two hand-maintained constants.
 - Exit signal: a deploy that starts and then fails does not report success; no city-derived value
   reaches the DOM through `innerHTML`.
-- Also carries two things the review missed and the diagnostics found: the Logics release contract
-  has never been configured, and production is fifteen commits behind a HEAD that fixes a reload
-  un-building the city. Both are owner decisions about readiness, not measurements.
+- Also carries one thing the review missed and the diagnostics found: the Logics release contract
+  has never been configured, so `release status` answers not_configured while three versions have
+  shipped through a workflow this milestone hardens.
 
 ## 5.0 - The seams, reachable
 
@@ -175,8 +174,8 @@ produce could not be produced at all.
 - Exit signal: the driving logic has headless tests; a `setTerrain` call outside `src/app/` fails the
   architecture test; behaviour changed nowhere and no existing test needed an edit.
 - Decision: `adr_006` is Accepted and gates the driving logic's move to `src/sim/` on those tests
-  existing, so the runner acts on it without asking. The one reserved call here is `item_135`:
-  whether this project owns a source locale or is deliberately English-only.
+  existing, so the runner acts on it without asking. `item_135` is settled too -- English is the
+  source locale and further languages come later -- so this milestone reserves nothing.
 
 # The order to follow
 - 1.0 and 2.0 run together. They do not block each other and they hold the two most valuable items:

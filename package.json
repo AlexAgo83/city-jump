@@ -14,7 +14,7 @@
     "ablate": "node scripts/with-dev-server.mjs scripts/ablate.mjs",
     "typecheck": "tsc",
     "lint": "npm run typecheck",
-    "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc",
+    "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc && logics-manager i18n validate",
     "ci": "npm test && npm run test:architecture && npm run build && npm run logics:validate",
     "release:static": "npm run ci",
     "verify": "npm run test:visual",

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:40:52
+> Indicators reviewed: 2026-09-03 12:46:10
 
 # AI Context
 - Summary: Six waves of structural work that must change no behaviour, gated on the other four chains being complete.
@@ -73,4 +73,4 @@
 - Architecture decision(s): (none yet)
 
 # Notes
-- Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 removed the last standing question in this chain.
+- Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.

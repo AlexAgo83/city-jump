@@ -336,7 +336,7 @@
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:41:06Z",
+  "generated_at": "2026-09-03T10:46:27Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,
@@ -348,17 +348,31 @@
   },
   "i18n": {
     "actions": [
-      "Choose the source locale for app-owned user-facing copy.",
-      "Run logics-manager i18n init --source-locale <locale>.",
-      "Route new UI copy through stable semantic keys."
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
     ],
-    "applicable": null,
-    "configured": false,
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
     "contract_path": "logics/i18n/contract.json",
     "findings": [],
-    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "next_action": "The i18n contract is valid.",
     "ok": true,
-    "state": "absent"
+    "state": "valid"
   },
   "mode": "summary-only",
   "profile": "deep",
