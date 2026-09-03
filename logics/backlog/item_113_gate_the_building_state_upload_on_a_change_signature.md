@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 14:57:57
 
 # AI Context
 - Summary: The single largest per-frame cost: about 40 Float32Arrays and a Matrix per building, every frame, to redraw buildings that did not move. The pattern to copy is decorKey, already in the same file.
@@ -61,3 +61,4 @@
 - Live probe proof: after the built demo settled at `101` buildings and all `28` models loaded, a repeated `setRunRules({ instantConstruction: true, freeBuilding: true })` produced zero building `thinInstanceSetBuffer` writes.
 - Validation proof: `rtk npm exec -- vitest run src/render/buildings.test.ts && npm run typecheck` passed; `rtk npm run ci` passed.
 - E2E note: `rtk npm run test:e2e` still fails at `scripts/interact.mjs:1021` waiting for the zone-clear click to reduce `stats().zones`; the same failure reproduces from comparison worktree `bd2ee98`, before this wave, so it is not caused by the building-state gate.
+- Clean perf after proof: `npm run perf` on `6b63046` recorded `dirty:false`, `101 buildings`, `42 active meshes`, fps `overview=99`, `district=110`, `street=79`, `rebuild=436 ms`; deltas against `c9321ea` are inside known fps noise.

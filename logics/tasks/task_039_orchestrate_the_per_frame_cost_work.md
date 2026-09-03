@@ -9,7 +9,7 @@
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 14:57:57
 
 # AI Context
 - Summary: Gate the uploads, step the sun, index the yielding -- each measured against the clean baseline req_036 records.
@@ -67,6 +67,7 @@
 - 2026-09-03 wave item_113: live Playwright probe counted zero building `thinInstanceSetBuffer` writes after a repeated settled update on the 101-building demo.
 - 2026-09-03 wave item_113: `rtk npm run ci` passed.
 - 2026-09-03 wave item_113: `rtk npm run test:e2e` fails at `scripts/interact.mjs:1021` waiting for zone-clear to reduce `stats().zones`; comparison worktree `bd2ee98` fails the same way, so this is a pre-existing gate gap outside item_113.
+- 2026-09-03 wave item_113: clean `npm run perf` on `6b63046` appended `dirty:false`, `101 buildings`, fps `99 / 110 / 79`, rebuild `436 ms`.
 
 # Report
 - Not started.
