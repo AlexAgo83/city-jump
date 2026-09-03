@@ -1,14 +1,14 @@
 ## item_110_refuse_a_performance_measurement_from_a_dirty_tree - Refuse a performance measurement from a dirty tree
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 30%
+> Progress: 20%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:16:36
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: The record did not go stale through neglect: the harness was broken. b5af5ca closed the settings menu, #frame-cap went display:none, and perf.mjs timed out on it for 47 commits. Fixed in 418c133. The dirty-tree guard is the remaining half.

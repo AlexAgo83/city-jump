@@ -1,13 +1,14 @@
 ## item_108_let_the_scenario_harness_exit_non_zero - Let the scenario harness exit non-zero
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 20%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Verified: scenario() returns offTarget and all three call sites discard it, and the file contains no process.exit. Note the blind spot: offTarget only filters waves that were fought, so a run where no wave ever arrives is invisible to it -- which is the actual current failure.

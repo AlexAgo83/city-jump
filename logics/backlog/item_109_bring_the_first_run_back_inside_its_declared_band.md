@@ -1,13 +1,14 @@
 ## item_109_bring_the_first_run_back_inside_its_declared_band - Bring the first run back inside its declared band
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 20%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Both harnesses run on HEAD. The treasury bleed is gone for good: average went from minus 120,869 to plus 13,016 and every seed is positive. What is left is a curve that diverges -- wave 1 under the floor, wave 2 over the ceiling -- and two seeds in six never attacked at all.

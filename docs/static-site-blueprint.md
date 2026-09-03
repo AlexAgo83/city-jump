@@ -5,8 +5,8 @@ loads bundled JavaScript plus static GLB assets, so it does not need a server ru
 
 ## Version
 
-- Release version: `0.2.0`
-- Tag: `v0.2.0`
+- Release version: `0.4.0`
+- Tag: `v0.4.0`
 - Live demo: <https://city-jump.onrender.com/>
 - Artifact directory: `dist/`
 

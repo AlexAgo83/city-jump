@@ -1,13 +1,15 @@
 ## task_038_orchestrate_the_verification_gates - Orchestrate the verification gates
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 20%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Make each harness able to fail before trusting what it says, then fix what it reports -- in that order, so no gate lands red on main.

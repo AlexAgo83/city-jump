@@ -1,13 +1,14 @@
 ## item_111_fail_the_gate_when_a_shipped_document_misstates_the_version - Fail the gate when a shipped document misstates the version
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 20%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Not cosmetic: the release workflow hard-fails unless the tag matches package.json, so following the blueprint's v0.2.0 produces a failed deploy. SECURITY.md declares the shipping line unsupported.

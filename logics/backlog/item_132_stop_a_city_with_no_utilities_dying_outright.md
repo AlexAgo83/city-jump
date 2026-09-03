@@ -1,13 +1,14 @@
 ## item_132_stop_a_city_with_no_utilities_dying_outright - Stop a city with no utilities dying outright
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 20%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Measured live on HEAD: the no-utilities scenario ends with population ZERO on all six seeds while banking about 34k. Not a harder game -- a total collapse, and one no band filter can see.

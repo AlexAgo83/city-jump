@@ -1,13 +1,14 @@
 ## item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone - Run the CI gate once per push, and from a clean clone
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 20%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:14:27
 
 # AI Context
 - Summary: Two identical runs per push on a repo that has a product brief about respecting the Actions budget, and npm run ci -- the documented pre-PR gate -- fails on a clean clone because logics-manager is an undocumented global install.

@@ -19,13 +19,14 @@ const TARGETS = { combatMin: 20, combatMax: 40, salvoMin: 5, salvoMax: 8 };
 function scenario(label, rules) {
   console.log(`\n=== ${label} ===`);
   const runs = [];
+  const failures = [];
   for (let seed = 1; seed <= seeds; seed++) {
     // A seed takes a while and says nothing until it is done: say which one is being played, so a
     // long wait reads as progress rather than as a hang.
     process.stdout.write(`playing seed ${seed}/${seeds}... `);
     const played = playRun(seed, rules, waves);
     process.stdout.write("\r");
-    runs.push(played);
+    runs.push({ seed, played });
     const reached = played.waves.length;
     console.log(
       `seed ${seed}: ${reached} wave(s), ended=${played.run.ended ?? "alive"}, science=${played.run.science}, ` +
@@ -43,22 +44,34 @@ function scenario(label, rules) {
       const roads = Object.entries(w.roadMetres).map(([type, metres]) => `${type.split("_")[0]}=${metres}m`).join(" ");
       console.log(`        lots: ${kinds}  |  roads: ${roads}`);
     }
+    if (reached === 0) failures.push(`${label} seed ${seed}: no wave triggered`);
+    if (played.economy.resources.population <= 0) failures.push(`${label} seed ${seed}: final population is zero`);
   }
-  const fought = runs.flatMap((played) => played.waves);
-  const offTarget = fought.filter(
-    (w) => w.combatDurationSeconds < TARGETS.combatMin || w.combatDurationSeconds > TARGETS.combatMax || w.salvos < TARGETS.salvoMin || w.salvos > TARGETS.salvoMax,
+  const fought = runs.flatMap(({ seed, played }) => played.waves.map((wave) => ({ seed, wave })));
+  const offTarget = fought.filter(({ wave }) => wave.combatDurationSeconds < TARGETS.combatMin || wave.combatDurationSeconds > TARGETS.combatMax || wave.salvos < TARGETS.salvoMin || wave.salvos > TARGETS.salvoMax);
+  failures.push(
+    ...offTarget.map(({ seed, wave }) => `${label} seed ${seed} wave ${wave.wave}: combat=${wave.combatDurationSeconds.toFixed(1)}s salvos=${wave.salvos}`),
   );
   console.log(
-    `-- ${fought.length} waves fought, ${fought.filter((w) => w.held).length} held, ` +
+    `-- ${fought.length} waves fought, ${fought.filter(({ wave }) => wave.held).length} held, ` +
       `${offTarget.length} outside the 20-40s / 5-8 salvo band, ` +
-      `runs reaching wave ${waves}: ${runs.filter((r) => r.waves.length >= waves).length}/${seeds}`,
+      `runs reaching wave ${waves}: ${runs.filter((r) => r.played.waves.length >= waves).length}/${seeds}`,
   );
-  return { runs, fought, offTarget };
+  return { label, runs, fought, offTarget, failures };
 }
 
-scenario(`expanding city, with utilities (${waves} waves)`, { instantConstruction: true, expand: true });
+const results = [];
+
+results.push(scenario(`expanding city, with utilities (${waves} waves)`, { instantConstruction: true, expand: true }));
 // The same city that never builds its power and water, rather than the same city with the rule
 // switched off: with `placeUtilities` left on, the scenario laid its own producer and diffusers,
 // nothing was ever short, and this block printed the one above it character for character.
-scenario(`expanding city, no utilities built (${waves} waves)`, { instantConstruction: true, expand: true, placeUtilities: false });
-scenario(`static city (the balance gate's scenario, ${waves} waves)`, { instantConstruction: true });
+results.push(scenario(`expanding city, no utilities built (${waves} waves)`, { instantConstruction: true, expand: true, placeUtilities: false }));
+results.push(scenario(`static city (the balance gate's scenario, ${waves} waves)`, { instantConstruction: true }));
+
+const failures = results.flatMap((result) => result.failures);
+if (failures.length) {
+  console.error("\nScenario gate failed:");
+  for (const failure of failures) console.error(`- ${failure}`);
+  process.exitCode = 1;
+}
