@@ -1,14 +1,14 @@
 ## item_102_give_the_workforce_one_authority - Give the workforce one authority
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:50:27
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # AI Context
 - Summary: Two allocators disagree on the same city: production re-derives from raw population, the lifecycle uses a banded value with an incumbency comparator. Suspected contributor to the balance figures req_036 owns.
@@ -59,3 +59,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_037_orchestrate_the_0_4_0_correctness_fixes`
+
+# Notes
+- Task `task_037_orchestrate_the_0_4_0_correctness_fixes` was finished via `logics-manager flow finish task` on 2026-09-03.

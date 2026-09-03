@@ -1,14 +1,14 @@
 ## item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test - The sim fixes whose record is a comment and a test
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:50:27
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # AI Context
 - Summary: Six defects grouped deliberately: per ADR 030 their reasoning fits at the declaration that would undo them, so each needs a comment and a failing test rather than a chain.
@@ -61,3 +61,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_037_orchestrate_the_0_4_0_correctness_fixes`
+
+# Notes
+- Task `task_037_orchestrate_the_0_4_0_correctness_fixes` was finished via `logics-manager flow finish task` on 2026-09-03.

@@ -1,14 +1,14 @@
 ## item_099_cut_a_segment_as_many_times_as_one_road_crosses_it - Cut a segment as many times as one road crosses it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:50:27
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # AI Context
 - Summary: Reproduced: a quadratic street with control (0,0,240) crossed at z=60 throws `unknown segment: 1` after the first split has committed. The trap is that returning ok:false here moves the partial mutation instead of removing it.
@@ -57,3 +57,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_037_orchestrate_the_0_4_0_correctness_fixes`
+
+# Notes
+- Task `task_037_orchestrate_the_0_4_0_correctness_fixes` was finished via `logics-manager flow finish task` on 2026-09-03.

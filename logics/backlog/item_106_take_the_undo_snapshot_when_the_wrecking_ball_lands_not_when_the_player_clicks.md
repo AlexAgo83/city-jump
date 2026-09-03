@@ -1,14 +1,14 @@
 ## item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks - Take the undo snapshot when the wrecking ball lands, not when the player clicks
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:50:27
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # AI Context
 - Summary: beforeChange fires at click, afterChange a second later, and app.ts:415 uses ??=, so two bulldozes in one second collapse to one undo entry. The timers are also unclearable across a load.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_037_orchestrate_the_0_4_0_correctness_fixes`
+
+# Notes
+- Task `task_037_orchestrate_the_0_4_0_correctness_fixes` was finished via `logics-manager flow finish task` on 2026-09-03.

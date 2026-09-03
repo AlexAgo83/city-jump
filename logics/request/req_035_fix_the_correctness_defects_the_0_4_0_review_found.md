@@ -1,12 +1,13 @@
 ## req_035_fix_the_correctness_defects_the_0_4_0_review_found - Fix the correctness defects the 0.4.0 review found
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:13:52
 
 # AI Context
 - Summary: Nine live defects found reviewing 0.4.0 at f2e2070, from a road crossing that throws with the graph half-cut to a reload that inherits the previous run's shortage latch.

@@ -1,14 +1,14 @@
 ## item_103_make_a_building_pad_stamp_idempotent_between_neighbours - Make a building pad stamp idempotent between neighbours
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 100%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:50:27
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # AI Context
 - Summary: The only stamp that never records into this.claim, so it blends against a surface a previous parcel in the same pass may already have moved. The road and junction stamps are nearest-wins and do not have this.
@@ -50,3 +50,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Tasks
+- `task_037_orchestrate_the_0_4_0_correctness_fixes`
+
+# Notes
+- Task `task_037_orchestrate_the_0_4_0_correctness_fixes` was finished via `logics-manager flow finish task` on 2026-09-03.

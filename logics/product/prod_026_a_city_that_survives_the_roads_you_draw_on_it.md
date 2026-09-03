@@ -1,11 +1,12 @@
 ## prod_026_a_city_that_survives_the_roads_you_draw_on_it - A city that survives the roads you draw on it
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Settled
 > Related request: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`
-> Related backlog: `item_099_cut_a_segment_as_many_times_as_one_road_crosses_it`, `item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it`, `item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating`, `item_102_give_the_workforce_one_authority`, `item_103_make_a_building_pad_stamp_idempotent_between_neighbours`, `item_104_bound_the_cleared_tree_record`, `item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel`, `item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks`, `item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test`
+> Related backlog: `item_099_cut_a_segment_as_many_times_as_one_road_crosses_it`
 > Related task: `task_037_orchestrate_the_0_4_0_correctness_fixes`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-03 13:13:53
 
 # Overview
 The city keeps its shape through a second crossing, a reload, and an undo.
@@ -66,5 +67,5 @@ flowchart TD
 - item_101 changes what a load resets. Confirm no saved city in the wild depends on a latch surviving a reload before landing it.
 
 # References
-- Product back-reference: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`
+- Product back-reference: `item_099_cut_a_segment_as_many_times_as_one_road_crosses_it`
 - Task back-reference: `task_037_orchestrate_the_0_4_0_correctness_fixes`
