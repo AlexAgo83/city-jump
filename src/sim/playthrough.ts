@@ -186,7 +186,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   const step = (dt: number): void => {
     seconds += dt;
     sync(true);
-    economy.advance(statuses.filter((status) => status.state === "working").map((status) => status.parcel), dt);
+    economy.advance(statuses, dt);
     treasury.earn(incomePerSecond(economy.resources.population, statuses) * dt);
     if (scenario.kaijuSpawns && !waveClock.active) {
       waveClock = summonIfDue(advanceWaveClock(waveClock, dt), run.wave, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length));

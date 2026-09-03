@@ -44,15 +44,24 @@ describe("economy", () => {
 
   it("only produces staffed food and reports treasury income as trade", () => {
     const city = new CityEconomy({ population: 20 });
-    const terms = city.advance([status("residential", "working").parcel, status("agricultural", "working").parcel, status("industrial", "working").parcel, status("commercial", "working").parcel], CITY_DAY_SECONDS);
+    const terms = city.advance([status("residential", "working"), status("agricultural", "working"), status("industrial", "working"), status("commercial", "working")], CITY_DAY_SECONDS);
 
     expect(terms.food.produced).toBe(8);
     expect(terms.trade).toBeCloseTo(incomePerSecond(terms.population.value, [status("residential", "working"), status("agricultural", "working"), status("industrial", "working"), status("commercial", "working")]));
     expect(terms.food.consumed).toBe(20);
   });
 
+  it("uses the lifecycle staffing answer instead of reallocating workforce", () => {
+    const city = new CityEconomy({ materials: 100, population: 100 });
+    const unstaffedShop = { ...status("commercial", "working", 2, 2), staffed: false };
+
+    const terms = city.advance([unstaffedShop], CITY_DAY_SECONDS);
+
+    expect(terms.materials.consumed).toBe(0);
+  });
+
   it("grows within food and housing, then falls in famine", () => {
-    const homes = [status("residential", "working", 2, 1).parcel, status("agricultural", "working").parcel, status("commercial", "working").parcel];
+    const homes = [status("residential", "working", 2, 1), status("agricultural", "working"), status("commercial", "working")];
     const city = new CityEconomy({ population: 10, food: 20 });
     const grown = city.advance(homes, CITY_DAY_SECONDS);
     expect(grown.population.value).toBeGreaterThan(10);
@@ -63,15 +72,15 @@ describe("economy", () => {
 
   it("keeps the opening fed with one starter farm", () => {
     const city = new CityEconomy({ population: 12 });
-    const farm = status("agricultural", "working", 1, 4).parcel;
-    const terms = city.advance([status("residential", "working", 1, 1).parcel, farm], CITY_DAY_SECONDS);
+    const farm = status("agricultural", "working", 1, 4);
+    const terms = city.advance([status("residential", "working", 1, 1), farm], CITY_DAY_SECONDS);
 
     expect(terms.food.produced).toBeGreaterThan(terms.food.consumed);
     expect(city.resources.population).toBeGreaterThan(0);
   });
 
   it("is deterministic and loses residents when homes disappear", () => {
-    const parcels = [status("residential", "working", 2, 2).parcel, status("agricultural", "working").parcel];
+    const parcels = [status("residential", "working", 2, 2), status("agricultural", "working")];
     const run = () => {
       const city = new CityEconomy({ population: 24, food: 50 });
       city.advance(parcels, CITY_DAY_SECONDS);
@@ -90,13 +99,13 @@ describe("economy", () => {
 
   it("makes a shortage last, so the shops do not blink back on the moment a crate arrives", () => {
     const economy = new CityEconomy({ food: 1000, materials: 0, population: 500 });
-    economy.advance([status("commercial", "working", 4, 4).parcel], 1);
+    economy.advance([status("commercial", "working", 4, 4)], 1);
     expect(economy.materialsShort).toBe(true);
 
     // The works refill the store the instant the shops stop buying from it. That is not the end of
     // the shortage: two hundred buildings turning on and off five times a second is what this
     // costs when the stock alone decides.
-    const works = Array.from({ length: 20 }, () => status("industrial", "working").parcel);
+    const works = Array.from({ length: 20 }, () => status("industrial", "working"));
     economy.advance(works, 1);
     expect(economy.materialsShort).toBe(true);
 
@@ -109,7 +118,7 @@ describe("economy", () => {
     expect(economy.materialsShort).toBe(false);
     expect(economy.materialsShort).toBe(false);
 
-    economy.advance([status("commercial", "working", 4, 4).parcel], 1);
+    economy.advance([status("commercial", "working", 4, 4)], 1);
     expect(economy.materialsShort).toBe(true);
     economy.replaceWith({ materials: 100, population: 500 });
 

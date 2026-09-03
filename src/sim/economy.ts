@@ -2,7 +2,6 @@ import type { BuildingStatus } from "./buildingLifecycle";
 import type { BuildingKind } from "./buildingKinds";
 import { roadType } from "./roadTypes";
 import type { BuildingParcel } from "./slots";
-import { allocateWorkforce } from "./workforce";
 
 export const STARTING_MONEY = 40_000;
 /**
@@ -69,13 +68,10 @@ const ROAD_METRE_COST: Record<string, number> = {
   highway: 32,
 };
 
-const output = (parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], population: number, kind: BuildingKind, perCell: number): number => {
-  const staffing = allocateWorkforce(parcels, population);
-  return staffing.parcels.reduce((sum, status) => {
-    const parcel = parcels[status.index]!;
-    return sum + (status.staffed && parcel.kind === kind ? parcel.frontageCells * parcel.depthCells * perCell : 0);
-  }, 0);
-};
+type EconomyStatus = Pick<BuildingStatus, "parcel" | "state" | "staffed">;
+
+const output = (statuses: readonly EconomyStatus[], kind: BuildingKind, perCell: number): number =>
+  statuses.reduce((sum, status) => sum + (status.state === "working" && status.staffed && status.parcel.kind === kind ? status.parcel.frontageCells * status.parcel.depthCells * perCell : 0), 0);
 
 export function housingCapacity(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[]): number {
   return parcels.filter((parcel) => parcel.kind === "residential").reduce((sum, parcel) => sum + parcel.frontageCells * parcel.depthCells * 12, 0);
@@ -120,12 +116,13 @@ export class CityEconomy {
     this.shortSince = 0;
   }
 
-  advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {
+  advance(statuses: readonly EconomyStatus[], seconds: number): CityTerms {
     const day = Math.max(0, seconds) / CITY_DAY_SECONDS;
-    const housing = housingCapacity(parcels);
-    const foodProduced = output(parcels, this.state.population, "agricultural", 8) * day;
-    const materialsProduced = output(parcels, this.state.population, "industrial", 5) * day;
-    const materialsConsumed = (output(parcels, this.state.population, "commercial", MATERIALS_PER_COMMERCE_CELL) + output(parcels, this.state.population, "military", MATERIALS_PER_MILITARY_CELL)) * day;
+    const workingParcels = statuses.filter((status) => status.state === "working").map((status) => status.parcel);
+    const housing = housingCapacity(workingParcels);
+    const foodProduced = output(statuses, "agricultural", 8) * day;
+    const materialsProduced = output(statuses, "industrial", 5) * day;
+    const materialsConsumed = (output(statuses, "commercial", MATERIALS_PER_COMMERCE_CELL) + output(statuses, "military", MATERIALS_PER_MILITARY_CELL)) * day;
     this.clock += Math.max(0, seconds);
     const materialsAvailable = this.state.materials + materialsProduced;
     const materialsShortage = Math.max(0, materialsConsumed - materialsAvailable);
@@ -168,7 +165,7 @@ export class CityEconomy {
       population: { value: this.state.population, housing, change: growth, foodShortage },
       food: { value: this.state.food, produced: foodProduced, consumed: foodConsumed },
       materials: { value: this.state.materials, produced: materialsProduced, consumed: materialsConsumed, shortage: materialsShortage },
-      trade: incomePerSecond(this.state.population, parcels.map((parcel) => ({ parcel, state: "working" as const }))),
+      trade: incomePerSecond(this.state.population, statuses),
     };
   }
 

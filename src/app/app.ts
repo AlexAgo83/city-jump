@@ -282,7 +282,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
   /** What the next wave will bring, so the needs panel can price the defence against it. */
   const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
-  const workingParcels = (): BuildingParcel[] => currentBuildingStatuses.filter((status) => status.state === "working").map((status) => status.parcel);
   /** The cells a standing building covers, so the zone overlay can shade taken land. */
   const occupiedCells = (): Set<string> => {
     const keys = new Set<string>();
@@ -319,7 +318,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const income = incomePerSecond(residents, currentBuildingStatuses);
     // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
     // empty after every load and every refresh, until the player pressed play.
-    lastTerms ??= cityEconomy.advance(workingParcels(), 0);
+    lastTerms ??= cityEconomy.advance(currentBuildingStatuses, 0);
     showCityStats(residents, buildingNeeds(currentParcels, residents, projectedThreat()), cityEconomy.resources, { ...lastTerms, trade: income });
     showMoney(treasury.money, income, stateCounts());
   };
@@ -1038,7 +1037,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (simDt > 0 && currentParcels.length) {
       // Only a working building produces or houses anyone. A lot that is rising, unstaffed or cut
       // off from power or water is a building the city paid for and does not yet have.
-      lastTerms = cityEconomy.advance(workingParcels(), simDt);
+      lastTerms = cityEconomy.advance(currentBuildingStatuses, simDt);
       const nextRun = endIfPopulationZero(runState, cityEconomy.resources.population);
       if (nextRun !== runState) {
         runState = nextRun;

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 33%
+> Progress: 50%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -40,6 +40,11 @@
 
 # AC Traceability
 - request-AC5 -> This backlog slice. Proof: AC1: A test shows the two allocations disagreeing on the same city before the change.
+
+# Validation
+- 2026-09-03: `npm run balance` before wave 3: `balance: 6 runs firstWave=1373.3s combat=13.0s salvos=3.7 held=4/6 batteries=7.2 population=224.3 treasury=$13016 militaryGap=-17.0`.
+- 2026-09-03: `npm run balance` after wave 3: `balance: 6 runs firstWave=1373.3s combat=13.0s salvos=3.7 held=4/6 batteries=7.2 population=237.0 treasury=$13819 militaryGap=-17.0`.
+- 2026-09-03: `npm run ci` passed after wave 3 with 294 Vitest tests, 7 architecture tests, build, typecheck, Logics lint/audit and i18n validation.
 
 # Decision framing
 - Product framing: Not needed
