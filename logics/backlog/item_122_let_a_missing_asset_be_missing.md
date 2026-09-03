@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 60%
+> Progress: 90%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -50,3 +50,7 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 implementation wave: removed the Render catch-all rewrite to `/index.html`; the root document and `#city=` fragments still use `/`, while absent asset paths can return real 404s instead of HTML.
+- 2026-09-03 validation: `rtk npm run test:architecture` passed and asserts `render.yaml` has no rewrite route.

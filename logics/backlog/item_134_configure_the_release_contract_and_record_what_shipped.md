@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 60%
+> Progress: 90%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -57,3 +57,7 @@
 
 # Notes
 - Found by running the diagnostics LOGICS.md prescribes, which the 0.4.0 review had not run.
+- 2026-09-03 implementation wave: promoted the discovered release contract to `logics/release/contract.json`, adjusted `git_push` to compare release evidence with the tagged release commit, and documented `release status`/`plan`/`validate` in `CONTRIBUTING.md`.
+- 2026-09-03 evidence wave: recorded 0.4.0 evidence in `logics/release/evidence.jsonl` for version metadata, changelog, local validation, pushed git commit, GitHub CI, and Render production deployment.
+- 2026-09-03 evidence wave: `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9`; GitHub CI success is run `33630578942`; Render deploy `dep-dac1i8favr4c73b545a0` is live for the same commit.
+- 2026-09-03 validation: a detached worktree at `b7f551cf25c63b13c2a624812496b5d02e2d9ad9` passed `npm ci`, `npm run lint`, `npm test`, and `npm run build`.

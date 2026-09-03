@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 60%
+> Progress: 90%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -52,3 +52,8 @@
 # Priority
 - Priority: Low
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 implementation wave: added `vite.config.mjs` to read `package.json` and inject `__APP_VERSION__`, then added one shared `src/render/assets.ts` `ASSET_VERSION` for building and kaiju model URLs.
+- 2026-09-03 implementation wave: removed the hand-maintained `BUILDING_ASSET_VERSION` and `KAIJU_ASSET_VERSION`; `logics/runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md` now says asset cache busting follows the shipped package version.
+- 2026-09-03 validation: `rtk npm run typecheck` and `rtk npm run test:architecture` passed; the architecture check asserts both model paths use `ASSET_VERSION`.

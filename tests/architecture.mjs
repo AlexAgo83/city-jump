@@ -70,6 +70,22 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   assert.doesNotMatch(render, /style-src[^\\n]*'unsafe-inline'/);
 });
 
+test("static hosting and asset cache keys stay diagnosable", async () => {
+  const render = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
+  const assets = await readFile(new URL("render/assets.ts", src), "utf8");
+  const buildings = await readFile(new URL("render/buildings.ts", src), "utf8");
+  const kaiju = await readFile(new URL("render/kaiju.ts", src), "utf8");
+  const vite = await readFile(new URL("../vite.config.mjs", import.meta.url), "utf8");
+
+  assert.doesNotMatch(render, /type:\s*rewrite/);
+  assert.match(assets, /package-derived query key/);
+  assert.match(vite, /package\.json/);
+  assert.match(vite, /__APP_VERSION__/);
+  assert.match(buildings, /v=\$\{ASSET_VERSION\}/);
+  assert.match(kaiju, /v=\$\{ASSET_VERSION\}/);
+  assert.doesNotMatch(`${buildings}\n${kaiju}`, /(?:BUILDING|KAIJU)_ASSET_VERSION/);
+});
+
 test("release deploy workflow keeps secrets out of templated shell", async () => {
   const workflow = await readFile(new URL("../.github/workflows/render-release-deploy.yml", import.meta.url), "utf8");
   const runBlocks = workflow.match(/run: \|\n(?: {10}.*\n| {10}\n)+/g) ?? [];

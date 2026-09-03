@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 60%
+> Progress: 90%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -75,3 +75,5 @@
 - 2026-09-03 wave item_121: HUD, ledger, and selection rows now use node construction plus `textContent`/element properties instead of `innerHTML`; the shared-link threat model records the same rule.
 - 2026-09-03 wave item_121: `render.yaml` now serves CSP with default/object/base protections and hashes for the current inline style/script, without `style-src 'unsafe-inline'`.
 - 2026-09-03 wave item_121: `rtk npm run ci` and `rtk npm run test:visual` passed; `rtk npm run test:e2e` passed through HUD/ledger/save checks before the pre-existing zone-clear timeout at `scripts/interact.mjs:1021`.
+- 2026-09-03 wave items_122/123: removed the Render catch-all rewrite so missing assets 404, and replaced separate hand-maintained model cache keys with one package-derived `ASSET_VERSION` injected by Vite.
+- 2026-09-03 wave item_134: configured `logics/release/contract.json`, recorded 0.4.0 release evidence for metadata/changelog/local validation/push/CI/Render, and documented the release status/plan/validate workflow in `CONTRIBUTING.md`.

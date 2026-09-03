@@ -30,6 +30,10 @@ request:
 npm run ci
 ```
 
+Before claiming release readiness, run `logics-manager release status`, then use
+`logics-manager release plan <version>` and `logics-manager release validate <version>`.
+Record the matching release evidence with `logics-manager release evidence add ...`.
+
 Browser checks run locally through the shared dev-server wrapper:
 
 ```bash

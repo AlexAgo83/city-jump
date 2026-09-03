@@ -7,15 +7,14 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { Vec3 } from "../sim/vec";
-
-const KAIJU_ASSET_VERSION = "2026-09-01-01";
+import { ASSET_VERSION } from "./assets";
 
 export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   const root = new TransformNode("kaiju", scene);
   root.setEnabled(false);
   const parts = new Map<string, Mesh>();
 
-  void SceneLoader.ImportMeshAsync("", "/", `kaiju.glb?v=${KAIJU_ASSET_VERSION}`, scene).then((result) => {
+  void SceneLoader.ImportMeshAsync("", "/", `kaiju.glb?v=${ASSET_VERSION}`, scene).then((result) => {
     for (const mesh of result.meshes) {
       if (!(mesh instanceof Mesh) || mesh.getTotalVertices() === 0) continue;
       mesh.setParent(root);
@@ -51,4 +50,3 @@ function swing(mesh: Mesh | undefined, angle: number, axis: "x" | "y" = "x"): vo
   if (!mesh) return;
   mesh.rotationQuaternion = Quaternion.RotationAxis(axis === "x" ? Vector3.Right() : Vector3.Up(), angle);
 }
-

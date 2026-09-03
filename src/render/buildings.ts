@@ -19,6 +19,7 @@ import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../
 import { terrainHeight } from "../sim/terrain";
 import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
+import { ASSET_VERSION } from "./assets";
 import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
@@ -31,7 +32,6 @@ export const BUILDING_MODELS = [
     PARCEL_SIZES.filter(({ depthCells }) => depthCells === 4).map(({ frontageCells }) => `${prefix}_${frontageCells}x4`),
   ),
 ];
-const BUILDING_ASSET_VERSION = "2026-08-30-11";
 
 /** Which model a parcel stands up: its size, and whether its business has its own models. */
 export function buildingModelId(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): string {
@@ -1224,7 +1224,7 @@ function takenCellsMesh(scene: Scene, parcels: readonly BuildingParcel[]): Mesh 
 
 async function loadManifest(): Promise<BuildingManifest> {
   try {
-    const response = await fetch(`/buildings/manifest.json?v=${BUILDING_ASSET_VERSION}`);
+    const response = await fetch(`/buildings/manifest.json?v=${ASSET_VERSION}`);
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     return await response.json() as BuildingManifest;
   } catch (error) {
@@ -1235,7 +1235,7 @@ async function loadManifest(): Promise<BuildingManifest> {
 
 async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roof: RoofGeometry | undefined): Promise<Model | null> {
   try {
-    const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb?v=${BUILDING_ASSET_VERSION}`, scene);
+    const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb?v=${ASSET_VERSION}`, scene);
     const parts = result.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
     if (parts.length === 0) return null;
 
