@@ -1,6 +1,15 @@
 import { mkdir, appendFile } from "node:fs/promises";
+import { execSync } from "node:child_process";
 
 import { playFirstRun, militaryGap } from "../.tmp/balance/sim/playthrough.js";
+
+const args = process.argv.slice(2);
+const commit = execSync("git rev-parse --short HEAD").toString().trim();
+const dirty = execSync("git status --porcelain").toString().trim().length > 0;
+if (dirty && !args.includes("--allow-dirty")) {
+  console.error("Refusing to append balance/history.jsonl from a dirty tree. Use --allow-dirty to record it anyway.");
+  process.exit(1);
+}
 
 const runs = Array.from({ length: 6 }, (_, index) => {
   const played = playFirstRun(index + 1, { instantConstruction: true });
@@ -21,6 +30,8 @@ const runs = Array.from({ length: 6 }, (_, index) => {
 });
 const summary = {
   at: new Date().toISOString(),
+  commit,
+  dirty,
   scenario: "headless needs-following first run, paid buildings, instant construction",
   runs,
   averageFirstWaveSeconds: runs.reduce((sum, run) => sum + run.firstWaveSeconds, 0) / runs.length,

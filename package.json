@@ -38,6 +38,7 @@
   "license": "MIT",
   "description": "A browser-based 3D city builder where roads, terrain, buildings, and traffic derive from a playable road graph.",
   "devDependencies": {
+    "@grifhinz/logics-manager": "^2.23.0",
     "playwright": "^1.62.1",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",

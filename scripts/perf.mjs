@@ -27,6 +27,12 @@ const flag = (name) => {
 const city = flag("city");
 const wave = args.includes("--wave");
 const label = flag("label") ?? (wave ? "wave-demo" : city ? city.replace(/.*\//, "").replace(/\.json$/, "") : "demo");
+const commit = execSync("git rev-parse --short HEAD", { cwd: ROOT }).toString().trim();
+const dirty = execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0;
+if (dirty && !args.includes("--allow-dirty")) {
+  console.error("Refusing to append perf/history.jsonl from a dirty tree. Use --allow-dirty to record it anyway.");
+  process.exit(1);
+}
 
 // Three framings, because a city is slow in different ways depending on how much of it is on
 // screen: the whole map at once, a district, and street level with the models at full size.
@@ -131,8 +137,8 @@ await browser.close();
 const run = {
   at: new Date().toISOString(),
   label: onGpu ? `${label}-gpu` : label,
-  commit: execSync("git rev-parse --short HEAD", { cwd: ROOT }).toString().trim(),
-  dirty: execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0,
+  commit,
+  dirty,
   fps,
   rebuildMs,
   ...(wave ? { waveMs } : {}),

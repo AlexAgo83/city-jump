@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 75%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -37,6 +37,11 @@
 - AC2: A superseded run is cancelled.
 - AC3: npm ci then npm run ci passes on a clean clone with no global install.
 - AC4: Both jobs have a timeout.
+
+# Notes
+- Wave evidence, 2026-09-03: `.github/workflows/ci.yml` now limits push runs to `main`, keeps `pull_request`, adds a branch/ref concurrency group with `cancel-in-progress: true`, and sets `timeout-minutes: 15`.
+- `@grifhinz/logics-manager@2.23.0` is now a devDependency, so `npm ci` supplies the `logics-manager` binary used by `npm run ci`.
+- Local validation before clean-clone proof: `npm run ci` passed with scenarios included.
 
 # AC Traceability
 - request-AC6 -> This backlog slice. Proof: AC1: A push to a pull request branch triggers one CI run.

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 45%
+> Progress: 75%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -37,6 +37,11 @@
 - AC5: Every new balance entry records the commit it measured and whether the tree was clean.
 - AC2: A clean baseline exists for a commit at or after item_133, measuring a city with buildings in it.
 - AC3: Two branches appending to either history file merge without conflict.
+
+# Notes
+- Wave evidence, 2026-09-03: `node scripts/perf.mjs` and `node scripts/build-sim.mjs && node scripts/balance.mjs` both refused to append from a dirty tree without `--allow-dirty`.
+- New balance entries now include `commit` and `dirty`, matching the perf record shape.
+- `.gitattributes` marks `perf/history.jsonl` and `balance/history.jsonl` as `merge=union` append-only records.
 
 # AC Traceability
 - request-AC3 -> This backlog slice. Proof: AC1: A perf run on a dirty tree does not append without --allow-dirty.
