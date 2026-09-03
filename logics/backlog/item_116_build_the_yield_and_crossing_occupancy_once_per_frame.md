@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 65%
+> Progress: 80%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -57,3 +57,8 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `traffic.ts` now builds one `FrameOccupancy` per render frame for roundabout occupants, exiting rides, crossing walkers, and ring-room spacing; `stopFor(...)` and `arrive(...)` read that shared index instead of scanning all movers.
+- The existing roundabout lane-blocking rule was left unchanged: all occupied ring lanes can block entry as before. Same-lane-only yielding would be a right-of-way change for req_035, not this performance slice.
+- Validation proof: `npm run typecheck`, `rtk npx vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed. `rtk npm run test:e2e` passed the traffic movement checks, then hit the pre-existing zone-clear timeout at `scripts/interact.mjs:1021`.

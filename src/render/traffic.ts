@@ -152,6 +152,17 @@ interface Mover {
   plan: Plan | null;
 }
 
+interface RoundaboutOccupancy {
+  readonly occupied: { readonly at: number; readonly radius: number }[];
+  readonly exiting: { readonly exit: SegmentId; readonly travelled: number; readonly total: number }[];
+}
+
+interface FrameOccupancy {
+  readonly roundabouts: Map<NodeId, RoundaboutOccupancy>;
+  readonly crossingWalkers: Set<string>;
+  readonly ringRooms: Map<Mover, number>;
+}
+
 export function circularQueueRooms<T>(
   entries: readonly { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[],
 ): Map<T, number> {
@@ -1039,8 +1050,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
    * Where a car has to be stopped by: the car in front, less a gap, or the stop line when the
    * light is against it. Whichever comes first in the direction it is going.
    */
-  function stopFor(mover: Mover, ahead: Mover | undefined, time: number): number {
-    const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover) || roundaboutYieldBlocked(mover)
+  function stopFor(mover: Mover, ahead: Mover | undefined, time: number, occupancy: FrameOccupancy): number {
+    const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover, occupancy) || roundaboutYieldBlocked(mover, occupancy)
       ? stopLineOf(mover)
       : limitOf(mover) + mover.direction * BRAKING * 2;
     if (!ahead) return line;
@@ -1048,7 +1059,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
   }
 
-  function roundaboutYieldBlocked(mover: Mover): boolean {
+  function roundaboutYieldBlocked(mover: Mover, occupancy: FrameOccupancy): boolean {
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     if (!graph.node(nodeId).roundabout) return false;
     const planned = mover.plan?.node === nodeId ? mover.plan : null;
@@ -1060,15 +1071,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     const ring = ringAt(nodeId);
     const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
     const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
-    const occupied = movers.flatMap((other) => {
-      if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
-      const { position } = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled);
-      return [{ at: ringBearing(ring, position), radius: other.ride.roundabout.radius }];
-    });
-    const exiting = movers.flatMap((other) => {
-      if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
-      return [{ exit: other.ride.exit, travelled: other.ride.travelled, total: other.ride.cumulative[other.ride.cumulative.length - 1]! }];
-    });
+    const blockers = occupancy.roundabouts.get(nodeId);
+    const occupied = blockers?.occupied ?? [];
+    const exiting = blockers?.exiting ?? [];
     return (
       !laneHasEntryRoom(planned.exit, nodeId, kerbLaneFrom(graph.segment(planned.exit), nodeId), trimAt(nodeId, planned.exit)) ||
       roundaboutExitBlocked(exiting, mover.segment.id) ||
@@ -1104,7 +1109,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
    * Reached the end of a road. The car takes the drawn transfer from here to its next lane: the
    * junction's own turn curve, or a roundabout's merge, sweep and exit joined into one.
    */
-  function arrive(mover: Mover, now: number): void {
+  function arrive(mover: Mover, now: number, occupancy: FrameOccupancy): void {
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     // A plan is made a junction ahead of time, and the road it names can be bulldozed or split
     // before the car gets there -- `graph.segment` then threw out of the render loop, which stops
@@ -1130,15 +1135,9 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       const ring = ringAt(nodeId);
       const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
       const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
-      const occupied = movers.flatMap((other) => {
-        if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
-        const { position } = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled);
-        return [{ at: ringBearing(ring, position), radius: other.ride.roundabout.radius }];
-      });
-      const exiting = movers.flatMap((other) => {
-        if (other === mover || other.walk || other.ride?.roundabout?.node !== nodeId) return [];
-        return [{ exit: other.ride.exit, travelled: other.ride.travelled, total: other.ride.cumulative[other.ride.cumulative.length - 1]! }];
-      });
+      const blockers = occupancy.roundabouts.get(nodeId);
+      const occupied = blockers?.occupied ?? [];
+      const exiting = blockers?.exiting ?? [];
       if (roundaboutExitBlocked(exiting, mover.segment.id)) return;
       if (roundaboutEntryBlocked(entryAngle, occupied)) return;
     }
@@ -1241,18 +1240,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     });
   }
 
-  function crossingOccupiedByWalker(mover: Mover): boolean {
+  function crossingOccupiedByWalker(mover: Mover, occupancy: FrameOccupancy): boolean {
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     const arm = armOf(nodeId, mover.segment.id);
-    if (!arm) return false;
-    const centre = graph.node(nodeId).pos;
-    const reach = arm.trim + CROSSING_DEPTH * 3;
-    return movers.some((other) => {
-      if (!other.walk || other.ride?.from !== nodeId) return false;
-      const a = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled - 0.5).position;
-      const b = pointAlong(other.ride.points, other.ride.cumulative, other.ride.travelled + 0.5).position;
-      return crossesRoad(centre, arm.outward, reach, [[a, b]]);
-    });
+    return !!arm && occupancy.crossingWalkers.has(crossingKey(nodeId, arm.segment));
   }
 
   /**
@@ -1456,16 +1447,41 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     return -Math.atan2(rise, reach * 2);
   }
 
-  function roundaboutRooms(movers: readonly Mover[]): Map<Mover, number> {
-    return circularQueueRooms(
-      movers.flatMap((mover) => {
-        const ride = mover.ride;
-        if (mover.walk || !ride?.roundabout) return [];
-        const { position } = pointAlong(ride.points, ride.cumulative, ride.travelled);
-        const ring = ringAt(ride.roundabout.node);
-        return [{ item: mover, key: `roundabout:${ride.roundabout.node}`, at: ringBearing(ring, position), radius: ride.roundabout.radius }];
-      }),
-    );
+  const crossingKey = (nodeId: NodeId, segmentId: SegmentId): string => `${nodeId}:${segmentId}`;
+
+  function frameOccupancy(): FrameOccupancy {
+    const roundabouts = new Map<NodeId, RoundaboutOccupancy>();
+    const crossingWalkers = new Set<string>();
+    const ringEntries: { readonly item: Mover; readonly key: string; readonly at: number; readonly radius: number }[] = [];
+
+    for (const mover of movers) {
+      const ride = mover.ride;
+      if (!ride) continue;
+      if (mover.walk) {
+        const nodeArms = arms.get(ride.from);
+        if (!nodeArms) continue;
+        const centre = graph.node(ride.from).pos;
+        const a = pointAlong(ride.points, ride.cumulative, ride.travelled - 0.5).position;
+        const b = pointAlong(ride.points, ride.cumulative, ride.travelled + 0.5).position;
+        for (const arm of nodeArms.values()) {
+          if (crossesRoad(centre, arm.outward, arm.trim + CROSSING_DEPTH * 3, [[a, b]])) crossingWalkers.add(crossingKey(ride.from, arm.segment));
+        }
+        continue;
+      }
+
+      const roundabout = ride.roundabout;
+      if (!roundabout) continue;
+      const ring = ringAt(roundabout.node);
+      const { position } = pointAlong(ride.points, ride.cumulative, ride.travelled);
+      const entry = { at: ringBearing(ring, position), radius: roundabout.radius };
+      const occupancy = roundabouts.get(roundabout.node) ?? { occupied: [], exiting: [] };
+      if (!roundabouts.has(roundabout.node)) roundabouts.set(roundabout.node, occupancy);
+      occupancy.occupied.push(entry);
+      occupancy.exiting.push({ exit: ride.exit, travelled: ride.travelled, total: ride.cumulative[ride.cumulative.length - 1]! });
+      ringEntries.push({ item: mover, key: `roundabout:${roundabout.node}`, ...entry });
+    }
+
+    return { roundabouts, crossingWalkers, ringRooms: circularQueueRooms(ringEntries) };
   }
 
   const queues = new Map<number, Mover[]>();
@@ -1498,7 +1514,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     for (const queue of queues.values()) {
       for (let i = 0; i < queue.length - 1; i++) ahead.set(queue[i]!, queue[i + 1]!);
     }
-    const ringRoom = roundaboutRooms(movers);
+    const occupancy = frameOccupancy();
     const staleMovers = new Set<Mover>();
 
     for (const mover of movers) {
@@ -1514,7 +1530,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         const ride = mover.ride;
         // Same ramp as the straight road it just left: a car pulling away into its turn keeps
         // accelerating rather than snapping straight to the turn's own pace.
-        const room = ringRoom.get(mover) ?? Infinity;
+        const room = occupancy.ringRooms.get(mover) ?? Infinity;
         const target = mover.speed * ride.pace * Math.max(0, Math.min(1, room / BRAKING));
         mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
         ride.travelled += mover.currentSpeed * dt;
@@ -1540,7 +1556,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       // walker has nothing to rear-end and always heads at the kerb itself, so it gets no ease:
       // eased against its own exact target it would never quite arrive, and so never get asked
       // whether the crossing is clear.
-      const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now) - mover.distance) * mover.direction;
+      const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now, occupancy) - mover.distance) * mover.direction;
       const target = mover.speed * Math.max(0, Math.min(1, room / BRAKING));
       // Braking follows that curve straight down -- a car easing off is as responsive as before.
       // Pulling away is the other way round: speed catches up to the target rather than jumping
@@ -1552,7 +1568,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       const atEnd = mover.direction === 1 ? mover.distance >= limit : mover.distance <= limit;
       if (atEnd && (mover.walk || !heldAtLights(mover, now))) {
         mover.distance = limit;
-        arrive(mover, now);
+        arrive(mover, now, occupancy);
         if (mover.walk && !mover.ride) mover.currentSpeed = 0;
         if (mover.ride) continue;
       }

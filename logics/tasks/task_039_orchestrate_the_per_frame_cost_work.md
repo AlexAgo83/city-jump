@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 65%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -75,6 +75,9 @@
 - 2026-09-03 wave item_114: `npm run typecheck && rtk npm run ci` passed.
 - 2026-09-03 wave item_117: dirty traffic rebuilds keep eligible movers but re-resolve their segment object from the graph first.
 - 2026-09-03 wave item_117: `rtk npx vitest run src/render/traffic.test.ts` and `npm run typecheck` passed.
+- 2026-09-03 wave item_116: traffic now builds one frame occupancy index for roundabout yielding, exiting rides, crossing walkers, and ring-room spacing.
+- 2026-09-03 wave item_116: roundabout lane-blocking behaviour is intentionally unchanged; same-lane-only yielding belongs to req_035 if product wants it.
+- 2026-09-03 wave item_116: `npm run typecheck`, `rtk npx vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed; `rtk npm run test:e2e` passed traffic movement checks before the known zone-clear timeout at `scripts/interact.mjs:1021`.
 
 # Report
 - Not started.
