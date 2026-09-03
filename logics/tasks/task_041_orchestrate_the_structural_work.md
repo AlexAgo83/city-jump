@@ -1,14 +1,15 @@
 ## task_041_orchestrate_the_structural_work - Orchestrate the structural work
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:46:10
+> Indicators reviewed: 2026-09-03 16:03:12
+> Owner: Codex
 
 # AI Context
 - Summary: Six waves of structural work that must change no behaviour, gated on the other four chains being complete.
@@ -73,4 +74,7 @@
 - Architecture decision(s): (none yet)
 
 # Notes
+- 2026-09-03 wave 1: added the production `setTerrain` architecture guard, removed the only non-app production caller in `playRun`, and recorded ADR 007 for explicit terrain dependency migration.
+- 2026-09-03 wave 1: documented `ponytail:` comments in `CONTRIBUTING.md`, relaxed the generated-building manifest assertion to inclusion, height-checked the four hand-authored fallback models, and recorded their fallback in `docs/assets.md`.
+- 2026-09-03 validation: `rtk npm run test:architecture`, `rtk node --test tests/building-assets.mjs`, and `rtk npm exec -- vitest run src/sim/playthrough.test.ts` passed.
 - Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.

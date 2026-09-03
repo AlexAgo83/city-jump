@@ -27,7 +27,9 @@ The renderer reads each model's bounding box after loading and centres it on the
 frontage, so footprint dimensions come from the mesh. Roof facts that the bounding box
 cannot say honestly are declared in `public/buildings/manifest.json`: flat deck height,
 pitched ridge height, or setback deck bounds. If a model has no manifest entry, it still
-loads; roof props use the mesh's top as a flat fallback.
+loads; roof props use the mesh's top as a flat fallback. Today `block.glb`, `house.glb`,
+`shop.glb`, and `tower.glb` use that fallback; architecture tests still check that each
+one has usable GLB height.
 
 ## Fitting a slot
 

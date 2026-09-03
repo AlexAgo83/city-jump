@@ -7,7 +7,6 @@ import { Rubble } from "./rubble";
 import { commitSegment, resolveSnap, validateSegment } from "./rules";
 import { createRun, DEFAULT_RUN_RULES, defeat, endIfPopulationZero, settleWave, type RunRules, type RunState } from "./run";
 import { buildableCells, buildingParcels, lotsInRect, lotsWithin, parcelsForDemand, type BuildingParcel } from "./slots";
-import { setTerrain, flatTerrain } from "./terrain";
 import { distXZ, v3 } from "./vec";
 import { missingUtility, suppliedDiffusers, Utilities } from "./utilities";
 import { advanceWaveClock, createWaveClock, damageWaveClock, scheduleNextWave, summonIfDue, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
@@ -95,7 +94,6 @@ const COMBAT_CAP_SECONDS = 90;
  * it rebuilds, and a building without the utility it needs is idle.
  */
 export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves = 1): RunPlaythrough {
-  setTerrain(flatTerrain);
   const graph = new RoadGraph();
   const zones = new Zones();
   const lifecycle = new BuildingLifecycle();

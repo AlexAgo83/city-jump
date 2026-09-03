@@ -1,13 +1,14 @@
 ## item_129_give_the_save_format_somewhere_to_migrate - Give the save format somewhere to migrate
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: Every field added since v1 must stay independently optional for ever because there is nowhere to put a transform. Separately, the first save of a painted city moves each lot centre by up to 2 m and the test passes anyway.

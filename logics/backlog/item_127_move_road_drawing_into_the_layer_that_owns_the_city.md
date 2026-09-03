@@ -1,13 +1,14 @@
 ## item_127_move_road_drawing_into_the_layer_that_owns_the_city - Move road drawing into the layer that owns the city
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: The imports point the right way, so no architecture test catches it. Must follow item_106, which rewrites the demolition path in these exact lines.

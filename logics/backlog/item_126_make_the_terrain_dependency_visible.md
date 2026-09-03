@@ -1,13 +1,14 @@
 ## item_126_make_the_terrain_dependency_visible - Make the terrain dependency visible
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: Import-direction rules cannot see state coupling, which is why this survived. The three-line architecture assertion lands first because it stops the spread today, before the injection work starts.
@@ -52,3 +53,8 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave 1: production code outside `src/app/` no longer calls `setTerrain`; `playRun` now relies on the default flat terrain instead of mutating the terrain global.
+- 2026-09-03 wave 1: `tests/architecture.mjs` now fails if a non-test production file outside `src/app/` calls `setTerrain`, and `adr_007_make_terrain_an_explicit_dependency` records the migration rule.
+- 2026-09-03 validation: `rtk npm run test:architecture` passed; `rtk npm exec -- vitest run src/sim/playthrough.test.ts` passed.

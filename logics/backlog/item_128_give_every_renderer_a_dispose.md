@@ -1,13 +1,14 @@
 ## item_128_give_every_renderer_a_dispose - Give every renderer a dispose
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: Latent in a single page, but it is what makes the app untestable in-process and what will leak a whole scene at the first reset or Vite HMR. glassReflectionTexture is bound to the first scene for ever.

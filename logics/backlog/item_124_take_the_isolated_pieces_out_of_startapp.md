@@ -1,13 +1,14 @@
 ## item_124_take_the_isolated_pieces_out_of_startapp - Take the isolated pieces out of startApp
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: The missing module leaves fingerprints: the same 200-character parcelsForDemand expression appears at :140 and :213, and :1152 monkey-patches a debug surface that :1108 already built.

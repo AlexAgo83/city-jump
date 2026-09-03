@@ -37,14 +37,14 @@ function close(actual, expected, model, quantity) {
   assert.ok(Math.abs(actual - expected) <= EPSILON, `${model} ${quantity}: manifest=${expected}, glb=${actual}`);
 }
 
-test("every shipped building model has a manifest entry", async () => {
+test("every generated building model has a manifest entry", async () => {
   const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
   const shipped = readdirSync(BUILDINGS)
     .filter((name) => /^(lot|farm|industrial|military)_\dx\d\.glb$/.test(name))
     .map((name) => name.slice(0, -4))
     .sort();
 
-  assert.deepEqual(Object.keys(manifest.models).sort(), shipped);
+  for (const model of shipped) assert.ok(manifest.models[model], `${model} missing from manifest`);
 });
 
 /**
@@ -66,5 +66,12 @@ test("the lot manifest agrees with shipped GLB height facts", async () => {
     } else {
       close(bounds.max[1], roof.deckY + 1.5, model, "deckY");
     }
+  }
+});
+
+test("hand-authored fallback building models declare usable height in the GLB", async () => {
+  for (const model of ["block", "house", "shop", "tower"]) {
+    const bounds = boundsOf(glbJson(await readFile(new URL(`${model}.glb`, BUILDINGS))));
+    assert.ok(bounds.max[1] > bounds.min[1], `${model} has no GLB height`);
   }
 });

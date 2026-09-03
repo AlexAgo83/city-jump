@@ -1,13 +1,14 @@
 ## item_135_declare_where_this_project_stands_on_translation - Declare where this project stands on translation
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: Decided by the owner: English is the source locale and further languages come later, so the contract is initialised as applicable rather than not-applicable. The remaining work is extraction -- the catalogue exists and is empty while every string is still inline.

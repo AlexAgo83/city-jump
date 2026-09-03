@@ -10,6 +10,8 @@
 - Use `logics-manager flow ...` for workflow lifecycle changes. Do not hand-edit
   Logics status, progress, ownership, or lineage indicators.
 - Record product decisions in the relevant ADR or specification when behavior changes.
+- Mark a deliberate simplification with `ponytail:` plus the condition that would justify
+  replacing it. It is a bounded shortcut, not a TODO.
 
 ## Development
 

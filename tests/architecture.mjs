@@ -36,6 +36,13 @@ test("source layers keep their dependency direction", async () => {
   }
 });
 
+test("only app code installs the active terrain", async () => {
+  for (const file of files.filter((file) => file !== "sim/terrain.ts" && !file.endsWith(".test.ts"))) {
+    const source = await readFile(new URL(file, src), "utf8");
+    if (source.includes("setTerrain(")) assert.equal(file.startsWith("app/"), true, `${file} calls setTerrain`);
+  }
+});
+
 test("main is only the application bootstrap", async () => {
   const source = await readFile(new URL("main.ts", src), "utf8");
   assert.deepEqual(imports(source), ["./app/app"]);

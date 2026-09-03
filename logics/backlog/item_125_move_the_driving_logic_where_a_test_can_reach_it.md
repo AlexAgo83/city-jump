@@ -1,13 +1,14 @@
 ## item_125_move_the_driving_logic_where_a_test_can_reach_it - Move the driving logic where a test can reach it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 15%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 16:03:12
 
 # AI Context
 - Summary: Three steps, and the third is gated on an observable condition instead of an owner's call: the move to sim happens if and only if headless tests for the driving logic exist and pass. Verified that nothing blocks it -- the two render imports are three constants and a pure predicate.
