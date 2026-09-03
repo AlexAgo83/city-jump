@@ -1,0 +1,382 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_038_harden_the_release_path_and_the_shared_link_surface task_040_orchestrate_the_release_and_client_hardening --mode summary-only --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "status": "Settled",
+      "title": "A city you can point at and name"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
+          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
+          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
+          "item_122_let_a_missing_asset_be_missing",
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/product/prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page.md",
+      "ref": "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page",
+      "status": "Proposed",
+      "title": "A release that proves it shipped, and a link that cannot write to the page"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "shell interpolation, tag not branch, deploy verification, CSP, innerHTML, SPA rewrite, asset version constant",
+        "skip when": "changing parseCity, the fragment caps, or the immutable building cache headers, which are correct as they stand.",
+        "summary": "A well-built deploy workflow with three gaps around it, and a HUD that interpolates city values into innerHTML just as naming becomes a product direction.",
+        "use when": "touching the deploy workflow, render.yaml, or how a value from a loaded city reaches the DOM."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
+          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
+          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
+          "item_122_let_a_missing_asset_be_missing",
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name",
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ]
+      },
+      "path": "logics/request/req_038_harden_the_release_path_and_the_shared_link_surface.md",
+      "ref": "req_038_harden_the_release_path_and_the_shared_link_surface",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Harden the release path and the shared-link surface"
+    },
+    {
+      "ai_context": {
+        "keywords": "template interpolation, env, shell injection, rev-parse refs/tags, SHA pinning",
+        "skip when": "restructuring the release process or the tag convention, or touching ci.yml, which req_036 owns.",
+        "summary": "The three later steps in the same file already pass values through env correctly, so this is an inconsistency rather than a house style -- in a job holding the deploy hook secret.",
+        "use when": "touching .github/workflows/render-release-deploy.yml."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch.md",
+      "ref": "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Take the release tag out of the shell and refuse a branch"
+    },
+    {
+      "ai_context": {
+        "keywords": "deploy hook, ref parameter, deploy verification, Render API, advisory checks, runbook",
+        "skip when": "migrating off Render, or changing autoDeploy without a recorded decision.",
+        "summary": "Answered from Render's docs: ?ref=<sha> is supported, and a 200 means the SHA was valid and a deploy has started. So the upstream checks are NOT advisory and only the outcome is unverified -- a build that fails after the 200 is reported as success.",
+        "use when": "before trusting the deploy workflow's verification, or changing how a release reaches production."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome.md",
+      "ref": "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Establish whether the deploy hook honours the commit, then verify the outcome"
+    },
+    {
+      "ai_context": {
+        "keywords": "innerHTML, textContent, replaceChildren, CSP, shared link rendering, threat model control",
+        "skip when": "making streets nameable, changing parseCity or the fragment caps.",
+        "summary": "Safe today only because streetName composes from a fixed word list and city names use textContent. prod_007 points at naming as a direction, which is what makes this worth fixing while it is free.",
+        "use when": "touching how a loaded city reaches the DOM, or adding a security header."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model.md",
+      "ref": "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Render a loaded city as text, and say so in the threat model"
+    },
+    {
+      "ai_context": {
+        "keywords": "SPA rewrite, 404, static host routes, missing asset, diagnosability",
+        "skip when": "adding a 404 page design, client-side routing, or changing cache headers, which are correct.",
+        "summary": "The app has no client-side routing -- only the hash city fragment -- so the rewrite buys nothing and costs diagnosability: JSON.parse on a doctype and the GLB loader both fail confusingly.",
+        "use when": "touching render.yaml routes or debugging a confusing asset load failure."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_122_let_a_missing_asset_be_missing"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_122_let_a_missing_asset_be_missing.md",
+      "ref": "item_122_let_a_missing_asset_be_missing",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Let a missing asset be missing"
+    },
+    {
+      "ai_context": {
+        "keywords": "BUILDING_ASSET_VERSION, KAIJU_ASSET_VERSION, cache busting, immutable, derived version",
+        "skip when": "content-hashing GLB filenames, or dropping the immutable cache, which would be wrong.",
+        "summary": "The immutable cache is correct and must stay -- the version query parameter is what makes it safe. The residual risk is only that two constants are hand-maintained, in two files, at diverging dates.",
+        "use when": "shipping a changed GLB or manifest, or touching the asset load path."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand.md",
+      "ref": "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Derive the asset version instead of maintaining two by hand"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_034_chain_road_segments_into_streets_that_survive_a_split"
+        ],
+        "prod": [
+          "prod_007_a_city_you_can_point_at_and_name"
+        ],
+        "req": [
+          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
+        ],
+        "task": [
+          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
+        ]
+      },
+      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
+      "ref": "prod_007_a_city_you_can_point_at_and_name",
+      "schema_version": "1.0",
+      "status": "Settled",
+      "title": "A city you can point at and name"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
+          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
+          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
+          "item_122_let_a_missing_asset_be_missing",
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/product/prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page.md",
+      "ref": "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page",
+      "schema_version": "1.0",
+      "status": "Proposed",
+      "title": "A release that proves it shipped, and a link that cannot write to the page"
+    },
+    {
+      "ai_context": {
+        "keywords": "render ref, env interpolation, deploy poll, CSP, textContent, rewrite scoping",
+        "skip when": "the proposal is to drop the immutable cache on /buildings/*, which the ?v= parameter already makes correct.",
+        "summary": "Answer the Render ref question first -- it decides whether deploy verification is a small addition or the most important item -- then harden the tag and the rendering path.",
+        "use when": "implementing req_038."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
+          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
+          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
+          "item_122_let_a_missing_asset_be_missing",
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/tasks/task_040_orchestrate_the_release_and_client_hardening.md",
+      "ref": "task_040_orchestrate_the_release_and_client_hardening",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Orchestrate the release and client hardening"
+    }
+  ],
+  "estimates": {
+    "char_count": 11586,
+    "companion_doc_count": 2,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-03T09:33:55Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_038_harden_the_release_path_and_the_shared_link_surface",
+      "task_040_orchestrate_the_release_and_client_hardening"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "summary-only",
+  "profile": "deep",
+  "ref": "req_038_harden_the_release_path_and_the_shared_link_surface,task_040_orchestrate_the_release_and_client_hardening",
+  "refs": [
+    "req_038_harden_the_release_path_and_the_shared_link_surface",
+    "task_040_orchestrate_the_release_and_client_hardening"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_040_orchestrate_the_release_and_client_hardening.md",
+      "ref": "task_040_orchestrate_the_release_and_client_hardening"
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_036_make_the_verification_gates_able_to_fail task_038_orchestrate_the_verification_gates --mode summary-only --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_108_let_the_scenario_harness_exit_non_zero",
+          "item_109_bring_the_first_run_back_inside_its_declared_band",
+          "item_110_refuse_a_performance_measurement_from_a_dirty_tree",
+          "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version",
+          "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone",
+          "item_132_stop_a_city_with_no_utilities_dying_outright"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/product/prod_027_evidence_that_stops_the_build.md",
+      "ref": "prod_027_evidence_that_stops_the_build",
+      "status": "Proposed",
+      "title": "Evidence that stops the build"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_017_stop_the_browser_interaction_suite_from_running_twice_per_push"
+        ],
+        "prod": [
+          "prod_003_ci_that_respects_a_limited_actions_budget"
+        ],
+        "req": [
+          "req_004_harden_project_reliability_gates_and_demo_evidence",
+          "req_006_stop_burning_ci_quota_on_the_browser_interaction_suite_every_push"
+        ],
+        "task": [
+          "task_008_implement_ci_quota_reduction_for_the_browser_interaction_suite"
+        ]
+      },
+      "path": "logics/product/prod_003_ci_that_respects_a_limited_actions_budget.md",
+      "ref": "prod_003_ci_that_respects_a_limited_actions_budget",
+      "status": "Settled",
+      "title": "CI that respects a limited Actions budget"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "scenario exit code, balance band, dirty perf record, version check, CI double run, logics-manager devDependency",
+        "skip when": "fixing a simulation defect (req_035) or the deploy workflow itself (req_038).",
+        "summary": "Three harnesses that already produce the right signal and gate nothing, plus a version drift across three documents that would fail a real deploy.",
+        "use when": "wiring a gate, reading balance or perf evidence, or asking why CI runs twice per push."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_108_let_the_scenario_harness_exit_non_zero",
+          "item_109_bring_the_first_run_back_inside_its_declared_band",
+          "item_110_refuse_a_performance_measurement_from_a_dirty_tree",
+          "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version",
+          "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone",
+          "item_132_stop_a_city_with_no_utilities_dying_outright"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ]
+      },
+      "path": "logics/request/req_036_make_the_verification_gates_able_to_fail.md",
+      "ref": "req_036_make_the_verification_gates_able_to_fail",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Make the verification gates able to fail"
+    },
+    {
+      "ai_context": {
+        "keywords": "run-scenarios, offTarget, exit code, target band, ci script, red gate",
+        "skip when": "changing the target band, which item_109 owns deliberately, or adding browser suites to CI.",
+        "summary": "Verified: scenario() returns offTarget and all three call sites discard it, and the file contains no process.exit. Note the blind spot: offTarget only filters waves that were fought, so a run where no wave ever arrives is invisible to it -- which is the actual current failure.",
+        "use when": "wiring the scenario harness or asking why an out-of-band run passes."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_108_let_the_scenario_harness_exit_non_zero"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_108_let_the_scenario_harness_exit_non_zero.md",
+      "ref": "item_108_let_the_scenario_harness_exit_non_zero",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Let the scenario harness exit non-zero"
+    },
+    {
+      "ai_context": {
+        "keywords": "balance seed, treasury outlier, unbounded spend, homeless drain, marginal lot loop",
+        "skip when": "widening the band to make it pass, or redesigning the economy.",
+        "summary": "Measured live on HEAD, not from the stale record: the band is violated in BOTH directions (wave 1 at the floor, wave 2 over the ceiling), every wave is held, and no seed reaches wave 6. The minus 778k treasury bleed is gone -- that hypothesis died with the stale data.",
+        "use when": "investigating the balance figures or changing economy tuning."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_109_bring_the_first_run_back_inside_its_declared_band"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_109_bring_the_first_run_back_inside_its_declared_band.md",
+      "ref": "item_109_bring_the_first_run_back_inside_its_declared_band",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Bring the first run back inside its declared band"
+    },
+    {
+      "ai_context": {
+        "keywords": "dirty tree, allow-dirty, perf baseline, union merge driver, append-only record",
+        "skip when": "changing what perf measures, or running it in CI, which has no GPU.",
+        "summary": "A non-reproducible measurement in the historical record is worse than an absent one, and docs/performance.md treats that file as the record. Also provides the baseline req_037 cannot start without.",
+        "use when": "recording a measurement, or before starting any per-frame cost work."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_110_refuse_a_performance_measurement_from_a_dirty_tree"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_110_refuse_a_performance_measurement_from_a_dirty_tree.md",
+      "ref": "item_110_refuse_a_performance_measurement_from_a_dirty_tree",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Refuse a performance measurement from a dirty tree"
+    },
+    {
+      "ai_context": {
+        "keywords": "version drift, badge, supported versions, blueprint tag, check-versions script",
+        "skip when": "automating the release bump itself or restructuring the changelog convention.",
+        "summary": "Not cosmetic: the release workflow hard-fails unless the tag matches package.json, so following the blueprint's v0.2.0 produces a failed deploy. SECURITY.md declares the shipping line unsupported.",
+        "use when": "changing the version, or after a release, or reading a document that states one."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_111_fail_the_gate_when_a_shipped_document_misstates_the_version.md",
+      "ref": "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Fail the gate when a shipped document misstates the version"
+    },
+    {
+      "ai_context": {
+        "keywords": "push trigger, concurrency, devDependency, clean clone, timeout-minutes, Actions budget",
+        "skip when": "SHA-pinning the deploy workflow, which req_038 owns, or adding browser suites.",
+        "summary": "Two identical runs per push on a repo that has a product brief about respecting the Actions budget, and npm run ci -- the documented pre-PR gate -- fails on a clean clone because logics-manager is an undocumented global install.",
+        "use when": "touching .github/workflows/ci.yml or reproducing the gate locally."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone"
+        ],
+        "prod": [
+          "prod_003_ci_that_respects_a_limited_actions_budget",
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone.md",
+      "ref": "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Run the CI gate once per push, and from a clean clone"
+    },
+    {
+      "ai_context": {
+        "keywords": "placeUtilities false, population zero, total collapse, power, water, scenario blind spot",
+        "skip when": "tuning combat difficulty, which item_109 owns.",
+        "summary": "Measured live on HEAD: the no-utilities scenario ends with population ZERO on all six seeds while banking about 34k. Not a harder game -- a total collapse, and one no band filter can see.",
+        "use when": "investigating why a city dies, or what happens when power and water are never built."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_132_stop_a_city_with_no_utilities_dying_outright"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/backlog/item_132_stop_a_city_with_no_utilities_dying_outright.md",
+      "ref": "item_132_stop_a_city_with_no_utilities_dying_outright",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Stop a city with no utilities dying outright"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_108_let_the_scenario_harness_exit_non_zero",
+          "item_109_bring_the_first_run_back_inside_its_declared_band",
+          "item_110_refuse_a_performance_measurement_from_a_dirty_tree",
+          "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version",
+          "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone",
+          "item_132_stop_a_city_with_no_utilities_dying_outright"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/product/prod_027_evidence_that_stops_the_build.md",
+      "ref": "prod_027_evidence_that_stops_the_build",
+      "schema_version": "1.0",
+      "status": "Proposed",
+      "title": "Evidence that stops the build"
+    },
+    {
+      "ai_context": {
+        "keywords": "exit code, balance seed, clean baseline, version gate, concurrency, clean clone",
+        "skip when": "the work is a code defect rather than the gate that would have caught it.",
+        "summary": "Make each harness able to fail before trusting what it says, then fix what it reports -- in that order, so no gate lands red on main.",
+        "use when": "implementing req_036."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_108_let_the_scenario_harness_exit_non_zero",
+          "item_109_bring_the_first_run_back_inside_its_declared_band",
+          "item_110_refuse_a_performance_measurement_from_a_dirty_tree",
+          "item_111_fail_the_gate_when_a_shipped_document_misstates_the_version",
+          "item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone",
+          "item_132_stop_a_city_with_no_utilities_dying_outright"
+        ],
+        "prod": [
+          "prod_027_evidence_that_stops_the_build"
+        ],
+        "req": [
+          "req_036_make_the_verification_gates_able_to_fail"
+        ],
+        "task": [
+          "task_038_orchestrate_the_verification_gates"
+        ]
+      },
+      "path": "logics/tasks/task_038_orchestrate_the_verification_gates.md",
+      "ref": "task_038_orchestrate_the_verification_gates",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Orchestrate the verification gates"
+    }
+  ],
+  "estimates": {
+    "char_count": 11114,
+    "companion_doc_count": 2,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-03T09:39:01Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_036_make_the_verification_gates_able_to_fail",
+      "task_038_orchestrate_the_verification_gates"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "summary-only",
+  "profile": "deep",
+  "ref": "req_036_make_the_verification_gates_able_to_fail,task_038_orchestrate_the_verification_gates",
+  "refs": [
+    "req_036_make_the_verification_gates_able_to_fail",
+    "task_038_orchestrate_the_verification_gates"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_038_orchestrate_the_verification_gates.md",
+      "ref": "task_038_orchestrate_the_verification_gates"
+    }
+  ]
+}

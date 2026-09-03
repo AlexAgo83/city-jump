@@ -1,0 +1,572 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_099_cut_a_segment_as_many_times_as_one_road_crosses_it.md",
+    "logics/backlog/item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it.md",
+    "logics/backlog/item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating.md",
+    "logics/backlog/item_102_give_the_workforce_one_authority.md",
+    "logics/backlog/item_103_make_a_building_pad_stamp_idempotent_between_neighbours.md",
+    "logics/backlog/item_104_bound_the_cleared_tree_record.md",
+    "logics/backlog/item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel.md",
+    "logics/backlog/item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks.md",
+    "logics/backlog/item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test.md",
+    "logics/backlog/item_108_let_the_scenario_harness_exit_non_zero.md",
+    "logics/backlog/item_109_bring_the_first_run_back_inside_its_declared_band.md",
+    "logics/backlog/item_110_refuse_a_performance_measurement_from_a_dirty_tree.md",
+    "logics/backlog/item_111_fail_the_gate_when_a_shipped_document_misstates_the_version.md",
+    "logics/backlog/item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone.md",
+    "logics/backlog/item_113_gate_the_building_state_upload_on_a_change_signature.md",
+    "logics/backlog/item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed.md",
+    "logics/backlog/item_115_fan_the_sun_out_once_per_visible_step.md",
+    "logics/backlog/item_116_build_the_yield_and_crossing_occupancy_once_per_frame.md",
+    "logics/backlog/item_117_re_resolve_a_mover_s_segment_after_a_rebuild.md",
+    "logics/backlog/item_118_show_the_frame_cost_came_down.md",
+    "logics/backlog/item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch.md",
+    "logics/backlog/item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome.md",
+    "logics/backlog/item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model.md",
+    "logics/backlog/item_122_let_a_missing_asset_be_missing.md",
+    "logics/backlog/item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand.md",
+    "logics/backlog/item_124_take_the_isolated_pieces_out_of_startapp.md",
+    "logics/backlog/item_125_move_the_driving_logic_where_a_test_can_reach_it.md",
+    "logics/backlog/item_126_make_the_terrain_dependency_visible.md",
+    "logics/backlog/item_127_move_road_drawing_into_the_layer_that_owns_the_city.md",
+    "logics/backlog/item_128_give_every_renderer_a_dispose.md",
+    "logics/backlog/item_129_give_the_save_format_somewhere_to_migrate.md",
+    "logics/backlog/item_130_make_lint_mean_lint_and_cover_the_scripts.md",
+    "logics/backlog/item_131_write_down_the_conventions_the_code_already_follows.md",
+    "logics/context-packs/correctness_0_4_0.json",
+    "logics/context-packs/frame_cost.json",
+    "logics/context-packs/release_and_client_hardening.json",
+    "logics/context-packs/structural_seams.json",
+    "logics/context-packs/verification_gates.json",
+    "logics/product/prod_026_a_city_that_survives_the_roads_you_draw_on_it.md",
+    "logics/product/prod_027_evidence_that_stops_the_build.md",
+    "logics/product/prod_028_a_city_that_costs_what_it_is_changing.md",
+    "logics/product/prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page.md",
+    "logics/product/prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach.md",
+    "logics/request/req_035_fix_the_correctness_defects_the_0_4_0_review_found.md",
+    "logics/request/req_036_make_the_verification_gates_able_to_fail.md",
+    "logics/request/req_037_stop_paying_every_frame_for_a_city_that_is_not_changing.md",
+    "logics/request/req_038_harden_the_release_path_and_the_shared_link_surface.md",
+    "logics/request/req_039_give_the_code_its_seams_back.md",
+    "logics/tasks/task_037_orchestrate_the_0_4_0_correctness_fixes.md",
+    "logics/tasks/task_038_orchestrate_the_verification_gates.md",
+    "logics/tasks/task_039_orchestrate_the_per_frame_cost_work.md",
+    "logics/tasks/task_040_orchestrate_the_release_and_client_hardening.md",
+    "logics/tasks/task_041_orchestrate_the_structural_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_035_fix_the_correctness_defects_the_0_4_0_review_found task_037_orchestrate_the_0_4_0_correctness_fixes --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_099_cut_a_segment_as_many_times_as_one_road_crosses_it",
+          "item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it",
+          "item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating",
+          "item_102_give_the_workforce_one_authority",
+          "item_103_make_a_building_pad_stamp_idempotent_between_neighbours",
+          "item_104_bound_the_cleared_tree_record",
+          "item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel",
+          "item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks",
+          "item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/product/prod_026_a_city_that_survives_the_roads_you_draw_on_it.md",
+      "ref": "prod_026_a_city_that_survives_the_roads_you_draw_on_it",
+      "sections": {
+        "Goals": [
+          "- A drawn road either lands whole or changes nothing.",
+          "- A reloaded city carries no state from the run before it.",
+          "- An undo returns exactly the action the player just took.",
+          "- Production and the building agree on whether a lot is staffed."
+        ],
+        "Key product decisions": [
+          "- A road either lands whole or changes nothing: no path may mutate the graph and then report failure.",
+          "- A crossing is re-located geometrically after a split, never carried across it arithmetically -- the halves are resampled on purpose.",
+          "- A derived value stays derived: the utility mask is re-laid from the item list rather than subtracted from.",
+          "- Per ADR 030, the one-line fixes whose reasoning fits at the declaration are one slice, not nine chains."
+        ],
+        "Overview": [
+          "The city keeps its shape through a second crossing, a reload, and an undo.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|a_city_that_survives_the_roads_you_draw_on_it|generated",
+          "flowchart TD",
+          "    Draw[Player draws a road] --> Cross{Crosses an existing road}"
+        ],
+        "References": [
+          "- Product back-reference: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`",
+          "- Task back-reference: `task_037_orchestrate_the_0_4_0_correctness_fixes`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that survives the roads you draw on it"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "crossing split, segment id zero, utility mask, shortage latch, workforce allocation, heightmap stamp, undo pairing, load reset",
+        "skip when": "the work is per-frame cost (req_037), balance tuning (req_036), release hardening (req_038) or module structure (req_039).",
+        "summary": "Nine live defects found reviewing 0.4.0 at f2e2070, from a road crossing that throws with the graph half-cut to a reload that inherits the previous run's shortage latch.",
+        "use when": "fixing a correctness defect in src/sim/ or the demolition path, or checking whether a reported city bug is already recorded."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_099_cut_a_segment_as_many_times_as_one_road_crosses_it",
+          "item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it",
+          "item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating",
+          "item_102_give_the_workforce_one_authority",
+          "item_103_make_a_building_pad_stamp_idempotent_between_neighbours",
+          "item_104_bound_the_cleared_tree_record",
+          "item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel",
+          "item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks",
+          "item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ]
+      },
+      "path": "logics/request/req_035_fix_the_correctness_defects_the_0_4_0_review_found.md",
+      "ref": "req_035_fix_the_correctness_defects_the_0_4_0_review_found",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A road crossing one segment twice commits without throwing and leaves no partial mutation.",
+          "- AC2: commitSegment never reports success with a segment id that does not exist.",
+          "- AC3: Removing a utility leaves no segment carrying its mask, and a diffuser sharing a run of road with another stays supplied.",
+          "- AC4: A reload starts the economy and the building lifecycle with no inherited latch, flag or clock.",
+          "- AC5: One authority allocates the workforce, and production and lifecycle agree on which lot is staffed.",
+          "- AC6: Stamping two adjacent building pads gives the same terrain in either order."
+        ],
+        "Needs": [
+          "- A road drawn across another splits it, however many times it crosses, and never leaves the city half-cut.",
+          "- A city reloaded is the city that was saved, with none of the previous run's latches.",
+          "- A demolition undone is the demolition the player just made, not the pair of them.",
+          "- One authority decides which lot is staffed, so the ledger and the building agree."
+        ]
+      },
+      "status": "Ready",
+      "title": "Fix the correctness defects the 0.4.0 review found"
+    },
+    {
+      "ai_context": {
+        "keywords": "allCrossings, splitSegment, nearestOnSegment, partial mutation, segment id zero, minLength",
+        "skip when": "solving Bezier intersections exactly, or carrying a distance across a split arithmetically -- both are explicitly out.",
+        "summary": "Reproduced: a quadratic street with control (0,0,240) crossed at z=60 throws `unknown segment: 1` after the first split has committed. The trap is that returning ok:false here moves the partial mutation instead of removing it.",
+        "use when": "touching commitSegment, allCrossings or splitSegment in src/sim/rules.ts and src/sim/graph.ts."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_099_cut_a_segment_as_many_times_as_one_road_crosses_it"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_099_cut_a_segment_as_many_times_as_one_road_crosses_it.md",
+      "ref": "item_099_cut_a_segment_as_many_times_as_one_road_crosses_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: One straight road crossing one curved segment twice produces five segments and no throw.",
+          "- AC2: No path through commitSegment mutates the graph and then reports failure.",
+          "- AC3: Three or more crossings on one segment behave the same as two.",
+          "- AC4: commitSegment never returns a segment id the graph cannot resolve.",
+          "- AC5: The single-crossing behaviour covered by existing tests in src/sim/rules.test.ts is unchanged."
+        ],
+        "Problem": [
+          "- allCrossings returns one entry per intersection without deduping by segment, and splitSegment deletes what it cuts, so the second crossing on one segment throws out of commitSegment with the first split already committed.",
+          "- lastSegment is initialised to 0 (src/sim/rules.ts:139), so a commit where every crossing snapped to an existing node returns {ok:true, segmentId:0} while ids start at 1."
+        ]
+      },
+      "status": "Ready",
+      "title": "Cut a segment as many times as one road crosses it"
+    },
+    {
+      "ai_context": {
+        "keywords": "removeNear, restake, segment utilities mask, shared path, save persistence, hasSegment guard",
+        "skip when": "changing the utility catalogue, radii, costs or pathToProducer.",
+        "summary": "The mask on a segment is derived from the item list, so removal clears and re-lays rather than subtracting: two diffusers can share a run of road. Changes removeNear's signature; one caller at src/app/app.ts:765.",
+        "use when": "changing how a utility is placed, removed or restored, or why a district stays lit with its plant gone."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it.md",
+      "ref": "item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: After removing a utility, no segment carries a mask that only that utility put there.",
+          "- AC2: Removing one of two diffusers whose paths overlap leaves the other supplied.",
+          "- AC3: A demolished road under a utility does not make restake throw.",
+          "- AC4: place, removeNear and replaceWith all leave the same mask for the same item list."
+        ],
+        "Problem": [
+          "- removeNear (src/sim/utilities.ts:58) splices the item and nothing else, so the segments keep their power and water bits for ever and the stale mask is persisted through src/sim/save.ts:113. suppliedDiffusers then reports a live network with the plant gone.",
+          "- replaceWith (src/sim/utilities.ts:89) re-attaches items but never lays the mask either.",
+          "- place duplicates the wiring in a producer branch and a diffuser branch (src/sim/utilities.ts:46-54)."
+        ]
+      },
+      "status": "Ready",
+      "title": "Derive the utility mask from the item list instead of owning it"
+    },
+    {
+      "ai_context": {
+        "keywords": "materialsShort, hysteresis, shortSince, starved, replaceWith, committed, staffed but idle",
+        "skip when": "changing MATERIALS_RECOVERY values or what a shortage does to production.",
+        "summary": "Two defects in one getter: it mutates on read, and it rewrites shortSince on every read while the stock is at zero, so the recovery window the comment describes can never elapse.",
+        "use when": "touching the economy or lifecycle reset path, or a shortage that never clears."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating.md",
+      "ref": "item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Reading materialsShort twice in a row cannot change its answer or any field.",
+          "- AC2: A shortage that begins at a flat zero stock clears once the recovery window has really elapsed.",
+          "- AC3: A loaded city reports no inherited shortage, housing flag, clock or committed population.",
+          "- AC4: A staffed building that is idle is not reported as working."
+        ],
+        "Problem": [
+          "- CityEconomy.replaceWith (src/sim/economy.ts:121) resets state only: housed, starved, shortSince and clock survive, so a load inherits the previous run's shortage latch and keeps counting its clock.",
+          "- materialsShort (src/sim/economy.ts:111) is a getter that writes starved and shortSince. Two reads in one frame can differ and a render-layer read extends the shortage.",
+          "- It also rewrites shortSince on every read while materials are at zero, so the MATERIALS_RECOVERY_SECONDS window can never elapse while the stock stays empty -- the hysteresis the comment describes does not work.",
+          "- BuildingLifecycle.replaceWith (src/sim/buildingLifecycle.ts:161) never resets committed, so the first sync after a load deals shifts against the previous city's population; it also collapses staffing to state === working, losing staffed-but-idle."
+        ]
+      },
+      "status": "Ready",
+      "title": "Reset the whole economy on a load, and stop the shortage getter mutating"
+    },
+    {
+      "ai_context": {
+        "keywords": "allocateWorkforce, staffing divergence, incumbency, banded population, batteries guard",
+        "skip when": "changing the staffing rule itself or rebalancing costs and yields.",
+        "summary": "Two allocators disagree on the same city: production re-derives from raw population, the lifecycle uses a banded value with an incumbency comparator. Suspected contributor to the balance figures req_036 owns.",
+        "use when": "touching staffing, production output, or investigating the balance outlier."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_102_give_the_workforce_one_authority"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_102_give_the_workforce_one_authority.md",
+      "ref": "item_102_give_the_workforce_one_authority",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A test shows the two allocations disagreeing on the same city before the change.",
+          "- AC2: After the change one code path allocates the workforce and production reads its result.",
+          "- AC3: For every lot, the staffing production assumes equals the staffing the lifecycle reports.",
+          "- AC4: Balance output is recorded before and after, whether or not it improves."
+        ],
+        "Problem": [
+          "- output() calls allocateWorkforce four times per advance on raw population with no incumbency comparator (src/sim/economy.ts:128), while BuildingLifecycle.sync allocates on the banded committed value with one (src/sim/buildingLifecycle.ts:73). The two answers diverge, so a lot the lifecycle reports working can be counted unstaffed by production and the reverse.",
+          "- This is the hazard src/sim/batteries.ts:13 documents and guards against, unguarded here.",
+          "- It also sorts every parcel four times per tick.",
+          "- Suspected contributor to the balance figures req_036 owns: a city that pays for buildings it does not count as productive."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give the workforce one authority"
+    },
+    {
+      "ai_context": {
+        "keywords": "stampParcel, claim, idempotence, nearest wins, dirty region, conformToRoads",
+        "skip when": "changing pad shape, depth, grading falloff, or the road and junction stamps.",
+        "summary": "The only stamp that never records into this.claim, so it blends against a surface a previous parcel in the same pass may already have moved. The road and junction stamps are nearest-wins and do not have this.",
+        "use when": "touching heightmap stamping or a terrain difference between a full and incremental rebuild."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_103_make_a_building_pad_stamp_idempotent_between_neighbours"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_103_make_a_building_pad_stamp_idempotent_between_neighbours.md",
+      "ref": "item_103_make_a_building_pad_stamp_idempotent_between_neighbours",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Two adjacent parcels stamped in either order give the same terrain.",
+          "- AC2: Re-stamping the same parcel twice changes nothing after the first.",
+          "- AC3: A dirty-region rebuild gives the same terrain as a full one for the same city."
+        ],
+        "Problem": [
+          "- stampParcel (src/sim/heightmap.ts:339) is the only stamp that never records into this.claim, and it blends against this.current, which a previous parcel in the same pass may already have modified. The result is order-dependent between adjacent parcels.",
+          "- The road and junction stamps (src/sim/heightmap.ts:257 and :324) are nearest-wins and do not have this problem."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make a building pad stamp idempotent between neighbours"
+    },
+    {
+      "ai_context": {
+        "keywords": "plantings, removed list, REMOVAL_RADIUS, dedupe, grid buckets, unbounded growth",
+        "skip when": "changing REMOVAL_RADIUS, species, placement or density.",
+        "summary": "Every miss pushes a point, including clicks on bare ground and repeats on one spot, and all of it is saved. isCleared is a linear scan per generated tree per rebuild, so cost is quadratic in session length.",
+        "use when": "touching tree clearing or planting persistence. There is no test file for this module yet."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_104_bound_the_cleared_tree_record"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_104_bound_the_cleared_tree_record.md",
+      "ref": "item_104_bound_the_cleared_tree_record",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Clicking bare ground records nothing.",
+          "- AC2: Clicking the same spot repeatedly records one removal.",
+          "- AC3: A cleared tree stays cleared across a save round-trip.",
+          "- AC4: isCleared cost does not grow with total removals for a fixed query area."
+        ],
+        "Problem": [
+          "- Plantings.clear (src/sim/plantings.ts:40) pushes a point on every call that misses a hand-planted tree, including clicks on bare ground and repeat clicks on one spot. Nothing dedupes or prunes, and all of it is persisted through src/sim/save.ts:89.",
+          "- isCleared (src/sim/plantings.ts:54) is a linear scan run once per generated tree per rebuild, so a long session costs quadratically.",
+          "- There is no test file for this module."
+        ]
+      },
+      "status": "Ready",
+      "title": "Bound the cleared-tree record"
+    },
+    {
+      "ai_context": {
+        "keywords": "segmentOffsets, localeCompare, determinism, addressForParcel, per-parcel rebuild",
+        "skip when": "changing the naming word lists, suffix rules or the numbering scheme.",
+        "summary": "localeCompare makes house numbers depend on the runtime locale for one city, and streetForSegment rebuilds every street from every segment once per parcel.",
+        "use when": "touching street addressing or numbering determinism."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/backlog/item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel.md",
+      "ref": "item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Addressing uses no locale-sensitive comparison.",
+          "- AC2: A pinned city gives the same addresses on any runtime locale.",
+          "- AC3: addressForParcel over a whole city does not rebuild the street list per parcel."
+        ],
+        "Problem": [
+          "- segmentOffsets orders segments with localeCompare (src/sim/streets.ts:89), which is locale-sensitive, so house numbers can differ between environments for one city.",
+          "- streetForSegment rebuilds every street from every segment on each call, and addressForParcel calls it once per parcel.",
+          "- src/sim/streets.test.ts covers naming, not addressing, so the ordering is unpinned."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make house numbering locale-independent and stop rebuilding every street per parcel"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave plan, crossing fix, utility restake, economy reset, workforce authority, undo pairing",
+        "skip when": "the work belongs to the performance, gate, release or structural chain.",
+        "summary": "Six waves landing the 0.4.0 correctness fixes, starting from the reproduced crossing throw and ending with the comment-and-test bundle.",
+        "use when": "implementing req_035 or choosing the next correctness slice."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_099_cut_a_segment_as_many_times_as_one_road_crosses_it",
+          "item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it",
+          "item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating",
+          "item_102_give_the_workforce_one_authority",
+          "item_103_make_a_building_pad_stamp_idempotent_between_neighbours",
+          "item_104_bound_the_cleared_tree_record",
+          "item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel",
+          "item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks",
+          "item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test"
+        ],
+        "prod": [
+          "prod_026_a_city_that_survives_the_roads_you_draw_on_it"
+        ],
+        "req": [
+          "req_035_fix_the_correctness_defects_the_0_4_0_review_found"
+        ],
+        "task": [
+          "task_037_orchestrate_the_0_4_0_correctness_fixes"
+        ]
+      },
+      "path": "logics/tasks/task_037_orchestrate_the_0_4_0_correctness_fixes.md",
+      "ref": "task_037_orchestrate_the_0_4_0_correctness_fixes",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the 0.4.0 correctness fixes"
+    }
+  ],
+  "estimates": {
+    "char_count": 20775,
+    "companion_doc_count": 1,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-03T09:33:54Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_035_fix_the_correctness_defects_the_0_4_0_review_found",
+      "task_037_orchestrate_the_0_4_0_correctness_fixes"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_035_fix_the_correctness_defects_the_0_4_0_review_found,task_037_orchestrate_the_0_4_0_correctness_fixes",
+  "refs": [
+    "req_035_fix_the_correctness_defects_the_0_4_0_review_found",
+    "task_037_orchestrate_the_0_4_0_correctness_fixes"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_037_orchestrate_the_0_4_0_correctness_fixes.md",
+      "ref": "task_037_orchestrate_the_0_4_0_correctness_fixes"
+    }
+  ]
+}

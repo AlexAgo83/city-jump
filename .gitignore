@@ -12,3 +12,7 @@ playwright-report/
 .obsidian/
 logics/.cache/
 .DS_Store
+.claude/
+.env
+.env.*
+!.env.example

@@ -1,0 +1,54 @@
+## item_115_fan_the_sun_out_once_per_visible_step - Fan the sun out once per visible step
+> From version: 0.4.0
+> Schema version: 1.0
+> Status: Ready
+> Understanding: 90%
+> Confidence: 85%
+> Progress: 0%
+> Complexity: Medium
+> Theme: Performance
+> Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+
+# AI Context
+- Summary: A sun moving 0.0013 h per frame reaches five renderers, the worst rebuilding every tree shadow matrix. An absolute-difference guard is wrong across midnight, where 23.99 to 0.01 reads as a small change.
+- Keywords: setClockHour, sun fan-out, midnight wrap, skybox lerp, tree shadows, DOM throttle
+- Use when: touching the clock, the sun, or anything it fans out to.
+- Skip when: changing day length, the sun path, the lighting look or the clock UI design.
+
+# Problem
+- src/app/app.ts:355 calls setClockHour unconditionally each frame for a sun moving 0.0013 h per frame at 60 fps, and each call reaches five renderers, the most expensive of which rebuilds every tree's shadow matrix and re-lerps the whole skybox.
+- controls.setClock (src/ui/controls.ts:309) writes the DOM every frame for the same reason.
+
+# Scope
+- In:
+  - Skip the fan-out below a visible step, comparing circularly or on a quantised hour so the midnight wrap is not read as a small change.
+  - Force a fan-out on load and whenever timeRate changes.
+  - Throttle controls.setClock independently of the renderers.
+  - Hoist the per-mast array allocated inside the loop at src/render/signals.ts:186 to module scope.
+- Out:
+  - Changing the day length, the sun path or the lighting look.
+  - Changing the clock UI design.
+
+# Acceptance criteria
+- AC1: Successive frames at a normal time rate do not each rebuild the skybox, the tree shadows and the lamp colours.
+- AC2: The sun still visibly advances at every supported time rate.
+- AC3: Crossing midnight fans out.
+- AC4: A load and a time-rate change both fan out.
+- AC5: No array is allocated per mast per frame.
+
+# AC Traceability
+- request-AC4 -> This backlog slice. Proof: AC1: Successive frames at a normal time rate do not each rebuild the skybox, the tree shadows and the lamp colours.
+
+# Decision framing
+- Product framing: Not needed
+- Architecture framing: Not needed
+
+# Links
+- Product brief(s): `prod_028_a_city_that_costs_what_it_is_changing`
+- Architecture decision(s): (none yet)
+- Request: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
+- Primary task(s): `task_039_orchestrate_the_per_frame_cost_work`
+
+# Priority
+- Priority: High
+- Rationale: Set by scaffold input or defaulted for grooming.

@@ -1,0 +1,375 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_039_give_the_code_its_seams_back task_041_orchestrate_the_structural_work --mode summary-only --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp",
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+          "item_126_make_the_terrain_dependency_visible",
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+          "item_128_give_every_renderer_a_dispose",
+          "item_129_give_the_save_format_somewhere_to_migrate",
+          "item_130_make_lint_mean_lint_and_cover_the_scripts",
+          "item_131_write_down_the_conventions_the_code_already_follows"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/product/prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach.md",
+      "ref": "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach",
+      "status": "Proposed",
+      "title": "A codebase whose seams are where the tests can reach"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "startApp split, traffic seam, terrain global, drawTool controller, dispose contract, save migration hook, linter coverage",
+        "skip when": "any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts.",
+        "summary": "The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.",
+        "use when": "reconsidering a module boundary, after reqs 035 to 038 are done."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp",
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+          "item_126_make_the_terrain_dependency_visible",
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+          "item_128_give_every_renderer_a_dispose",
+          "item_129_give_the_save_format_somewhere_to_migrate",
+          "item_130_make_lint_mean_lint_and_cover_the_scripts",
+          "item_131_write_down_the_conventions_the_code_already_follows"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ]
+      },
+      "path": "logics/request/req_039_give_the_code_its_seams_back.md",
+      "ref": "req_039_give_the_code_its_seams_back",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Give the code its seams back"
+    },
+    {
+      "ai_context": {
+        "keywords": "startApp, extraction order, closure over mutable locals, duplicated expression, debug surface",
+        "skip when": "introducing a framework or DI layer, which LOGICS.md forbids without an ADR, or starting while an earlier chain is open.",
+        "summary": "The missing module leaves fingerprints: the same 200-character parcelsForDemand expression appears at :140 and :213, and :1152 monkey-patches a debug surface that :1108 already built.",
+        "use when": "splitting src/app/app.ts, after req_035 through req_038 are done."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_124_take_the_isolated_pieces_out_of_startapp.md",
+      "ref": "item_124_take_the_isolated_pieces_out_of_startapp",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Take the isolated pieces out of startApp"
+    },
+    {
+      "ai_context": {
+        "keywords": "traffic split, vehicleModels, sim/traffic, decorMeshes, traffic overlay rebuild",
+        "skip when": "changing driving, yielding or lane behaviour, or adding an abstraction over Babylon.",
+        "summary": "The seam is already proven: eight pure functions are exported and unit-tested at traffic.ts:155-259. Moving the driving logic to sim also puts it under the architecture test that keeps sim browser-free.",
+        "use when": "splitting traffic.ts, buildings.ts or roadMesh.ts, after req_037 has finished with those hot paths."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_125_move_the_driving_logic_where_a_test_can_reach_it.md",
+      "ref": "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Move the driving logic where a test can reach it"
+    },
+    {
+      "ai_context": {
+        "keywords": "setTerrain, module global, architecture assertion, heightmap injection, sea level failure",
+        "skip when": "a DI framework, or changing terrain sampling or the heightmap itself.",
+        "summary": "Import-direction rules cannot see state coupling, which is why this survived. The three-line architecture assertion lands first because it stops the spread today, before the injection work starts.",
+        "use when": "touching terrain access from any layer, or adding an architecture rule."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_126_make_the_terrain_dependency_visible"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_126_make_the_terrain_dependency_visible.md",
+      "ref": "item_126_make_the_terrain_dependency_visible",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Make the terrain dependency visible"
+    },
+    {
+      "ai_context": {
+        "keywords": "drawTool, application controller, graph mutation from render, pointer event feed",
+        "skip when": "changing drawing rules, snapping, tool behaviour or the preview look.",
+        "summary": "The imports point the right way, so no architecture test catches it. Must follow item_106, which rewrites the demolition path in these exact lines.",
+        "use when": "moving road drawing out of render/, after item_106."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_127_move_road_drawing_into_the_layer_that_owns_the_city.md",
+      "ref": "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Move road drawing into the layer that owns the city"
+    },
+    {
+      "ai_context": {
+        "keywords": "dispose contract, listener removal, observer removal, prototype meshes, module-scope texture",
+        "skip when": "adding a scene-reset feature to the product, or changing what a renderer draws.",
+        "summary": "Latent in a single page, but it is what makes the app untestable in-process and what will leak a whole scene at the first reset or Vite HMR. glassReflectionTexture is bound to the first scene for ever.",
+        "use when": "adding a teardown path, or trying to test a renderer in-process."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_128_give_every_renderer_a_dispose"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_128_give_every_renderer_a_dispose.md",
+      "ref": "item_128_give_every_renderer_a_dispose",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Give every renderer a dispose"
+    },
+    {
+      "ai_context": {
+        "keywords": "SAVE_VERSION, migration table, zones quantisation, KEY_STEP, backwards compatibility",
+        "skip when": "changing the shared-link quantisation, which is deliberate, or the tuple encoding, which is justified.",
+        "summary": "Every field added since v1 must stay independently optional for ever because there is nowhere to put a transform. Separately, the first save of a painted city moves each lot centre by up to 2 m and the test passes anyway.",
+        "use when": "changing the save format or adding a field to it."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_129_give_the_save_format_somewhere_to_migrate"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_129_give_the_save_format_somewhere_to_migrate.md",
+      "ref": "item_129_give_the_save_format_somewhere_to_migrate",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Give the save format somewhere to migrate"
+    },
+    {
+      "ai_context": {
+        "keywords": "lint alias, Biome, tsconfig include, noUnusedLocals, engines.node, script coverage",
+        "skip when": "reformatting the repo in the same commit as adopting the tool, or exactOptionalPropertyTypes.",
+        "summary": "A real linter would have caught the two discarded ringEntryRadius assignments and the unused u at rules.ts:196. scripts/interact.mjs is 2121 lines of e2e suite with no static analysis at all.",
+        "use when": "adopting a linter or formatter, or changing tsconfig strictness."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_130_make_lint_mean_lint_and_cover_the_scripts"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/backlog/item_130_make_lint_mean_lint_and_cover_the_scripts.md",
+      "ref": "item_130_make_lint_mean_lint_and_cover_the_scripts",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Make lint mean lint, and cover the scripts"
+    },
+    {
+      "ai_context": {
+        "keywords": "extraction order, architecture assertion, linter adoption, dispose contract, migration hook",
+        "skip when": "an earlier chain is still open, or an existing test needs editing -- that is a signal the seam is wrong.",
+        "summary": "Six waves of structural work that must change no behaviour, gated on the other four chains being complete.",
+        "use when": "implementing req_039, once reqs 035 to 038 are done."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp",
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+          "item_126_make_the_terrain_dependency_visible",
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+          "item_128_give_every_renderer_a_dispose",
+          "item_129_give_the_save_format_somewhere_to_migrate",
+          "item_130_make_lint_mean_lint_and_cover_the_scripts",
+          "item_131_write_down_the_conventions_the_code_already_follows"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/tasks/task_041_orchestrate_the_structural_work.md",
+      "ref": "task_041_orchestrate_the_structural_work",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Orchestrate the structural work"
+    }
+  ],
+  "estimates": {
+    "char_count": 10752,
+    "companion_doc_count": 1,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-03T09:33:55Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_039_give_the_code_its_seams_back",
+      "task_041_orchestrate_the_structural_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "summary-only",
+  "profile": "deep",
+  "ref": "req_039_give_the_code_its_seams_back,task_041_orchestrate_the_structural_work",
+  "refs": [
+    "req_039_give_the_code_its_seams_back",
+    "task_041_orchestrate_the_structural_work"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_041_orchestrate_the_structural_work.md",
+      "ref": "task_041_orchestrate_the_structural_work"
+    }
+  ]
+}

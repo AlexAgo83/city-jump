@@ -1,0 +1,547 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_099_cut_a_segment_as_many_times_as_one_road_crosses_it.md",
+    "logics/backlog/item_100_derive_the_utility_mask_from_the_item_list_instead_of_owning_it.md",
+    "logics/backlog/item_101_reset_the_whole_economy_on_a_load_and_stop_the_shortage_getter_mutating.md",
+    "logics/backlog/item_102_give_the_workforce_one_authority.md",
+    "logics/backlog/item_103_make_a_building_pad_stamp_idempotent_between_neighbours.md",
+    "logics/backlog/item_104_bound_the_cleared_tree_record.md",
+    "logics/backlog/item_105_make_house_numbering_locale_independent_and_stop_rebuilding_every_street_per_parcel.md",
+    "logics/backlog/item_106_take_the_undo_snapshot_when_the_wrecking_ball_lands_not_when_the_player_clicks.md",
+    "logics/backlog/item_107_the_sim_fixes_whose_record_is_a_comment_and_a_test.md",
+    "logics/backlog/item_108_let_the_scenario_harness_exit_non_zero.md",
+    "logics/backlog/item_109_bring_the_first_run_back_inside_its_declared_band.md",
+    "logics/backlog/item_110_refuse_a_performance_measurement_from_a_dirty_tree.md",
+    "logics/backlog/item_111_fail_the_gate_when_a_shipped_document_misstates_the_version.md",
+    "logics/backlog/item_112_run_the_ci_gate_once_per_push_and_from_a_clean_clone.md",
+    "logics/backlog/item_113_gate_the_building_state_upload_on_a_change_signature.md",
+    "logics/backlog/item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed.md",
+    "logics/backlog/item_115_fan_the_sun_out_once_per_visible_step.md",
+    "logics/backlog/item_116_build_the_yield_and_crossing_occupancy_once_per_frame.md",
+    "logics/backlog/item_117_re_resolve_a_mover_s_segment_after_a_rebuild.md",
+    "logics/backlog/item_118_show_the_frame_cost_came_down.md",
+    "logics/backlog/item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch.md",
+    "logics/backlog/item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome.md",
+    "logics/backlog/item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model.md",
+    "logics/backlog/item_122_let_a_missing_asset_be_missing.md",
+    "logics/backlog/item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand.md",
+    "logics/backlog/item_124_take_the_isolated_pieces_out_of_startapp.md",
+    "logics/backlog/item_125_move_the_driving_logic_where_a_test_can_reach_it.md",
+    "logics/backlog/item_126_make_the_terrain_dependency_visible.md",
+    "logics/backlog/item_127_move_road_drawing_into_the_layer_that_owns_the_city.md",
+    "logics/backlog/item_128_give_every_renderer_a_dispose.md",
+    "logics/backlog/item_129_give_the_save_format_somewhere_to_migrate.md",
+    "logics/backlog/item_130_make_lint_mean_lint_and_cover_the_scripts.md",
+    "logics/backlog/item_131_write_down_the_conventions_the_code_already_follows.md",
+    "logics/backlog/item_132_stop_a_city_with_no_utilities_dying_outright.md",
+    "logics/context-packs/correctness_0_4_0.json",
+    "logics/context-packs/frame_cost.json",
+    "logics/context-packs/release_and_client_hardening.json",
+    "logics/context-packs/structural_seams.json",
+    "logics/context-packs/verification_gates.json",
+    "logics/product/prod_026_a_city_that_survives_the_roads_you_draw_on_it.md",
+    "logics/product/prod_027_evidence_that_stops_the_build.md",
+    "logics/product/prod_028_a_city_that_costs_what_it_is_changing.md",
+    "logics/product/prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page.md",
+    "logics/product/prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach.md",
+    "logics/request/req_035_fix_the_correctness_defects_the_0_4_0_review_found.md",
+    "logics/request/req_036_make_the_verification_gates_able_to_fail.md",
+    "logics/request/req_037_stop_paying_every_frame_for_a_city_that_is_not_changing.md",
+    "logics/request/req_038_harden_the_release_path_and_the_shared_link_surface.md",
+    "logics/request/req_039_give_the_code_its_seams_back.md",
+    "logics/tasks/task_037_orchestrate_the_0_4_0_correctness_fixes.md",
+    "logics/tasks/task_038_orchestrate_the_verification_gates.md",
+    "logics/tasks/task_039_orchestrate_the_per_frame_cost_work.md",
+    "logics/tasks/task_040_orchestrate_the_release_and_client_hardening.md",
+    "logics/tasks/task_041_orchestrate_the_structural_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_037_stop_paying_every_frame_for_a_city_that_is_not_changing task_039_orchestrate_the_per_frame_cost_work --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature",
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+          "item_115_fan_the_sun_out_once_per_visible_step",
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+          "item_118_show_the_frame_cost_came_down"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/product/prod_028_a_city_that_costs_what_it_is_changing.md",
+      "ref": "prod_028_a_city_that_costs_what_it_is_changing",
+      "sections": {
+        "Goals": [
+          "- A settled city redraws for free.",
+          "- The sun costs one fan-out per visible step.",
+          "- Yielding is derived once per frame.",
+          "- The improvement is measured, not asserted."
+        ],
+        "Key product decisions": [
+          "- Per-frame work is proportional to what changed, not to what exists.",
+          "- The signature pattern already in the renderer (decorKey) is the model to follow, not a new mechanism.",
+          "- The traffic hot path stays allocation-free, as it already is.",
+          "- No improvement is claimed without a clean-tree measurement against a recorded baseline."
+        ],
+        "Overview": [
+          "Per-frame work is proportional to what moved, not to what exists.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|a_city_that_costs_what_it_is_changing|generated",
+          "flowchart TD",
+          "    Frame[Every drawn frame] --> Sync[syncBuildings]"
+        ],
+        "References": [
+          "- Product back-reference: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`",
+          "- Task back-reference: `task_039_orchestrate_the_per_frame_cost_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A city that costs what it is changing"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "thin instance upload, change signature, sun fan-out, roundabout occupancy, stale mover segment, measured evidence",
+        "skip when": "changing what the simulation computes, or splitting the render modules (req_039). Do not start before req_036 records a clean perf baseline.",
+        "summary": "A settled city rebuilds every building instance buffer each frame, and a sun moving 0.0013 h per frame fans out to five renderers.",
+        "use when": "touching the render loop, or the cost of drawing a city nobody is editing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature",
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+          "item_115_fan_the_sun_out_once_per_visible_step",
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+          "item_118_show_the_frame_cost_came_down"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ]
+      },
+      "path": "logics/request/req_037_stop_paying_every_frame_for_a_city_that_is_not_changing.md",
+      "ref": "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A city nobody is editing does not rebuild its building instance buffers.",
+          "- AC2: A rebuild or a newly loaded model still refreshes those buffers.",
+          "- AC3: The supplied-utility set is derived only when the graph or the utilities change.",
+          "- AC4: A sun that has barely moved does not fan out to the five renderers, including across midnight.",
+          "- AC5: Roundabout yielding and crossing occupancy are derived once per frame, not once per mover.",
+          "- AC6: A mover kept across a rebuild reads its resampled segment, not the pre-rebuild object."
+        ],
+        "Needs": [
+          "- A settled city costs nothing to redraw.",
+          "- A sun that has barely moved does not rebuild the sky, every tree shadow and every lamp.",
+          "- Traffic yielding does not scan every mover for every mover."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop paying every frame for a city that is not changing"
+    },
+    {
+      "ai_context": {
+        "keywords": "updateStates, thin instance buffer, change signature, decorKey, distant boxes, model lookup",
+        "skip when": "changing what a building looks like or when it is decorated.",
+        "summary": "The single largest per-frame cost: about 40 Float32Arrays and a Matrix per building, every frame, to redraw buildings that did not move. The pattern to copy is decorKey, already in the same file.",
+        "use when": "touching the building state upload or per-frame render cost."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_113_gate_the_building_state_upload_on_a_change_signature.md",
+      "ref": "item_113_gate_the_building_state_upload_on_a_change_signature",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A settled city performs no thin-instance upload for buildings across successive frames.",
+          "- AC2: A construction stage advancing still updates within a frame of the change.",
+          "- AC3: A rebuild and a late-resolving model both refresh the buffers.",
+          "- AC4: The distant loop resolves its model in constant time per status."
+        ],
+        "Problem": [
+          "- src/app/app.ts:1047 calls buildings.updateStates on every drawn frame while the clock runs. updateStates (src/render/buildings.ts:483) allocates about 40 Float32Arrays and thousands of Matrix objects per frame to redraw buildings that did not move.",
+          "- The distant-box loop at src/render/buildings.ts:503 resolves its model with available.find(...) per status, which is O(parcels x models).",
+          "- The pattern to copy is already in the file: decorKey at src/render/buildings.ts:289."
+        ]
+      },
+      "status": "Ready",
+      "title": "Gate the building state upload on a change signature"
+    },
+    {
+      "ai_context": {
+        "keywords": "suppliedDiffusers, memoisation, graph revision, invalidation, restake hook",
+        "skip when": "changing what suppliedDiffusers computes or the utility overlay.",
+        "summary": "syncBuildings itself cannot be gated because it produces the statuses the frame reads; only its expensive part is cacheable. graph.revision is a sufficient key: setSegmentUtilities bumps it at src/sim/graph.ts:180.",
+        "use when": "touching syncBuildings or the supplied-utility derivation."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed.md",
+      "ref": "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The supplied set is computed once per graph or utility change, not once per frame.",
+          "- AC2: Placing or removing a utility updates it in the same frame.",
+          "- AC3: A test covers the invalidation path, not only the cache hit."
+        ],
+        "Problem": [
+          "- syncBuildings (src/app/app.ts:293) re-derives suppliedDiffusers over the whole graph every frame, rebuilding two Sets, though the answer only changes when the graph or the utilities change.",
+          "- syncBuildings itself cannot be gated, because it is what produces the statuses the frame reads."
+        ]
+      },
+      "status": "Ready",
+      "title": "Derive the supplied-utility set only when it can have changed"
+    },
+    {
+      "ai_context": {
+        "keywords": "setClockHour, sun fan-out, midnight wrap, skybox lerp, tree shadows, DOM throttle",
+        "skip when": "changing day length, the sun path, the lighting look or the clock UI design.",
+        "summary": "A sun moving 0.0013 h per frame reaches five renderers, the worst rebuilding every tree shadow matrix. An absolute-difference guard is wrong across midnight, where 23.99 to 0.01 reads as a small change.",
+        "use when": "touching the clock, the sun, or anything it fans out to."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_115_fan_the_sun_out_once_per_visible_step"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_115_fan_the_sun_out_once_per_visible_step.md",
+      "ref": "item_115_fan_the_sun_out_once_per_visible_step",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Successive frames at a normal time rate do not each rebuild the skybox, the tree shadows and the lamp colours.",
+          "- AC2: The sun still visibly advances at every supported time rate.",
+          "- AC3: Crossing midnight fans out.",
+          "- AC4: A load and a time-rate change both fan out.",
+          "- AC5: No array is allocated per mast per frame."
+        ],
+        "Problem": [
+          "- src/app/app.ts:355 calls setClockHour unconditionally each frame for a sun moving 0.0013 h per frame at 60 fps, and each call reaches five renderers, the most expensive of which rebuilds every tree's shadow matrix and re-lerps the whole skybox.",
+          "- controls.setClock (src/ui/controls.ts:309) writes the DOM every frame for the same reason."
+        ]
+      },
+      "status": "Ready",
+      "title": "Fan the sun out once per visible step"
+    },
+    {
+      "ai_context": {
+        "keywords": "stopFor, roundaboutYieldBlocked, flatMap allocation, occupancy index, ringEntryRadius",
+        "skip when": "changing right-of-way rules, moving driving logic to sim, which req_039 owns, or adding a spatial index.",
+        "summary": "roundaboutRooms already walks the movers once per frame, which is where the index belongs. The discarded ringEntryRadius is resolved and it is NOT dead code: it looks like a missing lane comparison, which would make it a correctness defect for req_035 rather than a cleanup here.",
+        "use when": "touching traffic yielding, crossing occupancy or the mover loop's allocation cost."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_116_build_the_yield_and_crossing_occupancy_once_per_frame.md",
+      "ref": "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Yielding and crossing occupancy each derive their index once per frame.",
+          "- AC2: No new per-frame allocation is introduced in the mover loop.",
+          "- AC3: Existing traffic behaviour coverage stays green and e2e traffic movement still passes.",
+          "- AC4: Whether ring lanes block each other is decided and recorded; if they should not, the fix is raised against req_035 rather than landed here."
+        ],
+        "Problem": [
+          "- stopFor (src/render/traffic.ts:1042) is called per non-walking mover per frame and calls roundaboutYieldBlocked, which flatMaps over all movers twice at :1063 and :1068. arrive repeats those two at :1133, and crossingOccupiedByWalker scans all movers again at :1244. With a few hundred movers this is the frame loop's dominant allocation source.",
+          "- roundaboutRooms at :1456 already walks the movers once per frame, which is where a shared occupancy index belongs.",
+          "- src/render/traffic.ts:1061 and :1131 each compute an unused ringEntryRadius. Archaeology done, and the answer is not `delete it`.",
+          "- The identical expression at :1298 (ringTransfer) IS used, feeding ringJoinPath and ringSweep -- so the value is the entering car's ring-lane radius, and it is meaningful.",
+          "- roundaboutEntryBlocked (:179) takes only (entry, occupied) and has no lane parameter. Its gap test multiplies the angular gap by `radius` taken from each OCCUPYING car's ride. And `occupied` is built from every mover on the ring node regardless of lane. So today a car on the outer ring lane blocks an entry to the inner lane and the reverse.",
+          "- The entering car's radius being computed and dropped at exactly the two yield decisions is evidence that a same-lane comparison was intended and lost. If so, roundabout right-of-way has been wrong, which is a defect for req_035 and not a performance cleanup."
+        ]
+      },
+      "status": "Ready",
+      "title": "Build the yield and crossing occupancy once per frame"
+    },
+    {
+      "ai_context": {
+        "keywords": "traffic rebuild, mover retention, stale segment, resampled length, limitOf",
+        "skip when": "changing which movers are retained, or limitOf itself.",
+        "summary": "Positions come from graph.pointAt so they stay correct, which is why a stale segment object surfaces as movers overshooting limitOf rather than as a visible jump.",
+        "use when": "touching what traffic keeps across a rebuild."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_117_re_resolve_a_mover_s_segment_after_a_rebuild.md",
+      "ref": "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A mover kept across a rebuild reads the current segment object.",
+          "- AC2: No mover exceeds its segment limit after a rebuild that changed sampling."
+        ],
+        "Problem": [
+          "- rebuild (src/render/traffic.ts:1326) keeps movers whose segment id still exists, but mover.segment remains the pre-rebuild object, so its length and samples can disagree with the resampled segment. Positions come from graph.pointAt so they stay correct, which is why this surfaces as movers overshooting limitOf rather than as a visible jump."
+        ]
+      },
+      "status": "Ready",
+      "title": "Re-resolve a mover's segment after a rebuild"
+    },
+    {
+      "ai_context": {
+        "keywords": "perf record, baseline comparison, same label same city, docs/performance.md",
+        "skip when": "adding perf to CI, or changing the measured city or metric set.",
+        "summary": "Without a before and after on a clean tree, every claim in req_037 is an assertion. CONTRIBUTING.md:38 requires rendering work meant to be faster to show it.",
+        "use when": "closing out per-frame cost work, or claiming a rendering improvement."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_118_show_the_frame_cost_came_down"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/backlog/item_118_show_the_frame_cost_came_down.md",
+      "ref": "item_118_show_the_frame_cost_came_down",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A clean-tree measurement for this work exists in perf/history.jsonl.",
+          "- AC2: It uses the same label and city as the baseline.",
+          "- AC3: docs/performance.md records what changed, including any metric that did not improve."
+        ],
+        "Problem": [
+          "- CONTRIBUTING.md:38 requires rendering work meant to be faster to show it, and the record cannot support that today: perf/history.jsonl stops 77 commits back with dirty entries.",
+          "- Without a before and after on a clean tree, every claim in this request is an assertion."
+        ]
+      },
+      "status": "Ready",
+      "title": "Show the frame cost came down"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature",
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+          "item_115_fan_the_sun_out_once_per_visible_step",
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+          "item_118_show_the_frame_cost_came_down"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/product/prod_028_a_city_that_costs_what_it_is_changing.md",
+      "ref": "prod_028_a_city_that_costs_what_it_is_changing",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A city that costs what it is changing"
+    },
+    {
+      "ai_context": {
+        "keywords": "signature gate, sun step, occupancy index, mover resolution, perf measurement",
+        "skip when": "no clean perf baseline has been recorded yet: without it nothing here can be shown.",
+        "summary": "Gate the uploads, step the sun, index the yielding -- each measured against the clean baseline req_036 records.",
+        "use when": "implementing req_037, once a clean baseline exists."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature",
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+          "item_115_fan_the_sun_out_once_per_visible_step",
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+          "item_118_show_the_frame_cost_came_down"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/tasks/task_039_orchestrate_the_per_frame_cost_work.md",
+      "ref": "task_039_orchestrate_the_per_frame_cost_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the per-frame cost work"
+    }
+  ],
+  "estimates": {
+    "char_count": 17653,
+    "companion_doc_count": 1,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-03T09:39:02Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing",
+      "task_039_orchestrate_the_per_frame_cost_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Choose the source locale for app-owned user-facing copy.",
+      "Run logics-manager i18n init --source-locale <locale>.",
+      "Route new UI copy through stable semantic keys."
+    ],
+    "applicable": null,
+    "configured": false,
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "Run logics-manager i18n init --source-locale <locale> for a project that owns user-facing copy.",
+    "ok": true,
+    "state": "absent"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing,task_039_orchestrate_the_per_frame_cost_work",
+  "refs": [
+    "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing",
+    "task_039_orchestrate_the_per_frame_cost_work"
+  ],
+  "release": {
+    "blocking_reasons": [
+      "Missing logics/release/contract.json."
+    ],
+    "configured": false,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Run logics-manager release discover --write, then review and promote logics/release/contract.draft.json to logics/release/contract.json.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "not_configured",
+    "target_id": null,
+    "target_version": null,
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_039_orchestrate_the_per_frame_cost_work.md",
+      "ref": "task_039_orchestrate_the_per_frame_cost_work"
+    }
+  ]
+}
