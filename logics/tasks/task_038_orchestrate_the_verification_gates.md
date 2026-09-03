@@ -9,7 +9,7 @@
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-09-03 13:14:27
+> Indicators reviewed: 2026-09-03 14:36:07
 
 # AI Context
 - Summary: Make each harness able to fail before trusting what it says, then fix what it reports -- in that order, so no gate lands red on main.
@@ -21,15 +21,15 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Wave 1: give run-scenarios.mjs an exit code and the version check its script, but do not wire scenarios into ci yet.
-- [ ] 2. Wave 2: read what the scenario harness now says; land req_035 item_102 and re-run before touching any tuning value.
-- [ ] 3. Wave 3: close whatever unbounded spend the -778058 seed exposes, then bring the band back and wire scenarios into ci.
-- [ ] 4. Wave 4: the dirty-tree guard, a clean perf baseline for HEAD, and the union merge driver.
-- [ ] 5. Wave 5: the CI trigger, concurrency, devDependency and timeouts, verified from a fresh clone.
-- [ ] 6. Do not merge a gate that is red on main: a permanently failing gate is not a gate.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Wave 1: give run-scenarios.mjs an exit code and the version check its script, but do not wire scenarios into ci yet.
+- [x] 2. Wave 2: read what the scenario harness now says; land req_035 item_102 and re-run before touching any tuning value.
+- [x] 3. Wave 3: close whatever unbounded spend the -778058 seed exposes, then bring the band back and wire scenarios into ci.
+- [x] 4. Wave 4: the dirty-tree guard, a clean perf baseline for HEAD, and the union merge driver.
+- [x] 5. Wave 5: the CI trigger, concurrency, devDependency and timeouts, verified from a fresh clone.
+- [x] 6. Do not merge a gate that is red on main: a permanently failing gate is not a gate.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_108_let_the_scenario_harness_exit_non_zero`
@@ -40,10 +40,10 @@
 - `item_132_stop_a_city_with_no_utilities_dying_outright`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
 - request-AC1 -> `item_108_let_the_scenario_harness_exit_non_zero`. Proof deferred to slice closeout.
