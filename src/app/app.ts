@@ -1120,6 +1120,9 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     rubble: rubble.count(),
     utilities: utilities.toJSON().length,
     buildingStates: stateCounts(),
+    // Which lots hold a shift, not how many: two lots can swap theirs without the count moving,
+    // and that swap is two buildings changing colour on screen.
+    staffedKey: currentBuildingStatuses.reduce((sum, status) => sum + (status.staffed ? Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z) : 0), 0),
     money: treasury.money,
     income: incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses),
     models: buildings.modelCount,

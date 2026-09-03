@@ -89,4 +89,25 @@ describe("building lifecycle", () => {
     expect(lifecycle.sync([parcel], 100, 50)[0]!.state).toBe("rebuilding");
     expect(lifecycle.sync([parcel], 100, 40 + BUILDING_STAGE_SECONDS + 1)[0]!.state).not.toBe("rebuilding");
   });
+
+  it("does not re-deal the shifts every time the population twitches", () => {
+    const lifecycle = new BuildingLifecycle();
+    // Two barracks and a farm the workforce cannot all carry, so somebody is always short.
+    // Forty-eight workers a barracks, sixteen a farm, against a hundred residents: somebody is
+    // always the one left out.
+    const parcels = [parcel("military", 0, 4, 4), parcel("military", 20, 4, 4), parcel("agricultural", 40, 4, 4)];
+    const staffed = (population: number, now: number) =>
+      lifecycle.sync(parcels, population, now, 0).map((status) => status.staffed).join(",");
+
+    const opening = staffed(100, 10);
+    expect(opening).toBe("true,true,false");
+    // A city short of food loses and regains a resident every tick. That is not a reason to send
+    // anyone home.
+    expect(staffed(99, 11)).toBe(opening);
+    expect(staffed(101, 12)).toBe(opening);
+    expect(staffed(98, 13)).toBe(opening);
+
+    // A real collapse is: the shifts are dealt again on what the city actually has.
+    expect(staffed(40, 14)).toBe("false,false,true");
+  });
 });

@@ -34,9 +34,27 @@ export const BUILDING_STAGE_SECONDS = 24;
  * bulldozed and re-zoned builds itself again.
  */
 const MEMORY_SECONDS = 120;
+/**
+ * How far the population has to move before the shifts are dealt again: a twelfth of the city, or
+ * twelve residents in a small one, whichever is larger. Under that the last deal stands.
+ */
+const WORKFORCE_BAND = 1 / 12;
+const WORKFORCE_BAND_FLOOR = 12;
 
 export class BuildingLifecycle {
   private states = new Map<string, { state: BuildingState; startedAt: number; seenAt: number; staffed: boolean }>();
+  /**
+   * The population the shifts were last dealt on.
+   *
+   * A lot is staffed whole or not at all, so the one sitting where the workforce runs out flips
+   * every time the population moves by a resident -- and a city that is short of food moves by a
+   * resident constantly. Preferring the incumbent is not enough on its own: when the pool itself
+   * shrinks, the incumbent has to go, and it comes back a tick later.
+   *
+   * So the shifts are dealt on a population that only moves when the change is real. Below the
+   * band, the deal from a moment ago still stands and nobody is hired or laid off.
+   */
+  private committed = 0;
   private last: StoredBuildingState[] = [];
 
   constructor(saved: readonly SavedBuildingState[] = []) {
@@ -49,9 +67,10 @@ export class BuildingLifecycle {
    * held rather than merely checked, so a long wave cannot let a rebuild slip through.
    */
   sync(parcels: readonly BuildingParcel[], population: number, now: number, stageSeconds = BUILDING_STAGE_SECONDS, rebuildPaused = false): BuildingStatus[] {
-    // Whoever had the shift keeps it: see `allocateWorkforce`. Without this the lot on the line
-    // where the workforce runs out flipped between working and idle every tick.
-    const staffing = new Map(allocateWorkforce(parcels, population, (parcel) => this.states.get(parcelKey(parcel))?.staffed === true).parcels.map((parcel) => [parcel.index, parcel.staffed]));
+    // Whoever had the shift keeps it: see `allocateWorkforce`. And it is dealt on a population that
+    // moves in steps rather than by the resident: see `committed`.
+    if (Math.abs(population - this.committed) > Math.max(WORKFORCE_BAND_FLOOR, this.committed * WORKFORCE_BAND)) this.committed = population;
+    const staffing = new Map(allocateWorkforce(parcels, this.committed, (parcel) => this.states.get(parcelKey(parcel))?.staffed === true).parcels.map((parcel) => [parcel.index, parcel.staffed]));
     const live = new Map<string, { state: BuildingState; startedAt: number; seenAt: number; staffed: boolean }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
