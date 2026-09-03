@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 25%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -55,3 +55,8 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 implementation wave: `.github/workflows/render-release-deploy.yml` now polls `GET /v1/services/${RENDER_SERVICE_ID}/deploys?limit=20` after the deploy hook returns, matches the deploy whose commit is `RELEASE_SHA`, and only exits success for `live` or already-superseded `deactivated`.
+- 2026-09-03 implementation wave: `build_failed` and `canceled` statuses fail the release job, while a missing/slow deploy times out separately after 900 seconds with 15 second polling.
+- 2026-09-03 validation: `rtk npm run test:architecture` passed and asserts the Render API secrets, explicit timeout/interval, commit-specific deploy lookup, and status handling stay in the workflow.

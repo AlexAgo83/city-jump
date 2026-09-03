@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 25%
+> Progress: 40%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -70,3 +70,5 @@
 - 2026-09-03 wave item_119: release deploy tag selection now uses `env:` plus `git rev-parse --verify refs/tags/<tag>^{commit}`, and checkout is SHA-pinned.
 - 2026-09-03 wave item_119: `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9`; `main` fails before deploy with `Needed a single revision`.
 - 2026-09-03 wave item_119: `rtk npm run test:architecture` passed.
+- 2026-09-03 wave item_120: release deploys now verify the Render deploy outcome by polling the service deploy list for `RELEASE_SHA`; `live` and already superseded `deactivated` pass, `build_failed` and `canceled` fail, and slow/missing deploys time out after 900 seconds.
+- 2026-09-03 wave item_120: `rtk npm run test:architecture` passed and locks the Render API secrets, deploy lookup, timeout/interval, and status handling into the architecture check.

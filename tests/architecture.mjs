@@ -56,4 +56,11 @@ test("release deploy workflow keeps secrets out of templated shell", async () =>
   assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/);
   assert.match(workflow, /git rev-parse --verify "refs\/tags\/\$\{release_tag\}\^\{commit\}"/);
   assert.doesNotMatch(workflow, /git rev-list/);
+  assert.match(workflow, /RENDER_API_KEY: \$\{\{ secrets\.RENDER_API_KEY \}\}/);
+  assert.match(workflow, /RENDER_SERVICE_ID: \$\{\{ secrets\.RENDER_SERVICE_ID \}\}/);
+  assert.match(workflow, /RENDER_POLL_TIMEOUT_SECONDS: 900/);
+  assert.match(workflow, /RENDER_POLL_INTERVAL_SECONDS: 15/);
+  assert.match(workflow, /\/v1\/services\/\$\{RENDER_SERVICE_ID\}\/deploys\?limit=20/);
+  assert.match(workflow, /live\|deactivated/);
+  assert.match(workflow, /build_failed\|canceled/);
 });

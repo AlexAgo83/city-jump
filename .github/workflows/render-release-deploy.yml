@@ -94,3 +94,55 @@ jobs:
 
           curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error \
             --request POST "${RENDER_DEPLOY_HOOK_URL}${separator}ref=${RELEASE_SHA}"
+
+      - name: Verify Render deploy outcome
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          RENDER_POLL_TIMEOUT_SECONDS: 900
+          RENDER_POLL_INTERVAL_SECONDS: 15
+        run: |
+          set -euo pipefail
+
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVICE_ID" ]; then
+            echo "Missing RENDER_API_KEY or RENDER_SERVICE_ID secret."
+            exit 1
+          fi
+
+          deadline=$((SECONDS + RENDER_POLL_TIMEOUT_SECONDS))
+          last_status="not seen"
+          while [ "$SECONDS" -le "$deadline" ]; do
+            deploys="$(curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error \
+              --header "Authorization: Bearer ${RENDER_API_KEY}" \
+              "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys?limit=20")"
+            match="$(jq -r --arg sha "$RELEASE_SHA" '
+              first(
+                .[]
+                | (.deploy // .) as $deploy
+                | select((($deploy.commit.id // .commit.id // "") == $sha))
+                | [$deploy.id, ($deploy.status // .status // ""), ($deploy.commit.id // .commit.id // "")]
+                | @tsv
+              ) // empty
+            ' <<< "$deploys")"
+
+            if [ -n "$match" ]; then
+              IFS=$'\t' read -r deploy_id deploy_status deploy_commit <<< "$match"
+              case "$deploy_status" in
+                live|deactivated)
+                  echo "Render deploy ${deploy_id} is ${deploy_status} for ${deploy_commit}."
+                  exit 0
+                  ;;
+                build_failed|canceled)
+                  echo "Render deploy ${deploy_id} failed with status ${deploy_status} for ${deploy_commit}."
+                  exit 1
+                  ;;
+              esac
+              last_status="$deploy_status"
+            fi
+
+            sleep "$RENDER_POLL_INTERVAL_SECONDS"
+          done
+
+          echo "Timed out after ${RENDER_POLL_TIMEOUT_SECONDS}s waiting for Render deploy for ${RELEASE_SHA}; last status: ${last_status}."
+          exit 1
