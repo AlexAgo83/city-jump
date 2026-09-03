@@ -27,7 +27,7 @@ import { buildingNeeds, BUILDING_KIND_COLOR } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
-import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, planKaiju, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
+import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
 import { buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -46,7 +46,7 @@ import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
-import { clearWaveVisuals, rebuildMissileTrails, type PendingMissile, type WaveVerdict } from "./waveLoop";
+import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, type PendingMissile, type WaveVerdict } from "./waveLoop";
 
 /** Where a run opens: the far side of the island from the bridge. */
 const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
@@ -440,36 +440,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     });
   };
   const startWave = (seed = String(Math.round(waveClock.elapsedSeconds))): void => {
-    const half = GROUND_SIZE / 2;
-    const coast = Array.from({ length: 32 }, (_, i) => {
-      const a = (i / 32) * Math.PI * 2;
-      return v3(Math.cos(a) * half * 0.92, 0, Math.sin(a) * half * 0.92);
-    });
-    kaijuPlan = planKaiju(
-      seed,
-      { minX: -half, maxX: half, minZ: -half, maxZ: half },
-      coast,
-      currentParcels.map((parcel) => v3(parcel.position.x, parcel.position.y, parcel.position.z)),
-      v3(-360, 0, 1500),
-    );
+    const planned = createWavePlan(seed, currentParcels);
+    kaijuPlan = planned.plan;
     pendingMissiles = [];
     kaijuAssault = null;
     nextSalvoAt = 0;
     waveVerdict = null;
     waveVerdictUntil = 0;
-    // Show the player the thing that is about to walk through their city. It lands a kilometre or
-    // more off the coast and walks in, so without this it destroyed the place off screen.
-    const target = kaijuPlan.target ?? kaijuPlan.coast;
-    const midX = (kaijuPlan.landing.x + target.x) / 2;
-    const midZ = (kaijuPlan.landing.z + target.z) / 2;
-    applyCamera({
-      targetX: midX,
-      targetY: 0,
-      targetZ: midZ,
-      alpha: Math.atan2(kaijuPlan.landing.z - target.z, kaijuPlan.landing.x - target.x) - Math.PI / 2,
-      beta: Math.PI / 3.2,
-      radius: Math.max(700, distXZ(kaijuPlan.landing, target) * 0.9),
-    });
+    applyCamera(planned.camera);
   };
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;

@@ -1,7 +1,11 @@
+import { GROUND_SIZE } from "../render/ground";
 import type { createKaijuRenderer } from "../render/kaiju";
 import type { createMissileRenderer, MissileTrail } from "../render/missiles";
 import type { createWaveMarkerRenderer } from "../render/waveMarkers";
-import type { Vec3 } from "../sim/vec";
+import { planKaiju, type KaijuPlan } from "../sim/kaiju";
+import type { BuildingParcel } from "../sim/slots";
+import type { SavedCamera } from "../sim/save";
+import { distXZ, v3, type Vec3 } from "../sim/vec";
 
 export type WaveVerdict = "held" | "breached";
 export type PendingMissile = { readonly from: Vec3; readonly launchedAt: number; readonly impactAt: number; readonly damage: number };
@@ -11,6 +15,37 @@ type WaveVisuals = {
   readonly missiles: ReturnType<typeof createMissileRenderer>;
   readonly markers: ReturnType<typeof createWaveMarkerRenderer>;
 };
+
+export function createWavePlan(seed: string, parcels: readonly BuildingParcel[]): { plan: KaijuPlan; camera: SavedCamera } {
+  const half = GROUND_SIZE / 2;
+  const coast = Array.from({ length: 32 }, (_, i) => {
+    const a = (i / 32) * Math.PI * 2;
+    return v3(Math.cos(a) * half * 0.92, 0, Math.sin(a) * half * 0.92);
+  });
+  const plan = planKaiju(
+    seed,
+    { minX: -half, maxX: half, minZ: -half, maxZ: half },
+    coast,
+    parcels.map((parcel) => v3(parcel.position.x, parcel.position.y, parcel.position.z)),
+    v3(-360, 0, 1500),
+  );
+  // Show the player the thing that is about to walk through their city. It lands a kilometre or
+  // more off the coast and walks in, so without this it destroyed the place off screen.
+  const target = plan.target ?? plan.coast;
+  const midX = (plan.landing.x + target.x) / 2;
+  const midZ = (plan.landing.z + target.z) / 2;
+  return {
+    plan,
+    camera: {
+      targetX: midX,
+      targetY: 0,
+      targetZ: midZ,
+      alpha: Math.atan2(plan.landing.z - target.z, plan.landing.x - target.x) - Math.PI / 2,
+      beta: Math.PI / 3.2,
+      radius: Math.max(700, distXZ(plan.landing, target) * 0.9),
+    },
+  };
+}
 
 export function clearWaveVisuals({ kaiju, missiles, markers }: WaveVisuals): void {
   kaiju.hide();
