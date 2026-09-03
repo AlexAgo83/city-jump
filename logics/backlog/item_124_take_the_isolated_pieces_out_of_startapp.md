@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 55%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -61,3 +61,5 @@
 - 2026-09-03 validation: `rtk npm run ci` passed. `rtk npm run test:e2e` passed the run-panel/gameplay checks before the existing zone-clear timeout at `scripts/interact.mjs:1021`.
 - 2026-09-03 wave 3b: commit `5feceac` passes app-specific debug hooks through `installDebugApi(..., { extra })`; `src/app/app.ts` no longer reads `window.cityjump` back and patches it after install.
 - 2026-09-03 validation: `rtk npm run ci` passed. `rtk npm run test:e2e` got past `window.cityjump.reset()` and failed later at the existing zone-clear timeout at `scripts/interact.mjs:1021`.
+- 2026-09-03 wave 3c: commit `466a35d` moved camera snapshot/apply and the debounced autosave timer into `src/app/persistence.ts`; `startApp` still supplies the current city serialization closure.
+- 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.

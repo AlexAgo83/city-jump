@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 45%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -84,4 +84,6 @@
 - 2026-09-03 validation: `rtk npm run ci` passed after the run-panel extraction. `rtk npm run test:e2e` passed the run-panel, gameplay settings, evacuation, prestige, new-run, reload, and toolbar checks, then failed later at the existing zone-clear timeout at `scripts/interact.mjs:1021`.
 - 2026-09-03 wave 3b: commit `5feceac` moved app-specific debug hooks into `installDebugApi(..., { extra })`, so `window.cityjump` is assembled in one place instead of patched after install.
 - 2026-09-03 validation: `rtk npm run ci` passed after the debug API change. `rtk npm run test:e2e` proved `window.cityjump.reset()` no longer recurses, then failed at the same existing zone-clear timeout at `scripts/interact.mjs:1021`.
+- 2026-09-03 wave 3c: commit `466a35d` extracted camera snapshot/apply helpers and the debounced autosave timer into `src/app/persistence.ts`; `src/app/app.ts` still owns city serialization and refusal UI.
+- 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed after the persistence helper extraction.
 - Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.
