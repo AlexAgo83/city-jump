@@ -2,27 +2,29 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 30%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: A non-reproducible measurement in the historical record is worse than an absent one, and docs/performance.md treats that file as the record. Also provides the baseline req_037 cannot start without.
+- Summary: The record did not go stale through neglect: the harness was broken. b5af5ca closed the settings menu, #frame-cap went display:none, and perf.mjs timed out on it for 47 commits. Fixed in 418c133. The dirty-tree guard is the remaining half.
 - Keywords: dirty tree, allow-dirty, perf baseline, union merge driver, append-only record
 - Use when: recording a measurement, or before starting any per-frame cost work.
 - Skip when: changing what perf measures, or running it in CI, which has no GPU.
 
 # Problem
 - The last three perf/history.jsonl entries carry dirty: true, so they cannot be reproduced from any commit. A non-reproducible measurement in the historical record is worse than an absent one, because docs/performance.md:6 treats that file as the record.
-- The record stops at 906f143, 77 commits behind HEAD, while CONTRIBUTING.md:38 requires rendering work meant to be faster to show it.
+- The record stopping at 906f143 was misread in the 0.4.0 review as a discipline failure. It was a broken tool: b5af5ca "Paint the settings menu closed" ships the toolbar with class collapsed (index.html:296) and #toolbar-content at display:none (index.html:46), so #frame-cap is invisible to a click. scripts/perf.mjs selected it without opening the toolbar and timed out after 30 s. interact.mjs has had the toggle helper at scripts/interact.mjs:63 all along, which is why e2e kept passing.
+- The break landed 2026-09-02 00:24, eight hours after the last recorded measurement at 2026-09-01 16:05, and stayed broken for 47 commits. Nothing noticed, because perf runs nowhere but a developer's own machine -- which is this chain's whole thesis, arriving as evidence for itself.
+- Already fixed and committed as 418c133; a clean-tree entry now exists for that commit. What remains is the dirty-tree guard, and item_133 for the scenario the harness measures.
 
 # Scope
 - In:
   - Refuse to append to perf/history.jsonl when the tree is dirty, unless --allow-dirty is passed.
-  - Take a fresh baseline on a clean HEAD so req_037 has something to compare against.
+  - Note that the clean entry now recorded for 418c133 measures an empty city, so item_133 must land before it can serve as req_037's baseline.
   - A .gitattributes union merge driver for perf/history.jsonl and balance/history.jsonl, which are append-only records that conflict on every branch.
 - Out:
   - Changing what perf measures or its thresholds.
@@ -30,7 +32,7 @@
 
 # Acceptance criteria
 - AC1: A perf run on a dirty tree does not append without --allow-dirty.
-- AC2: A clean baseline for current HEAD exists in the record.
+- AC2: A clean baseline exists for a commit at or after item_133, measuring a city with buildings in it.
 - AC3: Two branches appending to either history file merge without conflict.
 
 # AC Traceability

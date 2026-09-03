@@ -146,7 +146,7 @@
       "ai_context": {
         "keywords": "dirty tree, allow-dirty, perf baseline, union merge driver, append-only record",
         "skip when": "changing what perf measures, or running it in CI, which has no GPU.",
-        "summary": "A non-reproducible measurement in the historical record is worse than an absent one, and docs/performance.md treats that file as the record. Also provides the baseline req_037 cannot start without.",
+        "summary": "The record did not go stale through neglect: the harness was broken. b5af5ca closed the settings menu, #frame-cap went display:none, and perf.mjs timed out on it for 47 commits. Fixed in 418c133. The dirty-tree guard is the remaining half.",
         "use when": "recording a measurement, or before starting any per-frame cost work."
       },
       "kind": "backlog",
@@ -318,11 +318,11 @@
     }
   ],
   "estimates": {
-    "char_count": 11114,
+    "char_count": 11156,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T09:39:01Z",
+  "generated_at": "2026-09-03T09:51:20Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,

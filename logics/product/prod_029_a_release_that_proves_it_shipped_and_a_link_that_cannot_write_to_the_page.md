@@ -6,6 +6,7 @@
 > Related task: `task_040_orchestrate_the_release_and_client_hardening`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-03 11:51:00
 
 # Overview
 The deploy path verifies its own outcome and the client renders untrusted cities as text.
@@ -61,7 +62,7 @@ flowchart TD
 - A missing asset returns 404 rather than 200 HTML.
 
 # Open questions
-- item_120 is resolved, not blocking: Render's deploy hook accepts ?ref=<sha> and answers 200 only when that SHA is valid and a deploy has started, with no static-site exclusion documented. The upstream checks are load-bearing. The remaining gap is narrow -- a 200 means started, not finished -- so the work is polling the outcome, not re-verifying the commit. Confirm once against a real deploy, since the docs do not call static sites out either way.
+- item_120 is closed as a question and proven against the live service: all three deploy_hook deploys landed exactly on the v0.2.0, v0.3.0 and v0.4.0 tag commits with autoDeploy off, so ?ref= is honoured on this static site. Production is b7f551cf, exactly v0.4.0. The remaining work is polling the outcome, because the same history holds two build_failed deploys -- a release reported successful while its build failed has already happened here.
 - item_121: will a CSP break the inline style block or the four-line inline script in index.html? Untested. The policy may need a hash or nonce, or the style may need extracting -- but the policy is not to be dropped to avoid the question.
 - item_122: is there any intended future client-side routing? Removing the SPA rewrite is only free if the answer is no.
 

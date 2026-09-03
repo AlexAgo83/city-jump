@@ -2,28 +2,31 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 20%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: Answered from Render's docs: ?ref=<sha> is supported, and a 200 means the SHA was valid and a deploy has started. So the upstream checks are NOT advisory and only the outcome is unverified -- a build that fails after the 200 is reported as success.
+- Summary: Proven against the live service, not just the docs: all three deploy_hook deploys landed exactly on the v0.2.0, v0.3.0 and v0.4.0 tag commits with autoDeploy off, so ?ref= is honoured. Two deploys in the same history are build_failed, so the 200-then-fail risk is real and has already happened here.
 - Keywords: deploy hook, ref parameter, deploy verification, Render API, advisory checks, runbook
 - Use when: before trusting the deploy workflow's verification, or changing how a release reaches production.
 - Skip when: migrating off Render, or changing autoDeploy without a recorded decision.
 
 # Problem
 - The workflow does real diligence -- tag to SHA, version match, green CI on that SHA -- then POSTs the hook at :94 and exits on the 200. Nothing confirms the deploy then succeeded.
-- Resolved from Render's documentation: the deploy hook accepts a `ref` query parameter naming a full or short commit SHA, and returns 200 OK when that SHA is valid and a deploy has started. No static-site exclusion is documented. The commit selection therefore works, and the three upstream checks are load-bearing rather than advisory.
-- What remains unverified is narrower: a 200 says a deploy started, not that it finished. A build that fails after the hook is accepted is still reported to the operator as a successful release.
+- Resolved empirically against service srv-da9n061srm7s73cpph80 (type static_site, autoDeploy off, branch main). The three deploy_hook deploys in its history carry commits 9d5d029a, 2d4c115b and b7f551cf, which are exactly the commits v0.2.0, v0.3.0 and v0.4.0 point at. With autoDeploy off and the branch tip ahead at those moments, the ref was honoured three times out of three.
+- Production is currently b7f551cf, which is exactly v0.4.0. The release pipeline works end to end; it is only the outcome that goes unreported.
+- The API returns `commit.id` per deploy, so a deployed commit can be asserted rather than assumed.
+- What remains is narrower but real: a 200 says a deploy started, not that it finished. The service's own history contains two `build_failed` deploys, so a release reported as successful while its build failed is not hypothetical here.
+- Deploy statuses observed on this service: `live`, `deactivated`, `canceled`, `build_failed`. Note that a successful deploy becomes `deactivated` once superseded, so a polling check must treat `live` as success now and `deactivated` as success historically -- not as a failure.
 
 # Scope
 - In:
-  - Poll the deploy after the hook is accepted and fail the job unless it reaches a succeeded state; the commit itself no longer needs re-verifying, since a 200 already means the SHA was valid.
-  - Confirm once against a real deploy that a static site behaves as documented, since the docs do not call static sites out either way.
+  - Poll GET /v1/services/{id}/deploys after the hook is accepted, match the deploy carrying RELEASE_SHA, and fail the job unless it reaches `live`. Treat `build_failed` and `canceled` as failures and `deactivated` as an already-superseded success.
+  - Read the API key from an untracked .env (see .env.example) or an Actions secret; never from a command line, a log or a workflow echo.
   - Record the polling interval and timeout at the step, so a slow build is not read as a failed one.
   - Consider a runbook in logics/runbook/ if the procedure turns out to be worth repeating.
 - Out:

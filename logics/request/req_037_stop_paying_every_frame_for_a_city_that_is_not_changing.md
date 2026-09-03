@@ -3,7 +3,7 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 85%
+> Confidence: 70%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
@@ -67,3 +67,4 @@
 - `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`
 - `item_117_re_resolve_a_mover_s_segment_after_a_rebuild`
 - `item_118_show_the_frame_cost_came_down`
+- `item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it`

@@ -3,14 +3,14 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 85%
+> Confidence: 70%
 > Progress: 0%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: Without a before and after on a clean tree, every claim in req_037 is an assertion. CONTRIBUTING.md:38 requires rendering work meant to be faster to show it.
+- Summary: Without a before and after on a clean tree, every claim in req_037 is an assertion -- and today the harness measures an empty city, so item_133 must land first or the comparison is meaningless.
 - Keywords: perf record, baseline comparison, same label same city, docs/performance.md
 - Use when: closing out per-frame cost work, or claiming a rendering improvement.
 - Skip when: adding perf to CI, or changing the measured city or metric set.
@@ -18,6 +18,7 @@
 # Problem
 - CONTRIBUTING.md:38 requires rendering work meant to be faster to show it, and the record cannot support that today: perf/history.jsonl stops 77 commits back with dirty entries.
 - Without a before and after on a clean tree, every claim in this request is an assertion.
+- Blocked by item_133: the clean entry recorded for 418c133 reports buildings 0 and activeMeshes 15, so comparing against it would measure roads and trees over empty land. Do not open this item until the scenario builds a city.
 
 # Scope
 - In:

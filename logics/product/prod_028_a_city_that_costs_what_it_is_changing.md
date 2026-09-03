@@ -2,7 +2,7 @@
 > Date: 2026-09-03
 > Status: Proposed
 > Related request: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
-> Related backlog: `item_113_gate_the_building_state_upload_on_a_change_signature`, `item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed`, `item_115_fan_the_sun_out_once_per_visible_step`, `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`, `item_117_re_resolve_a_mover_s_segment_after_a_rebuild`, `item_118_show_the_frame_cost_came_down`
+> Related backlog: item_113_gate_the_building_state_upload_on_a_change_signature, item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed, item_115_fan_the_sun_out_once_per_visible_step, item_116_build_the_yield_and_crossing_occupancy_once_per_frame, item_117_re_resolve_a_mover_s_segment_after_a_rebuild, item_118_show_the_frame_cost_came_down, item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it
 > Related task: `task_039_orchestrate_the_per_frame_cost_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
@@ -73,6 +73,8 @@ flowchart TD
 # Open questions
 - item_116: what was the discarded ringEntryRadius for? Computed and dropped at both places that decide whether to yield (traffic.ts:1061 and :1131), which reads as a dropped guard rather than dead code. Needs archaeology in git history before either using or deleting it -- and if it was a real guard, the yielding behaviour has been wrong, which is a defect for req_035 rather than a cleanup here.
 - How much of a per-frame saving justifies the added signature complexity? No threshold is set, so item_118's measurement is the arbiter and a null result is a legitimate outcome.
+- This chain is currently UNMEASURABLE and item_133 is the gate. The harness was broken for 47 commits (fixed in 418c133) and now measures a city with buildings 0 and activeMeshes 15, against a last-comparable record of 1583 and 2388. Every finding in this chain therefore rests on reading the code, not on observing it. Treat the numbers in the slices as hypotheses about cost until a scenario that builds a city says otherwise.
+- Observed while measuring, and not owned by any slice here: startup is 10.5 s (startupMs 10579 from the e2e debug measurement) and a demo city build is 2.5 s. A full rebuild is about 430 ms, of which ground is 193 ms and roads 157 ms. Whether a 10 s first paint is acceptable is a product question nobody has asked; it needs its own decision rather than being folded into per-frame work.
 
 # References
 - Product back-reference: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`

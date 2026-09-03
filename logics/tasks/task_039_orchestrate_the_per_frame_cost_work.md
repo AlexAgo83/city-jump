@@ -3,7 +3,7 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 85%
+> Confidence: 70%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -38,6 +38,7 @@
 - `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`
 - `item_117_re_resolve_a_mover_s_segment_after_a_rebuild`
 - `item_118_show_the_frame_cost_came_down`
+- `item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it`
 
 # Definition of Done (DoD)
 - [ ] Generated request, product, backlog, and task docs are present.

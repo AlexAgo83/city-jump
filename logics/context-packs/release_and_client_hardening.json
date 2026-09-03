@@ -116,7 +116,7 @@
       "ai_context": {
         "keywords": "deploy hook, ref parameter, deploy verification, Render API, advisory checks, runbook",
         "skip when": "migrating off Render, or changing autoDeploy without a recorded decision.",
-        "summary": "Answered from Render's docs: ?ref=<sha> is supported, and a 200 means the SHA was valid and a deploy has started. So the upstream checks are NOT advisory and only the outcome is unverified -- a build that fails after the 200 is reported as success.",
+        "summary": "Proven against the live service, not just the docs: all three deploy_hook deploys landed exactly on the v0.2.0, v0.3.0 and v0.4.0 tag commits with autoDeploy off, so ?ref= is honoured. Two deploys in the same history are build_failed, so the 200-then-fail risk is real and has already happened here.",
         "use when": "before trusting the deploy workflow's verification, or changing how a release reaches production."
       },
       "kind": "backlog",
@@ -308,11 +308,11 @@
     }
   ],
   "estimates": {
-    "char_count": 11586,
+    "char_count": 11637,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T09:33:55Z",
+  "generated_at": "2026-09-03T09:51:21Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,
