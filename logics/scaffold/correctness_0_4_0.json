@@ -1,0 +1,360 @@
+{
+  "title": "Fix the correctness defects the 0.4.0 review found",
+  "references": [
+    "src/sim/rules.ts",
+    "src/sim/utilities.ts",
+    "src/sim/economy.ts",
+    "src/sim/buildingLifecycle.ts",
+    "src/sim/heightmap.ts",
+    "src/sim/plantings.ts",
+    "src/sim/streets.ts",
+    "src/render/drawTool.ts",
+    "src/sim/graph.ts"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "City simulation core",
+    "needs": [
+      "A road drawn across another splits it, however many times it crosses, and never leaves the city half-cut.",
+      "A city reloaded is the city that was saved, with none of the previous run's latches.",
+      "A demolition undone is the demolition the player just made, not the pair of them.",
+      "One authority decides which lot is staffed, so the ledger and the building agree."
+    ],
+    "context": [
+      "These defects come from a full review of the repo at commit f2e2070 (0.4.0). Every one is a live defect, not a style preference. The chain exists because each changes what the product asserts or has a cause spanning layers; the one-line fixes whose record is a comment and a test are gathered in a single slice rather than given chains of their own, per ADR 030.",
+      "Finding 1 is reproduced. A quadratic street from (-60,0) to (60,0) with control (0,0,240) crossed by a straight road at z=60 makes two intersections on one segment. allCrossings (src/sim/rules.ts:168) returns one entry per intersection without deduping by segmentId; the loop at :133 calls graph.splitSegment for each; the first split deletes the segment (src/sim/graph.ts:312) so the second throws `unknown segment: 1`. Observed: segments before [1], after [2,3] -- the existing road is cut and the drawn road is never added. commitSegment returns {ok:false, reason} everywhere else so no caller wraps it, and the throw escapes into the render loop.",
+      "Do not carry the crossing distance across a split arithmetically. splitSegment re-samples each half from its own curve on purpose (the comment at src/sim/graph.ts:300 explains what slicing the parent's samples cost: only 249 of 1806 lots came back in place). Re-locate the point with graph.nearestOnSegment instead.",
+      "Do not return {ok:false} once a split has been committed: that moves the partial mutation rather than removing it. Every path must degrade gracefully -- a crossing that cannot be served is dropped and the road spans it.",
+      "Do not subtract utility bits on removal. Two diffusers can share a run of road, so subtracting one path cuts the other's. The mask on a segment is derived from the item list, which is what ADR 003 already says about derived views: clear and re-lay.",
+      "The economy shortage getter mutates on read (src/sim/economy.ts:111). It also rewrites shortSince on every read while materials are at zero, so the recovery window the comment at :107 describes can never elapse while the stock stays empty. Two defects, one fix."
+    ],
+    "acceptance_criteria": [
+      "AC1: A road crossing one segment twice commits without throwing and leaves no partial mutation.",
+      "AC2: commitSegment never reports success with a segment id that does not exist.",
+      "AC3: Removing a utility leaves no segment carrying its mask, and a diffuser sharing a run of road with another stays supplied.",
+      "AC4: A reload starts the economy and the building lifecycle with no inherited latch, flag or clock.",
+      "AC5: One authority allocates the workforce, and production and lifecycle agree on which lot is staffed.",
+      "AC6: Stamping two adjacent building pads gives the same terrain in either order.",
+      "AC7: A bulldoze within a second of another records its own undo entry, and a demolition scheduled against a replaced city does not run.",
+      "AC8: Cleared-tree records stay bounded across a long session and survive a save round-trip.",
+      "AC9: House numbering does not depend on the runtime locale.",
+      "AC10: The fixes whose record is a comment and a test carry that comment and that test."
+    ]
+  },
+  "product": {
+    "title": "A city that survives the roads you draw on it",
+    "overview": "The city keeps its shape through a second crossing, a reload, and an undo.",
+    "goals": [
+      "A drawn road either lands whole or changes nothing.",
+      "A reloaded city carries no state from the run before it.",
+      "An undo returns exactly the action the player just took.",
+      "Production and the building agree on whether a lot is staffed."
+    ],
+    "non_goals": [
+      "Exact Bezier intersection solving in place of the sampled crossing search.",
+      "Rebalancing the economy, which req_036 owns.",
+      "Splitting any module, which req_039 owns.",
+      "Reducing per-frame cost, which req_037 owns."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Cut a segment as many times as one road crosses it",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC1",
+        "AC2"
+      ],
+      "problem": [
+        "allCrossings returns one entry per intersection without deduping by segment, and splitSegment deletes what it cuts, so the second crossing on one segment throws out of commitSegment with the first split already committed.",
+        "lastSegment is initialised to 0 (src/sim/rules.ts:139), so a commit where every crossing snapped to an existing node returns {ok:true, segmentId:0} while ids start at 1."
+      ],
+      "scope_in": [
+        "Re-locate a crossing whose recorded segment id is gone, using graph.nearestOnSegment, filtering tunnels as allCrossings does.",
+        "Drop a crossing that cannot be served rather than aborting after mutation; snap it to the node an earlier cut made when the remaining piece is shorter than RULES.minLength.",
+        "Replace the parallel nodes and ts arrays with one list of pairs, so dropping a crossing cannot misalign the sub-curve controls.",
+        "Return {ok:false} with a reason when no segment was added, instead of segment id 0.",
+        "A regression test for the reproduced geometry: street (-60,0) to (60,0) control (0,0,240), crossed by a straight road at z=60, expecting five segments.",
+        "A regression test that no success ever carries an id the graph does not have."
+      ],
+      "scope_out": [
+        "Exact Bezier root finding in place of the sampled search at src/sim/rules.ts:170.",
+        "Carrying distances across a split arithmetically.",
+        "Changing how splitSegment samples its halves."
+      ],
+      "acceptance_criteria": [
+        "AC1: One straight road crossing one curved segment twice produces five segments and no throw.",
+        "AC2: No path through commitSegment mutates the graph and then reports failure.",
+        "AC3: Three or more crossings on one segment behave the same as two.",
+        "AC4: commitSegment never returns a segment id the graph cannot resolve.",
+        "AC5: The single-crossing behaviour covered by existing tests in src/sim/rules.test.ts is unchanged."
+      ]
+    },
+    {
+      "title": "Derive the utility mask from the item list instead of owning it",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC3"
+      ],
+      "problem": [
+        "removeNear (src/sim/utilities.ts:58) splices the item and nothing else, so the segments keep their power and water bits for ever and the stale mask is persisted through src/sim/save.ts:113. suppliedDiffusers then reports a live network with the plant gone.",
+        "replaceWith (src/sim/utilities.ts:89) re-attaches items but never lays the mask either.",
+        "place duplicates the wiring in a producer branch and a diffuser branch (src/sim/utilities.ts:46-54)."
+      ],
+      "scope_in": [
+        "One restake(graph) that clears every segment mask and re-lays every item's path, guarding graph.hasSegment for a utility whose road was demolished.",
+        "Call it from place, removeNear and replaceWith, and delete the duplicated wiring branches.",
+        "Update the one caller of removeNear at src/app/app.ts:765 for the new graph argument.",
+        "Tests: removing a producer unsupplies its diffusers; removing one of two diffusers sharing a run of road leaves the other supplied; a save round-trip after a removal carries no stale mask."
+      ],
+      "scope_out": [
+        "Subtracting a removed item's path from the mask.",
+        "Changing the utility catalogue, radii or costs.",
+        "Changing pathToProducer."
+      ],
+      "acceptance_criteria": [
+        "AC1: After removing a utility, no segment carries a mask that only that utility put there.",
+        "AC2: Removing one of two diffusers whose paths overlap leaves the other supplied.",
+        "AC3: A demolished road under a utility does not make restake throw.",
+        "AC4: place, removeNear and replaceWith all leave the same mask for the same item list."
+      ]
+    },
+    {
+      "title": "Reset the whole economy on a load, and stop the shortage getter mutating",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC4"
+      ],
+      "problem": [
+        "CityEconomy.replaceWith (src/sim/economy.ts:121) resets state only: housed, starved, shortSince and clock survive, so a load inherits the previous run's shortage latch and keeps counting its clock.",
+        "materialsShort (src/sim/economy.ts:111) is a getter that writes starved and shortSince. Two reads in one frame can differ and a render-layer read extends the shortage.",
+        "It also rewrites shortSince on every read while materials are at zero, so the MATERIALS_RECOVERY_SECONDS window can never elapse while the stock stays empty -- the hysteresis the comment describes does not work.",
+        "BuildingLifecycle.replaceWith (src/sim/buildingLifecycle.ts:161) never resets committed, so the first sync after a load deals shifts against the previous city's population; it also collapses staffing to state === working, losing staffed-but-idle."
+      ],
+      "scope_in": [
+        "Make materialsShort a pure read and move the transition into a private updateShortage called from advance, which owns the clock.",
+        "Set shortSince only on the transition into shortage, not on every read.",
+        "Have the constructor and replaceWith share one starting-state helper so the two cannot diverge.",
+        "Reset committed in BuildingLifecycle.replaceWith and keep staffed-but-idle distinct from working.",
+        "Tests: a load after a shortage reports no shortage; a shortage at a flat zero stock clears once the recovery window and buffer are met; the first sync after a load deals against the loaded population."
+      ],
+      "scope_out": [
+        "Changing MATERIALS_RECOVERY or MATERIALS_RECOVERY_SECONDS values, which req_036 owns.",
+        "Changing what a shortage does to production."
+      ],
+      "acceptance_criteria": [
+        "AC1: Reading materialsShort twice in a row cannot change its answer or any field.",
+        "AC2: A shortage that begins at a flat zero stock clears once the recovery window has really elapsed.",
+        "AC3: A loaded city reports no inherited shortage, housing flag, clock or committed population.",
+        "AC4: A staffed building that is idle is not reported as working."
+      ]
+    },
+    {
+      "title": "Give the workforce one authority",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC5"
+      ],
+      "problem": [
+        "output() calls allocateWorkforce four times per advance on raw population with no incumbency comparator (src/sim/economy.ts:128), while BuildingLifecycle.sync allocates on the banded committed value with one (src/sim/buildingLifecycle.ts:73). The two answers diverge, so a lot the lifecycle reports working can be counted unstaffed by production and the reverse.",
+        "This is the hazard src/sim/batteries.ts:13 documents and guards against, unguarded here.",
+        "It also sorts every parcel four times per tick.",
+        "Suspected contributor to the balance figures req_036 owns: a city that pays for buildings it does not count as productive."
+      ],
+      "scope_in": [
+        "Make BuildingLifecycle.sync the single allocator and have advance consume its staffed statuses rather than re-deriving from population.",
+        "Confirm the two allocations diverge with a test before changing either, so the fix is measured rather than assumed.",
+        "Remove the redundant per-tick sorting.",
+        "Re-run npm run balance before and after and record both."
+      ],
+      "scope_out": [
+        "Changing the staffing rule itself.",
+        "Rebalancing costs or yields, which req_036 owns."
+      ],
+      "acceptance_criteria": [
+        "AC1: A test shows the two allocations disagreeing on the same city before the change.",
+        "AC2: After the change one code path allocates the workforce and production reads its result.",
+        "AC3: For every lot, the staffing production assumes equals the staffing the lifecycle reports.",
+        "AC4: Balance output is recorded before and after, whether or not it improves."
+      ]
+    },
+    {
+      "title": "Make a building pad stamp idempotent between neighbours",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC6"
+      ],
+      "problem": [
+        "stampParcel (src/sim/heightmap.ts:339) is the only stamp that never records into this.claim, and it blends against this.current, which a previous parcel in the same pass may already have modified. The result is order-dependent between adjacent parcels.",
+        "The road and junction stamps (src/sim/heightmap.ts:257 and :324) are nearest-wins and do not have this problem."
+      ],
+      "scope_in": [
+        "Record parcel stamps into this.claim and resolve nearest-wins, as the road and junction stamps do.",
+        "A test that stamps two adjacent parcels in both orders and expects the same heightfield.",
+        "A test for the incremental dirty-region path interacting with a parcel stamp."
+      ],
+      "scope_out": [
+        "Changing the pad shape, depth or grading falloff.",
+        "Changing the road or junction stamps."
+      ],
+      "acceptance_criteria": [
+        "AC1: Two adjacent parcels stamped in either order give the same terrain.",
+        "AC2: Re-stamping the same parcel twice changes nothing after the first.",
+        "AC3: A dirty-region rebuild gives the same terrain as a full one for the same city."
+      ]
+    },
+    {
+      "title": "Bound the cleared-tree record",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC8"
+      ],
+      "problem": [
+        "Plantings.clear (src/sim/plantings.ts:40) pushes a point on every call that misses a hand-planted tree, including clicks on bare ground and repeat clicks on one spot. Nothing dedupes or prunes, and all of it is persisted through src/sim/save.ts:89.",
+        "isCleared (src/sim/plantings.ts:54) is a linear scan run once per generated tree per rebuild, so a long session costs quadratically.",
+        "There is no test file for this module."
+      ],
+      "scope_in": [
+        "Record a removal only when one actually removed a generated tree.",
+        "Dedupe on REMOVAL_RADIUS at insertion.",
+        "Replace the linear scan with the fixed grid buckets already used at src/render/trees.ts:377.",
+        "A first test file covering the removal radius rule, dedupe, and a save round-trip."
+      ],
+      "scope_out": [
+        "Changing REMOVAL_RADIUS.",
+        "Changing tree species, placement or density."
+      ],
+      "acceptance_criteria": [
+        "AC1: Clicking bare ground records nothing.",
+        "AC2: Clicking the same spot repeatedly records one removal.",
+        "AC3: A cleared tree stays cleared across a save round-trip.",
+        "AC4: isCleared cost does not grow with total removals for a fixed query area."
+      ]
+    },
+    {
+      "title": "Make house numbering locale-independent and stop rebuilding every street per parcel",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC9"
+      ],
+      "problem": [
+        "segmentOffsets orders segments with localeCompare (src/sim/streets.ts:89), which is locale-sensitive, so house numbers can differ between environments for one city.",
+        "streetForSegment rebuilds every street from every segment on each call, and addressForParcel calls it once per parcel.",
+        "src/sim/streets.test.ts covers naming, not addressing, so the ordering is unpinned."
+      ],
+      "scope_in": [
+        "Replace localeCompare with a plain ordering comparison.",
+        "Hoist the streets(graph) result out of the per-parcel loop.",
+        "A test pinning the address of a known parcel on a known city."
+      ],
+      "scope_out": [
+        "Changing the naming word lists or suffix rules.",
+        "Changing the numbering scheme itself."
+      ],
+      "acceptance_criteria": [
+        "AC1: Addressing uses no locale-sensitive comparison.",
+        "AC2: A pinned city gives the same addresses on any runtime locale.",
+        "AC3: addressForParcel over a whole city does not rebuild the street list per parcel."
+      ]
+    },
+    {
+      "title": "Take the undo snapshot when the wrecking ball lands, not when the player clicks",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": [
+        "AC7"
+      ],
+      "problem": [
+        "Demolition is deferred by DEMOLITION_MS (src/render/drawTool.ts:498, :506, :522) but history.beforeChange fires synchronously at click time while afterChange fires in the timeout. Because src/app/app.ts:415 uses pendingHistorySnapshot ??= and afterChange nulls it, two bulldozes within one second record one undo entry and the second demolition cannot be undone.",
+        "The timers are never cleared: tool.cancel() does not touch them, so graph.removeSegment(id) can run after a loadCity or an undo replaced the city, deleting whatever segment now holds that id or throwing out of a timer."
+      ],
+      "scope_in": [
+        "Hold the pending timer ids and clear them from tool.cancel(), loadCity and restoreSnapshot.",
+        "Move history.beforeChange into the timeout so each demolition pairs with its own snapshot.",
+        "Guard the deferred body on the graph revision captured at click time.",
+        "Tests: two bulldozes inside DEMOLITION_MS give two undo entries; a demolition scheduled before a load does not run after it."
+      ],
+      "scope_out": [
+        "Changing DEMOLITION_MS or the demolition animation.",
+        "Moving drawTool out of src/render/, which req_039 owns.",
+        "Changing the refund rules."
+      ],
+      "acceptance_criteria": [
+        "AC1: Two bulldozes within one second are two undo entries, each undoing one.",
+        "AC2: A demolition scheduled against a city that was then replaced does not mutate the new city.",
+        "AC3: Cancelling the tool cancels pending demolitions.",
+        "AC4: No deferred demolition can throw out of a timer."
+      ]
+    },
+    {
+      "title": "The sim fixes whose record is a comment and a test",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC10"
+      ],
+      "problem": [
+        "Six small defects whose reasoning fits at the declaration that would undo them, so per ADR 030 they need a comment and a failing test, not a chain each.",
+        "graph.ts:258 pointsEvery loops for ever on spacing <= 0, with no guard.",
+        "graph.ts:397 splitBuilt and rebuildBuilt are dead, superseded by the re-sampling at :310.",
+        "graph.ts:206 node() and allNodes() hand out the internal RoadNode with its live mutable segments Set, so a caller can corrupt the graph without bumping revision.",
+        "kaiju.ts:65 exits the loop on the first destroyed target and discards the rest of dt; correct at the 0.25 s combat step, wrong at any larger one.",
+        "playthrough.ts:139 expand() commits the spine road before checking the cross street validated, then returns false having already mutated.",
+        "angleBetween is byte-identical in facing.ts:5 and junction.ts:242, and smoothstep is reimplemented in graph.ts:106, heightmap.ts:374, transfers.ts:29 and rules.ts."
+      ],
+      "scope_in": [
+        "A guard on pointsEvery with the comment saying why, and a test that a zero spacing returns rather than hangs.",
+        "Delete splitBuilt and rebuildBuilt.",
+        "Return a read-only view from node()/allNodes(), or document the invariant at the declaration if the change is too wide.",
+        "Drain dt in the kaiju loop, with a test at a step larger than the combat step.",
+        "Validate both roads in expand() before committing either.",
+        "One angleBetween and one smoothstep, in src/sim/vec.ts."
+      ],
+      "scope_out": [
+        "Splitting transfers.ts, which req_039 owns.",
+        "Changing the combat step or the playthrough scenario shape."
+      ],
+      "acceptance_criteria": [
+        "AC1: A zero or negative spacing cannot hang pointsEvery, and a test proves it.",
+        "AC2: No dead split path remains in src/sim/graph.ts.",
+        "AC3: A kaiju step larger than the combat step consumes all of its dt.",
+        "AC4: expand() never mutates the graph and then reports failure.",
+        "AC5: angleBetween and smoothstep are each defined once.",
+        "AC6: Each fix carries a comment at the declaration saying what it prevents."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Orchestrate the 0.4.0 correctness fixes",
+    "plan": [
+      "Wave 1: reproduce finding 1 with the geometry in the request context and land the crossing fix behind its regression tests.",
+      "Wave 2: the utility restake and the economy and lifecycle resets, each with the tests that fail without it.",
+      "Wave 3: prove the workforce divergence with a test, then give it one authority, and record npm run balance before and after.",
+      "Wave 4: the heightmap idempotence, the plantings bound, and the addressing determinism.",
+      "Wave 5: the deferred-demolition undo pairing and revision guard.",
+      "Wave 6: the comment-and-test bundle.",
+      "Run npm run ci after each wave, and npm run test:e2e after wave 5 because it touches pointer input and persistence."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/correctness_0_4_0.json",
+    "mode": "diff-first",
+    "profile": "deep"
+  }
+}

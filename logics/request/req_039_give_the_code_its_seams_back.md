@@ -7,6 +7,7 @@
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:40:52
 
 # AI Context
 - Summary: The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.
@@ -79,3 +80,4 @@
 - `item_129_give_the_save_format_somewhere_to_migrate`
 - `item_130_make_lint_mean_lint_and_cover_the_scripts`
 - `item_131_write_down_the_conventions_the_code_already_follows`
+- `item_135_declare_where_this_project_stands_on_translation`

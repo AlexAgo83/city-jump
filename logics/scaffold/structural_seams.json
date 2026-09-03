@@ -1,0 +1,336 @@
+{
+  "title": "Give the code its seams back",
+  "references": [
+    "src/app/app.ts",
+    "src/render/traffic.ts",
+    "src/render/buildings.ts",
+    "src/render/roadMesh.ts",
+    "src/render/drawTool.ts",
+    "src/sim/terrain.ts",
+    "src/sim/save.ts",
+    "src/sim/transfers.ts",
+    "tests/architecture.mjs",
+    "tests/building-assets.mjs",
+    "tsconfig.json",
+    "CONTRIBUTING.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "Operator workflow",
+    "needs": [
+      "The file that changes most often is not the one nobody can test.",
+      "A dependency that no test can see is either injected or asserted against.",
+      "A save format has somewhere to put a migration.",
+      "The conventions the code already follows are written down."
+    ],
+    "context": [
+      "This request is deliberately last and deliberately Low priority. Refactoring src/app/app.ts before req_035 through req_038 land would turn every one of their fixes into a merge conflict: app.ts has 143 commits, the most in the repo. Do not start this chain until A, B, C and D are done.",
+      "src/app/app.ts is one function. startApp spans :56 to past :970 with about 60 closures over 40 mutable locals. It is simultaneously the largest file, the highest-churn file and one of the few with no test -- that combination, not its size alone, is the structural risk.",
+      "A missing module leaves fingerprints. The same 200-character parcelsForDemand(...).filter(...) expression appears at src/app/app.ts:140 and again at :213.",
+      "src/app/app.ts:1152 monkey-patches window.cityjump with a second Object.assign after installDebugApi has already run at :1108. Passing the extra surface in is strictly simpler.",
+      "The seam in src/render/traffic.ts is already proven: the eight pure functions exported and unit-tested at :155-259 are the evidence that the driving logic wants to live in sim. :268-853 is a vehicle catalogue and mesh assembly with no knowledge of driving; :855-1568 is graph and geometry logic that touches Babylon only to write mesh.position.",
+      "src/sim/terrain.ts:11 is a module-level mutable global read implicitly by graph.addNode, buildSamples, rules.resolveSnap and slots.cellsForBlock, and by four render modules through terrainHeight. tests/architecture.mjs enforces import direction only, so this state coupling passes underneath it. If setTerrain is ever missed the whole city renders at sea level, silently. The cheap half of the fix -- an assertion that only app/ may call it -- is three lines and stops the spread today.",
+      "src/render/drawTool.ts is an application controller living in render/: it mutates the graph at :516, :523 and :537, spends money at :566 and drives the undo history at :491. req_035 item_106 touches exactly those lines, so this must follow it.",
+      "src/sim/save.ts:170 accepts v from 1 to 13 and unconditionally stamps SAVE_VERSION on the way out, with no migration hook. Every field added since v1 must stay independently optional for ever, and there is nowhere to put a transform; zones.ts:159 is the only migration and it is ad hoc.",
+      "Zones.toJSON writes back key x KEY_STEP, so the first save of a freshly painted city moves each lot's recorded centre by up to 2 m. save.test.ts:61 passes because it re-quantises to the same key, not because nothing was lost.",
+      "tests/building-assets.mjs:46 uses deepEqual, so it actively forbids a manifest entry for tower.glb, block.glb, house.glb and shop.glb. Declaring a roof for a tower would break the test, and those four ship unvalidated.",
+      "No renderer returns a dispose. About 18 listeners and observers are never removed and roughly 50 prototype meshes and materials are never disposed. Latent in a single page, but it is what makes the app untestable in-process and what will leak a whole scene at the first reset or Vite HMR.",
+      "lint is an alias for typecheck, and tsconfig.json:11 includes only src. scripts/interact.mjs is 2121 lines -- the e2e suite -- with no static analysis of any kind.",
+      "42 ponytail: comments mark deliberate simplifications with their revision condition. It is a good practice and it is documented nowhere: not CONTRIBUTING.md, not README.md, not docs/."
+    ],
+    "acceptance_criteria": [
+      "AC1: No module in src/ exceeds roughly 700 lines without a recorded reason.",
+      "AC2: The driving logic is testable without a browser.",
+      "AC3: Only the app layer installs the terrain, and a test enforces it.",
+      "AC4: Road drawing no longer mutates simulation state from the render layer.",
+      "AC5: Each renderer can be disposed, and a scene reset leaks nothing.",
+      "AC6: The save format has a migration hook, and the zone quantisation loss is either removed or recorded.",
+      "AC7: A manifest entry for a hand-authored model does not break the asset test.",
+      "AC8: lint means lint, over src, scripts and tests.",
+      "AC9: The ponytail convention is documented where a contributor will meet it."
+    ]
+  },
+  "product": {
+    "title": "A codebase whose seams are where the tests can reach",
+    "overview": "The modules that change most often become the ones a test can hold.",
+    "goals": [
+      "The highest-churn code is testable.",
+      "Couplings are visible to a test or injected away.",
+      "The save format can migrate.",
+      "The conventions in use are written down."
+    ],
+    "non_goals": [
+      "An engine facade, ECS, state framework or dependency-injection layer; LOGICS.md forbids these without a measured need and an architecture decision.",
+      "Changing any behaviour: this chain is structural and every existing test must stay green unchanged.",
+      "Rewriting the render pipeline.",
+      "Starting before req_035 through req_038 are done."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Take the isolated pieces out of startApp",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC1"
+      ],
+      "problem": [
+        "src/app/app.ts is one 1200-line function with about 60 closures over 40 mutable locals, and it is the highest-churn file in the repo at 143 commits with no test.",
+        "The same parcelsForDemand(...).filter(...) expression appears at :140 and :213.",
+        ":1152 monkey-patches window.cityjump after installDebugApi already ran at :1108."
+      ],
+      "scope_in": [
+        "In dependency order, least entangled first: ui/runPanel.ts from :775-878, which is raw DOM wiring in the app layer; the debug surface, by passing it to installDebugApi instead of patching from outside; app/persistence.ts from :368-405 and :970-1032; app/waveLoop.ts from :451-660; app/cityRebuild.ts from :126-330 last, deduplicating the repeated expression.",
+        "One commit per extraction with npm run ci between each.",
+        "Behaviour unchanged: no existing test may need editing."
+      ],
+      "scope_out": [
+        "Introducing a framework or DI layer, which LOGICS.md forbids without an ADR.",
+        "Changing what any extracted piece does.",
+        "Starting before req_035 through req_038 are done."
+      ],
+      "acceptance_criteria": [
+        "AC1: startApp is composition, not implementation.",
+        "AC2: The repeated demand expression exists once.",
+        "AC3: window.cityjump is assembled in one place.",
+        "AC4: Every pre-existing test passes unedited.",
+        "AC5: npm run test:e2e passes after the persistence and wave extractions."
+      ]
+    },
+    {
+      "title": "Move the driving logic where a test can reach it",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC1",
+        "AC2"
+      ],
+      "problem": [
+        "src/render/traffic.ts is 1644 lines holding three unrelated things: a vehicle catalogue and mesh assembly at :268-853 with no knowledge of driving, the driving simulation at :855-1568 which touches Babylon only to write mesh.position, and the actual renderer.",
+        "The seam is already proven by the eight pure functions exported and unit-tested at :155-259.",
+        "src/render/buildings.ts (1335 lines) and src/render/roadMesh.ts (1298) split the same way; roadMesh.ts:358 additionally rebuilds the whole city to toggle a debug overlay."
+      ],
+      "scope_in": [
+        "render/vehicleModels.ts for the catalogue and prototypes.",
+        "sim/traffic.ts for the driving logic, with a thin render adapter, so the architecture test then keeps it browser-free.",
+        "render/decorMeshes.ts for the 300 lines of roof and foot decor at src/render/buildings.ts:614-916, and the already-exported placement maths into its own module.",
+        "Separate the Traffic-view overlays in roadMesh.ts so setShowTraffic stops triggering a full rebuild.",
+        "Do this after req_037, which touches the same traffic hot path."
+      ],
+      "scope_out": [
+        "Changing driving, yielding or lane behaviour.",
+        "Changing what any mesh looks like.",
+        "Adding an abstraction layer over Babylon."
+      ],
+      "acceptance_criteria": [
+        "AC1: The driving logic has unit tests that run without a browser.",
+        "AC2: The architecture test covers it as simulation code.",
+        "AC3: Toggling the traffic overlay does not rebuild the city.",
+        "AC4: Existing traffic and building coverage passes unedited, and e2e stays green."
+      ]
+    },
+    {
+      "title": "Make the terrain dependency visible",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC3"
+      ],
+      "problem": [
+        "src/sim/terrain.ts:11 is a mutable module global read implicitly by graph.addNode, buildSamples, rules.resolveSnap and slots.cellsForBlock, and by src/render/traffic.ts:1452, roadMesh.ts:1049, buildings.ts:317 and drawTool.ts:234 through terrainHeight.",
+        "tests/architecture.mjs enforces import direction only, so this state coupling passes underneath it.",
+        "Two cities cannot coexist, every test must remember setTerrain(flatTerrain) by hand, playRun mutates it as a side effect at src/sim/playthrough.ts:98, and a missed setTerrain renders the whole city at sea level with no signal."
+      ],
+      "scope_in": [
+        "First, the cheap half: an assertion in tests/architecture.mjs that only app/ calls setTerrain. Three lines, and it stops the spread immediately.",
+        "Then inject the heightmap the way createGround(scene, heightmap) already does, one consumer at a time.",
+        "An ADR recording the decision, since this is exactly the kind of coupling LOGICS.md says needs one."
+      ],
+      "scope_out": [
+        "A dependency-injection framework.",
+        "Changing terrain sampling or the heightmap itself."
+      ],
+      "acceptance_criteria": [
+        "AC1: A call to setTerrain outside app/ fails the architecture test.",
+        "AC2: Terrain reaches its consumers as a parameter, not a global.",
+        "AC3: Two cities can exist in one process.",
+        "AC4: No test needs to remember to install a terrain.",
+        "AC5: An ADR records the decision."
+      ]
+    },
+    {
+      "title": "Move road drawing into the layer that owns the city",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC4"
+      ],
+      "problem": [
+        "src/render/drawTool.ts is an application controller in render/: it mutates the graph at :516, :523 and :537, spends money through injected callbacks at :566 and drives the undo history at :491. src/render/debugApi.ts:49 removes segments in a loop for the same reason.",
+        "The architecture test cannot see this, because the imports point the right way."
+      ],
+      "scope_in": [
+        "app/drawController.ts for the decisions and the mutations; render/drawTool.ts reduced to preview meshes and a pointer-event feed.",
+        "Must follow req_035 item_106, which rewrites the demolition path in these exact lines.",
+        "Extend the architecture test to assert that render/ does not mutate the graph, if that can be expressed without false positives."
+      ],
+      "scope_out": [
+        "Changing the drawing rules, snapping or tool behaviour.",
+        "Changing the preview look."
+      ],
+      "acceptance_criteria": [
+        "AC1: No module in render/ calls a graph mutator.",
+        "AC2: Drawing, splitting, bulldozing, zoning and planting behave unchanged.",
+        "AC3: npm run test:e2e passes, since this is pointer input.",
+        "AC4: The undo pairing from req_035 item_106 still holds."
+      ]
+    },
+    {
+      "title": "Give every renderer a dispose",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC5"
+      ],
+      "problem": [
+        "No renderer returns a teardown. Listeners are never removed at src/render/scene.ts:169, :172, :189, :224-226, src/render/drawTool.ts:738 and :743, src/app/app.ts:1089 and :1098, and src/ui/controls.ts:89. Observers are never removed at src/render/scene.ts:131, :229, :284, ground.ts:371, signals.ts:179, traffic.ts:1483 and drawTool.ts:710.",
+        "Roughly 50 prototype meshes and materials at src/render/traffic.ts:513-853 and buildings.ts:614-916 are never disposed.",
+        "glassReflectionTexture at src/render/buildings.ts:42 is a module-level singleton bound to the first scene, never disposed and never recreated, so a second scene would get a texture owned by a disposed engine.",
+        "Latent in a single page, but it is what makes the app untestable in-process and what will leak a scene at the first reset or Vite HMR."
+      ],
+      "scope_in": [
+        "Each create* returns an object carrying dispose; startApp composes them.",
+        "Move glassReflectionTexture onto the renderer closure.",
+        "A test that creating and disposing the scene twice leaves no listener and no undisposed material."
+      ],
+      "scope_out": [
+        "Adding a scene-reset feature to the product.",
+        "Changing what any renderer draws."
+      ],
+      "acceptance_criteria": [
+        "AC1: Every renderer exposes a dispose that removes what it added.",
+        "AC2: A create-dispose-create cycle leaks no listener, observer, mesh or material.",
+        "AC3: No render module holds scene-bound state at module scope.",
+        "AC4: Behaviour is unchanged in the running app."
+      ]
+    },
+    {
+      "title": "Give the save format somewhere to migrate",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC6"
+      ],
+      "problem": [
+        "src/sim/save.ts:170 accepts v from 1 to 13 and stamps SAVE_VERSION on the way out with no migration hook, so every field added since v1 must stay independently optional for ever and a real transform has nowhere to live. src/sim/zones.ts:159 is the only migration and it is ad hoc.",
+        "Zones.toJSON writes back key x KEY_STEP, so the first save of a freshly painted city moves each lot's recorded centre by up to 2 m. save.test.ts:61 passes because it re-quantises to the same key, not because nothing was lost."
+      ],
+      "scope_in": [
+        "An ordered migration table applied in sequence from the save's version to the current one, with the zones migration moved into it.",
+        "Either keep full precision for lot centres in a local save or record the 2 m quantisation as intended, with a test that pins whichever it is.",
+        "An ADR if the format decision turns out to constrain future fields.",
+        "A test that a v1 save still loads through the chain."
+      ],
+      "scope_out": [
+        "Changing the shared-link quantisation, which is deliberate per docs/shared-link-threat-model.md:19.",
+        "Changing the tuple encoding, which src/sim/save.ts:26 justifies.",
+        "Breaking compatibility with any version currently accepted."
+      ],
+      "acceptance_criteria": [
+        "AC1: A migration has one declared place to live.",
+        "AC2: A save from every accepted version loads through the chain, covered by a test.",
+        "AC3: The lot-centre precision behaviour is either fixed or recorded, and pinned by a test that would fail if it changed.",
+        "AC4: No accepted save version stops loading."
+      ]
+    },
+    {
+      "title": "Make lint mean lint, and cover the scripts",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC8"
+      ],
+      "problem": [
+        "package.json:20 makes lint an alias for typecheck, so nothing checks style, unused code or common-error patterns. It would have caught the two discarded ringEntryRadius assignments in traffic.ts and the unused u at src/sim/rules.ts:196.",
+        "tsconfig.json:11 includes only src, so scripts/ and tests/ are unchecked. scripts/interact.mjs is 2121 lines -- the e2e suite -- with no static analysis at all.",
+        "tsconfig is strong where it counts (strict and noUncheckedIndexedAccess) but omits noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch and verbatimModuleSyntax.",
+        "package.json declares no engines.node, so the Node baseline is prose in CONTRIBUTING.md:21 and a .nvmrc that only CI reads."
+      ],
+      "scope_in": [
+        "One linter and formatter over src, scripts and tests, wired into the ci script.",
+        "Add the four tsconfig flags; leave exactOptionalPropertyTypes out as too disruptive to retrofit.",
+        "Add engines.node so npm and Render both see the contract.",
+        "Fix what the linter finds in one pass, separately from adopting it."
+      ],
+      "scope_out": [
+        "Reformatting the whole repo in the same commit as adopting the tool.",
+        "exactOptionalPropertyTypes.",
+        "Type-checking the .mjs scripts as TypeScript."
+      ],
+      "acceptance_criteria": [
+        "AC1: npm run lint runs a real linter over src, scripts and tests.",
+        "AC2: The ci script fails on a lint error.",
+        "AC3: The four tsconfig flags are on and the tree is clean under them.",
+        "AC4: engines.node states the baseline.",
+        "AC5: Adoption and the resulting fixes are separable in the history."
+      ]
+    },
+    {
+      "title": "Write down the conventions the code already follows",
+      "priority": "Low",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC7",
+        "AC9"
+      ],
+      "problem": [
+        "42 ponytail: comments mark deliberate simplifications with the condition that would justify replacing them -- a good practice, documented in neither CONTRIBUTING.md, README.md nor docs/. A new contributor cannot infer it.",
+        "tests/building-assets.mjs:46 uses deepEqual, so it forbids a manifest entry for tower.glb, block.glb, house.glb and shop.glb; declaring a roof for a tower would break the test, and those four ship unvalidated. docs/assets.md:29 describes the runtime fallback they rely on, which is accurate but does not say the test depends on their absence.",
+        ".gitignore does not cover .claude/, which is only excluded through .git/info/exclude on one machine."
+      ],
+      "scope_in": [
+        "Document the ponytail convention in CONTRIBUTING.md: a deliberate simplification with its revision condition, not a TODO.",
+        "Change the manifest assertion from equality to inclusion, so a hand-authored model may declare a roof, and extend the height checks to the four hand-authored models.",
+        "Note in docs/assets.md which models rely on the fallback and why.",
+        "Add .claude/ to .gitignore."
+      ],
+      "scope_out": [
+        "Changing what ponytail comments say.",
+        "Regenerating any GLB.",
+        "Changing the roof geometry format."
+      ],
+      "acceptance_criteria": [
+        "AC1: CONTRIBUTING.md defines the ponytail convention.",
+        "AC2: A manifest entry for a hand-authored model does not fail the asset test.",
+        "AC3: The four hand-authored models are height-checked or their exemption is recorded.",
+        "AC4: .claude/ is ignored for every contributor."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Orchestrate the structural work",
+    "plan": [
+      "Precondition: req_035, req_036, req_037 and req_038 are done. app.ts has 143 commits; refactoring it earlier turns every fix in those chains into a conflict.",
+      "Wave 1: the three-line architecture assertion on setTerrain, and the documentation and gitignore items. Cheap, immediate, no conflict surface.",
+      "Wave 2: the linter and tsconfig flags, adopting the tool and fixing its findings as separate commits.",
+      "Wave 3: the startApp extractions in the stated order, one commit each with npm run ci between.",
+      "Wave 4: the traffic and buildings splits, after req_037 has finished with those hot paths.",
+      "Wave 5: drawTool into app/, after req_035 item_106.",
+      "Wave 6: the dispose contract, then the save migration hook.",
+      "Behaviour must not change anywhere in this chain: an existing test needing an edit is a signal to stop and reconsider the seam."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/structural_seams.json",
+    "mode": "summary-only",
+    "profile": "deep"
+  }
+}

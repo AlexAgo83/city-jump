@@ -20,7 +20,8 @@
           "item_128_give_every_renderer_a_dispose",
           "item_129_give_the_save_format_somewhere_to_migrate",
           "item_130_make_lint_mean_lint_and_cover_the_scripts",
-          "item_131_write_down_the_conventions_the_code_already_follows"
+          "item_131_write_down_the_conventions_the_code_already_follows",
+          "item_135_declare_where_this_project_stands_on_translation"
         ],
         "prod": [
           "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
@@ -56,7 +57,7 @@
       },
       "path": "logics/architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md",
       "ref": "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before",
-      "status": "Proposed",
+      "status": "Accepted",
       "title": "Move the driving logic to sim when its tests exist, not before"
     }
   ],
@@ -78,7 +79,8 @@
           "item_128_give_every_renderer_a_dispose",
           "item_129_give_the_save_format_somewhere_to_migrate",
           "item_130_make_lint_mean_lint_and_cover_the_scripts",
-          "item_131_write_down_the_conventions_the_code_already_follows"
+          "item_131_write_down_the_conventions_the_code_already_follows",
+          "item_135_declare_where_this_project_stands_on_translation"
         ],
         "prod": [
           "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
@@ -309,7 +311,8 @@
           "item_128_give_every_renderer_a_dispose",
           "item_129_give_the_save_format_somewhere_to_migrate",
           "item_130_make_lint_mean_lint_and_cover_the_scripts",
-          "item_131_write_down_the_conventions_the_code_already_follows"
+          "item_131_write_down_the_conventions_the_code_already_follows",
+          "item_135_declare_where_this_project_stands_on_translation"
         ],
         "prod": [
           "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
@@ -329,11 +332,11 @@
     }
   ],
   "estimates": {
-    "char_count": 11820,
+    "char_count": 12003,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:01:55Z",
+  "generated_at": "2026-09-03T10:41:06Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,

@@ -1,0 +1,223 @@
+{
+  "title": "Harden the release path and the shared-link surface",
+  "references": [
+    ".github/workflows/render-release-deploy.yml",
+    "render.yaml",
+    "src/ui/hud.ts",
+    "src/sim/streets.ts",
+    "src/render/buildings.ts",
+    "src/render/kaiju.ts",
+    "docs/shared-link-threat-model.md",
+    "src/ui/controls.ts"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "A release tag cannot inject shell, and cannot be a branch.",
+      "A deploy that did not happen does not report success.",
+      "A city loaded from a link cannot put markup on the page.",
+      "A missing asset says it is missing."
+    ],
+    "context": [
+      "The deploy workflow is already well built and this request does not rewrite it. It resolves the tag to a SHA, checks package.json matches the tag, requires a green CI run on that exact SHA, has a concurrency group and minimal permissions. Three gaps sit around that good work.",
+      "render-release-deploy.yml:36 assigns release_tag from a raw ${{ }} interpolation, which the Actions template engine expands into the script body before bash sees it, in a job holding secrets.RENDER_DEPLOY_HOOK_URL. The later steps in the same file at :50, :64 and :79 all do it correctly through env:, so this is an inconsistency rather than a house style.",
+      "render-release-deploy.yml:43 resolves the tag with git rev-list, which accepts branches. Dispatching with main resolves to the branch tip and deploys unreleased HEAD, and the version check at :56 still passes because it reads package.json from that same SHA.",
+      "The workflow POSTs the deploy hook at :94 and exits on the HTTP 200. Nothing polls the resulting deploy or checks which commit Render built. Whether that matters depends on whether Render honours the ref query parameter for a static site deploy hook, which is NOT verified -- confirm it before building anything. If it does not, all three verification steps upstream are advisory and this is the most important item in the chain.",
+      "There is no XSS today: streetName (src/sim/streets.ts:59) composes from a fixed word list, and city names go through textContent (src/ui/controls.ts:542). But src/ui/hud.ts builds eight fragments with interpolated innerHTML, including row(\"Street\", info.street) at :187, and prod_007_a_city_you_can_point_at_and_name points at naming as a product direction. The day a street becomes nameable, that line is a vector fed by a shared link. Fix it while it is free.",
+      "docs/shared-link-threat-model.md covers the fragment cap, the decompression cap and parseCity, but says nothing about rendering what comes out. render.yaml sets HSTS, nosniff, Referrer-Policy, X-Frame-Options and Permissions-Policy but no CSP, and the app loads nothing cross-origin, so a CSP is near-zero friction.",
+      "render.yaml:9 rewrites /* to index.html. The app has no client-side routing -- only the #city= fragment -- so the rewrite buys nothing and turns every missing asset into a 200 of HTML, where JSON.parse and the GLB loader fail confusingly instead of saying the file is absent.",
+      "The immutable one-year cache on /buildings/* is NOT a defect and must not be 'fixed' by dropping it. Both the manifest and the GLBs carry ?v= (src/render/buildings.ts:1196 and :1207), kaiju.glb carries its own (src/render/kaiju.ts:18), and default-demo.json is fetched with cache: no-cache. Verified in history: the last commit touching public/buildings (ec2c24c) is the one that bumped the constant, and deb87c3 did the same for the kaiju. The residual risk is only that the two constants are hand-maintained, in two files, at diverging dates."
+    ],
+    "acceptance_criteria": [
+      "AC1: No shell in the deploy job takes a tag or dispatch input through raw template interpolation.",
+      "AC2: A dispatch with a branch name is refused before anything is deployed.",
+      "AC3: Whether Render honours the ref parameter is established and recorded, and the workflow reports failure when the intended commit was not deployed.",
+      "AC4: No value from a loaded city reaches the page through innerHTML.",
+      "AC5: A Content-Security-Policy is served, and the threat model records the rendering rule.",
+      "AC6: A request for a missing asset is not answered with 200 HTML.",
+      "AC7: One asset version constant exists and is derived rather than hand-maintained."
+    ]
+  },
+  "product": {
+    "title": "A release that proves it shipped, and a link that cannot write to the page",
+    "overview": "The deploy path verifies its own outcome and the client renders untrusted cities as text.",
+    "goals": [
+      "A tag cannot inject shell or name a branch.",
+      "A deploy reports what it actually deployed.",
+      "A shared city is rendered as text, always.",
+      "A missing file is diagnosable."
+    ],
+    "non_goals": [
+      "Link shortening, galleries, cloud saves or accounts, which docs/shared-link-threat-model.md:25 puts out of scope.",
+      "Replacing Render or adding a server.",
+      "Dropping the immutable cache on the building assets, which is correct as it stands.",
+      "Changing parseCity's validation."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Take the release tag out of the shell and refuse a branch",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC1",
+        "AC2"
+      ],
+      "problem": [
+        ".github/workflows/render-release-deploy.yml:36 expands a raw ${{ }} into a bash assignment in a job holding the deploy secret, while :50, :64 and :79 in the same file correctly use env:.",
+        "git rev-list at :43 resolves branches as well as tags, so a workflow_dispatch with main deploys unreleased HEAD and the package.json check at :56 cannot catch it."
+      ],
+      "scope_in": [
+        "Pass the tag through env: and read it as a shell variable, matching the three steps that already do.",
+        "Verify the ref is a tag with git rev-parse --verify refs/tags/<tag>^{commit} before resolving it.",
+        "Pin the actions in this workflow to SHAs, since it handles a deploy secret."
+      ],
+      "scope_out": [
+        "Restructuring the release process or the tag convention.",
+        "Changing the CI workflow, which req_036 owns."
+      ],
+      "acceptance_criteria": [
+        "AC1: No raw template interpolation appears inside a run block in this workflow.",
+        "AC2: A dispatch naming a branch fails before the deploy hook is called.",
+        "AC3: A dispatch naming a real tag still deploys.",
+        "AC4: Actions in this workflow are SHA-pinned."
+      ]
+    },
+    {
+      "title": "Establish whether the deploy hook honours the commit, then verify the outcome",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC3"
+      ],
+      "problem": [
+        "The workflow does real diligence -- tag to SHA, version match, green CI on that SHA -- then POSTs the hook at :94 and exits on the 200. Nothing confirms which commit Render built.",
+        "If Render ignores the ref query parameter for a static-site deploy hook, it builds the service's configured branch tip and the workflow still reports success, making all three upstream checks advisory.",
+        "This is unverified. It is a question to answer before it is a change to make."
+      ],
+      "scope_in": [
+        "Establish from Render's documentation or an observed deploy what ?ref= does for a static site deploy hook, and record the answer in this item.",
+        "If the ref is honoured, poll the deploy and assert the built commit equals RELEASE_SHA, failing the job otherwise.",
+        "If it is not honoured, record that the upstream checks are advisory and raise the alternative -- a Render API deploy naming the commit, or accepting and documenting the limit.",
+        "Consider a runbook in logics/runbook/ if the procedure turns out to be worth repeating."
+      ],
+      "scope_out": [
+        "Migrating off Render.",
+        "Changing autoDeploy or the branch configuration without a recorded decision."
+      ],
+      "acceptance_criteria": [
+        "AC1: The behaviour of ?ref= for this deploy hook is established and recorded, whichever way it falls.",
+        "AC2: If the commit can be verified, a deploy of the wrong commit fails the job.",
+        "AC3: If it cannot, the limit is documented where a reader of the workflow will find it."
+      ]
+    },
+    {
+      "title": "Render a loaded city as text, and say so in the threat model",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": [
+        "AC4",
+        "AC5"
+      ],
+      "problem": [
+        "src/ui/hud.ts builds eight fragments with interpolated innerHTML, including row(\"Street\", info.street) at :187. This is safe today only because streetName composes from a fixed word list, and prod_007 points at naming as a direction.",
+        "docs/shared-link-threat-model.md covers parsing a fragment but not rendering what comes out of it.",
+        "render.yaml serves five security headers but no CSP, and the app loads nothing cross-origin."
+      ],
+      "scope_in": [
+        "Replace the interpolated row helpers with node construction and textContent, using replaceChildren as showCityStats at src/ui/hud.ts:65 already does.",
+        "Add a CSP to render.yaml, at least default-src 'self', object-src 'none', base-uri 'none'.",
+        "Add a required control to docs/shared-link-threat-model.md: a value from a loaded city is rendered with textContent, never innerHTML.",
+        "Check the CSP does not break the inline style block or the four-line inline script in index.html; adjust the policy or move the style rather than dropping the policy."
+      ],
+      "scope_out": [
+        "Making streets nameable, which is a separate product decision.",
+        "Changing parseCity or the fragment caps.",
+        "Extracting the stylesheet for its own sake, which req_039 owns."
+      ],
+      "acceptance_criteria": [
+        "AC1: No city-derived value reaches the DOM through innerHTML.",
+        "AC2: The selection panel and the ledger render unchanged.",
+        "AC3: A CSP is served and the app still loads, draws and saves.",
+        "AC4: The threat model states the rendering rule."
+      ]
+    },
+    {
+      "title": "Let a missing asset be missing",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC6"
+      ],
+      "problem": [
+        "render.yaml:9 rewrites /* to index.html, so a mistyped or removed GLB or JSON path returns 200 with HTML. JSON.parse on a doctype and the Babylon GLB loader both fail confusingly instead of surfacing a missing file.",
+        "The app has no client-side routing: a shared city travels in the #city= fragment, per docs/shared-link-threat-model.md:15. The rewrite buys nothing."
+      ],
+      "scope_in": [
+        "Scope the rewrite to the document route or remove it.",
+        "Confirm a deep link with a fragment still loads, and that public/default-demo.json and the GLBs 404 when absent."
+      ],
+      "scope_out": [
+        "Adding a 404 page design.",
+        "Adding client-side routing.",
+        "Changing the cache headers, which are correct."
+      ],
+      "acceptance_claims": [],
+      "acceptance_criteria": [
+        "AC1: A request for a non-existent asset path returns 404, not 200 HTML.",
+        "AC2: The site still loads at its root and through a #city= link.",
+        "AC3: A missing bundled asset produces a diagnosable failure."
+      ]
+    },
+    {
+      "title": "Derive the asset version instead of maintaining two by hand",
+      "priority": "Low",
+      "complexity": "Low",
+      "theme": "Operator workflow",
+      "request_acs": [
+        "AC7"
+      ],
+      "problem": [
+        "BUILDING_ASSET_VERSION at src/render/buildings.ts:34 reads 2026-08-30-11 and KAIJU_ASSET_VERSION at src/render/kaiju.ts:11 reads 2026-09-01-01: two hand-maintained constants in two files at diverging dates.",
+        "The discipline has held so far -- ec2c24c bumped the building constant in the same commit as the last GLB change, deb87c3 did the same for the kaiju -- but nothing enforces it, and forgetting means returning visitors keep a stale model for up to a year.",
+        "The immutable cache itself is correct and must stay: the query parameter is what makes it safe."
+      ],
+      "scope_in": [
+        "One ASSET_VERSION shared by both call sites, derived from the package version at build time rather than typed.",
+        "A note at the declaration saying what the immutable cache in render.yaml depends on."
+      ],
+      "scope_out": [
+        "Content-hashing the GLB filenames at build time.",
+        "Changing the cache headers.",
+        "Changing how models are loaded."
+      ],
+      "acceptance_criteria": [
+        "AC1: One asset version constant serves both the building and kaiju loads.",
+        "AC2: It is derived, not hand-typed.",
+        "AC3: A shipped asset change reaches a returning visitor without a manual edit.",
+        "AC4: The dependency between the query parameter and the immutable cache is recorded at the declaration."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Orchestrate the release and client hardening",
+    "plan": [
+      "Wave 1: answer the Render ref question first -- it decides whether the deploy verification is a small addition or the most important item here.",
+      "Wave 2: the tag through env:, the tag-not-branch check and the SHA pins; these are mechanical and independent.",
+      "Wave 3: the deploy outcome verification, shaped by what wave 1 established.",
+      "Wave 4: node construction in the HUD, then the CSP, then the threat model control -- in that order, so the policy lands on code that already complies.",
+      "Wave 5: the rewrite scoping and the derived asset version.",
+      "Do not drop the immutable cache on /buildings/*: the ?v= parameter is what makes it correct."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/release_and_client_hardening.json",
+    "mode": "summary-only",
+    "profile": "normal"
+  }
+}

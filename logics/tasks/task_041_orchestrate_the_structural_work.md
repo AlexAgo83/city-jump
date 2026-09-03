@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:40:52
 
 # AI Context
 - Summary: Six waves of structural work that must change no behaviour, gated on the other four chains being complete.
@@ -40,6 +41,7 @@
 - `item_129_give_the_save_format_somewhere_to_migrate`
 - `item_130_make_lint_mean_lint_and_cover_the_scripts`
 - `item_131_write_down_the_conventions_the_code_already_follows`
+- `item_135_declare_where_this_project_stands_on_translation`
 
 # Definition of Done (DoD)
 - [ ] Generated request, product, backlog, and task docs are present.

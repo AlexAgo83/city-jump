@@ -1,0 +1,224 @@
+{
+  "title": "Make the verification gates able to fail",
+  "references": [
+    "scripts/run-scenarios.mjs",
+    "scripts/balance.mjs",
+    "scripts/perf.mjs",
+    "balance/history.jsonl",
+    "perf/history.jsonl",
+    "package.json",
+    ".github/workflows/ci.yml",
+    "README.md",
+    "SECURITY.md",
+    "docs/static-site-blueprint.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Project reliability",
+    "needs": [
+      "A harness that finds the balance out of band stops the build instead of printing it.",
+      "The recorded evidence describes the commit that is shipping, not one 77 commits behind.",
+      "A document that states a version states the version that is shipping.",
+      "One push runs the gate once."
+    ],
+    "context": [
+      "This is the highest-value chain of the five. The other four fix defects; this one is what stops the next ones shipping unnoticed. Three harnesses already exist, already produce the right signal, and already gate nothing.",
+      "run-scenarios.mjs computes offTarget at :48 and prints it at :51, but scenario() returns {runs, fought, offTarget} and all three call sites at the bottom of the file discard the return value. There is no process.exit anywhere in the file. Verified: it cannot fail a build even if wired.",
+      "The signal it would give is already bad. The last balance/history.jsonl entry records 3 of 6 seeds holding, averageTreasury -120868, and one seed at -778058. That outlier is an order of magnitude past the others, which points at an unbounded spend loop rather than a mis-tuned cost. Suspects in order: the marginal-lot rebuild loop, the homeless drain at src/sim/economy.ts:159 that the comments blame for emptying the island, and the double workforce allocation that req_035 owns as item_102.",
+      "Sequencing matters. Wiring the gate into npm run ci while the band is violated makes CI permanently red, and a permanently red gate is not a gate. Make it able to fail on a branch, read what it says, fix the balance, then merge the wiring.",
+      "perf/history.jsonl stops at commit 906f143, 77 commits behind HEAD, and its last three entries carry dirty: true, so they are not reproducible. CONTRIBUTING.md:38 requires rendering work meant to be faster to show it; the record cannot support that claim now.",
+      "The e2e and visual suites are deliberately local and must stay that way. CONTRIBUTING.md:48 gives the reason -- no GPU on the runners, every wait polls per frame, so the suite would test the runner rather than the app. That argument does not apply to scenarios or balance, which are pure Node.",
+      "Three documents state 0.2.0 while package.json is 0.4.0: README.md:7, SECURITY.md:9 which declares the shipping line unsupported, and docs/static-site-blueprint.md:8. This is not cosmetic: .github/workflows/render-release-deploy.yml:55 hard-fails unless the tag matches package.json, so following the blueprint produces a failed deploy. Two releases have passed without these being updated, so the fix is a scripted check rather than a third manual correction."
+    ],
+    "acceptance_criteria": [
+      "AC1: A scenario run outside the target band exits non-zero.",
+      "AC2: The balance scenario holds within its declared band, or the band is changed deliberately with its rationale recorded.",
+      "AC3: The performance record refuses a measurement taken on a dirty tree unless explicitly allowed.",
+      "AC4: A recorded performance measurement exists for a commit at or after the frame-cost work.",
+      "AC5: A version stated in a shipped document that disagrees with package.json fails the local gate.",
+      "AC6: One push to a pull request branch runs the CI gate once.",
+      "AC7: npm run ci passes on a clean clone after npm ci alone."
+    ]
+  },
+  "product": {
+    "title": "Evidence that stops the build",
+    "overview": "Every harness that produces a signal can fail the gate that reads it.",
+    "goals": [
+      "A harness that finds a problem stops the build.",
+      "The recorded evidence matches the commit that is shipping.",
+      "A shipped document cannot contradict package.json.",
+      "The gate a contributor is told to run works from a clean clone."
+    ],
+    "non_goals": [
+      "Moving the browser interaction or visual suites into GitHub Actions; CONTRIBUTING.md:48 settles that.",
+      "Adding new measurement harnesses.",
+      "Fixing the frame cost itself, which req_037 owns.",
+      "Hardening the deploy workflow, which req_038 owns."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Let the scenario harness exit non-zero",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC1"
+      ],
+      "problem": [
+        "scripts/run-scenarios.mjs:48 computes offTarget and :51 prints it, but the three scenario() calls at the bottom of the file discard the returned {runs, fought, offTarget} and the file contains no process.exit. The harness cannot fail anything.",
+        "npm run scenarios is not in the ci script, and unlike test:e2e and test:visual there is no reason it should not be: it is pure Node with no browser and no GPU."
+      ],
+      "scope_in": [
+        "Collect the three scenario() results and exit non-zero when any wave falls outside the 20-40s / 5-8 salvo band, naming the offending scenario and seed.",
+        "Keep the printed summary for a passing run.",
+        "Add npm run scenarios to the ci script only once the band is met, so the gate does not land red."
+      ],
+      "scope_out": [
+        "Changing the target band, which item AC2 owns deliberately.",
+        "Adding the browser suites to CI.",
+        "Changing what the scenarios simulate."
+      ],
+      "acceptance_criteria": [
+        "AC1: A run with a wave outside the band exits non-zero and names the scenario and seed.",
+        "AC2: A run inside the band exits zero and still prints its summary.",
+        "AC3: The ci script includes scenarios only when the band is met on main."
+      ]
+    },
+    {
+      "title": "Bring the first run back inside its declared band",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "City simulation core",
+      "request_acs": [
+        "AC2"
+      ],
+      "problem": [
+        "The last balance/history.jsonl entry records 3 of 6 seeds holding, averageTreasury -120868, and a seed at -778058. The harness is working; nobody has read it.",
+        "The -778058 outlier is an order of magnitude past the others, which reads as an unbounded spend loop rather than mis-tuned costs.",
+        "Suspects, in order: the marginal-lot rebuild loop that CHANGELOGS_0_4_0.md says was fixed with a 120 s hysteresis, though the balance entry postdates that; the homeless drain at src/sim/economy.ts:159, blamed in the comments for emptying the island; and the double workforce allocation that req_035 item_102 owns."
+      ],
+      "scope_in": [
+        "Reproduce the -778058 seed and find where the money goes, before changing any tuning value.",
+        "Land item_102 from req_035 first and re-run, since a city paying for buildings it does not count as productive would produce exactly this shape.",
+        "Change tuning only after the unbounded path, if any, is closed.",
+        "Record the balance output at each step in balance/history.jsonl.",
+        "If the band itself is wrong, change it deliberately and record the rationale in this item rather than widening it to pass."
+      ],
+      "scope_out": [
+        "Redesigning the economy or the wave rules.",
+        "Changing the scenario definitions to avoid the failure."
+      ],
+      "acceptance_criteria": [
+        "AC1: The cause of the -778058 seed is identified and recorded, whether or not it is a defect.",
+        "AC2: No seed ends with a treasury an order of magnitude outside the others.",
+        "AC3: The scenario band is met, or the band is changed with a recorded rationale.",
+        "AC4: Before and after balance runs are both recorded."
+      ]
+    },
+    {
+      "title": "Refuse a performance measurement from a dirty tree",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC3",
+        "AC4"
+      ],
+      "problem": [
+        "The last three perf/history.jsonl entries carry dirty: true, so they cannot be reproduced from any commit. A non-reproducible measurement in the historical record is worse than an absent one, because docs/performance.md:6 treats that file as the record.",
+        "The record stops at 906f143, 77 commits behind HEAD, while CONTRIBUTING.md:38 requires rendering work meant to be faster to show it."
+      ],
+      "scope_in": [
+        "Refuse to append to perf/history.jsonl when the tree is dirty, unless --allow-dirty is passed.",
+        "Take a fresh baseline on a clean HEAD so req_037 has something to compare against.",
+        "A .gitattributes union merge driver for perf/history.jsonl and balance/history.jsonl, which are append-only records that conflict on every branch."
+      ],
+      "scope_out": [
+        "Changing what perf measures or its thresholds.",
+        "Running perf in CI, which has no GPU."
+      ],
+      "acceptance_criteria": [
+        "AC1: A perf run on a dirty tree does not append without --allow-dirty.",
+        "AC2: A clean baseline for current HEAD exists in the record.",
+        "AC3: Two branches appending to either history file merge without conflict."
+      ]
+    },
+    {
+      "title": "Fail the gate when a shipped document misstates the version",
+      "priority": "High",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC5"
+      ],
+      "problem": [
+        "README.md:7 states 0.2.0, SECURITY.md:9 declares 0.2.x supported and the shipping 0.4.x line unsupported, and docs/static-site-blueprint.md:8 states version 0.2.0 and tag v0.2.0.",
+        "Following the blueprint produces a failed deploy, because .github/workflows/render-release-deploy.yml:55 requires the tag to match package.json.",
+        "Two releases have passed without these being updated, so a third manual correction would not hold."
+      ],
+      "scope_in": [
+        "Correct the three documents.",
+        "A scripts/check-versions.mjs that reads package.json and fails when a shipped document disagrees, wired into the ci script.",
+        "Cover README.md's badge, SECURITY.md's supported table and the blueprint's version and tag lines."
+      ],
+      "scope_out": [
+        "Automating the release version bump itself.",
+        "Restructuring the changelog convention."
+      ],
+      "acceptance_criteria": [
+        "AC1: The three documents agree with package.json.",
+        "AC2: Editing package.json's version without the documents fails the local gate.",
+        "AC3: The check names each disagreeing file and the value it found."
+      ]
+    },
+    {
+      "title": "Run the CI gate once per push, and from a clean clone",
+      "priority": "Medium",
+      "complexity": "Low",
+      "theme": "Project reliability",
+      "request_acs": [
+        "AC6",
+        "AC7"
+      ],
+      "problem": [
+        ".github/workflows/ci.yml:3 has on: push with no branches filter plus on: pull_request, so every push to a pull request branch triggers two identical runs. The repo has a product brief named prod_003_ci_that_respects_a_limited_actions_budget.",
+        "There is no concurrency group, so superseded runs keep going; render-release-deploy.yml:17 already has the pattern to copy.",
+        "ci.yml:20 installs @grifhinz/logics-manager globally, uncached, and it is not in devDependencies. npm run ci -- which CONTRIBUTING.md:31 presents as the gate to run before a pull request -- therefore fails on a clean clone, and neither CONTRIBUTING.md nor LOGICS.md documents the global install.",
+        "Neither job sets timeout-minutes."
+      ],
+      "scope_in": [
+        "Restrict the push trigger to main and add a concurrency group.",
+        "Move @grifhinz/logics-manager into devDependencies so npm ci provides it and the cache covers it.",
+        "Add timeout-minutes to both jobs.",
+        "Verify npm ci followed by npm run ci passes on a fresh clone."
+      ],
+      "scope_out": [
+        "Pinning actions to SHAs, which req_038 owns for the deploy workflow.",
+        "Adding the browser suites to CI."
+      ],
+      "acceptance_criteria": [
+        "AC1: A push to a pull request branch triggers one CI run.",
+        "AC2: A superseded run is cancelled.",
+        "AC3: npm ci then npm run ci passes on a clean clone with no global install.",
+        "AC4: Both jobs have a timeout."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Orchestrate the verification gates",
+    "plan": [
+      "Wave 1: give run-scenarios.mjs an exit code and the version check its script, but do not wire scenarios into ci yet.",
+      "Wave 2: read what the scenario harness now says; land req_035 item_102 and re-run before touching any tuning value.",
+      "Wave 3: close whatever unbounded spend the -778058 seed exposes, then bring the band back and wire scenarios into ci.",
+      "Wave 4: the dirty-tree guard, a clean perf baseline for HEAD, and the union merge driver.",
+      "Wave 5: the CI trigger, concurrency, devDependency and timeouts, verified from a fresh clone.",
+      "Do not merge a gate that is red on main: a permanently failing gate is not a gate."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/verification_gates.json",
+    "mode": "summary-only",
+    "profile": "normal"
+  }
+}

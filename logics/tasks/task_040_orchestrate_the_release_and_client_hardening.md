@@ -8,6 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:40:52
 
 # AI Context
 - Summary: Answer the Render ref question first -- it decides whether deploy verification is a small addition or the most important item -- then harden the tag and the rendering path.
@@ -35,6 +36,8 @@
 - `item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model`
 - `item_122_let_a_missing_asset_be_missing`
 - `item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand`
+- `item_134_configure_the_release_contract_and_record_what_shipped`
+- `item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release`
 
 # Definition of Done (DoD)
 - [ ] Generated request, product, backlog, and task docs are present.

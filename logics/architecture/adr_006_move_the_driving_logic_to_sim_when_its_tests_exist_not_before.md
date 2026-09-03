@@ -1,6 +1,6 @@
 ## adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before - Move the driving logic to sim when its tests exist, not before
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Accepted
 > Related request: `req_039_give_the_code_its_seams_back`
 > Related backlog: `item_125_move_the_driving_logic_where_a_test_can_reach_it`
 > Related task: `task_041_orchestrate_the_structural_work`

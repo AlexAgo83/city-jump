@@ -35,7 +35,9 @@
           "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
-          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
+          "item_134_configure_the_release_contract_and_record_what_shipped",
+          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
         ],
         "prod": [
           "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
@@ -68,7 +70,9 @@
           "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
-          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
+          "item_134_configure_the_release_contract_and_record_what_shipped",
+          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
         ],
         "prod": [
           "prod_007_a_city_you_can_point_at_and_name",
@@ -225,38 +229,16 @@
       "title": "Derive the asset version instead of maintaining two by hand"
     },
     {
-      "ai_context": {},
-      "kind": "product",
-      "linked_refs": {
-        "item": [
-          "item_034_chain_road_segments_into_streets_that_survive_a_split"
-        ],
-        "prod": [
-          "prod_007_a_city_you_can_point_at_and_name"
-        ],
-        "req": [
-          "req_010_name_the_streets_number_the_buildings_and_open_a_detail_panel_on_anything_you_click"
-        ],
-        "task": [
-          "task_012_implement_street_names_building_addresses_and_the_extended_detail_panel"
-        ]
+      "ai_context": {
+        "keywords": "release contract, release discover, release evidence, readiness, not_configured",
+        "skip when": "hardening the deploy workflow itself, which item_119 and item_120 own.",
+        "summary": "`logics-manager release status` answers not_configured, so the contract Logics expects for release readiness has never existed -- while three versions have been tagged and deployed. This chain hardens the release path without it.",
+        "use when": "preparing a release, or claiming a version is ready to ship."
       },
-      "path": "logics/product/prod_007_a_city_you_can_point_at_and_name.md",
-      "ref": "prod_007_a_city_you_can_point_at_and_name",
-      "schema_version": "1.0",
-      "status": "Settled",
-      "title": "A city you can point at and name"
-    },
-    {
-      "ai_context": {},
-      "kind": "product",
+      "kind": "backlog",
       "linked_refs": {
         "item": [
-          "item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch",
-          "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
-          "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
-          "item_122_let_a_missing_asset_be_missing",
-          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+          "item_134_configure_the_release_contract_and_record_what_shipped"
         ],
         "prod": [
           "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
@@ -268,11 +250,39 @@
           "task_040_orchestrate_the_release_and_client_hardening"
         ]
       },
-      "path": "logics/product/prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page.md",
-      "ref": "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page",
+      "path": "logics/backlog/item_134_configure_the_release_contract_and_record_what_shipped.md",
+      "ref": "item_134_configure_the_release_contract_and_record_what_shipped",
       "schema_version": "1.0",
-      "status": "Proposed",
-      "title": "A release that proves it shipped, and a link that cannot write to the page"
+      "status": "Ready",
+      "title": "Configure the release contract and record what shipped"
+    },
+    {
+      "ai_context": {
+        "keywords": "undeployed commits, v0.4.0, 0.4.1, release decision, production drift",
+        "skip when": "hardening the deploy mechanism, which item_119, item_120 and item_134 own.",
+        "summary": "Production runs v0.4.0 exactly (b7f551cf, verified against the live Render service). HEAD is fifteen commits ahead and those commits carry real fixes, including a saved simulation clock without which a reload un-built the city.",
+        "use when": "deciding whether to cut a version, or asking what players are actually running."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
+        ],
+        "prod": [
+          "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
+        ],
+        "req": [
+          "req_038_harden_the_release_path_and_the_shared_link_surface"
+        ],
+        "task": [
+          "task_040_orchestrate_the_release_and_client_hardening"
+        ]
+      },
+      "path": "logics/backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md",
+      "ref": "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Decide whether the fifteen commits past 0.4.0 are a release"
     },
     {
       "ai_context": {
@@ -288,7 +298,9 @@
           "item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome",
           "item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model",
           "item_122_let_a_missing_asset_be_missing",
-          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand"
+          "item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand",
+          "item_134_configure_the_release_contract_and_record_what_shipped",
+          "item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release"
         ],
         "prod": [
           "prod_029_a_release_that_proves_it_shipped_and_a_link_that_cannot_write_to_the_page"
@@ -308,11 +320,11 @@
     }
   ],
   "estimates": {
-    "char_count": 11637,
+    "char_count": 12792,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:01:57Z",
+  "generated_at": "2026-09-03T10:41:05Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,

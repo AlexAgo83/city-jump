@@ -9,7 +9,7 @@
 | [adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views](architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md) | Rebuild terrain roads plots and buildings as derived views | Settled |  |  | architecture/adr_003_rebuild_terrain_roads_plots_and_buildings_as_derived_views.md |
 | [adr_004_stay_a_static_client_with_no_server_of_its_own](architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md) | Stay a static client with no server of its own | Settled |  |  | architecture/adr_004_stay_a_static_client_with_no_server_of_its_own.md |
 | [adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision](architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md) | One harness drives the real simulation, and no test shortcuts a player decision | Proposed |  |  | architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md |
-| [adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before](architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md) | Move the driving logic to sim when its tests exist, not before | Proposed |  |  | architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md |
+| [adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before](architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md) | Move the driving logic to sim when its tests exist, not before | Accepted |  |  | architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md |
 
 ## Product briefs
 
@@ -236,6 +236,9 @@
 | [item_131_write_down_the_conventions_the_code_already_follows](backlog/item_131_write_down_the_conventions_the_code_already_follows.md) | Write down the conventions the code already follows | Ready |  | 0% | backlog/item_131_write_down_the_conventions_the_code_already_follows.md |
 | [item_132_stop_a_city_with_no_utilities_dying_outright](backlog/item_132_stop_a_city_with_no_utilities_dying_outright.md) | Stop a city with no utilities dying outright | Ready |  | 0% | backlog/item_132_stop_a_city_with_no_utilities_dying_outright.md |
 | [item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it](backlog/item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it.md) | Make the performance scenario measure a city with buildings in it | Ready |  | 0% | backlog/item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it.md |
+| [item_134_configure_the_release_contract_and_record_what_shipped](backlog/item_134_configure_the_release_contract_and_record_what_shipped.md) | Configure the release contract and record what shipped | Ready |  | 0% | backlog/item_134_configure_the_release_contract_and_record_what_shipped.md |
+| [item_135_declare_where_this_project_stands_on_translation](backlog/item_135_declare_where_this_project_stands_on_translation.md) | Declare where this project stands on translation | Ready |  | 0% | backlog/item_135_declare_where_this_project_stands_on_translation.md |
+| [item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release](backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md) | Decide whether the fifteen commits past 0.4.0 are a release | Ready |  | 0% | backlog/item_136_decide_whether_the_fifteen_commits_past_0_4_0_are_a_release.md |
 
 ## Tasks
 
