@@ -14,9 +14,10 @@
     "ablate": "node scripts/with-dev-server.mjs scripts/ablate.mjs",
     "check:versions": "node scripts/check-versions.mjs",
     "typecheck": "tsc",
-    "lint": "npm run typecheck",
+    "lint": "biome lint src scripts tests",
+    "format": "biome format --write src scripts tests",
     "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc && logics-manager i18n validate",
-    "ci": "npm run check:versions && npm test && npm run test:architecture && npm run scenarios && npm run build && npm run logics:validate",
+    "ci": "npm run check:versions && npm run lint && npm test && npm run test:architecture && npm run scenarios && npm run build && npm run logics:validate",
     "release:static": "npm run ci",
     "verify": "npm run test:visual",
     "check": "npm run test:e2e",
@@ -36,8 +37,12 @@
   "author": "Alexandre Agostini",
   "homepage": "https://city-jump.onrender.com/",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "description": "A browser-based 3D city builder where roads, terrain, buildings, and traffic derive from a playable road graph.",
   "devDependencies": {
+    "@biomejs/biome": "^2.5.12",
     "@grifhinz/logics-manager": "^2.23.0",
     "playwright": "^1.62.1",
     "typescript": "^7.0.2",
