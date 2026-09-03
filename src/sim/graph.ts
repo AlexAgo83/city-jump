@@ -1,4 +1,4 @@
-import { type Vec3, v3, lerp, distXZ, normalizeXZ, sub } from "./vec";
+import { type Vec3, v3, lerp, distXZ, normalizeXZ, sub, smoothstep01 } from "./vec";
 import { terrainHeight } from "./terrain";
 import { DEFAULT_ROAD_TYPE, roadType } from "./roadTypes";
 import { angleBetween, OPPOSITE_BEARING_TOLERANCE } from "./facing";
@@ -100,12 +100,7 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE,
 }
 
 function tunnelDrop(t: number, depth: number): number {
-  return depth * 2.2 * Math.min(smoothstep(t / 0.18), smoothstep((1 - t) / 0.18));
-}
-
-function smoothstep(t: number): number {
-  const c = Math.min(1, Math.max(0, t));
-  return c * c * (3 - 2 * c);
+  return depth * 2.2 * Math.min(smoothstep01(t / 0.18), smoothstep01((1 - t) / 0.18));
 }
 
 function smoothHeights(heights: number[]): number[] {
@@ -219,6 +214,10 @@ export class RoadGraph {
     return this.segments.has(id);
   }
 
+  /**
+   * Live node views are internal to the sim; callers may read `segments`, but only RoadGraph
+   * mutates it. Returning clones would widen every render path for no runtime safety.
+   */
   allNodes(): RoadNode[] {
     return [...this.nodes.values()];
   }
@@ -256,6 +255,8 @@ export class RoadGraph {
 
   /** Evenly spaced points along the segment, spacing measured on the ground. */
   pointsEvery(id: SegmentId, spacing: number, from = 0, to?: number): PointOnSegment[] {
+    // Fail closed on caller bugs: spacing <= 0 would never advance this loop.
+    if (spacing <= 0) return [];
     const seg = this.segment(id);
     const end = to ?? seg.length;
     const out: PointOnSegment[] = [];
@@ -392,22 +393,4 @@ function upperIndex(cumulative: readonly number[], d: number): number {
     else hi = mid;
   }
   return lo;
-}
-
-function splitBuilt(seg: Segment, mid: Vec3, t: number, distance: number) {
-  const i = upperIndex(seg.cumulative, distance);
-  const leftSamples = [...seg.samples.slice(0, i), mid];
-  const rightSamples = [mid, ...seg.samples.slice(i)];
-  const leftTs = [...seg.ts.slice(0, i), t];
-  const rightTs = [t, ...seg.ts.slice(i)];
-  return {
-    left: rebuildBuilt(leftSamples, leftTs),
-    right: rebuildBuilt(rightSamples, rightTs),
-  };
-}
-
-function rebuildBuilt(samples: Vec3[], ts: number[]) {
-  const cumulative = [0];
-  for (let i = 1; i < samples.length; i++) cumulative.push(cumulative[i - 1]! + distXZ(samples[i - 1]!, samples[i]!));
-  return { samples, ts, cumulative, length: cumulative[cumulative.length - 1]! };
 }

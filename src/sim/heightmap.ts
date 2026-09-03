@@ -3,7 +3,7 @@ import type { RoadGraph } from "./graph";
 import { roadType } from "./roadTypes";
 import { allJunctions, ringElevation, type JunctionGeometry } from "./junction";
 import type { BuildingParcel } from "./slots";
-import type { Vec3 } from "./vec";
+import { smoothstep01, type Vec3 } from "./vec";
 
 /** How far past the kerb the ground blends back to what it was. */
 export const EMBANKMENT = 10;
@@ -265,7 +265,7 @@ export class Heightmap implements Terrain {
         if (distance <= half) {
           this.current[index] = bed;
         } else {
-          const t = smoothstep((distance - half) / (reach - half));
+          const t = smoothstep01((distance - half) / (reach - half));
           this.current[index] = bed + (this.base[index]! - bed) * t;
         }
       }
@@ -329,7 +329,7 @@ export class Heightmap implements Terrain {
           this.current[index] = y - ROAD_BED_DROP;
         } else {
           const bed = edgeY - ROAD_BED_DROP;
-          const t = smoothstep(distance / reach);
+          const t = smoothstep01(distance / reach);
           this.current[index] = bed + (this.base[index]! - bed) * t;
         }
       }
@@ -367,7 +367,7 @@ export class Heightmap implements Terrain {
         const claim = outside + bias;
         if (claim >= this.claim[index]!) continue;
         this.claim[index] = claim;
-        const t = smoothstep(outside / reach);
+        const t = smoothstep01(outside / reach);
         this.current[index] = parcel.position.y + (this.base[index]! - parcel.position.y) * t;
       }
     }
@@ -377,11 +377,6 @@ export class Heightmap implements Terrain {
 function parcelStampBias(parcel: BuildingParcel): number {
   return (Math.abs(Math.round(parcel.position.x * 100) * 31 + Math.round(parcel.position.z * 100) * 17) % 997) * 1e-9;
 }
-
-const smoothstep = (t: number): number => {
-  const c = Math.min(1, Math.max(0, t));
-  return c * c * (3 - 2 * c);
-};
 
 /** Ray-casting point-in-polygon test over the ground plane. Works for any simple ring. */
 function pointInRingXZ(ring: readonly Vec3[], x: number, z: number): boolean {
@@ -479,15 +474,15 @@ export function rollingHills(amplitude = 6, wavelength = 900, roughness = 0): (x
       peak(0, 0, 19, 300) +
       ridge;
     const r = Math.hypot(x, z);
-    const coast = smoothstep((r - 1520) / 520);
-    const deep = smoothstep((r - 1960) / 720);
+    const coast = smoothstep01((r - 1520) / 520);
+    const deep = smoothstep01((r - 1960) / 720);
     let base = 10 + mountain + hills - coast * 60 - deep * 90;
     if (roughness) {
-      const lakeGuard = (SEA_LEVEL + 8 - base) * (1 - smoothstep((r - 1180) / 360));
+      const lakeGuard = (SEA_LEVEL + 8 - base) * (1 - smoothstep01((r - 1180) / 360));
       if (lakeGuard > 0) base += lakeGuard;
     }
-    const mountainMask = smoothstep((base - 52) / 34);
-    const inlandMask = 1 - smoothstep((r - 1120) / 520);
+    const mountainMask = smoothstep01((base - 52) / 34);
+    const inlandMask = 1 - smoothstep01((r - 1120) / 520);
     return base + rough * mountainMask * inlandMask;
   };
 }

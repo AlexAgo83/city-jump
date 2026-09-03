@@ -23,3 +23,15 @@ export function normalizeXZ(a: Vec3): Vec3 {
 
 /** Rotate a ground direction a quarter turn: the road's left-hand normal. */
 export const perpXZ = (a: Vec3): Vec3 => v3(-a.z, 0, a.x);
+
+/** Smallest turn from one bearing to the other, in [0, PI]. */
+export function angleBetween(a: number, b: number): number {
+  const d = Math.abs(a - b) % (Math.PI * 2);
+  return d > Math.PI ? Math.PI * 2 - d : d;
+}
+
+/** Eases 0 -> 1 for sim geometry blends; clamp here so callers do not each own it. */
+export function smoothstep01(t: number): number {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+}

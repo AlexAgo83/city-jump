@@ -120,6 +120,13 @@ describe("arc-length parameterisation", () => {
     expect(g.pointsEvery(arc.id, 8)).toHaveLength(g.pointsEvery(line.id, 8).length);
   });
 
+  it("returns no samples when spacing cannot advance", () => {
+    const g = new RoadGraph();
+    const { id } = straight(g, 0, 0, 40, 0);
+    expect(g.pointsEvery(id, 0)).toEqual([]);
+    expect(g.pointsEvery(id, -1)).toEqual([]);
+  });
+
   it("clamps a distance past the end to the end", () => {
     const g = new RoadGraph();
     const { id } = straight(g, 0, 0, 40, 0);

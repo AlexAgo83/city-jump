@@ -54,7 +54,7 @@ export function createKaijuAssault(position: Vec3): KaijuAssaultState {
 }
 
 export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonly Vec3[], dtSeconds: number, speed: number = WAVE_STARTING_VALUES.kaijuSpeedMps, attackDuration = KAIJU_ATTACK_SECONDS): KaijuAssaultState {
-  const targets = state.destroyed ? buildings.filter((building) => !sameXZ(building, state.destroyed!)) : [...buildings];
+  let targets = state.destroyed ? buildings.filter((building) => !sameXZ(building, state.destroyed!)) : [...buildings];
   let position = state.position;
   let target = state.target && targets.some((building) => sameXZ(building, state.target!)) ? state.target : nearest(targets, state.position);
   let mode: KaijuAssaultState["mode"] = !target ? "idle" : state.mode === "attacking" && sameXZ(target, state.position) ? "attacking" : "walking";
@@ -62,7 +62,8 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
   let remaining = Math.max(0, dtSeconds);
   let destroyed: Vec3 | null = null;
 
-  while (target && remaining > 0 && !destroyed) {
+  // Drain large ticks too: tests and future callers are not all locked to the 0.25 s combat step.
+  while (target && remaining > 0) {
     const distance = distXZ(position, target);
     if (distance > 0) {
       const travel = Math.min(distance, remaining * speed);
@@ -76,7 +77,8 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
     remaining -= attack;
     if (attackSeconds >= attackDuration) {
       destroyed = target;
-      target = nearest(targets.filter((building) => !sameXZ(building, destroyed!)), position);
+      targets = targets.filter((building) => !sameXZ(building, destroyed!));
+      target = nearest(targets, position);
       mode = target ? "walking" : "idle";
       attackSeconds = 0;
     }

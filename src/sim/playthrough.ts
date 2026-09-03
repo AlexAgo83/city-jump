@@ -4,7 +4,7 @@ import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "
 import { buildingBuildCost, CityEconomy, incomePerSecond, rebuildingCost as rebuildCharge, Treasury } from "./economy";
 import { RoadGraph } from "./graph";
 import { Rubble } from "./rubble";
-import { commitSegment, resolveSnap } from "./rules";
+import { commitSegment, resolveSnap, validateSegment } from "./rules";
 import { createRun, DEFAULT_RUN_RULES, defeat, endIfPopulationZero, settleWave, type RunRules, type RunState } from "./run";
 import { buildableCells, buildingParcels, lotsInRect, lotsWithin, parcelsForDemand, type BuildingParcel } from "./slots";
 import { setTerrain, flatTerrain } from "./terrain";
@@ -136,8 +136,18 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   const expand = (kind: BuildingKind): boolean => {
     if (expansions >= 8) return false;
     const z = 410 + expansions * 50;
-    const spine = commitSegment(graph, resolveSnap(graph, -200, z - 50), resolveSnap(graph, -200, z), v3(-200, 0, z - 25), "street");
-    const street = commitSegment(graph, resolveSnap(graph, -220, z), resolveSnap(graph, 80, z), v3(-70, 0, z), kind === "military" ? "military" : "street");
+    const spineFrom = resolveSnap(graph, -200, z - 50);
+    const spineTo = resolveSnap(graph, -200, z);
+    const spineControl = v3(-200, 0, z - 25);
+    const streetFrom = resolveSnap(graph, -220, z);
+    const streetTo = resolveSnap(graph, 80, z);
+    const streetControl = v3(-70, 0, z);
+    const streetType = kind === "military" ? "military" : "street";
+    // The expansion is atomic from the harness' point of view: both roads must validate first.
+    if (!validateSegment(spineFrom.position, spineControl, spineTo.position, "street").ok) return false;
+    if (!validateSegment(streetFrom.position, streetControl, streetTo.position, streetType).ok) return false;
+    const spine = commitSegment(graph, spineFrom, spineTo, spineControl, "street");
+    const street = commitSegment(graph, streetFrom, streetTo, streetControl, streetType);
     if (!spine.ok || !street.ok) return false;
     zones.paintLots(lotsWithin(buildableCells(graph), -70, z, 70), kind);
     expansions += 1;

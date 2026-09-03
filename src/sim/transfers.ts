@@ -9,7 +9,7 @@
 import type { NodeId, RoadGraph, SegmentId } from "./graph";
 import { ringElevation, widestIncidentRoad, type JunctionArm, type JunctionGeometry } from "./junction";
 import { roadType, walkCentres } from "./roadTypes";
-import { distXZ, normalizeXZ, perpXZ, sub, v3, type Vec3 } from "./vec";
+import { distXZ, normalizeXZ, perpXZ, smoothstep01, sub, v3, type Vec3 } from "./vec";
 
 /**
  * Turns a heading towards another at a bounded rate, the short way round. A path is a polyline,
@@ -25,11 +25,7 @@ export function approachAngle(current: number, target: number, maxStep: number):
   return current + Math.sign(delta) * maxStep;
 }
 
-/** Eases 0 -> 1, so a transfer leans out of one line and settles into the next. */
-export function smoothstep01(t: number): number {
-  const c = Math.min(1, Math.max(0, t));
-  return c * c * (3 - 2 * c);
-}
+export { smoothstep01 } from "./vec";
 
 /** Points along a quadratic Bezier, elevation carried through the same weights. */
 export function sampleQuadratic(a: Vec3, control: Vec3, b: Vec3, steps: number): Vec3[] {

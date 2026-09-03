@@ -66,4 +66,17 @@ describe("kaiju", () => {
     expect(retargeted.destroyed).toEqual(first);
     expect(retargeted.target).toEqual(bait);
   });
+
+  it("drains a large tick after destroying a target", () => {
+    const first = v3(0, 0, 0);
+    const second = v3(10, 0, 0);
+
+    const state = advanceKaijuAssault(createKaijuAssault(first), [first, second], KAIJU_ATTACK_SECONDS + 1 + KAIJU_ATTACK_SECONDS / 2, 10);
+
+    expect(state.destroyed).toEqual(first);
+    expect(state.position).toEqual(second);
+    expect(state.target).toEqual(second);
+    expect(state.mode).toBe("attacking");
+    expect(state.attackSeconds).toBeCloseTo(KAIJU_ATTACK_SECONDS / 2);
+  });
 });

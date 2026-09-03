@@ -1,6 +1,6 @@
 import type { RoadGraph, NodeId, SegmentId } from "./graph";
 import { roadType } from "./roadTypes";
-import { type Vec3, v3, normalizeXZ, perpXZ, scale } from "./vec";
+import { angleBetween, type Vec3, v3, normalizeXZ, perpXZ, scale } from "./vec";
 
 /**
  * The widest surface road meeting this node. It is the reference a junction takes its size from,
@@ -236,12 +236,6 @@ export function segmentTrims(
   const trimAt = (nodeId: NodeId) =>
     junctions.get(nodeId)?.arms.find((arm) => arm.segment === segId)?.trim ?? 0;
   return { start: trimAt(seg.a), end: trimAt(seg.b) };
-}
-
-/** Smallest turn from one bearing to the other, in [0, PI]. */
-function angleBetween(a: number, b: number): number {
-  const d = Math.abs(a - b) % (Math.PI * 2);
-  return d > Math.PI ? Math.PI * 2 - d : d;
 }
 
 /** Monotone chain over the ground plane, keeping each point's elevation. */
