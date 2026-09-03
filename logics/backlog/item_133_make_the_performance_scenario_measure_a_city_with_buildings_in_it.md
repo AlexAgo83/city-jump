@@ -1,13 +1,14 @@
 ## item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it - Make the performance scenario measure a city with buildings in it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: Measured on HEAD: the scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0, against a last-comparable 1583 and 2388. Blocks BOTH harnesses -- perf and ablate share the setup, so ablate's `buildings off x1.02` is a tautology, not a measurement.

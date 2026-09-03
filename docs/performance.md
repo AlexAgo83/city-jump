@@ -24,6 +24,11 @@ a GPU does. GPU runs are recorded under their own `<label>-gpu`.
 Every run appends a line to `perf/history.jsonl` with the commit, and prints the delta against the
 last run carrying the same `--label`.
 
+Entries from `418c133` through `2258a5c` are clean but not comparable with built-city records:
+the harness loaded the demo roads and models, then measured before construction produced any
+standing buildings. Built-demo entries start after the 2026-09-03 harness fix that calls the
+existing debug `growCity(2000, 200)` path and waits for `stats().buildings > 0`.
+
 **Trust the mesh counts; be careful with the fps.** The same build measured 75 fps and 42 fps at
 the same framing an hour apart on this machine -- whatever else it was doing moved the number more
 than most changes do. Mesh counts are deterministic; frame rates are not. To judge a change by fps,

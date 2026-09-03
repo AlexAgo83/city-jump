@@ -1,13 +1,14 @@
 ## item_116_build_the_yield_and_crossing_occupancy_once_per_frame - Build the yield and crossing occupancy once per frame
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: roundaboutRooms already walks the movers once per frame, which is where the index belongs. The discarded ringEntryRadius is resolved and it is NOT dead code: it looks like a missing lane comparison, which would make it a correctness defect for req_035 rather than a cleanup here.

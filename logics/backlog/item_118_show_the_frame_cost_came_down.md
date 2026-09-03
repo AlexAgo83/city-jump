@@ -1,13 +1,14 @@
 ## item_118_show_the_frame_cost_came_down - Show the frame cost came down
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 70%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: Without a before and after on a clean tree, every claim in req_037 is an assertion -- and today the harness measures an empty city, so item_133 must land first or the comparison is meaningless.

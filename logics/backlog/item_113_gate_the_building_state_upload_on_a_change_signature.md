@@ -1,13 +1,14 @@
 ## item_113_gate_the_building_state_upload_on_a_change_signature - Gate the building state upload on a change signature
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: The single largest per-frame cost: about 40 Float32Arrays and a Matrix per building, every frame, to redraw buildings that did not move. The pattern to copy is decorKey, already in the same file.

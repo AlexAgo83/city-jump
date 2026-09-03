@@ -1,13 +1,14 @@
 ## item_115_fan_the_sun_out_once_per_visible_step - Fan the sun out once per visible step
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: A sun moving 0.0013 h per frame reaches five renderers, the worst rebuilding every tree shadow matrix. An absolute-difference guard is wrong across midnight, where 23.99 to 0.01 reads as a small change.

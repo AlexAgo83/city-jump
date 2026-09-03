@@ -1,13 +1,15 @@
 ## task_039_orchestrate_the_per_frame_cost_work - Orchestrate the per-frame cost work
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 75%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Codex
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: Gate the uploads, step the sun, index the yielding -- each measured against the clean baseline req_036 records.

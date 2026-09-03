@@ -51,10 +51,20 @@ if (city) {
   await page.evaluate(() => {
     window.cityjump.reset();
     window.cityjump.demoCity();
+    window.cityjump.growCity(2000, 200);
     window.cityjump.rebuild();
   });
 }
-await page.waitForTimeout(6000);
+await page.waitForFunction(
+  () => {
+    const { buildings, models } = window.cityjump.stats();
+    const settled = window.__ablateBuildings === buildings;
+    window.__ablateBuildings = buildings;
+    return settled && buildings > 0 && models > 0;
+  },
+  null,
+  { timeout: 30_000, polling: 1000 },
+);
 
 const setBoxes = async (off) => {
   for (const id of ["show-buildings", "show-traffic", "show-shadows", "show-lights"]) {

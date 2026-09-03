@@ -72,19 +72,19 @@ if (shareHash) {
   await page.evaluate(() => {
     window.cityjump.reset();
     window.cityjump.demoCity();
+    window.cityjump.growCity(2000, 200);
     window.cityjump.rebuild();
   });
 }
 
-// Every model has to be in before the numbers mean anything: a city half-loaded draws half the
-// buildings, and reads as fast for the wrong reason. They arrive over a few frames, so this waits
-// for the count to stop climbing rather than for a number written down here.
+// Buildings have to be standing before the numbers mean anything: an empty city reads as fast for
+// the wrong reason. They arrive over a few frames, so this waits for the count to stop climbing.
 await page.waitForFunction(
   () => {
-    const models = window.cityjump.stats().models;
-    const settled = window.__perfModels === models;
-    window.__perfModels = models;
-    return settled && models > 0;
+    const { buildings, models } = window.cityjump.stats();
+    const settled = window.__perfBuildings === buildings;
+    window.__perfBuildings = buildings;
+    return settled && buildings > 0 && models > 0;
   },
   null,
   { timeout: 30_000, polling: 1000 },

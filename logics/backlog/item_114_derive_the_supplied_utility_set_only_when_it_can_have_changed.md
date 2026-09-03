@@ -1,13 +1,14 @@
 ## item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed - Derive the supplied-utility set only when it can have changed
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 14:37:19
 
 # AI Context
 - Summary: syncBuildings itself cannot be gated because it produces the statuses the frame reads; only its expensive part is cacheable. graph.revision is a sufficient key: setSegmentUtilities bumps it at src/sim/graph.ts:180.
