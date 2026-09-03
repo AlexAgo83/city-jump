@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 30%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,11 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `setClockHour` now fans renderer updates out only when the displayed minute changes, or when a caller forces it. Load, time-rate changes, and direct sun-slider input force a fan-out.
+- `controls.setClock` now has its own `day:minute:rate` key, so the DOM clock is not rewritten every frame while the displayed value is unchanged.
+- `src/render/signals.ts` no longer allocates the `["red", "amber", "green"]` lamp order inside every mast update.
+- Live probe proof: at x1 on the demo city, wrapping `tree_ground_shadows.thinInstanceSetBuffer("matrix", ...)` counted `4` uploads over `500 ms`; before this gate it ran once per rendered frame.
+- Midnight proof: setting the sun slider to `23.99`, running x4 for `300 ms`, then pausing reached displayed time `00:06`; the existing CI sun-cycle checks also passed.
+- Validation proof: `npm run typecheck && rtk npm run ci` passed. The broader `test:e2e` gate still has the pre-existing `scripts/interact.mjs:1021` zone-clear failure recorded under item_113.

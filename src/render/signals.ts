@@ -26,6 +26,7 @@ const LAMP_COLORS: Record<SignalState, Color4> = {
   green: new Color4(0.24, 0.92, 0.36, 1),
 };
 const LAMP_DARK = new Color4(0.11, 0.11, 0.12, 1);
+const LAMP_ORDER: readonly SignalState[] = ["red", "amber", "green"];
 
 interface Mast {
   readonly node: NodeId;
@@ -168,9 +169,8 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
       const cycle = cycles.get(mast.node);
       if (!cycle) continue;
       const state = signalAt(cycle, mast.segment, time);
-      const order: SignalState[] = ["red", "amber", "green"];
       for (const [i, lens] of mast.lamps.entries()) {
-        lens.instancedBuffers[VertexBuffer.ColorKind] = order[i] === state ? LAMP_COLORS[state] : LAMP_DARK;
+        lens.instancedBuffers[VertexBuffer.ColorKind] = LAMP_ORDER[i] === state ? LAMP_COLORS[state] : LAMP_DARK;
       }
     }
   }

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 30%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -68,6 +68,9 @@
 - 2026-09-03 wave item_113: `rtk npm run ci` passed.
 - 2026-09-03 wave item_113: `rtk npm run test:e2e` fails at `scripts/interact.mjs:1021` waiting for zone-clear to reduce `stats().zones`; comparison worktree `bd2ee98` fails the same way, so this is a pre-existing gate gap outside item_113.
 - 2026-09-03 wave item_113: clean `npm run perf` on `6b63046` appended `dirty:false`, `101 buildings`, fps `99 / 110 / 79`, rebuild `436 ms`.
+- 2026-09-03 wave item_115: live x1 clock probe counted `4` tree-shadow matrix uploads over `500 ms`, showing minute-step fan-out rather than frame-by-frame fan-out.
+- 2026-09-03 wave item_115: midnight probe from slider `23.99` reached displayed time `00:06` after x4 for `300 ms`.
+- 2026-09-03 wave item_115: `npm run typecheck && rtk npm run ci` passed.
 
 # Report
 - Not started.

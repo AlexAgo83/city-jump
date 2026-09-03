@@ -297,6 +297,7 @@ export function bindControls(handlers: {
   let autoStartHour = 0;
   let autoStartedAt = 0;
   let restoringSettings = true;
+  let clockKey = "";
   const updateSun = (next = Number(sunHour.value)): void => {
     const hour = ((next % 24) + 24) % 24;
     sunHour.value = String(hour);
@@ -308,6 +309,9 @@ export function bindControls(handlers: {
   };
   const setClock = (hour: number, day: number, rate: 0 | 1 | 2 | 4): void => {
     const totalMinutes = Math.round(hour * 60) % (24 * 60);
+    const nextKey = `${day}:${totalMinutes}:${rate}`;
+    if (nextKey === clockKey) return;
+    clockKey = nextKey;
     const text = `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
     sunHour.value = String(hour);
     sunTime.value = text;

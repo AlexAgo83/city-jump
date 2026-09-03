@@ -329,9 +329,15 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scheduleAutosave();
   };
   let sunHour = DEFAULT_HOUR;
-  const setClockHour = (hour: number): void => {
+  let sunMinute = -1;
+  const displayedMinute = (hour: number): number => Math.round((((hour % 24) + 24) % 24) * 60) % (24 * 60);
+  const setClockHour = (hour: number, force = false): void => {
     sunHour = ((hour % 24) + 24) % 24;
-    setSun(sunHour);
+    const minute = displayedMinute(sunHour);
+    if (force || minute !== sunMinute) {
+      sunMinute = minute;
+      setSun(sunHour);
+    }
     controls?.setClock(sunHour, simDay, timeRate);
   };
   const advanceClock = (dt: number): void => {
@@ -672,7 +678,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (wasPaused && !simPaused) repackParcels();
     traffic.setTimeScale(rate);
     signals.setTimeScale(rate);
-    controls?.setClock(sunHour, simDay, rate);
+    setClockHour(sunHour, true);
     controls?.setPaused(simPaused);
   };
   const setPaused = (paused: boolean): void => {
@@ -943,7 +949,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       streetlights.setFaded(view === "traffic" || view === "utilities" || view === "state");
     },
     onSunHour(hour) {
-      setClockHour(hour);
+      setClockHour(hour, true);
     },
     onTimeRate: setTimeRate,
     onCameraMode(mode) {
@@ -1001,7 +1007,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (relaid || carried) showAlert(`${relaid} zoned lots and ${carried} buildings were re-laid onto the city as it came back.`);
     simSeconds = city.elapsed ?? 0;
     simDay = 1;
-    setClockHour(city.hour);
+    setClockHour(city.hour, true);
     addOffshoreBridge();
     chargeConstructionStarts = false;
     rebuild();
