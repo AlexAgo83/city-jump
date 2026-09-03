@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 90%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -41,7 +41,7 @@
 # Notes
 - Wave evidence, 2026-09-03: `.github/workflows/ci.yml` now limits push runs to `main`, keeps `pull_request`, adds a branch/ref concurrency group with `cancel-in-progress: true`, and sets `timeout-minutes: 15`.
 - `@grifhinz/logics-manager@2.23.0` is now a devDependency, so `npm ci` supplies the `logics-manager` binary used by `npm run ci`.
-- Local validation before clean-clone proof: `npm run ci` passed with scenarios included.
+- Clean-clone proof, 2026-09-03: cloned `363a79c` to a temporary directory; `npm ci && npm run ci` passed with no global `logics-manager` install.
 
 # AC Traceability
 - request-AC6 -> This backlog slice. Proof: AC1: A push to a pull request branch triggers one CI run.

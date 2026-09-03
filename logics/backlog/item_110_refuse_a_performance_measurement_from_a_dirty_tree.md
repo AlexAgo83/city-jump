@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 75%
+> Progress: 90%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -40,7 +40,7 @@
 
 # Notes
 - Wave evidence, 2026-09-03: `node scripts/perf.mjs` and `node scripts/build-sim.mjs && node scripts/balance.mjs` both refused to append from a dirty tree without `--allow-dirty`.
-- New balance entries now include `commit` and `dirty`, matching the perf record shape.
+- New balance entries now include `commit` and `dirty`, matching the perf record shape. Clean proof recorded in `balance/history.jsonl` for `363a79c` with `dirty:false`.
 - `.gitattributes` marks `perf/history.jsonl` and `balance/history.jsonl` as `merge=union` append-only records.
 
 # AC Traceability
