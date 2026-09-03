@@ -8,6 +8,7 @@
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 12:16:36
 
 # AI Context
 - Summary: The record did not go stale through neglect: the harness was broken. b5af5ca closed the settings menu, #frame-cap went display:none, and perf.mjs timed out on it for 47 commits. Fixed in 418c133. The dirty-tree guard is the remaining half.
@@ -24,6 +25,7 @@
 # Scope
 - In:
   - Refuse to append to perf/history.jsonl when the tree is dirty, unless --allow-dirty is passed.
+  - Give balance/history.jsonl the commit and dirty fields it has never had. scripts/balance.mjs records neither, so all 72 existing entries are unattributable to any commit -- which is how the 0.4.0 review came to reason about a treasury bleed that had already been fixed. perf at least says which commit it measured and whether the tree was clean.
   - Note that the clean entry now recorded for 418c133 measures an empty city, so item_133 must land before it can serve as req_037's baseline.
   - A .gitattributes union merge driver for perf/history.jsonl and balance/history.jsonl, which are append-only records that conflict on every branch.
 - Out:
@@ -31,7 +33,8 @@
   - Running perf in CI, which has no GPU.
 
 # Acceptance criteria
-- AC1: A perf run on a dirty tree does not append without --allow-dirty.
+- AC1: A perf run on a dirty tree does not append without --allow-dirty, and the same guard applies to balance.
+- AC5: Every new balance entry records the commit it measured and whether the tree was clean.
 - AC2: A clean baseline exists for a commit at or after item_133, measuring a city with buildings in it.
 - AC3: Two branches appending to either history file merge without conflict.
 

@@ -118,7 +118,7 @@
       "ai_context": {
         "keywords": "balance seed, treasury outlier, unbounded spend, homeless drain, marginal lot loop",
         "skip when": "widening the band to make it pass, or redesigning the economy.",
-        "summary": "Measured live on HEAD, not from the stale record: the band is violated in BOTH directions (wave 1 at the floor, wave 2 over the ceiling), every wave is held, and no seed reaches wave 6. The minus 778k treasury bleed is gone -- that hypothesis died with the stale data.",
+        "summary": "Both harnesses run on HEAD. The treasury bleed is gone for good: average went from minus 120,869 to plus 13,016 and every seed is positive. What is left is a curve that diverges -- wave 1 under the floor, wave 2 over the ceiling -- and two seeds in six never attacked at all.",
         "use when": "investigating the balance figures or changing economy tuning."
       },
       "kind": "backlog",
@@ -318,11 +318,11 @@
     }
   ],
   "estimates": {
-    "char_count": 11156,
+    "char_count": 11163,
     "companion_doc_count": 2,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:01:56Z",
+  "generated_at": "2026-09-03T10:16:36Z",
   "handoff": {
     "companion_doc_count": 2,
     "enabled": true,

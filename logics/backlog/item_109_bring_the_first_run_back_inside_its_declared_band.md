@@ -3,30 +3,35 @@
 > Schema version: 1.0
 > Status: Ready
 > Understanding: 90%
-> Confidence: 85%
+> Confidence: 80%
 > Progress: 0%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: Measured live on HEAD, not from the stale record: the band is violated in BOTH directions (wave 1 at the floor, wave 2 over the ceiling), every wave is held, and no seed reaches wave 6. The minus 778k treasury bleed is gone -- that hypothesis died with the stale data.
+- Summary: Both harnesses run on HEAD. The treasury bleed is gone for good: average went from minus 120,869 to plus 13,016 and every seed is positive. What is left is a curve that diverges -- wave 1 under the floor, wave 2 over the ceiling -- and two seeds in six never attacked at all.
 - Keywords: balance seed, treasury outlier, unbounded spend, homeless drain, marginal lot loop
 - Use when: investigating the balance figures or changing economy tuning.
 - Skip when: widening the band to make it pass, or redesigning the economy.
 
 # Problem
-- Measured by running npm run scenarios on HEAD (read-only; the recorded balance/history.jsonl was 100 commits stale and its minus 778k bleed no longer reproduces).
-- The band is violated in both directions, and the two directions are different problems. Wave 1 lands at or under the floor: combat 17.5 s with 5 salvos on three of six seeds. Wave 2 overshoots the ceiling: 33.5 s / 9 salvos, 37.3 s / 10, 37.5 s / 10, 41.3 s / 11, 45.8 s / 12. So the difficulty curve does not just sit off-centre, it diverges between wave 1 and wave 2.
-- Every wave is held: 7 of 7 in the expanding scenario, 6 of 6 in the static one. Nothing breaches, so the threat is not actually threatening.
-- No seed reaches the requested sixth wave in any scenario: the best is two. Either the wave bar grows too fast for the city to keep up, or the scenario's horizon is too short for six waves.
-- Money is not scarce late: the static scenario ends two seeds at $210k and $201k while wave 2 dips negative mid-fight. The shortage is transient, not structural.
+- Measured by running both harnesses on a clean HEAD. The recorded balance/history.jsonl entry the 0.4.0 review reasoned from was 100 commits stale, and worse, unattributable -- balance records no commit (see item_110).
+- The treasury hypothesis is dead. averageTreasury went from minus 120,869 to plus 13,016, and every seed now ends positive between 6,140 and 24,263. There is no unbounded spend loop to find. heldRuns went 3/6 to 4/6.
+- The two harnesses measure different horizons and neither says so, which is why reading either alone misleads. balance measures the FIRST wave only. scenarios runs up to six. They disagree because the curve diverges, not because one is wrong.
+- Wave 1 is too easy: of the four seeds that fight, salvos are 5, 6, 5, 6 against a 5-8 band, and combat is 17.5, 21.5, 17.5, 21.5 s against a 20-40 band -- so two of the four fall BELOW the floor.
+- Wave 2 is too hard: 33.5 s / 9 salvos, 37.3 s / 10, 37.5 s / 10, 41.3 s / 11, 45.8 s / 12. One scaling constant cannot fix both ends.
+- Two seeds in six are never attacked inside the hour: seed 2 reaches population 187 and seed 6 reaches 120, while all four fighting seeds reach exactly 259. The population bar is the gate, and something makes those two cities stop growing well short of it.
+- No seed reaches the requested sixth wave in any scenario: the best is two. Either the wave bar grows too fast, or the scenario horizon is too short to judge six waves.
+- averageMilitaryGap is minus 17 and has been consistently negative across runs, yet four of six hold. Whether that metric means what its name suggests is worth one look before it is used as evidence.
 
 # Scope
 - In:
-  - Treat wave 1 and wave 2 as separate problems: one is at the floor, the other over the ceiling, so a single scaling constant will not fix both.
+  - Treat wave 1 and wave 2 as separate problems, and note which harness sees which: balance only ever measures wave 1, scenarios measures the curve. Record that distinction wherever the band is documented.
   - Establish why no seed reaches wave 6 before tuning combat at all -- if the horizon is wrong the band is being measured on two data points per run.
+  - Investigate why seeds 2 and 6 stall at population 187 and 120 while every other seed reaches 259. That is the largest single gap and it is a growth problem, not a combat one.
   - Land item_102 from req_035 first and re-run, since a divergent staffing count would move both the threat and the firepower.
+  - Check what averageMilitaryGap actually measures before treating minus 17 as a finding.
   - Record the balance output at each step in balance/history.jsonl, and note that npm run scenarios is read-only while npm run balance appends.
   - If the band itself is wrong, change it deliberately and record the rationale in this item rather than widening it to pass.
 - Out:
@@ -34,7 +39,7 @@
   - Changing the scenario definitions to avoid the failure.
 
 # Acceptance criteria
-- AC1: Why no seed reaches wave 6 is identified and recorded, whether the fix is the wave bar or the scenario horizon.
+- AC1: Why seeds 2 and 6 stall short of the population bar is identified and recorded, and why no seed reaches wave 6.
 - AC2: Wave 1 and wave 2 are both inside the band, or the band is changed with a recorded rationale.
 - AC3: The scenario band is met, or the band is changed with a recorded rationale.
 - AC4: Before and after balance runs are both recorded.
