@@ -3,7 +3,7 @@ import { installDebugApi } from "../render/debugApi";
 import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
 import { createKaijuRenderer } from "../render/kaiju";
-import { createMissileRenderer, type MissileTrail } from "../render/missiles";
+import { createMissileRenderer } from "../render/missiles";
 import { createRoadRenderer } from "../render/roadMesh";
 import { createRubbleRenderer } from "../render/rubble";
 import { createScene } from "../render/scene";
@@ -46,14 +46,13 @@ import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
+import { clearWaveVisuals, rebuildMissileTrails, type PendingMissile, type WaveVerdict } from "./waveLoop";
 
 /** Where a run opens: the far side of the island from the bridge. */
 const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
 
 type CameraMode = "free" | "orbit" | "follow";
-type WaveVerdict = "held" | "breached";
 type TimeRate = 0 | 1 | 2 | 4;
-type PendingMissile = { readonly from: { readonly x: number; readonly y: number; readonly z: number }; readonly launchedAt: number; readonly impactAt: number; readonly damage: number };
 
 export async function startApp(startedAt = performance.now()): Promise<void> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
@@ -492,10 +491,8 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     kaijuAssault = null;
     // The one full rebuild the wave deferred: re-pack the parcels now that the dust has settled.
     rebuild();
-    kaiju.hide();
-    waveMarkers.hide();
     pendingMissiles = [];
-    missiles.rebuild([]);
+    clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
     showWaveBanner(verdict === "held" ? "Wave held" : "Wave breached", verdict);
   };
   const resetWave = (): void => {
@@ -506,9 +503,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     waveVerdict = null;
     waveVerdictUntil = 0;
     waveCalledEarly = false;
-    kaiju.hide();
-    waveMarkers.hide();
-    missiles.rebuild([]);
+    clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
   };
   /** Districts waiting for the lots they belong to, laid out on the next rebuild. */
   let starterDistricts: [kind: ZoneKind, fromX: number, toX: number][] = [];
@@ -560,9 +555,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       kaijuPlan = null;
       kaijuAssault = null;
       pendingMissiles = [];
-      kaiju.hide();
-      waveMarkers.hide();
-      missiles.rebuild([]);
+      clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
       showWaveBanner(runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science` : runState.ended === "population_zero" ? "The island emptied" : "The city fell", runState.ended === "evacuated" ? "held" : "breached");
       return;
     }
@@ -570,9 +563,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       kaijuPlan = null;
       kaijuAssault = null;
       pendingMissiles = [];
-      kaiju.hide();
-      waveMarkers.hide();
-      missiles.rebuild([]);
+      clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
       showWaveBanner("Pacifist: waves, science and prestige are paused.", "waiting");
       return;
     }
@@ -590,9 +581,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     if (dt > 0) waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
-      kaiju.hide();
-      waveMarkers.hide();
-      missiles.rebuild([]);
+      clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
       showWaveBanner(`Kaiju at ${waveAtPopulation(runState.wave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population))} to go`, "waiting");
       return;
     }
@@ -626,13 +615,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const hits = pendingMissiles.filter((missile) => missile.impactAt <= seconds);
     if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
     pendingMissiles = pendingMissiles.filter((missile) => missile.impactAt > seconds);
-    const missileToTrail = (missile: PendingMissile, impact = false): MissileTrail => ({
-      from: missile.from,
-      to: position,
-      progress: impact ? 1 : (seconds - missile.launchedAt) / Math.max(0.01, missile.impactAt - missile.launchedAt),
-      impact,
-    });
-    missiles.rebuild([...pendingMissiles.filter((missile) => missile.launchedAt <= seconds).map((missile) => missileToTrail(missile)), ...hits.map((missile) => missileToTrail(missile, true))]);
+    rebuildMissileTrails(missiles, pendingMissiles, hits, position, seconds);
     const active = waveClock.active;
     if (!active) return;
     showWaveBanner(`Kaiju ${Math.ceil(active.hitPoints)}/${active.threat} HP - ${Math.round(firepowerPerMinute(batteries))} dmg/min`, "active");
