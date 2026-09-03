@@ -106,6 +106,53 @@ export class BuildingLifecycle {
     return this.states.get(parcelKey(parcel))?.state;
   }
 
+  /**
+   * Moves the states a save carried onto the lots the city actually came back with.
+   *
+   * A lot is keyed by where it stands, to the centimetre, and a replayed city does not cut itself
+   * into quite the same lots -- junction trims come out a hair different and the lots slide about
+   * a metre. Every lot that moved was an unknown parcel, so it started a fresh construction stage:
+   * measured on a city of 38 lots, 35 working before a reload and 7 after, the rest back under
+   * scaffolding, housing nobody and feeding nobody for a full stage. Which is a city that dips
+   * every time it is opened.
+   *
+   * Returns how many states were carried across.
+   */
+  snapTo(parcels: readonly Pick<BuildingParcel, "position">[], tolerance = 3): number {
+    const buckets = new Map<string, string[]>();
+    for (const id of this.states.keys()) {
+      const [x, z] = id.split(":").map(Number);
+      const bucket = `${Math.floor(x! / tolerance)}:${Math.floor(z! / tolerance)}`;
+      const list = buckets.get(bucket);
+      if (list) list.push(id);
+      else buckets.set(bucket, [id]);
+    }
+    let moved = 0;
+    for (const parcel of parcels) {
+      const wanted = parcelKey(parcel);
+      if (this.states.has(wanted)) continue;
+      let best: string | null = null;
+      let bestDistance = tolerance;
+      for (let ox = -1; ox <= 1; ox++) {
+        for (let oz = -1; oz <= 1; oz++) {
+          for (const id of buckets.get(`${Math.floor(parcel.position.x / tolerance) + ox}:${Math.floor(parcel.position.z / tolerance) + oz}`) ?? []) {
+            const [x, z] = id.split(":").map(Number);
+            const distance = Math.hypot(x! - parcel.position.x, z! - parcel.position.z);
+            if (distance > bestDistance) continue;
+            bestDistance = distance;
+            best = id;
+          }
+        }
+      }
+      const carried = best === null ? undefined : this.states.get(best);
+      if (!carried) continue;
+      this.states.delete(best!);
+      this.states.set(wanted, carried);
+      moved += 1;
+    }
+    return moved;
+  }
+
   /** Whether the workforce reached this lot on the last pass -- what the guns and the panel read. */
   staffedOf(parcel: Pick<BuildingParcel, "position">): boolean {
     return this.states.get(parcelKey(parcel))?.staffed === true;

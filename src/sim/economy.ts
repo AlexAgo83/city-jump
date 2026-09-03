@@ -147,8 +147,12 @@ export class CityEconomy {
     // forty-two people a day and a town of twelve became two hundred in three minutes. Food and
     // housing gate it; the pace is the city's own.
     const canGrow = foodSurplus > 0 && room > 0;
+    // A famine costs the city the mouths it cannot feed, not twice them. At twice, the population
+    // always fell past what the farms could carry, the surplus that left behind pulled it back up,
+    // and the city sawtoothed around its own food supply for ever -- measured at plus or minus a
+    // tenth of the population, on a city with farms to spare and nothing else wrong with it.
     const growth = foodShortage > 0
-      ? -Math.min(this.state.population, foodShortage * 2)
+      ? -Math.min(this.state.population, foodShortage)
       // More people than homes: they leave, but over days rather than in the tick that noticed.
       // Taking the whole deficit at once meant one road placement -- which reshuffles which lots
       // exist -- emptied the island and ended the run on the spot.

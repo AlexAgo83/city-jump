@@ -992,10 +992,14 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     updateRunHud();
     renderGameplayRules();
     renderUpgradeWeb();
-    // The replay does not cut the city into exactly the same lots, so the zoning is moved onto the
-    // ones it did cut before anything is drawn from it. See `Zones.snapTo`.
+    // The replay does not cut the city into exactly the same lots, so both the zoning and the
+    // buildings standing on it are moved onto the ones it did cut, before anything is drawn from
+    // them. See `Zones.snapTo` and `BuildingLifecycle.snapTo`.
     const relaid = zones.snapTo(solveBuildableCells());
-    if (relaid) showAlert(`${relaid} zoned lots were re-laid onto the city as it came back.`);
+    const carried = buildingLifecycle.snapTo(
+      parcelsForDemand(buildingParcels(solveBuildableCells(), zones), city.resources?.population ?? 0, city.elapsed ?? 0, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined),
+    );
+    if (relaid || carried) showAlert(`${relaid} zoned lots and ${carried} buildings were re-laid onto the city as it came back.`);
     simSeconds = city.elapsed ?? 0;
     simDay = 1;
     setClockHour(city.hour);

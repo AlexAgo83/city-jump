@@ -297,13 +297,18 @@ export class RoadGraph {
     const q0 = lerp(a, seg.control, t);
     const q1 = lerp(seg.control, b, t);
     const mid = this.pointAt(id, distance).position;
-    const split = splitBuilt(seg, mid, t, distance);
 
     const midId = this.addNodeAt(mid);
+    // Each half is sampled afresh from its own curve, not sliced out of the parent's samples.
+    // Slicing gave the same curve with the samples in different places, and everything downstream
+    // is laid out by walking those samples: a replayed save cut its lots about a metre from where
+    // the live city had them, so the zoning fell off them and every building started its
+    // construction over. Only 249 of 1806 lots came back in the same place; now they all do.
+    const elevated = !!seg.elevated;
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, split.left, !!seg.elevated, seg.utilities);
-    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, split.right, !!seg.elevated, seg.utilities);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, buildSamples(this.node(seg.a).pos, q0, mid, seg.type, elevated), elevated, seg.utilities);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, buildSamples(mid, q1, this.node(seg.b).pos, seg.type, elevated), elevated, seg.utilities);
     this.removeSegment(id);
     return midId;
   }
