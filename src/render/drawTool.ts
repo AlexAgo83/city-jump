@@ -200,6 +200,7 @@ export function createDrawTool(
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
   let pressedAt: { x: number; y: number } | null = null;
+  const pendingDemolitions = new Set<number>();
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
     {
@@ -492,26 +493,26 @@ export function createDrawTool(
         history?.afterChange(nature.clearTree(target.x, target.z));
         return;
       }
-      history?.beforeChange();
       if (target.kind === "building") {
         const refund = demolitionRefund(buildingBuildCost(target.status.parcel));
-        window.setTimeout(() => {
+        scheduleDemolition(() => {
           const changed = demolition?.building(target.status) ?? false;
           if (changed) economy?.refund(refund);
-          history?.afterChange(changed);
-        }, DEMOLITION_MS);
+          return changed;
+        });
         return;
       }
       if (target.kind === "utility") {
-        window.setTimeout(() => {
+        scheduleDemolition(() => {
           const removed = utilities?.removeAt(target.utility[2], target.utility[3]);
           if (removed?.[0] === "diffuser") onRefused(`${removed[1] === "power" ? "Power" : "Water"} diffuser destroyed. Covered district went dark.`);
           utilities?.refresh();
-          history?.afterChange(Boolean(removed));
-        }, DEMOLITION_MS);
+          return Boolean(removed);
+        });
         return;
       }
       if (target.kind === "roundabout") {
+        history?.beforeChange();
         const radius = target.radius + TERRAIN_DIRTY_PAD;
         graph.setRoundabout(target.node, false);
         history?.afterChange(true);
@@ -519,12 +520,12 @@ export function createDrawTool(
       } else {
         const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
         const refund = demolitionRefund(economy?.roadCost(target.segment.type, pathLength(target.segment.samples)) ?? 0);
-        window.setTimeout(() => {
+        scheduleDemolition(() => {
           graph.removeSegment(target.segment.id);
           if (refund > 0) economy?.refund(refund);
-          history?.afterChange(true);
           onCommitted(dirty);
-        }, DEMOLITION_MS);
+          return true;
+        });
       }
       return;
     }
@@ -650,8 +651,28 @@ export function createDrawTool(
   }
 
   function cancel(): void {
+    for (const id of pendingDemolitions) window.clearTimeout(id);
+    pendingDemolitions.clear();
     resetDrawing();
     clearSelection();
+  }
+
+  function scheduleDemolition(commit: () => boolean): void {
+    const revision = graph.revision;
+    const timer = window.setTimeout(() => {
+      pendingDemolitions.delete(timer);
+      if (graph.revision !== revision) return;
+      history?.beforeChange();
+      let changed = false;
+      try {
+        changed = commit();
+      } catch (error) {
+        onRefused((error as Error).message);
+      } finally {
+        history?.afterChange(changed);
+      }
+    }, DEMOLITION_MS);
+    pendingDemolitions.add(timer);
   }
 
   /**
