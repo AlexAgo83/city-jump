@@ -51,7 +51,8 @@
 | Doc | Title | Status | Owner | Progress | Path |
 |---|---|---|---|---|---|
 | [road_001_city_jump_playable_city](roadmap/road_001_city_jump_playable_city.md) | city-jump playable city | Superseded |  |  | roadmap/road_001_city_jump_playable_city.md |
-| [road_002_city_jump_a_city_worth_defending](roadmap/road_002_city_jump_a_city_worth_defending.md) | city-jump: a city worth defending | Active |  |  | roadmap/road_002_city_jump_a_city_worth_defending.md |
+| [road_002_city_jump_a_city_worth_defending](roadmap/road_002_city_jump_a_city_worth_defending.md) | city-jump: a city worth defending | Superseded |  |  | roadmap/road_002_city_jump_a_city_worth_defending.md |
+| [road_003_city_jump_a_city_that_holds_up_when_it_is_checked](roadmap/road_003_city_jump_a_city_that_holds_up_when_it_is_checked.md) | city-jump: a city that holds up when it is checked | Active |  |  | roadmap/road_003_city_jump_a_city_that_holds_up_when_it_is_checked.md |
 
 ## Requests
 

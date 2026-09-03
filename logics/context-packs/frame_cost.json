@@ -4,7 +4,7 @@
     "max_docs_per_ref": 8
   },
   "changed_paths": [
-    "logics/architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md"
+    "logics/roadmap/road_003_city_jump_a_city_that_holds_up_when_it_is_checked.md"
   ],
   "command": "logics-manager sync context-pack req_037_stop_paying_every_frame_for_a_city_that_is_not_changing task_039_orchestrate_the_per_frame_cost_work --mode diff-first --profile deep --handoff",
   "companion_docs": [
@@ -353,9 +353,9 @@
     },
     {
       "ai_context": {
-        "keywords": "demoCity, construction lifecycle, timeRate zero, activeMeshes, like-for-like comparison, perf scenario",
+        "keywords": "demoCity, construction lifecycle, timeRate zero, activeMeshes, like-for-like comparison, perf scenario, ablate",
         "skip when": "fixing the harness timeout, which item_110 owns and which is already done.",
-        "summary": "Measured on HEAD: the perf scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0. The last comparable record had buildings 1583 and activeMeshes 2388, so every delta the harness prints today is an artifact of measuring an empty city.",
+        "summary": "Measured on HEAD: the scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0, against a last-comparable 1583 and 2388. Blocks BOTH harnesses -- perf and ablate share the setup, so ablate's `buildings off x1.02` is a tautology, not a measurement.",
         "use when": "reading or recording a perf measurement, or before claiming any rendering improvement."
       },
       "kind": "backlog",
@@ -378,17 +378,19 @@
       "schema_version": "1.0",
       "sections": {
         "Acceptance criteria": [
-          "- AC1: A perf run reports a building count of the same order as the city's lot count, not zero.",
+          "- AC1: A perf run and an ablate run each report a building count of the same order as the city's lot count, not zero.",
           "- AC2: The settle guard waits on buildings standing, and fails rather than measuring an empty city.",
           "- AC3: docs/performance.md states which entries are comparable with which, and why the break exists.",
-          "- AC4: A fresh baseline is recorded on a clean tree with the scenario building."
+          "- AC4: A fresh baseline is recorded on a clean tree with the scenario building.",
+          "- AC5: An ablate run on the built city is recorded, and this chain's priorities are re-ordered to match it or the divergence is explained."
         ],
         "Problem": [
           "- Probed directly on HEAD with the debug API after `reset(); demoCity(); rebuild()`: `buildings: 0`, `population: 12`, `timeRate: 0`, `activeMeshes: 15`, against `segments: 237`, `zones: 272`, `trees: 2441`, `cars: 237`.",
           "- The last comparable entry in perf/history.jsonl (2026-09-01, a437609) recorded `buildings: 1583` and `activeMeshes: 2388`. The scenario stopped producing buildings somewhere in 0.4.0.",
           "- The cause is the construction lifecycle 0.4.0 introduced: `demoCity()` lays roads, zones, trees and traffic, but a lot only becomes a building once its construction stage completes, and that needs the simulation clock. perf.mjs never starts it -- `timeRate` is 0 for the whole measurement.",
           "- So the harness measures roads, trees and traffic over empty land. The deltas it printed on the first successful run after the timeout fix -- `street 84 fps (-36)`, `rebuild 431 ms (-176)` -- compare that empty city against a 1583-building one and mean nothing.",
-          "- The guard at scripts/perf.mjs:74 was meant to prevent exactly this. Its comment says \"a city half-loaded draws half the buildings, and reads as fast for the wrong reason\", but it waits on `stats().models`, the count of loaded GLB files, not on buildings standing. It is satisfied by 28 models and zero buildings."
+          "- The guard at scripts/perf.mjs:74 was meant to prevent exactly this. Its comment says \"a city half-loaded draws half the buildings, and reads as fast for the wrong reason\", but it waits on `stats().models`, the count of loaded GLB files, not on buildings standing. It is satisfied by 28 models and zero buildings.",
+          "- scripts/ablate.mjs has the same setup (`reset(); demoCity(); rebuild()`, no clock), so it is blocked by the same thing. Its first successful run after its own toolbar fix reported `buildings off x1.02` overview and `x1.01` street -- switching off nothing, and reading as if buildings were free. Its `traffic off x1.11 / x1.24` is usable, because traffic really is in the scene."
         ]
       },
       "status": "Ready",
@@ -438,11 +440,11 @@
     }
   ],
   "estimates": {
-    "char_count": 20254,
+    "char_count": 20820,
     "companion_doc_count": 1,
     "doc_count": 9
   },
-  "generated_at": "2026-09-03T10:01:57Z",
+  "generated_at": "2026-09-03T10:10:02Z",
   "handoff": {
     "companion_doc_count": 1,
     "enabled": true,

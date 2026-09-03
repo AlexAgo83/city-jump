@@ -1,6 +1,6 @@
 ## road_002_city_jump_a_city_worth_defending - city-jump: a city worth defending
 > Date: 2026-08-31
-> Status: Active
+> Status: Superseded
 > Related product: `prod_018_a_city_that_has_to_survive_what_comes_out_of_the_sea`
 > Related request: `req_021_the_wave_in_one_slice_a_kaiju_lands_and_the_city_holds_or_does_not`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.

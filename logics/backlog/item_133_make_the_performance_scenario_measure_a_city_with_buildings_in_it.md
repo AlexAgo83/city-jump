@@ -2,16 +2,16 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: Ready
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 95%
+> Confidence: 90%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
 
 # AI Context
-- Summary: Measured on HEAD: the perf scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0. The last comparable record had buildings 1583 and activeMeshes 2388, so every delta the harness prints today is an artifact of measuring an empty city.
-- Keywords: demoCity, construction lifecycle, timeRate zero, activeMeshes, like-for-like comparison, perf scenario
+- Summary: Measured on HEAD: the scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0, against a last-comparable 1583 and 2388. Blocks BOTH harnesses -- perf and ablate share the setup, so ablate's `buildings off x1.02` is a tautology, not a measurement.
+- Keywords: demoCity, construction lifecycle, timeRate zero, activeMeshes, like-for-like comparison, perf scenario, ablate
 - Use when: reading or recording a perf measurement, or before claiming any rendering improvement.
 - Skip when: fixing the harness timeout, which item_110 owns and which is already done.
 
@@ -21,23 +21,27 @@
 - The cause is the construction lifecycle 0.4.0 introduced: `demoCity()` lays roads, zones, trees and traffic, but a lot only becomes a building once its construction stage completes, and that needs the simulation clock. perf.mjs never starts it -- `timeRate` is 0 for the whole measurement.
 - So the harness measures roads, trees and traffic over empty land. The deltas it printed on the first successful run after the timeout fix -- `street 84 fps (-36)`, `rebuild 431 ms (-176)` -- compare that empty city against a 1583-building one and mean nothing.
 - The guard at scripts/perf.mjs:74 was meant to prevent exactly this. Its comment says "a city half-loaded draws half the buildings, and reads as fast for the wrong reason", but it waits on `stats().models`, the count of loaded GLB files, not on buildings standing. It is satisfied by 28 models and zero buildings.
+- scripts/ablate.mjs has the same setup (`reset(); demoCity(); rebuild()`, no clock), so it is blocked by the same thing. Its first successful run after its own toolbar fix reported `buildings off x1.02` overview and `x1.01` street -- switching off nothing, and reading as if buildings were free. Its `traffic off x1.11 / x1.24` is usable, because traffic really is in the scene.
+- This matters beyond the record: ablate is the tool that says which renderer costs the frame rate, and it is what should be setting the priorities inside this chain. Until it measures a built city, item_113 is filed as the largest per-frame cost on the strength of reading the code alone.
 
 # Scope
 - In:
-  - Make the scenario produce a built city before measuring: either run the clock until the lot count settles, or drive the instant-construction rule the scenarios harness already uses.
+  - Make the scenario produce a built city before measuring: either run the clock until the lot count settles, or drive the instant-construction rule the scenarios harness already uses. Apply it to both scripts/perf.mjs and scripts/ablate.mjs, or factor the setup into one place they share.
   - Change the settle guard to wait on buildings standing rather than on models loaded, so the comment at scripts/perf.mjs:74 becomes true.
   - Record in docs/performance.md that entries before this fix are not comparable with entries after it, and say why.
   - Re-take the baseline once the scenario builds, since the current clean entry (418c133) measures the empty city.
+  - Re-run ablate on the built city and use its ratios to re-order this chain's priorities, rather than keeping the order a code reading produced.
 - Out:
   - Changing what perf measures or its metric set.
   - Changing the construction lifecycle to suit the harness.
   - Running perf in CI, which has no GPU.
 
 # Acceptance criteria
-- AC1: A perf run reports a building count of the same order as the city's lot count, not zero.
+- AC1: A perf run and an ablate run each report a building count of the same order as the city's lot count, not zero.
 - AC2: The settle guard waits on buildings standing, and fails rather than measuring an empty city.
 - AC3: docs/performance.md states which entries are comparable with which, and why the break exists.
 - AC4: A fresh baseline is recorded on a clean tree with the scenario building.
+- AC5: An ablate run on the built city is recorded, and this chain's priorities are re-ordered to match it or the divergence is explained.
 
 # Decision framing
 - Product framing: Not needed
