@@ -21,8 +21,27 @@ export const HOMELESS_LEAVE_PER_DAY = 0.4;
 /** Materials a working commercial cell consumes a day, and a military one. */
 export const MATERIALS_PER_COMMERCE_CELL = 1.5;
 export const MATERIALS_PER_MILITARY_CELL = 2.5;
-/** Stock a shortage has to climb back to before the shops and barracks restart. */
+/**
+ * Stock a shortage has to climb back to before the shops and barracks restart: whichever is larger
+ * of twelve units and a quarter of what the city gets through in a day.
+ *
+ * Twelve alone is a buffer for a village. On a city consuming hundreds a day it is crossed in a
+ * fraction of a second, so the latch it was meant to be became a threshold at zero: the shops
+ * stopped, stopped consuming, the stock passed twelve again and they all restarted -- measured on
+ * a real save as two hundred and one buildings turning on and off five times a second.
+ */
 export const MATERIALS_RECOVERY = 12;
+/**
+ * And a shortage lasts at least this long, in simulated seconds.
+ *
+ * The stock alone cannot say when the shortage is over: the moment the shops stop, they stop
+ * consuming, so the works refill the store in a fraction of a second and everything restarts --
+ * measured on a real save as two hundred and one buildings turning on and off five times a
+ * second. Scaling the buffer to what the city consumes does not help either, for the same reason:
+ * consumption reads as zero exactly when it matters. A shortage that has to last says what it is,
+ * and the shops come back when the works have had time to build something to sell.
+ */
+export const MATERIALS_RECOVERY_SECONDS = 30;
 export const CITY_DAY_SECONDS = 96;
 
 export interface CityResources {
@@ -69,6 +88,9 @@ export class CityEconomy {
   private housed = false;
   /** Latched while the works are behind, cleared only once the stock has really recovered. */
   private starved = false;
+  /** The city's own clock, so a shortage can be made to last rather than to blink. */
+  private clock = 0;
+  private shortSince = 0;
 
   constructor(state: Partial<CityResources> = {}) {
     this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
@@ -87,8 +109,12 @@ export class CityEconomy {
    * buffer again.
    */
   get materialsShort(): boolean {
-    if (this.state.materials <= 0) this.starved = true;
-    else if (this.state.materials >= MATERIALS_RECOVERY) this.starved = false;
+    if (this.state.materials <= 0) {
+      this.starved = true;
+      this.shortSince = this.clock;
+    } else if (this.starved && this.clock - this.shortSince >= MATERIALS_RECOVERY_SECONDS && this.state.materials >= MATERIALS_RECOVERY) {
+      this.starved = false;
+    }
     return this.starved;
   }
 
@@ -102,6 +128,7 @@ export class CityEconomy {
     const foodProduced = output(parcels, this.state.population, "agricultural", 8) * day;
     const materialsProduced = output(parcels, this.state.population, "industrial", 5) * day;
     const materialsConsumed = (output(parcels, this.state.population, "commercial", MATERIALS_PER_COMMERCE_CELL) + output(parcels, this.state.population, "military", MATERIALS_PER_MILITARY_CELL)) * day;
+    this.clock += Math.max(0, seconds);
     const materialsAvailable = this.state.materials + materialsProduced;
     const materialsShortage = Math.max(0, materialsConsumed - materialsAvailable);
     const foodConsumed = this.state.population * day;

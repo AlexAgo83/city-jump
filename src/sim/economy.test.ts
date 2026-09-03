@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildingBuildCost, CITY_DAY_SECONDS, CityEconomy, STARTING_MONEY, Treasury, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
+import { buildingBuildCost, CITY_DAY_SECONDS, CityEconomy, MATERIALS_RECOVERY_SECONDS, STARTING_MONEY, Treasury, demolitionRefund, incomePerSecond, roadBuildCost } from "./economy";
 import type { BuildingStatus } from "./buildingLifecycle";
 
 const status = (kind: BuildingStatus["parcel"]["kind"], state: BuildingStatus["state"], frontageCells = 1, depthCells = 1): BuildingStatus => ({
@@ -86,5 +86,19 @@ describe("economy", () => {
     expect(terms.population.value).toBeGreaterThan(0);
     for (let day = 0; day < 30 && terms.population.value > 0; day++) terms = city.advance([parcels[1]!], CITY_DAY_SECONDS);
     expect(terms.population.value).toBe(0);
+  });
+
+  it("makes a shortage last, so the shops do not blink back on the moment a crate arrives", () => {
+    const economy = new CityEconomy({ materials: 0, population: 500 });
+    expect(economy.materialsShort).toBe(true);
+
+    // The works refill the store the instant the shops stop buying from it. That is not the end of
+    // the shortage: two hundred buildings turning on and off five times a second is what this
+    // costs when the stock alone decides.
+    economy.replaceWith({ materials: 100, population: 500 });
+    expect(economy.materialsShort).toBe(true);
+
+    economy.advance([], MATERIALS_RECOVERY_SECONDS);
+    expect(economy.materialsShort).toBe(false);
   });
 });
