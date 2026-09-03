@@ -1,13 +1,14 @@
 ## item_134_configure_the_release_contract_and_record_what_shipped - Configure the release contract and record what shipped
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: `logics-manager release status` answers not_configured, so the contract Logics expects for release readiness has never existed -- while three versions have been tagged and deployed. This chain hardens the release path without it.

@@ -47,3 +47,13 @@ test("district dark path raises the alert surface", async () => {
   assert.match(hud, /export function showAlert/);
   assert.match(app, /showAlert\("A district went dark\."\)/);
 });
+
+test("release deploy workflow keeps secrets out of templated shell", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/render-release-deploy.yml", import.meta.url), "utf8");
+  const runBlocks = workflow.match(/run: \|\n(?: {10}.*\n| {10}\n)+/g) ?? [];
+
+  assert.equal(runBlocks.some((block) => block.includes("${{")), false);
+  assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/);
+  assert.match(workflow, /git rev-parse --verify "refs\/tags\/\$\{release_tag\}\^\{commit\}"/);
+  assert.doesNotMatch(workflow, /git rev-list/);
+});

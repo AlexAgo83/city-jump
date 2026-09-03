@@ -1,14 +1,15 @@
 ## task_040_orchestrate_the_release_and_client_hardening - Orchestrate the release and client hardening
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:46:10
+> Indicators reviewed: 2026-09-03 15:45:34
+> Owner: Codex
 
 # AI Context
 - Summary: Answer the Render ref question first -- it decides whether deploy verification is a small addition or the most important item -- then harden the tag and the rendering path.
@@ -66,3 +67,6 @@
 
 # Notes
 - Arbitration for the runner. May decide alone: everything in this chain. item_120's question is answered and proven against the live service, so the work is polling for live and treating deactivated as an already superseded success. The CSP's exact shape, including whether to extract the inline stylesheet or hash the four-line inline script, is a technical choice. Reserved for the owner: nothing. Two standing prohibitions instead: do not drop the immutable cache on /buildings/* -- the version query parameter is what makes it correct -- and do not weaken the CSP to style-src unsafe-inline to avoid extracting the stylesheet.
+- 2026-09-03 wave item_119: release deploy tag selection now uses `env:` plus `git rev-parse --verify refs/tags/<tag>^{commit}`, and checkout is SHA-pinned.
+- 2026-09-03 wave item_119: `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9`; `main` fails before deploy with `Needed a single revision`.
+- 2026-09-03 wave item_119: `rtk npm run test:architecture` passed.

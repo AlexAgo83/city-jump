@@ -1,13 +1,14 @@
 ## item_122_let_a_missing_asset_be_missing - Let a missing asset be missing
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: The app has no client-side routing -- only the hash city fragment -- so the rewrite buys nothing and costs diagnosability: JSON.parse on a doctype and the GLB loader both fail confusingly.

@@ -1,13 +1,14 @@
 ## item_120_establish_whether_the_deploy_hook_honours_the_commit_then_verify_the_outcome - Establish whether the deploy hook honours the commit, then verify the outcome
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 20%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: Proven against the live service, not just the docs: all three deploy_hook deploys landed exactly on the v0.2.0, v0.3.0 and v0.4.0 tag commits with autoDeploy off, so ?ref= is honoured. Two deploys in the same history are build_failed, so the 200-then-fail risk is real and has already happened here.

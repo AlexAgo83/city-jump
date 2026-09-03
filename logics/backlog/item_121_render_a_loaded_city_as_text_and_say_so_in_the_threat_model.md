@@ -1,13 +1,14 @@
 ## item_121_render_a_loaded_city_as_text_and_say_so_in_the_threat_model - Render a loaded city as text, and say so in the threat model
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: Safe today only because streetName composes from a fixed word list and city names use textContent. prod_007 points at naming as a direction, which is what makes this worth fixing while it is free.

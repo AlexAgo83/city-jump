@@ -1,13 +1,14 @@
 ## item_123_derive_the_asset_version_instead_of_maintaining_two_by_hand - Derive the asset version instead of maintaining two by hand
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: The immutable cache is correct and must stay -- the version query parameter is what makes it safe. The residual risk is only that two constants are hand-maintained, in two files, at diverging dates.

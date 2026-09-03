@@ -1,13 +1,14 @@
 ## item_119_take_the_release_tag_out_of_the_shell_and_refuse_a_branch - Take the release tag out of the shell and refuse a branch
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:45:34
 
 # AI Context
 - Summary: The three later steps in the same file already pass values through env correctly, so this is an inconsistency rather than a house style -- in a job holding the deploy hook secret.
@@ -51,3 +52,9 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `.github/workflows/render-release-deploy.yml` now reads the release tag from `RELEASE_TAG_INPUT` in `env:` instead of interpolating `${{ ... }}` into the shell body.
+- The release SHA now comes from `git rev-parse --verify "refs/tags/${release_tag}^{commit}"`, so `v0.4.0` resolves to `b7f551cf25c63b13c2a624812496b5d02e2d9ad9` and `main` fails before the deploy hook.
+- `actions/checkout` is pinned to `11d5960a326750d5838078e36cf38b85af677262`; `tests/architecture.mjs` guards the no-template-run-block, tag-only resolution, and SHA-pinned action rules.
+- Validation proof: `rtk npm run test:architecture` passed.
