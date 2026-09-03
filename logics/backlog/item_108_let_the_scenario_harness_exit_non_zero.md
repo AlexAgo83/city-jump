@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 20%
+> Progress: 45%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -39,6 +39,10 @@
 - AC6: The gate's assertions are all achievable on HEAD once item_109 lands, so wiring it into ci does not leave main permanently red.
 - AC2: A run inside the band exits zero and still prints its summary.
 - AC3: The ci script includes scenarios only when the band is met on main.
+
+# Notes
+- Wave evidence, 2026-09-03: `npm run scenarios` exits non-zero for off-band waves, no-wave seeds, and zero-population seeds, and `npm run ci` now includes `npm run scenarios` after the item_109 band/bar changes made the gate green on HEAD.
+- Passing run summary now prints the actual declared band: 13-85s / 4-21 salvos.
 
 # AC Traceability
 - request-AC1 -> This backlog slice. Proof: AC1: A run with a wave outside the band exits non-zero and names the scenario and seed.

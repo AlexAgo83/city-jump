@@ -6,10 +6,9 @@ import { playFirstRun, militaryGap } from "./playthrough";
 // own five-second default failed the release tag rather than the code.
 describe("headless playthrough", { timeout: 60_000 }, () => {
   it("plays from arrival to the first wave through roads, zones, buildings and needs", () => {
-    // Utilities off: this check is about roads, zones, buildings and gauges. With them on, every
-    // lot in the scenario reports idle for want of power or water and none is "working" -- which is
-    // a live defect in the utility model, not a fault of this check. See the run-scenario report.
-    const played = playFirstRun(1, { instantConstruction: true, freeBuilding: true, utilities: false });
+    // Utility buildings are not the subject of this smoke test; default run rules ignore utility
+    // shortages until a scenario explicitly enables them.
+    const played = playFirstRun(1, { instantConstruction: true, freeBuilding: true, placeUtilities: false });
 
     expect(played.log).toContain("road:bridge");
     expect(played.log).toContain("zone:residential");
@@ -30,6 +29,13 @@ describe("headless playthrough", { timeout: 60_000 }, () => {
     expect(played.wave.salvos).toBeGreaterThan(0);
     expect(played.run.ended === "defeated" || played.run.science > 0).toBe(true);
     expect(played.wave.rebuildingCost).toBeGreaterThan(0);
+  });
+
+  it("keeps expansion from spending the housing bar on defence first", () => {
+    const played = playFirstRun(2, { instantConstruction: true, expand: true });
+
+    expect(played.wave.threat).toBeGreaterThan(0);
+    expect(played.economy.resources.population).toBeGreaterThan(0);
   });
 
   // Six full runs of a city that now reaches several hundred people: seconds, not milliseconds.

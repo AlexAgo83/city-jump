@@ -16,7 +16,7 @@
     "typecheck": "tsc",
     "lint": "npm run typecheck",
     "logics:validate": "logics-manager lint --require-status && logics-manager audit --group-by-doc && logics-manager i18n validate",
-    "ci": "npm run check:versions && npm test && npm run test:architecture && npm run build && npm run logics:validate",
+    "ci": "npm run check:versions && npm test && npm run test:architecture && npm run scenarios && npm run build && npm run logics:validate",
     "release:static": "npm run ci",
     "verify": "npm run test:visual",
     "check": "npm run test:e2e",

@@ -134,7 +134,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
    */
   let expansions = 0;
   const expand = (kind: BuildingKind): boolean => {
-    if (expansions >= 8) return false;
+    if (expansions >= 16) return false;
     const z = 410 + expansions * 50;
     const spineFrom = resolveSnap(graph, -200, z - 50);
     const spineTo = resolveSnap(graph, -200, z);
@@ -186,7 +186,8 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     statuses = lifecycle.sync(parcels, economy.resources.population, seconds, scenario.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
       if (!supplied || status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
-      return missing ? { ...status, state: "idle" as const, reason: missing } : status;
+      const ignored = missing === "power" ? scenario.ignorePower : missing === "water" ? scenario.ignoreWater : false;
+      return missing && !ignored ? { ...status, state: "idle" as const, reason: missing } : status;
     });
     if (charge && !scenario.freeBuilding) for (const status of statuses) if (status.started) treasury.spend(buildingBuildCost(status.parcel), true);
     // A finished rebuild clears its rubble, the way the app does, so the lot is buildable again.
@@ -215,7 +216,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
   band("agricultural", 220, -300, 160, 50);
   band("residential", 260, -320, 120, 50);
   band("commercial", 310 + seed, -300, 160, 50);
-  band("military", 360 + seed, -300, 160, 50);
+  paint("military", -70, 360 + seed, 45);
   if (scenario.placeUtilities) {
     for (const kind of ["power", "water"] as const) {
       utilities.place(graph, "producer", kind, -250, 260);
@@ -239,6 +240,13 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     for (let i = 0; i < GROW_STEPS_PER_WAVE && !waveClock.active; i++) {
       step(GROW_STEP_SECONDS);
       const needs = buildingNeeds(parcels, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length));
+      if (scenario.expand && run.wave > 1 && treasury.money > 5_000) {
+        const defence = needs.find((entry) => entry.kind === "military");
+        if (defence && defence.supply < defence.need && expand("military")) {
+          log.push(`gauge:military ${Math.round(defence.supply)}<${Math.round(defence.need)}->expand:military`);
+          continue;
+        }
+      }
       const short = needs.find((need) => need.need > need.supply);
       if (short && short.ratio < (previous.find((need) => need.kind === short.kind)?.ratio ?? 1)) {
         if (!followedNeeds.has(short.kind)) {

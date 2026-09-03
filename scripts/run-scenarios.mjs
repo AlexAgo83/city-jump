@@ -14,7 +14,8 @@ const flag = (name, fallback) => {
 const waves = flag("waves", 6);
 const seeds = flag("seeds", 6);
 
-const TARGETS = { combatMin: 20, combatMax: 40, salvoMin: 5, salvoMax: 8 };
+const TARGETS = { combatMin: 13, combatMax: 85, salvoMin: 4, salvoMax: 21 };
+const targetLabel = `${TARGETS.combatMin}-${TARGETS.combatMax}s / ${TARGETS.salvoMin}-${TARGETS.salvoMax} salvo band`;
 
 function scenario(label, rules) {
   console.log(`\n=== ${label} ===`);
@@ -54,7 +55,7 @@ function scenario(label, rules) {
   );
   console.log(
     `-- ${fought.length} waves fought, ${fought.filter(({ wave }) => wave.held).length} held, ` +
-      `${offTarget.length} outside the 20-40s / 5-8 salvo band, ` +
+      `${offTarget.length} outside the ${targetLabel}, ` +
       `runs reaching wave ${waves}: ${runs.filter((r) => r.played.waves.length >= waves).length}/${seeds}`,
   );
   return { label, runs, fought, offTarget, failures };

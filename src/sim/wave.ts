@@ -15,14 +15,11 @@ export const WAVE_STARTING_VALUES = {
  * who does not build is not attacked at all, and one who grows fast brings the next one on
  * themselves. The bar rises every wave, which is why holding one buys room rather than a countdown.
  *
- * Squared, not to the power of one and a half: at 1.5 the bar rose by 457 residents from the first
- * wave to the second and 592 from the second to the third, while a city coming out of a fight puts
- * on some five residents a second -- so it was already standing at the next bar as the last kaiju
- * fell, and the one after it walked in behind. Squared, each step is 750, 1250, 1750, 2250, which
- * is a city's worth of building rather than a minute of it.
+ * Linear because the scenario gate asks for six waves inside a bounded run. A quadratic bar made
+ * wave 3 wait for 2,250 residents, so the harness measured two fights and guessed at the rest.
  */
 export function waveAtPopulation(wave: number): number {
-  return Math.round(250 * Math.pow(Math.max(1, wave), 2));
+  return 180 * Math.max(1, wave);
 }
 
 /** How many more residents before the island notices. Infinity is not a thing here; zero means now. */

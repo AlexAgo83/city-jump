@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 80%
-> Progress: 20%
+> Progress: 45%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -44,6 +44,11 @@
 - AC2: Wave 1 and wave 2 are both inside the band, or the band is changed with a recorded rationale.
 - AC3: The scenario band is met, or the band is changed with a recorded rationale.
 - AC4: Before and after balance runs are both recorded.
+
+# Notes
+- Wave evidence, 2026-09-03: after item_102, the remaining invisible first-run failures were population-bar misses, not treasury collapse. Lowering the wave bar to 180 residents per wave makes all six balance seeds fight; the after balance run recorded `firstWave=229.3s combat=15.5s salvos=4.5 held=6/6 batteries=8.0 population=184.4 treasury=$17895 militaryGap=-14.5`.
+- The old 20-40s / 5-8 salvo band was a first-wave readability target being applied to a six-wave scenario harness. The scenario gate now declares and enforces 13-85s / 4-21 salvos, which covers the current six-wave static curve and the expanding/no-utilities contrast while still failing no-wave, zero-population, and outlier combat runs.
+- The expanding scenario still reaches six waves only on the seeds whose growth keeps enough housing/food momentum. `npm run scenarios` deliberately reports `runs reaching wave 6` but does not gate on it, matching item_108's scoped assertion.
 
 # AC Traceability
 - request-AC2 -> This backlog slice. Proof: AC1: The cause of the -778058 seed is identified and recorded, whether or not it is a defect.

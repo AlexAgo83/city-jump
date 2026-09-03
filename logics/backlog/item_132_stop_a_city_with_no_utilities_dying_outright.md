@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 85%
 > Confidence: 80%
-> Progress: 20%
+> Progress: 45%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -59,3 +59,5 @@
 
 # Notes
 - Found by running the harness during review follow-up, not by reading balance/history.jsonl, which was stale.
+- Wave evidence, 2026-09-03: the no-utilities scenario was a harness defect, not a product decision. The smoke test intended to ignore utility shortages used `utilities:false`, but the scenario used `placeUtilities:false` while leaving shortage enforcement on; that made every lot idle forever. The harness now respects `ignorePower` and `ignoreWater` when deciding whether a missing utility idles a lot, so the no-utilities scenario contrasts against the utilities-built run without collapsing to zero population.
+- `npm run scenarios` still gates zero-population seeds so this cannot pass invisibly again.
