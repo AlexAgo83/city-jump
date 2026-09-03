@@ -26,6 +26,20 @@ function city(): RoadGraph {
 describe("city saves", () => {
   beforeEach(() => setTerrain(flatTerrain));
 
+  it("leaves out the nodes no road stands on", () => {
+    const graph = city();
+    // What the offshore bridge leaves behind: its segment is scenery and is dropped, and its two
+    // ends were written anyway -- then replayed on load, where the bridge is built again with two
+    // more. One exported city arrived with 3236 nodes for 24 segments.
+    graph.addNodeAt(v3(-360, 4, 1500));
+    graph.addNodeAt(v3(620, 4, 4400));
+    const before = graph.allNodes().length;
+
+    const save = serializeCity(graph, new Plantings(), new Zones(), "rolling", 14);
+    expect(before).toBe(save.nodes.length + 2);
+    expect(save.nodes.every((node) => save.segments.some((segment) => segment[0] === node[0] || segment[1] === node[0]))).toBe(true);
+  });
+
   it("round-trips the simulation clock, which lot demand and build stages are timed against", () => {
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), new CityEconomy(), new Utilities(), createRun(), createWaveClock(), 512)))!;
     expect(save.elapsed).toBe(512);

@@ -73,6 +73,8 @@ export interface CitySave {
 }
 
 export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun(), waveClock = createWaveClock(), elapsed = 0): CitySave {
+  const kept = graph.allSegments().filter((segment) => !isOffshoreSceneryRoad(graph, segment.a, segment.b));
+  const keptNodes = new Set(kept.flatMap((segment) => [segment.a, segment.b]));
   return {
     v: SAVE_VERSION,
     terrain,
@@ -91,6 +93,12 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
     utilities: utilities.toJSON(),
     nodes: graph
       .allNodes()
+      // Only the nodes a saved segment stands on. The offshore bridge is scenery and is dropped
+      // from the save, but its two nodes were written all the same -- and replayed on load, where
+      // the bridge is added afresh with two more. Every undo, every redo and every reload left two
+      // more nodes behind that nothing referenced: one exported city arrived with 3236 nodes for
+      // 24 segments, 3220 of them junk at exactly the bridge's two ends.
+      .filter((node) => keptNodes.has(node.id))
       .map((node) =>
         node.roundabout
           ? node.roundaboutLanes === 2
@@ -98,9 +106,7 @@ export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zon
             : [node.id, node.pos.x, node.pos.y, node.pos.z, 1]
           : [node.id, node.pos.x, node.pos.y, node.pos.z],
       ),
-    segments: graph
-      .allSegments()
-      .filter((segment) => !isOffshoreSceneryRoad(graph, segment.a, segment.b))
+    segments: kept
       .map((segment): SavedSegment => {
         const base: SavedSegment = [segment.a, segment.b, segment.control.x, segment.control.y, segment.control.z, segment.type, segment.streetId];
         if (segment.elevated || segment.utilities) base.push(segment.elevated ? 1 : 0);
