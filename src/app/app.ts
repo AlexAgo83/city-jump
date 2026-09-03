@@ -1120,6 +1120,12 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     rubble: rubble.count(),
     utilities: utilities.toJSON().length,
     buildingStates: stateCounts(),
+    /** Why the lots that are not working are not working, which the state alone does not say. */
+    buildingReasons: currentBuildingStatuses.reduce((counts, status) => {
+      if (status.reason) counts[status.reason] = (counts[status.reason] ?? 0) + 1;
+      return counts;
+    }, {} as Record<string, number>),
+    materialsShort: cityEconomy.materialsShort,
     // Which lots hold a shift, not how many: two lots can swap theirs without the count moving,
     // and that swap is two buildings changing colour on screen.
     staffedKey: currentBuildingStatuses.reduce((sum, status) => sum + (status.staffed ? Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z) : 0), 0),
