@@ -1,14 +1,14 @@
 ## item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed - Derive the supplied-utility set only when it can have changed
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: syncBuildings itself cannot be gated because it produces the statuses the frame reads; only its expensive part is cacheable. graph.revision is a sufficient key: setSegmentUtilities bumps it at src/sim/graph.ts:180.
@@ -55,3 +55,7 @@
 - 2026-09-03 wave: `app.ts` now caches a utility snapshot keyed by `graph.revision`; the snapshot carries both `suppliedDiffusers(...)` and the diffuser list used by `missingUtility`.
 - Utility placement/removal still invalidates in the same frame through existing `Utilities.restake(graph)`, which calls `graph.setSegmentUtilities(...)` and bumps `graph.revision`.
 - Validation proof: `npm run typecheck && rtk npm run ci` passed. The CI path includes the scenario gate and the unit utility invalidation tests; the browser e2e utility-removal checks passed before the pre-existing zone-clear failure recorded under item_113.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

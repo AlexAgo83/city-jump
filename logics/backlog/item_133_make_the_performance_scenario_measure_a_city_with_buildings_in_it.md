@@ -1,14 +1,14 @@
 ## item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it - Make the performance scenario measure a city with buildings in it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:31
 
 # AI Context
 - Summary: Measured on HEAD: the scenario reports buildings 0, population 12, activeMeshes 15, timeRate 0, against a last-comparable 1583 and 2388. Blocks BOTH harnesses -- perf and ablate share the setup, so ablate's `buildings off x1.02` is a tautology, not a measurement.
@@ -68,3 +68,14 @@
 - Clean baseline proof: `npm run perf` from clean commit `c9321ea` appended `dirty:false` with `237 segments`, `101 buildings`, `237 cars`, `42 active meshes`, fps `overview=98`, `district=116`, `street=77`, `rebuild=437 ms`.
 - Built-city ablate proof: `npm run ablate -- --rounds 1 --ms 1200` on the same harness measured overview `buildings off x1.01`, `traffic off x1.09`, `shadows off x0.91`, `lights off x0.86`, `all three off x1.17`; street `buildings off x1.01`, `traffic off x1.18`, `shadows off x1.00`, `lights off x0.99`, `all three off x1.30`.
 - Priority note: the built-demo ablation does not support treating buildings as the largest per-frame toggle on this small harness. Keep the current item order only because item_113 also gates CPU upload churn, and let item_116's traffic occupancy work carry the stronger measured toggle gain.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# AC Traceability
+- request-AC1 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC2 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC3 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC4 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC5 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC6 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC7 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC8 -> This backlog slice. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`

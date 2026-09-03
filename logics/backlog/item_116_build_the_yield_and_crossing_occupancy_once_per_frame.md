@@ -1,14 +1,14 @@
 ## item_116_build_the_yield_and_crossing_occupancy_once_per_frame - Build the yield and crossing occupancy once per frame
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: roundaboutRooms already walks the movers once per frame, which is where the index belongs. The discarded ringEntryRadius is resolved and it is NOT dead code: it looks like a missing lane comparison, which would make it a correctness defect for req_035 rather than a cleanup here.
@@ -62,3 +62,7 @@
 - 2026-09-03 wave: `traffic.ts` now builds one `FrameOccupancy` per render frame for roundabout occupants, exiting rides, crossing walkers, and ring-room spacing; `stopFor(...)` and `arrive(...)` read that shared index instead of scanning all movers.
 - The existing roundabout lane-blocking rule was left unchanged: all occupied ring lanes can block entry as before. Same-lane-only yielding would be a right-of-way change for req_035, not this performance slice.
 - Validation proof: `npm run typecheck`, `rtk npx vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed. `rtk npm run test:e2e` passed the traffic movement checks, then hit the pre-existing zone-clear timeout at `scripts/interact.mjs:1021`.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

@@ -1,15 +1,15 @@
 ## task_039_orchestrate_the_per_frame_cost_work - Orchestrate the per-frame cost work
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: Codex
-> Indicators reviewed: 2026-09-03 14:57:57
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: Gate the uploads, step the sun, index the yielding -- each measured against the clean baseline req_036 records.
@@ -21,17 +21,17 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Do not start until req_036 item_110 has recorded a clean baseline; without it nothing here can be shown.
-- [ ] 2. Wave 1: the building state signature and the distant-loop map, measured immediately -- this is the largest single cost.
-- [ ] 3. Wave 2: the sun step and the signals allocation, minding the midnight wrap.
-- [ ] 4. Wave 3: the supplied-utility memo, after req_035's restake exists so the invalidation has something to hook.
-- [ ] 5. Wave 4: the traffic occupancy index, and elucidate the discarded entry radius before touching it.
-- [ ] 6. Wave 5: the mover segment re-resolution.
-- [ ] 7. Wave 6: the after measurement and the docs/performance.md note.
-- [ ] 8. Run npm run test:e2e after any wave touching the render loop, per CONTRIBUTING.md:53.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 1. Do not start until req_036 item_110 has recorded a clean baseline; without it nothing here can be shown.
+- [x] 2. Wave 1: the building state signature and the distant-loop map, measured immediately -- this is the largest single cost.
+- [x] 3. Wave 2: the sun step and the signals allocation, minding the midnight wrap.
+- [x] 4. Wave 3: the supplied-utility memo, after req_035's restake exists so the invalidation has something to hook.
+- [x] 5. Wave 4: the traffic occupancy index, and elucidate the discarded entry radius before touching it.
+- [x] 6. Wave 5: the mover segment re-resolution.
+- [x] 7. Wave 6: the after measurement and the docs/performance.md note.
+- [x] 8. Run npm run test:e2e after any wave touching the render loop, per CONTRIBUTING.md:53.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_113_gate_the_building_state_upload_on_a_change_signature`
@@ -43,20 +43,20 @@
 - `item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_113_gate_the_building_state_upload_on_a_change_signature`. Proof deferred to slice closeout.
-- request-AC2 -> `item_113_gate_the_building_state_upload_on_a_change_signature`. Proof deferred to slice closeout.
-- request-AC3 -> `item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed`. Proof deferred to slice closeout.
-- request-AC4 -> `item_115_fan_the_sun_out_once_per_visible_step`. Proof deferred to slice closeout.
-- request-AC5 -> `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`. Proof deferred to slice closeout.
-- request-AC7 -> `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`. Proof deferred to slice closeout.
-- request-AC6 -> `item_117_re_resolve_a_mover_s_segment_after_a_rebuild`. Proof deferred to slice closeout.
-- request-AC8 -> `item_118_show_the_frame_cost_came_down`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC2 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC3 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC4 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC5 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC7 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC6 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
+- request-AC8 -> This task. Proof: Implemented by task_039 commits c9321ea, 6b63046, 9b15535, 163c37e, 938cebd, 8b64610, 6d25554, and 6255a43. Validated with rtk npm run ci and rtk npm run perf; perf/history.jsonl has clean built-demo row 6d25554, which records the final non-improving fps result. Source: `6255a43`
 
 # Validation
 - 2026-09-03 wave item_133: Playwright probe of the perf setup settled at `237 segments`, `101 buildings`, `101 working`, `237 cars`, `42 active meshes`.
@@ -80,9 +80,15 @@
 - 2026-09-03 wave item_116: `npm run typecheck`, `rtk npx vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed; `rtk npm run test:e2e` passed traffic movement checks before the known zone-clear timeout at `scripts/interact.mjs:1021`.
 - 2026-09-03 wave item_118: `rtk npm run perf` appended clean built-demo row `6d25554`, 237 segments, 101 buildings, 42 active meshes.
 - 2026-09-03 wave item_118: final row did not prove fps improvement: 85 / 108 / 73 fps and 522 ms rebuild; `docs/performance.md` records the non-improvement.
+- command: `rtk npm run ci; rtk npm run perf` | result: passed | date: 2026-09-03
+- Finish workflow executed on 2026-09-03.
+- Linked backlog/request close verification passed.
 
 # Report
 - Not started.
+- Finished on 2026-09-03.
+- Linked backlog item(s): `item_113_gate_the_building_state_upload_on_a_change_signature`, `item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed`, `item_115_fan_the_sun_out_once_per_visible_step`, `item_116_build_the_yield_and_crossing_occupancy_once_per_frame`, `item_117_re_resolve_a_mover_s_segment_after_a_rebuild`, `item_118_show_the_frame_cost_came_down`, `item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it`
+- Related request(s): `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
 
 # Links
 - Request: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`

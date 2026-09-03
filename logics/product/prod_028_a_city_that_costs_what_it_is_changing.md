@@ -1,11 +1,12 @@
 ## prod_028_a_city_that_costs_what_it_is_changing - A city that costs what it is changing
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Settled
 > Related request: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
-> Related backlog: item_113_gate_the_building_state_upload_on_a_change_signature, item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed, item_115_fan_the_sun_out_once_per_visible_step, item_116_build_the_yield_and_crossing_occupancy_once_per_frame, item_117_re_resolve_a_mover_s_segment_after_a_rebuild, item_118_show_the_frame_cost_came_down, item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it
+> Related backlog: `item_113_gate_the_building_state_upload_on_a_change_signature`
 > Related task: `task_039_orchestrate_the_per_frame_cost_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # Overview
 Per-frame work is proportional to what moved, not to what exists.
@@ -77,5 +78,5 @@ flowchart TD
 - Observed while measuring, and not owned by any slice here: startup is 10.5 s (startupMs 10579 from the e2e debug measurement) and a demo city build is 2.5 s. A full rebuild is about 430 ms, of which ground is 193 ms and roads 157 ms. Whether a 10 s first paint is acceptable is a product question nobody has asked; it needs its own decision rather than being folded into per-frame work.
 
 # References
-- Product back-reference: `req_037_stop_paying_every_frame_for_a_city_that_is_not_changing`
+- Product back-reference: `item_113_gate_the_building_state_upload_on_a_change_signature`
 - Task back-reference: `task_039_orchestrate_the_per_frame_cost_work`

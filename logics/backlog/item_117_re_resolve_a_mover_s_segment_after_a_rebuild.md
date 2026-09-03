@@ -1,14 +1,14 @@
 ## item_117_re_resolve_a_mover_s_segment_after_a_rebuild - Re-resolve a mover's segment after a rebuild
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: Positions come from graph.pointAt so they stay correct, which is why a stale segment object surfaces as movers overshooting limitOf rather than as a visible jump.
@@ -51,3 +51,7 @@
 # Notes
 - 2026-09-03 wave: `traffic.rebuild(dirty)` now rebinds retained movers to `graph.segment(mover.segment.id)` before keeping them.
 - Validation proof: `rtk npx vitest run src/render/traffic.test.ts` and `npm run typecheck` passed; the new traffic test swaps the graph segment object under the same id and verifies the retained vehicle exposes the replacement segment.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

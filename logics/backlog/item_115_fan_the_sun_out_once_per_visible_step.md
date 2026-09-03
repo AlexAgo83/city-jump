@@ -1,14 +1,14 @@
 ## item_115_fan_the_sun_out_once_per_visible_step - Fan the sun out once per visible step
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: A sun moving 0.0013 h per frame reaches five renderers, the worst rebuilding every tree shadow matrix. An absolute-difference guard is wrong across midnight, where 23.99 to 0.01 reads as a small change.
@@ -61,3 +61,7 @@
 - Live probe proof: at x1 on the demo city, wrapping `tree_ground_shadows.thinInstanceSetBuffer("matrix", ...)` counted `4` uploads over `500 ms`; before this gate it ran once per rendered frame.
 - Midnight proof: setting the sun slider to `23.99`, running x4 for `300 ms`, then pausing reached displayed time `00:06`; the existing CI sun-cycle checks also passed.
 - Validation proof: `npm run typecheck && rtk npm run ci` passed. The broader `test:e2e` gate still has the pre-existing `scripts/interact.mjs:1021` zone-clear failure recorded under item_113.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

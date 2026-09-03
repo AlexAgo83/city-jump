@@ -1,14 +1,14 @@
 ## item_118_show_the_frame_cost_came_down - Show the frame cost came down
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 70%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:37:19
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: Without a before and after on a clean tree, every claim in req_037 is an assertion -- and today the harness measures an empty city, so item_133 must land first or the comparison is meaningless.
@@ -56,3 +56,7 @@
 - 2026-09-03 wave: `npm run perf` appended a clean `demo` row for commit `6d25554` with the same built-demo city as baseline `c9321ea`: 237 segments, 101 buildings, 42 active meshes.
 - Result: the row did not show an fps improvement in this software-rasterizer sample: 85 / 108 / 73 fps versus `6b63046` at 99 / 110 / 79, and rebuild rose to 522 ms. `docs/performance.md` records that plainly.
 - Validation proof: `rtk npm run perf` passed and wrote `dirty:false`; `logics-manager lint --require-status && logics-manager audit --group-by-doc && logics-manager i18n validate` passed after doc updates.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

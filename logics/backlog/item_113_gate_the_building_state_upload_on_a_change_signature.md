@@ -1,14 +1,14 @@
 ## item_113_gate_the_building_state_upload_on_a_change_signature - Gate the building state upload on a change signature
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 14:57:57
+> Indicators reviewed: 2026-09-03 15:41:32
 
 # AI Context
 - Summary: The single largest per-frame cost: about 40 Float32Arrays and a Matrix per building, every frame, to redraw buildings that did not move. The pattern to copy is decorKey, already in the same file.
@@ -62,3 +62,7 @@
 - Validation proof: `rtk npm exec -- vitest run src/render/buildings.test.ts && npm run typecheck` passed; `rtk npm run ci` passed.
 - E2E note: `rtk npm run test:e2e` still fails at `scripts/interact.mjs:1021` waiting for the zone-clear click to reduce `stats().zones`; the same failure reproduces from comparison worktree `bd2ee98`, before this wave, so it is not caused by the building-state gate.
 - Clean perf after proof: `npm run perf` on `6b63046` recorded `dirty:false`, `101 buildings`, `42 active meshes`, fps `overview=99`, `district=110`, `street=79`, `rebuild=436 ms`; deltas against `c9321ea` are inside known fps noise.
+- Task `task_039_orchestrate_the_per_frame_cost_work` was finished via `logics-manager flow finish task` on 2026-09-03.
+
+# Tasks
+- `task_039_orchestrate_the_per_frame_cost_work`

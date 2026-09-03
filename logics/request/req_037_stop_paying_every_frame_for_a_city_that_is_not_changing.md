@@ -1,12 +1,13 @@
 ## req_037_stop_paying_every_frame_for_a_city_that_is_not_changing - Stop paying every frame for a city that is not changing
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 70%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-03 15:41:31
 
 # AI Context
 - Summary: A settled city rebuilds every building instance buffer each frame, and a sun moving 0.0013 h per frame fans out to five renderers.
