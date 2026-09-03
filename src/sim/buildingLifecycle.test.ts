@@ -110,4 +110,13 @@ describe("building lifecycle", () => {
     // A real collapse is: the shifts are dealt again on what the city actually has.
     expect(staffed(40, 14)).toBe("false,false,true");
   });
+
+  it("deals the first post-load shifts against the loaded population", () => {
+    const lifecycle = new BuildingLifecycle();
+    lifecycle.sync([parcel("military", 0, 4, 4)], 100, 0, 0);
+
+    lifecycle.replaceWith([]);
+
+    expect(lifecycle.sync([parcel("military", 0, 4, 4)], 0, 1, 0)[0]!.state).toBe("idle");
+  });
 });

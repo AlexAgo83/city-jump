@@ -10,7 +10,7 @@ import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
 import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
-import { Utilities } from "./utilities";
+import { Utilities, UTILITY_BITS } from "./utilities";
 import { createRun, DEFAULT_RUN_RULES } from "./run";
 
 function city(): RoadGraph {
@@ -93,7 +93,7 @@ describe("city saves", () => {
     expect(highway?.elevated).toBe(true);
   });
 
-  it("carries road utility flags through a save", () => {
+  it("drops road utility flags that have no utility placement", () => {
     const graph = city();
     graph.setSegmentUtilities(graph.allSegments()[0]!.id, 3);
 
@@ -101,7 +101,7 @@ describe("city saves", () => {
     const restored = new RoadGraph();
     restoreCity(restored, new Plantings(), new Zones(), save);
 
-    expect(restored.allSegments()[0]!.utilities).toBe(3);
+    expect(restored.allSegments()[0]!.utilities).toBe(0);
   });
 
   it("carries utility placements through a save", () => {
@@ -115,6 +115,20 @@ describe("city saves", () => {
     restoreCity(new RoadGraph(), new Plantings(), new Zones(), save, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, restored);
 
     expect(restored.toJSON().map((item) => item.slice(0, 2))).toEqual([["producer", "power"], ["diffuser", "power"]]);
+  });
+
+  it("does not save stale utility masks after a utility is removed", () => {
+    const graph = city();
+    const utilities = new Utilities();
+    utilities.place(graph, "producer", "power", 0, 0);
+    utilities.place(graph, "diffuser", "power", 100, 0);
+    utilities.removeNear(graph, 0, 0, 10);
+
+    const save = parseCity(JSON.stringify(serializeCity(graph, new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, utilities)))!;
+    const restored = new RoadGraph();
+    restoreCity(restored, new Plantings(), new Zones(), save, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, new Utilities());
+
+    expect(restored.allSegments().some((segment) => segment.utilities & UTILITY_BITS.power)).toBe(false);
   });
 
   it("carries hand-planted and cleared trees through a save", () => {

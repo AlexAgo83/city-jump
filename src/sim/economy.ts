@@ -83,7 +83,7 @@ export function housingCapacity(parcels: readonly Pick<BuildingParcel, "kind" | 
 
 /** Deterministic city stocks. One call is one simulation-day fraction, never a renderer frame. */
 export class CityEconomy {
-  private state: CityResources;
+  private state: CityResources = startingState();
   /** True once the city has ever had a home, so the opening is not read as an eviction. */
   private housed = false;
   /** Latched while the works are behind, cleared only once the stock has really recovered. */
@@ -93,7 +93,7 @@ export class CityEconomy {
   private shortSince = 0;
 
   constructor(state: Partial<CityResources> = {}) {
-    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
+    this.replaceWith(state);
   }
 
   get resources(): CityResources {
@@ -109,17 +109,15 @@ export class CityEconomy {
    * buffer again.
    */
   get materialsShort(): boolean {
-    if (this.state.materials <= 0) {
-      this.starved = true;
-      this.shortSince = this.clock;
-    } else if (this.starved && this.clock - this.shortSince >= MATERIALS_RECOVERY_SECONDS && this.state.materials >= MATERIALS_RECOVERY) {
-      this.starved = false;
-    }
     return this.starved;
   }
 
   replaceWith(state: Partial<CityResources> = {}): void {
-    this.state = { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
+    this.state = startingState(state);
+    this.housed = false;
+    this.starved = false;
+    this.clock = 0;
+    this.shortSince = 0;
   }
 
   advance(parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">[], seconds: number): CityTerms {
@@ -165,6 +163,7 @@ export class CityEconomy {
       food: Math.max(0, foodAvailable - foodConsumed),
       materials: Math.max(0, materialsAvailable - materialsConsumed),
     };
+    this.updateShortage();
     return {
       population: { value: this.state.population, housing, change: growth, foodShortage },
       food: { value: this.state.food, produced: foodProduced, consumed: foodConsumed },
@@ -172,6 +171,19 @@ export class CityEconomy {
       trade: incomePerSecond(this.state.population, parcels.map((parcel) => ({ parcel, state: "working" as const }))),
     };
   }
+
+  private updateShortage(): void {
+    if (!this.starved && this.state.materials <= 0) {
+      this.starved = true;
+      this.shortSince = this.clock;
+    } else if (this.starved && this.clock - this.shortSince >= MATERIALS_RECOVERY_SECONDS && this.state.materials >= MATERIALS_RECOVERY) {
+      this.starved = false;
+    }
+  }
+}
+
+function startingState(state: Partial<CityResources> = {}): CityResources {
+  return { population: state.population ?? 12, food: state.food ?? STARTING_FOOD, materials: state.materials ?? STARTING_MATERIALS };
 }
 
 export function roadBuildCost(type: string, metres: number): number {

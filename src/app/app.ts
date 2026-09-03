@@ -762,7 +762,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     {
       place: (role, kind, x, z) => Boolean(utilities.place(graph, role, kind, x, z)),
       removeAt(x, z) {
-        const removed = utilities.removeNear(x, z, 10);
+        const removed = utilities.removeNear(graph, x, z, 10);
         if (removed) rebuild();
         return removed;
       },

@@ -42,23 +42,16 @@ export class Utilities {
     const radius = role === "diffuser" ? UTILITY_CATALOG[kind].diffuser.radius : undefined;
     const saved: SavedUtility = radius ? [role, kind, hit.position.x, hit.position.z, radius] : [role, kind, hit.position.x, hit.position.z];
     this.items.push(attach(saved, hit.segment.id));
-    graph.setSegmentUtilities(hit.segment.id, withUtility(hit.segment.utilities, kind));
-    if (role === "diffuser") {
-      const path = pathToProducer(graph, hit.segment.id, this.producers().filter((producer) => producer.kind === kind).map((producer) => producer.segmentId));
-      for (const segmentId of path) graph.setSegmentUtilities(segmentId, withUtility(graph.segment(segmentId).utilities, kind));
-    } else {
-      for (const diffuser of this.diffusers().filter((candidate) => candidate.kind === kind)) {
-        const path = pathToProducer(graph, diffuser.segmentId, [hit.segment.id]);
-        for (const segmentId of path) graph.setSegmentUtilities(segmentId, withUtility(graph.segment(segmentId).utilities, kind));
-      }
-    }
+    this.restake(graph);
     return saved;
   }
 
-  removeNear(x: number, z: number, within: number): SavedUtility | null {
+  removeNear(graph: RoadGraph, x: number, z: number, within: number): SavedUtility | null {
     const index = this.items.findIndex((item) => distXZ({ x: item[2], y: 0, z: item[3] }, { x, y: 0, z }) <= within);
     if (index < 0) return null;
-    return this.items.splice(index, 1)[0]!;
+    const removed = this.items.splice(index, 1)[0]!;
+    this.restake(graph);
+    return removed;
   }
 
   producers(): UtilityProducer[] {
@@ -92,10 +85,20 @@ export class Utilities {
       const hit = graph.nearestOnSegment(item[2], item[3], 32);
       if (hit) this.items.push(attach(item, hit.segment.id));
     }
+    this.restake(graph);
   }
 
   toJSON(): SavedUtility[] {
     return this.items.map((item) => [item[0], item[1], item[2], item[3], ...(item[4] ? [item[4]] : [])] as SavedUtility);
+  }
+
+  private restake(graph: RoadGraph): void {
+    for (const segment of graph.allSegments()) graph.setSegmentUtilities(segment.id, 0);
+    for (const item of this.items) if (item[0] === "producer" && graph.hasSegment(item.segmentId)) graph.setSegmentUtilities(item.segmentId, withUtility(graph.segment(item.segmentId).utilities, item[1]));
+    for (const diffuser of this.diffusers()) {
+      const goals = this.producers().filter((producer) => producer.kind === diffuser.kind).map((producer) => producer.segmentId);
+      for (const segmentId of pathToProducer(graph, diffuser.segmentId, goals)) graph.setSegmentUtilities(segmentId, withUtility(graph.segment(segmentId).utilities, diffuser.kind));
+    }
   }
 }
 
@@ -157,6 +160,8 @@ function connectedUtilitySegments(graph: RoadGraph, kind: UtilityKind, starts: r
 }
 
 function pathToProducer(graph: RoadGraph, start: SegmentId, goals: readonly SegmentId[]): SegmentId[] {
+  if (goals.length === 0) return [];
+  if (!graph.hasSegment(start)) return [];
   const goal = new Set(goals.filter((id) => graph.hasSegment(id)));
   const seen = new Set<SegmentId>([start]);
   const queue = [start];

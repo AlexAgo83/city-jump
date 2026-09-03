@@ -160,6 +160,7 @@ export class BuildingLifecycle {
 
   replaceWith(saved: readonly SavedBuildingState[]): void {
     this.states.clear();
+    this.committed = 0;
     this.last = saved.map(([x, z, state, startedAt]) => [x, z, normalizeState(state), startedAt]);
     for (const [x, z, state, startedAt] of this.last) this.states.set(key(x, z), { state, startedAt, seenAt: startedAt, staffed: state === "working" });
   }

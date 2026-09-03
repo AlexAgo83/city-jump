@@ -89,16 +89,30 @@ describe("economy", () => {
   });
 
   it("makes a shortage last, so the shops do not blink back on the moment a crate arrives", () => {
-    const economy = new CityEconomy({ materials: 0, population: 500 });
+    const economy = new CityEconomy({ food: 1000, materials: 0, population: 500 });
+    economy.advance([status("commercial", "working", 4, 4).parcel], 1);
     expect(economy.materialsShort).toBe(true);
 
     // The works refill the store the instant the shops stop buying from it. That is not the end of
     // the shortage: two hundred buildings turning on and off five times a second is what this
     // costs when the stock alone decides.
-    economy.replaceWith({ materials: 100, population: 500 });
+    const works = Array.from({ length: 20 }, () => status("industrial", "working").parcel);
+    economy.advance(works, 1);
     expect(economy.materialsShort).toBe(true);
 
-    economy.advance([], MATERIALS_RECOVERY_SECONDS);
+    economy.advance(works, MATERIALS_RECOVERY_SECONDS);
+    expect(economy.materialsShort).toBe(false);
+  });
+
+  it("does not mutate shortage state when read or carry it through a load", () => {
+    const economy = new CityEconomy({ materials: 0, population: 500 });
+    expect(economy.materialsShort).toBe(false);
+    expect(economy.materialsShort).toBe(false);
+
+    economy.advance([status("commercial", "working", 4, 4).parcel], 1);
+    expect(economy.materialsShort).toBe(true);
+    economy.replaceWith({ materials: 100, population: 500 });
+
     expect(economy.materialsShort).toBe(false);
   });
 });
