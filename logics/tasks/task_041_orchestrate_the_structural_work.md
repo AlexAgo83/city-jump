@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 15%
+> Progress: 30%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -21,9 +21,9 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Precondition: req_035, req_036, req_037 and req_038 are done. app.ts has 143 commits; refactoring it earlier turns every fix in those chains into a conflict.
-- [ ] 2. Wave 1: the three-line architecture assertion on setTerrain, and the documentation and gitignore items. Cheap, immediate, no conflict surface.
-- [ ] 3. Wave 2: the linter and tsconfig flags, adopting the tool and fixing its findings as separate commits.
+- [x] 1. Precondition: req_035, req_036, req_037 and req_038 are done. app.ts has 143 commits; refactoring it earlier turns every fix in those chains into a conflict.
+- [x] 2. Wave 1: the three-line architecture assertion on setTerrain, and the documentation and gitignore items. Cheap, immediate, no conflict surface.
+- [x] 3. Wave 2: the linter and tsconfig flags, adopting the tool and fixing its findings as separate commits.
 - [ ] 4. Wave 3: the startApp extractions in the stated order, one commit each with npm run ci between.
 - [ ] 5. Wave 4: the traffic and buildings splits, after req_037 has finished with those hot paths.
 - [ ] 6. Wave 5: drawTool into app/, after req_035 item_106.
@@ -77,4 +77,7 @@
 - 2026-09-03 wave 1: added the production `setTerrain` architecture guard, removed the only non-app production caller in `playRun`, and recorded ADR 007 for explicit terrain dependency migration.
 - 2026-09-03 wave 1: documented `ponytail:` comments in `CONTRIBUTING.md`, relaxed the generated-building manifest assertion to inclusion, height-checked the four hand-authored fallback models, and recorded their fallback in `docs/assets.md`.
 - 2026-09-03 validation: `rtk npm run test:architecture`, `rtk node --test tests/building-assets.mjs`, and `rtk npm exec -- vitest run src/sim/playthrough.test.ts` passed.
+- 2026-09-03 wave 2: commit `82b27fe` added Biome, `npm run lint`, `npm run format`, the `ci` lint gate, `engines.node >=22`, and the stricter TypeScript flags.
+- 2026-09-03 wave 2: commit `17204a9` fixed the strict unused-code and Biome error findings without changing player behavior.
+- 2026-09-03 validation: `rtk npm run ci` passed with Biome lint, 40 Vitest files / 306 tests, 12 architecture tests, scenarios, build/typecheck, Logics lint/audit, and i18n validation.
 - Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 15%
+> Progress: 30%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -56,3 +56,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave 2: commit `82b27fe` added Biome linting over `src`, `scripts`, and `tests`; `npm run ci` now runs `npm run lint`; `npm run format` is available without formatting the repo in this commit.
+- 2026-09-03 wave 2: `tsconfig.json` now enables `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, and `verbatimModuleSyntax`; `package.json` declares `engines.node >=22`.
+- 2026-09-03 wave 2: commit `17204a9` fixed the resulting unused-code and Biome error findings. Biome still reports warnings, but exits 0 and fails on errors.
+- 2026-09-03 validation: `rtk npm run ci` passed with Biome lint, 40 Vitest files / 306 tests, 12 architecture tests, scenarios, build/typecheck, Logics lint/audit, and i18n validation.
