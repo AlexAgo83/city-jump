@@ -11,7 +11,7 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { NodeId, RoadGraph, Segment } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
 import type { TerrainBounds } from "../sim/heightmap";
-import { baseRoadTypeId, laneCentres, roadType, walkCentres, type LaneCentre, type RoadType } from "../sim/roadTypes";
+import { baseRoadTypeId, laneCentres, roadType, walkCentres, type RoadType } from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
@@ -22,7 +22,7 @@ import {
   type JunctionArm,
   type JunctionGeometry,
 } from "../sim/junction";
-import { normalizeXZ, perpXZ, sub } from "../sim/vec";
+import { normalizeXZ, perpXZ } from "../sim/vec";
 import { laneRank, ringEntryRadius } from "../sim/routing";
 import {
   CROSSING_DEPTH,

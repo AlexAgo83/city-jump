@@ -210,7 +210,6 @@ function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3): { point: Vec3; t: number }[
   const out: { point: Vec3; t: number }[] = [];
   for (let i = 0; i <= 48; i++) {
     const t = i / 48;
-    const u = 1 - t;
     out.push({
       t,
       point: pointQuadratic(a, c, b, t),

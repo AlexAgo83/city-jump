@@ -29,7 +29,7 @@ import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, planKaiju, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
-import { buildableCellCentre, buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, GRID, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { buyUpgrade, carryScience, createRun, endIfPopulationZero, evacuate, FIRST_UPGRADE_WEB, settleWave, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
@@ -1063,7 +1063,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       if (selectedInfo?.kind === "building") {
         const info = selectedInfo;
         const selected = currentBuildingStatuses.find((status) => samePosition(status.parcel.position, info));
-        if (selected) showSelection((selectedInfo = { ...selectedInfo, state: selected.state, reason: selected.reason, progress: selected.progress, remainingSeconds: selected.remainingSeconds, staffed: selected.staffed }));
+        if (selected) {
+          selectedInfo = { ...selectedInfo, state: selected.state, reason: selected.reason, progress: selected.progress, remainingSeconds: selected.remainingSeconds, staffed: selected.staffed };
+          showSelection(selectedInfo);
+        }
       }
     }
     updateWave(simDt);
@@ -1074,7 +1077,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;
     if (selectedInfo?.kind === "vehicle" && selectedTarget) {
       const street = streetForSegment(graph, selectedTarget.segment.id).name;
-      if (street !== selectedInfo.street) showSelection((selectedInfo = { ...selectedInfo, street }));
+      if (street !== selectedInfo.street) {
+        selectedInfo = { ...selectedInfo, street };
+        showSelection(selectedInfo);
+      }
     }
     if (cameraMode === "orbit") {
       camera.alpha += (frameDelta() / 1000) * 0.22;

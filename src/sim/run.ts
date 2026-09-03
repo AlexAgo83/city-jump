@@ -84,6 +84,6 @@ export function startingMoney(profile: Pick<ProfileState, "upgrades">, base = ST
   return FIRST_UPGRADE_WEB.reduce((money, upgrade) => money + (upgrade.effect.kind === "starting-money" && profile.upgrades.includes(upgrade.id) ? upgrade.effect.amount : 0), base);
 }
 
-export function startingResources(profile: Pick<ProfileState, "upgrades">, base: CityResources): CityResources {
+export function startingResources(_profile: Pick<ProfileState, "upgrades">, base: CityResources): CityResources {
   return base;
 }

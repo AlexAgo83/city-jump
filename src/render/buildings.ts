@@ -219,7 +219,7 @@ interface Model {
  * One mesh per model, one matrix per building. A city is thousands of buildings and one
  * draw call each does not render; thin instances make the count irrelevant.
  */
-export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, shadows: ShadowGenerator) {
+export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator) {
   const manifest = await loadManifest();
   const available: Model[] = [];
   const roofProps = buildRoofProps(scene, shadows);
@@ -391,7 +391,9 @@ export async function createBuildingRenderer(scene: Scene, graph: RoadGraph, sha
     mesh.setEnabled(visible && list.length > 0);
     if (list.length === 0) return;
     const buffer = new Float32Array(list.length * 16);
-    list.forEach((m, i) => m.copyToArray(buffer, i * 16));
+    list.forEach((m, i) => {
+      m.copyToArray(buffer, i * 16);
+    });
     mesh.thinInstanceSetBuffer("matrix", buffer, 16, false); // non-static: the count changes with the city
     mesh.thinInstanceCount = list.length;
   }

@@ -266,12 +266,6 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     facade.specular = record.white ? new Color3(0.22, 0.25, 0.3) : new Color3(0.34, 0.2, 0.08);
   }
 
-  function disposeRecordLights(record: LampRecord): void {
-    if (!record.lights) return;
-    disposeLights(record.lights);
-    record.lights = undefined;
-  }
-
   function disposeLights(lights: NonNullable<LampRecord["lights"]>): void {
     for (const light of [lights.pool, lights.facade]) {
       lightCluster.removeLight(light);

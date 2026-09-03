@@ -1,6 +1,6 @@
 import { parseCity, type CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
-import { decodeShare, encodeShare } from "../sim/share";
+import { decodeShare, encodeShare, type SharedCity } from "../sim/share";
 import { UTILITY_CATALOG, type UtilityKind, type UtilityRole } from "../sim/utilities";
 import type { ZoneKind } from "../sim/zones";
 import {
@@ -681,7 +681,7 @@ async function importSharedCity(
   const url = new URL(location.href);
   url.hash = "";
   history.replaceState(null, "", url);
-  let shared;
+  let shared: SharedCity;
   try {
     shared = await decodeShare(hash);
   } catch (error) {

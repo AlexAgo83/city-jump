@@ -1069,7 +1069,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     if (!from || !to) return false;
 
     const ring = ringAt(nodeId);
-    const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
     const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
     const blockers = occupancy.roundabouts.get(nodeId);
     const occupied = blockers?.occupied ?? [];
@@ -1133,7 +1132,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     if (!mover.walk && !laneHasEntryRoom(next, nodeId, landing, trim)) return;
     if (roundabout && !mover.walk && from && to) {
       const ring = ringAt(nodeId);
-      const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
       const entryAngle = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
       const blockers = occupancy.roundabouts.get(nodeId);
       const occupied = blockers?.occupied ?? [];
