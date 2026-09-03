@@ -71,6 +71,13 @@ const measure = async (framing) => {
   return page.evaluate((ms) => window.cityjump.measureFps(ms), sampleMs);
 };
 
+// The toolbar ships collapsed and its content is display:none, so #frame-cap and every show-*
+// checkbox this script drives are invisible to a click until it is opened. Same break as perf.mjs
+// had: the settings menu started closed and neither harness was told.
+if ((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) !== "true") {
+  await page.locator("#toolbar-toggle").click();
+}
+
 // The game caps itself to spare a laptop; a measurement wants the machine flat out.
 await page.selectOption("#frame-cap", "0");
 await page.waitForTimeout(500);
