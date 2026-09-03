@@ -16,6 +16,8 @@ server. That makes every link untrusted local input.
 - Refuse a fragment above 12,000 characters before decoding.
 - Cap decompressed JSON at 96 KB while streaming.
 - Run the decoded city through `parseCity`; never replay unchecked JSON.
+- Render every value from a loaded city with `textContent` or equivalent node properties, never
+  `innerHTML`.
 - Keep `parseCity`'s newer-build refusal distinct from malformed input.
 - Quantise only the shared payload. Local saves keep full precision.
 - Refuse over-limit cities with a message that says the city is too large for a link.

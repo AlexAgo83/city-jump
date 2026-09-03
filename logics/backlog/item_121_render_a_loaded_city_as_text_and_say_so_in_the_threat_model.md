@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 40%
+> Progress: 60%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -55,3 +55,10 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 implementation wave: `src/ui/hud.ts` no longer writes HUD, ledger, or selection values through `innerHTML`; all rows are built as nodes and populated with `textContent`/element properties.
+- 2026-09-03 implementation wave: `render.yaml` now serves a CSP with `default-src 'self'`, `object-src 'none'`, `base-uri 'none'`, and hashes for the existing inline style/script instead of `style-src 'unsafe-inline'`.
+- 2026-09-03 implementation wave: `docs/shared-link-threat-model.md` now requires loaded-city values to render through `textContent` or equivalent node properties, never `innerHTML`.
+- 2026-09-03 validation: `rtk npm run ci` passed; `rtk npm run test:visual` passed with 551 buildings rendered in a real browser.
+- 2026-09-03 validation: `rtk npm run test:e2e` passed the HUD/ledger/save checks before timing out at `scripts/interact.mjs:1021` on the known zone-clear wait that predates this slice.

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { test } from "node:test";
 
@@ -46,6 +47,27 @@ test("district dark path raises the alert surface", async () => {
 
   assert.match(hud, /export function showAlert/);
   assert.match(app, /showAlert\("A district went dark\."\)/);
+});
+
+function inlineHash(html, tag) {
+  const match = html.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`));
+  assert.ok(match, `missing inline ${tag}`);
+  return createHash("sha256").update(match[1]).digest("base64");
+}
+
+test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
+  const hud = await readFile(new URL("ui/hud.ts", src), "utf8");
+  const render = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.doesNotMatch(hud, /\.innerHTML\b/);
+  assert.match(render, /Content-Security-Policy/);
+  assert.match(render, /default-src 'self'/);
+  assert.match(render, /object-src 'none'/);
+  assert.match(render, /base-uri 'none'/);
+  assert.match(render, new RegExp(`script-src 'self' 'sha256-${inlineHash(html, "script")}'`));
+  assert.match(render, new RegExp(`style-src 'self' 'sha256-${inlineHash(html, "style")}'`));
+  assert.doesNotMatch(render, /style-src[^\\n]*'unsafe-inline'/);
 });
 
 test("release deploy workflow keeps secrets out of templated shell", async () => {

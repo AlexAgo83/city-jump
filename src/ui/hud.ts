@@ -66,16 +66,30 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
   needsPanel.replaceChildren(...needs.map((need) => {
     const row = document.createElement("div");
     row.className = "need-row";
-    const value = needText(need);
-    row.innerHTML =
-      `<span>${needLabel(need.kind)}</span><meter min="0" max="1" value="${need.ratio.toFixed(3)}"></meter><b>${value}</b>`;
+    const name = document.createElement("span");
+    const meter = document.createElement("meter");
+    const value = document.createElement("b");
+    name.textContent = needLabel(need.kind);
+    meter.min = 0;
+    meter.max = 1;
+    meter.value = Number(need.ratio.toFixed(3));
+    value.textContent = needText(need);
+    row.replaceChildren(name, meter, value);
     return row;
   }));
   ledgerLines.replaceChildren(...ledgerRows(terms, resources).map((row) => {
     const line = document.createElement("div");
     line.className = "ledger-row";
     if (row.short) line.dataset.short = "true";
-    line.innerHTML = `<span>${row.label}</span><b>${row.value}</b><i>${row.inflow}</i><i>${row.outflow}</i>`;
+    const label = document.createElement("span");
+    const value = document.createElement("b");
+    const inflow = document.createElement("i");
+    const outflow = document.createElement("i");
+    label.textContent = row.label;
+    value.textContent = row.value;
+    inflow.textContent = row.inflow;
+    outflow.textContent = row.outflow;
+    line.replaceChildren(label, value, inflow, outflow);
     return line;
   }));
   ledgerLines.dataset.empty = String(!terms && !resources);
@@ -139,8 +153,12 @@ const selectionPanel = document.getElementById("selection-panel") as HTMLDivElem
 const selectionKind = selectionPanel.querySelector(".selection-kind") as HTMLDivElement;
 const selectionRows = selectionPanel.querySelector("dl") as HTMLDListElement;
 
-function row(label: string, value: string): string {
-  return `<dt>${label}</dt><dd>${value}</dd>`;
+function row(label: string, value: string): [HTMLElement, HTMLElement] {
+  const term = document.createElement("dt");
+  const description = document.createElement("dd");
+  term.textContent = label;
+  description.textContent = value;
+  return [term, description];
 }
 
 /** What the select tool put under the pointer, or null to hide the panel again. */
@@ -149,12 +167,13 @@ export function showSelection(info: SelectionInfo | null): void {
   if (info === null) return;
   if (info.kind === "road") {
     selectionKind.textContent = "Road";
-    selectionRows.innerHTML =
-      row("Type", info.name) +
-      row("Street", info.street) +
-      row("Lanes", String(info.lanes)) +
-      row("Direction", info.oneWay ? "One-way" : "Two-way") +
-      row("Length", `${info.length.toFixed(0)} m`);
+    selectionRows.replaceChildren(
+      ...row("Type", info.name),
+      ...row("Street", info.street),
+      ...row("Lanes", String(info.lanes)),
+      ...row("Direction", info.oneWay ? "One-way" : "Two-way"),
+      ...row("Length", `${info.length.toFixed(0)} m`),
+    );
     return;
   }
   if (info.kind === "building") {
@@ -162,36 +181,41 @@ export function showSelection(info: SelectionInfo | null): void {
     const construction = info.state === "rising" || info.state === "rebuilding"
       ? `${stateLabel(info.state)} -- ${Math.round(info.progress * 100)} % -- ${Math.ceil(info.remainingSeconds)} s remaining`
       : stateLabel(info.state);
-    selectionRows.innerHTML =
-      row("Address", info.address) +
-      row("Type", label(info.buildingKind)) +
-      row("Footprint", info.footprint) +
+    const rows = [
+      ...row("Address", info.address),
+      ...row("Type", label(info.buildingKind)),
+      ...row("Footprint", info.footprint),
       // A lot is staffed whole or not at all, so this is either the full shift or none of it. A
       // home asks for nobody, and says so rather than showing an empty pair of zeroes.
-      row("Workers", info.workers === 0 ? "None needed" : `${info.staffed ? info.workers : 0}/${info.workers}`) +
-      row("State", construction) +
-      (info.reason ? row("Reason", info.reason === "workers" ? "No workers" : info.reason === "power" ? "No power" : info.reason === "water" ? "No water" : "Under construction") : "");
+      ...row("Workers", info.workers === 0 ? "None needed" : `${info.staffed ? info.workers : 0}/${info.workers}`),
+      ...row("State", construction),
+    ];
+    if (info.reason) {
+      rows.push(...row("Reason", info.reason === "workers" ? "No workers" : info.reason === "power" ? "No power" : info.reason === "water" ? "No water" : "Under construction"));
+    }
+    selectionRows.replaceChildren(...rows);
     return;
   }
   if (info.kind === "utility") {
     selectionKind.textContent = info.utility === "power" ? "Power" : "Water";
-    selectionRows.innerHTML =
-      row("Role", info.role === "producer" ? "Producer" : "Diffuser") +
-      row("Staff", String(info.staff));
+    selectionRows.replaceChildren(
+      ...row("Role", info.role === "producer" ? "Producer" : "Diffuser"),
+      ...row("Staff", String(info.staff)),
+    );
     return;
   }
   if (info.kind === "vehicle") {
     selectionKind.textContent = info.name;
     // "saloon" -> "Saloon", "troop truck" -> "Troop truck".
     const model = info.model ? info.model.charAt(0).toUpperCase() + info.model.slice(1) : "";
-    selectionRows.innerHTML = (model ? row("Type", model) : "") + row("Street", info.street);
+    selectionRows.replaceChildren(...(model ? row("Type", model) : []), ...row("Street", info.street));
     return;
   }
   if (info.kind === "roundabout") {
     selectionKind.textContent = "Roundabout";
-    selectionRows.innerHTML = row("Lanes", String(info.lanes)) + row("Radius", `${info.radius.toFixed(0)} m`);
+    selectionRows.replaceChildren(...row("Lanes", String(info.lanes)), ...row("Radius", `${info.radius.toFixed(0)} m`));
     return;
   }
   selectionKind.textContent = "Tree";
-  selectionRows.innerHTML = "";
+  selectionRows.replaceChildren();
 }

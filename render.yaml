@@ -38,3 +38,6 @@ services:
       - path: /*
         name: Permissions-Policy
         value: geolocation=(), microphone=(), camera=(), interest-cohort=()
+      - path: /*
+        name: Content-Security-Policy
+        value: default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-IS/wz/53eUzzFhswyOp/SswPVy/Cb5taiscgpeVzTuQ='; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
