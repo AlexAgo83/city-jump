@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 55%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -50,3 +50,8 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-03 wave: `app.ts` now caches a utility snapshot keyed by `graph.revision`; the snapshot carries both `suppliedDiffusers(...)` and the diffuser list used by `missingUtility`.
+- Utility placement/removal still invalidates in the same frame through existing `Utilities.restake(graph)`, which calls `graph.setSegmentUtilities(...)` and bumps `graph.revision`.
+- Validation proof: `npm run typecheck && rtk npm run ci` passed. The CI path includes the scenario gate and the unit utility invalidation tests; the browser e2e utility-removal checks passed before the pre-existing zone-clear failure recorded under item_113.

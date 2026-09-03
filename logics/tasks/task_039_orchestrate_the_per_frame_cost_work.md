@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 75%
-> Progress: 45%
+> Progress: 55%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -71,6 +71,8 @@
 - 2026-09-03 wave item_115: live x1 clock probe counted `4` tree-shadow matrix uploads over `500 ms`, showing minute-step fan-out rather than frame-by-frame fan-out.
 - 2026-09-03 wave item_115: midnight probe from slider `23.99` reached displayed time `00:06` after x4 for `300 ms`.
 - 2026-09-03 wave item_115: `npm run typecheck && rtk npm run ci` passed.
+- 2026-09-03 wave item_114: `app.ts` caches supplied utilities and diffusers on `graph.revision`; utility restake already invalidates that key.
+- 2026-09-03 wave item_114: `npm run typecheck && rtk npm run ci` passed.
 
 # Report
 - Not started.

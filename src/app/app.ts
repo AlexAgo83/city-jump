@@ -288,11 +288,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     for (const parcel of currentParcels) for (const cell of parcel.cells) keys.add(cellKey(cell));
     return keys;
   };
-  const currentSuppliedUtilities = (): Set<string> => suppliedDiffusers(graph, utilities.producers(), utilities.diffusers());
+  let utilitySnapshot: { revision: number; supplied: Set<string>; diffusers: ReturnType<Utilities["diffusers"]> } | null = null;
+  const currentUtilitySnapshot = (): NonNullable<typeof utilitySnapshot> => {
+    if (utilitySnapshot?.revision === graph.revision) return utilitySnapshot;
+    const diffusers = utilities.diffusers();
+    utilitySnapshot = { revision: graph.revision, diffusers, supplied: suppliedDiffusers(graph, utilities.producers(), diffusers) };
+    return utilitySnapshot;
+  };
+  const currentSuppliedUtilities = (): Set<string> => currentUtilitySnapshot().supplied;
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
-    const supplied = currentSuppliedUtilities();
-    const diffusers = utilities.diffusers();
+    const { supplied, diffusers } = currentUtilitySnapshot();
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
       if (status.state === "rising" || status.state === "rebuilding") return status;
       const missing = missingUtility(status.parcel.kind, status.parcel.position, supplied, diffusers);
