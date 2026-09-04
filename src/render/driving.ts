@@ -131,6 +131,16 @@ export function roomAhead(distance: number, stop: number, direction: 1 | -1): nu
   return (stop - distance) * direction;
 }
 
+export function stopTarget(line: number, aheadDistance: number | undefined, direction: 1 | -1): number {
+  if (aheadDistance === undefined) return line;
+  const behind = aheadDistance - direction * CAR_GAP;
+  return direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
+}
+
+export function atSegmentLimit(distance: number, limit: number, direction: 1 | -1): boolean {
+  return direction === 1 ? distance >= limit : distance <= limit;
+}
+
 export function circularQueueRooms<T>(
   entries: readonly { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[],
 ): Map<T, number> {

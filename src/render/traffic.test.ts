@@ -8,6 +8,7 @@ import { v3 } from "../sim/vec";
 import {
   circularQueueRooms,
   accelerateToward,
+  atSegmentLimit,
   joinLaneQueue,
   laneQueueIsOrdered,
   laneStartBlocked,
@@ -21,6 +22,7 @@ import {
   scaledTrafficCount,
   segmentLimit,
   speedForRoom,
+  stopTarget,
   trafficLaneOffset,
 } from "./driving";
 import { createTrafficRenderer } from "./traffic";
@@ -102,6 +104,12 @@ describe("traffic queues", () => {
     expect(segmentLimit(segment, -1, 20)).toBe(20);
     expect(roomAhead(40, 55, 1)).toBe(15);
     expect(roomAhead(60, 45, -1)).toBe(15);
+    expect(stopTarget(90, 80, 1)).toBe(71.5);
+    expect(stopTarget(10, 20, -1)).toBe(28.5);
+    expect(stopTarget(90, undefined, 1)).toBe(90);
+    expect(atSegmentLimit(80, 80, 1)).toBe(true);
+    expect(atSegmentLimit(21, 20, -1)).toBe(false);
+    expect(atSegmentLimit(20, 20, -1)).toBe(true);
   });
 
   it("removes emptied lane queues", () => {

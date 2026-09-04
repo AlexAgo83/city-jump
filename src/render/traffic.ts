@@ -40,7 +40,6 @@ import { createVehicleHeadlights } from "./vehicleLights";
 import { createVehicleModels } from "./vehicleModels";
 import {
   BRAKING,
-  CAR_GAP,
   CAR_STOP_SETBACK,
   CAR_TURN_RATE,
   type FrameOccupancy,
@@ -56,6 +55,7 @@ import {
   WALKER_SPEED,
   WALKER_TURN_RATE,
   accelerateToward,
+  atSegmentLimit,
   circularQueueRooms,
   joinLaneQueue,
   laneStartBlocked,
@@ -68,6 +68,7 @@ import {
   scaledTrafficCount,
   segmentLimit,
   speedForRoom,
+  stopTarget,
   trafficLaneOffset,
 } from "./driving";
 import type { TerrainBounds } from "../sim/heightmap";
@@ -283,9 +284,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     const line = heldAtLights(mover, time) || crossingOccupiedByWalker(mover, occupancy) || roundaboutYieldBlocked(mover, occupancy)
       ? stopLineOf(mover)
       : limitOf(mover) + mover.direction * BRAKING * 2;
-    if (!ahead) return line;
-    const behind = ahead.distance - mover.direction * CAR_GAP;
-    return mover.direction === 1 ? Math.min(line, behind) : Math.max(line, behind);
+    return stopTarget(line, ahead?.distance, mover.direction);
   }
 
   function roundaboutYieldBlocked(mover: Mover, occupancy: FrameOccupancy): boolean {
@@ -791,7 +790,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       mover.distance += mover.direction * mover.currentSpeed * dt;
 
       const limit = limitOf(mover);
-      const atEnd = mover.direction === 1 ? mover.distance >= limit : mover.distance <= limit;
+      const atEnd = atSegmentLimit(mover.distance, limit, mover.direction);
       if (atEnd && (mover.walk || !heldAtLights(mover, now))) {
         mover.distance = limit;
         arrive(mover, now, occupancy);
