@@ -1,0 +1,730 @@
+{
+  "budgets": {
+    "max_docs": 88,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states.md",
+    "logics/backlog/item_137_give_src_a_module_size_budget_that_something_measures.md",
+    "logics/backlog/item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof.md",
+    "logics/backlog/item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city.md",
+    "logics/backlog/item_140_cover_the_three_modules_nothing_reaches_or_record_why_not.md",
+    "logics/backlog/item_141_pin_third_party_actions_the_same_way_in_every_workflow.md",
+    "logics/backlog/item_142_the_fixes_whose_record_is_the_change_itself.md",
+    "logics/backlog/item_143_zone_a_contiguous_run_of_lots_from_one_click.md",
+    "logics/backlog/item_144_put_the_zoning_tool_choice_in_its_own_panel.md",
+    "logics/backlog/item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera.md",
+    "logics/backlog/item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider.md",
+    "logics/backlog/item_147_make_evacuating_leave_the_island.md",
+    "logics/backlog/item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju.md",
+    "logics/backlog/item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers.md",
+    "logics/backlog/item_150_drop_the_second_the_bulldozer_waits_for_nothing.md",
+    "logics/backlog/item_151_open_a_run_with_a_treasury_that_can_build_a_city.md",
+    "logics/context-packs/gates-that-check-what-they-claim.json",
+    "logics/context-packs/zoning-brush-and-wave-aftermath.json",
+    "logics/product/prod_031_gates_that_check_what_they_claim.md",
+    "logics/product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md",
+    "logics/request/req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them.md",
+    "logics/request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md",
+    "logics/tasks/task_042_orchestrate_the_review_findings_work.md",
+    "logics/tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath item_143_zone_a_contiguous_run_of_lots_from_one_click item_144_put_the_zoning_tool_choice_in_its_own_panel item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider item_147_make_evacuating_leave_the_island item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers item_150_drop_the_second_the_bulldozer_waits_for_nothing item_151_open_a_run_with_a_treasury_that_can_build_a_city task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+          "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+          "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+          "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+          "item_147_make_evacuating_leave_the_island",
+          "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+          "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+          "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+          "item_151_open_a_run_with_a_treasury_that_can_build_a_city"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md",
+      "ref": "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read",
+      "sections": {
+        "Goals": [
+          "- What the player sees after a wave matches what the run state actually is.",
+          "- A building that is rubble is rubble to every system that reads it -- targeting, firepower and workforce alike.",
+          "- Zoning a shape the roads already define costs one click.",
+          "- A deliberate exit from a run completes in one decision.",
+          "- A tool's controls never stand between the player and the camera.",
+          "- A constant that shapes how the game feels carries the reason it was chosen."
+        ],
+        "Key product decisions": [
+          "- A destroyed building is destroyed to every system that reads it. Targeting already knows; firepower and workforce did not.",
+          "- Contiguity for zoning is decided against the structure the lots already carry -- segment, side, block -- not against corner geometry, because geometric contiguity would zone a whole connected city from one click.",
+          "- A constant that shapes how the game feels carries its reason at the declaration, per the `ponytail:` convention in CONTRIBUTING.md. Both constants in this chain arrived without one.",
+          "- The balance band is re-measured once, for the two slices that move it together, rather than designed around."
+        ],
+        "Overview": [
+          "A tool the player has to work around, and a wave that stops explaining itself.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read|authored",
+          "flowchart TD",
+          "    Brush[Brushes paint on a held drag] --> Strip[So button 0 is stripped from the camera]"
+        ],
+        "References": [
+          "- Product back-reference: `req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath`",
+          "- Task back-reference: `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "Tools that stay out of the way, and a wave whose aftermath the player can read"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "zoning fill, tool choice panel, click-only brush, left drag camera, zone brush default, evacuate to new island, city levelled message, rubble battery, demolition delay, starting treasury",
+        "skip when": "retuning the wave difficulty curve, the tree spray brush's default radius, how science converts to prestige, or middle- and right-drag camera control, all of which work.",
+        "summary": "Nine things from playing 0.4.0, in three groups: the zoning surface (a fill tool, a tool-choice panel, a brush that opens at its minimum), the wave's aftermath (a levelled city that says so, an evacuation that leaves, a barracks in rubble that stops firing), and two bare constants that shape how the game feels -- a bulldozer that waits a second for nothing and an opening treasury of $40,000.",
+        "use when": "changing the zoning tools, the pointer contract, the run's exit, what a wave does once buildings fall, or either of the two constants."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+          "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+          "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+          "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+          "item_147_make_evacuating_leave_the_island",
+          "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+          "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+          "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+          "item_151_open_a_run_with_a_treasury_that_can_build_a_city"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ]
+      },
+      "path": "logics/request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md",
+      "ref": "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A fill tool zones a contiguous run of lots from one click, bounded by a recorded rule, and the brush is still there to choose instead.",
+          "- A fill only replaces the zoning the clicked lot had, records one undo entry, and records none when it changed nothing.",
+          "- The zone brush opens at the minimum of its own slider, and the tool's radius and the input's range cannot diverge without something failing.",
+          "- Evacuating ends on a new island with the science banked, and the prestige upgrades are still reachable at the point they are meant to be spent.",
+          "- A city destroyed to the last building says that is what happened, distinctly from an ordinary breach, and the run's own state matches what the player is looking at.",
+          "- A building in rubble contributes no battery and holds no workforce, and the staffing of the lots still standing does not flicker."
+        ],
+        "Needs": [
+          "- Zoning a district you can already see the shape of takes one click, not a brush stroke that has to cover it.",
+          "- A brush starts at the size its own slider says it starts at.",
+          "- Evacuating leaves the island. It does not leave the player on it with the button that does.",
+          "- A city flattened to the ground says so, and the thing that flattened it does not simply vanish.",
+          "- A barracks in rubble does not fire, and does not hold the workers the buildings still standing need.",
+          "- Choosing which zoning tool you are holding is its own decision, in its own place, not another control on the row of options for the tool you were holding before."
+        ]
+      },
+      "status": "Ready",
+      "title": "What playing 0.4.0 turned up in the zoning tools, the brush surface and the wave's aftermath"
+    },
+    {
+      "ai_context": {
+        "keywords": "fill tool, paint bucket, lot contiguity, segment side block, paintLots, zone overlay commit",
+        "skip when": "the brush itself, a rectangle or lasso selection, or the ordinary dirty-box commit path that tears down the trees under it.",
+        "summary": "Zoning a district the roads already define means dragging a round brush across it. Zoning is keyed by lot, and BuildableCell already carries the segment, side and block a fill needs to know where to stop.",
+        "use when": "adding a zoning tool, or deciding what makes two lots contiguous."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_143_zone_a_contiguous_run_of_lots_from_one_click"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_143_zone_a_contiguous_run_of_lots_from_one_click.md",
+      "ref": "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- One click fills a contiguous run of lots, and the rule that bounds it is recorded where a reader will meet it.",
+          "- The fill is one tool choice among the zoning tools; the brush still works as it did.",
+          "- A fill does not change lots whose zoning differs from the clicked lot's.",
+          "- A fill is one undo entry, and a fill that changed nothing records none.",
+          "- Filling does not disturb the trees, terrain, roads, traffic or signals under it."
+        ],
+        "Problem": [
+          "- Zoning a district that the roads already define means dragging a round brush over it, at a radius that either overshoots into the next block or needs several passes.",
+          "- Zoning is keyed by lot, not by ground (src/sim/zones.ts), so a fill works on the lot list -- `currentBuildableCells` -- and not on any grid of its own.",
+          "- A purely geometric flood fill would run across the whole connected city from one click. BuildableCell already carries segment, side, block, column and row (src/sim/slots.ts:40-44), and slots.ts:165 already keys a run of lots by segment, side and block."
+        ]
+      },
+      "status": "Ready",
+      "title": "Zone a contiguous run of lots from one click"
+    },
+    {
+      "ai_context": {
+        "keywords": "zone-options row, tool choice panel, segmented group, select-view-options idiom, action dock",
+        "skip when": "redesigning the toolbar or action dock, and moving the zone kinds or brush slider out of their row.",
+        "summary": "`#zone-options` is one row holding the zone kinds, the brush slider and the price, so a brush-or-fill switch added to it would put the choice of tool on the same line as that tool's settings.",
+        "use when": "adding a control that chooses a tool rather than configuring one."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_144_put_the_zoning_tool_choice_in_its_own_panel"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_144_put_the_zoning_tool_choice_in_its_own_panel.md",
+      "ref": "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The zoning tool choice sits in its own panel above the tool's options.",
+          "- It uses the existing group idiom rather than a new component.",
+          "- The panel appears and hides with the zoning tools, like the option rows it sits above."
+        ],
+        "Problem": [
+          "- `#zone-options` (index.html:440-451) is a single row carrying the five zone kinds, the brush size slider and the price output. A brush-or-fill switch added to it would put the choice of tool on the same line as that tool's settings.",
+          "- The choice of which tool you are holding is a different kind of decision from how that tool is configured, and the row gives it no place to be."
+        ]
+      },
+      "status": "Ready",
+      "title": "Put the zoning tool choice in its own panel"
+    },
+    {
+      "ai_context": {
+        "keywords": "click-only brush, setCameraDrag, leftPointerDown, POINTERMOVE, undo granularity, CLICK_SLOP",
+        "skip when": "middle- and right-drag camera control and the road drawing gestures, which are click-to-click already.",
+        "summary": "The brushes paint while the left button is held, which is exactly why the tool strips button 0 from the camera. Click-only painting removes the reason for the special case and gives the left drag back.",
+        "use when": "changing the pointer contract for a tool, or anything that takes an input away from the camera."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera.md",
+      "ref": "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- No brush paints while the left button is held; each press paints once.",
+          "- A left drag turns the camera with every tool selected, and no tool takes a button off the camera.",
+          "- What a single undo entry covers is recorded, and undoing after painting behaves that way."
+        ],
+        "Problem": [
+          "- The brushes paint while the left button is held (src/render/drawTool.ts:669-674), which is why src/render/drawTool.ts:740 strips button 0 from the camera's pointer inputs whenever a brush is selected. The ponytail comment at :711-717 records the trade it was making.",
+          "- The player therefore loses left-drag camera orbit for as long as a brush tool is held, which is the ordinary way of turning the view.",
+          "- Making the brushes click-only removes the reason for the special case: with nothing painting on a held drag, there is nothing for `setCameraDrag` to suppress."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the brushes click-only and give the left drag back to the camera"
+    },
+    {
+      "ai_context": {
+        "keywords": "zone-radius, brush default, ZONE_RADIUS, one source of truth, slider minimum",
+        "skip when": "the spray brush's radius, and the slider's min, max and step, which stay as they are.",
+        "summary": "The zone brush opens at 32 with a minimum of 8, and the tool's radius is a hand-kept copy of that default which has already drifted from the slider once.",
+        "use when": "changing a brush default, or any constant kept equal to a DOM attribute by hand."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider.md",
+      "ref": "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The zone brush's opening radius is the minimum of `#zone-radius`.",
+          "- Changing the input's range cannot leave the tool painting at a size the slider does not offer, and something fails if it does."
+        ],
+        "Problem": [
+          "- index.html:449 declares the zone brush `min=\"8\" max=\"96\" step=\"8\" value=\"32\"`, so it opens at four times its minimum.",
+          "- src/render/drawTool.ts:103-108 keeps ZONE_RADIUS equal to that default by hand, and its comment records the cost the last time the two diverged: the tool painted at the tree brush's radius while the slider read something else.",
+          "- src/ui/controls.ts:287-289 already pushes the input's value into the tool at bind time for that same reason, so the constant is a second source of truth for a number the DOM already holds."
+        ]
+      },
+      "status": "Ready",
+      "title": "Open the zone brush at the minimum of its own slider"
+    },
+    {
+      "ai_context": {
+        "keywords": "evacuate, new island, between-runs panel, prestige upgrades, carryScience, run exit",
+        "skip when": "carryScience and the prestige arithmetic, which are correct, and the population-zero and defeat endings.",
+        "summary": "Evacuating banks the science, ends the run and tells the player to start a new one. The new island is a second click on a button hidden until the run ends, so one decision costs two confirmations.",
+        "use when": "changing how a run ends or how the next one starts."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_147_make_evacuating_leave_the_island"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_147_make_evacuating_leave_the_island.md",
+      "ref": "item_147_make_evacuating_leave_the_island",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Evacuating leaves the player on a fresh island with the run's science added to prestige.",
+          "- The prestige upgrades are reachable at the point they are meant to be spent, and the flow through them is recorded.",
+          "- Evacuating asks for confirmation once.",
+          "- A new island opened this way carries no state from the run that just ended -- no banner, no wave, no latch."
+        ],
+        "Problem": [
+          "- src/app/app.ts:774-782 banks the science, autosaves, ends the run and says \"Start a new run when you are ready.\" It does not start one.",
+          "- The new island is a second click on `#new-run` (index.html:481), hidden inside `#between-runs` until the run has ended, so the player confirms twice -- \"Evacuate this run?\", then \"Leave for a new island?\" -- to do one thing.",
+          "- The between-runs panel is also where prestige is spent, so evacuating straight onto a new island would skip the shop the science was just banked for."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make evacuating leave the island"
+    },
+    {
+      "ai_context": {
+        "keywords": "city levelled, wave breached, clearWaveVisuals, kaiju idle, endIfPopulationZero, run state",
+        "skip when": "the wave difficulty curve, the population decay model, and giving the kaiju retreat or patrol behaviour.",
+        "summary": "Confirmed: when the last building falls the wave finishes as breached, the kaiju's mesh is hidden, the banner gives the same three words as any breach, and the run does not end -- the player is left on an empty island still waiting for the next wave.",
+        "use when": "changing what the player is told when a wave ends, or what the kaiju does when it runs out of targets."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju.md",
+      "ref": "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A city destroyed to the last building produces its own message, distinct from a breach that left buildings standing.",
+          "- What happens to the kaiju at that moment is deliberate and recorded, not a side effect of hiding the wave's meshes.",
+          "- The run's own state matches what the player sees: an island with nothing on it is not a run still waiting for the next wave."
+        ],
+        "Problem": [
+          "- Confirmed: src/app/app.ts:621 finishes the wave as breached the moment no building has a state other than \"rebuilding\", and `finishWave` calls `clearWaveVisuals`, which hides the kaiju (src/app/waveLoop.ts:63-67). It disappears.",
+          "- The banner then reads \"Wave breached\" for three seconds -- the same words as a wave that broke through and left the city standing.",
+          "- The run does not end either. `settleWaveOutcome` ends a breached run only through `endIfPopulationZero`, evaluated against the population at that instant, which is still well above zero the moment the last building falls. The player is left on an empty island with a live run and nothing to rebuild from.",
+          "- Nothing in the sim makes the kaiju leave: src/sim/kaiju.ts:59 goes idle and stops when it runs out of targets. The disappearance is the app hiding the mesh."
+        ]
+      },
+      "status": "Ready",
+      "title": "Say that the city was levelled, and decide what happens to the kaiju"
+    },
+    {
+      "ai_context": {
+        "keywords": "rubble battery, currentParcels, livingBuildings, allocateWorkforce, PRIORITY military, wasStaffed, balance band",
+        "skip when": "the PRIORITY order and the wasStaffed hint, which are not what is wrong, and retuning the wave to compensate.",
+        "summary": "Confirmed: batteries are built from every parcel while the kaiju targets only the ones standing, so a flattened barracks keeps firing -- and keeps the workers the survivors are being refused, because military is first in the workforce priority and rubble preserves its staffed flag.",
+        "use when": "changing what a destroyed lot still contributes, or how the workforce is dealt."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers.md",
+      "ref": "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A destroyed military lot contributes no battery for as long as it is rubble.",
+          "- A destroyed lot of any kind demands no workforce, and the lots still standing get those workers.",
+          "- The staffing of surviving lots does not flicker when a neighbour is destroyed.",
+          "- npm run scenarios stays inside its reported 13-85 s / 4-21 salvo band, or the new band is recorded with its reason."
+        ],
+        "Problem": [
+          "- Confirmed: src/app/app.ts:589 builds the batteries from `currentParcels`, while the kaiju targets `livingBuildings` -- statuses whose state is not \"rebuilding\" (src/app/app.ts:577). A destroyed lot moves to \"rebuilding\" (src/sim/buildingLifecycle.ts:101) but stays in `currentParcels`, and `batteriesForParcels` filters only on kind and staffing (src/sim/batteries.ts:19).",
+          "- It also keeps its shift. `allocateWorkforce` deals on kind, frontage and depth with no notion of building state, \"military\" is first in PRIORITY (src/sim/workforce.ts:14), and `BuildingLifecycle.rebuild` preserves the `staffed` flag (src/sim/buildingLifecycle.ts:101), which `wasStaffed` uses to keep the lot at the front of the queue.",
+          "- So a flattened barracks fires at the kaiju and simultaneously holds workers that the lots still standing are being refused."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop a barracks in rubble from firing and from holding its workers"
+    },
+    {
+      "ai_context": {
+        "keywords": "rubble battery, balance band, starting treasury, demolition delay, click-only brush, levelled city, evacuate, zoning fill",
+        "skip when": "reordering to do the zoning work first; the balance band has to be re-measured once, for both slices that move it, before the rest can be judged.",
+        "summary": "Nine slices: the rubble battery and the opening treasury first because both move the balance band, then the bulldozer's second, the click-only brushes, the levelled-city message, evacuation, the zoning surface, and the brush minimum last.",
+        "use when": "implementing the 0.4.0 play findings, in the order the plan sets."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+          "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+          "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+          "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+          "item_147_make_evacuating_leave_the_island",
+          "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+          "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+          "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+          "item_151_open_a_run_with_a_treasury_that_can_build_a_city"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md",
+      "ref": "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the zoning, brush surface and wave aftermath work"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+          "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+          "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+          "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+          "item_147_make_evacuating_leave_the_island",
+          "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+          "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+          "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+          "item_151_open_a_run_with_a_treasury_that_can_build_a_city"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md",
+      "ref": "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "Tools that stay out of the way, and a wave whose aftermath the player can read"
+    },
+    {
+      "ai_context": {
+        "keywords": "DEMOLITION_MS, scheduleDemolition, deferred commit, graph revision guard, magic constant",
+        "skip when": "the bulldozer's target priority order and the refund arithmetic, which are deliberate and correct.",
+        "summary": "`DEMOLITION_MS = 1_000` defers every demolition by a second that nothing waits on -- no animation, and the target highlight is switched off at the click. It arrived with no comment, in a file where every deliberate simplification carries one.",
+        "use when": "changing when a demolition commits, or removing a constant with no recorded reason."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_150_drop_the_second_the_bulldozer_waits_for_nothing"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_150_drop_the_second_the_bulldozer_waits_for_nothing.md",
+      "ref": "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Clicking the bulldozer on a road removes it without a wait the player can feel, or the wait has a recorded reason.",
+          "- Nothing silently cancels a demolition the player asked for.",
+          "- The undo entry still lands with the demolition, not before it."
+        ],
+        "Problem": [
+          "- src/render/drawTool.ts:32 sets `DEMOLITION_MS = 1_000`, and `scheduleDemolition` (:625-641) defers every road, building and utility demolition by that second. Clicking a road feels like it takes about a second, because it does.",
+          "- Nothing waits on it. There is no demolition animation, src/render/rubble.ts only draws the rubble a kaiju leaves, and the target highlight is switched off at the click (:500-501) -- so the feedback disappears and the road stands.",
+          "- It arrived in 15c3f6c \"Add delayed demolition refunds\" with no comment and no recorded reason, in a file where every other deliberate simplification carries a `ponytail:` and its revision condition.",
+          "- The delay also makes a demolition droppable: c06edbf added the `graph.revision !== revision` guard at :629, so any road edit inside that second silently cancels the pending demolition."
+        ]
+      },
+      "status": "Ready",
+      "title": "Drop the second the bulldozer waits for nothing"
+    },
+    {
+      "ai_context": {
+        "keywords": "STARTING_MONEY, opening treasury, starter grant, prestige upgrade worth, balance band",
+        "skip when": "the per-metre road and per-cell building costs, the income model, and adding further prestige upgrades.",
+        "summary": "A run opens with $40,000 against per-metre roads and per-cell buildings. Raising it moves the Starter grant's worth, which is a quarter of that base today, and feeds the balance band directly.",
+        "use when": "changing the opening treasury or what a starting-money upgrade is worth."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_151_open_a_run_with_a_treasury_that_can_build_a_city"
+        ],
+        "prod": [
+          "prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read"
+        ],
+        "req": [
+          "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath"
+        ],
+        "task": [
+          "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+        ]
+      },
+      "path": "logics/backlog/item_151_open_a_run_with_a_treasury_that_can_build_a_city.md",
+      "ref": "item_151_open_a_run_with_a_treasury_that_can_build_a_city",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A new run opens with the chosen treasury, and the reason for that figure is recorded where it is declared.",
+          "- The prestige grant's worth against the new base is deliberate and recorded.",
+          "- npm run scenarios stays inside its reported band, or the new band is recorded with its reason."
+        ],
+        "Problem": [
+          "- A run opens with $40,000 (src/sim/economy.ts:6), against roads charged per metre (:186-189) and buildings from $60 to $190 per cell (:191-194). It is the first constraint the player meets, and the operator wants it far higher -- $100,000 was the figure named.",
+          "- The \"Starter grant\" prestige upgrade adds $10,000 for 6 prestige (src/sim/run.ts:45-48). That is a quarter of the opening treasury today and a tenth of it at $100,000, so its worth moves with the base whether or not anyone decides it should.",
+          "- Money is a binding constraint in the balance runs: `npm run scenarios` reports treasuries from $1,158 to $28,735 across its seeds, so the opening figure feeds the reported band directly."
+        ]
+      },
+      "status": "Ready",
+      "title": "Open a run with a treasury that can build a city"
+    }
+  ],
+  "estimates": {
+    "char_count": 30512,
+    "companion_doc_count": 1,
+    "doc_count": 12
+  },
+  "generated_at": "2026-09-04T14:50:35Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath",
+      "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+      "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+      "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+      "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+      "item_147_make_evacuating_leave_the_island",
+      "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+      "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+      "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+      "item_151_open_a_run_with_a_treasury_that_can_build_a_city",
+      "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath,item_143_zone_a_contiguous_run_of_lots_from_one_click,item_144_put_the_zoning_tool_choice_in_its_own_panel,item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera,item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider,item_147_make_evacuating_leave_the_island,item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju,item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers,item_150_drop_the_second_the_bulldozer_waits_for_nothing,item_151_open_a_run_with_a_treasury_that_can_build_a_city,task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work",
+  "refs": [
+    "req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath",
+    "item_143_zone_a_contiguous_run_of_lots_from_one_click",
+    "item_144_put_the_zoning_tool_choice_in_its_own_panel",
+    "item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera",
+    "item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider",
+    "item_147_make_evacuating_leave_the_island",
+    "item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju",
+    "item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers",
+    "item_150_drop_the_second_the_bulldozer_waits_for_nothing",
+    "item_151_open_a_run_with_a_treasury_that_can_build_a_city",
+    "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.4.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md",
+      "ref": "task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work"
+    }
+  ]
+}

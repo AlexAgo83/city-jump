@@ -1,0 +1,795 @@
+{
+  "budgets": {
+    "max_docs": 72,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states.md",
+    "logics/backlog/item_137_give_src_a_module_size_budget_that_something_measures.md",
+    "logics/backlog/item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof.md",
+    "logics/backlog/item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city.md",
+    "logics/backlog/item_140_cover_the_three_modules_nothing_reaches_or_record_why_not.md",
+    "logics/backlog/item_141_pin_third_party_actions_the_same_way_in_every_workflow.md",
+    "logics/backlog/item_142_the_fixes_whose_record_is_the_change_itself.md",
+    "logics/backlog/item_143_zone_a_contiguous_run_of_lots_from_one_click.md",
+    "logics/backlog/item_144_put_the_zoning_tool_choice_in_its_own_panel.md",
+    "logics/backlog/item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera.md",
+    "logics/backlog/item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider.md",
+    "logics/backlog/item_147_make_evacuating_leave_the_island.md",
+    "logics/backlog/item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju.md",
+    "logics/backlog/item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers.md",
+    "logics/backlog/item_150_drop_the_second_the_bulldozer_waits_for_nothing.md",
+    "logics/backlog/item_151_open_a_run_with_a_treasury_that_can_build_a_city.md",
+    "logics/context-packs/gates-that-check-what-they-claim.json",
+    "logics/context-packs/zoning-brush-and-wave-aftermath.json",
+    "logics/product/prod_031_gates_that_check_what_they_claim.md",
+    "logics/product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md",
+    "logics/request/req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them.md",
+    "logics/request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md",
+    "logics/tasks/task_042_orchestrate_the_review_findings_work.md",
+    "logics/tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states item_137_give_src_a_module_size_budget_that_something_measures item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city item_140_cover_the_three_modules_nothing_reaches_or_record_why_not item_141_pin_third_party_actions_the_same_way_in_every_workflow item_142_the_fixes_whose_record_is_the_change_itself task_042_orchestrate_the_review_findings_work --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+          "item_137_give_src_a_module_size_budget_that_something_measures",
+          "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+          "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+          "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+          "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+          "item_142_the_fixes_whose_record_is_the_change_itself"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/product/prod_031_gates_that_check_what_they_claim.md",
+      "ref": "prod_031_gates_that_check_what_they_claim",
+      "sections": {
+        "Goals": [
+          "- Every documented security control is enforced by something that fails when it stops being true.",
+          "- A closed acceptance criterion is one a reader can verify from its own proof.",
+          "- The trust boundary between a shared link and a saved city is covered end to end.",
+          "- Static analysis and the Logics audit are both clean, so a new warning means something new."
+        ],
+        "Key product decisions": [
+          "- Where a document and the code disagree, decide which one is the control before changing either. The document is not automatically right.",
+          "- An assurance is kept where it would be undone -- a test beside the constant, a reason at the declaration -- not in prose that drifts away from it.",
+          "- ADR 030 still applies: fixes whose record is the change itself are gathered in one slice rather than given chains of their own."
+        ],
+        "Overview": [
+          "An assurance is only as strong as the thing that fails when it stops being true.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|gates_that_check_what_they_claim|authored",
+          "flowchart TD",
+          "    Doc[Threat model: cap at 96 KB] --> Never[share.ts allowed 1 MB from its first commit]"
+        ],
+        "References": [
+          "- Product back-reference: `req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them`",
+          "- Task back-reference: `task_042_orchestrate_the_review_findings_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "Gates that check what they claim"
+    },
+    {
+      "kind": "product",
+      "linked_refs": {
+        "adr": [
+          "adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before"
+        ],
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/product/prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach.md",
+      "ref": "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach",
+      "sections": {
+        "Goals": [
+          "- The highest-churn code is testable.",
+          "- Couplings are visible to a test or injected away.",
+          "- The save format can migrate.",
+          "- The conventions in use are written down."
+        ],
+        "Key product decisions": [
+          "- Structure work comes last: app.ts carries 143 commits, and refactoring it early turns every fix in the other chains into a conflict.",
+          "- A coupling no test can see is either injected away or asserted against; the three-line assertion lands first because it stops the spread today.",
+          "- A seam is proven before it is cut -- the traffic split follows functions that are already exported and unit-tested.",
+          "- An existing test needing an edit is a signal to stop and reconsider the seam, not to edit the test."
+        ],
+        "Overview": [
+          "The modules that change most often become the ones a test can hold.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|a_codebase_whose_seams_are_where_the_tests_can_reach|generated",
+          "flowchart TD",
+          "    App[app.ts: one 1200 line function] --> Churn[143 commits, no test]"
+        ],
+        "References": [
+          "- Product back-reference: `item_124_take_the_isolated_pieces_out_of_startapp`",
+          "- Task back-reference: `task_041_orchestrate_the_structural_work`"
+        ]
+      },
+      "status": "Settled",
+      "title": "A codebase whose seams are where the tests can reach"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "share cap drift, threat model control, req_039 AC1, module size budget, controls.ts coverage, checkout pinning, stale code anchor",
+        "skip when": "putting the browser suite back on the push trigger -- req_006 AC2 settled that against operator quota -- or reopening parseCity's validation and the immutable building cache headers, which req_038 declared correct as they stand.",
+        "summary": "A review of the whole 0.4.0 corpus found the code in good order and the gates around it not quite honest: a threat-model control that never matched the code it describes, a Done request whose size criterion is unmet and whose proof cites another criterion's work, and the trust boundary that imports a shared link sitting untested.",
+        "use when": "changing a documented security control, closing an AC whose proof is not obviously about it, or adding a structural gate to tests/architecture.mjs."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+          "item_137_give_src_a_module_size_budget_that_something_measures",
+          "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+          "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+          "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+          "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+          "item_142_the_fixes_whose_record_is_the_change_itself"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back",
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/request/req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them.md",
+      "ref": "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The decompression cap in src/sim/share.ts and the cap written in docs/shared-link-threat-model.md are the same number, and a test fails if they diverge again.",
+          "- Every module in src/ over the size budget either falls under it or carries a recorded reason at its declaration, and a test reports the ones that do neither.",
+          "- req_039 AC1's traceability line cites the work that addressed it, and no acceptance criterion in that task cites another criterion's proof.",
+          "- The shared-link import sequence in src/ui/controls.ts is tested end to end -- a good link imports, a malformed one refuses without writing a save, and a link that throws downstream leaves the previous city intact.",
+          "- src/ui/hud.ts, src/render/trafficMovers.ts and src/render/vehicleModels.ts each carry a test, or a recorded reason why they cannot.",
+          "- Both workflows pin third-party actions the same way, and the architecture test asserts it for every workflow rather than one."
+        ],
+        "Needs": [
+          "- A control written in a threat model is the control the code enforces, or it is not written there.",
+          "- An acceptance criterion is closed by the work that satisfies it, and a criterion asserting a budget has something that measures it.",
+          "- The code that turns an untrusted link into a saved city is covered by a test.",
+          "- Two workflows in one repo agree on how far an action is trusted."
+        ]
+      },
+      "status": "Ready",
+      "title": "Close the gaps the 0.4.0 corpus review found in the gates that were meant to catch them"
+    },
+    {
+      "ai_context": {
+        "keywords": "startApp split, traffic seam, terrain global, drawTool controller, dispose contract, save migration hook, linter coverage",
+        "skip when": "any of reqs 035 to 038 is still open: app.ts carries 143 commits and refactoring it early turns their fixes into conflicts. Do not skip the traffic split for want of a decision -- adr_006 settled it conditionally.",
+        "summary": "The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.",
+        "use when": "reconsidering a module boundary, after reqs 035 to 038 are done."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp",
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+          "item_126_make_the_terrain_dependency_visible",
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+          "item_128_give_every_renderer_a_dispose",
+          "item_129_give_the_save_format_somewhere_to_migrate",
+          "item_130_make_lint_mean_lint_and_cover_the_scripts",
+          "item_131_write_down_the_conventions_the_code_already_follows",
+          "item_135_declare_where_this_project_stands_on_translation"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ]
+      },
+      "path": "logics/request/req_039_give_the_code_its_seams_back.md",
+      "ref": "req_039_give_the_code_its_seams_back",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: No module in src/ exceeds roughly 700 lines without a recorded reason.",
+          "- AC2: The driving logic is testable without a browser.",
+          "- AC3: Only the app layer installs the terrain, and a test enforces it.",
+          "- AC4: Road drawing no longer mutates simulation state from the render layer.",
+          "- AC5: Each renderer can be disposed, and a scene reset leaks nothing.",
+          "- AC6: The save format has a migration hook, and the zone quantisation loss is either removed or recorded."
+        ],
+        "Needs": [
+          "- The file that changes most often is not the one nobody can test.",
+          "- A dependency that no test can see is either injected or asserted against.",
+          "- A save format has somewhere to put a migration.",
+          "- The conventions the code already follows are written down."
+        ]
+      },
+      "status": "Done",
+      "title": "Give the code its seams back"
+    },
+    {
+      "ai_context": {
+        "keywords": "MAX_SHARE_JSON, 96 KB, decompression cap, threat model, architecture assertion",
+        "skip when": "the 12,000-character fragment cap, which already matches its document, or the streaming gunzip itself, which is correct.",
+        "summary": "The threat model requires a 96 KB decompression cap; the code has always allowed 1 MB. The document never described the code, and it is the only control in it with no test.",
+        "use when": "changing either the shared-link caps or what enforces them."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states.md",
+      "ref": "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- One number is the decompression cap, and src/sim/share.ts and docs/shared-link-threat-model.md both state it.",
+          "- A test fails if the constant and the document disagree again.",
+          "- The chosen cap is justified against the size of a real large city, not picked to make the two files match."
+        ],
+        "Problem": [
+          "- docs/shared-link-threat-model.md:17 requires a 96 KB cap on decompressed JSON. src/sim/share.ts:5 sets MAX_SHARE_JSON = 1_000_000.",
+          "- The constant has one introducing line in the whole history and was never another value; the 96 KB line entered in 13a1e1c during req_038. The document has never described the code.",
+          "- It is the only control in that document with no test in tests/architecture.mjs, and it is the only one that diverged."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the shared-link decompression cap the number the threat model states"
+    },
+    {
+      "ai_context": {
+        "keywords": "module size budget, startApp, ponytail reason, recorded reason, architecture test",
+        "skip when": "treating a full startApp decomposition as the deliverable; the budget and its record are the deliverable.",
+        "summary": "req_039 asserted a 700-line module budget that nothing measures, and six modules exceed it -- including the 1238-line app.ts the request was written about, which carries no recorded reason at all.",
+        "use when": "adding a module, or deciding whether an oversized one is staying that size."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_137_give_src_a_module_size_budget_that_something_measures"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_137_give_src_a_module_size_budget_that_something_measures.md",
+      "ref": "item_137_give_src_a_module_size_budget_that_something_measures",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A test names every module in src/ over the budget that carries no recorded reason.",
+          "- That test passes, because each oversized module either fell under the budget or carries its reason.",
+          "- src/app/app.ts either drops under the budget or states, at its declaration, why it does not."
+        ],
+        "Problem": [
+          "- req_039 AC1 asserted that no module in src/ exceeds roughly 700 lines without a recorded reason. Nothing measures it, and six modules exceed it: render/roadMesh.ts (1316), app/app.ts (1238), render/buildings.ts (1087), render/drawTool.ts (785), ui/controls.ts (725), render/trafficMovers.ts (717).",
+          "- The ponytail: comments in those files record rendering technique, not module size. src/app/app.ts, the file req_039 was written about, carries no recorded reason at all.",
+          "- startApp still spans src/app/app.ts:59 to :1227 -- about 1170 lines, 53 closures, 51 imports, no test."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give src a module size budget that something measures"
+    },
+    {
+      "ai_context": {
+        "keywords": "AC traceability, mis-cited proof, task_041, req_039 AC1, closeout repair",
+        "skip when": "reverting req_039, whose other criteria are genuinely met, or deleting AC1 to make the record consistent.",
+        "summary": "The task that orchestrated req_039 closes its AC1 -- the module size budget -- by citing 5ece535, which is AC5's disposal work, on two duplicated lines. The corpus records a budget as met that was never measured.",
+        "use when": "closing an AC, or auditing whether a closed criterion's proof is about that criterion."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work",
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof.md",
+      "ref": "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- req_039 AC1's traceability cites the work that addressed it and names where the budget is carried.",
+          "- No criterion in task_041 cites another criterion's commit as its proof.",
+          "- logics-manager lint and audit stay clean after the repair."
+        ],
+        "Problem": [
+          "- logics/tasks/task_041_orchestrate_the_structural_work.md:54-55 closes request-AC1 with \"Implemented through task_041 slices; final disposal slice in 5ece535\", on two duplicated lines.",
+          "- 5ece535 is \"Compose app disposal\", the evidence for req_039 AC5. AC1 -- the module size budget -- is cited against work that did not address it.",
+          "- req_039 is Status: Done on that basis, so the corpus records a budget as met that was never measured."
+        ]
+      },
+      "status": "Ready",
+      "title": "Repair the traceability line that closed req_039 AC1 with another criterion's proof"
+    },
+    {
+      "ai_context": {
+        "keywords": "shared link import, controls.ts, trust boundary, dry-run replay, refusal path",
+        "skip when": "weakening the dry-run replay at save.ts:125 or the catch at app.ts:900 -- those are what make a bad link safe today.",
+        "summary": "controls.ts:706-725 turns an untrusted URL fragment into a saved, loaded city. It is what the shared-link threat model is about and it has no test, though every layer beneath it has one.",
+        "use when": "changing how a shared link becomes a save, or testing a path that crosses ui into sim."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city.md",
+      "ref": "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A good shared link imports and is testable without a browser.",
+          "- A malformed or oversized link refuses and writes no save.",
+          "- A link that throws below the import path leaves the previously loaded city intact.",
+          "- The dry-run replay still absorbs a link carrying an unknown road type."
+        ],
+        "Problem": [
+          "- src/ui/controls.ts:706-725 takes the URL fragment, catches decodeShare, prompts, writes the save and loads the city. It is the trust boundary the shared-link threat model is written about, and no test covers it.",
+          "- The layers beneath it are covered -- share.test.ts, save.test.ts -- so what is untested is the sequence: what gets written, in which order, and what survives a refusal.",
+          "- src/ui/controls.ts has no test at all, at 725 lines."
+        ]
+      },
+      "status": "Ready",
+      "title": "Test the sequence that turns a shared link into a saved city"
+    },
+    {
+      "ai_context": {
+        "keywords": "untested modules, hud coverage, mesh catalogue, seam or reason, transitive coverage",
+        "skip when": "scene.ts and sim/traffic.ts, which look untested by filename but are exercised through render/traffic.test.ts.",
+        "summary": "trafficMovers.ts, vehicleModels.ts and hud.ts have no test, directly or in transit. hud.ts is where req_038's innerHTML and CSP rules landed, asserted only by a source grep.",
+        "use when": "deciding whether a render or ui module can be tested without a browser."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_140_cover_the_three_modules_nothing_reaches_or_record_why_not.md",
+      "ref": "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- src/ui/hud.ts, src/render/trafficMovers.ts and src/render/vehicleModels.ts each carry a test or a recorded reason why they cannot.",
+          "- The hud rendering rules from req_038 are asserted by a test, not only by a source grep."
+        ],
+        "Problem": [
+          "- src/render/trafficMovers.ts (717), src/render/vehicleModels.ts (585) and src/ui/hud.ts (221) have no test, directly or in transit.",
+          "- hud.ts is the module the CSP and innerHTML rules from req_038 landed in, so its rendering behaviour is asserted only by a grep in tests/architecture.mjs.",
+          "- src/render/scene.ts and src/sim/traffic.ts look untested by filename but are exercised through src/render/traffic.test.ts; they are not part of this."
+        ]
+      },
+      "status": "Ready",
+      "title": "Cover the three modules nothing reaches, or record why not"
+    },
+    {
+      "ai_context": {
+        "keywords": "action pinning, SHA pin, workflow directory, supply chain, architecture assertion",
+        "skip when": "dependency update bots, or changing what either workflow runs or when it triggers.",
+        "summary": "ci.yml pins actions/checkout@v4 while render-release-deploy.yml pins it by SHA, and the architecture test asserts the SHA pin only on the workflow that was already correct.",
+        "use when": "adding a workflow or a third-party action."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_141_pin_third_party_actions_the_same_way_in_every_workflow"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_141_pin_third_party_actions_the_same_way_in_every_workflow.md",
+      "ref": "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Every third-party action in .github/workflows is pinned the same way.",
+          "- The architecture test enumerates the workflow directory rather than asserting against one named workflow.",
+          "- Adding a new workflow with an unpinned action fails the test."
+        ],
+        "Problem": [
+          "- .github/workflows/ci.yml uses actions/checkout@v4; .github/workflows/render-release-deploy.yml pins the same action by SHA.",
+          "- tests/architecture.mjs asserts the SHA pin on the deploy workflow only, so the test enforces the stricter posture on the file that was already correct and says nothing about the other."
+        ]
+      },
+      "status": "Ready",
+      "title": "Pin third-party actions the same way in every workflow"
+    },
+    {
+      "ai_context": {
+        "keywords": "review findings, shared link cap, AC repair, size budget, import path test, action pinning, lint baseline",
+        "skip when": "reopening req_006's CI trigger decision or req_038's parseCity and cache-header findings.",
+        "summary": "Seven slices from the 0.4.0 corpus review: settle the shared-link cap, repair the mis-cited AC, measure the module budget, test the link import path, unify action pinning, cover three modules, clear the lint and audit baseline.",
+        "use when": "implementing the 0.4.0 review findings, in the order the plan sets."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+          "item_137_give_src_a_module_size_budget_that_something_measures",
+          "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+          "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+          "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+          "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+          "item_142_the_fixes_whose_record_is_the_change_itself"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/tasks/task_042_orchestrate_the_review_findings_work.md",
+      "ref": "task_042_orchestrate_the_review_findings_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the review-findings work"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+          "item_137_give_src_a_module_size_budget_that_something_measures",
+          "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+          "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+          "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+          "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+          "item_142_the_fixes_whose_record_is_the_change_itself"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/product/prod_031_gates_that_check_what_they_claim.md",
+      "ref": "prod_031_gates_that_check_what_they_claim",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "Gates that check what they claim"
+    },
+    {
+      "ai_context": {
+        "keywords": "extraction order, architecture assertion, linter adoption, dispose contract, migration hook",
+        "skip when": "an earlier chain is still open, or an existing test needs editing -- that is a signal the seam is wrong.",
+        "summary": "Six waves of structural work that must change no behaviour, gated on the other four chains being complete.",
+        "use when": "implementing req_039, once reqs 035 to 038 are done."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_124_take_the_isolated_pieces_out_of_startapp",
+          "item_125_move_the_driving_logic_where_a_test_can_reach_it",
+          "item_126_make_the_terrain_dependency_visible",
+          "item_127_move_road_drawing_into_the_layer_that_owns_the_city",
+          "item_128_give_every_renderer_a_dispose",
+          "item_129_give_the_save_format_somewhere_to_migrate",
+          "item_130_make_lint_mean_lint_and_cover_the_scripts",
+          "item_131_write_down_the_conventions_the_code_already_follows",
+          "item_135_declare_where_this_project_stands_on_translation"
+        ],
+        "prod": [
+          "prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach"
+        ],
+        "req": [
+          "req_039_give_the_code_its_seams_back"
+        ],
+        "task": [
+          "task_041_orchestrate_the_structural_work"
+        ]
+      },
+      "path": "logics/tasks/task_041_orchestrate_the_structural_work.md",
+      "ref": "task_041_orchestrate_the_structural_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- 2026-09-04 validation: `rtk npm exec -- vitest run src/app/cityRebuild.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk git diff --check`, `rtk npm run ci`, `rtk logics-manager lint --require-status`, `rtk logics-manager audit --group-by-doc`, and `rtk logics-manager i18n validate` passed after wave 3g.",
+          "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4a.",
+          "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts src/app/cityRebuild.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4b.",
+          "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed after wave 4c.",
+          "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4d.",
+          "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4e."
+        ]
+      },
+      "status": "Done",
+      "title": "Orchestrate the structural work"
+    },
+    {
+      "ai_context": {
+        "keywords": "noAccumulatingSpread, fixable lint, unused variable, stale code anchor, ADR 030",
+        "skip when": "reformatting either script, or adding lint rules and a warnings-as-errors switch, which need a decision of their own.",
+        "summary": "The residue: two accumulating-spread reduces in playthrough.ts, five fixable lint items across the scripts and one test, and three runbook code anchors pointing at commits no longer in the repo.",
+        "use when": "clearing the lint and audit baseline so a new warning means something new."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_142_the_fixes_whose_record_is_the_change_itself"
+        ],
+        "prod": [
+          "prod_031_gates_that_check_what_they_claim"
+        ],
+        "req": [
+          "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them"
+        ],
+        "task": [
+          "task_042_orchestrate_the_review_findings_work"
+        ]
+      },
+      "path": "logics/backlog/item_142_the_fixes_whose_record_is_the_change_itself.md",
+      "ref": "item_142_the_fixes_whose_record_is_the_change_itself",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- biome lint over src, scripts and tests reports no warnings.",
+          "- logics-manager audit reports no stale code anchors.",
+          "- Each fix carries its record at the point where it would be undone, per ADR 030, with no chain of its own."
+        ],
+        "Problem": [
+          "- src/sim/playthrough.ts:280-281 holds two reduces that spread the accumulator, O(n^2) over allSegments. They are outside the frame loop, so cost is not the argument -- they are the only lint warnings left in src/.",
+          "- Four fixable lint items remain: scripts/interact.mjs:119 (useTemplate), scripts/interact.mjs:550 and scripts/shot.mjs:79 (useOptionalChain), src/sim/roadTypes.test.ts:36-37 (useLiteralKeys), plus an unused variable at scripts/interact.mjs:2068.",
+          "- logics-manager audit names three stale code anchors in logics/runbook/run_002 and run_003, commit SHAs no longer in the repository."
+        ]
+      },
+      "status": "Ready",
+      "title": "The fixes whose record is the change itself"
+    }
+  ],
+  "estimates": {
+    "char_count": 29136,
+    "companion_doc_count": 2,
+    "doc_count": 12
+  },
+  "generated_at": "2026-09-04T14:50:29Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them",
+      "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+      "item_137_give_src_a_module_size_budget_that_something_measures",
+      "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+      "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+      "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+      "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+      "item_142_the_fixes_whose_record_is_the_change_itself",
+      "task_042_orchestrate_the_review_findings_work"
+    ],
+    "validation_summary_count": 2
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them,item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states,item_137_give_src_a_module_size_budget_that_something_measures,item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof,item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city,item_140_cover_the_three_modules_nothing_reaches_or_record_why_not,item_141_pin_third_party_actions_the_same_way_in_every_workflow,item_142_the_fixes_whose_record_is_the_change_itself,task_042_orchestrate_the_review_findings_work",
+  "refs": [
+    "req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them",
+    "item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states",
+    "item_137_give_src_a_module_size_budget_that_something_measures",
+    "item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof",
+    "item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city",
+    "item_140_cover_the_three_modules_nothing_reaches_or_record_why_not",
+    "item_141_pin_third_party_actions_the_same_way_in_every_workflow",
+    "item_142_the_fixes_whose_record_is_the_change_itself",
+    "task_042_orchestrate_the_review_findings_work"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.4.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_042_orchestrate_the_review_findings_work.md",
+      "ref": "task_042_orchestrate_the_review_findings_work"
+    },
+    {
+      "items": [
+        "- 2026-09-04 validation: `rtk npm exec -- vitest run src/app/cityRebuild.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk git diff --check`, `rtk npm run ci`, `rtk logics-manager lint --require-status`, `rtk logics-manager audit --group-by-doc`, and `rtk logics-manager i18n validate` passed after wave 3g.",
+        "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4a.",
+        "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts src/app/cityRebuild.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4b.",
+        "- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed after wave 4c.",
+        "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4d.",
+        "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4e.",
+        "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4f.",
+        "- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4g."
+      ],
+      "path": "logics/tasks/task_041_orchestrate_the_structural_work.md",
+      "ref": "task_041_orchestrate_the_structural_work"
+    }
+  ]
+}
