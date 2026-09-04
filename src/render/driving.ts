@@ -3,9 +3,26 @@ import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import type { TerrainBounds } from "../sim/heightmap";
+import type { JunctionArm } from "../sim/junction";
 import type { LaneCentre } from "../sim/roadTypes";
+import { laneRank, ringArc, ringEntryRadius } from "../sim/routing";
 import { type SignalCycle, signalAt, type SignalState } from "../sim/signals";
-import { CROSSING_DEPTH, laneChangeOffset, pathCumulative, sampleQuadratic } from "../sim/transfers";
+import {
+  CROSSING_DEPTH,
+  laneChangeOffset,
+  pathCumulative,
+  ringArcPath,
+  ringBearing,
+  ringJoinPath,
+  ringLaneAngle,
+  ringSweep,
+  ringWalkJoin,
+  sampleQuadratic,
+  walkLoopSlice,
+  walkRingRadius,
+  type Ring,
+  type WalkLoop,
+} from "../sim/transfers";
 import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 
 /** Bumper to bumper: how much road a car keeps between itself and the one in front. */
@@ -163,6 +180,39 @@ export function uTurnPath(graph: RoadGraph, mover: Mover, exitOffset: number): V
     position.z + tangent.z * mover.direction * reach,
   );
   return sampleQuadratic(port(mover.lane.offset), nose, port(exitOffset), 12);
+}
+
+export function walkJunctionTransfer(loop: WalkLoop, from: JunctionArm, offset: number, exit: SegmentId, exitOffset: number): Vec3[] | null {
+  const near = (segment: SegmentId, at: number) =>
+    loop.ports.find((port) => port.segment === segment && Math.abs(port.offset - at) < 0.01);
+  const start = near(from.segment, offset);
+  const finish = near(exit, exitOffset);
+  return start && finish ? walkLoopSlice(loop, start.index, finish.index) : null;
+}
+
+export function walkRingTransfer(graph: RoadGraph, ring: Ring, from: JunctionArm, to: JunctionArm, offset: number, exitOffset: number, sidewalkWidth: number): Vec3[] {
+  const radius = walkRingRadius(ring, sidewalkWidth);
+  const on = ringWalkJoin(graph, ring, from, offset, radius);
+  const off = ringWalkJoin(graph, ring, to, exitOffset, radius);
+  return [
+    ...on,
+    ...ringArcPath(ring, ringBearing(ring, on[0]!), ringBearing(ring, off[0]!), radius),
+    ...off.slice().reverse(),
+  ];
+}
+
+export function ringTransfer(graph: RoadGraph, ring: Ring, mover: Mover, from: JunctionArm, to: JunctionArm, exitOffset: number, lanes: readonly LaneCentre[]): Vec3[] {
+  const outer = ring.radii[ring.radii.length - 1]!;
+  const radius = ringEntryRadius(ring.radii, laneRank(lanes, mover.lane));
+  const start = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
+  const finish = ringLaneAngle(graph, ring, to, exitOffset, false);
+  const arc = ringArc(start, finish);
+  const steps = Math.max(8, Math.round((arc / (Math.PI / 2)) * 12));
+  return [
+    ...ringJoinPath(graph, ring, from, mover.lane.offset, radius, true),
+    ...ringSweep(ring, start, radius, start + arc, outer, steps),
+    ...ringJoinPath(graph, ring, to, exitOffset, outer, false),
+  ];
 }
 
 export function circularQueueRooms<T>(

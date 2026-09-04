@@ -5,7 +5,7 @@ import type { Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
-import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "../sim/routing";
+import { laneRank, pickExit, ringArc, turnLaneRank } from "../sim/routing";
 import { canGo, signalAt, signalCycle, type SignalCycle } from "../sim/signals";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
@@ -15,19 +15,13 @@ import {
   laneChangeSpan,
   pathCumulative,
   pointAlong,
-  ringArcPath,
   ringBearing,
-  ringJoinPath,
   ringLaneAngle,
   ringOf,
-  ringSweep,
-  ringWalkJoin,
   CROSSING_DEPTH,
   crossesRoad,
   crossingNear,
   walkLoop,
-  walkLoopSlice,
-  walkRingRadius,
   type WalkLoop,
   type Ring,
 } from "../sim/transfers";
@@ -61,6 +55,7 @@ import {
   landingDistance,
   leaveLaneQueue,
   pedestrianCanStartCrossing,
+  ringTransfer,
   roomAhead,
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
@@ -71,6 +66,8 @@ import {
   trafficLaneOffset,
   trimTransferFromMover,
   uTurnPath,
+  walkJunctionTransfer,
+  walkRingTransfer,
 } from "./driving";
 import type { TerrainBounds } from "../sim/heightmap";
 
@@ -375,10 +372,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         ? uTurnPath(graph, mover, landing.offset)
         : roundabout
           ? mover.walk
-            ? walkRingTransfer(nodeId, from, to, mover.lane.offset, landing.offset)
-            : ringTransfer(mover, nodeId, from, to, landing.offset)
+            ? walkRingTransfer(graph, ringAt(nodeId), from, to, mover.lane.offset, landing.offset, SIDEWALK_WIDTH)
+            : ringTransfer(graph, ringAt(nodeId), mover, from, to, landing.offset, lanesFor(mover.segment, mover.direction, false))
           : mover.walk
-            ? walkJunctionTransfer(nodeId, from, mover.lane.offset, next, landing.offset) ??
+            ? walkJunctionTransfer(walkLoopAt(nodeId), from, mover.lane.offset, next, landing.offset) ??
               junctionTurnPath(
                 graph.node(nodeId).pos,
                 armPort(graph, nodeId, from, mover.lane.offset),
@@ -431,58 +428,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     const nodeId = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     const arm = armOf(nodeId, mover.segment.id);
     return !!arm && occupancy.crossingWalkers.has(crossingKey(nodeId, arm.segment));
-  }
-
-  /**
-   * Round the junction on its footway, never across it: someone on foot follows the pavement to
-   * the corner and crosses one road at a time, at its crossing. The loop is the same one the
-   * Traffic view draws.
-   */
-  function walkJunctionTransfer(
-    nodeId: NodeId,
-    from: JunctionArm,
-    offset: number,
-    exit: SegmentId,
-    exitOffset: number,
-  ): Vec3[] | null {
-    const loop = walkLoopAt(nodeId);
-    const near = (segment: SegmentId, at: number) =>
-      loop.ports.find((port) => port.segment === segment && Math.abs(port.offset - at) < 0.01);
-    const start = near(from.segment, offset);
-    const finish = near(exit, exitOffset);
-    if (!start || !finish) return null;
-    return walkLoopSlice(loop, start.index, finish.index);
-  }
-
-  /** On foot a roundabout is one footway outside the kerb, joined at each arm and taken either way. */
-  function walkRingTransfer(nodeId: NodeId, from: JunctionArm, to: JunctionArm, offset: number, exitOffset: number): Vec3[] {
-    const ring = ringAt(nodeId);
-    const radius = walkRingRadius(ring, SIDEWALK_WIDTH);
-    const on = ringWalkJoin(graph, ring, from, offset, radius);
-    const off = ringWalkJoin(graph, ring, to, exitOffset, radius);
-    return [
-      ...on,
-      ...ringArcPath(ring, ringBearing(ring, on[0]!), ringBearing(ring, off[0]!), radius),
-      ...off.slice().reverse(),
-    ];
-  }
-
-  /** Merge on, round, and off again: the three drawn curves of a roundabout, end to end. */
-  function ringTransfer(mover: Mover, nodeId: NodeId, from: JunctionArm, to: JunctionArm, exitOffset: number): Vec3[] {
-    const ring = ringAt(nodeId);
-    const outer = ring.radii[ring.radii.length - 1]!;
-    // Which ring lane this arm's lane feeds: kerb-side onto the outer one, the lane beside the
-    // centreline onto the inner.
-    const radius = ringEntryRadius(ring.radii, laneRank(lanesFor(mover.segment, mover.direction, false), mover.lane));
-    const start = ringLaneAngle(graph, ring, from, mover.lane.offset, true);
-    const finish = ringLaneAngle(graph, ring, to, exitOffset, false);
-    const arc = ringArc(start, finish);
-    const steps = Math.max(8, Math.round((arc / (Math.PI / 2)) * 12));
-    return [
-      ...ringJoinPath(graph, ring, from, mover.lane.offset, radius, true),
-      ...ringSweep(ring, start, radius, start + arc, outer, steps),
-      ...ringJoinPath(graph, ring, to, exitOffset, outer, false),
-    ];
   }
 
   function clearMovers(): void {

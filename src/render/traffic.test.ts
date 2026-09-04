@@ -26,6 +26,7 @@ import {
   trafficLaneOffset,
   trimTransferFromMover,
   uTurnPath,
+  walkJunctionTransfer,
 } from "./driving";
 import { createTrafficRenderer } from "./traffic";
 
@@ -131,6 +132,20 @@ describe("traffic queues", () => {
     expect(turn.length).toBeGreaterThan(2);
     expect(turn[0]).toEqual(v3(40, 0, 2));
     expect(turn.at(-1)).toEqual(v3(40, 0, -2));
+  });
+
+  it("takes the footway loop between matching ports", () => {
+    const arm = { segment: 1 } as Parameters<typeof walkJunctionTransfer>[1];
+    const loop = {
+      points: [v3(0, 0, 0), v3(10, 0, 0), v3(10, 0, 10), v3(0, 0, 10)],
+      ports: [
+        { segment: 1, offset: 2, index: 0 },
+        { segment: 2, offset: -2, index: 2 },
+      ],
+    };
+
+    expect(walkJunctionTransfer(loop, arm, 2, 2, -2)).toEqual([v3(0, 0, 0), v3(10, 0, 0), v3(10, 0, 10)]);
+    expect(walkJunctionTransfer(loop, arm, 3, 2, -2)).toBeNull();
   });
 
   it("removes emptied lane queues", () => {
