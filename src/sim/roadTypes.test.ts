@@ -33,8 +33,8 @@ describe("road type variants", () => {
 
   it("gives pedestrian paths no lane or one-way choice", () => {
     expect(composeRoadTypeId("pedestrian", 2, true)).toBe("pedestrian");
-    expect(ROAD_TYPES["pedestrian_2lane"]).toBeUndefined();
-    expect(ROAD_TYPES["pedestrian_oneway"]).toBeUndefined();
+    expect(ROAD_TYPES.pedestrian_2lane).toBeUndefined();
+    expect(ROAD_TYPES.pedestrian_oneway).toBeUndefined();
     const pedestrian = roadType("pedestrian");
     expect(pedestrian.lanes).toBe(1);
     expect(pedestrian.oneWay).toBeUndefined();

@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 82%
+> Progress: 94%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -51,3 +51,6 @@
 # Priority
 - Priority: Low
 - Rationale: None of it changes behaviour. It runs last so a clean baseline is the closing state, not an early one that later slices dirty again.
+
+# Validation
+- 2026-09-04: Cleared biome warnings in src/scripts/tests and removed stale runbook code anchors. Validated with rtk npm run lint, rtk npm run typecheck, rtk npm run scenarios, and rtk logics-manager audit --group-by-doc --include-deferred.

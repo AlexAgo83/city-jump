@@ -116,7 +116,7 @@ const waveMarkersVisible = () =>
 const screenPoint = (worldish) =>
   page.evaluate((expr) => {
     const scene = window.cityjump._scene;
-    const pos = new Function("return " + expr)();
+    const pos = new Function(`return ${expr}`)();
     if (!pos) return null;
     const t = scene.getTransformMatrix().m;
     const { x, z } = pos;
@@ -547,7 +547,7 @@ await page.locator("#new-run").click();
 await waitForApp();
 check("a new run clears the panel and puts the player back on an island", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
 // And let the autosave catch up, or the next reload brings the evacuated run back with it.
-await page.waitForFunction(() => (JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run ?? {}).ended === null, null, { timeout: 20_000 });
+await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run?.ended === null, null, { timeout: 20_000 });
 await page.evaluate(() => window.cityjump.reset());
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
@@ -2065,7 +2065,6 @@ check(
   exported.name === "Exportville.json" && exported.city.segments.length === (await stats()).segments,
   `${exported.name}, ${exported.city.segments?.length} segments`,
 );
-const beforeImport = await stats();
 await page.evaluate(() => window.cityjump.reset());
 fileDialogAnswer = "Importville";
 await page.locator("#save-import-file").setInputFiles({ name: exported.name, mimeType: "application/json", buffer: Buffer.from(JSON.stringify(exported.city)) });

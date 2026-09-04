@@ -76,7 +76,7 @@ const report = await page.evaluate(async (which) => {
   }
   const fps = await api.measureFps(3000);
   const gl = document.createElement("canvas").getContext("webgl2");
-  const info = gl && gl.getExtension("WEBGL_debug_renderer_info");
+  const info = gl?.getExtension("WEBGL_debug_renderer_info");
   const renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : "unknown";
   return { fps, renderer, ...api.stats() };
 }, scenario);

@@ -1,7 +1,7 @@
 ## run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through - Cut terrain under a road or a junction without raw ground poking through
 > Status: Active
 > Category: other
-> Verified: 2026-08-30 against `src/sim/heightmap.ts` and commits `aa8167e`, `1b45ae4`, `69d448c`, `70a112a`, `17ebabb`
+> Verified: 2026-08-30 against `src/sim/heightmap.ts` and commits `1b45ae4`, `69d448c`, `70a112a`, `17ebabb`
 > Related request: `req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses`
 > Related backlog: `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`
 > Related task: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
@@ -41,4 +41,4 @@
 - `src/sim/heightmap.ts` -- `conformToRoads`, `stamp`, `stampPolygon`.
 - `src/sim/junction.ts` -- `allJunctions`, `ringElevation`, the geometry the ground must match.
 - `src/sim/heightmap.test.ts` -- the regression tests for each of these cases.
-- Commits `aa8167e` (flatten every junction), `1b45ae4` (the disc must be authoritative), `69d448c` (scope the bias to the disc), `70a112a` (flatten the rendered polygon; ring elevation follows the arms), `17ebabb` (tunnel cover).
+- Commits `1b45ae4` (the disc must be authoritative), `69d448c` (scope the bias to the disc), `70a112a` (flatten the rendered polygon; ring elevation follows the arms), `17ebabb` (tunnel cover).

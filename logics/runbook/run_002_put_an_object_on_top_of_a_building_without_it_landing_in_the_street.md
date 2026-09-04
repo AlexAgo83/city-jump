@@ -1,7 +1,7 @@
 ## run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street - Put an object on top of a building without it landing in the street
 > Status: Active
 > Category: other
-> Verified: 2026-08-30 against the roof-prop placement in `src/render/buildings.ts` and commits `4f06cc6`..`c9d9df1`
+> Verified: 2026-08-30 against the roof-prop placement in `src/render/buildings.ts` and commits `4f06cc6`..`1b8f94e`
 > Related request: `req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together`
 > Related backlog: `item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry`
 > Related task: `task_011_implement_one_source_of_truth_for_building_model_geometry`
@@ -14,7 +14,7 @@
 - Any placement that is "a small offset from the building".
 
 # Prerequisites
-- Know that this exact bug was fixed four times in a row (`4f06cc6`, `1b8f94e`, `af0ff4d`, `c9d9df1`) before the real cause was found. Every earlier fix was locally reasonable and still wrong.
+- Know that this exact bug took repeated fixes before the real cause was found. Every earlier fix was locally reasonable and still wrong.
 - `src/render/buildings.ts`: `matrixFor`, the roof-prop loop, `roofPropY`.
 
 # Procedure
@@ -44,6 +44,6 @@ Self-consistency is what made three of the four fixes look correct. Verify again
 # References
 - `src/render/buildings.ts` -- `matrixFor` (the one transform), the roof-prop loop, `roofPropY`.
 - `src/render/buildings.test.ts` -- the scene-free height test.
-- Commits `4f06cc6` (feature + first fix), `1b8f94e` (missing `centerX`), `af0ff4d` (fixed small offsets), `c9d9df1` (the real cause: frontage edge, not roof centre).
+- Commits `4f06cc6` (feature + first fix), `1b8f94e` (missing `centerX`).
 - [[run_001_author_a_building_model_that_lands_on_its_parcel]]
 - Session transcript, 2026-08-29 (the four-attempt loop, including the three self-consistent verifications that reported success).

@@ -277,8 +277,14 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     const threat = waveClock.active!.threat;
     const population = economy.resources.population;
     const parcelsAtWave = parcels.length;
-    const byKind = parcels.reduce((counts, parcel) => ({ ...counts, [parcel.kind]: (counts[parcel.kind] ?? 0) + 1 }), {} as Record<BuildingKind, number>);
-    const roadMetres = graph.allSegments().reduce((metres, segment) => ({ ...metres, [segment.type]: Math.round((metres[segment.type] ?? 0) + segment.length) }), {} as Record<string, number>);
+    const byKind = parcels.reduce((counts, parcel) => {
+      counts[parcel.kind] = (counts[parcel.kind] ?? 0) + 1;
+      return counts;
+    }, {} as Record<BuildingKind, number>);
+    const roadMetres = graph.allSegments().reduce((metres, segment) => {
+      metres[segment.type] = Math.round((metres[segment.type] ?? 0) + segment.length);
+      return metres;
+    }, {} as Record<string, number>);
     const opening = batteriesForParcels(parcels, population);
     let assault = createKaijuAssault(v3(-260 + seed, 0, 260));
     let missiles: { readonly damage: number; readonly impactAt: number }[] = [];
