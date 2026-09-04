@@ -179,6 +179,40 @@ describe("validation", () => {
     expect(result.ok && g.segment(result.segmentId).elevated).toBe(true);
   });
 
+  it("stops the elevation where the bridge comes down", () => {
+    // A deck that lands: aloft at one end, on the ground at the other, over flat terrain at zero.
+    const g = new RoadGraph();
+    const aloft = g.addNodeAt(v3(0, 40, 0));
+    const landed = g.addNodeAt(v3(400, 0, 0));
+    g.addElevatedSegment(aloft, landed, v3(200, 40, 0), "highway_2lane");
+
+    const fromLanded = commitSegment(g, resolveSnap(g, 400, 0), { kind: "free", position: v3(400, 0, 400) }, v3(400, 0, 200), "street");
+    expect(fromLanded.ok).toBe(true);
+    expect(fromLanded.ok && g.segment(fromLanded.segmentId).elevated).toBeFalsy();
+
+    // The other end is still in the air, so a road drawn from there is still a bridge.
+    const fromAloft = commitSegment(g, resolveSnap(g, 0, 0), { kind: "free", position: v3(0, 40, -400) }, v3(0, 40, -200), "highway_2lane");
+    expect(fromAloft.ok).toBe(true);
+    expect(fromAloft.ok && g.segment(fromAloft.segmentId).elevated).toBe(true);
+  });
+
+  it("does not cascade the elevation across a city drawn from a landfall", () => {
+    // What the offshore bridge's landfall used to do: every road drawn onward became a bridge.
+    const g = new RoadGraph();
+    const aloft = g.addNodeAt(v3(0, 40, 0));
+    const landfall = g.addNodeAt(v3(300, 0, 0));
+    g.addElevatedSegment(aloft, landfall, v3(150, 40, 0), "highway_2lane");
+
+    let at = resolveSnap(g, 300, 0);
+    for (let i = 1; i <= 3; i++) {
+      const next = { kind: "free" as const, position: v3(300, 0, i * 200) };
+      const result = commitSegment(g, at, next, v3(300, 0, i * 200 - 100), "street");
+      expect(result.ok).toBe(true);
+      at = resolveSnap(g, 300, i * 200);
+    }
+    expect(g.allSegments().filter((segment) => segment.elevated)).toHaveLength(1);
+  });
+
   it("does not split surface roads when a tunnel crosses under them", () => {
     const g = new RoadGraph();
     expect(road(g, -60, 0, 60, 0).ok).toBe(true);

@@ -1,7 +1,7 @@
 import type { RoadGraph, Segment } from "../sim/graph";
 import type { TerrainBounds } from "../sim/heightmap";
 import type { Snap } from "../sim/rules";
-import { commitSegment, quadraticLengthXZ, resolveSnap, validateSegment } from "../sim/rules";
+import { commitSegment, quadraticLengthXZ, resolveSnap, touchesElevated, validateSegment } from "../sim/rules";
 import { roundaboutRadius } from "../sim/junction";
 import { demolitionRefund } from "../sim/economy";
 import { roadType } from "../sim/roadTypes";
@@ -117,12 +117,6 @@ function nearestElevatedEndpoint(graph: RoadGraph, x: number, z: number): Snap |
     }
   }
   return best;
-}
-
-function touchesElevated(graph: RoadGraph, snap: Snap): boolean {
-  if (snap.kind === "segment") return !!graph.segment(snap.segmentId).elevated;
-  if (snap.kind !== "node") return false;
-  return [...graph.node(snap.nodeId).segments].some((id) => graph.segment(id).elevated);
 }
 
 function nearestJunctionNode(graph: RoadGraph, x: number, z: number): number | null {

@@ -1,4 +1,4 @@
-import type { RoadGraph, NodeId, SegmentId } from "./graph";
+import { ELEVATED_CLEARANCE, type RoadGraph, type NodeId, type SegmentId } from "./graph";
 import { type Vec3, v3, add, distXZ, lerp, scale, sub } from "./vec";
 import { roadType } from "./roadTypes";
 import { flatTerrain, type Terrain } from "./terrain";
@@ -171,9 +171,26 @@ function resolveCrossing(graph: RoadGraph, crossing: { segmentId: SegmentId; dis
   return graph.splitSegment(hit.segment.id, hit.distance);
 }
 
-function touchesElevated(graph: RoadGraph, snap: Snap): boolean {
+/**
+ * Whether a road drawn from here inherits the elevation. A bridge stops being a bridge where it
+ * comes down.
+ *
+ * This used to ask only whether an elevated road met the point, so a street drawn off a landed
+ * deck became a bridge -- and since that street's far node now carried an elevated arm, the next
+ * road drawn from it became a bridge too, and so on across the whole network. Nothing said so:
+ * an elevated segment is skipped by `conformToRoads`, so no ground is ever graded to it, and by
+ * the crossing split below, so roads laid across each other never meet in a junction. Measured on
+ * a city built outward from the offshore bridge's landfall: all sixteen of its roads elevated,
+ * floating exactly `ELEVATED_CLEARANCE` over terrain that was never cut for them.
+ *
+ * So the question is not "does an elevated road end here" but "is this point still in the air".
+ * At the landfall the deck is on the ground, and what leaves it is a road.
+ */
+export function touchesElevated(graph: RoadGraph, snap: Snap): boolean {
+  if (snap.kind === "free") return false;
+  // Grazing the ground counts as landed: at the clearance itself there is nothing left to be under.
+  if (snap.position.y - graph.heightAt(snap.position.x, snap.position.z) <= ELEVATED_CLEARANCE) return false;
   if (snap.kind === "segment") return !!graph.segment(snap.segmentId).elevated;
-  if (snap.kind !== "node") return false;
   return [...graph.node(snap.nodeId).segments].some((id) => graph.segment(id).elevated);
 }
 

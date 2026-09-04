@@ -56,7 +56,8 @@ function bezierXZ(a: Vec3, c: Vec3, b: Vec3, t: number): Vec3 {
 const SAMPLE_SPACING_M = 1;
 const MIN_SAMPLES = 8;
 const MAX_SAMPLES = 512;
-const ELEVATED_CLEARANCE = 2;
+/** How far an elevated segment's deck is held above the ground it passes over. */
+export const ELEVATED_CLEARANCE = 2;
 
 /**
  * Samples the curve and builds its cumulative-distance table. Elevation follows the
