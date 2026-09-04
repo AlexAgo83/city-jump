@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 35%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -65,7 +65,7 @@
 - request-AC11 -> `item_151_open_a_run_with_a_treasury_that_can_build_a_city`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- 2026-09-04: `item_150` bulldozer delay slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/drawTool.test.ts`, and `rtk npm run test:e2e`; building and road bulldoze checks now assert the clicked target is removed immediately while the refund lands with the same action.
 
 # Report
 - Not started.

@@ -9,7 +9,7 @@
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
 > Owner: codex
-> Indicators reviewed: 2026-09-04 17:03:45
+> Indicators reviewed: 2026-09-04 17:18:26
 
 # AI Context
 - Summary: Seven slices from the 0.4.0 corpus review: settle the shared-link cap, repair the mis-cited AC, measure the module budget, test the link import path, unify action pinning, cover three modules, clear the lint and audit baseline.
@@ -48,13 +48,13 @@
 - [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states`. Proof deferred to slice closeout.
-- request-AC2 -> `item_137_give_src_a_module_size_budget_that_something_measures`. Proof deferred to slice closeout.
-- request-AC3 -> `item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof`. Proof deferred to slice closeout.
-- request-AC4 -> `item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city`. Proof deferred to slice closeout.
-- request-AC5 -> `item_140_cover_the_three_modules_nothing_reaches_or_record_why_not`. Proof deferred to slice closeout.
-- request-AC6 -> `item_141_pin_third_party_actions_the_same_way_in_every_workflow`. Proof deferred to slice closeout.
-- request-AC7 -> `item_142_the_fixes_whose_record_is_the_change_itself`. Proof deferred to slice closeout.
+- request-AC1 -> `item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states`. Proof: `ddef430` aligned docs/shared-link-threat-model.md with `MAX_SHARE_JSON = 1_000_000` and added the architecture check that fails if they diverge.
+- request-AC2 -> `item_137_give_src_a_module_size_budget_that_something_measures`. Proof: `ca7fd93` added the source module-size architecture gate and recorded `ponytail: module-size` reasons on the oversized modules.
+- request-AC3 -> `item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof`. Proof: `571cd0a` corrected task_041's request-AC1 traceability to point at the module-size work instead of the disposal slice.
+- request-AC4 -> `item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city`. Proof: `75f873b` added controls import-flow coverage for good, malformed, oversized, and non-applied shared links.
+- request-AC5 -> `item_140_cover_the_three_modules_nothing_reaches_or_record_why_not`. Proof: `299fcb0` added HUD and traffic mover/model coverage for the previously untested surfaces.
+- request-AC6 -> `item_141_pin_third_party_actions_the_same_way_in_every_workflow`. Proof: `846086d` pinned workflow actions by SHA and added the architecture gate across workflow `uses:` entries.
+- request-AC7 -> `item_142_the_fixes_whose_record_is_the_change_itself`. Proof: `579098a` cleared lint warnings and stale code anchors, then validated lint, typecheck, scenarios, and Logics audit.
 
 # Validation
 - (no validation recorded yet)

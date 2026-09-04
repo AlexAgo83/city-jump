@@ -29,7 +29,6 @@ const REFUSED = new Color3(0.95, 0.35, 0.25);
 const SELECTED = new Color3(0.4, 0.7, 0.95);
 const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
 const TERRAIN_DIRTY_PAD = 140;
-const DEMOLITION_MS = 1_000;
 
 /**
  * Three clicks: start, control point, end. No drag state to manage, and the bend is
@@ -212,7 +211,6 @@ export function createDrawTool(
   let leftPointerDown = false;
   let lastSprayed: { x: number; z: number } | null = null;
   let pressedAt: { x: number; y: number } | null = null;
-  const pendingDemolitions = new Set<number>();
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
     {
@@ -508,7 +506,7 @@ export function createDrawTool(
       }
       if (target.kind === "building") {
         const refund = demolitionRefund(buildingBuildCost(target.status.parcel));
-        scheduleDemolition(() => {
+        commitDemolition(() => {
           const changed = demolition?.building(target.status) ?? false;
           if (changed) economy?.refund(refund);
           return changed;
@@ -516,7 +514,7 @@ export function createDrawTool(
         return;
       }
       if (target.kind === "utility") {
-        scheduleDemolition(() => {
+        commitDemolition(() => {
           const removed = utilities?.removeAt(target.utility[2], target.utility[3]);
           if (removed?.[0] === "diffuser") onRefused(`${removed[1] === "power" ? "Power" : "Water"} diffuser destroyed. Covered district went dark.`);
           utilities?.refresh();
@@ -528,7 +526,7 @@ export function createDrawTool(
         history?.beforeChange();
         history?.afterChange(controller?.setRoundabout(target.node, false) ?? false);
       } else {
-        scheduleDemolition(() => controller?.removeRoad(target.segment) ?? false);
+        commitDemolition(() => controller?.removeRoad(target.segment) ?? false);
       }
       return;
     }
@@ -618,28 +616,20 @@ export function createDrawTool(
   }
 
   function cancel(): void {
-    for (const id of pendingDemolitions) window.clearTimeout(id);
-    pendingDemolitions.clear();
     resetDrawing();
     clearSelection();
   }
 
-  function scheduleDemolition(commit: () => boolean): void {
-    const revision = graph.revision;
-    const timer = window.setTimeout(() => {
-      pendingDemolitions.delete(timer);
-      if (graph.revision !== revision) return;
-      history?.beforeChange();
-      let changed = false;
-      try {
-        changed = commit();
-      } catch (error) {
-        onRefused((error as Error).message);
-      } finally {
-        history?.afterChange(changed);
-      }
-    }, DEMOLITION_MS);
-    pendingDemolitions.add(timer);
+  function commitDemolition(commit: () => boolean): void {
+    history?.beforeChange();
+    let changed = false;
+    try {
+      changed = commit();
+    } catch (error) {
+      onRefused((error as Error).message);
+    } finally {
+      history?.afterChange(changed);
+    }
   }
 
   /**
@@ -726,8 +716,6 @@ export function createDrawTool(
     dispose() {
       cancel();
       clearSelection();
-      for (const timer of pendingDemolitions) window.clearTimeout(timer);
-      pendingDemolitions.clear();
       preview?.dispose();
       preview = null;
       nodeHighlight.dispose();

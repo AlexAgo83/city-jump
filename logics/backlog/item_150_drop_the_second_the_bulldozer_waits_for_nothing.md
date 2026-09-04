@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 25%
+> Understanding: 95%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,6 @@
 # Priority
 - Priority: High
 - Rationale: Every demolition the player asks for waits a second for nothing, and the constant has no recorded reason to weigh against removing it.
+
+# Validation
+- 2026-09-04: Removed `DEMOLITION_MS`, the pending timeout set, and the revision guard in `src/render/drawTool.ts`; demolition now commits synchronously inside the same history boundary. Updated `scripts/interact.mjs` to assert immediate building and road bulldozes. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/drawTool.test.ts`, and `rtk npm run test:e2e`.

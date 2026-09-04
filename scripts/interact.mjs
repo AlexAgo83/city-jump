@@ -1680,14 +1680,12 @@ await setUtilityRules(false);
 await page.locator('[data-tool="bulldoze"]').click();
 const beforeBuildingBulldoze = await stats();
 await click(buildingPoint.x, buildingPoint.y);
-await page.waitForTimeout(300);
-check("bulldozing a building is not immediate", (await stats()).buildings === beforeBuildingBulldoze.buildings);
 await page.waitForFunction((before) => {
   const city = window.cityjump.stats();
   return city.buildings === before.buildings - 1 && city.money > before.money;
-}, beforeBuildingBulldoze, { timeout: 5_000 });
+}, beforeBuildingBulldoze, { timeout: 500 });
 const afterBuildingBulldoze = await stats();
-check("bulldozing a building takes time and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
+check("bulldozing a building is immediate and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="traffic"]').check();
 await page.evaluate(() => window.cityjump.setPaused(true));
@@ -1814,13 +1812,11 @@ check("the bulldozer highlights a road under the pointer", await previewVisible(
 await page.evaluate(() => window.cityjump.setRunRules({ freeBuilding: true }));
 const beforeBulldoze = await stats();
 await click(roadBulldozePoint.x, roadBulldozePoint.y);
-await page.waitForTimeout(300);
-check("the bulldozer does not remove a road immediately", (await stats()).segments === beforeBulldoze.segments);
 await page.waitForFunction((segments) => window.cityjump.stats().segments === segments - 1, beforeBulldoze.segments, {
-  timeout: 5_000,
+  timeout: 500,
 });
 const afterBulldoze = await stats();
-check("the bulldozer removes the clicked road after a delay and refunds half", afterBulldoze.segments === beforeBulldoze.segments - 1 && afterBulldoze.money > beforeBulldoze.money, `$${afterBulldoze.money} vs $${beforeBulldoze.money}`);
+check("the bulldozer removes the clicked road immediately and refunds half", afterBulldoze.segments === beforeBulldoze.segments - 1 && afterBulldoze.money > beforeBulldoze.money, `$${afterBulldoze.money} vs $${beforeBulldoze.money}`);
 await page.evaluate(() => window.cityjump.setRunRules({ freeBuilding: false }));
 
 // The rugged map is no longer offered in the toolbar, but a city saved on it still has to come
