@@ -1,10 +1,10 @@
 ## item_160_let_a_kaiju_land_on_any_edge_of_the_map - Let a kaiju land on any edge of the map
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -51,3 +51,6 @@
 # Priority
 - Priority: Medium
 - Rationale: Half the map has never been a landing in any game. Cheap, independent, and it costs the player variety rather than correctness.
+
+# Notes
+- 2026-09-04, codex: changed `landingPoint` from top-two edge truncation to distance-weighted edge choice. A 600-seed test proves all four edges occur, the bridge-side south edge is least likely, and seed replay stays deterministic.

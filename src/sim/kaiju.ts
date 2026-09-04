@@ -94,10 +94,13 @@ export function landingPoint(seed: string, bounds: MapBounds, bridge: Vec3): Vec
     { side: "north", z: bounds.minZ, x0: bounds.minX, x1: bounds.maxX },
     { side: "south", z: bounds.maxZ, x0: bounds.minX, x1: bounds.maxX },
   ];
-  const ranked = edges
-    .map((edge, index) => ({ edge, index, distance: edgeDistance(edge, bridge) }))
-    .sort((a, b) => b.distance - a.distance);
-  const chosen = ranked[Math.floor(random(`${seed}:edge`) * 2)]!;
+  const weighted = edges.map((edge) => ({ edge, weight: Math.max(1, edgeDistance(edge, bridge)) }));
+  const roll = random(`${seed}:edge`) * weighted.reduce((sum, edge) => sum + edge.weight, 0);
+  let total = 0;
+  const chosen = weighted.find((edge) => {
+    total += edge.weight;
+    return roll < total;
+  }) ?? weighted[weighted.length - 1]!;
   const t = random(`${seed}:t`);
   return "x" in chosen.edge
     ? { x: chosen.edge.x, y: 0, z: chosen.edge.z0 + (chosen.edge.z1 - chosen.edge.z0) * t }

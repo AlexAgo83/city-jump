@@ -35,6 +35,25 @@ describe("kaiju", () => {
     expect(distXZ(plan.landing, kaijuPositionAt(plan, 1))).toBeCloseTo(WAVE_STARTING_VALUES.kaijuSpeedMps);
   });
 
+  it("can land on every edge while favouring edges away from the bridge", () => {
+    const bounds = { minX: -2700, maxX: 2700, minZ: -2700, maxZ: 2700 };
+    const bridge = v3(-360, 0, 1500);
+    const side = (seed: number): "west" | "east" | "north" | "south" => {
+      const landing = planKaiju(String(seed), bounds, [], [], bridge).landing;
+      return landing.x === bounds.minX ? "west" : landing.x === bounds.maxX ? "east" : landing.z === bounds.minZ ? "north" : "south";
+    };
+    const counts = Array.from({ length: 600 }, (_, seed) => side(seed)).reduce<Record<"west" | "east" | "north" | "south", number>>((all, edge) => {
+      all[edge] = (all[edge] ?? 0) + 1;
+      return all;
+    }, { west: 0, east: 0, north: 0, south: 0 });
+
+    expect(Object.keys(counts).sort()).toEqual(["east", "north", "south", "west"]);
+    expect(counts.south).toBeLessThan(counts.west);
+    expect(counts.south).toBeLessThan(counts.east);
+    expect(counts.south).toBeLessThan(counts.north);
+    expect(side(42)).toBe(side(42));
+  });
+
   it("walks, spends visible time attacking, then retargets the nearest living building", () => {
     const start = v3(0, 0, 0);
     const first = v3(10, 0, 0);
