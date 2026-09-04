@@ -1,10 +1,10 @@
 ## item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it - Sit the FPS counter beside the Wave panel instead of above it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -49,3 +49,6 @@
 # Priority
 - Priority: Low
 - Rationale: Cosmetic, but it must not break the column's flow contract, which is the only reason it is not a one-line change.
+
+# Notes
+- 2026-09-04, codex: wrapped `#fps-counter` and `#run-panel` in a flow row inside `#right-stack`. A targeted Playwright check measured both at y=12, an 8 px gap, no panel-owned `top`, and the run panel stayed at the same y/right edge when FPS was hidden.

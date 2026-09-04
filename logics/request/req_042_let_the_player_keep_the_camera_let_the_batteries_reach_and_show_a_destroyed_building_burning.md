@@ -1,7 +1,7 @@
 ## req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning - Let the player keep the camera, let the batteries reach, and show a destroyed building burning
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium

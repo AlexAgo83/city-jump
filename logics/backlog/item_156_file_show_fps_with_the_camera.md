@@ -1,10 +1,10 @@
 ## item_156_file_show_fps_with_the_camera - File Show FPS with the camera
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -47,3 +47,6 @@
 # Priority
 - Priority: Low
 - Rationale: A misfiled checkbox. Real, trivial, and it waits behind everything that changes behaviour.
+
+# Notes
+- 2026-09-04, codex: moved the unchanged `show-fps` checkbox into the Camera row. The persisted `fps` key remains unchanged.

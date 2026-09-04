@@ -128,7 +128,7 @@
   .tool-options input[type="range"] { width: 92px; }
   /*
    * Everything that lives in the top-right corner shares one column, stacked in a fixed order --
-   * FPS, run status, selection -- and flows: whatever is hidden takes no room and the rest closes
+   * run line, selection -- and flows: whatever is hidden takes no room and the rest closes
    * up. Each of these used to carry its own `top`, so showing two at once overlapped them and
    * showing three needed a rule per pair.
    */
@@ -138,6 +138,10 @@
     max-width: min(560px, calc(100vw - 24px)); pointer-events: none;
   }
   #right-stack > * { pointer-events: auto; }
+  #run-line {
+    display: flex; align-items: flex-start; justify-content: flex-end; gap: 8px;
+    max-width: min(560px, calc(100vw - 24px));
+  }
   #selection-panel {
     min-width: 150px; max-width: 240px;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
@@ -301,7 +305,6 @@
       <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
       <label><input id="show-decor" type="checkbox" checked /> Details</label>
       <label><input id="show-boxes" type="checkbox" /> Boxes</label>
-      <label><input id="show-fps" type="checkbox" /> Show FPS</label>
     </div>
     <div class="toolbar-row toolbar-continued">
       <span class="row-label">Look</span>
@@ -345,6 +348,7 @@
       <label><input type="radio" name="camera-mode" value="free" checked /> Free</label>
       <label><input type="radio" name="camera-mode" value="orbit" /> Orbit</label>
       <label><input type="radio" name="camera-mode" value="follow" /> Follow</label>
+      <label><input id="show-fps" type="checkbox" /> Show FPS</label>
     </div>
     <div class="toolbar-row">
       <span class="row-label">Gameplay</span>
@@ -469,13 +473,15 @@
   </div>
 </div>
 <div id="right-stack">
-<div id="fps-counter" hidden></div>
-<div id="run-panel" aria-label="Run status">
-  <span>Wave <b id="run-wave">1</b></span>
-  <span>Science <b id="run-science">0</b></span>
-  <button id="call-wave" type="button">Call wave</button>
-  <button id="evacuate-run" type="button">Evacuate</button>
-</div>
+  <div id="run-line">
+    <div id="fps-counter" hidden></div>
+    <div id="run-panel" aria-label="Run status">
+      <span>Wave <b id="run-wave">1</b></span>
+      <span>Science <b id="run-science">0</b></span>
+      <button id="call-wave" type="button">Call wave</button>
+      <button id="evacuate-run" type="button">Evacuate</button>
+    </div>
+  </div>
 <div id="between-runs" aria-label="Between runs" hidden>
   <span id="run-outcome"></span>
   <span>Prestige <b id="profile-prestige">0</b></span>
