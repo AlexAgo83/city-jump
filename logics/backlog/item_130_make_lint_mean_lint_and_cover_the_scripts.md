@@ -1,14 +1,14 @@
 ## item_130_make_lint_mean_lint_and_cover_the_scripts - Make lint mean lint, and cover the scripts
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: A real linter would have caught the two discarded ringEntryRadius assignments and the unused u at rules.ts:196. scripts/interact.mjs is 2121 lines of e2e suite with no static analysis at all.
@@ -62,3 +62,7 @@
 - 2026-09-03 wave 2: `tsconfig.json` now enables `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, and `verbatimModuleSyntax`; `package.json` declares `engines.node >=22`.
 - 2026-09-03 wave 2: commit `17204a9` fixed the resulting unused-code and Biome error findings. Biome still reports warnings, but exits 0 and fails on errors.
 - 2026-09-03 validation: `rtk npm run ci` passed with Biome lint, 40 Vitest files / 306 tests, 12 architecture tests, scenarios, build/typecheck, Logics lint/audit, and i18n validation.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

@@ -1,14 +1,14 @@
 ## item_128_give_every_renderer_a_dispose - Give every renderer a dispose
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 99%
-> Confidence: 95%
-> Progress: 98%
+> Status: Done
+> Understanding: 100%
+> Confidence: 96%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:00:58
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: Latent in a single page, but it is what makes the app untestable in-process and what will leak a whole scene at the first reset or Vite HMR. glassReflectionTexture is bound to the first scene for ever.
@@ -58,8 +58,12 @@
 - 2026-09-04 dispose slice 1: createZoneRenderer, createUtilityRenderer, createRubbleRenderer, and createMissileRenderer now expose dispose() and release their owned meshes/materials; src/render/dispose.test.ts covers the create/rebuild/dispose scene cleanup for these simple renderers.
 - 2026-09-04 dispose slice 2: createDrawTool, road, ocean, world grid, signals, streetlights, trees, traffic, vehicle prototypes/headlights, wave markers, post-FX, detail culler, ground shadow, buildings, and kaiju now expose dispose() for their owned meshes/materials/observers; the building glass reflection texture moved from module scope into the building renderer closure.
 - 2026-09-04 dispose slice 3: startApp now composes renderer/UI/scene teardown, main.ts calls it from Vite HMR disposal, installDebugApi removes window.cityjump and cancels fallback FPS RAF work, createScene removes its render loop and window listeners, createAutosave can cancel its pending timer, and the controls/run panel binders return disposers for their persistent listeners.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/dispose.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after adding dispose() to the simple renderers.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/render/dispose.test.ts src/render/traffic.test.ts src/render/roadMesh.test.ts, rtk npm run test:e2e, and rtk npm run ci passed after renderer dispose wave 2.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/persistence.test.ts src/ui/runPanel.test.ts src/render/dispose.test.ts, rtk npm run test:e2e, rtk npm run ci, and rtk npm run build passed after app/UI scene teardown composition and HMR bootstrap wiring.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

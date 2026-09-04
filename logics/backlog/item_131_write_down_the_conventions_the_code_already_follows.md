@@ -1,14 +1,14 @@
 ## item_131_write_down_the_conventions_the_code_already_follows - Write down the conventions the code already follows
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: 42 ponytail comments encode deliberate simplifications with their revision condition and the word appears in no document. Separately, the asset test's deepEqual actively forbids a manifest entry for the four hand-authored models.
@@ -61,3 +61,7 @@
 - 2026-09-03 wave 1: `tests/building-assets.mjs` now requires generated model manifest inclusion instead of exact equality, and checks `block`, `house`, `shop`, and `tower` have usable GLB height.
 - 2026-09-03 wave 1: `docs/assets.md` records that `block.glb`, `house.glb`, `shop.glb`, and `tower.glb` currently rely on the flat roof fallback; `.claude/` was already present in `.gitignore`.
 - 2026-09-03 validation: `rtk node --test tests/building-assets.mjs` passed.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

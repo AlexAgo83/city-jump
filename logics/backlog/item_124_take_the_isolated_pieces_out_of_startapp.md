@@ -1,14 +1,14 @@
 ## item_124_take_the_isolated_pieces_out_of_startapp - Take the isolated pieces out of startApp
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 80%
+> Progress: 100%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: The missing module leaves fingerprints: the same 200-character parcelsForDemand expression appears at :140 and :213, and :1152 monkey-patches a debug surface that :1108 already built.
@@ -69,6 +69,10 @@
 - 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
 - 2026-09-03 wave 3f: commit `9675795` moved wave verdict settlement into `settleWaveOutcome` and added focused coverage for held-wave scheduling and breached-empty-city end state.
 - 2026-09-03 validation: `rtk npm exec -- vitest run src/app/waveLoop.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04 validation: rtk npm exec -- vitest run src/app/cityRebuild.test.ts, rtk npm run typecheck, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after the cityRebuild helper extraction.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

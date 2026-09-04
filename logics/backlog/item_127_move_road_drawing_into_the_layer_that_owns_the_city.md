@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: The imports point the right way, so no architecture test catches it. Must follow item_106, which rewrites the demolition path in these exact lines.
@@ -59,6 +59,7 @@
 - 2026-09-04 controller slice 2: app/drawController.ts now owns road spend/refund and dirty rebuild effects for road commit, road removal, and roundabout toggles; debug roads opt out of those gameplay effects.
 - 2026-09-04 controller slice 3: app/drawController.ts now owns road snap resolution, preview validation/sampling, junction lookup, and road/roundabout bulldoze targets; render/drawTool.ts calls those controller decisions and keeps pointer/preview sequencing.
 - 2026-09-04 controller closeout: the utility road preview now asks app/drawController.ts for the nearest road hit, leaving render/drawTool.ts without direct road graph rule or road-target lookup calls in the drawing paths.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after the controller injection.
@@ -67,3 +68,6 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, and rtk npm run test:e2e passed after moving road transaction effects into app/drawController.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk npm run test:e2e, and rtk npm run ci passed after moving road snap/preview/target decisions into app/drawController.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run test:e2e, and rtk npm run ci passed after moving the utility road-preview hit lookup into app/drawController.ts.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

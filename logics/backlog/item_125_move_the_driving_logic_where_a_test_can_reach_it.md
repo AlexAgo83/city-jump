@@ -1,14 +1,14 @@
 ## item_125_move_the_driving_logic_where_a_test_can_reach_it - Move the driving logic where a test can reach it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 98%
+> Progress: 100%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 12:52:59
+> Indicators reviewed: 2026-09-04 16:05:26
 
 # AI Context
 - Summary: Three steps, and the third is gated on an observable condition instead of an owner's call: the move to sim happens if and only if headless tests for the driving logic exist and pass. Verified that nothing blocks it -- the two render imports are three constants and a pure predicate.
@@ -65,6 +65,7 @@
 
 # Notes
 - The seam facts in Problem were verified against the code rather than reported: the Mover field count, the Ride purity, the nine sim imports and the two render imports were each checked.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts src/app/cityRebuild.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting src/render/vehicleModels.ts.
@@ -85,3 +86,13 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/roadMesh.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after separating the Traffic view road overlay from road mesh rebuilds.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
 - 2026-09-04 browser check: rtk npm run test:e2e passed the traffic, lighting, building decoration, and zone-view checks touched by this item, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021; item closeout stays pending on AC6 rather than rewriting the unrelated browser test.
+
+# AC Traceability
+- request-AC1 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC3 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC4 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC5 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC6 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC7 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC8 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC9 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`

@@ -1,14 +1,14 @@
 ## item_135_declare_where_this_project_stands_on_translation - Declare where this project stands on translation
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 45%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 16:05:26
 
 # AI Context
 - Summary: Decided by the owner: English is the source locale and further languages come later, so the contract is initialised as applicable rather than not-applicable. The remaining work is extraction -- the catalogue exists and is empty while every string is still inline.
@@ -61,3 +61,14 @@
 # Notes
 - The contract was initialised through `logics-manager i18n init --source-locale en`, not by hand.
 - Nothing broke: `tsc` and the architecture tests both pass with `src/i18n/en.json` present.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# AC Traceability
+- request-AC1 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC3 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC4 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC5 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC6 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC7 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC8 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC9 -> This backlog slice. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`

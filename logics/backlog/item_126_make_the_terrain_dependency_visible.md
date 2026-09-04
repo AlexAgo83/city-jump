@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 13:07:24
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # AI Context
 - Summary: Import-direction rules cannot see state coupling, which is why this survived. The three-line architecture assertion lands first because it stops the spread today, before the injection work starts.
@@ -64,7 +64,11 @@
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.
 - 2026-09-04 terrain injection 3: createDrawTool now receives height sampling from app.ts; render/drawTool.ts no longer imports terrainHeight, and sampleQuadratic defaults to flat terrain for isolated geometry tests.
 - 2026-09-04 completion: non-terrain tests no longer call setTerrain(flatTerrain); rg shows setTerrain only in app setup, terrain.ts, the terrain module test, and the architecture assertion.
+- Task `task_041_orchestrate_the_structural_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into drawTool.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/save.test.ts src/sim/replay.test.ts src/sim/heightmap.test.ts src/render/drawTool.test.ts and rtk npm run ci passed after removing the remaining flat-terrain resets from ordinary tests.
+
+# Tasks
+- `task_041_orchestrate_the_structural_work`

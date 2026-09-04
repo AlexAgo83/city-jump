@@ -1,13 +1,13 @@
 ## req_039_give_the_code_its_seams_back - Give the code its seams back
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 12:40:52
+> Indicators reviewed: 2026-09-04 16:05:26
 
 # AI Context
 - Summary: The highest-churn file in the repo is a 1200-line function with no test, and the terrain coupling is invisible to every architecture rule that exists.

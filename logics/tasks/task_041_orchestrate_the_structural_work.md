@@ -1,14 +1,14 @@
 ## task_041_orchestrate_the_structural_work - Orchestrate the structural work
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 99%
 > Confidence: 95%
-> Progress: 98%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-04 15:11:26
+> Indicators reviewed: 2026-09-04 16:05:26
 > Owner: Codex
 
 # AI Context
@@ -25,13 +25,13 @@
 - [x] 2. Wave 1: the three-line architecture assertion on setTerrain, and the documentation and gitignore items. Cheap, immediate, no conflict surface.
 - [x] 3. Wave 2: the linter and tsconfig flags, adopting the tool and fixing its findings as separate commits.
 - [x] 4. Wave 3: the startApp extractions in the stated order, one commit each with npm run ci between.
-- [ ] 5. Wave 4: the traffic and buildings splits, after req_037 has finished with those hot paths.
-- [ ] 6. Wave 5: drawTool into app/, after req_035 item_106.
-- [ ] 7. Wave 6: the dispose contract, then the save migration hook.
-- [ ] 8. Behaviour must not change anywhere in this chain: an existing test needing an edit is a signal to stop and reconsider the seam.
+- [x] 5. Wave 4: the traffic and buildings splits, after req_037 has finished with those hot paths.
+- [x] 6. Wave 5: drawTool into app/, after req_035 item_106.
+- [x] 7. Wave 6: the dispose contract, then the save migration hook.
+- [x] 8. Behaviour must not change anywhere in this chain: an existing test needing an edit is a signal to stop and reconsider the seam.
 - [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready without automatic commits.
 - [x] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_124_take_the_isolated_pieces_out_of_startapp`
@@ -45,22 +45,22 @@
 - `item_135_declare_where_this_project_stands_on_translation`
 
 # Definition of Done (DoD)
-- [ ] Generated request, product, backlog, and task docs are present.
-- [ ] Context-pack handoff is available when requested.
-- [ ] Validation passes.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] Generated request, product, backlog, and task docs are present.
+- [x] Context-pack handoff is available when requested.
+- [x] Validation passes.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> `item_124_take_the_isolated_pieces_out_of_startapp`. Proof deferred to slice closeout.
-- request-AC1 -> `item_125_move_the_driving_logic_where_a_test_can_reach_it`. Proof deferred to slice closeout.
+- request-AC1 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC1 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
 - request-AC2 -> `item_125_move_the_driving_logic_where_a_test_can_reach_it`. Proof deferred to slice closeout.
-- request-AC3 -> `item_126_make_the_terrain_dependency_visible`. Proof deferred to slice closeout.
-- request-AC4 -> `item_127_move_road_drawing_into_the_layer_that_owns_the_city`. Proof deferred to slice closeout.
-- request-AC5 -> `item_128_give_every_renderer_a_dispose`. Proof deferred to slice closeout.
-- request-AC6 -> `item_129_give_the_save_format_somewhere_to_migrate`. Proof deferred to slice closeout.
-- request-AC8 -> `item_130_make_lint_mean_lint_and_cover_the_scripts`. Proof deferred to slice closeout.
-- request-AC7 -> `item_131_write_down_the_conventions_the_code_already_follows`. Proof deferred to slice closeout.
-- request-AC9 -> `item_131_write_down_the_conventions_the_code_already_follows`. Proof deferred to slice closeout.
+- request-AC3 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC4 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC5 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC6 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC8 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC7 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC9 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
 
 # Validation
 - 2026-09-04 validation: `rtk npm exec -- vitest run src/app/cityRebuild.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk git diff --check`, `rtk npm run ci`, `rtk logics-manager lint --require-status`, `rtk logics-manager audit --group-by-doc`, and `rtk logics-manager i18n validate` passed after wave 3g.
@@ -87,6 +87,9 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk npm run test:e2e, and rtk npm run ci passed after item_127 controller slice 3.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run test:e2e, and rtk npm run ci passed after item_127 closeout.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/dispose.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after item_128 dispose slice 1.
+- rtk npm run ci passed on 2026-09-04 after item_128 closure and task closeout repairs.
+- Finish workflow executed on 2026-09-04.
+- Linked backlog/request close verification passed.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -118,6 +121,9 @@
 - 2026-09-04 item_127 controller slice 3: road snap resolution, preview validation/sampling, junction lookup, and road/roundabout bulldoze targeting moved from render/drawTool.ts into app/drawController.ts.
 - 2026-09-04 item_127 closeout: the utility road-preview hit lookup moved behind app/drawController.ts, completing the road drawing controller move without changing pointer behavior.
 - 2026-09-04 item_128 dispose slice 1: createZoneRenderer, createUtilityRenderer, createRubbleRenderer, and createMissileRenderer now expose dispose() and release their owned scene resources.
+- Finished on 2026-09-04.
+- Linked backlog item(s): `item_124_take_the_isolated_pieces_out_of_startapp`, `item_125_move_the_driving_logic_where_a_test_can_reach_it`, `item_126_make_the_terrain_dependency_visible`, `item_127_move_road_drawing_into_the_layer_that_owns_the_city`, `item_128_give_every_renderer_a_dispose`, `item_129_give_the_save_format_somewhere_to_migrate`, `item_130_make_lint_mean_lint_and_cover_the_scripts`, `item_131_write_down_the_conventions_the_code_already_follows`, `item_135_declare_where_this_project_stands_on_translation`
+- Related request(s): `req_039_give_the_code_its_seams_back`
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

@@ -1,11 +1,12 @@
 ## prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach - A codebase whose seams are where the tests can reach
 > Date: 2026-09-03
-> Status: Proposed
+> Status: Settled
 > Related request: `req_039_give_the_code_its_seams_back`
-> Related backlog: item_124_take_the_isolated_pieces_out_of_startapp, item_125_move_the_driving_logic_where_a_test_can_reach_it, item_126_make_the_terrain_dependency_visible, item_127_move_road_drawing_into_the_layer_that_owns_the_city, item_128_give_every_renderer_a_dispose, item_129_give_the_save_format_somewhere_to_migrate, item_130_make_lint_mean_lint_and_cover_the_scripts, item_131_write_down_the_conventions_the_code_already_follows, item_135_declare_where_this_project_stands_on_translation
+> Related backlog: `item_124_take_the_isolated_pieces_out_of_startapp`
 > Related task: `task_041_orchestrate_the_structural_work`
 > Related architecture: adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-04 16:05:27
 
 # Overview
 The modules that change most often become the ones a test can hold.
@@ -68,5 +69,5 @@ flowchart TD
 - item_126 and item_127 may warrant ADRs rather than only backlog items. The runner may decide: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Recorded as arbitration in task_041.
 
 # References
-- Product back-reference: `req_039_give_the_code_its_seams_back`
+- Product back-reference: `item_124_take_the_isolated_pieces_out_of_startapp`
 - Task back-reference: `task_041_orchestrate_the_structural_work`
