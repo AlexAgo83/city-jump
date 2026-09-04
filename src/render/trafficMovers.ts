@@ -609,6 +609,11 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
   
       if (mover.ride) {
         const ride = mover.ride;
+        if (!graph.hasSegment(ride.exit)) {
+          staleMovers.add(mover);
+          mover.mesh.dispose();
+          continue;
+        }
         // Same ramp as the straight road it just left: a car pulling away into its turn keeps
         // accelerating rather than snapping straight to the turn's own pace.
         const room = occupancy.ringRooms.get(mover) ?? Infinity;

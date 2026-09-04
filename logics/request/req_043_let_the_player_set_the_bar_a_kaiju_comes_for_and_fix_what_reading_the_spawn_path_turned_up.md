@@ -1,7 +1,7 @@
 ## req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up - Let the player set the bar a kaiju comes for, and fix what reading the spawn path turned up
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: High

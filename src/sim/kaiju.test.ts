@@ -98,4 +98,8 @@ describe("kaiju", () => {
     expect(state.mode).toBe("attacking");
     expect(state.attackSeconds).toBeCloseTo(KAIJU_ATTACK_SECONDS / 2);
   });
+
+  it("refuses a tick that could destroy two buildings behind one return field", () => {
+    expect(() => advanceKaijuAssault(createKaijuAssault(v3(0, 0, 0)), [v3(0, 0, 0), v3(1, 0, 0)], KAIJU_ATTACK_SECONDS * 2, 100)).toThrow(RangeError);
+  });
 });

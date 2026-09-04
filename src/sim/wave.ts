@@ -6,7 +6,6 @@ export const WAVE_STARTING_VALUES = {
   damagePerParcelCell: 14,
   reloadSeconds: 4,
   missileSpeedMps: 220 / 1.5,
-  destructionRadiusM: 25,
 } as const;
 
 export const DEFAULT_RESIDENTS_PER_WAVE = 1000;

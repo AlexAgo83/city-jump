@@ -49,4 +49,36 @@ describe("traffic mover renderer", () => {
     models.dispose();
     expect(scene.onBeforeRenderObservable.observers.filter((observer) => !observer._willBeUnregistered)).toHaveLength(baseline);
   });
+
+  it("drops movers whose queued exit road was removed mid-turn", () => {
+    engine = new NullEngine();
+    scene = new Scene(engine);
+    const s = scene;
+    const graph = new RoadGraph();
+    const a = graph.addNode(0, 0);
+    const b = graph.addNode(90, 0);
+    const c = graph.addNode(90, 90);
+    graph.addSegment(a, b, v3(45, 0, 0), "street");
+    const exit = graph.addSegment(b, c, v3(90, 0, 45), "street");
+    const models = createVehicleModels(scene);
+    const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
+    const traffic = createTrafficMoverSystem(scene, graph, () => 250, () => 0, models, headlights, {
+      lightsOn: () => false,
+      enabled: true,
+      paused: false,
+      density: 1,
+      timeScale: 4,
+    });
+
+    traffic.rebuild();
+    for (let i = 0; i < 120; i++) s.onBeforeRenderObservable.notifyObservers(s);
+    graph.removeSegment(exit);
+
+    expect(() => {
+      for (let i = 0; i < 120; i++) s.onBeforeRenderObservable.notifyObservers(s);
+    }).not.toThrow();
+
+    traffic.dispose();
+    models.dispose();
+  });
 });

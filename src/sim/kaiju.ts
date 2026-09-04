@@ -54,6 +54,7 @@ export function createKaijuAssault(position: Vec3): KaijuAssaultState {
 }
 
 export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonly Vec3[], dtSeconds: number, speed: number = WAVE_STARTING_VALUES.kaijuSpeedMps, attackDuration = KAIJU_ATTACK_SECONDS): KaijuAssaultState {
+  if (dtSeconds >= attackDuration * 2) throw new RangeError("kaiju assault ticks must report at most one destroyed building");
   let targets = state.destroyed ? buildings.filter((building) => !sameXZ(building, state.destroyed!)) : [...buildings];
   let position = state.position;
   let target = state.target && targets.some((building) => sameXZ(building, state.target!)) ? state.target : nearest(targets, state.position);
@@ -62,7 +63,7 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
   let remaining = Math.max(0, dtSeconds);
   let destroyed: Vec3 | null = null;
 
-  // Drain large ticks too: tests and future callers are not all locked to the 0.25 s combat step.
+  // Drain large ticks until the one-destruction return contract would become ambiguous.
   while (target && remaining > 0) {
     const distance = distXZ(position, target);
     if (distance > 0) {

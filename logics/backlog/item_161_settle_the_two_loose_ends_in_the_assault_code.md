@@ -1,10 +1,10 @@
 ## item_161_settle_the_two_loose_ends_in_the_assault_code - Settle the two loose ends in the assault code
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,6 @@
 # Priority
 - Priority: Low
 - Rationale: Neither is live: one constant does nothing and one drain cannot be triggered at the shipped step. Gathered under ADR 030 and taken last.
+
+# Notes
+- 2026-09-04, codex: removed unused `destructionRadiusM`, narrowed `advanceKaijuAssault` to reject ticks that could hide two destructions behind one return field, and covered that with `src/sim/kaiju.test.ts`. Also fixed the reported traffic crash by dropping movers whose queued junction exit segment has been removed, covered by `src/render/trafficMovers.test.ts`.
