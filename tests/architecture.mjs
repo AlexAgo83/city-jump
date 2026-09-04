@@ -128,7 +128,6 @@ test("release deploy workflow keeps secrets out of templated shell", async () =>
   const runBlocks = workflow.match(/run: \|\n(?: {10}.*\n| {10}\n)+/g) ?? [];
 
   assert.equal(runBlocks.some((block) => block.includes("${{")), false);
-  assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/);
   assert.match(workflow, /git rev-parse --verify "refs\/tags\/\$\{release_tag\}\^\{commit\}"/);
   assert.doesNotMatch(workflow, /git rev-list/);
   assert.match(workflow, /RENDER_API_KEY: \$\{\{ secrets\.RENDER_API_KEY \}\}/);
@@ -138,4 +137,16 @@ test("release deploy workflow keeps secrets out of templated shell", async () =>
   assert.match(workflow, /\/v1\/services\/\$\{RENDER_SERVICE_ID\}\/deploys\?limit=20/);
   assert.match(workflow, /live\|deactivated/);
   assert.match(workflow, /build_failed\|canceled/);
+});
+
+test("third-party workflow actions are pinned by SHA", async () => {
+  const workflows = new URL("../.github/workflows/", import.meta.url);
+  for (const file of (await readdir(workflows)).filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))) {
+    const source = await readFile(new URL(file, workflows), "utf8");
+    for (const match of source.matchAll(/uses:\s*([^\s#]+)/g)) {
+      const spec = match[1];
+      if (!spec || spec.startsWith("./")) continue;
+      assert.match(spec, /^[^/\s]+\/[^/\s]+@[0-9a-f]{40}$/, `${file} uses ${spec}`);
+    }
+  }
 });

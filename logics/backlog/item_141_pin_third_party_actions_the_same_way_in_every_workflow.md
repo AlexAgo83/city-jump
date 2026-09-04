@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 60%
+> Progress: 70%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -49,3 +49,6 @@
 # Priority
 - Priority: Medium
 - Rationale: One repo should not hold two opinions on how far an action is trusted, but nothing is exploitable while both pins resolve.
+
+# Validation
+- 2026-09-04: Pinned every third-party action in .github/workflows by SHA and added an architecture test that enumerates all workflow files. Validated with rtk npm run test:architecture and rtk npm run check:versions.
