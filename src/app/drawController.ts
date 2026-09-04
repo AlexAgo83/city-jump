@@ -45,6 +45,7 @@ export function createDrawController(graph: RoadGraph, options: DrawControllerOp
       }
       return null;
     },
+    nearestRoad: (x: number, z: number, reach: number) => graph.nearestOnSegment(x, z, reach),
     roadAt(x: number, z: number) {
       const nearest = graph.nearestOnSegment(x, z, 20);
       if (!nearest) return null;

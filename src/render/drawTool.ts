@@ -89,6 +89,7 @@ export interface DrawController {
   junctionNodeAt(x: number, z: number): number | null;
   roundaboutEnabled(node: number): boolean;
   roundaboutAt(x: number, z: number): Extract<BulldozeTarget, { kind: "roundabout" }> | null;
+  nearestRoad(x: number, z: number, reach: number): { segment: Segment; position: Vec3 } | null;
   roadAt(x: number, z: number): Segment | null;
   commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId, effects?: boolean): { ok: true } | { ok: false; reason: string };
   removeRoad(segment: Segment, effects?: boolean): boolean;
@@ -455,7 +456,7 @@ export function createDrawTool(
     }
     if (mode === "utility") {
       nodeHighlight.setEnabled(false);
-      const hit = graph.nearestOnSegment(at.x, at.z, 24);
+      const hit = controller?.nearestRoad(at.x, at.z, 24);
       clearPreview();
       if (!hit) return moveSprayRing(null, 1);
       drawPreview([...hit.segment.samples], true);
