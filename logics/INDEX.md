@@ -11,6 +11,7 @@
 | [adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision](architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md) | One harness drives the real simulation, and no test shortcuts a player decision | Proposed |  |  | architecture/adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision.md |
 | [adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before](architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md) | Move the driving logic to sim when its tests exist, not before | Accepted |  |  | architecture/adr_006_move_the_driving_logic_to_sim_when_its_tests_exist_not_before.md |
 | [adr_007_make_terrain_an_explicit_dependency](architecture/adr_007_make_terrain_an_explicit_dependency.md) | Make terrain an explicit dependency | Accepted |  |  | architecture/adr_007_make_terrain_an_explicit_dependency.md |
+| [adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches](architecture/adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches.md) | Decide elevation by height above ground, not by what a node touches | Accepted |  |  | architecture/adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches.md |
 
 ## Product briefs
 
@@ -50,6 +51,7 @@
 | [prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read](product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md) | Tools that stay out of the way, and a wave whose aftermath the player can read | Proposed |  |  | product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md |
 | [prod_033_a_wave_you_watch_on_your_own_terms](product/prod_033_a_wave_you_watch_on_your_own_terms.md) | A wave you watch on your own terms | Proposed |  |  | product/prod_033_a_wave_you_watch_on_your_own_terms.md |
 | [prod_034_a_wave_the_player_sets_the_terms_of](product/prod_034_a_wave_the_player_sets_the_terms_of.md) | A wave the player sets the terms of | Proposed |  |  | product/prod_034_a_wave_the_player_sets_the_terms_of.md |
+| [prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed](product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md) | An island that hands the player a road, and a bridge that knows when it has landed | Settled |  |  | product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md |
 
 ## Roadmaps
 
@@ -107,6 +109,7 @@
 | [req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath](request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md) | What playing 0.4.0 turned up in the zoning tools, the brush surface and the wave's aftermath | Ready |  |  | request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md |
 | [req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning](request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md) | Let the player keep the camera, let the batteries reach, and show a destroyed building burning | Ready |  |  | request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md |
 | [req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up](request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md) | Let the player set the bar a kaiju comes for, and fix what reading the spawn path turned up | Ready |  |  | request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md |
+| [req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands](request/req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands.md) | Land the bridge, open a run on a designed island, and stop the elevation where a bridge lands | Done |  |  | request/req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands.md |
 
 ## Backlog
 
@@ -273,6 +276,9 @@
 | [item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves](backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md) | Keep the scenario gate measuring six waves once the bar moves | Ready |  | 0% | backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md |
 | [item_160_let_a_kaiju_land_on_any_edge_of_the_map](backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md) | Let a kaiju land on any edge of the map | Ready |  | 0% | backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md |
 | [item_161_settle_the_two_loose_ends_in_the_assault_code](backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md) | Settle the two loose ends in the assault code | Ready |  | 0% | backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md |
+| [item_162_land_the_deck_on_the_ground_and_join_what_reaches_it](backlog/item_162_land_the_deck_on_the_ground_and_join_what_reaches_it.md) | Land the deck on the ground and join what reaches it | Done |  | 100% | backlog/item_162_land_the_deck_on_the_ground_and_join_what_reaches_it.md |
+| [item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing](backlog/item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing.md) | Carry the starter island as an asset the operator designs by playing | Done |  | 100% | backlog/item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing.md |
+| [item_164_stop_the_elevation_where_a_bridge_lands](backlog/item_164_stop_the_elevation_where_a_bridge_lands.md) | Stop the elevation where a bridge lands | Done |  | 100% | backlog/item_164_stop_the_elevation_where_a_bridge_lands.md |
 
 ## Tasks
 
@@ -323,6 +329,7 @@
 | [task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work](tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md) | Orchestrate the zoning, brush surface and wave aftermath work | In progress | codex | 35% | tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md |
 | [task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work](tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md) | Orchestrate the camera, battery reach and destruction effects work | Ready |  | 0% | tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md |
 | [task_045_orchestrate_the_residents_bar_and_spawn_path_work](tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md) | Orchestrate the residents bar and spawn path work | Ready |  | 0% | tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md |
+| [task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule](tasks/task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule.md) | Record the bridge landing, the starter island and the elevation rule | Done | claude | 100% | tasks/task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule.md |
 
 ## Runbooks
 

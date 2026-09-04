@@ -1,0 +1,501 @@
+{
+  "budgets": {
+    "max_docs": 40,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/architecture/adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches.md",
+    "logics/backlog/item_162_land_the_deck_on_the_ground_and_join_what_reaches_it.md",
+    "logics/backlog/item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing.md",
+    "logics/backlog/item_164_stop_the_elevation_where_a_bridge_lands.md",
+    "logics/context-packs/bridge-landing-and-starter-island.json",
+    "logics/product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md",
+    "logics/request/req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands.md",
+    "logics/tasks/task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule.md"
+  ],
+  "command": "logics-manager sync context-pack req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands item_162_land_the_deck_on_the_ground_and_join_what_reaches_it item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing item_164_stop_the_elevation_where_a_bridge_lands task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md",
+      "ref": "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed",
+      "sections": {
+        "Goals": [
+          "- The player is handed a road worth extending, arriving from somewhere.",
+          "- The layout is edited by playing the game, not by editing source.",
+          "- What a road becomes is decided by where it is, not by what it happens to touch.",
+          "- A joint that looks joined carries traffic."
+        ],
+        "Key product decisions": [
+          "- What a road becomes is decided by where it is, not by what it happens to touch. Elevation stops at the clearance, because at the clearance there is nothing left to pass under.",
+          "- An exported city dropped in as the starter island is read for its design alone. Session state is ignored structurally rather than cleaned, so no future export can smuggle a treasury or a field of rubble into a fresh run.",
+          "- Utilities stay in code and are derived from the layout's own geometry: they are a rule about playability, not part of a design, and a run must not open on a lesson it fails.",
+          "- One implementation decides elevation for both the commit and the preview. Two copies of a predicate that must agree is a preview that can lie."
+        ],
+        "Overview": [
+          "A deck that stopped in the air, and a rule that turned every road drawn from it into a bridge.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed|authored",
+          "flowchart TD",
+          "    Lift[Landward node lifted 14 m to clear the water] --> Air[Deck stops in mid air: 66.4 m over ground at 52.4 m]"
+        ],
+        "References": [
+          "- Product back-reference: `item_162_land_the_deck_on_the_ground_and_join_what_reaches_it`",
+          "- Task back-reference: `task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule`"
+        ]
+      },
+      "status": "Settled",
+      "title": "An island that hands the player a road, and a bridge that knows when it has landed"
+    },
+    {
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches"
+        ],
+        "item": [
+          "item_164_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/architecture/adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches.md",
+      "ref": "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches",
+      "sections": {
+        "Overview": [
+          "A drawn road inherits the elevation only when the point it starts from is still in the air. A",
+          "bridge stops being a bridge where it comes down.",
+          "```mermaid",
+          "flowchart TD",
+          "  Draw[A road is drawn from a snap] --> Free{Free ground}",
+          "  Free -->|yes| Surface[Surface road]"
+        ],
+        "References": [
+          "- Related request: `req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands`",
+          "- Related backlog: `item_164_stop_the_elevation_where_a_bridge_lands`",
+          "- Related task: `task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule`"
+        ]
+      },
+      "status": "Accepted",
+      "title": "Decide elevation by height above ground, not by what a node touches"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "bridge landfall, addNodeAt no dedupe, starter kit asset, design fields only, elevation cascade, touchesElevated aloft, ELEVATED_CLEARANCE, shared preview rule",
+        "skip when": "replay of a save that records an elevated segment, the kaiju's landing edges and camera which req_042 and req_043 carry, and moving the utilities into the asset.",
+        "summary": "Recorded after delivery: the offshore bridge's deck now lands on the ground and joins whatever reaches it, a run opens on a layout the operator designed by playing and dropped in as an asset, and a bridge stops being a bridge where it comes down.",
+        "use when": "changing the offshore bridge, the island a run opens on, or how drawing decides a road is elevated."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "adr": [
+          "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches"
+        ],
+        "item": [
+          "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it",
+          "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing",
+          "item_164_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ]
+      },
+      "path": "logics/request/req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands.md",
+      "ref": "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The deck lands at ground height, the span still reads as a cable bridge, and a road drawn off the landfall starts on the ground.",
+          "- The bridge and whatever reaches the landfall are one network, with no two nodes at the same position.",
+          "- A run opens on the operator's layout, carried as an asset the operator can replace by playing and exporting.",
+          "- An export dropped in as the kit cannot carry its session's money, hour, rubble or elapsed time into a fresh island.",
+          "- The island opens with power and water over the roads the kit drew, without coordinates written by hand.",
+          "- A road drawn from a landed deck is a surface road, and drawing on from it does not cascade."
+        ],
+        "Needs": [
+          "- The road off the bridge arrives on the ground, and the bridge is joined to what reaches it.",
+          "- A run opens on an island worth playing, designed by playing rather than written as coordinates.",
+          "- A bridge stops being a bridge where it comes down."
+        ]
+      },
+      "status": "Done",
+      "title": "Land the bridge, open a run on a designed island, and stop the elevation where a bridge lands"
+    },
+    {
+      "ai_context": {
+        "keywords": "landward node, ELEVATED_CLEARANCE span, conformToRoads skip, heights[0] forced, addNodeAt dedupe, one network",
+        "skip when": "the island end off the playable map, an approach ramp, and the gradient guard's blindness to a raised start node.",
+        "summary": "The deck stopped 14 m above solid ground with nothing grading up to it, and the bridge's own node was built on top of any road already at the landfall without joining it.",
+        "use when": "changing where the bridge meets the island, or any code that builds a node where one may already be."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/backlog/item_162_land_the_deck_on_the_ground_and_join_what_reaches_it.md",
+      "ref": "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The deck's landward node is at ground height and the deck arrives on the ground.",
+          "- The span still renders as a cable bridge and still satisfies the e2e bridge assertion.",
+          "- The bridge and whatever reaches the landfall form one network, with no coincident nodes."
+        ],
+        "Problem": [
+          "- The landward node was lifted 14 m to clear the water -- 66.44 m against ground at 52.44 m -- so the deck stopped in mid air, and `conformToRoads` skips elevated segments so nothing graded up to it.",
+          "- A road drawn off it began with a 14 m step: `buildSamples` forces `heights[0]` to the node while interior samples follow the terrain, and the gradient guard samples the terrain along the curve without ever comparing the start node to the ground beneath it.",
+          "- `graph.addNodeAt` never dedupes, so the bridge's own node landed on top of any road already reaching the landfall: two nodes at one metre, two networks of 13 and 2."
+        ]
+      },
+      "status": "Done",
+      "title": "Land the deck on the ground and join what reaches it"
+    },
+    {
+      "ai_context": {
+        "keywords": "starter-kit.json, loadCity path, design fields over emptyCity, Zones.snapTo, derived utilities, starterDistricts removed",
+        "skip when": "moving the utilities into the asset, a versioned export transform, and the Demo save's own asset.",
+        "summary": "The kit was 300 m of street and three rectangles. It is now public/starter-kit.json -- 13 nodes, 16 segments, 1039 zoned lots -- read for its design only, so an export's session state cannot reach a fresh island.",
+        "use when": "changing the island a run opens on, or bundling game content as an asset."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/backlog/item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing.md",
+      "ref": "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A fresh island and a new island both open on the asset's layout, zoning and camera.",
+          "- An export's money, hour, rubble and elapsed time cannot reach a fresh island.",
+          "- The island opens with power and water over the roads the kit drew.",
+          "- The kit's roads sit flush on graded ground."
+        ],
+        "Problem": [
+          "- The kit was 300 m of street, three district rectangles and six utilities at (210, -1350). A layout worth playing needs a roundabout, avenues, pedestrian paths and about a thousand lots zoned block by block, which is not worth expressing as coordinates.",
+          "- Zoning is keyed by lot, and a replay does not cut identical lots, so the design has to survive `Zones.snapTo` rather than assume it.",
+          "- An exported city carries its session: money, hour, elapsed time, rubble, building state and a wave clock, none of which belong to a fresh island."
+        ]
+      },
+      "status": "Done",
+      "title": "Carry the starter island as an asset the operator designs by playing"
+    },
+    {
+      "ai_context": {
+        "keywords": "touchesElevated, aloft test, ELEVATED_CLEARANCE threshold, cascade, conformToRoads skip, crossing split skip, duplicated predicate",
+        "skip when": "replay of an elevated save, the 60 m bridge-end magnet, and extending a bridge that is genuinely aloft.",
+        "summary": "Elevation propagated from any node carrying an elevated arm, so a road off the bridge's landfall became a bridge and cascaded -- 16 of 16 roads in the operator's city, floating 2 m over ungraded ground with no crossing splits.",
+        "use when": "changing what makes a drawn road elevated, or reconciling the commit with the preview."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "adr": [
+          "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches"
+        ],
+        "item": [
+          "item_164_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/backlog/item_164_stop_the_elevation_where_a_bridge_lands.md",
+      "ref": "item_164_stop_the_elevation_where_a_bridge_lands",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A road drawn from a landed deck is a surface road, and drawing on from it does not cascade.",
+          "- A road drawn from a deck still in the air is still elevated.",
+          "- One implementation decides it, used by both the commit and the preview.",
+          "- Removing the rule fails a test."
+        ],
+        "Problem": [
+          "- `commitSegment` set `elevated` from `touchesElevated`, true whenever any segment at the snapped node was elevated. Drawing from the bridge's landfall made the road a bridge, and its far node then propagated to the next -- measured as all 16 roads of a city elevated, with four nodes at the +2 m `ELEVATED_CLEARANCE` signature.",
+          "- Nothing said so. An elevated segment is skipped by `conformToRoads`, so the town floated over ungraded ground, and by the crossing split, so crossing roads would never have formed a junction.",
+          "- `touchesElevated` existed verbatim in both src/sim/rules.ts and src/app/drawController.ts -- the commit and the preview -- so they could disagree about what a road would become."
+        ]
+      },
+      "status": "Done",
+      "title": "Stop the elevation where a bridge lands"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md",
+      "ref": "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Settled",
+      "title": "An island that hands the player a road, and a bridge that knows when it has landed"
+    },
+    {
+      "ai_context": {},
+      "kind": "architecture",
+      "linked_refs": {
+        "adr": [
+          "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches"
+        ],
+        "item": [
+          "item_164_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/architecture/adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches.md",
+      "ref": "adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Accepted",
+      "title": "Decide elevation by height above ground, not by what a node touches"
+    },
+    {
+      "ai_context": {
+        "keywords": "bridge landing, starter island asset, elevation rule, shared predicate, npm run ci, live landfall check",
+        "skip when": "treating this as open work; it records delivery rather than planning it.",
+        "summary": "Three slices, all delivered in 23fbb1a and 1b895d8: land the deck and join the landfall, carry the island as an asset read for its design only, and stop the elevation at a landed deck with a shared rule and tests that fail without it.",
+        "use when": "reading what shipped in the bridge and starter-island work and how it was verified."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it",
+          "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing",
+          "item_164_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "prod": [
+          "prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed"
+        ],
+        "req": [
+          "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands"
+        ],
+        "task": [
+          "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+        ]
+      },
+      "path": "logics/tasks/task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule.md",
+      "ref": "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)",
+          "- rtk npm run ci passed on 2026-09-04: version check OK, biome clean over 130 files, 329 vitest tests, 16 architecture tests, scenarios 31 of 31 waves held inside the 13-85s / 4-21 salvo band with 5 of 6 runs reaching wave 6 (unchanged from before this work), build and typecheck, logics lint/audit/i18n green",
+          "- live browser checks on 2026-09-04: bridge assertion PASS (6 pylons, 6 piers, bend 381), one network of 14 nodes with 0 coincident positions, fresh island 17 segments / 1039 zones / 10 utilities / worst road clearance 0.77 m, roads drawn off the landfall unelevated with 1 elevated segment left",
+          "- Finish workflow executed on 2026-09-04.",
+          "- Linked backlog/request close verification passed."
+        ]
+      },
+      "status": "Done",
+      "title": "Record the bridge landing, the starter island and the elevation rule"
+    }
+  ],
+  "estimates": {
+    "char_count": 17126,
+    "companion_doc_count": 2,
+    "doc_count": 7
+  },
+  "generated_at": "2026-09-04T19:23:37Z",
+  "handoff": {
+    "companion_doc_count": 2,
+    "enabled": true,
+    "source_refs": [
+      "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands",
+      "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it",
+      "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing",
+      "item_164_stop_the_elevation_where_a_bridge_lands",
+      "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands,item_162_land_the_deck_on_the_ground_and_join_what_reaches_it,item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing,item_164_stop_the_elevation_where_a_bridge_lands,task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule",
+  "refs": [
+    "req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands",
+    "item_162_land_the_deck_on_the_ground_and_join_what_reaches_it",
+    "item_163_carry_the_starter_island_as_an_asset_the_operator_designs_by_playing",
+    "item_164_stop_the_elevation_where_a_bridge_lands",
+    "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.4.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)",
+        "- rtk npm run ci passed on 2026-09-04: version check OK, biome clean over 130 files, 329 vitest tests, 16 architecture tests, scenarios 31 of 31 waves held inside the 13-85s / 4-21 salvo band with 5 of 6 runs reaching wave 6 (unchanged from before this work), build and typecheck, logics lint/audit/i18n green",
+        "- live browser checks on 2026-09-04: bridge assertion PASS (6 pylons, 6 piers, bend 381), one network of 14 nodes with 0 coincident positions, fresh island 17 segments / 1039 zones / 10 utilities / worst road clearance 0.77 m, roads drawn off the landfall unelevated with 1 elevated segment left",
+        "- Finish workflow executed on 2026-09-04.",
+        "- Linked backlog/request close verification passed."
+      ],
+      "path": "logics/tasks/task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule.md",
+      "ref": "task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule"
+    }
+  ]
+}
