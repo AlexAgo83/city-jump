@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 74%
+> Progress: 76%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -74,3 +74,4 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting speedForRoom and accelerateToward into src/render/driving.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting landingDistance, segmentLimit, and roomAhead into src/render/driving.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting stopTarget and atSegmentLimit into src/render/driving.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting uTurnPath and trimTransferFromMover into src/render/driving.ts.

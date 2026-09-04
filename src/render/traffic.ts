@@ -11,7 +11,6 @@ import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/road
 import {
   armPort,
   junctionTurnPath,
-  sampleQuadratic,
   approachAngle,
   laneChangeSpan,
   pathCumulative,
@@ -32,7 +31,7 @@ import {
   type WalkLoop,
   type Ring,
 } from "../sim/transfers";
-import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
+import { normalizeXZ, perpXZ, type Vec3 } from "../sim/vec";
 import { terrainHeight } from "../sim/terrain";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 import { streetlightsOnAt } from "./streetlights";
@@ -70,6 +69,8 @@ import {
   speedForRoom,
   stopTarget,
   trafficLaneOffset,
+  trimTransferFromMover,
+  uTurnPath,
 } from "./driving";
 import type { TerrainBounds } from "../sim/heightmap";
 
@@ -371,7 +372,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     // curve, bowed past the end of the road rather than towards a node's centre.
     const points =
       !from || !to || next === mover.segment.id
-        ? uTurnPath(mover, landing.offset)
+        ? uTurnPath(graph, mover, landing.offset)
         : roundabout
           ? mover.walk
             ? walkRingTransfer(nodeId, from, to, mover.lane.offset, landing.offset)
@@ -395,7 +396,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     leaveQueue(mover);
     // Both from the same array: the cumulative distances index into these very points, and a
     // cumulative built from a different path reads off the end of it.
-    const drive = fromWhereItIs(mover, points);
+    const drive = trimTransferFromMover(graph, mover, offsetOf(mover), points);
     mover.ride = {
       points: drive,
       cumulative: pathCumulative(drive),
@@ -409,45 +410,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       travelled: 0,
     };
     mover.plan = entry.plan;
-  }
-
-  /**
-   * A transfer path is drawn from the arm's own edge of the junction. A mover does not always
-   * stop exactly there: `limitOf` holds it back from a trim deeper than half the road, so on a
-   * short road between two roundabouts -- where the trim is a whole ring radius -- it ends the
-   * road several metres past that edge. Starting the path at the edge anyway threw the car
-   * backwards onto it, which is the jump seen entering a roundabout.
-   *
-   * So the path starts where the mover actually is, and whatever the path had behind that point
-   * is dropped. On an ordinary road nothing is behind it and the path is untouched.
-   */
-  function fromWhereItIs(mover: Mover, points: Vec3[]): Vec3[] {
-    const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
-    const normal = perpXZ(normalizeXZ(tangent));
-    const offset = offsetOf(mover);
-    const here = v3(position.x + normal.x * offset, position.y, position.z + normal.z * offset);
-    const forward = { x: tangent.x * mover.direction, z: tangent.z * mover.direction };
-    const behind = (point: Vec3): boolean => (point.x - here.x) * forward.x + (point.z - here.z) * forward.z < 0;
-    const ahead = points.filter((point, i) => i === points.length - 1 || !behind(point));
-    const trimmed = [here, ...ahead];
-    // A path with no length is a divide by zero waiting to happen further down: if dropping the
-    // points behind the mover left nothing to drive along, keep the path as drawn.
-    return pathCumulative(trimmed).at(-1)! > 0.5 ? trimmed : points;
-  }
-
-  /** Turning round where the road simply stops: out on one lane, back on the other. */
-  function uTurnPath(mover: Mover, exitOffset: number): Vec3[] {
-    const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
-    const n = perpXZ(normalizeXZ(tangent));
-    const port = (offset: number): Vec3 =>
-      v3(position.x + n.x * offset, position.y, position.z + n.z * offset);
-    const reach = Math.abs(mover.lane.offset - exitOffset) + 4;
-    const nose = v3(
-      position.x + tangent.x * mover.direction * reach,
-      position.y,
-      position.z + tangent.z * mover.direction * reach,
-    );
-    return sampleQuadratic(port(mover.lane.offset), nose, port(exitOffset), 12);
   }
 
   /**

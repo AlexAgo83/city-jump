@@ -1,12 +1,12 @@
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
 
-import type { NodeId, Segment, SegmentId } from "../sim/graph";
+import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import type { TerrainBounds } from "../sim/heightmap";
 import type { LaneCentre } from "../sim/roadTypes";
 import { type SignalCycle, signalAt, type SignalState } from "../sim/signals";
-import { CROSSING_DEPTH, laneChangeOffset } from "../sim/transfers";
-import type { Vec3 } from "../sim/vec";
+import { CROSSING_DEPTH, laneChangeOffset, pathCumulative, sampleQuadratic } from "../sim/transfers";
+import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 
 /** Bumper to bumper: how much road a car keeps between itself and the one in front. */
 export const CAR_GAP = 8.5;
@@ -139,6 +139,30 @@ export function stopTarget(line: number, aheadDistance: number | undefined, dire
 
 export function atSegmentLimit(distance: number, limit: number, direction: 1 | -1): boolean {
   return direction === 1 ? distance >= limit : distance <= limit;
+}
+
+export function trimTransferFromMover(graph: RoadGraph, mover: Mover, offset: number, points: Vec3[]): Vec3[] {
+  const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
+  const normal = perpXZ(normalizeXZ(tangent));
+  const here = v3(position.x + normal.x * offset, position.y, position.z + normal.z * offset);
+  const forward = { x: tangent.x * mover.direction, z: tangent.z * mover.direction };
+  const behind = (point: Vec3): boolean => (point.x - here.x) * forward.x + (point.z - here.z) * forward.z < 0;
+  const ahead = points.filter((point, i) => i === points.length - 1 || !behind(point));
+  const trimmed = [here, ...ahead];
+  return pathCumulative(trimmed).at(-1)! > 0.5 ? trimmed : points;
+}
+
+export function uTurnPath(graph: RoadGraph, mover: Mover, exitOffset: number): Vec3[] {
+  const { position, tangent } = graph.pointAt(mover.segment.id, mover.distance);
+  const n = perpXZ(normalizeXZ(tangent));
+  const port = (offset: number): Vec3 => v3(position.x + n.x * offset, position.y, position.z + n.z * offset);
+  const reach = Math.abs(mover.lane.offset - exitOffset) + 4;
+  const nose = v3(
+    position.x + tangent.x * mover.direction * reach,
+    position.y,
+    position.z + tangent.z * mover.direction * reach,
+  );
+  return sampleQuadratic(port(mover.lane.offset), nose, port(exitOffset), 12);
 }
 
 export function circularQueueRooms<T>(

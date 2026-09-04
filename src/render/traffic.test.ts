@@ -24,6 +24,8 @@ import {
   speedForRoom,
   stopTarget,
   trafficLaneOffset,
+  trimTransferFromMover,
+  uTurnPath,
 } from "./driving";
 import { createTrafficRenderer } from "./traffic";
 
@@ -110,6 +112,25 @@ describe("traffic queues", () => {
     expect(atSegmentLimit(80, 80, 1)).toBe(true);
     expect(atSegmentLimit(21, 20, -1)).toBe(false);
     expect(atSegmentLimit(20, 20, -1)).toBe(true);
+  });
+
+  it("builds transfer paths from the current mover position", () => {
+    const graph = new RoadGraph();
+    const a = graph.addNode(0, 0);
+    const b = graph.addNode(100, 0);
+    const id = graph.addSegment(a, b, v3(50, 0, 0), "street");
+    const segment = graph.segment(id);
+    const lane = { offset: 2, direction: 1 as const };
+    const mover = { segment, direction: 1 as const, distance: 40, lane } as Parameters<typeof uTurnPath>[1];
+
+    const trimmed = trimTransferFromMover(graph, mover, 2, [v3(10, 0, 2), v3(60, 0, 2), v3(80, 0, 2)]);
+    expect(trimmed[0]).toEqual(v3(40, 0, 2));
+    expect(trimmed.map((point) => point.x)).toEqual([40, 60, 80]);
+
+    const turn = uTurnPath(graph, mover, -2);
+    expect(turn.length).toBeGreaterThan(2);
+    expect(turn[0]).toEqual(v3(40, 0, 2));
+    expect(turn.at(-1)).toEqual(v3(40, 0, -2));
   });
 
   it("removes emptied lane queues", () => {
