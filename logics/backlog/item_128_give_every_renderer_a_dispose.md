@@ -2,13 +2,13 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 45%
+> Understanding: 94%
+> Confidence: 88%
+> Progress: 55%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 15:11:26
 
 # AI Context
 - Summary: Latent in a single page, but it is what makes the app untestable in-process and what will leak a whole scene at the first reset or Vite HMR. glassReflectionTexture is bound to the first scene for ever.
@@ -53,3 +53,9 @@
 # Priority
 - Priority: Medium
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Notes
+- 2026-09-04 dispose slice 1: createZoneRenderer, createUtilityRenderer, createRubbleRenderer, and createMissileRenderer now expose dispose() and release their owned meshes/materials; src/render/dispose.test.ts covers the create/rebuild/dispose scene cleanup for these simple renderers.
+
+# Validation
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/dispose.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after adding dispose() to the simple renderers.

@@ -45,6 +45,16 @@ export function createMissileRenderer(scene: Scene) {
         item.trail.setEnabled(!missile.impact);
       });
     },
+    dispose(): void {
+      for (const item of pool) {
+        item.body.dispose();
+        item.trail.material?.dispose();
+        item.trail.dispose();
+      }
+      pool.length = 0;
+      missileMaterial.dispose();
+      impactMaterial.dispose();
+    },
   };
 
   function createMissile(index: number): { body: Mesh; trail: LinesMesh } {

@@ -24,5 +24,9 @@ export function createRubbleRenderer(scene: Scene, heightAt: (x: number, z: numb
       mesh.thinInstanceCount = rubble.length;
       mesh.setEnabled(rubble.length > 0);
     },
+    dispose(): void {
+      mesh.dispose();
+      material.dispose();
+    },
   };
 }

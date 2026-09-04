@@ -60,6 +60,13 @@ export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities:
       visible = next;
       for (const line of lines) line.setEnabled(next);
     },
+    dispose(): void {
+      for (const line of lines) {
+        line.material?.dispose();
+        line.dispose();
+      }
+      lines = [];
+    },
   };
 }
 

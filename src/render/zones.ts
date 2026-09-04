@@ -86,6 +86,12 @@ export function createZoneRenderer(scene: Scene) {
       visible = next;
       for (const mesh of meshes) mesh.setEnabled(next);
     },
+    dispose(): void {
+      for (const mesh of meshes) mesh.dispose();
+      meshes = [];
+      for (const material of materials.values()) material.dispose();
+      materials.clear();
+    },
   };
 
   function materialFor(kind: ZoneKind, alpha: number): StandardMaterial {

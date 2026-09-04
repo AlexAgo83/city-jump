@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-04 15:01:54
+> Indicators reviewed: 2026-09-04 15:11:26
 > Owner: Codex
 
 # AI Context
@@ -86,6 +86,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, and rtk npm run test:e2e passed after moving road transaction effects into app/drawController.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk npm run test:e2e, and rtk npm run ci passed after item_127 controller slice 3.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run test:e2e, and rtk npm run ci passed after item_127 closeout.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/dispose.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after item_128 dispose slice 1.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -116,6 +117,7 @@
 - 2026-09-04 item_127 controller slice 2: road transaction effects moved out of render/drawTool.ts into app/drawController.ts while keeping debug API setup graph-only.
 - 2026-09-04 item_127 controller slice 3: road snap resolution, preview validation/sampling, junction lookup, and road/roundabout bulldoze targeting moved from render/drawTool.ts into app/drawController.ts.
 - 2026-09-04 item_127 closeout: the utility road-preview hit lookup moved behind app/drawController.ts, completing the road drawing controller move without changing pointer behavior.
+- 2026-09-04 item_128 dispose slice 1: createZoneRenderer, createUtilityRenderer, createRubbleRenderer, and createMissileRenderer now expose dispose() and release their owned scene resources.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`
