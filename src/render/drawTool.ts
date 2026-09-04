@@ -28,7 +28,6 @@ const ACCEPTED = new Color3(0.45, 0.85, 0.5);
 const REFUSED = new Color3(0.95, 0.35, 0.25);
 const SELECTED = new Color3(0.4, 0.7, 0.95);
 const PREVIEW_LIFT = 0.35; // keeps the preview off the ground it is drawn over
-const TERRAIN_DIRTY_PAD = 140;
 
 /**
  * Three clicks: start, control point, end. No drag state to manage, and the bend is
@@ -107,7 +106,7 @@ const SPRAY_RADIUS = 45;
  * even if that emit is ever lost.
  */
 const ZONE_RADIUS = 32;
-/** Trees attempted per press, and again each time the brush has moved half its own width. */
+/** Trees attempted per click. */
 const SPRAY_PER_BURST = 8;
 const SPRAY_RING_POINTS = 56;
 
@@ -184,7 +183,7 @@ export function createDrawTool(
   graph: RoadGraph,
   ground: Mesh,
   heightAt: Terrain["heightAt"],
-  onCommitted: (dirty?: TerrainBounds) => void,
+  _onCommitted: (dirty?: TerrainBounds) => void,
   onRefused: (reason: string) => void,
   nature: NatureTools,
   zones: ZoneTools,
@@ -209,7 +208,6 @@ export function createDrawTool(
   let zoneRadius = ZONE_RADIUS;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
-  let lastSprayed: { x: number; z: number } | null = null;
   let pressedAt: { x: number; y: number } | null = null;
   const nodeHighlight = MeshBuilder.CreateLines(
     "node-highlight",
@@ -378,9 +376,6 @@ export function createDrawTool(
     sprayRing.setEnabled(true);
   }
 
-  /** One burst: scattered evenly over the disc, so the middle is not denser than the edge. */
-  let gestureChanged = false;
-
   function sprayBurst(centre: { x: number; z: number }): boolean {
     let changed = false;
     for (let i = 0; i < SPRAY_PER_BURST; i++) {
@@ -414,26 +409,14 @@ export function createDrawTool(
     return { x: pick.pickedPoint.x, z: pick.pickedPoint.z };
   }
 
-  function onSprayMove(painting: boolean): void {
+  function onSprayMove(): void {
     const at = groundPoint();
     moveSprayRing(at, sprayRadius);
-    if (!at || !painting) return;
-    // Wait until the brush has moved half its width before laying down another burst.
-    if (!brushMovedFarEnough(lastSprayed, at, sprayRadius)) return;
-    if (!lastSprayed) history?.beforeChange();
-    gestureChanged = sprayBurst(at) || gestureChanged;
-    lastSprayed = at;
   }
 
-  function onZoneMove(painting: boolean): void {
+  function onZoneMove(): void {
     const at = groundPoint();
     moveSprayRing(at, zoneRadius);
-    if (!at || !painting) return;
-    if (!lastSprayed) history?.beforeChange();
-    zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
-    lastSprayed = at;
-    gestureChanged = true;
-    onCommitted(expandBounds({ minX: at.x - zoneRadius, maxX: at.x + zoneRadius, minZ: at.z - zoneRadius, maxZ: at.z + zoneRadius }, TERRAIN_DIRTY_PAD));
   }
 
   function onMove(): void {
@@ -549,7 +532,6 @@ export function createDrawTool(
     if (mode === "spray") {
       history?.beforeChange();
       history?.afterChange(sprayBurst(at));
-      lastSprayed = at;
       return;
     }
     if (mode === "zone") {
@@ -607,7 +589,6 @@ export function createDrawTool(
   /** Drawing state only -- never the selection, which an option change has no business erasing. */
   function resetDrawing(): void {
     stage = { phase: "idle" };
-    lastSprayed = null;
     pressedAt = null;
     targetHighlight.setEnabled(false);
     sprayRing.setEnabled(false);
@@ -660,15 +641,13 @@ export function createDrawTool(
 
   const pointerObserver = scene.onPointerObservable.add((info) => {
     if (info.type === PointerEventTypes.POINTERMOVE) {
-      // The brush follows the pointer whatever the button is doing; it only paints while held.
-      if (mode === "spray") return onSprayMove(leftPointerDown);
-      if (mode === "zone") return onZoneMove(leftPointerDown);
+      if (mode === "spray") return onSprayMove();
+      if (mode === "zone") return onZoneMove();
       return onMove();
     }
     if (info.type === PointerEventTypes.POINTERDOWN) {
       leftPointerDown = (info.event as PointerEvent).button === 0;
       pressedAt = { x: scene.pointerX, y: scene.pointerY };
-      lastSprayed = null;
       return;
     }
     if (info.type !== PointerEventTypes.POINTERUP) return;
@@ -678,12 +657,7 @@ export function createDrawTool(
       ? Math.hypot(scene.pointerX - pressedAt.x, scene.pointerY - pressedAt.y)
       : 0;
     pressedAt = null;
-    // A drag that already sprayed must not also fire a burst on release.
-    const sprayed = (mode === "spray" || mode === "zone") && lastSprayed !== null;
-    if (sprayed) history?.afterChange(gestureChanged);
-    gestureChanged = false;
-    lastSprayed = null;
-    if (isLeftClick && !sprayed && travelled <= CLICK_SLOP) onClick();
+    if (isLeftClick && travelled <= CLICK_SLOP) onClick();
   });
 
   const keydown = (e: KeyboardEvent) => {
@@ -695,17 +669,6 @@ export function createDrawTool(
   const canvas = scene.getEngine().getRenderingCanvas();
   const contextmenu = (e: Event) => e.preventDefault();
   canvas?.addEventListener("contextmenu", contextmenu);
-
-  /**
-   * Spray paints with a held left drag, which is also how the camera orbits. Taking button 0 off
-   * the camera for the duration means a spray stroke does not swing the view out from under it.
-   * Middle and right drags still orbit, and the wheel still zooms.
-   * ponytail: drop one button from the existing input, rather than detaching the camera.
-   */
-  function setCameraDrag(allowLeft: boolean): void {
-    const pointers = scene.activeCamera?.inputs?.attached?.pointers as { buttons?: number[] } | undefined;
-    if (pointers) pointers.buttons = allowLeft ? [0, 1, 2] : [1, 2];
-  }
 
   void roadType(typeId); // fail here rather than at the first commit
   void Vector3;
@@ -727,7 +690,6 @@ export function createDrawTool(
     },
     setMode(next) {
       mode = next;
-      setCameraDrag(next !== "spray" && next !== "zone");
       cancel();
     },
     setGridSnap(enabled) {
@@ -764,12 +726,4 @@ export function createDrawTool(
       resetDrawing();
     },
   };
-}
-
-function expandBounds(bounds: TerrainBounds, by: number): TerrainBounds {
-  return { minX: bounds.minX - by, maxX: bounds.maxX + by, minZ: bounds.minZ - by, maxZ: bounds.maxZ + by };
-}
-
-export function brushMovedFarEnough(last: { x: number; z: number } | null, at: { x: number; z: number }, radius: number): boolean {
-  return !last || Math.hypot(at.x - last.x, at.z - last.z) >= radius / 2;
 }

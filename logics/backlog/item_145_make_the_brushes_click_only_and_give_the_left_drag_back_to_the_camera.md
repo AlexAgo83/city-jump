@@ -1,10 +1,10 @@
 ## item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera - Make the brushes click-only and give the left drag back to the camera
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -52,3 +52,6 @@
 # Priority
 - Priority: High
 - Rationale: The player loses left-drag camera control for as long as a brush is held, on every zoning or planting action.
+
+# Notes
+- 2026-09-04: Removed drag-painting from the spray and zone brushes and deleted the camera button override. Brush preview rings still follow pointer movement, but city changes only happen on a click within `CLICK_SLOP`; each successful brush click is one undo entry. `scripts/interact.mjs` now asserts that zone and spray left-drags orbit the camera without painting, and that spray still paints on click.

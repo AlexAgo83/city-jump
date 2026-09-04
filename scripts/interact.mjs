@@ -1088,6 +1088,21 @@ const paintedZoneGroundPoint = await page.evaluate(() => {
   return pick?.pickedPoint ? { x: pick.pickedPoint.x, z: pick.pickedPoint.z } : null;
 });
 if (!paintedZoneGroundPoint) throw new Error("zone paint point did not hit the ground");
+const cameraBeforeZoneDrag = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+await page.mouse.move(500, 350);
+await page.mouse.down();
+await page.mouse.move(620, 350);
+await nextFrame();
+await page.mouse.up();
+await nextFrame();
+const cameraAfterZoneDrag = await page.evaluate(() => {
+  const camera = window.cityjump._scene.activeCamera;
+  return [camera.alpha, camera.beta];
+});
+check("a left drag in zone mode turns the camera without painting", (Math.abs(cameraBeforeZoneDrag[0] - cameraAfterZoneDrag[0]) > 0.02 || Math.abs(cameraBeforeZoneDrag[1] - cameraAfterZoneDrag[1]) > 0.02) && (await stats()).zones === beforePausedPaint.zones);
 await click(500, 350);
 // A zone moves no tree. The stroke used to commit through the ordinary dirty rebuild, which tears
 // down and re-scatters the trees under the brush -- they blinked at every stroke.
@@ -1966,6 +1981,7 @@ check(
 );
 await page.locator("#tree-species").selectOption("fir");
 await nextFrame();
+const beforeSprayDrag = await treeCount();
 
 await page.locator('input[name="plant-mode"][value="spray"]').check();
 check("spray mode exposes a brush size slider", await page.locator("#spray-radius").isVisible());
@@ -2004,10 +2020,10 @@ const afterStroke = await page.evaluate(() => {
   const camera = window.cityjump._scene.activeCamera;
   return [camera.alpha, camera.beta];
 });
-// A held left drag normally orbits; spray takes that button so the view stays put while painting.
-check("spraying does not swing the camera", beforeStroke[0] === afterStroke[0] && beforeStroke[1] === afterStroke[1]);
+check("a left drag in spray mode turns the camera without painting", (Math.abs(beforeStroke[0] - afterStroke[0]) > 0.02 || Math.abs(beforeStroke[1] - afterStroke[1]) > 0.02) && (await treeCount()) === beforeSprayDrag);
+await click(500, 430);
 const sprayed = await treeCount();
-check("a spray stroke scatters trees across the brush", sprayed > oneMore + 10, `${oneMore} -> ${sprayed}`);
+check("a spray click scatters trees across the brush", sprayed > beforeSprayDrag, `${beforeSprayDrag} -> ${sprayed}`);
 
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
@@ -2015,6 +2031,8 @@ check(
   "the brush ring is hidden outside spray mode",
   !(await page.evaluate(() => window.cityjump._scene.getMeshByName("spray-ring")?.isEnabled())),
 );
+await page.evaluate(() => window.cityjump.camera(600, Math.PI / 4, -Math.PI / 2));
+await nextFrame();
 await click(500, 350);
 const cleared = await treeCount();
 check("the bulldozer clears a tree where there is no road", cleared === sprayed - 1, `${sprayed} -> ${cleared}`);
