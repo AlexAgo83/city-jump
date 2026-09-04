@@ -30,13 +30,14 @@ import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
-import { buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { missingUtility, suppliedDiffusers, UTILITY_CATALOG, Utilities } from "../sim/utilities";
+import { buildableCells, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
+import { RULES } from "../sim/rules";
 import { distXZ, v3 } from "../sim/vec";
 import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
@@ -50,8 +51,8 @@ import { bindRunPanel, type RunPanel } from "../ui/runPanel";
 import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, settleWaveOutcome, type PendingMissile, type WaveVerdict } from "./waveLoop";
 import { createDrawController } from "./drawController";
 
-/** Where a run opens: the far side of the island from the bridge. */
-const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
+/** The island a run opens on. Exported from the game, so the layout is edited by playing it. */
+const STARTER_KIT_URL = "/starter-kit.json";
 
 type CameraMode = "free" | "orbit" | "follow";
 type TimeRate = 0 | 1 | 2 | 4;
@@ -119,12 +120,33 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     trees.setSunHour(hour);
     postFx.setNight(streetlightsOnAt(hour));
   };
+  /**
+   * The landward node sits on the ground, not above it.
+   *
+   * It used to be lifted fourteen metres to clear the water, which left the deck stopping in mid
+   * air over solid land: `conformToRoads` skips an elevated segment, so no ground ever rose to
+   * meet it. Worse for the player, a road drawn off that node started at the deck's height while
+   * every interior sample followed the terrain -- `buildSamples` forces `heights[0]` to the node --
+   * so it began with a fourteen-metre step rather than a slope, and `validateSegment` could not
+   * refuse it because the gradient guard samples the terrain along the curve and never compares
+   * the start node against the ground beneath it.
+   *
+   * The span still clears the sea without the lift: `buildSamples` holds an elevated segment's
+   * interior samples at `heightAt + ELEVATED_CLEARANCE`, and the deck stays far enough above the
+   * water for `isElevatedBridge` to keep giving it piers, pylons and cables.
+   */
   const addOffshoreBridge = (): void => {
     for (const segment of graph.allSegments()) {
       if (segment.type === "highway_2lane" && Math.max(graph.node(segment.a).pos.z, graph.node(segment.b).pos.z) > GROUND_SIZE / 2) graph.removeSegment(segment.id);
     }
     const islandZ = OFFSHORE_ISLAND_Z - OFFSHORE_ISLAND_RADIUS * 0.72;
-    const main = graph.addNodeAt(v3(-360, heightmap.baseHeightAt(-360, 1500) + 14, 1500));
+    // Whatever already reaches the landfall keeps the junction. `addNodeAt` never dedupes, so
+    // building one unconditionally left the deck's node sitting on top of the road's node without
+    // touching it -- one network for the bridge, another for the city, and no way across a joint
+    // that looked joined. Measured on a city with a road drawn up to here: two nodes at the same
+    // metre, components of 13 and 2.
+    const main = graph.nearestNode(-360, 1500, RULES.nodeSnapRadius)?.id
+      ?? graph.addNodeAt(v3(-360, heightmap.baseHeightAt(-360, 1500), 1500));
     const island = graph.addNodeAt(v3(620, Math.max(22, offshoreIslandHeight(620, islandZ) + 14), islandZ));
     graph.addElevatedSegment(main, island, v3(980, 82, (1500 + islandZ) / 2), "highway_2lane");
   };
@@ -160,10 +182,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
-    if (starterDistricts.length) {
-      window.clearTimeout(starterDistrictTimer);
-      starterDistrictTimer = window.setTimeout(layStarterDistricts, 0);
-    }
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -254,7 +272,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   let waveVerdictUntil = 0;
   let waveCalledEarly = false;
   let buildingRebuildTimer = 0;
-  let starterDistrictTimer = 0;
   let lastTerms: CityTerms | undefined;
   let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
@@ -494,47 +511,64 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     waveCalledEarly = false;
     clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
   };
-  /** Districts waiting for the lots they belong to, laid out on the next rebuild. */
-  let starterDistricts: [kind: ZoneKind, fromX: number, toX: number][] = [];
-  const layStarterDistricts = (): void => {
-    if (!starterDistricts.length || !currentBuildableCells.length) return;
-    const z = STARTER_KIT_AT.z;
-    for (const [kind, fromX, toX] of starterDistricts) {
-      zones.paintLots(lotsInRect(currentBuildableCells, fromX, z - 40, toX, z + 40), kind);
+  /**
+   * The island a run opens on, as data rather than as code.
+   *
+   * It used to be built here: one street, three district rectangles and six utilities. A layout
+   * worth playing needs a roundabout, avenues, pedestrian paths and a thousand lots zoned block by
+   * block, and none of that is worth expressing as coordinates in a source file. So the operator
+   * designs it by playing, exports the city, and drops it in as `public/starter-kit.json`.
+   *
+   * Only the design is read. Money, resources, the run, the clock, rubble and building state all
+   * come from `emptyCity()`, so an export taken mid-session cannot smuggle its treasury or the
+   * gravel a kaiju left into a fresh island -- the fields simply are not looked at.
+   */
+  const readStarterKit = async (): Promise<CitySave | null> => {
+    try {
+      const response = await fetch(STARTER_KIT_URL, { cache: "no-cache" });
+      if (!response.ok) return null;
+      return parseCity(await response.text());
+    } catch {
+      return null;
     }
-    starterDistricts = [];
-    rebuild();
   };
-  const addStarterKit = (): void => {
-    // The bridge is the only road a fresh island carries, so anything else means this is a city
-    // that already exists. Checking the type is exact; the old check was a z threshold that the
-    // kit's own road had to stay behind, which is how it ended up marooned in the middle.
-    if (graph.allSegments().some((segment) => segment.type !== "highway_2lane")) return;
-    // The far side of the island from the bridge, so the kaiju -- which lands on the edge furthest
-    // from the bridge -- arrives near the city rather than a summit away from it.
-    const z = STARTER_KIT_AT.z;
-    const landing = graph.addNodeAt(v3(STARTER_KIT_AT.x, heightmap.baseHeightAt(STARTER_KIT_AT.x, z), z));
-    const x = STARTER_KIT_AT.x;
-    // One segment, not two meeting in the middle: a junction trims the frontage either side of it,
-    // and splitting a 300 m street in half cost sixteen building lots and left a visible gap.
-    graph.addSegment(landing, graph.addNodeAt(v3(x + 300, heightmap.baseHeightAt(x + 300, z), z)), v3(x + 150, 0, z), "street");
-    // Three blocks along the street, as rectangles. The brush is a circle -- which is right for a
-    // brush -- but three circles on a rectangular frontage leave round edges, holes in the middle
-    // and gaps between them. A district laid out at the start should look laid out.
-    // Laid out after the lots exist: a zone belongs to a lot, and the lots come from the road that
-    // was just drawn, so the districts are painted on the far side of the first rebuild.
-    starterDistricts = [
-      ["agricultural", x, x + 100],
-      ["residential", x + 100, x + 200],
-      ["commercial", x + 200, x + 300],
-    ];
-    // Power and water, because a building without them does not work and a city where nothing
-    // works produces no food and loses its people. Utilities are a system to extend, not a first
-    // lesson to fail: the run opens with enough to keep the starter lots running.
+  /** The design fields only, over a fresh island. A missing or unreadable kit leaves bare ground. */
+  const starterCity = (kit: CitySave | null): CitySave =>
+    kit
+      ? { ...emptyCity(), terrain: kit.terrain, nodes: kit.nodes, segments: kit.segments, zones: kit.zones, planted: kit.planted, ...(kit.camera ? { camera: kit.camera } : {}) }
+      : emptyCity();
+  /**
+   * Power and water for the lots the kit opens with, spread over the roads it actually drew.
+   *
+   * Kept in code rather than in the asset because it is a rule about playability, not part of the
+   * layout: a building without power does not work, a city where nothing works grows no food, and
+   * utilities are a system to extend rather than a first lesson to fail. Derived from the kit's own
+   * geometry so a redesigned layout is still served without anyone editing coordinates.
+   */
+  const addStarterUtilities = (): void => {
+    const zoned = zones.toJSON();
+    if (!zoned.length) return;
+    const centre = { x: zoned.reduce((sum, z) => sum + z[0], 0) / zoned.length, z: zoned.reduce((sum, z) => sum + z[1], 0) / zoned.length };
+    // Midpoints, so every candidate is on a road by construction and `place` has something to snap to.
+    const midpoints = graph
+      .allSegments()
+      .filter((segment) => !segment.elevated && !roadType(segment.type).tunnelDepth)
+      .map((segment) => graph.pointAt(segment.id, segment.length / 2).position)
+      .sort((a, b) => distXZ(a, v3(centre.x, a.y, centre.z)) - distXZ(b, v3(centre.x, b.y, centre.z)));
+    // Surface roads only -- a power plant does not belong on a bridge deck -- but never nothing:
+    // a kit drawn entirely of elevated road would otherwise open with no utilities at all.
+    if (!midpoints.length) return;
+    // One producer at the heart of the zoning, then diffusers pushed apart so their discs tile the
+    // district instead of stacking on the same block.
+    const spread = UTILITY_CATALOG.power.diffuser.radius * 1.4;
+    const chosen: typeof midpoints = [];
+    for (const point of midpoints) {
+      if (chosen.length >= 4) break;
+      if (chosen.every((taken) => distXZ(taken, point) >= spread)) chosen.push(point);
+    }
     for (const kind of ["power", "water"] as const) {
-      utilities.place(graph, "producer", kind, x + 20, z);
-      utilities.place(graph, "diffuser", kind, x + 110, z);
-      utilities.place(graph, "diffuser", kind, x + 230, z);
+      utilities.place(graph, "producer", kind, midpoints[0]!.x, midpoints[0]!.z);
+      for (const point of chosen) utilities.place(graph, "diffuser", kind, point.x, point.z);
     }
   };
   const updateWave = (dt: number): void => {
@@ -756,16 +790,22 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     buildings.updateStates(currentBuildingStatuses);
     scheduleAutosave();
   };
-  /** A new island: the same path a save takes, then framed on the kit the run opens with. */
-  const startFreshRun = (): void => {
-    loadCity(emptyCity());
-    addStarterKit();
+  /**
+   * A new island: the same path a save takes, since the kit now is one.
+   *
+   * `loadCity` restores the roads and the zoning, re-lays them onto the lots the replay actually
+   * cut, joins the bridge to whatever reaches the landfall and frames the camera the kit was
+   * exported with. The utilities go on afterwards, over the roads it just drew, and need the
+   * second rebuild to be seen.
+   */
+  const startFreshRun = async (): Promise<void> => {
+    loadCity(starterCity(await readStarterKit()));
+    addStarterUtilities();
     rebuild();
     // The run panel and the banner both remember the run that just ended, and neither is refreshed
     // by loading a city. Without this, a new island opened still reading "The island emptied".
     runPanel.renderUpgradeWeb();
     updateWave(0);
-    applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
   };
   const endRun = (): void => {
     setTimeRate(0);
@@ -942,17 +982,13 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     return true;
   }
 
-  addOffshoreBridge();
-  addStarterKit();
-  rebuild();
-  // Looking at the city, not at a patch of empty ground. Only "New island" framed the kit, so a
-  // first load opened on whatever the default camera happened to point at.
-  applyCamera({ targetX: STARTER_KIT_AT.x + 150, targetY: 0, targetZ: STARTER_KIT_AT.z, alpha: -Math.PI / 2, beta: Math.PI / 3.4, radius: 520 });
-  updateRunHud();
-
-  // Pick up where the last session stopped. A city the player never named is still their work.
+  // Pick up where the last session stopped. A city the player never named is still their work; only
+  // when there is nothing to resume does the island open fresh, which is also what spares the
+  // starter-kit fetch on every reload of a city already in progress.
   const resumed = readAutosave();
   if (resumed && loadCity(resumed)) controls!.applyCity(resumed);
+  else await startFreshRun();
+  updateRunHud();
 
   // Resumes wherever the camera was left, instead of snapping back to the default framing on
   // every reload -- a source edit already forces one of those more often than is comfortable.
@@ -1193,7 +1229,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       camera.onViewMatrixChangedObservable.remove(cameraSaveObserver);
       window.clearTimeout(cameraSaveTimer);
       window.clearTimeout(buildingRebuildTimer);
-      window.clearTimeout(starterDistrictTimer);
       for (const [timer, measurement] of fpsMeasurements) {
         window.clearTimeout(timer);
         measurement.stop();
