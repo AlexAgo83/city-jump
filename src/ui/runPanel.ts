@@ -75,7 +75,7 @@ export function bindRunPanel(options: {
       betweenRuns.hidden = !run.ended;
       runOutcome.textContent = run.ended === "evacuated" ? `Evacuated with ${Math.floor(run.science)} science.`
         : run.ended === "population_zero" ? "The island emptied."
-        : run.ended === "defeated" ? "The city fell." : "";
+        : run.ended === "defeated" ? "The city was levelled." : "";
     },
     dispose() {
       for (const dispose of disposers.splice(0)) dispose();

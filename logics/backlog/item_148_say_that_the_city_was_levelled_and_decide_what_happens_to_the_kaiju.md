@@ -1,10 +1,10 @@
 ## item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju - Say that the city was levelled, and decide what happens to the kaiju
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -37,6 +37,9 @@
 - What happens to the kaiju at that moment is deliberate and recorded, not a side effect of hiding the wave's meshes.
 - The run's own state matches what the player sees: an island with nothing on it is not a run still waiting for the next wave.
 
+# Decision
+- 2026-09-04: The kaiju stays hidden when the last building falls. No retreat or idle behaviour is added in this slice; the wave visuals are cleared because the run has ended as defeated.
+
 # AC Traceability
 - request-AC5 -> This backlog slice. Proof: A city destroyed to the last building produces its own message, distinct from a breach that left buildings standing.
 
@@ -53,3 +56,6 @@
 # Priority
 - Priority: High
 - Rationale: A run that continues on an empty island with no explanation is the worst state the game can leave a player in.
+
+# Validation
+- 2026-09-04: A city levelled to its last building now ends the run as defeated, keeps the wave from scheduling again, and shows "The city was levelled" in the banner/run panel. Validated with rtk npm exec -- vitest run src/app/waveLoop.test.ts src/ui/runPanel.test.ts src/sim/run.test.ts src/sim/save.test.ts and rtk npm run ci.

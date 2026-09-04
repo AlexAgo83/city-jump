@@ -3,7 +3,7 @@ import type { createKaijuRenderer } from "../render/kaiju";
 import type { createMissileRenderer, MissileTrail } from "../render/missiles";
 import type { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { planKaiju, type KaijuPlan } from "../sim/kaiju";
-import { endIfPopulationZero, settleWave, type RunState } from "../sim/run";
+import { defeat, endIfPopulationZero, settleWave, type RunState } from "../sim/run";
 import type { SavedCamera } from "../sim/save";
 import type { BuildingParcel } from "../sim/slots";
 import { distXZ, v3, type Vec3 } from "../sim/vec";
@@ -18,9 +18,10 @@ type WaveVisuals = {
   readonly markers: ReturnType<typeof createWaveMarkerRenderer>;
 };
 
-export function settleWaveOutcome(run: RunState, clock: WaveClock, verdict: WaveVerdict, calledEarly: boolean, population: number): { run: RunState; clock: WaveClock } {
+export function settleWaveOutcome(run: RunState, clock: WaveClock, verdict: WaveVerdict, calledEarly: boolean, population: number, cityLevelled = false): { run: RunState; clock: WaveClock } {
   const nextRun = verdict === "held"
     ? settleWave(run, { defeated: true, calledEarly, baseScience: 10 * run.wave })
+    : cityLevelled ? defeat(settleWave(run, { defeated: false, calledEarly, baseScience: 10 * run.wave }))
     : endIfPopulationZero(settleWave(run, { defeated: false, calledEarly, baseScience: 10 * run.wave }), population);
   return { run: nextRun, clock: nextRun.ended ? clock : scheduleNextWave(clock) };
 }

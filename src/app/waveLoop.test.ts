@@ -20,4 +20,12 @@ describe("wave loop helpers", () => {
     expect(next.run.ended).toBe("population_zero");
     expect(next.clock.active).toEqual(active.active);
   });
+
+  it("ends a levelled city even while residents remain", () => {
+    const active = callWaveNow(createWaveClock(), 900);
+    const next = settleWaveOutcome(createRun(), active, "breached", false, 120, true);
+
+    expect(next.run.ended).toBe("defeated");
+    expect(next.clock.active).toEqual(active.active);
+  });
 });

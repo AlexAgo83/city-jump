@@ -1,10 +1,10 @@
 ## item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers - Stop a barracks in rubble from firing and from holding its workers
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.

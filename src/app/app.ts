@@ -488,10 +488,10 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     waveVerdict = null;
     waveVerdictUntil = 0;
   };
-  const finishWave = (verdict: WaveVerdict): void => {
+  const finishWave = (verdict: WaveVerdict, cityLevelled = false): void => {
     waveVerdict = verdict;
     waveVerdictUntil = waveClock.elapsedSeconds + 3;
-    const next = settleWaveOutcome(runState, waveClock, verdict, waveCalledEarly, cityEconomy.resources.population);
+    const next = settleWaveOutcome(runState, waveClock, verdict, waveCalledEarly, cityEconomy.resources.population, cityLevelled);
     runState = next.run;
     waveClock = next.clock;
     waveCalledEarly = false;
@@ -509,7 +509,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     rebuild();
     pendingMissiles = [];
     clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
-    showWaveBanner(verdict === "held" ? "Wave held" : "Wave breached", verdict);
+    showWaveBanner(verdict === "held" ? "Wave held" : cityLevelled ? "The city was levelled" : "Wave breached", verdict);
   };
   const resetWave = (): void => {
     waveClock = createWaveClock();
@@ -589,7 +589,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       kaijuAssault = null;
       pendingMissiles = [];
       clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
-      showWaveBanner(runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science` : runState.ended === "population_zero" ? "The island emptied" : "The city fell", runState.ended === "evacuated" ? "held" : "breached");
+      showWaveBanner(runState.ended === "evacuated" ? `Evacuated with ${Math.floor(runState.science)} science` : runState.ended === "population_zero" ? "The island emptied" : "The city was levelled", runState.ended === "evacuated" ? "held" : "breached");
       return;
     }
     if (!runState.rules.kaijuSpawns) {
@@ -666,7 +666,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     syncBuildings();
     history.clear();
     rebuild(parcelBounds(hit));
-    if (!currentBuildingStatuses.some((status) => status.state !== "rebuilding")) finishWave("breached");
+    if (!currentBuildingStatuses.some((status) => status.state !== "rebuilding")) finishWave("breached", true);
   };
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before

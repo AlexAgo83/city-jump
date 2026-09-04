@@ -1,10 +1,10 @@
 ## item_151_open_a_run_with_a_treasury_that_can_build_a_city - Open a run with a treasury that can build a city
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
