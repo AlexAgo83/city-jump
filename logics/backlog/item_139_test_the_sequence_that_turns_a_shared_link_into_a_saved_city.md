@@ -1,13 +1,14 @@
 ## item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city - Test the sequence that turns a shared link into a saved city
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 16:53:38
 
 # AI Context
 - Summary: controls.ts:706-725 turns an untrusted URL fragment into a saved, loaded city. It is what the shared-link threat model is about and it has no test, though every layer beneath it has one.

@@ -1,13 +1,14 @@
 ## item_142_the_fixes_whose_record_is_the_change_itself - The fixes whose record is the change itself
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 16:53:38
 
 # AI Context
 - Summary: The residue: two accumulating-spread reduces in playthrough.ts, five fixable lint items across the scripts and one test, and three runbook code anchors pointing at commits no longer in the repo.

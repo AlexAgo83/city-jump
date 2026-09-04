@@ -1,13 +1,14 @@
 ## item_140_cover_the_three_modules_nothing_reaches_or_record_why_not - Cover the three modules nothing reaches, or record why not
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 16:53:38
 
 # AI Context
 - Summary: trafficMovers.ts, vehicleModels.ts and hud.ts have no test, directly or in transit. hud.ts is where req_038's innerHTML and CSP rules landed, asserted only by a source grep.

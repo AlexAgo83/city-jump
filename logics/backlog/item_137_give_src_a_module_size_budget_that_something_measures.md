@@ -1,13 +1,14 @@
 ## item_137_give_src_a_module_size_budget_that_something_measures - Give src a module size budget that something measures
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 15%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 16:53:38
 
 # AI Context
 - Summary: req_039 asserted a 700-line module budget that nothing measures, and six modules exceed it -- including the 1238-line app.ts the request was written about, which carries no recorded reason at all.

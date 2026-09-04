@@ -14,7 +14,7 @@ server. That makes every link untrusted local input.
 
 - Accept only a `#city=` fragment. Do not use query strings for city data.
 - Refuse a fragment above 12,000 characters before decoding.
-- Cap decompressed JSON at 96 KB while streaming.
+- Cap decompressed JSON at 1 MB while streaming.
 - Run the decoded city through `parseCity`; never replay unchecked JSON.
 - Render every value from a loaded city with `textContent` or equivalent node properties, never
   `innerHTML`.

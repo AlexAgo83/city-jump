@@ -87,6 +87,17 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   assert.doesNotMatch(render, /style-src[^\\n]*'unsafe-inline'/);
 });
 
+test("shared link threat model matches the decompression cap", async () => {
+  const threatModel = await readFile(new URL("../docs/shared-link-threat-model.md", import.meta.url), "utf8");
+  const share = await readFile(new URL("sim/share.ts", src), "utf8");
+  const largeCity = await readFile(new URL("../perf/cities/ma-ville.json", import.meta.url), "utf8");
+
+  assert.match(share, /export const MAX_SHARE_JSON = 1_000_000;/);
+  assert.match(threatModel, /Cap decompressed JSON at 1 MB while streaming\./);
+  assert.ok(Buffer.byteLength(largeCity) > 96 * 1024, "perf/cities/ma-ville.json proves 96 KB is too small");
+  assert.ok(Buffer.byteLength(largeCity) < 1_000_000, "perf/cities/ma-ville.json fits under the documented cap");
+});
+
 test("static hosting and asset cache keys stay diagnosable", async () => {
   const render = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
   const assets = await readFile(new URL("render/assets.ts", src), "utf8");
