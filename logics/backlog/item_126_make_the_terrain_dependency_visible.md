@@ -2,13 +2,13 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 95%
-> Confidence: 88%
-> Progress: 80%
+> Understanding: 98%
+> Confidence: 92%
+> Progress: 95%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 13:07:24
 
 # AI Context
 - Summary: Import-direction rules cannot see state coupling, which is why this survived. The three-line architecture assertion lands first because it stops the spread today, before the injection work starts.
@@ -46,7 +46,7 @@
 
 # Links
 - Product brief(s): `prod_030_a_codebase_whose_seams_are_where_the_tests_can_reach`
-- Architecture decision(s): (none yet)
+- Architecture decision(s): `adr_007_make_terrain_an_explicit_dependency`
 - Request: `req_039_give_the_code_its_seams_back`
 - Primary task(s): `task_041_orchestrate_the_structural_work`
 
@@ -62,3 +62,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts src/render/roadMesh.test.ts src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into the utility, traffic, road, and building renderers.
 - 2026-09-04 terrain injection 2: RoadGraph now receives a height sampler, defaults to flat terrain for isolated tests, and exposes it to rules/slots; sim/graph.ts, sim/rules.ts, and sim/slots.ts no longer import terrainHeight.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.
+- 2026-09-04 terrain injection 3: createDrawTool now receives height sampling from app.ts; render/drawTool.ts no longer imports terrainHeight, and sampleQuadratic defaults to flat terrain for isolated geometry tests.
+
+# Validation
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into drawTool.

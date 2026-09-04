@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 96%
-> Confidence: 90%
-> Progress: 96%
+> Understanding: 98%
+> Confidence: 93%
+> Progress: 97%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -104,6 +104,7 @@
 - 2026-09-04 browser check after wave 4q: rtk npm run test:e2e passed the traffic, lighting, building decoration, and zone-view checks touched by item_125, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021.
 - 2026-09-04 terrain injection 1: createUtilityRenderer, createTrafficRenderer, createRoadRenderer, and createBuildingRenderer now receive height sampling from app.ts instead of reading the terrain module global directly.
 - 2026-09-04 terrain injection 2: RoadGraph now owns a height sampler supplied by app.ts; sim/rules.ts and sim/slots.ts read terrain through the graph instead of importing the terrain module global.
+- 2026-09-04 terrain injection 3: drawTool now receives the app height sampler instead of reading terrainHeight; this removes the last production render consumer of the terrain module global.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

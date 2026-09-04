@@ -644,6 +644,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     scene,
     graph,
     ground.mesh,
+    (x, z) => heightmap.heightAt(x, z),
     rebuild,
     showRefusal,
     {

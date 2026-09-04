@@ -12,7 +12,7 @@ import type { RoadGraph, Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
 import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { terrainHeight } from "../sim/terrain";
+import { flatTerrain, type Terrain } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
 import { buildingBuildCost, demolitionRefund } from "../sim/economy";
 import { UTILITY_CATALOG, type SavedUtility, type UtilityKind, type UtilityRole } from "../sim/utilities";
@@ -174,6 +174,7 @@ export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
   ground: Mesh,
+  heightAt: Terrain["heightAt"],
   onCommitted: (dirty?: TerrainBounds) => void,
   onRefused: (reason: string) => void,
   nature: NatureTools,
@@ -232,7 +233,7 @@ export function createDrawTool(
   targetHighlight.setEnabled(false);
 
   function highlightCircle(x: number, z: number, radius: number): void {
-    targetHighlight.position.set(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
+    targetHighlight.position.set(x, heightAt(x, z) + PREVIEW_LIFT, z);
     targetHighlight.scaling.set(radius, 1, radius);
     targetHighlight.setEnabled(true);
   }
@@ -307,13 +308,13 @@ export function createDrawTool(
       return;
     }
     if (target.kind === "tree") {
-      selectRing.position.set(target.x, terrainHeight(target.x, target.z) + PREVIEW_LIFT, target.z);
+      selectRing.position.set(target.x, heightAt(target.x, target.z) + PREVIEW_LIFT, target.z);
       selectRing.scaling.set(3, 1, 3);
       selectRing.setEnabled(true);
       onSelect({ kind: "tree" });
       return;
     }
-    selectRing.position.set(target.x, terrainHeight(target.x, target.z) + PREVIEW_LIFT, target.z);
+    selectRing.position.set(target.x, heightAt(target.x, target.z) + PREVIEW_LIFT, target.z);
     selectRing.scaling.set(target.radius, 1, target.radius);
     selectRing.setEnabled(true);
     onSelect({ kind: "roundabout", lanes: graph.node(target.node).roundaboutLanes, radius: target.radius });
@@ -355,7 +356,7 @@ export function createDrawTool(
       const angle = (i / SPRAY_RING_POINTS) * Math.PI * 2;
       const x = cx + Math.cos(angle) * radius;
       const z = cz + Math.sin(angle) * radius;
-      return new Vector3(x, terrainHeight(x, z) + PREVIEW_LIFT, z);
+      return new Vector3(x, heightAt(x, z) + PREVIEW_LIFT, z);
     });
   }
 
@@ -465,13 +466,13 @@ export function createDrawTool(
     if (stage.phase === "control") {
       // Before the control point is placed, the preview is the straight it would be.
       const mid = lerp(stage.from.position, snap.position, 0.5);
-      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), terrainHeight);
-      drawPreview(sampleQuadratic(stage.from.position, mid, snap.position), check.ok);
+      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), heightAt);
+      drawPreview(sampleQuadratic(stage.from.position, mid, snap.position, 32, heightAt), check.ok);
       return;
     }
 
-    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), terrainHeight);
-    drawPreview(sampleQuadratic(stage.from.position, stage.control, snap.position), check.ok);
+    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), heightAt);
+    drawPreview(sampleQuadratic(stage.from.position, stage.control, snap.position, 32, heightAt), check.ok);
   }
 
   function onClick(): void {
@@ -594,7 +595,7 @@ export function createDrawTool(
   }
 
   function finish(from: Snap, to: Snap, control: Vec3): void {
-    const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position)), TERRAIN_DIRTY_PAD);
+    const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position, 32, heightAt)), TERRAIN_DIRTY_PAD);
     history?.beforeChange();
     const cost = economy?.roadCost(typeId, quadraticLengthXZ(from.position, control, to.position)) ?? 0;
     const result = commitSegment(graph, from, to, control, typeId);
@@ -840,14 +841,14 @@ function boundsOf(points: readonly Vec3[]): TerrainBounds {
 }
 
 /** Preview sampling only; the graph builds its own table once the segment is accepted. */
-export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32): Vec3[] {
+export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32, heightAt: Terrain["heightAt"] = flatTerrain.heightAt): Vec3[] {
   const out: Vec3[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const u = 1 - t;
     const x = a.x * u * u + c.x * 2 * u * t + b.x * t * t;
     const z = a.z * u * u + c.z * 2 * u * t + b.z * t * t;
-    out.push(v3(x, terrainHeight(x, z), z));
+    out.push(v3(x, heightAt(x, z), z));
   }
   return out;
 }

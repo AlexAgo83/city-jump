@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { flatTerrain, setTerrain } from "../sim/terrain";
 import { v3 } from "../sim/vec";
 import { brushMovedFarEnough, sampleQuadratic } from "./drawTool";
 
 describe("draw tool geometry", () => {
   it("samples the preview curve through both endpoints", () => {
-    setTerrain(flatTerrain);
     const points = sampleQuadratic(v3(0, 0, 0), v3(10, 0, 20), v3(20, 0, 0), 4);
 
     expect(points).toHaveLength(5);
