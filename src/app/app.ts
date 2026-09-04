@@ -611,11 +611,11 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // Only once the last verdict has cleared the screen.
     // Only while the clock runs. A kaiju summoned during a pause landed on a city that was not
     // playing, and stayed pending for as long as the player left the game stopped.
-    if (dt > 0) waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
+    if (dt > 0) waveClock = summonIfDue(waveClock, runState.wave, cityEconomy.resources.population, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length), runState.rules.residentsPerWave);
     if (waveClock.active && !kaijuPlan) startWave();
     if (!waveClock.active || !kaijuPlan) {
       clearWaveVisuals({ kaiju, missiles, markers: waveMarkers });
-      showWaveBanner(`Kaiju at ${waveAtPopulation(runState.wave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population))} to go`, "waiting");
+      showWaveBanner(`Kaiju at ${waveAtPopulation(runState.wave, runState.rules.residentsPerWave)} residents -- ${Math.floor(cityEconomy.resources.population)} so far, ${Math.ceil(residentsUntilWave(runState.wave, cityEconomy.resources.population, runState.rules.residentsPerWave))} to go`, "waiting");
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;

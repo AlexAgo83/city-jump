@@ -186,12 +186,14 @@ describe("city saves", () => {
   });
 
   it("carries run rules through a save and defaults older saves", () => {
-    const run = createRun({ kaijuSpawns: false, instantConstruction: true, freeBuilding: true });
+    const run = createRun({ kaijuSpawns: false, instantConstruction: true, freeBuilding: true, residentsPerWave: 750 });
     const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), undefined, undefined, run)))!;
     const older = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], run: { wave: 1, science: 0, ended: null } }))!;
+    const invalid = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], run: { wave: 1, science: 0, ended: null, rules: { residentsPerWave: 0 } } }))!;
 
     expect(save.run?.rules).toEqual(run.rules);
     expect(older.run?.rules).toEqual(DEFAULT_RUN_RULES);
+    expect(invalid.run?.rules.residentsPerWave).toBe(DEFAULT_RUN_RULES.residentsPerWave);
   });
 
   it("loads older resource saves that still carried services", () => {

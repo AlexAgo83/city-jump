@@ -25,7 +25,7 @@ describe("run panel disposal", () => {
 
   it("removes persistent listeners and generated controls", () => {
     const elements = new Map<string, FakeElement>();
-    for (const id of ["evacuate-run", "call-wave", "hardcore-run", "kaiju-spawns", "instant-construction", "free-building", "ignore-power", "ignore-water", "gameplay-note", "between-runs", "upgrade-web", "run-outcome", "new-run"]) {
+    for (const id of ["evacuate-run", "call-wave", "hardcore-run", "kaiju-spawns", "instant-construction", "free-building", "ignore-power", "ignore-water", "residents-per-wave", "gameplay-note", "between-runs", "upgrade-web", "run-outcome", "new-run"]) {
       elements.set(id, new FakeElement());
     }
     (globalThis as { document?: unknown }).document = {

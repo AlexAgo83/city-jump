@@ -214,6 +214,8 @@ function readRun(value: unknown): RunState | null {
   if (value.ended !== null && value.ended !== "evacuated" && value.ended !== "population_zero" && value.ended !== "defeated") return null;
   const rules = value.rules;
   if (rules !== undefined && !isRecord(rules)) return null;
+  const rawResidentsPerWave = rules === undefined ? undefined : rules.residentsPerWave;
+  const residentsPerWave = Number.isFinite(rawResidentsPerWave) && (rawResidentsPerWave as number) > 0 ? rawResidentsPerWave as number : DEFAULT_RUN_RULES.residentsPerWave;
   return {
     wave: value.wave as number,
     science: value.science as number,
@@ -224,6 +226,7 @@ function readRun(value: unknown): RunState | null {
       freeBuilding: rules?.freeBuilding === undefined ? DEFAULT_RUN_RULES.freeBuilding : rules.freeBuilding === true,
       ignorePower: rules?.ignorePower === undefined ? DEFAULT_RUN_RULES.ignorePower : rules.ignorePower === true,
       ignoreWater: rules?.ignoreWater === undefined ? DEFAULT_RUN_RULES.ignoreWater : rules.ignoreWater === true,
+      residentsPerWave,
     },
   };
 }

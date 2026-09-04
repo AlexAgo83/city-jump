@@ -1,13 +1,14 @@
 ## item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000 - Make the residents bar a run rule, defaulting to 1000
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:44
 
 # AI Context
 - Summary: The wave trigger factor is hardcoded at 180. It becomes a RunRules field defaulting to 1000 -- saved with the city, validated on the way in, and threaded into sim as a parameter rather than left in module state.
@@ -58,3 +59,6 @@
 # Priority
 - Priority: High
 - Rationale: What the operator asked for, and the largest single change in the chain: one number that is the only wave trigger and also feeds the threat.
+
+# Notes
+- 2026-09-04, codex: added `RunRules.residentsPerWave` defaulting to 1000, saved and validated through `readRun`, threaded into app/sim wave checks, and surfaced as the Gameplay `Residents/wave` input. Targeted Playwright proved 1000 default, live 180 banner update, autosave, and reload.

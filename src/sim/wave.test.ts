@@ -10,6 +10,7 @@ describe("waves", () => {
 
     expect(clock.active).toBeNull();
     expect(residentsUntilWave(1, 12)).toBe(waveAtPopulation(1) - 12);
+    expect(waveAtPopulation(1)).toBe(1000);
   });
 
   it("summons the moment the city crosses the bar, whatever the clock says", () => {
@@ -24,6 +25,7 @@ describe("waves", () => {
   it("raises the bar every wave, so holding one buys room rather than a delay", () => {
     expect(waveAtPopulation(2)).toBeGreaterThan(waveAtPopulation(1));
     expect(waveAtPopulation(5)).toBeGreaterThan(waveAtPopulation(4));
+    expect(waveAtPopulation(6, 180)).toBe(1080);
 
     // A city that just held wave 1 at the bar is not immediately attacked again.
     const after = scheduleNextWave(summonIfDue(createWaveClock(), 1, waveAtPopulation(1), 1000));

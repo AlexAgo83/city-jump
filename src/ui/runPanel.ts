@@ -32,6 +32,7 @@ export function bindRunPanel(options: {
   const freeBuildBox = document.getElementById("free-building") as HTMLInputElement;
   const ignorePowerBox = document.getElementById("ignore-power") as HTMLInputElement;
   const ignoreWaterBox = document.getElementById("ignore-water") as HTMLInputElement;
+  const residentsPerWave = document.getElementById("residents-per-wave") as HTMLInputElement;
   const gameplayNote = document.getElementById("gameplay-note") as HTMLSpanElement;
   const betweenRuns = document.getElementById("between-runs") as HTMLDivElement;
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
@@ -46,6 +47,7 @@ export function bindRunPanel(options: {
       freeBuildBox.checked = run.rules.freeBuilding;
       ignorePowerBox.checked = run.rules.ignorePower;
       ignoreWaterBox.checked = run.rules.ignoreWater;
+      residentsPerWave.value = String(run.rules.residentsPerWave);
       // Only say something when a switch has taken something away.
       gameplayNote.textContent = run.rules.kaijuSpawns ? "" : "Pacifist: no waves, so no science and no prestige.";
       options.setToolEnabled("power", !run.rules.ignorePower);
@@ -83,7 +85,7 @@ export function bindRunPanel(options: {
 
   const setRunRules = (): void => {
     const run = options.getRun();
-    options.setRun({ ...run, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked, ignorePower: ignorePowerBox.checked, ignoreWater: ignoreWaterBox.checked } });
+    options.setRun({ ...run, rules: { kaijuSpawns: kaijuBox.checked, instantConstruction: instantBox.checked, freeBuilding: freeBuildBox.checked, ignorePower: ignorePowerBox.checked, ignoreWater: ignoreWaterBox.checked, residentsPerWave: Math.max(1, Number(residentsPerWave.value) || run.rules.residentsPerWave) } });
     panel.renderGameplayRules();
     options.onRulesChanged();
   };
@@ -93,6 +95,7 @@ export function bindRunPanel(options: {
     options.setProfile({ ...options.getProfile(), hardcore: hardcoreBox.checked });
   });
   for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) on(box, "change", setRunRules);
+  on(residentsPerWave, "change", setRunRules);
   on(newRunButton, "click", () => {
     if (!window.confirm("Leave for a new island?")) return;
     options.onNewRun();

@@ -1,4 +1,5 @@
 import { STARTING_MONEY, type CityResources } from "./economy";
+import { DEFAULT_RESIDENTS_PER_WAVE } from "./wave";
 
 export type RunEndReason = "evacuated" | "population_zero" | "defeated";
 
@@ -38,10 +39,11 @@ export interface RunRules {
   readonly freeBuilding: boolean;
   readonly ignorePower: boolean;
   readonly ignoreWater: boolean;
+  readonly residentsPerWave: number;
 }
 
 export const EARLY_WAVE_SCIENCE_MULTIPLIER = 2;
-export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false, ignorePower: true, ignoreWater: true };
+export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false, ignorePower: true, ignoreWater: true, residentsPerWave: DEFAULT_RESIDENTS_PER_WAVE };
 /** Kept as a small first upgrade: useful, not a second opening treasury. */
 const STARTER_FUNDS_BONUS = 10_000;
 

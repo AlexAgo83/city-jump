@@ -63,12 +63,13 @@ function scenario(label, rules) {
 
 const results = [];
 
-results.push(scenario(`expanding city, with utilities (${waves} waves)`, { instantConstruction: true, expand: true }));
+const gateRules = { instantConstruction: true, residentsPerWave: 180 };
+results.push(scenario(`expanding city, with utilities (${waves} waves)`, { ...gateRules, expand: true }));
 // The same city that never builds its power and water, rather than the same city with the rule
 // switched off: with `placeUtilities` left on, the scenario laid its own producer and diffusers,
 // nothing was ever short, and this block printed the one above it character for character.
-results.push(scenario(`expanding city, no utilities built (${waves} waves)`, { instantConstruction: true, expand: true, placeUtilities: false }));
-results.push(scenario(`static city (the balance gate's scenario, ${waves} waves)`, { instantConstruction: true }));
+results.push(scenario(`expanding city, no utilities built (${waves} waves)`, { ...gateRules, expand: true, placeUtilities: false }));
+results.push(scenario(`static city (the balance gate's scenario, ${waves} waves)`, gateRules));
 
 const failures = results.flatMap((result) => result.failures);
 if (failures.length) {

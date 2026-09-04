@@ -9,6 +9,8 @@ export const WAVE_STARTING_VALUES = {
   destructionRadiusM: 25,
 } as const;
 
+export const DEFAULT_RESIDENTS_PER_WAVE = 1000;
+
 export function missileTravelSeconds(distanceM: number): number {
   return Math.max(0, distanceM) / WAVE_STARTING_VALUES.missileSpeedMps;
 }
@@ -20,16 +22,16 @@ export function missileTravelSeconds(distanceM: number): number {
  * who does not build is not attacked at all, and one who grows fast brings the next one on
  * themselves. The bar rises every wave, which is why holding one buys room rather than a countdown.
  *
- * Linear because the scenario gate asks for six waves inside a bounded run. A quadratic bar made
- * wave 3 wait for 2,250 residents, so the harness measured two fights and guessed at the rest.
+ * Linear because holding one wave buys one more bar of room. The scenario gate pins its own lower
+ * factor so it still measures six fights without making this shipped default tiny.
  */
-export function waveAtPopulation(wave: number): number {
-  return 180 * Math.max(1, wave);
+export function waveAtPopulation(wave: number, residentsPerWave = DEFAULT_RESIDENTS_PER_WAVE): number {
+  return Math.max(1, residentsPerWave) * Math.max(1, wave);
 }
 
 /** How many more residents before the island notices. Infinity is not a thing here; zero means now. */
-export function residentsUntilWave(wave: number, population: number): number {
-  return Math.max(0, waveAtPopulation(wave) - Math.max(0, population));
+export function residentsUntilWave(wave: number, population: number, residentsPerWave = DEFAULT_RESIDENTS_PER_WAVE): number {
+  return Math.max(0, waveAtPopulation(wave, residentsPerWave) - Math.max(0, population));
 }
 
 export interface WaveClock {
@@ -53,8 +55,8 @@ export function advanceWaveClock(clock: WaveClock, dtSeconds: number): WaveClock
 }
 
 /** Summons a kaiju if the city has grown into one. Its size is fixed here and does not move again. */
-export function summonIfDue(clock: WaveClock, wave: number, population: number, threat: number): WaveClock {
-  if (clock.active || residentsUntilWave(wave, population) > 0) return clock;
+export function summonIfDue(clock: WaveClock, wave: number, population: number, threat: number, residentsPerWave = DEFAULT_RESIDENTS_PER_WAVE): WaveClock {
+  if (clock.active || residentsUntilWave(wave, population, residentsPerWave) > 0) return clock;
   return { ...clock, active: { startedAtSeconds: clock.elapsedSeconds, threat, hitPoints: threat } };
 }
 

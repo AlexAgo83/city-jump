@@ -198,7 +198,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     economy.advance(statuses, dt);
     treasury.earn(incomePerSecond(economy.resources.population, statuses) * dt);
     if (scenario.kaijuSpawns && !waveClock.active) {
-      waveClock = summonIfDue(advanceWaveClock(waveClock, dt), run.wave, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length));
+      waveClock = summonIfDue(advanceWaveClock(waveClock, dt), run.wave, economy.resources.population, waveThreat(run.wave, economy.resources.population, parcels.length), run.rules.residentsPerWave);
     }
   };
 
@@ -383,5 +383,5 @@ export function playFirstRun(seed = 1, rules: Partial<ScenarioRules> = {}): Play
 }
 
 export function militaryGap(seed = 1): number {
-  return playFirstRun(seed, { instantConstruction: true }).wave.combatDurationSeconds - 30;
+  return playFirstRun(seed, { instantConstruction: true, residentsPerWave: 180 }).wave.combatDurationSeconds - 30;
 }

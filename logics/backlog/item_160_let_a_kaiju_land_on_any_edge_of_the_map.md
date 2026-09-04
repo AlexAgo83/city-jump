@@ -1,13 +1,14 @@
 ## item_160_let_a_kaiju_land_on_any_edge_of_the_map - Let a kaiju land on any edge of the map
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:44
 
 # AI Context
 - Summary: landingPoint ranks four edges by distance from a fixed bridge point and takes one of the two furthest. Those distances never change, so it is always north or east -- 600 seeds give 304 north, 296 east, zero west or south.

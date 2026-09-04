@@ -1,13 +1,14 @@
 ## item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves - Keep the scenario gate measuring six waves once the bar moves
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:44
 
 # AI Context
 - Summary: The 180 exists for the scenario gate: the harness ends at about 1,121 residents, which clears six bars at 180 and one at 1000. Without the harness pinning its own factor, the gate stops being evidence about waves 2 to 6.
@@ -53,3 +54,6 @@
 # Priority
 - Priority: High
 - Rationale: Without it the factor change silently turns the only balance gate this project has into evidence about one wave instead of six.
+
+# Notes
+- 2026-09-04, codex: pinned `npm run scenarios` to `residentsPerWave: 180` at the harness callsite and updated `wave.ts` wording. Scenario remeasure stayed in band: expanding 21/21 held, no-utilities 21/21 held, static 31/31 held, 0 outside 13-85s / 4-21 salvos.

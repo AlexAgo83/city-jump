@@ -1,13 +1,14 @@
 ## item_161_settle_the_two_loose_ends_in_the_assault_code - Settle the two loose ends in the assault code
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:44
 
 # AI Context
 - Summary: destructionRadiusM is declared and used nowhere. And advanceKaijuAssault's loop can destroy two buildings in one call while `destroyed` holds one -- latent at the shipped 0.25 s step, but the comment invites the large ticks that would expose it.
