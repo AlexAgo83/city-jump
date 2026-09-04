@@ -25,7 +25,6 @@ import {
   type Ring,
 } from "../sim/transfers";
 import { normalizeXZ, perpXZ, type Vec3 } from "../sim/vec";
-import { terrainHeight } from "../sim/terrain";
 import {
   BRAKING,
   CAR_TURN_RATE,
@@ -87,7 +86,7 @@ interface TrafficMoverState {
 
 export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null };
 
-export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
+export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, heightAt: (x: number, z: number) => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
   const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkerPrototypes } = models;
 
   let movers: RenderMover[] = [];
@@ -524,7 +523,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     const forwardX = Math.sin(heading);
     const forwardZ = Math.cos(heading);
     const reach = 2;
-    const rise = terrainHeight(position.x + forwardX * reach, position.z + forwardZ * reach) - terrainHeight(position.x - forwardX * reach, position.z - forwardZ * reach);
+    const rise = heightAt(position.x + forwardX * reach, position.z + forwardZ * reach) - heightAt(position.x - forwardX * reach, position.z - forwardZ * reach);
     return -Math.atan2(rise, reach * 2);
   }
   

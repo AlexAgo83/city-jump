@@ -5,7 +5,6 @@ import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
 import { carriesUtility, type Utilities, type UtilityKind } from "../sim/utilities";
-import { terrainHeight } from "../sim/terrain";
 import { toBabylon } from "./convert";
 
 const LIFT = 0.8;
@@ -14,7 +13,7 @@ const COLORS: Record<UtilityKind, Color3> = {
   water: new Color3(0.25, 0.7, 1),
 };
 
-export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities: Utilities) {
+export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities: Utilities, heightAt: (x: number, z: number) => number) {
   let visible = false;
   let lines: LinesMesh[] = [];
 
@@ -37,7 +36,7 @@ export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities:
         const angle = (i / 64) * Math.PI * 2;
         const x = diffuser.position.x + Math.cos(angle) * diffuser.radius;
         const z = diffuser.position.z + Math.sin(angle) * diffuser.radius;
-        return new Vector3(x, terrainHeight(x, z) + LIFT, z);
+        return new Vector3(x, heightAt(x, z) + LIFT, z);
       });
       const ring = MeshBuilder.CreateLines(`utility-radius-${diffuser.kind}`, { points }, scene);
       ring.color = supplied.has(diffuser.id) ? COLORS[diffuser.kind] : Color3.Red();
@@ -47,7 +46,7 @@ export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities:
       lines.push(ring);
     }
     for (const item of utilities.toJSON()) {
-      const marker = MeshBuilder.CreateLines(`utility-marker-${item[1]}`, { points: ringPoints(item[2], item[3], item[0] === "producer" ? 10 : 6) }, scene);
+      const marker = MeshBuilder.CreateLines(`utility-marker-${item[1]}`, { points: ringPoints(item[2], item[3], item[0] === "producer" ? 10 : 6, heightAt) }, scene);
       marker.color = COLORS[item[1]];
       marker.isPickable = false;
       marker.setEnabled(visible);
@@ -64,11 +63,11 @@ export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities:
   };
 }
 
-function ringPoints(cx: number, z: number, radius: number): Vector3[] {
+function ringPoints(cx: number, z: number, radius: number, heightAt: (x: number, z: number) => number): Vector3[] {
   return Array.from({ length: 33 }, (_, i) => {
     const angle = (i / 32) * Math.PI * 2;
     const x = cx + Math.cos(angle) * radius;
     const zed = z + Math.sin(angle) * radius;
-    return new Vector3(x, terrainHeight(x, zed) + LIFT, zed);
+    return new Vector3(x, heightAt(x, zed) + LIFT, zed);
   });
 }

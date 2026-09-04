@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 12:52:59
 
 # AI Context
 - Summary: Three steps, and the third is gated on an observable condition instead of an owner's call: the move to sim happens if and only if headless tests for the driving logic exist and pass. Verified that nothing blocks it -- the two render imports are three constants and a pure predicate.
@@ -84,3 +84,4 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting roof and foot decor mesh builders into src/render/decorMeshes.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/roadMesh.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after separating the Traffic view road overlay from road mesh rebuilds.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
+- 2026-09-04 browser check: rtk npm run test:e2e passed the traffic, lighting, building decoration, and zone-view checks touched by this item, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021; item closeout stays pending on AC6 rather than rewriting the unrelated browser test.

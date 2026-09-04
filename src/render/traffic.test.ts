@@ -249,7 +249,7 @@ describe("traffic queues", () => {
     const id = graph.addSegment(a, b, v3(80, 0, 0), "street");
     const engine = new NullEngine();
     const scene = new Scene(engine);
-    const traffic = createTrafficRenderer(scene, graph, () => 16);
+    const traffic = createTrafficRenderer(scene, graph, () => 16, () => 0);
 
     traffic.rebuild();
     const before = traffic.firstVehicle()!.segment;

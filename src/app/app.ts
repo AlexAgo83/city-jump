@@ -81,13 +81,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph);
-  const traffic = createTrafficRenderer(scene, graph, frameDelta);
+  const traffic = createTrafficRenderer(scene, graph, frameDelta, (x, z) => heightmap.heightAt(x, z));
   const fps = createFpsMeter();
   const signals = createSignalRenderer(scene, graph, frameDelta);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene);
-  const utilityOverlay = createUtilityRenderer(scene, graph, utilities);
+  const utilityOverlay = createUtilityRenderer(scene, graph, utilities, (x, z) => heightmap.heightAt(x, z));
   const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
   const missiles = createMissileRenderer(scene);

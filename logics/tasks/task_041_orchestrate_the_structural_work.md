@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 93%
+> Progress: 94%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -80,6 +80,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting roof and foot decor mesh builders into src/render/decorMeshes.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/roadMesh.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after separating the Traffic view road overlay from road mesh rebuilds.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed through build after injecting height sampling into utility and traffic renderers; ci then failed only on Logics indicators that were corrected afterward.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -99,6 +100,8 @@
 - 2026-09-04 wave 4o: extracted roof and foot decor prototype mesh builders into src/render/decorMeshes.ts; src/render/buildings.ts now keeps placement and rebuild wiring while importing the decor prototypes.
 - 2026-09-04 wave 4p: split the Traffic view road overlay into its own mesh list and rebuild path; toggling the overlay no longer rebuilds road surfaces.
 - 2026-09-04 wave 4q: extracted the traffic mover placement, queues, frame loop, and vehicle lookup helpers into src/render/trafficMovers.ts; src/render/traffic.ts is now a 74-line renderer facade around models, headlights, settings, and rebuild.
+- 2026-09-04 browser check after wave 4q: rtk npm run test:e2e passed the traffic, lighting, building decoration, and zone-view checks touched by item_125, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021.
+- 2026-09-04 terrain injection 1: createUtilityRenderer and createTrafficRenderer now receive height sampling from app.ts instead of reading the terrain module global directly.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

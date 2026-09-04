@@ -9,7 +9,7 @@ import { createVehicleModels } from "./vehicleModels";
 
 /** `frameDelta` is milliseconds since the last drawn frame -- see `createScene`, and not the
  * engine's own delta, which counts animation frames the render loop may have skipped. */
-export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
+export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number, heightAt: (x: number, z: number) => number) {
   const models = createVehicleModels(scene);
   const headlights = createVehicleHeadlights(scene, models.lampMaterials);
   let sunHour = 14;
@@ -21,7 +21,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     timeScale: 1,
     lightsOn: () => state.enabled && lightsEnabled && streetlightsOnAt(sunHour),
   };
-  const movers = createTrafficMoverSystem(scene, graph, frameDelta, models, headlights, state);
+  const movers = createTrafficMoverSystem(scene, graph, frameDelta, heightAt, models, headlights, state);
 
   /** Night turns the lamps up and the beams on; by day they are just coloured glass. */
   function setSunHour(hour: number): void {
