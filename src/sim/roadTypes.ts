@@ -23,6 +23,12 @@ export interface RoadType {
 
 /** Extra carriageway width one more lane needs. */
 const LANE_WIDTH = 3.5;
+/** Lifted off the ground so the road wins the depth fight with it. */
+export const ROAD_LIFT = 0.06;
+/** Footway either side of a carriageway. Fits inside SLOT.setback, so no building has to move. */
+export const SIDEWALK_WIDTH = 2.6;
+/** Kerb height. Enough to read as a step, low enough that nothing has to climb it. */
+export const SIDEWALK_LIFT = ROAD_LIFT + 0.18;
 
 const BASE_ROAD_TYPES = {
   street: { id: "street", name: "Street", width: 8, maxSpeed: 12 },

@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ROAD_TYPES, roadType, baseRoadTypeId, composeRoadTypeId, laneCentres, walkCentres } from "./roadTypes";
-
-const SIDEWALK_WIDTH = 2.6; // a stand-in for roadMesh.ts's own constant; walkCentres takes it as a plain number
+import { ROAD_TYPES, roadType, baseRoadTypeId, composeRoadTypeId, laneCentres, SIDEWALK_WIDTH, walkCentres } from "./roadTypes";
 
 describe("road type variants", () => {
   it("composes the four lane/one-way combinations for street, avenue, industrial, dirt, military, tunnel and highway", () => {

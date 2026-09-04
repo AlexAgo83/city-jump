@@ -1,12 +1,9 @@
-import type { Mesh } from "@babylonjs/core/Meshes/mesh";
-import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
-
-import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
-import type { TerrainBounds } from "../sim/heightmap";
-import type { JunctionArm } from "../sim/junction";
-import type { LaneCentre } from "../sim/roadTypes";
-import { laneRank, ringArc, ringEntryRadius } from "../sim/routing";
-import { type SignalCycle, signalAt, type SignalState } from "../sim/signals";
+import type { NodeId, RoadGraph, Segment, SegmentId } from "./graph";
+import type { TerrainBounds } from "./heightmap";
+import type { JunctionArm } from "./junction";
+import type { LaneCentre } from "./roadTypes";
+import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "./routing";
+import { type SignalCycle, signalAt, type SignalState } from "./signals";
 import {
   CROSSING_DEPTH,
   crossingNear,
@@ -23,8 +20,8 @@ import {
   walkRingRadius,
   type Ring,
   type WalkLoop,
-} from "../sim/transfers";
-import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
+} from "./transfers";
+import { normalizeXZ, perpXZ, v3, type Vec3 } from "./vec";
 
 /** Bumper to bumper: how much road a car keeps between itself and the one in front. */
 export const CAR_GAP = 8.5;
@@ -83,7 +80,6 @@ export interface Plan {
 
 /** Anything moving on the network: a car in a lane, or someone on a footway. */
 export interface Mover {
-  readonly mesh: Mesh | InstancedMesh;
   /** What it is -- "Saloon", "Tractor", "Tanker" -- for the selection panel. Walkers have none. */
   readonly vehicle: string;
   /** Someone on foot: a footway rather than a lane, and no lane changes to make. */
@@ -152,6 +148,27 @@ export function chooseLaneEntry(
   }
   if (lanes.length > 1 && !kerbLane && roll() < 0.5) return { lane: lanes[1]!, changing: lanes[0]!, plan };
   return { lane: start, changing: null, plan };
+}
+
+export function choosePlanAhead(
+  graph: RoadGraph,
+  segment: Segment,
+  direction: 1 | -1,
+  roll: number,
+  armOf: (nodeId: NodeId, segmentId: SegmentId) => JunctionArm | undefined,
+  ringLaneCount: (nodeId: NodeId) => number,
+): Plan | null {
+  const node = direction === 1 ? segment.b : segment.a;
+  const exit = pickExit(graph, node, segment.id, roll);
+  if (exit === null || exit === segment.id) return null;
+  const from = armOf(node, segment.id);
+  const to = armOf(node, exit);
+  if (!from || !to) return null;
+  if (graph.node(node).roundabout) {
+    const arc = ringArc(from.angle, to.angle);
+    return { node, exit, arc, rank: ringLaneCount(node) > 1 && arc > Math.PI ? 1 : 0 };
+  }
+  return { node, exit, arc: null, rank: turnLaneRank(from.outward, to.outward) };
 }
 
 export function laneQueueKeyFor(segmentId: SegmentId, direction: 1 | -1, lane: LaneCentre): number {

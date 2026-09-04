@@ -11,7 +11,16 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { NodeId, RoadGraph, Segment } from "../sim/graph";
 import type { Vec3 } from "../sim/vec";
 import type { TerrainBounds } from "../sim/heightmap";
-import { baseRoadTypeId, laneCentres, roadType, walkCentres, type RoadType } from "../sim/roadTypes";
+import {
+  baseRoadTypeId,
+  laneCentres,
+  ROAD_LIFT,
+  roadType,
+  SIDEWALK_LIFT,
+  SIDEWALK_WIDTH,
+  walkCentres,
+  type RoadType,
+} from "../sim/roadTypes";
 import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
@@ -42,14 +51,6 @@ import {
   ringWalkJoin,
   walkRingRadius,
 } from "../sim/transfers";
-
-/** Lifted off the ground so the road wins the depth fight with it. */
-export const ROAD_LIFT = 0.06;
-
-/** Footway either side of a carriageway. Fits inside SLOT.setback, so no building has to move. */
-export const SIDEWALK_WIDTH = 2.6;
-/** Kerb height. Enough to read as a step, low enough that nothing has to climb it. */
-export const SIDEWALK_LIFT = ROAD_LIFT + 0.18;
 
 /** A highway's guardrail, standing where a sidewalk would otherwise go. */
 const GUARDRAIL_HEIGHT = 0.85;
@@ -119,6 +120,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
   guardrailMaterial.backFaceCulling = false;
 
   let meshes: (Mesh | LinesMesh)[] = [];
+  let trafficMeshes: LinesMesh[] = [];
   let faded = false;
 
   /**
@@ -141,6 +143,71 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     }
   }
   let showTraffic = false;
+
+  function disposeTrafficOverlay(): void {
+    for (const mesh of trafficMeshes) mesh.dispose();
+    trafficMeshes = [];
+  }
+
+  function rebuildTrafficOverlay(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph)): void {
+    disposeTrafficOverlay();
+    if (!showTraffic) return;
+
+    for (const seg of graph.allSegments()) {
+      const type = roadType(seg.type);
+      if (type.tunnelDepth) {
+        const steps = Math.max(4, Math.ceil(seg.length / 8));
+        for (const [i, laneCentre] of laneCentres(type).entries()) {
+          const points = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT + 0.02, laneCentre.offset);
+          trafficMeshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
+        }
+        continue;
+      }
+
+      const { start, end } = segmentTrims(junctions, graph, seg.id);
+      const from = start;
+      const to = seg.length - end;
+      if (to - from < 0.25) continue;
+      const steps = Math.max(2, Math.ceil((to - from) / 2));
+
+      if (!type.pedestrian) {
+        for (const [i, laneCentre] of laneCentres(type).entries()) {
+          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, laneCentre.offset);
+          trafficMeshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
+        }
+        trafficMeshes.push(...laneChangeLines(scene, graph, seg, type, from, to, turnColor));
+      }
+      if (!type.highway) {
+        const walkLift = type.pedestrian ? MARK_LIFT + 0.02 : SIDEWALK_LIFT + 0.03;
+        for (const [i, walkCentre] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
+          const points = pointsBetween(graph, seg.id, from, to, steps, walkLift, walkCentre.offset);
+          trafficMeshes.push(styledLine(scene, `traffic_walk_${seg.id}_${i}`, points, walkCentre.direction === 1 ? walkOutbound : walkInbound));
+        }
+      }
+    }
+
+    for (const junction of junctions.values()) {
+      if (junction.roundabout > 0) {
+        const centre = graph.node(junction.node).pos;
+        const elevationAt = ringElevation(junction.arms, centre.y);
+        const radii = ringLaneRadii(graph, junction.node, junction.roundabout);
+        for (const [i, radius] of radii.entries()) {
+          const points = Array.from({ length: 65 }, (_, s) => {
+            const angle = (s / 64) * Math.PI * 2;
+            const y = elevationAt(angle) + MARK_LIFT + 0.02;
+            return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
+          });
+          trafficMeshes.push(styledLine(scene, `traffic_lane_roundabout_${junction.node}_${i}`, points, laneOutbound));
+        }
+        trafficMeshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
+      } else {
+        trafficMeshes.push(...junctionTurnLines(scene, graph, junction, turnColor));
+      }
+      for (const [i, path] of walkTransferPaths(graph, junction, junctions).entries()) {
+        trafficMeshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
+      }
+    }
+  }
 
   function rebuild(dirty?: TerrainBounds, junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph)): void {
     if (dirty) {
@@ -172,12 +239,6 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         tube.interior.isPickable = false;
         meshes.push(line, tube.shell, tube.interior);
         meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel));
-        if (showTraffic) {
-          for (const [i, laneCentre] of laneCentres(type).entries()) {
-            const points = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT + 0.02, laneCentre.offset);
-            meshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
-          }
-        }
         continue;
       }
 
@@ -261,30 +322,6 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));
       }
 
-      // The Traffic view: every physical lane drawn at the same offset a car in it actually
-      // uses, coloured by which direction it carries. An ordinary junction gets its own proper
-      // turn diagram (below, `junctionTurnLines`), so a lane line only has to reach its own trim.
-      if (showTraffic && !type.pedestrian) {
-        for (const [i, laneCentre] of laneCentres(type).entries()) {
-          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, laneCentre.offset);
-          meshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
-        }
-        // Where traffic crosses between the lanes it has: the middle third of the road, one
-        // weave per direction, drawn along the very path a car changing lane travels.
-        meshes.push(...laneChangeLines(scene, graph, seg, type, from, to, turnColor));
-      }
-      // Same idea for foot traffic: a path's own lane, or an ordinary road's sidewalks either
-      // side. A highway has no footway at all to draw one on. A path is paved at the carriageway's
-      // own height, but an ordinary road's sidewalk is a stepped-up mesh of its own -- the line has
-      // to clear that step too, or the sidewalk itself draws over it. An ordinary junction gets its
-      // own crossing diagram too (below), so a sidewalk line only has to reach its own trim.
-      if (showTraffic && !type.highway) {
-        const walkLift = type.pedestrian ? MARK_LIFT + 0.02 : SIDEWALK_LIFT + 0.03;
-        for (const [i, walkCentre] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
-          const points = pointsBetween(graph, seg.id, from, to, steps, walkLift, walkCentre.offset);
-          meshes.push(styledLine(scene, `traffic_walk_${seg.id}_${i}`, points, walkCentre.direction === 1 ? walkOutbound : walkInbound));
-        }
-      }
     }
 
     // A crossing wherever someone on foot has to walk over a carriageway to get where the
@@ -308,29 +345,6 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       if (dirty && !junctionTouchesBounds(junction, dirty)) continue;
       if (junction.roundabout > 0) {
         meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
-        // The Traffic view's own lane overlay: a roundabout is always one direction, so every
-        // lane on it reads as "outbound" -- there is no opposing lane to contrast it against.
-        if (showTraffic) {
-          const centre = graph.node(junction.node).pos;
-          const elevationAt = ringElevation(junction.arms, centre.y);
-          const radii = ringLaneRadii(graph, junction.node, junction.roundabout);
-          for (const [i, radius] of radii.entries()) {
-            const points = Array.from({ length: 65 }, (_, s) => {
-              const angle = (s / 64) * Math.PI * 2;
-              const y = elevationAt(angle) + MARK_LIFT + 0.02;
-              return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
-            });
-            meshes.push(styledLine(scene, `traffic_lane_roundabout_${junction.node}_${i}`, points, laneOutbound));
-          }
-          // How a car actually gets between an arm's lanes and that ring, drawn like the turn
-          // diagram an ordinary junction gets.
-          meshes.push(...roundaboutTurnLines(scene, graph, junction, radii, turnColor));
-          // And the same for people on foot: the footway circles the ring outside the kerb, and
-          // each arm's two walkways join it.
-          for (const [i, path] of walkTransferPaths(graph, junction, junctions).entries()) {
-            meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
-          }
-        }
         continue;
       }
       const mesh = junctionMesh(scene, junction);
@@ -340,15 +354,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(mesh);
       // The footways have to close around the junction too, or every sidewalk stops dead at it.
       meshes.push(...junctionFootway(scene, graph, junction, pavingMaterial));
-
-      if (showTraffic) {
-        meshes.push(...junctionTurnLines(scene, graph, junction, turnColor));
-        for (const [i, path] of walkTransferPaths(graph, junction, junctions).entries()) {
-          meshes.push(styledLine(scene, `traffic_walk_turn_${junction.node}_${i}`, lift(path, SIDEWALK_LIFT + 0.03), walkTurnColor));
-        }
-      }
     }
 
+    rebuildTrafficOverlay(junctions);
     applyFade();
   }
 
@@ -358,7 +366,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     setShowTraffic(next: boolean) {
       if (showTraffic === next) return;
       showTraffic = next;
-      rebuild();
+      rebuildTrafficOverlay();
     },
     setFaded(next: boolean) {
       // See buildings.ts's setFaded: reassigning transparencyMode to the value it already has,

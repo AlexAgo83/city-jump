@@ -11,6 +11,7 @@ import {
   accelerateToward,
   atSegmentLimit,
   chooseLaneEntry,
+  choosePlanAhead,
   joinLaneQueue,
   laneQueueIsOrdered,
   laneStartBlocked,
@@ -30,7 +31,7 @@ import {
   trimTransferFromMover,
   uTurnPath,
   walkJunctionTransfer,
-} from "./driving";
+} from "../sim/traffic";
 import { createTrafficRenderer } from "./traffic";
 
 describe("traffic queues", () => {
@@ -110,6 +111,36 @@ describe("traffic queues", () => {
     const kerb = chooseLaneEntry(lanes, 1, false, null, true, () => 0.9);
     expect(kerb.lane).toBe(lanes[0]);
     expect(kerb.changing).toBeNull();
+  });
+
+  it("plans the next exit and requested lane before the junction", () => {
+    const graph = new RoadGraph();
+    const west = graph.addNode(-100, 0);
+    const centre = graph.addNode(0, 0);
+    const south = graph.addNode(0, 100);
+    const incoming = graph.addSegment(west, centre, v3(-50, 0, 0), "street");
+    const exit = graph.addSegment(centre, south, v3(0, 0, 50), "street");
+    const arms = new Map([
+      [`${centre}:${incoming}`, { segment: incoming, angle: 0, outward: v3(-1, 0, 0) } as JunctionArm],
+      [`${centre}:${exit}`, { segment: exit, angle: Math.PI * 1.5, outward: v3(0, 0, 1) } as JunctionArm],
+    ]);
+    const armOf = (node: number, segment: number) => arms.get(`${node}:${segment}`);
+
+    expect(choosePlanAhead(graph, graph.segment(incoming), -1, 0, armOf, () => 1)).toBeNull();
+    expect(choosePlanAhead(graph, graph.segment(incoming), 1, 0, armOf, () => 1)).toEqual({
+      node: centre,
+      exit,
+      arc: null,
+      rank: 1,
+    });
+
+    graph.setRoundabout(centre, true, 2);
+    expect(choosePlanAhead(graph, graph.segment(incoming), 1, 0, armOf, () => 2)).toEqual({
+      node: centre,
+      exit,
+      arc: Math.PI * 1.5,
+      rank: 1,
+    });
   });
 
   it("eases up to target speed but brakes immediately", () => {

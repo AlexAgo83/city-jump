@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 87%
+> Progress: 93%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -75,6 +75,11 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4i.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4j.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4k.
+- 2026-09-04 validation: rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run typecheck, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting choosePlanAhead into src/render/driving.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after moving tested driving logic to src/sim/traffic.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting roof and foot decor mesh builders into src/render/decorMeshes.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/roadMesh.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after separating the Traffic view road overlay from road mesh rebuilds.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -89,6 +94,11 @@
 - 2026-09-04 wave 4i: moved walkJunctionTransfer, walkRingTransfer, and ringTransfer into src/render/driving.ts; the footway loop path selection now has direct headless coverage.
 - 2026-09-04 wave 4j: extracted chooseLaneEntry into src/render/driving.ts with direct headless coverage for walker fallback, planned lane changes, unplanned lane changes, and kerb-lane entry.
 - 2026-09-04 wave 4k: extracted stopLineDistance into src/render/driving.ts with direct coverage for crossing setback, reverse travel, and no-arm fallback.
+- 2026-09-04 wave 4l: extracted choosePlanAhead into src/render/driving.ts; src/render/traffic.ts now delegates pre-junction exit and requested-lane planning while the test covers no-exit, ordinary turn, and two-lane roundabout planning.
+- 2026-09-04 wave 4n: moved road lift/sidewalk constants to src/sim/roadTypes.ts and daylight lamp timing to src/sim/time.ts; app, scene, traffic, roadMesh, and streetlights no longer import pure traffic/time values from render modules.
+- 2026-09-04 wave 4o: extracted roof and foot decor prototype mesh builders into src/render/decorMeshes.ts; src/render/buildings.ts now keeps placement and rebuild wiring while importing the decor prototypes.
+- 2026-09-04 wave 4p: split the Traffic view road overlay into its own mesh list and rebuild path; toggling the overlay no longer rebuilds road surfaces.
+- 2026-09-04 wave 4q: extracted the traffic mover placement, queues, frame loop, and vehicle lookup helpers into src/render/trafficMovers.ts; src/render/traffic.ts is now a 74-line renderer facade around models, headlights, settings, and rebuild.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`
@@ -115,3 +125,4 @@
 - 2026-09-03 wave 3f: commit `9675795` moved wave verdict settlement into `settleWaveOutcome` and added `src/app/waveLoop.test.ts` for held-wave scheduling and breached-empty-city end state.
 - 2026-09-03 validation: `rtk npm exec -- vitest run src/app/waveLoop.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed after the wave outcome helper extraction.
 - Arbitration for the runner. May decide alone: (1) step C of item_125, per adr_006: move the driving logic to sim if and only if headless tests for it exist and pass, otherwise leave it in render and close as no-change. Do not ask; the gate is observable. (2) The linter in item_130: Biome unless something argues otherwise, since it covers lint and format in one dependency and there is no existing config to preserve. (3) Whether item_126 or item_127 needs its own ADR: raise one if the change alters what a layer may depend on, otherwise the backlog item is the record. Reserved for the owner: nothing. adr_006 settled the traffic seam and item_135's source locale is decided -- English first, further languages later.
+and item_135's source locale is decided -- English first, further languages later.

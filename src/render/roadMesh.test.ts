@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
 import { Vector3 } from "@babylonjs/core/Maths/math";
+import { Scene } from "@babylonjs/core/scene";
 
-import { portalOutline, segmentMeshTouchesBounds, sidewalkOuterCorner, tunnelSection, tunnelStripIndices } from "./roadMesh";
+import { RoadGraph } from "../sim/graph";
+import { v3 } from "../sim/vec";
+import { createRoadRenderer, portalOutline, segmentMeshTouchesBounds, sidewalkOuterCorner, tunnelSection, tunnelStripIndices } from "./roadMesh";
 
 describe("road mesh geometry", () => {
   it("builds a symmetrical arched tunnel section", () => {
@@ -69,5 +73,32 @@ describe("road mesh geometry", () => {
       { minX: -2, maxX: 2, minZ: 90, maxZ: 94 },
       ),
     ).toBe(false);
+  });
+
+  it("toggles the traffic overlay without rebuilding road meshes", () => {
+    const graph = new RoadGraph();
+    const a = graph.addNode(0, 0);
+    const b = graph.addNode(160, 0);
+    const id = graph.addSegment(a, b, v3(80, 0, 0), "avenue_2lane");
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
+    const roads = createRoadRenderer(scene, graph);
+
+    roads.rebuild();
+    const road = scene.getMeshByName(`road_${id}`);
+    const baseCount = scene.meshes.filter((mesh) => !mesh.name.startsWith("traffic_")).length;
+
+    roads.setShowTraffic(true);
+
+    expect(scene.getMeshByName(`road_${id}`)).toBe(road);
+    expect(scene.meshes.filter((mesh) => !mesh.name.startsWith("traffic_")).length).toBe(baseCount);
+    expect(scene.meshes.some((mesh) => mesh.name.startsWith("traffic_"))).toBe(true);
+
+    roads.setShowTraffic(false);
+
+    expect(scene.getMeshByName(`road_${id}`)).toBe(road);
+    expect(scene.meshes.filter((mesh) => mesh.name.startsWith("traffic_")).length).toBe(0);
+    scene.dispose();
+    engine.dispose();
   });
 });

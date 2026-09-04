@@ -11,23 +11,11 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { RoadGraph } from "../sim/graph";
 import type { TerrainBounds } from "../sim/heightmap";
 import { allJunctions, segmentTrims, type JunctionGeometry } from "../sim/junction";
-import { baseRoadTypeId, roadType } from "../sim/roadTypes";
+import { baseRoadTypeId, ROAD_LIFT, roadType } from "../sim/roadTypes";
+import { streetlightsOnAt } from "../sim/time";
 import { normalizeXZ, perpXZ } from "../sim/vec";
 import { createGroundShadow } from "./groundShadow";
-import { ROAD_LIFT, segmentMeshTouchesBounds } from "./roadMesh";
-
-/**
- * The hour a fresh city opens at: late enough for the light to be low and the lamps to be about to
- * come on, which is when the city looks like something. The slider in `index.html` carries the
- * same value as its own default -- that one is markup, this one is what the code starts from.
- */
-/** A run opens in daylight. It used to open at dusk and be dark within seconds. */
-export const DEFAULT_HOUR = 11;
-
-/** The hours streetlights burn -- and, with them, every headlight on the road. */
-export function streetlightsOnAt(hour: number): boolean {
-  return hour >= 20 || hour < 6.5;
-}
+import { segmentMeshTouchesBounds } from "./roadMesh";
 
 export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
   const lightCluster = new ClusteredLightContainer("streetlight_lights", [], scene);

@@ -44,7 +44,7 @@ import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
-import { DEFAULT_HOUR, streetlightsOnAt } from "../render/streetlights";
+import { DEFAULT_HOUR, streetlightsOnAt } from "../sim/time";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
 import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, settleWaveOutcome, type PendingMissile, type WaveVerdict } from "./waveLoop";

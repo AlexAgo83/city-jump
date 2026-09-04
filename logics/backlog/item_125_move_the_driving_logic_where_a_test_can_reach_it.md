@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 82%
+> Progress: 98%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -78,3 +78,9 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting walkJunctionTransfer, walkRingTransfer, and ringTransfer into src/render/driving.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting chooseLaneEntry into src/render/driving.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after extracting stopLineDistance into src/render/driving.ts.
+- 2026-09-04 validation: rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run typecheck, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting choosePlanAhead into src/render/driving.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after moving tested driving logic to src/sim/traffic.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm run test:architecture, rtk npm exec -- vitest run src/render/traffic.test.ts src/render/roadMesh.test.ts src/render/streetlights.test.ts src/sim/roadTypes.test.ts, rtk npm run lint, and rtk npm run ci passed after moving pure traffic/time constants out of render.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting roof and foot decor mesh builders into src/render/decorMeshes.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/roadMesh.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after separating the Traffic view road overlay from road mesh rebuilds.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
