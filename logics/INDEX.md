@@ -49,6 +49,7 @@
 | [prod_031_gates_that_check_what_they_claim](product/prod_031_gates_that_check_what_they_claim.md) | Gates that check what they claim | Settled |  |  | product/prod_031_gates_that_check_what_they_claim.md |
 | [prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read](product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md) | Tools that stay out of the way, and a wave whose aftermath the player can read | Proposed |  |  | product/prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read.md |
 | [prod_033_a_wave_you_watch_on_your_own_terms](product/prod_033_a_wave_you_watch_on_your_own_terms.md) | A wave you watch on your own terms | Proposed |  |  | product/prod_033_a_wave_you_watch_on_your_own_terms.md |
+| [prod_034_a_wave_the_player_sets_the_terms_of](product/prod_034_a_wave_the_player_sets_the_terms_of.md) | A wave the player sets the terms of | Proposed |  |  | product/prod_034_a_wave_the_player_sets_the_terms_of.md |
 
 ## Roadmaps
 
@@ -105,6 +106,7 @@
 | [req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them](request/req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them.md) | Close the gaps the 0.4.0 corpus review found in the gates that were meant to catch them | Done |  |  | request/req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them.md |
 | [req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath](request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md) | What playing 0.4.0 turned up in the zoning tools, the brush surface and the wave's aftermath | Ready |  |  | request/req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath.md |
 | [req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning](request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md) | Let the player keep the camera, let the batteries reach, and show a destroyed building burning | Ready |  |  | request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md |
+| [req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up](request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md) | Let the player set the bar a kaiju comes for, and fix what reading the spawn path turned up | Ready |  |  | request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md |
 
 ## Backlog
 
@@ -267,6 +269,10 @@
 | [item_155_give_the_two_effects_their_settings_toggles](backlog/item_155_give_the_two_effects_their_settings_toggles.md) | Give the two effects their settings toggles | Ready |  | 0% | backlog/item_155_give_the_two_effects_their_settings_toggles.md |
 | [item_156_file_show_fps_with_the_camera](backlog/item_156_file_show_fps_with_the_camera.md) | File Show FPS with the camera | Ready |  | 0% | backlog/item_156_file_show_fps_with_the_camera.md |
 | [item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it](backlog/item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it.md) | Sit the FPS counter beside the Wave panel instead of above it | Ready |  | 0% | backlog/item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it.md |
+| [item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000](backlog/item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000.md) | Make the residents bar a run rule, defaulting to 1000 | Ready |  | 0% | backlog/item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000.md |
+| [item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves](backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md) | Keep the scenario gate measuring six waves once the bar moves | Ready |  | 0% | backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md |
+| [item_160_let_a_kaiju_land_on_any_edge_of_the_map](backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md) | Let a kaiju land on any edge of the map | Ready |  | 0% | backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md |
+| [item_161_settle_the_two_loose_ends_in_the_assault_code](backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md) | Settle the two loose ends in the assault code | Ready |  | 0% | backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md |
 
 ## Tasks
 
@@ -316,6 +322,7 @@
 | [task_042_orchestrate_the_review_findings_work](tasks/task_042_orchestrate_the_review_findings_work.md) | Orchestrate the review-findings work | Done | codex | 100% | tasks/task_042_orchestrate_the_review_findings_work.md |
 | [task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work](tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md) | Orchestrate the zoning, brush surface and wave aftermath work | In progress | codex | 35% | tasks/task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work.md |
 | [task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work](tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md) | Orchestrate the camera, battery reach and destruction effects work | Ready |  | 0% | tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md |
+| [task_045_orchestrate_the_residents_bar_and_spawn_path_work](tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md) | Orchestrate the residents bar and spawn path work | Ready |  | 0% | tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md |
 
 ## Runbooks
 

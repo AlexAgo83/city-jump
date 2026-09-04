@@ -1,0 +1,480 @@
+{
+  "budgets": {
+    "max_docs": 48,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000.md",
+    "logics/backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md",
+    "logics/backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md",
+    "logics/backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md",
+    "logics/context-packs/residents-bar-and-spawn-path.json",
+    "logics/product/prod_034_a_wave_the_player_sets_the_terms_of.md",
+    "logics/request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md",
+    "logics/tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000 item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves item_160_let_a_kaiju_land_on_any_edge_of_the_map item_161_settle_the_two_loose_ends_in_the_assault_code task_045_orchestrate_the_residents_bar_and_spawn_path_work --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+          "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+          "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+          "item_161_settle_the_two_loose_ends_in_the_assault_code"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/product/prod_034_a_wave_the_player_sets_the_terms_of.md",
+      "ref": "prod_034_a_wave_the_player_sets_the_terms_of",
+      "sections": {
+        "Goals": [
+          "- The player sets when the island notices them, and that choice travels with their city.",
+          "- A number the simulation reads is passed to it, not left in module state for a setter to forget.",
+          "- The scenario gate keeps measuring six waves, and any value it pins for itself is written down.",
+          "- The whole map is a possible landing."
+        ],
+        "Key product decisions": [
+          "- The bar's linear shape stays; only its factor becomes a rule. The shape was chosen for the scenario gate and that reasoning still holds.",
+          "- The scenario harness pins the factor it needs and says so where it sets it. A harness quietly running different numbers from the game is only safe when the difference is written down.",
+          "- Raising the bar also raises the threat, because waveThreat reads population. That is a consequence to measure once -- alongside req_042's battery range -- not to tune away.",
+          "- Widening the landing edges keeps the deterministic seed hash. Reproducibility is what the gate is built on; variety is what was missing."
+        ],
+        "Overview": [
+          "One hardcoded number decides when the island notices you, and it is load-bearing three ways.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|a_wave_the_player_sets_the_terms_of|authored",
+          "flowchart TD",
+          "    Bar[\"waveAtPopulation = 180 x wave\"] --> Only[The only wave trigger: no timer anywhere]"
+        ],
+        "References": [
+          "- Product back-reference: `req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up`",
+          "- Task back-reference: `task_045_orchestrate_the_residents_bar_and_spawn_path_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A wave the player sets the terms of"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "waveAtPopulation factor, RunRules field, scenario gate six waves, threat reads population, landing edge ranking, destructionRadiusM unused, destroyed overwritten",
+        "skip when": "reworking the threat formula or the approach geometry to compensate, replacing the deterministic seed hash, or adding a save migration hook -- a defaulted rule needs none.",
+        "summary": "The residents bar that triggers a kaiju is a hardcoded 180 per wave and the operator wants 1000 plus a control. That number is the only wave trigger, it feeds the threat formula, and the reason it is 180 is written in the code and points at the scenario gate. Reading the spawn path to answer that also found a kaiju that can only land on two of four edges, an unused constant, and a drain the return type cannot report.",
+        "use when": "changing the wave trigger, the landing geometry, or anything in WAVE_STARTING_VALUES."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+          "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+          "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+          "item_161_settle_the_two_loose_ends_in_the_assault_code"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ]
+      },
+      "path": "logics/request/req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up.md",
+      "ref": "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The residents bar is a run rule the player can set, it defaults to 1000, and it travels with the save.",
+          "- The factor reaches the simulation as data rather than as module state, and no architecture rule has to be trusted to catch a missed setter.",
+          "- An old save loads with the new rule defaulted, and a save carrying a nonsense factor is refused or clamped rather than replayed.",
+          "- The scenario gate still measures six waves per seed, and the value it pins is recorded where the harness sets it.",
+          "- A kaiju can land on any of the four edges, and the landing stays reproducible from its seed.",
+          "- No constant in WAVE_STARTING_VALUES is unused."
+        ],
+        "Needs": [
+          "- The residents a city must hold before a kaiju comes for it is the player's choice, and it starts at 1000 rather than 180.",
+          "- A kaiju can land on any edge of the map, not on one of two.",
+          "- A constant that shapes the wave either does something or is not there.",
+          "- A building the kaiju destroyed is a building the city sees destroyed."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the player set the bar a kaiju comes for, and fix what reading the spawn path turned up"
+    },
+    {
+      "ai_context": {
+        "keywords": "RunRules field, readRun numeric validation, optional parameter idiom, terrain global anti-pattern, Gameplay row",
+        "skip when": "a mutable module global or a setWaveFactor installer, UiSettings as the home, and bumping SAVE_VERSION.",
+        "summary": "The wave trigger factor is hardcoded at 180. It becomes a RunRules field defaulting to 1000 -- saved with the city, validated on the way in, and threaded into sim as a parameter rather than left in module state.",
+        "use when": "adding a gameplay value the player sets, or passing a number into sim/."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/backlog/item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000.md",
+      "ref": "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A new run's bar is 1000 residents for wave 1, and 1000 per wave thereafter.",
+          "- The player can change the factor, and the change is visible in the waiting banner without a reload.",
+          "- The factor is saved with the city and comes back with it.",
+          "- A save with no factor loads at the default; one with a nonsense factor is refused or clamped, not replayed.",
+          "- The simulation receives the factor as an argument, and nothing in sim/ holds it as module state."
+        ],
+        "Problem": [
+          "- `waveAtPopulation(wave) = 180 * Math.max(1, wave)` (src/sim/wave.ts:20-22) is the only wave trigger in the game -- there is no timer -- and the factor is hardcoded. The operator wants 1000 and a control for it.",
+          "- `RunRules` (src/sim/run.ts:35-44) is the right home: it travels inside the save via `readRun` (src/sim/save.ts:211-227), it is shown in the toolbar's Gameplay row (index.html:347-362), and `setRunRules` (src/ui/runPanel.ts:84-86) already changes rules live mid-run. `UiSettings` is per-browser and is not saved with the city, so a factor kept there would mean a shared city is played at the receiver's bar.",
+          "- `readRun` validates all five current rules as `rules.X === true`, which has no shape for a number. A factor needs finiteness, a floor and a ceiling, and a missing value must default the way the booleans do so old saves stay loadable -- SAVE_VERSION is 13 and there is no migration hook.",
+          "- A mutable module-level global is the wrong carrier. That is the src/sim/terrain.ts pattern req_039 recorded as invisible to every architecture rule: import-direction tests cannot see state coupling, and a missed setter fails silently."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make the residents bar a run rule, defaulting to 1000"
+    },
+    {
+      "ai_context": {
+        "keywords": "scenario gate, six waves per seed, harness pinned factor, recorded reason update, balance band re-measure",
+        "skip when": "retuning the threat, reload or damage to recover the old band, and weakening what the gate asserts.",
+        "summary": "The 180 exists for the scenario gate: the harness ends at about 1,121 residents, which clears six bars at 180 and one at 1000. Without the harness pinning its own factor, the gate stops being evidence about waves 2 to 6.",
+        "use when": "changing a value the scenario harness depends on, or reading a scenario result."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/backlog/item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves.md",
+      "ref": "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- npm run scenarios still fights six waves per seed.",
+          "- The factor the harness uses is explicit at the point it is set, and says why it differs from the shipped default.",
+          "- The reason recorded in wave.ts describes the code as it now is.",
+          "- The band is re-measured once for this and req_042 together, and recorded with its reason."
+        ],
+        "Problem": [
+          "- The 180 exists for this gate. src/sim/wave.ts:18-20: \"Linear because the scenario gate asks for six waves inside a bounded run. A quadratic bar made wave 3 wait for 2,250 residents, so the harness measured two fights and guessed at the rest.\" A factor of 1000 puts wave 3 at 3,000 residents -- worse than the curve that reason rejected.",
+          "- Measured: the harness ends its runs at about 1,121 residents, which clears all six bars at a factor of 180 and one bar at 1000. The gate would drop from 31 waves fought to roughly one per seed and would stop being evidence about waves 2 to 6.",
+          "- `waveThreat` also reads population (src/sim/wave.ts:73-75), so the wave-1 threat goes from 2,752 HP to 10,132 HP at 29 parcels -- about 3.7 times -- and req_042 is doubling the battery range at the same time."
+        ]
+      },
+      "status": "Ready",
+      "title": "Keep the scenario gate measuring six waves once the bar moves"
+    },
+    {
+      "ai_context": {
+        "keywords": "landingPoint, edge ranking, bridge point, top-two slice, FNV-1a seed, reproducible landing",
+        "skip when": "real randomness, the coast ring's shape and wade-in distance, and moving the bridge point.",
+        "summary": "landingPoint ranks four edges by distance from a fixed bridge point and takes one of the two furthest. Those distances never change, so it is always north or east -- 600 seeds give 304 north, 296 east, zero west or south.",
+        "use when": "changing where a kaiju arrives from."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_160_let_a_kaiju_land_on_any_edge_of_the_map"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/backlog/item_160_let_a_kaiju_land_on_any_edge_of_the_map.md",
+      "ref": "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Over a range of seeds, all four edges occur.",
+          "- The edge nearest the bridge is still the least likely, and landing on the bridge is still avoided.",
+          "- The same seed still produces the same landing."
+        ],
+        "Problem": [
+          "- `landingPoint` (src/sim/kaiju.ts:88) ranks the four edges by distance from the `bridge` point `v3(-360, 0, 1500)` (src/app/waveLoop.ts:39) and takes `ranked[Math.floor(random(...) * 2)]` -- one of the two furthest.",
+          "- With `GROUND_SIZE = 5400` those distances never change: north 4200, east 3060, west 2340, south 1200. North and east are always the top two. Across 600 possible seeds: 304 north, 296 east, 0 west, 0 south.",
+          "- The intent -- do not land on the bridge -- is sound. The effect is that half the map is never a landing, in every game."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let a kaiju land on any edge of the map"
+    },
+    {
+      "ai_context": {
+        "keywords": "destructionRadiusM unused, destroyed overwritten, large tick drain, contract narrowing, combat step",
+        "skip when": "adding collateral damage as a feature unless that is what the constant turns out to mean, and changing the 0.25 s step.",
+        "summary": "destructionRadiusM is declared and used nowhere. And advanceKaijuAssault's loop can destroy two buildings in one call while `destroyed` holds one -- latent at the shipped 0.25 s step, but the comment invites the large ticks that would expose it.",
+        "use when": "changing the assault loop or auditing WAVE_STARTING_VALUES."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_161_settle_the_two_loose_ends_in_the_assault_code"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/backlog/item_161_settle_the_two_loose_ends_in_the_assault_code.md",
+      "ref": "item_161_settle_the_two_loose_ends_in_the_assault_code",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- No constant in WAVE_STARTING_VALUES is unused.",
+          "- A tick long enough to destroy two buildings either reports both or is refused, and a test covers it.",
+          "- The comment at src/sim/kaiju.ts:66 matches what the function actually guarantees."
+        ],
+        "Problem": [
+          "- `destructionRadiusM: 25` (src/sim/wave.ts:8) is declared and used nowhere in src/. Destruction is one named building at a time with no radius, so the constant is either an unwritten feature or a leftover.",
+          "- `advanceKaijuAssault` (src/sim/kaiju.ts:56-86) can destroy more than one building in a single call, but `destroyed` is one `Vec3` overwritten each iteration, and both callers handle one per tick (src/app/app.ts:614, src/sim/playthrough.ts:313). The comment at src/sim/kaiju.ts:66 invites large ticks: \"tests and future callers are not all locked to the 0.25 s combat step.\"",
+          "- It is latent rather than live -- both callers step at 0.25 s (src/sim/playthrough.ts:84) and a building takes 5 s to fall -- but the signature promises a drain the return type cannot report."
+        ]
+      },
+      "status": "Ready",
+      "title": "Settle the two loose ends in the assault code"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+          "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+          "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+          "item_161_settle_the_two_loose_ends_in_the_assault_code"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/product/prod_034_a_wave_the_player_sets_the_terms_of.md",
+      "ref": "prod_034_a_wave_the_player_sets_the_terms_of",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A wave the player sets the terms of"
+    },
+    {
+      "ai_context": {
+        "keywords": "operator confirmation, residents bar rule, scenario gate factor, landing edges, unused constant, tick drain",
+        "skip when": "building the rule before the two consequences of 1000 have been put to the operator.",
+        "summary": "Four slices, opening with a confirmation: show the operator that a factor of 1000 drops the gate from six waves per seed to one and roughly quadruples the wave-1 threat, then build the rule, keep the gate honest, widen the landing edges, and settle two loose ends.",
+        "use when": "implementing the residents bar and the spawn-path findings, in the order the plan sets."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+          "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+          "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+          "item_161_settle_the_two_loose_ends_in_the_assault_code"
+        ],
+        "prod": [
+          "prod_034_a_wave_the_player_sets_the_terms_of"
+        ],
+        "req": [
+          "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up"
+        ],
+        "task": [
+          "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+        ]
+      },
+      "path": "logics/tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md",
+      "ref": "task_045_orchestrate_the_residents_bar_and_spawn_path_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the residents bar and spawn path work"
+    }
+  ],
+  "estimates": {
+    "char_count": 17044,
+    "companion_doc_count": 1,
+    "doc_count": 7
+  },
+  "generated_at": "2026-09-04T18:19:52Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up",
+      "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+      "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+      "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+      "item_161_settle_the_two_loose_ends_in_the_assault_code",
+      "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up,item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000,item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves,item_160_let_a_kaiju_land_on_any_edge_of_the_map,item_161_settle_the_two_loose_ends_in_the_assault_code,task_045_orchestrate_the_residents_bar_and_spawn_path_work",
+  "refs": [
+    "req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up",
+    "item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000",
+    "item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves",
+    "item_160_let_a_kaiju_land_on_any_edge_of_the_map",
+    "item_161_settle_the_two_loose_ends_in_the_assault_code",
+    "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.4.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_045_orchestrate_the_residents_bar_and_spawn_path_work.md",
+      "ref": "task_045_orchestrate_the_residents_bar_and_spawn_path_work"
+    }
+  ]
+}
