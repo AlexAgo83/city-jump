@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 81%
+> Progress: 82%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -69,6 +69,7 @@
 - 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed after wave 4c.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4d.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4e.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4f.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -77,6 +78,7 @@
 - 2026-09-04 wave 4c: extracted the vehicle headlight pool, lamp emissive updates, and beam aiming into `src/render/vehicleLights.ts`; `src/render/traffic.ts` now delegates light sync/aiming while keeping traffic enablement and timing state.
 - 2026-09-04 wave 4d: moved the traffic mover types, driving constants, lane queue keys, and terrain dirty-bound helper into src/render/driving.ts; src/render/traffic.ts keeps the renderer loop and scene wiring.
 - 2026-09-04 wave 4e: extracted the repeated traffic speed target and acceleration step into src/render/driving.ts; the frame loop now calls speedForRoom and accelerateToward for road and ride movement.
+- 2026-09-04 wave 4f: extracted direction-aware road landing, segment limit, and room-ahead calculations into src/render/driving.ts with focused tests.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

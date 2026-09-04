@@ -117,6 +117,20 @@ export function segmentTouchesBounds(segment: Segment, bounds: TerrainBounds): b
   return segment.samples.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
 }
 
+export function landingDistance(segment: Segment, direction: 1 | -1, trim: number): number {
+  const at = Math.min(trim, segment.length * 0.45);
+  return direction === 1 ? at : segment.length - at;
+}
+
+export function segmentLimit(segment: Segment, direction: 1 | -1, trim: number): number {
+  const at = Math.min(trim, segment.length * 0.45);
+  return direction === 1 ? segment.length - at : at;
+}
+
+export function roomAhead(distance: number, stop: number, direction: 1 | -1): number {
+  return (stop - distance) * direction;
+}
+
 export function circularQueueRooms<T>(
   entries: readonly { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[],
 ): Map<T, number> {

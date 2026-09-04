@@ -3,7 +3,7 @@ import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
 import { Scene } from "@babylonjs/core/scene";
 import "@babylonjs/core/Meshes/instancedMesh";
 
-import { RoadGraph } from "../sim/graph";
+import { RoadGraph, type Segment } from "../sim/graph";
 import { v3 } from "../sim/vec";
 import {
   circularQueueRooms,
@@ -12,11 +12,14 @@ import {
   laneQueueIsOrdered,
   laneStartBlocked,
   leaveLaneQueue,
+  landingDistance,
   pedestrianCanCross,
   pedestrianCanStartCrossing,
+  roomAhead,
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
   scaledTrafficCount,
+  segmentLimit,
   speedForRoom,
   trafficLaneOffset,
 } from "./driving";
@@ -87,6 +90,18 @@ describe("traffic queues", () => {
     expect(accelerateToward(4, 10, 0.5)).toBe(6);
     expect(accelerateToward(9, 10, 0.5)).toBe(10);
     expect(accelerateToward(10, 3, 0.5)).toBe(3);
+  });
+
+  it("keeps segment distances direction-aware", () => {
+    const segment = { length: 100 } as Segment;
+
+    expect(landingDistance(segment, 1, 20)).toBe(20);
+    expect(landingDistance(segment, -1, 20)).toBe(80);
+    expect(landingDistance(segment, 1, 60)).toBe(45);
+    expect(segmentLimit(segment, 1, 20)).toBe(80);
+    expect(segmentLimit(segment, -1, 20)).toBe(20);
+    expect(roomAhead(40, 55, 1)).toBe(15);
+    expect(roomAhead(60, 45, -1)).toBe(15);
   });
 
   it("removes emptied lane queues", () => {

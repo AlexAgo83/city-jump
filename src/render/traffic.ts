@@ -59,11 +59,14 @@ import {
   circularQueueRooms,
   joinLaneQueue,
   laneStartBlocked,
+  landingDistance,
   leaveLaneQueue,
   pedestrianCanStartCrossing,
+  roomAhead,
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
   scaledTrafficCount,
+  segmentLimit,
   speedForRoom,
   trafficLaneOffset,
 } from "./driving";
@@ -209,11 +212,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     return { lane: start, changing: null, plan };
   }
 
-  function landingDistance(segment: Segment, direction: 1 | -1, trim: number): number {
-    const at = Math.min(trim, segment.length * 0.45);
-    return direction === 1 ? at : segment.length - at;
-  }
-
   function laneHasEntryRoom(segmentId: SegmentId, from: NodeId, lane: LaneCentre, trim: number): boolean {
     const segment = graph.segment(segmentId);
     const direction = segment.a === from ? 1 : -1;
@@ -314,8 +312,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
   /** The distance along the current segment at which the car has run out of road. */
   function limitOf(mover: Mover): number {
     const end = mover.direction === 1 ? mover.segment.b : mover.segment.a;
-    const trim = Math.min(trimAt(end, mover.segment.id), mover.segment.length * 0.45);
-    return mover.direction === 1 ? mover.segment.length - trim : trim;
+    return segmentLimit(mover.segment, mover.direction, trimAt(end, mover.segment.id));
   }
 
   /**
@@ -785,7 +782,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       // walker has nothing to rear-end and always heads at the kerb itself, so it gets no ease:
       // eased against its own exact target it would never quite arrive, and so never get asked
       // whether the crossing is clear.
-      const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now, occupancy) - mover.distance) * mover.direction;
+      const room = mover.walk ? Infinity : roomAhead(mover.distance, stopFor(mover, ahead.get(mover), now, occupancy), mover.direction);
       const target = speedForRoom(mover.speed, room);
       // Braking follows that curve straight down -- a car easing off is as responsive as before.
       // Pulling away is the other way round: speed catches up to the target rather than jumping
