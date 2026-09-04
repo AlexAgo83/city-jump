@@ -250,6 +250,33 @@ export function lotsInRect(cells: readonly BuildableCell[], minX: number, minZ: 
   });
 }
 
+/**
+ * A fill is bounded by the block the road solver already cut: same segment, side and block, then
+ * four-way neighbours by column/row. It crosses only lots that currently share the clicked lot's
+ * zone, so an already-painted strip is a hard edge.
+ */
+export function contiguousLotsFrom(cells: readonly BuildableCell[], x: number, z: number, zones?: Zones): BuildableCell[] {
+  const start = cells.find((cell) => pointInCell(v3(x, 0, z), cell));
+  if (!start) return [];
+  const targetZone = zoneForCell(zones, start);
+  const block = cells.filter((cell) => cell.segment === start.segment && cell.side === start.side && cell.block === start.block && zoneForCell(zones, cell) === targetZone);
+  const byGrid = new Map(block.map((cell) => [`${cell.column}:${cell.row}`, cell]));
+  const found: BuildableCell[] = [];
+  const queue = [start];
+  const seen = new Set<string>();
+  for (const cell of queue) {
+    const key = `${cell.column}:${cell.row}`;
+    if (seen.has(key) || !byGrid.has(key)) continue;
+    seen.add(key);
+    found.push(cell);
+    for (const [column, row] of [[cell.column - 1, cell.row], [cell.column + 1, cell.row], [cell.column, cell.row - 1], [cell.column, cell.row + 1]]) {
+      const next = byGrid.get(`${column}:${row}`);
+      if (next) queue.push(next);
+    }
+  }
+  return found;
+}
+
 export function buildableCellCentre(cell: Pick<BuildableCell, "corners">): { x: number; z: number } {
   return {
     x: cell.corners.reduce((sum, p) => sum + p.x, 0) / 4,

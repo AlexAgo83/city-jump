@@ -1,10 +1,10 @@
 ## item_143_zone_a_contiguous_run_of_lots_from_one_click - Zone a contiguous run of lots from one click
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -56,3 +56,6 @@
 # Priority
 - Priority: Medium
 - Rationale: The feature asked for, but it needs a contiguity rule settled first and nothing is broken while the brush still works.
+
+# Validation
+- 2026-09-05: Added Fill as the default zoning tool, with Brush beside it under the zone kinds. Fill uses `contiguousLotsFrom`, bounded to the clicked cell's segment, side and block, crossing only four-way neighbours that share the clicked lot's current zone. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/sim/slots.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`.

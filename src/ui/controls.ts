@@ -35,6 +35,7 @@ export function bindControls(handlers: {
   onGridSnap(enabled: boolean): void;
   onTreeSpecies(species: string): void;
   onSprayRadius(radius: number): void;
+  onZoneTool(tool: "brush" | "fill"): void;
   onZoneKind(kind: ZoneKind | "clear"): void;
   onZoneRadius(radius: number): void;
   onBuildings(visible: boolean): void;
@@ -239,6 +240,12 @@ export function bindControls(handlers: {
   on(document.getElementById("spray-radius")!, "input", (event) => {
     handlers.onSprayRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
+  for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-tool"]')) {
+    on(input, "change", () => {
+      if (!input.checked) return;
+      handlers.onZoneTool(input.value === "fill" ? "fill" : "brush");
+    });
+  }
   const zonePrice = document.getElementById("zone-price") as HTMLOutputElement;
   const updateZonePrice = (kind: ZoneKind | "clear"): void => {
     zonePrice.value = kind === "clear" ? "Clear" : "Zone";

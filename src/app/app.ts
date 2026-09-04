@@ -32,7 +32,7 @@ import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, UTILITY_CATALOG, Utilities } from "../sim/utilities";
-import { buildableCells, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildableCells, contiguousLotsFrom, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
@@ -740,6 +740,14 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         // Zoning changes what can be built, so the cell and parcel solve has to run again.
         scheduleBuildingRebuild();
       },
+      fill(x, z, kind) {
+        const lots = contiguousLotsFrom(currentBuildableCells, x, z, zones);
+        const changed = lots.some((lot) => zones.ofLot(lot) !== (kind ?? undefined));
+        if (!changed) return false;
+        zones.paintLots(lots, kind);
+        scheduleBuildingRebuild();
+        return true;
+      },
       /**
        * The overlay answers straight away -- it reads the zoning per cell, so it does not need the
        * cells re-solved to show the stroke -- and the lots follow on the debounced re-pack that
@@ -898,6 +906,9 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     },
     onSprayRadius(radius) {
       tool.setSprayRadius(radius);
+    },
+    onZoneTool(next) {
+      tool.setZoneTool(next);
     },
     onZoneKind(kind) {
       tool.setZoneKind(kind);
@@ -1162,7 +1173,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         const sum = cell.corners.reduce((point, corner) => ({ x: point.x + corner.x, y: point.y + corner.y, z: point.z + corner.z }), v3(0, 0, 0));
         return { x: sum.x / cell.corners.length, y: sum.y / cell.corners.length, z: sum.z / cell.corners.length };
       };
-      return currentBuildableCells.filter((cell) => cell.zone === kind).map(centreOf);
+      return currentBuildableCells.filter((cell) => zones.ofLot(cell) === kind).map(centreOf);
     },
     buildingPoint: (nearX?: number, nearZ?: number) => buildings.buildingPoint(nearX, nearZ),
     vehiclePoint: () => traffic.vehiclePoint(),

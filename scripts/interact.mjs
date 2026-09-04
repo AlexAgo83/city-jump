@@ -1116,7 +1116,9 @@ const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
 const zoneToolBox = await page.locator("#zone-tool-options").boundingBox();
 const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
-check("zoning tool choice sits above zone settings", zoneToolBox && zoneOptionsBox && zoneToolBox.y < zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
+check("zoning tool choice sits below zone settings", zoneToolBox && zoneOptionsBox && zoneToolBox.y > zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
+check("zoning fill is the default tool", await page.locator('input[name="zone-tool"][value="fill"]').isChecked());
+await page.locator('input[name="zone-tool"][value="brush"]').check();
 await page.locator("#zone-radius").evaluate((input) => {
   input.value = "56";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1159,6 +1161,31 @@ check(
     afterPausedPaint.money === beforePausedPaint.money,
   JSON.stringify({ zones: [beforePausedPaint.zones, afterPausedPaint.zones], money: [beforePausedPaint.money, afterPausedPaint.money] }),
 );
+await page.locator('input[name="zone-tool"][value="fill"]').check();
+await page.locator('input[name="zone-kind"][value="residential"]').check();
+const beforeFill = await stats();
+const beforeFillKinds = await page.evaluate(() => ({
+  commercial: window.cityjump.zonePoints("commercial").length,
+  residential: window.cityjump.zonePoints("residential").length,
+}));
+const fillZonePoint = await visibleZonePoint("commercial");
+if (!fillZonePoint) throw new Error("no visible commercial zone to fill");
+await click(fillZonePoint.x, fillZonePoint.y);
+const afterFill = await stats();
+const afterFillKinds = await page.evaluate(() => ({
+  commercial: window.cityjump.zonePoints("commercial").length,
+  residential: window.cityjump.zonePoints("residential").length,
+}));
+check("one click fills a contiguous run of lots", afterFillKinds.commercial < beforeFillKinds.commercial && afterFillKinds.residential > beforeFillKinds.residential, JSON.stringify({ before: beforeFillKinds, after: afterFillKinds }));
+check("zoning fill leaves the trees alone", afterFill.trees === beforeFill.trees, `${afterFill.trees} vs ${beforeFill.trees}`);
+await page.keyboard.press(`${shortcut}+Z`);
+await page.waitForFunction((count) => window.cityjump.zonePoints("commercial").length === count, beforeFillKinds.commercial, { timeout: 5_000 });
+check("zoning fill is one undo entry", await page.evaluate(() => window.cityjump.zonePoints("commercial").length) === beforeFillKinds.commercial);
+await click(fillZonePoint.x, fillZonePoint.y);
+await click(fillZonePoint.x, fillZonePoint.y);
+await page.keyboard.press(`${shortcut}+Z`);
+await page.waitForFunction((count) => window.cityjump.zonePoints("commercial").length === count, beforeFillKinds.commercial, { timeout: 5_000 });
+check("zoning fill that changes nothing records no undo entry", await page.evaluate(() => window.cityjump.zonePoints("commercial").length) === beforeFillKinds.commercial);
 // Press play: the check below, that zoning changes what gets built, is now also the check that the
 // clock is what builds it.
 await page.evaluate(() => window.cityjump.setPaused(false));
@@ -1563,8 +1590,9 @@ const trims = await page.evaluate((id) => {
 check("roads still meet the roundabout node", trims.every((d) => d < 1), `${trims.map((d) => d.toFixed(2))}`);
 
 // Clicking again takes it away.
+const beforeRoundaboutRemove = await stats();
 await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
-check("clicking it again removes the roundabout", (await stats()).roundabouts === 0);
+check("clicking it again removes the roundabout", (await stats()).roundabouts === beforeRoundaboutRemove.roundabouts - 1);
 await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
 
 // It has to survive a save.

@@ -70,6 +70,7 @@ export interface DrawTool {
   setRoadType(type: RoadTypeId): void;
   setTreeSpecies(species: string): void;
   setSprayRadius(radius: number): void;
+  setZoneTool(tool: "brush" | "fill"): void;
   setZoneKind(kind: ZoneKind | "clear"): void;
   setZoneRadius(radius: number): void;
   paintZoneAt(x: number, z: number, radius: number, kind: ZoneKind | null): void;
@@ -138,6 +139,7 @@ export interface NatureTools {
 
 export interface ZoneTools {
   paint(x: number, z: number, radius: number, kind: ZoneKind | null): void;
+  fill(x: number, z: number, kind: ZoneKind | null): boolean;
   /**
    * What a stroke of the brush actually changes: the zoning, and the lots that follow from it. The
    * ordinary commit rebuilds the world over its dirty box -- terrain, trees, roads, traffic,
@@ -205,6 +207,7 @@ export function createDrawTool(
   let utilityKind: UtilityKind = "power";
   let utilityRole: UtilityRole = "producer";
   let sprayRadius = SPRAY_RADIUS;
+  let zoneTool: "brush" | "fill" = "fill";
   let zoneRadius = ZONE_RADIUS;
   let preview: LinesMesh | null = null;
   let leftPointerDown = false;
@@ -416,7 +419,7 @@ export function createDrawTool(
 
   function onZoneMove(): void {
     const at = groundPoint();
-    moveSprayRing(at, zoneRadius);
+    moveSprayRing(zoneTool === "brush" ? at : null, zoneRadius);
   }
 
   function onMove(): void {
@@ -536,9 +539,12 @@ export function createDrawTool(
     }
     if (mode === "zone") {
       history?.beforeChange();
-      zones.paint(at.x, at.z, zoneRadius, zoneKind === "clear" ? null : zoneKind);
-      history?.afterChange(true);
-      zones.painted();
+      const kind = zoneKind === "clear" ? null : zoneKind;
+      let changed = true;
+      if (zoneTool === "fill") changed = zones.fill(at.x, at.z, kind);
+      else zones.paint(at.x, at.z, zoneRadius, kind);
+      history?.afterChange(changed);
+      if (changed) zones.painted();
       return;
     }
     if (mode === "utility") {
@@ -705,6 +711,10 @@ export function createDrawTool(
     },
     setSprayRadius(next) {
       sprayRadius = next;
+      resetDrawing();
+    },
+    setZoneTool(next) {
+      zoneTool = next;
       resetDrawing();
     },
     setZoneKind(next) {

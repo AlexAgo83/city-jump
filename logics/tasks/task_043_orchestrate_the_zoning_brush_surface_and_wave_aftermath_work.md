@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 55%
+> Progress: 75%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -67,7 +67,8 @@
 # Validation
 - 2026-09-04: `item_150` bulldozer delay slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/drawTool.test.ts`, and `rtk npm run test:e2e`; building and road bulldoze checks now assert the clicked target is removed immediately while the refund lands with the same action.
 - 2026-09-04: `item_147` evacuation slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/ui/controls.test.ts src/ui/runPanel.test.ts src/sim/kaiju.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`; evacuation now lands on a fresh autosaved island with banked prestige and the upgrade web still reachable.
-- 2026-09-04: `item_144` zoning tool panel slice passed with `rtk npm run typecheck` and `rtk npm run test:e2e`; the zoning tool choice now uses its own segmented panel above the zone settings.
+- 2026-09-04: `item_144` zoning tool panel slice passed with `rtk npm run typecheck` and `rtk npm run test:e2e`; the zoning tool choice now uses its own segmented panel.
+- 2026-09-05: `item_143` zoning fill slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/sim/slots.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`; Fill is the default tool under the zone kinds and changes one contiguous same-zone run without disturbing trees or adding no-op undo entries.
 
 # Report
 - Not started.

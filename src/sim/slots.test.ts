@@ -11,8 +11,10 @@ import {
   SLOT,
   LOW_RISE_SIZES,
   parcelsForDemand,
+  contiguousLotsFrom,
   lotsInRect,
   lotsWithin,
+  buildableCellCentre,
 } from "./slots";
 import { junctionRadius } from "./junction";
 import { v3, distXZ } from "./vec";
@@ -186,6 +188,23 @@ describe("slots", () => {
     const edgeZ = cell.corners.reduce((sum, corner) => sum + corner.z, 0) / cell.corners.length;
 
     expect(lotsWithin([cell], edgeX + 1, edgeZ, 3)).toEqual([cell]);
+  });
+
+  it("fills only contiguous cells with the clicked cell's current zone", () => {
+    const g = new RoadGraph();
+    const id = straight(g, -120, 0, 120, 0);
+    const cells = buildableCells(g);
+    const side = cells.filter((cell) => cell.segment === id && cell.side === 1 && cell.block === 0 && cell.row === 0).sort((a, b) => a.column - b.column);
+    const zones = new Zones();
+    const barrier = cells.filter((cell) => cell.segment === id && cell.side === 1 && cell.block === 0 && cell.column === side[2]!.column);
+    zones.paintLots(barrier, "commercial");
+
+    const start = buildableCellCentre(side[0]!);
+    const filled = contiguousLotsFrom(cells, start.x, start.z, zones);
+
+    expect(Math.max(...filled.map((cell) => cell.column))).toBeLessThan(side[2]!.column);
+    expect(new Set(filled.map((cell) => `${cell.segment}:${cell.side}:${cell.block}`))).toEqual(new Set([`${id}:1:0`]));
+    expect(filled.map((cell) => cell.column)).toContain(side[1]!.column);
   });
 });
 
