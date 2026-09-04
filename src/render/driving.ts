@@ -122,6 +122,37 @@ export interface FrameOccupancy {
   readonly ringRooms: Map<Mover, number>;
 }
 
+/** The lane a car should be in on a road, and the lane it starts in if it changes on the way. */
+export interface Entry {
+  readonly lane: LaneCentre;
+  readonly changing: LaneCentre | null;
+  readonly plan: Plan | null;
+}
+
+export function chooseLaneEntry(
+  lanes: readonly LaneCentre[],
+  direction: 1 | -1,
+  walk: boolean,
+  plan: Plan | null,
+  kerbLane: boolean,
+  roll: () => number,
+): Entry {
+  const fallback = { offset: 0, direction } as LaneCentre;
+  if (walk) return { lane: lanes[0] ?? fallback, changing: null, plan: null };
+
+  const entered = kerbLane
+    ? lanes.find((lane) => laneRank(lanes, lane) === 0)
+    : lanes[Math.floor(roll() * lanes.length)];
+  const start = entered ?? fallback;
+
+  if (plan && plan.rank >= 0 && lanes.length > 1) {
+    const wanted = lanes.find((lane) => laneRank(lanes, lane) === Math.min(plan.rank, lanes.length - 1)) ?? fallback;
+    return { lane: wanted, changing: wanted.offset === start.offset ? null : start, plan };
+  }
+  if (lanes.length > 1 && !kerbLane && roll() < 0.5) return { lane: lanes[1]!, changing: lanes[0]!, plan };
+  return { lane: start, changing: null, plan };
+}
+
 export function laneQueueKeyFor(segmentId: SegmentId, direction: 1 | -1, lane: LaneCentre): number {
   return segmentId * 10000 + (direction === 1 ? 5000 : 0) + Math.round((lane.offset + 100) * 10);
 }

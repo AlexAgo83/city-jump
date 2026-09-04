@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 85%
+> Progress: 86%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -73,6 +73,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4g.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4h.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4i.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4j.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -85,6 +86,7 @@
 - 2026-09-04 wave 4g: extracted stopTarget and atSegmentLimit into src/render/driving.ts; stop selection and segment-end checks now have headless coverage.
 - 2026-09-04 wave 4h: moved uTurnPath and trimTransferFromMover into src/render/driving.ts, with headless coverage for current-position path trimming and U-turn endpoints.
 - 2026-09-04 wave 4i: moved walkJunctionTransfer, walkRingTransfer, and ringTransfer into src/render/driving.ts; the footway loop path selection now has direct headless coverage.
+- 2026-09-04 wave 4j: extracted chooseLaneEntry into src/render/driving.ts with direct headless coverage for walker fallback, planned lane changes, unplanned lane changes, and kerb-lane entry.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

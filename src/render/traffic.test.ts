@@ -9,6 +9,7 @@ import {
   circularQueueRooms,
   accelerateToward,
   atSegmentLimit,
+  chooseLaneEntry,
   joinLaneQueue,
   laneQueueIsOrdered,
   laneStartBlocked,
@@ -86,6 +87,27 @@ describe("traffic queues", () => {
     expect(trafficLaneOffset(outer, inner, span, 80, 1)).toBeCloseTo(3);
     expect(trafficLaneOffset(outer, inner, span, 80, -1)).toBeCloseTo(-3);
     expect(trafficLaneOffset(outer, inner, span, 20, -1)).toBeCloseTo(3);
+  });
+
+  it("chooses lanes for walkers, planned turns, and kerb entries", () => {
+    const lanes = [
+      { offset: -2, direction: 1 as const },
+      { offset: 2, direction: 1 as const },
+    ];
+
+    expect(chooseLaneEntry([], 1, true, null, false, () => 0.9).lane).toEqual({ offset: 0, direction: 1 });
+
+    const planned = chooseLaneEntry(lanes, 1, false, { node: 1, exit: 2, arc: null, rank: 1 }, false, () => 0);
+    expect(planned.lane).toBe(lanes[1]);
+    expect(planned.changing).toBe(lanes[0]);
+
+    const drifting = chooseLaneEntry(lanes, 1, false, null, false, () => 0);
+    expect(drifting.lane).toBe(lanes[1]);
+    expect(drifting.changing).toBe(lanes[0]);
+
+    const kerb = chooseLaneEntry(lanes, 1, false, null, true, () => 0.9);
+    expect(kerb.lane).toBe(lanes[0]);
+    expect(kerb.changing).toBeNull();
   });
 
   it("eases up to target speed but brakes immediately", () => {

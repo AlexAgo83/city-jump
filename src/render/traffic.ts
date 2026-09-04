@@ -35,6 +35,7 @@ import {
   BRAKING,
   CAR_STOP_SETBACK,
   CAR_TURN_RATE,
+  type Entry,
   type FrameOccupancy,
   JUNCTION_PACE,
   laneQueueKey,
@@ -49,6 +50,7 @@ import {
   WALKER_TURN_RATE,
   accelerateToward,
   atSegmentLimit,
+  chooseLaneEntry,
   circularQueueRooms,
   joinLaneQueue,
   laneStartBlocked,
@@ -172,13 +174,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     );
   };
 
-  /** The lane a car should be in on a road, and the lane it starts in if it changes on the way. */
-  interface Entry {
-    readonly lane: LaneCentre;
-    readonly changing: LaneCentre | null;
-    readonly plan: Plan | null;
-  }
-
   /**
    * Which lane to travel this road in. What the junction at the end of it asks for, first of
    * all: a car that is turning belongs in the lane that turn is taken from, and moves over on
@@ -188,27 +183,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
    */
   function chooseEntry(mover: Mover, segment: Segment, direction: 1 | -1, kerbLane: boolean): Entry {
     const lanes = lanesFor(segment, direction, mover.walk);
-    const fallback = { offset: 0, direction } as LaneCentre;
-    // A footway has no lane to pick and no junction to line up for: it is just a side.
-    if (mover.walk) return { lane: lanes[0] ?? fallback, changing: null, plan: null };
-
-    const plan = planAhead(mover, segment, direction);
-    const entered = kerbLane
-      ? lanes.find((lane) => laneRank(lanes, lane) === 0)
-      : lanes[Math.floor(roll(mover) * lanes.length)];
-    const start = entered ?? fallback;
-
-    if (plan && plan.rank >= 0 && lanes.length > 1) {
-      const wanted = lanes.find((lane) => laneRank(lanes, lane) === Math.min(plan.rank, lanes.length - 1)) ?? fallback;
-      // Moving over happens along the road's own drawn weave, which is well before the junction.
-      return { lane: wanted, changing: wanted.offset === start.offset ? null : start, plan };
-    }
-    if (lanes.length > 1 && !kerbLane && roll(mover) < 0.5) {
-      // The weave is drawn from the first lane of this direction to the second; a car changing
-      // lane starts in the first so it travels the line that is drawn.
-      return { lane: lanes[1]!, changing: lanes[0]!, plan };
-    }
-    return { lane: start, changing: null, plan };
+    return chooseLaneEntry(lanes, direction, mover.walk, planAhead(mover, segment, direction), kerbLane, () => roll(mover));
   }
 
   function laneHasEntryRoom(segmentId: SegmentId, from: NodeId, lane: LaneCentre, trim: number): boolean {
