@@ -716,23 +716,34 @@ export async function importSharedCity(
   const hash = location.hash;
   const url = new URL(location.href);
   url.hash = "";
-  history.replaceState(null, "", url);
+  const clearHash = () => history.replaceState(null, "", url);
   let shared: SharedCity;
   try {
     shared = await decodeShare(hash);
   } catch (error) {
     showRefusal(`This share link could not be used: ${(error as Error).message}.`);
+    clearHash();
     return;
   }
-  if (!window.confirm(`Import "${shared.name}"?`)) return;
+  if (!window.confirm(`Import "${shared.name}"?`)) {
+    clearHash();
+    return;
+  }
   let name = shared.name;
   if (listSaves().includes(name) && !window.confirm(`Replace "${name}"?`)) {
     name = window.prompt("Save shared city as:", `${name} copy`)?.trim() ?? "";
-    if (!name) return;
+    if (!name) {
+      clearHash();
+      return;
+    }
   }
-  if (!writeSave(name, shared.city)) return showRefusal("Shared city could not be saved. Browser storage may be full or disabled.");
+  if (!writeSave(name, shared.city)) {
+    showRefusal("Shared city could not be saved. Browser storage may be full or disabled.");
+    clearHash();
+    return;
+  }
   writeActiveSave(name);
   refresh(name);
   if (window.confirm(`Load "${name}" now?`) && handlers.onLoad(shared.city)) applyCity(shared.city);
-  history.replaceState(null, "", url);
+  clearHash();
 }

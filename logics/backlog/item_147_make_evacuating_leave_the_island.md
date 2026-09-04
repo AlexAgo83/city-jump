@@ -1,10 +1,10 @@
 ## item_147_make_evacuating_leave_the_island - Make evacuating leave the island
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,6 @@
 # Priority
 - Priority: Medium
 - Rationale: A real friction in the run loop, but it waits on a decision about where prestige is spent, which is design work not repair.
+
+# Validation
+- 2026-09-04: Evacuation now banks science, opens a fresh island immediately, keeps the prestige web reachable there, hides the second new-run confirmation, and autosaves the fresh island. Updated the interaction checks for evacuation, share-link startup, and debug forced waves. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/ui/controls.test.ts src/ui/runPanel.test.ts src/sim/kaiju.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`.

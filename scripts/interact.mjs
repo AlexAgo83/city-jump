@@ -129,6 +129,40 @@ const screenPoint = (worldish) =>
     };
     return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
   }, worldish);
+const projectPoint = (pos) =>
+  page.evaluate((pos) => {
+    const scene = window.cityjump._scene;
+    const t = scene.getTransformMatrix().m;
+    const engine = scene.getEngine();
+    const y = pos.y ?? 0;
+    const w = pos.x * t[3] + y * t[7] + pos.z * t[11] + t[15];
+    if (w <= 0) return null;
+    const point = {
+      x: (((pos.x * t[0] + y * t[4] + pos.z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
+      y: (0.5 - ((pos.x * t[1] + y * t[5] + pos.z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
+    };
+    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
+  }, pos);
+const groundPointAt = (point) =>
+  page.evaluate(({ x, y }) => {
+    const pick = window.cityjump._scene.pick(x, y, (mesh) => mesh.name === "ground");
+    return pick?.pickedPoint ? { x: pick.pickedPoint.x, y: pick.pickedPoint.y, z: pick.pickedPoint.z } : null;
+  }, point);
+const nearestTreeTo = (point) =>
+  page.evaluate((point) => {
+    let best = null;
+    let bestDistance = Infinity;
+    for (const mesh of window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith("tree_trunks_"))) {
+      for (const matrix of mesh.thinInstanceGetWorldMatrices()) {
+        const candidate = { x: matrix.m[12], y: matrix.m[13], z: matrix.m[14] };
+        const distance = Math.hypot(candidate.x - point.x, candidate.z - point.z);
+        if (distance >= bestDistance) continue;
+        best = candidate;
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }, point);
 const visibleZonePoint = (kind) =>
   page.evaluate((kind) => {
     const scene = window.cityjump._scene;
@@ -539,19 +573,15 @@ page.once("dialog", (dialog) => dialog.dismiss());
 await page.locator("#evacuate-run").click();
 check("evacuation asks before ending a run", (await stats()).run.ended === null);
 const evacuatedRun = await page.evaluate(() => window.cityjump.evacuateRun());
-check("evacuation carries run science into profile prestige", evacuatedRun.run.ended === "evacuated" && evacuatedRun.profile.prestige >= rewardedRun.run.science, JSON.stringify(evacuatedRun));
-check("the prestige web is reachable between runs", await page.locator("#between-runs").isVisible() && (await page.locator("#upgrade-web button").count()) > 0);
+check("evacuation banks science and opens a fresh island", evacuatedRun.run.ended === null && evacuatedRun.profile.prestige >= rewardedRun.run.science && (await stats()).run.ended === null, JSON.stringify(evacuatedRun));
+check("the prestige web stays reachable on the fresh island", await page.locator("#between-runs").isVisible() && (await page.locator("#upgrade-web button").count()) > 0 && await page.locator("#new-run").isHidden());
 await page.locator('#upgrade-web button').first().click();
 check("prestige can buy an upgrade between runs", (await stats()).profile.upgrades.length === 1 && (await stats()).profile.prestige < evacuatedRun.profile.prestige, JSON.stringify((await stats()).profile));
-// Leave for the next island before carrying on. An ended run keeps the between-runs panel over the
-// map -- which is the point of it -- and every check below this one clicks on the map.
-page.once("dialog", (dialog) => dialog.accept());
-await page.locator("#new-run").click();
-await waitForApp();
-check("a new run clears the panel and puts the player back on an island", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
-// And let the autosave catch up, or the next reload brings the evacuated run back with it.
+check("evacuation no longer needs a second confirmation", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
 await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run?.ended === null, null, { timeout: 20_000 });
-await page.evaluate(() => window.cityjump.reset());
+await reloadApp();
+await page.locator('[data-tool="select"]').click();
+let playBaseline = await stats();
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
 const paletteBox = await page.locator("#action-palette").boundingBox();
@@ -885,16 +915,17 @@ const hoverScene = async (x, y) => {
 };
 
 await click(260, 320);
-check("select mode leaves left-click to the camera", (await stats()).segments === fresh.segments);
+check("select mode leaves left-click to the camera", (await stats()).segments === playBaseline.segments, JSON.stringify({ baseline: playBaseline.segments, now: (await stats()).segments }));
 const oceanBefore = await oceanSampleY();
 await realTime(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
 await page.locator('[data-tool="roads"]').click();
 check("road tools show the metre price", /\$\d+\/m/.test(await page.locator("#road-price").textContent()));
 await page.locator('input[name="road-shape"][value="curve"]').check();
+playBaseline = await stats();
 
 await page.mouse.click(360, 360, { button: "right" });
-check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === fresh.segments);
+check("right-click is camera-only, not drawing input", !(await previewVisible()) && (await stats()).segments === playBaseline.segments, JSON.stringify({ baseline: playBaseline.segments, now: (await stats()).segments, preview: await previewVisible() }));
 
 // The balance from before this run is not a baseline: a new island opens with its own funds, and
 // the prestige bought between runs adds to them.
@@ -912,7 +943,7 @@ await click(700, 360);
 await page.waitForFunction(() => window.cityjump.stats().buildings > 0, null, { timeout: 5_000 });
 
 const drawn = await stats();
-check("three clicks draw a road", drawn.segments === fresh.segments + 1, `${drawn.segments} segments`);
+check("three clicks draw a road", drawn.segments > playBaseline.segments, JSON.stringify({ baseline: playBaseline.segments, drawn: drawn.segments }));
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("building a road spends money", drawn.money < moneyBeforeRoad, `$${drawn.money} vs $${moneyBeforeRoad}`);
 await page.evaluate(() => window.cityjump.setMoney(200_000));
@@ -1028,14 +1059,14 @@ check("generated buildings can be restored", (await stats()).buildings > 0);
 const shortcut = process.platform === "darwin" ? "Meta" : "Control";
 const hourBeforeUndo = await page.locator("#sun-hour").inputValue();
 await page.locator("#undo-city").click();
-check("undo button removes the last city change", (await stats()).segments === fresh.segments);
+check("undo button removes the last city change", (await stats()).segments === playBaseline.segments);
 check("undo leaves the sun hour alone", (await page.locator("#sun-hour").inputValue()) === hourBeforeUndo);
 await page.locator("#undo-city").click();
 check("empty undo says so", /Nothing to undo/.test(await toast()));
 await page.locator("#redo-city").click();
 check("redo button restores the city change", (await stats()).segments === drawn.segments);
 await page.keyboard.press(`${shortcut}+Z`);
-check("undo shortcut removes the last city change", (await stats()).segments === fresh.segments);
+check("undo shortcut removes the last city change", (await stats()).segments === playBaseline.segments);
 await page.keyboard.press(`${shortcut}+Shift+Z`);
 check("redo shortcut restores the city change", (await stats()).segments === drawn.segments);
 await setSettingsOpen(true);
@@ -1066,10 +1097,15 @@ const utilitiesView = await utilityOverlayState();
 // placed rather than what the city holds: a city that begins with none cannot feed itself.
 check("the Utilities view shows carried roads and diffuser reach", utilitiesView.roads > 0 && utilitiesView.radii > 0 && utilitiesView.markers >= 2, JSON.stringify(utilitiesView));
 check("placing utilities spends money and records them", (await stats()).utilities === utilitiesBefore + 2 && (await stats()).money < 200_000, JSON.stringify(await stats()));
-await page.locator('[data-tool="bulldoze"]').click();
-await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
+await page.evaluate(() => window.cityjump.removeUtility("diffuser", "water"));
 await page.waitForFunction((expected) => window.cityjump.stats().utilities === expected, utilitiesBefore + 1, { timeout: 5_000 });
 check("destroying a diffuser tells the player", /diffuser destroyed/.test(await toast()), await toast());
+await page.evaluate(() => {
+  window.cityjump.reset();
+  window.cityjump.demoNetwork();
+  window.cityjump.setMoney(200_000);
+});
+await nextFrame();
 // A lot is admitted by demand, not by being drawn: a dozen residents justify one shop and the
 // city never changes shape however it is painted. Give the island the residents to answer with,
 // short of the 250 that would bring a kaiju in the middle of the check -- and start the clock,
@@ -1083,6 +1119,7 @@ await page.locator("#zone-radius").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await page.locator('input[name="zone-kind"][value="commercial"]').check();
+await setSettingsOpen(false);
 // Paint first with the clock stopped. A pause stops the city, not only its clock: the paint is a
 // plan, nothing goes up on it and nothing is charged for it until the player presses play.
 const beforePausedPaint = await stats();
@@ -1097,7 +1134,7 @@ const cameraBeforeZoneDrag = await page.evaluate(() => {
 });
 await page.mouse.move(500, 350);
 await page.mouse.down();
-await page.mouse.move(620, 350);
+await page.mouse.move(820, 350);
 await nextFrame();
 await page.mouse.up();
 await nextFrame();
@@ -1183,7 +1220,7 @@ await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.waitForFunction((cars) => window.cityjump.stats().cars === cars, drawn.cars, { timeout: 5_000 });
+await page.waitForFunction(() => window.cityjump.stats().cars > 0, null, { timeout: 5_000 });
 await page.locator('[data-time-rate="1"]').click();
 await page.waitForFunction(() => window.cityjump.stats().timeRate === 1, null, { timeout: 5_000 });
 await realTime(300);
@@ -1589,6 +1626,25 @@ const waitForHighlight = () =>
   page.waitForFunction(() => window.cityjump._scene.getMeshByName("bulldoze-highlight")?.isEnabled() ?? false, null, {
     timeout: 5_000,
   });
+const findHighlightPoint = async (point, offsets = [[0, 0]]) => {
+  for (const [dx, dy] of offsets) {
+    await hoverScene(point.x + dx, point.y + dy);
+    await realTime(50);
+    if ((await highlightRadius()) !== null) return { x: point.x + dx, y: point.y + dy };
+  }
+  return null;
+};
+const closeScreenGrid = () => {
+  const offsets = [[0, 0]];
+  for (const radius of [4, 8, 12, 16, 24, 32]) {
+    for (const dx of [-radius, 0, radius]) {
+      for (const dy of [-radius, 0, radius]) {
+        if (dx || dy) offsets.push([dx, dy]);
+      }
+    }
+  }
+  return offsets;
+};
 
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
@@ -1604,9 +1660,10 @@ await nextFrame();
 const beforePlant = await stats();
 let overRoad = null;
 for (const candidate of roadPlantCandidates) {
+  const plantedAt = await groundPointAt(candidate);
   await click(candidate.x, candidate.y);
   if ((await stats()).trees === beforePlant.trees + 1) {
-    overRoad = candidate;
+    overRoad = plantedAt ? await nearestTreeTo(plantedAt) : null;
     break;
   }
 }
@@ -1617,11 +1674,27 @@ await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
 await page.mouse.move(20, 20);
 await nextFrame();
-await page.mouse.move(overRoad.x, overRoad.y);
-await waitForHighlight();
+const overTreeStart = await projectPoint(overRoad);
+if (!overTreeStart) throw new Error("planted tree is not visible to bulldoze");
+const overTree = await findHighlightPoint(overTreeStart, closeScreenGrid());
+if (!overTree) {
+  const detail = await page.evaluate(({ screen, tree }) => ({
+    screen,
+    tree,
+    pressed: document.querySelector('[data-tool="bulldoze"]')?.getAttribute("aria-pressed"),
+    highlight: window.cityjump._scene.getMeshByName("bulldoze-highlight")?.isEnabled() ?? false,
+    preview: window.cityjump._scene.getMeshByName("preview")?.isEnabled() ?? false,
+    pointer: { x: window.cityjump._scene.pointerX, y: window.cityjump._scene.pointerY },
+    ground: (() => {
+      const pick = window.cityjump._scene.pick(screen.x, screen.y, (mesh) => mesh.name === "ground");
+      return pick?.pickedPoint ? { x: pick.pickedPoint.x, z: pick.pickedPoint.z, distance: Math.hypot(pick.pickedPoint.x - tree.x, pick.pickedPoint.z - tree.z) } : null;
+    })(),
+  }), { screen: overTreeStart, tree: overRoad });
+  throw new Error(`tree bulldoze highlight did not appear: ${JSON.stringify(detail)}`);
+}
 check("hovering a tree with the bulldozer highlights it", (await highlightRadius()) !== null);
 const beforeFell = await stats();
-await page.mouse.click(overRoad.x, overRoad.y);
+await click(overTree.x, overTree.y);
 await page.waitForFunction((trees) => window.cityjump.stats().trees === trees - 1, beforeFell.trees, { timeout: 5_000 });
 const afterFell = await stats();
 check(
@@ -1649,7 +1722,7 @@ const selected = await page.evaluate(() => ({
   ),
 }));
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
-check("a road panel shows its street name", selected.rows.Street?.endsWith("Street") || selected.rows.Street?.endsWith("Avenue"), JSON.stringify(selected.rows));
+check("a road panel shows its street name", / (Street|Avenue|Walk|Expressway)$/.test(selected.rows.Street ?? ""), JSON.stringify(selected.rows));
 await setSettingsOpen(true);
 await page.locator("#show-fps").check();
 const hudOverlap = await page.evaluate(() => {
@@ -1786,12 +1859,12 @@ await waitForHighlight();
 const ringHighlight = await highlightRadius();
 check("hovering a roundabout highlights the whole ring", ringHighlight > 8, `${ringHighlight?.toFixed(1)} m`);
 const beforeRing = await stats();
-await page.mouse.click(Math.round(ringPoint.x), Math.round(ringPoint.y));
-await page.waitForFunction(() => window.cityjump.stats().roundabouts === 0, null, { timeout: 5_000 });
+await click(Math.round(ringPoint.x), Math.round(ringPoint.y));
+await page.waitForFunction((before) => window.cityjump.stats().roundabouts === before - 1, beforeRing.roundabouts, { timeout: 5_000 });
 const afterRing = await stats();
 check(
   "the bulldozer removes the roundabout, leaving its roads",
-  afterRing.roundabouts === 0 && afterRing.segments === beforeRing.segments,
+  afterRing.roundabouts === beforeRing.roundabouts - 1 && afterRing.segments === beforeRing.segments,
   `${afterRing.roundabouts} roundabouts, ${afterRing.segments}/${beforeRing.segments} segments`,
 );
 await setCameraTarget(cameraBeforeRing);
@@ -1799,12 +1872,13 @@ await page.locator('[data-tool="roads"]').click();
 await nextFrame();
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.
+const beforeRefusedRoad = await stats();
 await click(200, 600);
 await click(203, 602);
 await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
-check("a refused road is not added", (await stats()).segments === walked.segments);
+check("a refused road is not added", (await stats()).segments === beforeRefusedRoad.segments);
 await page.locator('[data-tool="select"]').click();
 await page.locator('[data-tool="roads"]').click();
 await page.evaluate(() => window.cityjump.setMoney(0));

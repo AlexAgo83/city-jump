@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 35%
+> Progress: 45%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -66,6 +66,7 @@
 
 # Validation
 - 2026-09-04: `item_150` bulldozer delay slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/drawTool.test.ts`, and `rtk npm run test:e2e`; building and road bulldoze checks now assert the clicked target is removed immediately while the refund lands with the same action.
+- 2026-09-04: `item_147` evacuation slice passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/ui/controls.test.ts src/ui/runPanel.test.ts src/sim/kaiju.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`; evacuation now lands on a fresh autosaved island with banked prestige and the upgrade web still reachable.
 
 # Report
 - Not started.

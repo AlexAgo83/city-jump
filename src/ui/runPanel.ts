@@ -3,6 +3,8 @@ import { buyUpgrade, FIRST_UPGRADE_WEB, type ProfileState, type RunState } from 
 export interface RunPanel {
   renderGameplayRules(): void;
   renderUpgradeWeb(): void;
+  showUpgradeWeb(outcome: string): void;
+  hideUpgradeWeb(): void;
   dispose(): void;
 }
 
@@ -38,6 +40,7 @@ export function bindRunPanel(options: {
   const upgradeWeb = document.getElementById("upgrade-web") as HTMLSpanElement;
   const runOutcome = document.getElementById("run-outcome") as HTMLSpanElement;
   const newRunButton = document.getElementById("new-run") as HTMLButtonElement;
+  let upgradeOutcome: string | null = null;
 
   const panel: RunPanel = {
     renderGameplayRules() {
@@ -68,14 +71,25 @@ export function bindRunPanel(options: {
           if (next === current) return options.showRefusal("Not enough prestige.");
           options.setProfile(next);
           options.updateRunHud();
+          upgradeOutcome = null;
           panel.renderUpgradeWeb();
         });
         return button;
       }));
-      betweenRuns.hidden = !run.ended;
-      runOutcome.textContent = run.ended === "evacuated" ? `Evacuated with ${Math.floor(run.science)} science.`
+      const endedOutcome = run.ended === "evacuated" ? `Evacuated with ${Math.floor(run.science)} science.`
         : run.ended === "population_zero" ? "The island emptied."
         : run.ended === "defeated" ? "The city was levelled." : "";
+      runOutcome.textContent = endedOutcome || upgradeOutcome || "";
+      betweenRuns.hidden = runOutcome.textContent === "";
+      newRunButton.hidden = !run.ended;
+    },
+    showUpgradeWeb(outcome) {
+      upgradeOutcome = outcome;
+      panel.renderUpgradeWeb();
+    },
+    hideUpgradeWeb() {
+      upgradeOutcome = null;
+      panel.renderUpgradeWeb();
     },
     dispose() {
       for (const dispose of disposers.splice(0)) dispose();

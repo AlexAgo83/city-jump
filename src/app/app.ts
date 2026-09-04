@@ -811,6 +811,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
    * second rebuild to be seen.
    */
   const startFreshRun = async (): Promise<void> => {
+    runPanel.hideUpgradeWeb();
     loadCity(starterCity(await readStarterKit()));
     addStarterUtilities();
     rebuild();
@@ -818,6 +819,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // by loading a city. Without this, a new island opened still reading "The island emptied".
     runPanel.renderUpgradeWeb();
     updateWave(0);
+    writeAutosave(snapshot(true));
   };
   const endRun = (): void => {
     setTimeRate(0);
@@ -825,14 +827,16 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     updateRunHud();
     runPanel.renderUpgradeWeb();
   };
-  const finishByEvacuation = (): void => {
+  const finishByEvacuation = async (): Promise<void> => {
     if (runState.ended) return;
+    const science = Math.floor(runState.science);
     runState = evacuate(runState);
     profile = carryScience(profile, runState);
     writeProfile(profile);
-    writeAutosave(snapshot(true));
-    endRun();
-    showRefusal(`Evacuated with ${Math.floor(runState.science)} science. Start a new run when you are ready.`);
+    await startFreshRun();
+    setTimeRate(0);
+    runPanel.showUpgradeWeb(`Evacuated with ${science} science.`);
+    showRefusal(`Evacuated with ${science} science. Spend prestige, then resume the new island.`);
   };
   runPanel = bindRunPanel({
     getRun: () => runState,
@@ -998,9 +1002,10 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   // Pick up where the last session stopped. A city the player never named is still their work; only
   // when there is nothing to resume does the island open fresh, which is also what spares the
   // starter-kit fetch on every reload of a city already in progress.
-  const resumed = readAutosave();
+  const importingSharedCity = location.hash.startsWith("#city=");
+  const resumed = importingSharedCity ? null : readAutosave();
   if (resumed && loadCity(resumed)) controls!.applyCity(resumed);
-  else await startFreshRun();
+  else if (!importingSharedCity) await startFreshRun();
   updateRunHud();
 
   // Resumes wherever the camera was left, instead of snapping back to the default framing on
@@ -1137,6 +1142,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     simHour: sunHour,
   }), { controller: drawController, setWorldGridVisible: worldGrid.setVisible, measureFps, extra: (debugApi) => ({
     reset() {
+      tool.cancel();
       resetWave();
       runState = createRun();
       updateRunHud();
@@ -1193,6 +1199,14 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       applyRunRuleEffects();
       return runState.rules;
     },
+    removeUtility(role: "producer" | "diffuser", kind: "power" | "water") {
+      const item = utilities.toJSON().slice().reverse().find((candidate) => candidate[0] === role && candidate[1] === kind);
+      const removed = item ? utilities.removeNear(graph, item[2], item[3], 10) : null;
+      if (!removed) return false;
+      rebuild();
+      showAlert(`${removed[1]} ${removed[0]} destroyed.`);
+      return true;
+    },
     measureBuildingStateChange() {
       const started = performance.now();
       simSeconds += BUILDING_STAGE_SECONDS;
@@ -1213,8 +1227,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     forceWave(seconds = 0) {
       waveClock = callWaveNow(waveClock, waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length));
       startWave("debug");
-      waveClock = { ...waveClock, elapsedSeconds: waveClock.active ? waveClock.active.startedAtSeconds + seconds : waveClock.elapsedSeconds };
-      if (seconds > 0) updateWave(seconds);
+      const rubbleBefore = rubble.count();
+      for (let remaining = seconds; remaining > 0 && waveClock.active && rubble.count() === rubbleBefore; remaining -= 5) updateWave(Math.min(remaining, 5));
     },
     forceHeldWave() {
       if (!waveClock.active) {
@@ -1224,8 +1238,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       waveClock = damageWaveClock(waveClock, WAVE_STARTING_VALUES.kaijuHitPoints);
       finishWave("held");
     },
-    evacuateRun() {
-      finishByEvacuation();
+    async evacuateRun() {
+      await finishByEvacuation();
       return { run: runState, profile };
     },
   }) });
