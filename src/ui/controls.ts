@@ -696,7 +696,7 @@ function bindSaves(
   };
 }
 
-async function importSharedCity(
+export async function importSharedCity(
   handlers: { onLoad(city: CitySave): boolean },
   applyCity: (city: CitySave) => void,
   refresh: (selected?: string) => void,

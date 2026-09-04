@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 45%
+> Progress: 60%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -52,3 +52,6 @@
 # Priority
 - Priority: High
 - Rationale: It is the trust boundary the whole threat model is written about, and it is the only untested step in that path.
+
+# Validation
+- 2026-09-04: Exported importSharedCity for direct testing and added src/ui/controls.test.ts for good import/load, malformed and oversized refusal without saves, and replay refusal without applying the city. Validated with rtk npm exec -- vitest run src/ui/controls.test.ts src/sim/share.test.ts src/sim/save.test.ts and rtk npm run typecheck.
