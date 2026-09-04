@@ -1,12 +1,17 @@
 export const WAVE_STARTING_VALUES = {
   kaijuSpeedMps: 16,
   kaijuHitPoints: 900,
-  batteryRangeM: 220,
+  // Twice the original 220 m so one barracks can defend the city block it stands in.
+  batteryRangeM: 440,
   damagePerParcelCell: 14,
   reloadSeconds: 4,
-  missileTravelSecondsAtRange: 1.5,
+  missileSpeedMps: 220 / 1.5,
   destructionRadiusM: 25,
 } as const;
+
+export function missileTravelSeconds(distanceM: number): number {
+  return Math.max(0, distanceM) / WAVE_STARTING_VALUES.missileSpeedMps;
+}
 
 /**
  * The residents a city must hold before a kaiju comes for it.

@@ -39,7 +39,7 @@ import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
 import { RULES } from "../sim/rules";
 import { distXZ, v3 } from "../sim/vec";
-import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, missileTravelSeconds, residentsUntilWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
 import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
@@ -628,7 +628,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         return {
           from: battery.position,
           launchedAt,
-          impactAt: launchedAt + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(battery.position, position) / battery.range),
+          impactAt: launchedAt + missileTravelSeconds(distXZ(battery.position, position)),
           damage: battery.damage,
         };
       }));

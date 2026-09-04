@@ -1,10 +1,10 @@
 ## item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles - Double the battery range and decide what that does to the missiles
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -58,3 +58,4 @@
 
 # Notes
 - 2026-09-04, operator: flight time lengthening is the wanted behaviour ("ca me va que ca le rallonge"). This slice no longer carries an open question -- it implements a constant-speed missile whose flight lengthens with the doubled reach.
+- 2026-09-04, codex: doubled `batteryRangeM` to 440, replaced range-fraction flight timing with constant-speed `missileTravelSeconds(distanceM)`, and measured scenarios still inside band: expanding city 21/21 waves held, static city 31/31 held, 0 outside the 13-85s / 4-21 salvo band.

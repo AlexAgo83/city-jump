@@ -9,7 +9,7 @@ import { createRun, DEFAULT_RUN_RULES, defeat, endIfPopulationZero, settleWave, 
 import { buildableCells, buildingParcels, lotsInRect, lotsWithin, parcelsForDemand, type BuildingParcel } from "./slots";
 import { distXZ, v3 } from "./vec";
 import { missingUtility, suppliedDiffusers, Utilities } from "./utilities";
-import { advanceWaveClock, createWaveClock, damageWaveClock, scheduleNextWave, summonIfDue, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
+import { advanceWaveClock, createWaveClock, damageWaveClock, missileTravelSeconds, scheduleNextWave, summonIfDue, waveThreat, WAVE_STARTING_VALUES, type WaveClock } from "./wave";
 import { Zones } from "./zones";
 import { advanceKaijuAssault, createKaijuAssault } from "./kaiju";
 
@@ -303,7 +303,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
         salvos += firing.length ? 1 : 0;
         missiles.push(...firing.map((shot) => ({
           damage: shot.damage,
-          impactAt: seconds + WAVE_STARTING_VALUES.missileTravelSecondsAtRange * Math.min(1, distXZ(shot.position, assault.position) / shot.range),
+          impactAt: seconds + missileTravelSeconds(distXZ(shot.position, assault.position)),
         })));
         nextSalvoAt += WAVE_STARTING_VALUES.reloadSeconds;
       }

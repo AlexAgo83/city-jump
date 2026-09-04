@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "./wave";
+import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, missileTravelSeconds, residentsUntilWave, scheduleNextWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "./wave";
 
 describe("waves", () => {
   it("summons nothing until the city is worth attacking", () => {
@@ -45,5 +45,10 @@ describe("waves", () => {
 
   it("derives higher threat from wave, population and parcels", () => {
     expect(waveThreat(2, 40, 20)).toBeGreaterThan(waveThreat(1, 12, 2));
+  });
+
+  it("keeps missile speed constant when battery range grows", () => {
+    expect(missileTravelSeconds(220)).toBeCloseTo(1.5);
+    expect(missileTravelSeconds(WAVE_STARTING_VALUES.batteryRangeM)).toBeCloseTo(3);
   });
 });
