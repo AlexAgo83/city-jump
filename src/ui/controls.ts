@@ -258,7 +258,10 @@ export function bindControls(handlers: {
       updateZonePrice(kind);
     });
   }
-  on(document.getElementById("zone-radius")!, "input", (event) => {
+  const zoneRadius = document.getElementById("zone-radius") as HTMLInputElement;
+  zoneRadius.defaultValue = zoneRadius.min;
+  zoneRadius.value = zoneRadius.min;
+  on(zoneRadius, "input", (event) => {
     handlers.onZoneRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
 
@@ -296,9 +299,6 @@ export function bindControls(handlers: {
       if (!input.checked) return;
       roadTypeValue = input.value;
       emitRoadType();
-  // The brush kept its own default until the slider was first dragged, so what the tool painted and
-  // what the slider read were two different numbers on every fresh page.
-  handlers.onZoneRadius(Number((document.getElementById("zone-radius") as HTMLInputElement).value));
     });
   }
   on(roadLanes, "change", emitRoadType);
@@ -539,6 +539,7 @@ export function bindControls(handlers: {
 
   const saves = bindSaves(handlers, applyCity, on);
   emitRoadType();
+  handlers.onZoneRadius(Number(zoneRadius.value));
   updateSun();
   setClock(Number(sunHour.value), 1, 0);
   return {

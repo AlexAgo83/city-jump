@@ -1,10 +1,10 @@
 ## item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider - Open the zone brush at the minimum of its own slider
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -49,3 +49,6 @@
 # Priority
 - Priority: Low
 - Rationale: One line plus a pairing to remove; it rides along with the zoning pass rather than earning its own.
+
+# Validation
+- 2026-09-05: Removed the hand-kept zone brush radius constant, made `#zone-radius` default to its own `min`, and had `bindControls` emit that DOM value at startup. `scripts/interact.mjs` now fails if the zone brush no longer opens at the slider minimum. Validation passed with `rtk npm run typecheck` and `rtk npm run test:e2e`.

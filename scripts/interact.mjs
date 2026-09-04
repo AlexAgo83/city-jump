@@ -799,6 +799,7 @@ check(
 await page.locator('[data-tool="zones"]').click();
 check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
 check("zone mode exposes a brush size slider", await page.locator("#zone-radius").isVisible());
+check("zone brush opens at the slider minimum", await page.locator("#zone-radius").evaluate((input) => input.value === input.min));
 check("zone tools do not show a building price", (await page.locator("#zone-price").textContent()) === "Zone");
 check(
   "zone mode exposes every business and Clear",
