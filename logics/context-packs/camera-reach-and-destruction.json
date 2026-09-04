@@ -1,0 +1,577 @@
+{
+  "budgets": {
+    "max_docs": 64,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [
+    "logics/backlog/item_152_stop_a_spawning_kaiju_from_taking_the_camera.md",
+    "logics/backlog/item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles.md",
+    "logics/backlog/item_154_blow_a_building_up_and_set_its_rubble_alight.md",
+    "logics/backlog/item_155_give_the_two_effects_their_settings_toggles.md",
+    "logics/backlog/item_156_file_show_fps_with_the_camera.md",
+    "logics/backlog/item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it.md",
+    "logics/context-packs/camera-reach-and-destruction.json",
+    "logics/product/prod_033_a_wave_you_watch_on_your_own_terms.md",
+    "logics/request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md",
+    "logics/tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md"
+  ],
+  "command": "logics-manager sync context-pack req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning item_152_stop_a_spawning_kaiju_from_taking_the_camera item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles item_154_blow_a_building_up_and_set_its_rubble_alight item_155_give_the_two_effects_their_settings_toggles item_156_file_show_fps_with_the_camera item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work --mode diff-first --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+          "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+          "item_154_blow_a_building_up_and_set_its_rubble_alight",
+          "item_155_give_the_two_effects_their_settings_toggles",
+          "item_156_file_show_fps_with_the_camera",
+          "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/product/prod_033_a_wave_you_watch_on_your_own_terms.md",
+      "ref": "prod_033_a_wave_you_watch_on_your_own_terms",
+      "sections": {
+        "Goals": [
+          "- The player chooses where to look, and the game tells them where to look instead of moving them.",
+          "- A defence the player paid for reaches the thing it is defending against.",
+          "- Destruction reads as destruction, at a cost the frame budget can pay.",
+          "- Anything that costs frames can be turned off, and a setting is filed where its subject lives."
+        ],
+        "Key product decisions": [
+          "- A duration expressed as a fraction of a distance is not a speed. Doubling the battery range doubled missile speed as a side effect; the decision taken is that reach grows and speed does not, so the flight time lengthens with the range and the formula stops dividing by it.",
+          "- The explosion and the rubble fire are two effects, not one: an event with its own clock, and a state derived from rubble that has to survive a save and a reload.",
+          "- New visual effects are built the way the rubble renderer is built -- instanced, one draw call for all of them -- because docs/performance.md measured that objects drawn one at a time are what costs.",
+          "- The right-hand column's flow contract stays: hidden panels take no room, and no panel regains a top of its own.",
+          "- When a behaviour changes, the comment that recorded the old behaviour is rewritten, not left standing. The camera jump's reason is part of the deliverable that removes the jump."
+        ],
+        "Overview": [
+          "The wave takes the player's view, the batteries cannot reach, and nothing burns.",
+          "```mermaid",
+          "%% logics-kind: product",
+          "%% logics-signature: product|a_wave_you_watch_on_your_own_terms|authored",
+          "flowchart TD",
+          "    Spawn[Kaiju spawns] --> Jump[startWave applies a computed camera]"
+        ],
+        "References": [
+          "- Product back-reference: `req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning`",
+          "- Task back-reference: `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A wave you watch on your own terms"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "wave camera jump, batteryRangeM, missile flight time, explosion effect, rubble fire, effect toggles, show-fps row, right-stack line",
+        "skip when": "retuning the wave difficulty curve, building a general particle framework, or re-laying out the right-hand column's stacking contract.",
+        "summary": "Six needs from playing 0.4.0: a wave that stops seizing the camera, batteries that reach twice as far, an explosion and a burning rubble pile a project with no particle infrastructure has to build, and two HUD placements.",
+        "use when": "changing what a wave does to the view, the battery constants, or anything drawn when a building is destroyed."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+          "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+          "item_154_blow_a_building_up_and_set_its_rubble_alight",
+          "item_155_give_the_two_effects_their_settings_toggles",
+          "item_156_file_show_fps_with_the_camera",
+          "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ]
+      },
+      "path": "logics/request/req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning.md",
+      "ref": "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A wave starting leaves the camera where the player put it, the player is still told where the kaiju is coming from, and the comment that recorded the old behaviour records the new one.",
+          "- Batteries reach twice as far and missiles fly no faster than they do today, so a shot at the new maximum range takes about twice as long to land.",
+          "- A destroyed building explodes once, and its rubble burns until the lot is rebuilt, across a save and reload.",
+          "- Neither effect adds a draw call per destroyed building, and both answer to the existing detail and frame-cap machinery.",
+          "- Both effects can be switched off in the settings, the choice persists, and off means nothing is drawn or stepped.",
+          "- Show FPS sits in the Camera row, and the setting it persists is unchanged."
+        ],
+        "Needs": [
+          "- A wave arriving does not take the camera off the player.",
+          "- A battery reaches far enough to defend the city it stands in.",
+          "- A building that is destroyed looks destroyed: it blows up, and the rubble burns.",
+          "- Effects that cost frames can be switched off.",
+          "- A setting about the camera lives with the camera.",
+          "- The FPS counter shares a line with the Wave panel instead of pushing it down."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let the player keep the camera, let the batteries reach, and show a destroyed building burning"
+    },
+    {
+      "ai_context": {
+        "keywords": "applyCamera, startWave, createWavePlan framing, waveMarkers, wave banner, camera promise",
+        "skip when": "removing the landing markers or the banner, and the camera modes and persisted camera state, which work.",
+        "summary": "startWave applies a computed camera, so a wave arriving moves the view out from under the player. The jump has a recorded reason -- the kaiju lands a kilometre offshore -- which the landing markers and the banner may already answer.",
+        "use when": "changing what a wave does to the camera, or answering the offshore-landing reason."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_152_stop_a_spawning_kaiju_from_taking_the_camera"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_152_stop_a_spawning_kaiju_from_taking_the_camera.md",
+      "ref": "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Starting a wave leaves the camera exactly where the player left it.",
+          "- The player is still told where the kaiju has landed and where it is heading, without the view moving.",
+          "- The reason recorded at src/app/waveLoop.ts:41-44 is rewritten to state the new decision, so it describes the behaviour the code has rather than the one it used to have -- and the offshore-landing problem it named is still visible, with its new answer."
+        ],
+        "Problem": [
+          "- src/app/app.ts:462 calls `applyCamera(planned.camera)` from `startWave`, so a wave starting moves the view out from under the player.",
+          "- The jump has a recorded reason: src/app/waveLoop.ts:41-44 says the kaiju \"lands a kilometre or more off the coast and walks in, so without this it destroyed the place off screen.\" Removing it without answering that puts the kaiju back off screen.",
+          "- **Settled, 2026-09-04:** the operator wants that written decision updated rather than worked around. The comment is rewritten in place to record what is true after this slice -- the camera is the player's, and the offshore landing is covered by the markers and the banner instead of by seizing the view. A reader arriving at that line must not find the old reasoning still asserting a behaviour the code no longer has.",
+          "- It also fights the promise README makes, that any pan or arrow key hands control straight back to the player."
+        ]
+      },
+      "status": "Ready",
+      "title": "Stop a spawning kaiju from taking the camera"
+    },
+    {
+      "ai_context": {
+        "keywords": "batteryRangeM, batteriesInRange, missileTravelSecondsAtRange, flight time as fraction of range, balance band",
+        "skip when": "damagePerParcelCell, reloadSeconds and destructionRadiusM, and retuning the wave curve to compensate.",
+        "summary": "batteryRangeM is 220 and the operator wants it doubled. That multiplies firepower by more than two and, because flight time is a fraction of range rather than a speed, doubles missile speed as a side effect.",
+        "use when": "changing a wave constant, or anything where a duration is expressed as a fraction of a distance."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles.md",
+      "ref": "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A battery engages the kaiju from twice the distance it used to.",
+          "- A missile flies no faster than it does today: at the new maximum range its flight takes about twice as long, and the arithmetic says so without a reader having to work it out.",
+          "- npm run scenarios stays inside its reported band, or the new band is recorded with its reason."
+        ],
+        "Problem": [
+          "- src/sim/wave.ts:4 sets `batteryRangeM: 220`, which is too short for a barracks to defend the city it stands in. The operator wants it doubled.",
+          "- Doubling multiplies firepower by more than two: `batteriesInRange` (src/sim/batteries.ts:27) filters by that radius, so every barracks within 440 m contributes to each volley instead of every one within 220 m.",
+          "- It also doubles missile speed as a side effect. `impactAt` uses `missileTravelSecondsAtRange * Math.min(1, distXZ(battery, target) / battery.range)` (src/app/app.ts:598), which expresses flight time as a fraction of range rather than a speed -- so at 440 m a missile crosses twice the distance in the same 1.5 s.",
+          "- **Settled, 2026-09-04:** the operator wants the flight time to lengthen. A missile keeps the speed it flies today, so reaching twice as far takes twice as long -- about 3 s at the new maximum range instead of 1.5 s. The side effect is not wanted and is not to be shipped.",
+          "- The reported balance band -- 31 of 31 waves held, 13-85 s combat, 4-21 salvos -- is measured against the old range."
+        ]
+      },
+      "status": "Ready",
+      "title": "Double the battery range and decide what that does to the missiles"
+    },
+    {
+      "ai_context": {
+        "keywords": "explosion effect, rubble fire, thin instances, draw call budget, SavedRubble reload, detail culler, missile impact flash",
+        "skip when": "a general particle framework, the destruction rules themselves, and smoke, debris physics, decals or sound.",
+        "summary": "A destroyed building just becomes a box of rubble. There is no ParticleSystem or Sprite anywhere in the project, so this is new render infrastructure -- and the explosion and the fire have different lifetimes: one is an event, the other is derived from saved state.",
+        "use when": "adding anything drawn when a building is destroyed, or any new per-object visual effect."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_154_blow_a_building_up_and_set_its_rubble_alight"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_154_blow_a_building_up_and_set_its_rubble_alight.md",
+      "ref": "item_154_blow_a_building_up_and_set_its_rubble_alight",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- A destroyed building explodes once, at the moment it is destroyed.",
+          "- Rubble burns until the lot is rebuilt, and the fire is there after a save and reload.",
+          "- Neither effect adds a draw call per destroyed building.",
+          "- Both are stepped only when visible, and both dispose cleanly with the scene.",
+          "- The explosion and the missile impact read as the same kind of event."
+        ],
+        "Problem": [
+          "- A building being destroyed is the point of the wave, and all that happens is a mesh becoming a box of rubble. There is no explosion and nothing burns.",
+          "- There is no particle infrastructure in the project at all: searching src/ for a Babylon particle system or sprite class returns nothing. This is new render infrastructure rather than a parameter.",
+          "- docs/performance.md is explicit that what costs is objects drawn one at a time, and every mesh in the scene is walked each frame whether or not it is on screen. src/render/rubble.ts is the model: every pile is a thin instance of one box.",
+          "- The two effects have different lifetimes. The explosion is a one-shot at `rubble.destroy(hit)` (src/app/app.ts:617). The fire is derived from state -- rubble is saved with the city (`SavedRubble`), so it must come back on reload and stop when the lot finishes rebuilding, which `BuildingLifecycle` already tracks.",
+          "- src/render/missiles.ts:39-45 already has a crude impact flash: the body scales to 5 and swaps to an emissive orange material."
+        ]
+      },
+      "status": "Ready",
+      "title": "Blow a building up and set its rubble alight"
+    },
+    {
+      "ai_context": {
+        "keywords": "UiSettings, effect toggle, Look row, World row, persisted default, off means not stepped",
+        "skip when": "quality sliders, reorganising the other toolbar rows, and changing how UiSettings is read or written.",
+        "summary": "Everything in this project that costs frames can be switched off. UiSettings is a flat object of optional localStorage keys, so the toggles need no new machinery -- only a decision about which toolbar row they belong to.",
+        "use when": "adding a settings toggle for something that costs frames."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_155_give_the_two_effects_their_settings_toggles"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_155_give_the_two_effects_their_settings_toggles.md",
+      "ref": "item_155_give_the_two_effects_their_settings_toggles",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Each effect has a toggle, and the choice survives a reload.",
+          "- With an effect off, nothing for it is drawn or stepped.",
+          "- The row both toggles live in was chosen deliberately, and the reason is recorded."
+        ],
+        "Problem": [
+          "- The explosion and the fire cost frames, and everything else in this project that costs frames can be switched off -- `show-decor`, `show-shadows`, `show-lights`, the four `fx-*` toggles, the frame cap.",
+          "- `UiSettings` (src/ui/saves.ts:81-103) is a flat object of optional keys in localStorage, so new keys are backward compatible and an absent key falls back to its default. No new machinery is needed.",
+          "- Which row they belong to is a real choice: `Look` holds the visual effects, `World` holds what is drawn. It should be decided once for both toggles."
+        ]
+      },
+      "status": "Ready",
+      "title": "Give the two effects their settings toggles"
+    },
+    {
+      "ai_context": {
+        "keywords": "show-fps, World row, Camera row, toolbar placement, persisted fps key",
+        "skip when": "renaming or re-keying the persisted fps setting, and moving any other control.",
+        "summary": "show-fps sits in the World row beside Grid, Buildings, Details and Boxes, none of which it relates to, while a Camera row already exists.",
+        "use when": "moving a control between toolbar rows."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_156_file_show_fps_with_the_camera"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_156_file_show_fps_with_the_camera.md",
+      "ref": "item_156_file_show_fps_with_the_camera",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- Show FPS is in the Camera row.",
+          "- The persisted setting key is unchanged, and an existing player's choice still applies."
+        ],
+        "Problem": [
+          "- `show-fps` sits in the `World` row (index.html:304) beside Grid, Buildings, Details and Boxes, none of which it has anything to do with.",
+          "- A `Camera` row already exists at index.html:341-346, holding the free, orbit and follow modes."
+        ]
+      },
+      "status": "Ready",
+      "title": "File Show FPS with the camera"
+    },
+    {
+      "ai_context": {
+        "keywords": "right-stack, fps-counter, run-panel, column gap, flow contract, per-pair positioning",
+        "skip when": "re-laying out the selection or between-runs panels, or giving any of them a fixed top again.",
+        "summary": "The FPS counter and the Wave panel share the right-hand column, so the counter pushes the panel down instead of sitting beside it. The column's flow contract -- hidden takes no room, no per-pair rules -- has to survive the change.",
+        "use when": "changing the layout of the top-right panel column."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/backlog/item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it.md",
+      "ref": "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- The FPS counter and the Wave panel share a line, at the same vertical position, with the column's gap between them.",
+          "- Hiding the FPS counter leaves the Wave panel exactly where it was, and vice versa.",
+          "- No panel in that column regains a `top` of its own."
+        ],
+        "Problem": [
+          "- `#fps-counter` and `#run-panel` are both in `#right-stack` (index.html:469-476), which is a column with `gap: 8px` (index.html:135-139), so the counter pushes the Wave panel down instead of sharing its line.",
+          "- That column carries a recorded reason a change must keep: the top-right panels share one column in a fixed order and flow, because each carrying its own `top` meant showing two overlapped them and showing three needed a rule per pair."
+        ]
+      },
+      "status": "Ready",
+      "title": "Sit the FPS counter beside the Wave panel instead of above it"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+          "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+          "item_154_blow_a_building_up_and_set_its_rubble_alight",
+          "item_155_give_the_two_effects_their_settings_toggles",
+          "item_156_file_show_fps_with_the_camera",
+          "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/product/prod_033_a_wave_you_watch_on_your_own_terms.md",
+      "ref": "prod_033_a_wave_you_watch_on_your_own_terms",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A wave you watch on your own terms"
+    },
+    {
+      "ai_context": {
+        "keywords": "wave camera, battery reach, missile flight time, HUD placement, explosion and fire, effect toggles",
+        "skip when": "starting with the effects; they are the only new infrastructure here and the cheap wins land first.",
+        "summary": "Six slices: the camera first because it is the most intrusive and needs no measurement, then the battery range with one scenarios run, the two HUD moves, the destruction effects, and the toggles once there are effects to switch off. The camera comment and the missile flight time are both settled decisions, not open questions.",
+        "use when": "implementing the camera, reach and destruction findings, in the order the plan sets."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+          "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+          "item_154_blow_a_building_up_and_set_its_rubble_alight",
+          "item_155_give_the_two_effects_their_settings_toggles",
+          "item_156_file_show_fps_with_the_camera",
+          "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it"
+        ],
+        "prod": [
+          "prod_033_a_wave_you_watch_on_your_own_terms"
+        ],
+        "req": [
+          "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning"
+        ],
+        "task": [
+          "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+        ]
+      },
+      "path": "logics/tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md",
+      "ref": "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the camera, battery reach and destruction effects work"
+    }
+  ],
+  "estimates": {
+    "char_count": 21887,
+    "companion_doc_count": 1,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-04T18:08:35Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning",
+      "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+      "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+      "item_154_blow_a_building_up_and_set_its_rubble_alight",
+      "item_155_give_the_two_effects_their_settings_toggles",
+      "item_156_file_show_fps_with_the_camera",
+      "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it",
+      "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "deep",
+  "ref": "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning,item_152_stop_a_spawning_kaiju_from_taking_the_camera,item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles,item_154_blow_a_building_up_and_set_its_rubble_alight,item_155_give_the_two_effects_their_settings_toggles,item_156_file_show_fps_with_the_camera,item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it,task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work",
+  "refs": [
+    "req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning",
+    "item_152_stop_a_spawning_kaiju_from_taking_the_camera",
+    "item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles",
+    "item_154_blow_a_building_up_and_set_its_rubble_alight",
+    "item_155_give_the_two_effects_their_settings_toggles",
+    "item_156_file_show_fps_with_the_camera",
+    "item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it",
+    "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.4.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work.md",
+      "ref": "task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work"
+    }
+  ]
+}
