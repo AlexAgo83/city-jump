@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-04 13:13:26
+> Indicators reviewed: 2026-09-04 14:18:15
 > Owner: Codex
 
 # AI Context
@@ -83,6 +83,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts src/render/roadMesh.test.ts src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into the utility, traffic, road, and building renderers.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.
 - 2026-09-04 validation: rtk npm run test:e2e, rtk npm run typecheck, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after replacing stale fixed pointer targets in scripts/interact.mjs with visible zoning/node/road targets.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, and rtk npm run test:e2e passed after moving road transaction effects into app/drawController.ts.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -110,6 +111,7 @@
 - 2026-09-04 item_127 controller slice 1: app/drawController.ts owns road commits, removals, and roundabout toggles; drawTool/debugApi receive it as a controller, and architecture now guards direct render graph mutations.
 - 2026-09-04 browser check after item_127 controller slice 1: rtk npm run test:e2e passed the touched pointer/undo/utility/zoning path, then failed at the known zone-clear timeout at scripts/interact.mjs:1021.
 - 2026-09-04 item_127 e2e repair: scripts/interact.mjs now clicks visible buildable zone cells, graph nodes, roundabout nodes, and surface road samples after camera focus changes; the full browser interaction suite now passes for the controller slice.
+- 2026-09-04 item_127 controller slice 2: road transaction effects moved out of render/drawTool.ts into app/drawController.ts while keeping debug API setup graph-only.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

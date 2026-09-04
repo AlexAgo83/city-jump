@@ -10,7 +10,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
 import type { RoadGraph, Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
-import { quadraticLengthXZ, resolveSnap, validateSegment, type Snap } from "../sim/rules";
+import { resolveSnap, validateSegment, type Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { flatTerrain, type Terrain } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
@@ -20,7 +20,7 @@ import type { BuildingKind } from "../sim/buildingKinds";
 import { workforceDemand } from "../sim/workforce";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
-import { distXZ, type Vec3, v3, lerp } from "../sim/vec";
+import { type Vec3, v3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
 import { GRID } from "../sim/slots";
 import { toBabylon } from "./convert";
@@ -85,9 +85,9 @@ export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | "utility" |
 export type RoadTypeId = string;
 
 export interface DrawController {
-  commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId): { ok: true } | { ok: false; reason: string };
-  removeRoad(segment: Segment): void;
-  setRoundabout(node: number, enabled: boolean, lanes?: 1 | 2): void;
+  commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId, dirty: TerrainBounds, effects?: boolean): { ok: true } | { ok: false; reason: string };
+  removeRoad(segment: Segment, dirty: TerrainBounds, effects?: boolean): boolean;
+  setRoundabout(node: number, enabled: boolean, lanes?: 1 | 2): boolean;
 }
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
@@ -158,7 +158,6 @@ export interface HistoryTools {
 }
 
 export interface EconomyTools {
-  roadCost(type: RoadTypeId, metres: number): number;
   canSpend(cost: number): boolean;
   spend(cost: number, allowDebt?: boolean): boolean;
   refund(amount: number): void;
@@ -521,19 +520,10 @@ export function createDrawTool(
       }
       if (target.kind === "roundabout") {
         history?.beforeChange();
-        const radius = target.radius + TERRAIN_DIRTY_PAD;
-        controller?.setRoundabout(target.node, false);
-        history?.afterChange(true);
-        onCommitted({ minX: target.x - radius, maxX: target.x + radius, minZ: target.z - radius, maxZ: target.z + radius });
+        history?.afterChange(controller?.setRoundabout(target.node, false) ?? false);
       } else {
-        const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
-        const refund = demolitionRefund(economy?.roadCost(target.segment.type, pathLength(target.segment.samples)) ?? 0);
-        scheduleDemolition(() => {
-          controller?.removeRoad(target.segment);
-          if (refund > 0) economy?.refund(refund);
-          onCommitted(dirty);
-          return true;
-        });
+        const dirty = boundsOf(target.segment.samples);
+        scheduleDemolition(() => controller?.removeRoad(target.segment, dirty) ?? false);
       }
       return;
     }
@@ -543,11 +533,7 @@ export function createDrawTool(
       history?.beforeChange();
       // The road panel's lane choice applies here too -- a roundabout has no type of its own,
       // so it takes lanes from whatever is currently selected to draw with.
-      controller?.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
-      const pos = graph.node(node).pos;
-      const radius = roundaboutRadius(graph, node) + TERRAIN_DIRTY_PAD;
-      history?.afterChange(true);
-      onCommitted({ minX: pos.x - radius, maxX: pos.x + radius, minZ: pos.z - radius, maxZ: pos.z + radius });
+      history?.afterChange(controller?.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes) ?? false);
       return;
     }
     if (mode === "plant") {
@@ -602,20 +588,17 @@ export function createDrawTool(
   }
 
   function finish(from: Snap, to: Snap, control: Vec3): void {
-    const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position, 32, heightAt)), TERRAIN_DIRTY_PAD);
+    const dirty = boundsOf(sampleQuadratic(from.position, control, to.position, 32, heightAt));
     history?.beforeChange();
-    const cost = economy?.roadCost(typeId, quadraticLengthXZ(from.position, control, to.position)) ?? 0;
-    const result = controller?.commitRoad(from, to, control, typeId) ?? { ok: false, reason: "Road drawing is unavailable." };
+    const result = controller?.commitRoad(from, to, control, typeId, dirty) ?? { ok: false, reason: "Road drawing is unavailable." };
     if (!result.ok) {
       onRefused(result.reason);
       history?.afterChange(false);
       return; // the refused segment never entered the graph; keep drawing from the same start
     }
-    if (cost > 0) economy?.spend(cost, true);
     stage = { phase: "idle" };
     clearPreview();
     history?.afterChange(true);
-    onCommitted(dirty);
   }
 
   function resolveDrawingSnap(x: number, z: number): Snap {
@@ -788,7 +771,7 @@ export function createDrawTool(
   return {
     mode: () => mode,
     cancel,
-      setMode(next) {
+    setMode(next) {
       mode = next;
       setCameraDrag(next !== "spray" && next !== "zone");
       cancel();
@@ -862,8 +845,4 @@ export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32, heightAt:
 
 export function brushMovedFarEnough(last: { x: number; z: number } | null, at: { x: number; z: number }, radius: number): boolean {
   return !last || Math.hypot(at.x - last.x, at.z - last.z) >= radius / 2;
-}
-
-function pathLength(points: readonly Vec3[]): number {
-  return points.slice(1).reduce((sum, point, index) => sum + distXZ(points[index]!, point), 0);
 }

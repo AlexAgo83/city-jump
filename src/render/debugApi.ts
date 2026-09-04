@@ -30,8 +30,8 @@ export interface DebugApi {
 }
 
 export interface DebugRoadController {
-  commitRoad(from: Snap, to: Snap, control: Vec3, type: string): { ok: true } | { ok: false; reason: string };
-  removeRoad(segment: Segment): void;
+  commitRoad(from: Snap, to: Snap, control: Vec3, type: string, dirty: TerrainBounds, effects?: boolean): { ok: true } | { ok: false; reason: string };
+  removeRoad(segment: Segment, dirty: TerrainBounds, effects?: boolean): boolean;
 }
 
 /**
@@ -49,11 +49,11 @@ export function installDebugApi(
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
     const from = resolveSnap(graph, x0, z0);
     const to = resolveSnap(graph, x1, z1);
-    return options.controller?.commitRoad(from, to, v3(cx, 0, cz), type) ?? { ok: false, reason: "Road drawing is unavailable." };
+    return options.controller?.commitRoad(from, to, v3(cx, 0, cz), type, { minX: Math.min(x0, cx, x1), maxX: Math.max(x0, cx, x1), minZ: Math.min(z0, cz, z1), maxZ: Math.max(z0, cz, z1) }, false) ?? { ok: false, reason: "Road drawing is unavailable." };
   };
   const api: DebugApi = {
     reset() {
-      for (const seg of graph.allSegments()) options.controller?.removeRoad(seg);
+      for (const seg of graph.allSegments()) options.controller?.removeRoad(seg, { minX: -Infinity, maxX: Infinity, minZ: -Infinity, maxZ: Infinity }, false);
       rebuild();
     },
     rebuild,

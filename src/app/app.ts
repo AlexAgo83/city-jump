@@ -94,7 +94,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const missiles = createMissileRenderer(scene);
   const waveMarkers = createWaveMarkerRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const buildings = await createBuildingRenderer(scene, graph, shadows, (x, z) => heightmap.heightAt(x, z));
-  const drawController = createDrawController(graph);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;
@@ -641,6 +640,19 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // The eyedropper: picking a road sets the Roads tab up to match it, ready to draw more.
     if (info?.kind === "road") controls?.applyRoadType(info.baseId, info.lanes, info.oneWay);
   };
+  const drawController = createDrawController(graph, {
+    roadCost: roadBuildCost,
+    spend(cost, allowDebt) {
+      const spent = spendBuild(cost, allowDebt);
+      updateMoneyHud();
+      return spent;
+    },
+    refund(amount) {
+      treasury.earn(amount);
+      updateMoneyHud();
+    },
+    onCommitted: rebuild,
+  });
 
   const tool = createDrawTool(
     scene,
@@ -693,7 +705,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     "street",
     { beforeChange, afterChange },
     {
-      roadCost: roadBuildCost,
       canSpend: (cost) => treasury.canSpend(cost),
       spend(cost, allowDebt) {
         const spent = spendBuild(cost, allowDebt);
