@@ -882,6 +882,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       traffic.setLightsEnabled(visible);
     },
     onLook: postFx.setLook,
+    onDestructionEffects: (effects) => destructionEffects.setEnabled(effects, performance.now() / 1000),
     onFrameCap: setFrameCap,
     onTraffic: traffic.setEnabled,
     onTrafficDensity: traffic.setDensity,

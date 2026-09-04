@@ -1,10 +1,10 @@
 ## item_155_give_the_two_effects_their_settings_toggles - Give the two effects their settings toggles
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -52,3 +52,6 @@
 # Priority
 - Priority: Medium
 - Rationale: It cannot land before there are two effects to switch off, and it is cheap once they exist.
+
+# Notes
+- 2026-09-04, codex: put both toggles in the Look row because they are optional visual effects, not world layers. Defaults are on via the checked markup and absent `UiSettings` keys. A targeted Playwright check turned both off, reloaded, then forced destruction: rubble appeared with fire/explosion thin instance counts 0/0.

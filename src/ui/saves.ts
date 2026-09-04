@@ -98,6 +98,8 @@ export interface UiSettings {
   fxBloom?: boolean;
   fxAo?: boolean;
   fxTilt?: boolean;
+  fxExplosion?: boolean;
+  fxFire?: boolean;
   frameCap?: number;
   timeRate?: 1 | 2 | 4;
 }

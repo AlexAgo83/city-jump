@@ -28,6 +28,7 @@ export function bindControls(handlers: {
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
   onLook(look: { antialias: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
+  onDestructionEffects(effects: { fire: boolean; explosion: boolean }): void;
   onFrameCap(fps: number): void;
   onTraffic(enabled: boolean): void;
   onTrafficDensity(density: number): void;
@@ -432,6 +433,8 @@ export function bindControls(handlers: {
       fxBloom: fxBloom.checked,
       fxAo: fxAo.checked,
       fxTilt: fxTilt.checked,
+      fxExplosion: fxExplosion.checked,
+      fxFire: fxFire.checked,
       frameCap: Number(frameCap.value),
       timeRate: readSettings().timeRate,
     });
@@ -445,11 +448,18 @@ export function bindControls(handlers: {
   const fxBloom = document.getElementById("fx-bloom") as HTMLInputElement;
   const fxAo = document.getElementById("fx-ao") as HTMLInputElement;
   const fxTilt = document.getElementById("fx-tilt") as HTMLInputElement;
+  const fxExplosion = document.getElementById("fx-explosion") as HTMLInputElement;
+  const fxFire = document.getElementById("fx-fire") as HTMLInputElement;
   const emitLook = (): void => {
     handlers.onLook({ antialias: fxAntialias.checked, bloom: fxBloom.checked, ao: fxAo.checked, tiltShift: fxTilt.checked });
     persistSettings();
   };
   for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) on(box, "change", emitLook);
+  const emitDestructionEffects = (): void => {
+    handlers.onDestructionEffects({ fire: fxFire.checked, explosion: fxExplosion.checked });
+    persistSettings();
+  };
+  for (const box of [fxExplosion, fxFire]) on(box, "change", emitDestructionEffects);
 
   const frameCap = document.getElementById("frame-cap") as HTMLSelectElement;
   on(frameCap, "change", () => {
@@ -494,12 +504,13 @@ export function bindControls(handlers: {
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
-  for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt]] as const) {
+  for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt], [fxExplosion, stored.fxExplosion], [fxFire, stored.fxFire]] as const) {
     if (value !== undefined) box.checked = value;
   }
   if (stored.frameCap !== undefined) frameCap.value = String(stored.frameCap);
   handlers.onFrameCap(Number(frameCap.value));
   emitLook();
+  emitDestructionEffects();
   applySetting(showTraffic, stored.traffic);
   if (stored.trafficDensity !== undefined && Number.isFinite(stored.trafficDensity)) {
     trafficDensity.value = String(stored.trafficDensity);

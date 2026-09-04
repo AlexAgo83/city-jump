@@ -27,4 +27,22 @@ describe("destruction effects", () => {
     scene.dispose();
     engine.dispose();
   });
+
+  it("draws and steps nothing for disabled effects", () => {
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
+    const effects = createDestructionEffects(scene, () => 0);
+
+    effects.setEnabled({ fire: false, explosion: false });
+    effects.rebuildFires([[0, 0]], 0);
+    effects.explode(v3(0, 0, 0), 0);
+    effects.step(0.5);
+
+    expect((scene.getMeshByName("roofprop_rubble_fire") as Mesh | null)?.thinInstanceCount).toBe(0);
+    expect((scene.getMeshByName("roofprop_rubble_explosion") as Mesh | null)?.thinInstanceCount).toBe(0);
+
+    effects.dispose();
+    scene.dispose();
+    engine.dispose();
+  });
 });

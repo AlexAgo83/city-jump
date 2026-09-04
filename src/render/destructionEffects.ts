@@ -29,6 +29,8 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
 
   let fires: readonly SavedRubble[] = [];
   let explosions: { readonly position: Vec3; readonly startedAt: number }[] = [];
+  let fireEnabled = true;
+  let explosionEnabled = true;
 
   function writeFireMatrices(now: number): void {
     const matrices = new Float32Array(fires.length * 16);
@@ -55,18 +57,38 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
   }
 
   return {
+    setEnabled(next: { readonly fire: boolean; readonly explosion: boolean }, now = 0): void {
+      fireEnabled = next.fire;
+      explosionEnabled = next.explosion;
+      if (fireEnabled) {
+        writeFireMatrices(now);
+        fire.setEnabled(fires.length > 0);
+      }
+      else {
+        fire.thinInstanceCount = 0;
+        fire.setEnabled(false);
+      }
+      if (explosionEnabled) writeExplosionMatrices(now, true);
+      else {
+        explosions = [];
+        explosion.thinInstanceCount = 0;
+        explosion.setEnabled(false);
+      }
+    },
     rebuildFires(rubble: readonly SavedRubble[], now = 0): void {
       fires = rubble;
+      if (!fireEnabled) return;
       writeFireMatrices(now);
       fire.setEnabled(fires.length > 0);
     },
     explode(position: Vec3, now: number): void {
+      if (!explosionEnabled) return;
       explosions = [...explosions, { position, startedAt: now }];
       writeExplosionMatrices(now, true);
     },
     step(now: number): void {
-      if (fire.isEnabled()) writeFireMatrices(now);
-      writeExplosionMatrices(now, explosion.isEnabled());
+      if (fireEnabled && fire.isEnabled()) writeFireMatrices(now);
+      if (explosionEnabled) writeExplosionMatrices(now, explosion.isEnabled());
     },
     dispose(): void {
       fire.dispose();
