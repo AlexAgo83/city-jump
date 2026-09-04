@@ -20,7 +20,6 @@ import {
   ringOf,
   CROSSING_DEPTH,
   crossesRoad,
-  crossingNear,
   walkLoop,
   type WalkLoop,
   type Ring,
@@ -33,7 +32,6 @@ import { createVehicleHeadlights } from "./vehicleLights";
 import { createVehicleModels } from "./vehicleModels";
 import {
   BRAKING,
-  CAR_STOP_SETBACK,
   CAR_TURN_RATE,
   type Entry,
   type FrameOccupancy,
@@ -63,6 +61,7 @@ import {
   roundaboutExitBlocked,
   scaledTrafficCount,
   segmentLimit,
+  stopLineDistance,
   speedForRoom,
   stopTarget,
   trafficLaneOffset,
@@ -297,11 +296,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     const end = mover.direction === 1 ? mover.segment.b : mover.segment.a;
     const other = mover.direction === 1 ? mover.segment.a : mover.segment.b;
     const arm = armOf(end, mover.segment.id);
-    if (!arm) return limitOf(mover);
-    const room = mover.segment.length - arm.trim - trimAt(other, mover.segment.id);
-    if (room < CROSSING_DEPTH) return limitOf(mover);
-    const far = Math.min(crossingNear(arm, room) + CROSSING_DEPTH + CAR_STOP_SETBACK, arm.trim + room);
-    return mover.direction === 1 ? mover.segment.length - far : far;
+    return stopLineDistance(mover.segment, mover.direction, trimAt(end, mover.segment.id), trimAt(other, mover.segment.id), arm);
   }
 
   /**

@@ -4,6 +4,7 @@ import { Scene } from "@babylonjs/core/scene";
 import "@babylonjs/core/Meshes/instancedMesh";
 
 import { RoadGraph, type Segment } from "../sim/graph";
+import type { JunctionArm } from "../sim/junction";
 import { v3 } from "../sim/vec";
 import {
   circularQueueRooms,
@@ -24,6 +25,7 @@ import {
   segmentLimit,
   speedForRoom,
   stopTarget,
+  stopLineDistance,
   trafficLaneOffset,
   trimTransferFromMover,
   uTurnPath,
@@ -121,6 +123,7 @@ describe("traffic queues", () => {
 
   it("keeps segment distances direction-aware", () => {
     const segment = { length: 100 } as Segment;
+    const arm = { trim: 10 } as JunctionArm;
 
     expect(landingDistance(segment, 1, 20)).toBe(20);
     expect(landingDistance(segment, -1, 20)).toBe(80);
@@ -132,6 +135,9 @@ describe("traffic queues", () => {
     expect(stopTarget(90, 80, 1)).toBe(71.5);
     expect(stopTarget(10, 20, -1)).toBe(28.5);
     expect(stopTarget(90, undefined, 1)).toBe(90);
+    expect(stopLineDistance(segment, 1, 10, 5, arm)).toBeCloseTo(81.4);
+    expect(stopLineDistance(segment, -1, 10, 5, arm)).toBeCloseTo(18.6);
+    expect(stopLineDistance(segment, 1, 10, 5, undefined)).toBe(90);
     expect(atSegmentLimit(80, 80, 1)).toBe(true);
     expect(atSegmentLimit(21, 20, -1)).toBe(false);
     expect(atSegmentLimit(20, 20, -1)).toBe(true);

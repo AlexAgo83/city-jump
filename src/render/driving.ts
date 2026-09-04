@@ -9,6 +9,7 @@ import { laneRank, ringArc, ringEntryRadius } from "../sim/routing";
 import { type SignalCycle, signalAt, type SignalState } from "../sim/signals";
 import {
   CROSSING_DEPTH,
+  crossingNear,
   laneChangeOffset,
   pathCumulative,
   ringArcPath,
@@ -187,6 +188,21 @@ export function stopTarget(line: number, aheadDistance: number | undefined, dire
 
 export function atSegmentLimit(distance: number, limit: number, direction: 1 | -1): boolean {
   return direction === 1 ? distance >= limit : distance <= limit;
+}
+
+export function stopLineDistance(
+  segment: Segment,
+  direction: 1 | -1,
+  endTrim: number,
+  otherTrim: number,
+  arm: JunctionArm | undefined,
+): number {
+  const limit = segmentLimit(segment, direction, endTrim);
+  if (!arm) return limit;
+  const room = segment.length - arm.trim - otherTrim;
+  if (room < CROSSING_DEPTH) return limit;
+  const far = Math.min(crossingNear(arm, room) + CROSSING_DEPTH + CAR_STOP_SETBACK, arm.trim + room);
+  return direction === 1 ? segment.length - far : far;
 }
 
 export function trimTransferFromMover(graph: RoadGraph, mover: Mover, offset: number, points: Vec3[]): Vec3[] {
