@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 22:12:44
+> Indicators reviewed: 2026-09-04 22:23:14
 
 # AI Context
 - Summary: The 180 exists for the scenario gate: the harness ends at about 1,121 residents, which clears six bars at 180 and one at 1000. Without the harness pinning its own factor, the gate stops being evidence about waves 2 to 6.
@@ -57,3 +57,7 @@
 
 # Notes
 - 2026-09-04, codex: pinned `npm run scenarios` to `residentsPerWave: 180` at the harness callsite and updated `wave.ts` wording. Scenario remeasure stayed in band: expanding 21/21 held, no-utilities 21/21 held, static 31/31 held, 0 outside 13-85s / 4-21 salvos.
+- Task `task_045_orchestrate_the_residents_bar_and_spawn_path_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_045_orchestrate_the_residents_bar_and_spawn_path_work`

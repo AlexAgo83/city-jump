@@ -1,11 +1,12 @@
 ## prod_034_a_wave_the_player_sets_the_terms_of - A wave the player sets the terms of
 > Date: 2026-09-04
-> Status: Proposed
+> Status: Settled
 > Related request: `req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up`
-> Related backlog: `item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000`, `item_159_keep_the_scenario_gate_measuring_six_waves_once_the_bar_moves`, `item_160_let_a_kaiju_land_on_any_edge_of_the_map`, `item_161_settle_the_two_loose_ends_in_the_assault_code`
+> Related backlog: `item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000`
 > Related task: `task_045_orchestrate_the_residents_bar_and_spawn_path_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:23:14
 
 # Overview
 One hardcoded number decides when the island notices you, and it is load-bearing three ways.
@@ -63,5 +64,5 @@ The bar a city has to cross before a kaiju comes for it is 180 residents per wav
 - Nothing in WAVE_STARTING_VALUES is unused.
 
 # References
-- Product back-reference: `req_043_let_the_player_set_the_bar_a_kaiju_comes_for_and_fix_what_reading_the_spawn_path_turned_up`
+- Product back-reference: `item_158_make_the_residents_bar_a_run_rule_defaulting_to_1000`
 - Task back-reference: `task_045_orchestrate_the_residents_bar_and_spawn_path_work`

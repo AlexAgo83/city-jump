@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 22:12:44
+> Indicators reviewed: 2026-09-04 22:23:14
 
 # AI Context
 - Summary: landingPoint ranks four edges by distance from a fixed bridge point and takes one of the two furthest. Those distances never change, so it is always north or east -- 600 seeds give 304 north, 296 east, zero west or south.
@@ -54,3 +54,7 @@
 
 # Notes
 - 2026-09-04, codex: changed `landingPoint` from top-two edge truncation to distance-weighted edge choice. A 600-seed test proves all four edges occur, the bridge-side south edge is least likely, and seed replay stays deterministic.
+- Task `task_045_orchestrate_the_residents_bar_and_spawn_path_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_045_orchestrate_the_residents_bar_and_spawn_path_work`

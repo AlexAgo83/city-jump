@@ -7,6 +7,7 @@
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:23:13
 
 # AI Context
 - Summary: The residents bar that triggers a kaiju is a hardcoded 180 per wave and the operator wants 1000 plus a control. That number is the only wave trigger, it feeds the threat formula, and the reason it is 180 is written in the code and points at the scenario gate. Reading the spawn path to answer that also found a kaiju that can only land on two of four edges, an unused constant, and a drain the return type cannot report.

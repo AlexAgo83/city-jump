@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 22:12:44
+> Indicators reviewed: 2026-09-04 22:23:14
 
 # AI Context
 - Summary: The wave trigger factor is hardcoded at 180. It becomes a RunRules field defaulting to 1000 -- saved with the city, validated on the way in, and threaded into sim as a parameter rather than left in module state.
@@ -62,3 +62,7 @@
 
 # Notes
 - 2026-09-04, codex: added `RunRules.residentsPerWave` defaulting to 1000, saved and validated through `readRun`, threaded into app/sim wave checks, and surfaced as the Gameplay `Residents/wave` input. Targeted Playwright proved 1000 default, live 180 banner update, autosave, and reload.
+- Task `task_045_orchestrate_the_residents_bar_and_spawn_path_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_045_orchestrate_the_residents_bar_and_spawn_path_work`

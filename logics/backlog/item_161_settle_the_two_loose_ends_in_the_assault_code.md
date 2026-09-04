@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 22:12:44
+> Indicators reviewed: 2026-09-04 22:23:14
 
 # AI Context
 - Summary: destructionRadiusM is declared and used nowhere. And advanceKaijuAssault's loop can destroy two buildings in one call while `destroyed` holds one -- latent at the shipped 0.25 s step, but the comment invites the large ticks that would expose it.
@@ -56,3 +56,7 @@
 
 # Notes
 - 2026-09-04, codex: removed unused `destructionRadiusM`, narrowed `advanceKaijuAssault` to reject ticks that could hide two destructions behind one return field, and covered that with `src/sim/kaiju.test.ts`. Also fixed the reported traffic crash by dropping movers whose queued junction exit segment has been removed, covered by `src/render/trafficMovers.test.ts`.
+- Task `task_045_orchestrate_the_residents_bar_and_spawn_path_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_045_orchestrate_the_residents_bar_and_spawn_path_work`
