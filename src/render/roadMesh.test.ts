@@ -101,4 +101,23 @@ describe("road mesh geometry", () => {
     scene.dispose();
     engine.dispose();
   });
+
+  it("gives road surfaces vertical thickness and sinks sidewalks into the ground", () => {
+    const graph = new RoadGraph();
+    const a = graph.addNode(0, 0);
+    const b = graph.addNode(160, 0);
+    const id = graph.addSegment(a, b, v3(80, 0, 0));
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
+    const roads = createRoadRenderer(scene, graph, () => 0);
+
+    roads.rebuild();
+    const ys = scene.getMeshByName(`road_${id}`)!.getVerticesData("position")!.filter((_, i) => i % 3 === 1);
+    const sidewalkYs = scene.getMeshByName(`sidewalk_${id}`)!.getVerticesData("position")!.filter((_, i) => i % 3 === 1);
+
+    expect(Math.min(...ys)).toBeLessThan(Math.max(...ys) - 0.25);
+    expect(Math.min(...sidewalkYs)).toBeLessThan(0);
+    scene.dispose();
+    engine.dispose();
+  });
 });

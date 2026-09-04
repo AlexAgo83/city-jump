@@ -20,7 +20,7 @@ import { admittedParcels, parcelBounds, parcelId, samePosition } from "./cityReb
 import { applyCamera as applyCameraState, cameraSnapshot as snapshotCamera, createAutosave } from "./persistence";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
-import { buildingBuildCost, CityEconomy, Treasury, incomePerSecond, rebuildingCost, roadBuildCost, type CityTerms } from "../sim/economy";
+import { buildingBuildCost, CITY_DAY_SECONDS, CityEconomy, Treasury, incomePerSecond, rebuildingCost, roadBuildCost, type CityTerms } from "../sim/economy";
 import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones, type ZoneKind } from "../sim/zones";
@@ -311,7 +311,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     }, {} as Record<string, number>);
   const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
   const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
-  const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), elapsed: 0, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
+  const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, day: 1, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), elapsed: 0, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
   /** What the next wave will bring, so the needs panel can price the defence against it. */
   const projectedThreat = (): number => waveClock.active?.threat ?? waveThreat(runState.wave, cityEconomy.resources.population, currentParcels.length);
@@ -329,6 +329,12 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     return utilitySnapshot;
   };
   const currentSuppliedUtilities = (): Set<string> => currentUtilitySnapshot().supplied;
+  const refreshRubble = (): void => {
+    const savedRubble = rubble.toJSON();
+    rubbleRenderer.rebuild(savedRubble);
+    destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
+    detail.invalidate();
+  };
   const syncBuildings = (): void => {
     const residents = cityEconomy.resources.population;
     const { supplied, diffusers } = currentUtilitySnapshot();
@@ -354,10 +360,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       clearedRubble = true;
     }
     if (clearedRubble) {
-      const savedRubble = rubble.toJSON();
-      rubbleRenderer.rebuild(savedRubble);
-      destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
-      detail.invalidate();
+      refreshRubble();
     }
     const income = incomePerSecond(residents, currentBuildingStatuses);
     // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
@@ -374,7 +377,14 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   };
   let sunHour = DEFAULT_HOUR;
   let sunMinute = -1;
+  let autosavedClockSlot = "";
   const displayedMinute = (hour: number): number => Math.round((((hour % 24) + 24) % 24) * 60) % (24 * 60);
+  const maybeAutosaveClock = (): void => {
+    const slot = `${simDay}:${Math.floor(displayedMinute(sunHour) / 15)}`;
+    if (slot === autosavedClockSlot) return;
+    autosavedClockSlot = slot;
+    scheduleAutosave();
+  };
   const setClockHour = (hour: number, force = false): void => {
     sunHour = ((hour % 24) + 24) % 24;
     const minute = displayedMinute(sunHour);
@@ -387,6 +397,10 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const advanceClock = (dt: number): void => {
     if (dt <= 0) return;
     simSeconds += dt;
+    if (rubble.expireBefore(simSeconds - CITY_DAY_SECONDS)) {
+      refreshRubble();
+      repackParcels();
+    }
     if (currentBuildableCells.length && Math.floor(simSeconds / 20) !== demandStep) {
       demandStep = Math.floor(simSeconds / 20);
       // Only when another lot could actually go up. This used to rebuild the whole world every
@@ -404,6 +418,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     const next = sunHour + dt * 0.08;
     simDay += Math.floor(next / 24);
     setClockHour(next);
+    maybeAutosaveClock();
   };
   const applyTerrain = (preset: string): void => {
     terrainPreset = preset;
@@ -418,7 +433,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       // The wave itself is not written -- nothing about a kaiju can be, and a reload puts the city
       // back to just before one anyway.
       const saved = { ...waveClock, active: null };
-      return serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, saved, simSeconds);
+      return serializeCity(graph, plantings, zones, terrainPreset, sunHour, cameraSnapshot(), rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, saved, simSeconds, simDay);
     },
     writeAutosave,
     () => showRefusal("Autosave could not be written. Browser storage may be full or disabled."),
@@ -430,7 +445,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     scheduleAutosave();
   };
   const snapshot = (withCamera = false): CitySave =>
-    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock, simSeconds);
+    serializeCity(graph, plantings, zones, terrainPreset, sunHour, withCamera ? cameraSnapshot() : undefined, rubble, buildingLifecycle, treasury, cityEconomy, utilities, runState, waveClock, simSeconds, simDay);
   const restoreSnapshot = (city: CitySave): void => {
     tool.cancel();
     followTarget = null;
@@ -658,7 +673,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     }
     const hit = kaijuAssault?.destroyed ? currentParcels.find((parcel) => samePosition(parcel.position, kaijuAssault!.destroyed!)) : null;
     if (!hit) return;
-    rubble.destroy(hit);
+    rubble.destroy(hit, simSeconds);
     destructionEffects.explode(hit.position, performance.now() / 1000);
     detail.invalidate();
     treasury.spend(rebuildingCost(buildingBuildCost(hit)), true);
@@ -783,7 +798,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     },
     {
       building(status) {
-        rubble.destroy(status.parcel);
+        rubble.destroy(status.parcel, simSeconds);
         currentParcels = currentParcels.filter((parcel) => parcel !== status.parcel);
         syncBuildings();
         rebuild(parcelBounds(status.parcel));
@@ -943,6 +958,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     },
     onSunHour(hour) {
       setClockHour(hour, true);
+      maybeAutosaveClock();
     },
     onTimeRate: setTimeRate,
     onCameraMode(mode) {
@@ -999,8 +1015,9 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     );
     if (relaid || carried) showAlert(`${relaid} zoned lots and ${carried} buildings were re-laid onto the city as it came back.`);
     simSeconds = city.elapsed ?? 0;
-    simDay = 1;
+    simDay = city.day ?? 1;
     setClockHour(city.hour, true);
+    autosavedClockSlot = `${simDay}:${Math.floor(displayedMinute(sunHour) / 15)}`;
     addOffshoreBridge();
     chargeConstructionStarts = false;
     rebuild();

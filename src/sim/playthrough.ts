@@ -1,7 +1,7 @@
 import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "./batteries";
 import { buildingNeeds, type BuildingNeed, type BuildingKind } from "./buildingKinds";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "./buildingLifecycle";
-import { buildingBuildCost, CityEconomy, incomePerSecond, rebuildingCost as rebuildCharge, Treasury } from "./economy";
+import { buildingBuildCost, CITY_DAY_SECONDS, CityEconomy, incomePerSecond, rebuildingCost as rebuildCharge, Treasury } from "./economy";
 import { RoadGraph } from "./graph";
 import { Rubble } from "./rubble";
 import { commitSegment, resolveSnap, validateSegment } from "./rules";
@@ -177,6 +177,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
 
   /** The app's `syncBuildings`, minus the renderer: demand, lifecycle, utilities, rubble, bills. */
   const sync = (charge: boolean): void => {
+    rubble.expireBefore(seconds - CITY_DAY_SECONDS);
     parcels = parcelsForDemand(layout(), economy.resources.population, seconds)
       .filter((parcel) => !rubble.blocks(parcel) || lifecycle.stateOf(parcel) === "rebuilding");
     const supplied = scenario.utilities ? suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()) : null;
@@ -314,7 +315,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
       if (hit) {
         destroyed += 1;
         rebuildingCost += rebuildCharge(buildingBuildCost(hit));
-        rubble.destroy(hit);
+        rubble.destroy(hit, seconds);
         treasury.spend(rebuildCharge(buildingBuildCost(hit)), true);
         lifecycle.rebuild(hit, seconds);
       }

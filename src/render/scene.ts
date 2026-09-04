@@ -75,7 +75,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   shadows.normalBias = 0.08;
   shadows.usePercentageCloserFiltering = true;
   shadows.filteringQuality = ShadowGenerator.QUALITY_LOW;
-  shadows.setDarkness(0.44);
+  shadows.setDarkness(0.58);
   const sky = createSky(scene, camera);
 
   function setSunHour(hour: number): void {

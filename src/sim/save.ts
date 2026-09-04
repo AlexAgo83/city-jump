@@ -20,7 +20,7 @@ import { v3 } from "./vec";
 import { createWaveClock, type WaveClock } from "./wave";
 import { Zones, type SavedZone } from "./zones";
 
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 const OFFSHORE_SCENERY_Z = 2000;
 
 /** Tuples rather than objects: this lands in localStorage, and it is ~40% of the JSON. */
@@ -48,6 +48,7 @@ export interface CitySave {
   readonly v: number;
   readonly terrain: string;
   readonly hour: number;
+  readonly day?: number;
   readonly camera?: SavedCamera;
   readonly nodes: readonly SavedNode[];
   readonly segments: readonly SavedSegment[];
@@ -72,13 +73,14 @@ export interface CitySave {
   readonly elapsed?: number;
 }
 
-export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun(), waveClock = createWaveClock(), elapsed = 0): CitySave {
+export function serializeCity(graph: RoadGraph, plantings: Plantings, zones: Zones, terrain: string, hour: number, camera?: SavedCamera, rubble = new Rubble(), buildingLifecycle = new BuildingLifecycle(), treasury = new Treasury(), cityEconomy = new CityEconomy(), utilities = new Utilities(), run = createRun(), waveClock = createWaveClock(), elapsed = 0, day = 1): CitySave {
   const kept = graph.allSegments().filter((segment) => !isOffshoreSceneryRoad(graph, segment.a, segment.b));
   const keptNodes = new Set(kept.flatMap((segment) => [segment.a, segment.b]));
   return {
     v: SAVE_VERSION,
     terrain,
     hour,
+    day,
     money: treasury.money,
     resources: cityEconomy.resources,
     run,
@@ -204,8 +206,9 @@ export function parseCity(text: string): CitySave | null {
   const waveClock = readWaveClock(value.waveClock);
   if (run === null || waveClock === null) return null;
   const elapsed = value.elapsed === undefined ? 0 : Number.isFinite(value.elapsed) ? value.elapsed as number : null;
-  if (elapsed === null) return null;
-  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, money, resources, run, waveClock, elapsed, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
+  const day = value.day === undefined ? 1 : Number.isFinite(value.day) ? Math.max(1, Math.floor(value.day as number)) : null;
+  if (elapsed === null || day === null) return null;
+  return { v: SAVE_VERSION, terrain: value.terrain, hour: value.hour as number, day, money, resources, run, waveClock, elapsed, nodes, segments, planted, cleared, zones, rubble, buildingStates, utilities, ...(camera ? { camera } : {}) };
 }
 
 function readRun(value: unknown): RunState | null {
@@ -287,9 +290,10 @@ function readRubble(value: unknown): SavedRubble[] | null {
   const rubble = value.filter(
     (point): point is SavedRubble =>
       Array.isArray(point) &&
-      point.length === 2 &&
+      (point.length === 2 || point.length === 3) &&
       Number.isFinite(point[0]) &&
-      Number.isFinite(point[1]),
+      Number.isFinite(point[1]) &&
+      (point.length === 2 || Number.isFinite(point[2])),
   );
   return rubble.length === value.length ? rubble : null;
 }

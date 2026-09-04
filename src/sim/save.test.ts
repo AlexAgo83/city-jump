@@ -38,8 +38,9 @@ describe("city saves", () => {
   });
 
   it("round-trips the simulation clock, which lot demand and build stages are timed against", () => {
-    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), new CityEconomy(), new Utilities(), createRun(), createWaveClock(), 512)))!;
+    const save = parseCity(JSON.stringify(serializeCity(new RoadGraph(), new Plantings(), new Zones(), "rolling", 14, undefined, new Rubble(), new BuildingLifecycle(), new Treasury(), new CityEconomy(), new Utilities(), createRun(), createWaveClock(), 512, 4)))!;
     expect(save.elapsed).toBe(512);
+    expect(save.day).toBe(4);
   });
 
   it("round-trips a city through JSON", () => {

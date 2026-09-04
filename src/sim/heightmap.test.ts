@@ -6,6 +6,7 @@ import { allSlots, buildingParcels, buildableCells, type BuildingParcel } from "
 import { v3 } from "./vec";
 import { RULES } from "./rules";
 import { junctionGeometry, ringElevation } from "./junction";
+import { SIDEWALK_WIDTH, roadType } from "./roadTypes";
 
 const map = () =>
   new Heightmap({ size: 600, cell: 4, generator: (x, z) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70) });
@@ -54,6 +55,19 @@ describe("heightmap", () => {
       // Never above the carriageway: that is what would poke through.
       expect(h.heightAt(p.position.x, p.position.z)).toBeLessThan(p.position.y);
     }
+  });
+
+  it("keeps terrain below the sidewalks too", () => {
+    const h = map();
+    const g = graphOn(h);
+    const a = g.addNode(-200, 0);
+    const b = g.addNode(200, 0);
+    const id = g.addSegment(a, b, v3(0, 0, 0));
+    h.conformToRoads(g);
+
+    const p = g.pointAt(id, g.segment(id).length / 2).position;
+    const edge = roadType(g.segment(id).type).width / 2 + SIDEWALK_WIDTH - 0.2;
+    expect(h.heightAt(p.x, p.z + edge)).toBeCloseTo(p.y - ROAD_BED_DROP, 1);
   });
 
   it("does not raise the terrain under an elevated segment", () => {
@@ -236,7 +250,9 @@ describe("heightmap", () => {
     h.conformToRoads(g, [parcel]);
 
     const p = g.pointAt(road, g.segment(road).length / 2).position;
+    const edge = roadType(g.segment(road).type).width / 2 + SIDEWALK_WIDTH - 0.2;
     expect(h.heightAt(p.x, p.z)).toBeCloseTo(p.y - ROAD_BED_DROP, 1);
+    expect(h.heightAt(p.x, p.z + edge)).toBeCloseTo(p.y - ROAD_BED_DROP, 1);
   });
 
   it("stamps adjacent parcels independent of order", () => {

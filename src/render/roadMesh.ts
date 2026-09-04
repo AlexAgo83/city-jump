@@ -53,6 +53,8 @@ import {
 
 /** A highway's guardrail, standing where a sidewalk would otherwise go. */
 const GUARDRAIL_HEIGHT = 0.85;
+const ROAD_THICKNESS = 0.32;
+const SIDEWALK_THICKNESS = 0.42;
 
 /** Zebra stripes: painted on the carriageway just outside the junction each arm runs into. */
 const STRIPE_WIDTH = 0.9;
@@ -262,7 +264,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
         right.push(new Vector3(position.x - n.x * half, position.y + ROAD_LIFT, position.z - n.z * half));
       }
 
-      const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
+      const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right, ROAD_THICKNESS);
       const baseId = baseRoadTypeId(seg.type);
       ribbon.material = type.pedestrian ? pavingMaterial : baseId === "dirt" ? dirtMaterial : baseId === "military" ? militaryMaterial : type.industrial ? industrialMaterial : material;
       ribbon.isPickable = false;
@@ -310,7 +312,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
         alignSidewalkEnds(junctions, seg, outerLeft, outerRight);
         // Both footways of a road in one mesh: same paving, same lifetime, and one draw instead
         // of two on every road in the city.
-        const walk = roadStripMesh(scene, `sidewalk_${seg.id}`, outerLeft, innerLeft, [innerRight, outerRight]);
+        const walk = roadStripMesh(scene, `sidewalk_${seg.id}`, outerLeft, innerLeft, SIDEWALK_THICKNESS, [innerRight, outerRight]);
         walk.material = pavingMaterial;
         walk.isPickable = false;
         meshes.push(walk);
@@ -491,7 +493,7 @@ function roundaboutMeshes(
       const y = elevationAt(angle) + ROAD_LIFT + 0.15;
       return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
     });
-  const ring = roadStripMesh(scene, `roundabout_${junction.node}`, ringPoints(inner), ringPoints(outer));
+  const ring = roadStripMesh(scene, `roundabout_${junction.node}`, ringPoints(inner), ringPoints(outer), ROAD_THICKNESS);
   ring.material = onFoot ? paving : surface;
   ring.isPickable = false;
 
@@ -541,6 +543,7 @@ function roundaboutArmPatches(
       `roundabout_gap_${arm.segment}_${junction.node}`,
       [new Vector3(arm.cornerHigh.x, arm.cornerHigh.y + ROAD_LIFT + 0.18, arm.cornerHigh.z), end(1)],
       [new Vector3(arm.cornerLow.x, arm.cornerLow.y + ROAD_LIFT + 0.18, arm.cornerLow.z), end(-1)],
+      ROAD_THICKNESS,
     );
     asphalt.material = surface;
     asphalt.isPickable = false;
@@ -550,6 +553,7 @@ function roundaboutArmPatches(
       `roundabout_splitter_${arm.segment}_${junction.node}`,
       [end(-0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
       [end(0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
+      SIDEWALK_THICKNESS,
     );
     island.material = paving;
     island.isPickable = false;
@@ -697,7 +701,7 @@ function junctionFootway(
   }
   if (strips.length === 0) return [];
   const [first, ...rest] = strips;
-  const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}`, first![0], first![1], ...rest);
+  const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}`, first![0], first![1], SIDEWALK_THICKNESS, ...rest);
   patch.material = paving;
   patch.isPickable = false;
   return [patch];
@@ -926,7 +930,7 @@ function footwayArcs(
   }
   if (strips.length === 0) return [];
   const [first, ...rest] = strips;
-  const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}`, first![0], first![1], ...rest);
+  const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}`, first![0], first![1], SIDEWALK_THICKNESS, ...rest);
   walk.material = paving;
   walk.isPickable = false;
   return [walk];
@@ -1257,22 +1261,36 @@ export function portalOutline(center: { x: number; z: number }, tangent: { x: nu
   return tunnelSection(width).map((p) => new Vector3(center.x + n.x * p.x, y + p.y, center.z + n.z * p.x));
 }
 
-function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[], ...more: [Vector3[], Vector3[]][]): Mesh {
+function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[], thickness = 0, ...more: [Vector3[], Vector3[]][]): Mesh {
   const positions: number[] = [];
   const indices: number[] = [];
   for (const [l, r] of [[left, right] as [Vector3[], Vector3[]], ...more]) {
     const base = positions.length / 3;
-    for (let i = 0; i < l.length; i++) positions.push(l[i]!.x, l[i]!.y, l[i]!.z, r[i]!.x, r[i]!.y, r[i]!.z);
+    for (let i = 0; i < l.length; i++) {
+      positions.push(l[i]!.x, l[i]!.y, l[i]!.z, r[i]!.x, r[i]!.y, r[i]!.z);
+      if (thickness > 0) positions.push(l[i]!.x, l[i]!.y - thickness, l[i]!.z, r[i]!.x, r[i]!.y - thickness, r[i]!.z);
+    }
+    const stride = thickness > 0 ? 4 : 2;
     for (let i = 0; i < l.length - 1; i++) {
-      const a = base + i * 2;
-      indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      const a = base + i * stride;
+      const b = a + stride;
+      indices.push(a, a + 1, b, a + 1, b + 1, b);
+      if (thickness <= 0) continue;
+      indices.push(a, b, a + 2, b, b + 2, a + 2);
+      indices.push(a + 1, a + 3, b + 1, a + 3, b + 3, b + 1);
     }
   }
   const mesh = new MeshClass(name, scene);
   const data = new VertexData();
   data.positions = positions;
   data.indices = indices;
-  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  if (thickness > 0) {
+    const normals: number[] = [];
+    VertexData.ComputeNormals(positions, indices, normals);
+    data.normals = normals;
+  } else {
+    data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
+  }
   data.applyToMesh(mesh);
   return mesh;
 }

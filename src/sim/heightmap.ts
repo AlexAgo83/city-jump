@@ -1,6 +1,6 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
-import { roadType } from "./roadTypes";
+import { roadType, SIDEWALK_WIDTH } from "./roadTypes";
 import { allJunctions, ringElevation, type JunctionGeometry } from "./junction";
 import type { BuildingParcel } from "./slots";
 import { smoothstep01, type Vec3 } from "./vec";
@@ -30,6 +30,7 @@ export const SEA_LEVEL = 0;
  * who is actually closer.
  */
 const JUNCTION_PRIORITY = 1000;
+const ROAD_PRIORITY = 100;
 
 export interface TerrainBounds {
   readonly minX: number;
@@ -168,7 +169,8 @@ export class Heightmap implements Terrain {
       if (seg.elevated) continue;
       const type = roadType(seg.type);
       const half = type.width / 2;
-      const reach = half + EMBANKMENT;
+      const pavedHalf = type.highway || type.pedestrian || type.tunnelDepth ? half : half + SIDEWALK_WIDTH;
+      const reach = pavedHalf + EMBANKMENT;
       const step = Math.max(1, this.cell / 2);
 
       for (let d = 0; d <= seg.length; d += step) {
@@ -180,7 +182,7 @@ export class Heightmap implements Terrain {
         if (type.tunnelDepth && this.baseHeightAt(position.x, position.z) - position.y > TUNNEL_COVER) {
           continue;
         }
-        this.stamp(position.x, position.z, position.y, half, reach, 0, region);
+        this.stamp(position.x, position.z, position.y, pavedHalf, reach, ROAD_PRIORITY, region);
       }
     }
 

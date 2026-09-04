@@ -2268,6 +2268,19 @@ check(
   (await stats()).segments === beforeReload.segments,
   `${(await stats()).segments}/${beforeReload.segments}`,
 );
+await page.evaluate(() => {
+  const raw = JSON.parse(window.localStorage.getItem("cityjump.autosave"));
+  raw.day = 4;
+  raw.hour = 9.25;
+  window.localStorage.setItem("cityjump.autosave", JSON.stringify(raw));
+});
+await reloadApp();
+const reloadedClock = await stats();
+check(
+  "a page reload resumes the saved day and hour",
+  reloadedClock.simDay === 4 && Math.abs(reloadedClock.simHour - 9.25) < 0.01,
+  JSON.stringify({ day: reloadedClock.simDay, hour: reloadedClock.simHour }),
+);
 // A replayed city does not cut itself into exactly the same lots -- they slide by about a metre
 // along a street -- and the zoning is re-laid onto the ones it did cut. Without that, one painted
 // lot in seven came back blank, which is what a district full of holes was.
