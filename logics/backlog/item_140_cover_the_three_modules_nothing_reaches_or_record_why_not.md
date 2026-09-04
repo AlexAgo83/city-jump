@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 70%
+> Progress: 82%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -50,3 +50,6 @@
 # Priority
 - Priority: Low
 - Rationale: Real coverage gaps, but none of them sits on a trust boundary or an assurance; they wait behind everything that does.
+
+# Validation
+- 2026-09-04: Added src/ui/hud.test.ts for text rendering and src/render/trafficMovers.test.ts covering trafficMovers with createVehicleModels through Babylon NullEngine. Validated with rtk npm exec -- vitest run src/ui/hud.test.ts src/render/trafficMovers.test.ts and rtk npm run typecheck.
