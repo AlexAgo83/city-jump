@@ -16,7 +16,6 @@ import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math"
 
 import type { RoadGraph } from "../sim/graph";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
-import { terrainHeight } from "../sim/terrain";
 import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import { ASSET_VERSION } from "./assets";
@@ -218,7 +217,7 @@ interface Model {
  * One mesh per model, one matrix per building. A city is thousands of buildings and one
  * draw call each does not render; thin instances make the count irrelevant.
  */
-export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator) {
+export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator, heightAt: (x: number, z: number) => number) {
   const manifest = await loadManifest();
   const available: Model[] = [];
   const roofProps = buildRoofProps(scene, shadows);
@@ -339,7 +338,7 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
     const occupiedCells = buildingCellSet(lastParcels);
     const footDecorMatrices = new Map<FootDecorKind, Matrix[]>();
     for (const parcel of standing) {
-      for (const placement of buildingFootDecorMatrices(parcel, terrainHeight, buildingBlockedDecorFaces(parcel, occupiedCells))) {
+      for (const placement of buildingFootDecorMatrices(parcel, heightAt, buildingBlockedDecorFaces(parcel, occupiedCells))) {
         const bucket = footDecorMatrices.get(placement.kind);
         if (bucket) bucket.push(placement.matrix);
         else footDecorMatrices.set(placement.kind, [placement.matrix]);
@@ -777,7 +776,7 @@ export function buildingGroundPadMatrix(parcel: BuildingParcel): Matrix {
 
 export function buildingFootDecorMatrices(
   parcel: BuildingParcel,
-  heightAt = terrainHeight,
+  heightAt: (x: number, z: number) => number,
   blockedFaces: ReadonlySet<FootDecorFace> = new Set(),
 ): FootDecorPlacement[] {
   const width = parcel.frontageCells * GRID.cellSize;

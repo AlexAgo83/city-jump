@@ -21,7 +21,6 @@ import {
   walkCentres,
   type RoadType,
 } from "../sim/roadTypes";
-import { terrainHeight } from "../sim/terrain";
 import {
   allJunctions,
   ringElevation,
@@ -68,7 +67,7 @@ const walkTurnColor = new Color3(0.55, 0.85, 0.55);
  * Turns the graph into road surface. Every mesh here is derived: `rebuild` disposes what
  * it made and builds again from the graph, and nothing else ever touches these meshes.
  */
-export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
+export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x: number, z: number) => number) {
   const material = new StandardMaterial("road", scene);
   material.diffuseColor = new Color3(0.18, 0.18, 0.19);
   const industrialMaterial = new StandardMaterial("industrial_road", scene);
@@ -158,7 +157,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       if (type.tunnelDepth) {
         const steps = Math.max(4, Math.ceil(seg.length / 8));
         for (const [i, laneCentre] of laneCentres(type).entries()) {
-          const points = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT + 0.02, laneCentre.offset);
+          const points = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT + 0.02, heightAt, laneCentre.offset);
           trafficMeshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
         }
         continue;
@@ -172,7 +171,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
 
       if (!type.pedestrian) {
         for (const [i, laneCentre] of laneCentres(type).entries()) {
-          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, laneCentre.offset);
+          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.02, heightAt, laneCentre.offset);
           trafficMeshes.push(styledLine(scene, `traffic_lane_${seg.id}_${i}`, points, laneCentre.direction === 1 ? laneOutbound : laneInbound));
         }
         trafficMeshes.push(...laneChangeLines(scene, graph, seg, type, from, to, turnColor));
@@ -180,7 +179,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       if (!type.highway) {
         const walkLift = type.pedestrian ? MARK_LIFT + 0.02 : SIDEWALK_LIFT + 0.03;
         for (const [i, walkCentre] of walkCentres(type, SIDEWALK_WIDTH).entries()) {
-          const points = pointsBetween(graph, seg.id, from, to, steps, walkLift, walkCentre.offset);
+          const points = pointsBetween(graph, seg.id, from, to, steps, walkLift, heightAt, walkCentre.offset);
           trafficMeshes.push(styledLine(scene, `traffic_walk_${seg.id}_${i}`, points, walkCentre.direction === 1 ? walkOutbound : walkInbound));
         }
       }
@@ -227,7 +226,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       if (dirty && !segmentMeshTouchesBounds(seg.samples, type, dirty)) continue;
       if (type.tunnelDepth) {
         const steps = Math.max(4, Math.ceil(seg.length / 8));
-        const trace = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT);
+        const trace = pointsBetween(graph, seg.id, 0, seg.length, steps, MARK_LIFT, heightAt);
         const line = MeshBuilder.CreateDashedLines(`tunnel_trace_${seg.id}`, { points: trace, dashSize: 8, gapSize: 5 }, scene);
         line.color = tunnel;
         line.isPickable = false;
@@ -238,7 +237,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
         tube.shell.isPickable = false;
         tube.interior.isPickable = false;
         meshes.push(line, tube.shell, tube.interior);
-        meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel));
+        meshes.push(...tunnelPortals(scene, graph, seg.id, type.width, portalMaterial, tunnel, heightAt));
         continue;
       }
 
@@ -269,7 +268,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       meshes.push(styledLines(scene, `curb_${seg.id}`, [left, right], curb));
       if (type.industrial) {
         for (const side of type.oneWay ? [-1, 1] : [-1, 0, 1]) {
-          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.04, side * half * 0.45);
+          const points = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT + 0.04, heightAt, side * half * 0.45);
           const mark = MeshBuilder.CreateTube(`industrial_mark_${seg.id}_${side}`, { path: points, radius: 0.18, tessellation: 4 }, scene);
           mark.material = industrialPaintMaterial;
           mark.isPickable = false;
@@ -289,7 +288,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
           rail.isPickable = false;
           meshes.push(rail);
         }
-        if (isElevatedBridge(seg)) meshes.push(...cableBridge(scene, graph, seg, type.width, guardrailMaterial, curb));
+        if (isElevatedBridge(seg, heightAt)) meshes.push(...cableBridge(scene, graph, seg, type.width, guardrailMaterial, curb));
       } else if (!type.pedestrian) {
         const outerLeft: Vector3[] = [];
         const outerRight: Vector3[] = [];
@@ -318,7 +317,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
       // a 2-lane two-way road gets the same line as its lane divider. One-way never draws one --
       // there is no opposing direction to keep apart, so no lane count on a one-way road needs it.
       if (!type.oneWay && (isAvenue || type.lanes === 2)) {
-        const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT);
+        const center = pointsBetween(graph, seg.id, from, to, steps, MARK_LIFT, heightAt);
         meshes.push(styledLine(scene, `lane_${seg.id}`, center, lane));
       }
 
@@ -344,7 +343,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph) {
     for (const junction of junctions.values()) {
       if (dirty && !junctionTouchesBounds(junction, dirty)) continue;
       if (junction.roundabout > 0) {
-        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
+        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane, heightAt));
         continue;
       }
       const mesh = junctionMesh(scene, junction);
@@ -457,6 +456,7 @@ function roundaboutMeshes(
   kerb: Color3,
   paving: StandardMaterial,
   laneColor: Color3,
+  heightAt: (x: number, z: number) => number,
 ): Mesh[] {
   const centre = graph.node(junction.node).pos;
   const outer = junction.roundabout;
@@ -497,7 +497,7 @@ function roundaboutMeshes(
 
   return [
     ring,
-    ...roundaboutArmPatches(scene, graph, junction, outer, surface, paving),
+    ...roundaboutArmPatches(scene, graph, junction, outer, surface, paving, heightAt),
     // A footway ring outside it, but broken where the arms come in: a full lathe would lay a band
     // straight across every road meeting the roundabout. A path is all footway already.
     ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, elevationAt, paving)),
@@ -515,6 +515,7 @@ function roundaboutArmPatches(
   outer: number,
   surface: StandardMaterial,
   paving: StandardMaterial,
+  heightAt: (x: number, z: number) => number,
 ): Mesh[] {
   const centre = graph.node(junction.node).pos;
   return junction.arms.flatMap((arm) => {
@@ -525,7 +526,7 @@ function roundaboutArmPatches(
     const end = (side: number) => {
       const x = centre.x + arm.outward.x * outer + n.x * half * side;
       const z = centre.z + arm.outward.z * outer + n.z * half * side;
-      return new Vector3(x, terrainHeight(x, z) + ROAD_LIFT + 0.16, z);
+      return new Vector3(x, heightAt(x, z) + ROAD_LIFT + 0.16, z);
     };
     const asphalt = roadStripMesh(
       scene,
@@ -938,8 +939,8 @@ function styledLine(scene: Scene, name: string, points: Vector3[], color: Color3
   return mesh;
 }
 
-function isElevatedBridge(seg: Segment): boolean {
-  return seg.length > 1000 && seg.samples.some((p) => p.y - terrainHeight(p.x, p.z) > 8);
+function isElevatedBridge(seg: Segment, heightAt: (x: number, z: number) => number): boolean {
+  return seg.length > 1000 && seg.samples.some((p) => p.y - heightAt(p.x, p.z) > 8);
 }
 
 function cableBridge(
@@ -1048,13 +1049,14 @@ function pointsBetween(
   to: number,
   steps: number,
   lift: number,
+  heightAt: (x: number, z: number) => number,
   offset = 0,
 ): Vector3[] {
   const points: Vector3[] = [];
   for (let i = 0; i <= steps; i++) {
     const d = from + ((to - from) * i) / steps;
     const { position, tangent } = graph.pointAt(id, d);
-    const y = Math.max(position.y, terrainHeight(position.x, position.z)) + lift;
+    const y = Math.max(position.y, heightAt(position.x, position.z)) + lift;
     if (offset === 0) {
       points.push(new Vector3(position.x, y, position.z));
     } else {
@@ -1135,11 +1137,12 @@ function tunnelPortals(
   width: number,
   material: StandardMaterial,
   color: Color3,
+  heightAt: (x: number, z: number) => number,
 ): (Mesh | LinesMesh)[] {
   const seg = graph.segment(id);
   return [
-    ...tunnelPortal(scene, graph, id, 0, width, 1, material, color),
-    ...tunnelPortal(scene, graph, id, seg.length, width, -1, material, color),
+    ...tunnelPortal(scene, graph, id, 0, width, 1, material, color, heightAt),
+    ...tunnelPortal(scene, graph, id, seg.length, width, -1, material, color, heightAt),
   ];
 }
 
@@ -1152,9 +1155,10 @@ function tunnelPortal(
   direction: 1 | -1,
   material: StandardMaterial,
   color: Color3,
+  heightAt: (x: number, z: number) => number,
 ): (Mesh | LinesMesh)[] {
   const { position, tangent } = graph.pointAt(id, distance);
-  const y = terrainHeight(position.x, position.z) + MARK_LIFT;
+  const y = heightAt(position.x, position.z) + MARK_LIFT;
   const exterior = portalExterior(scene, `tunnel_headwall_${id}_${distance}`, position, tangent, width, direction, y);
   for (const mesh of exterior) {
     mesh.material = material;

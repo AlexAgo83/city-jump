@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 92%
-> Confidence: 85%
-> Progress: 55%
+> Understanding: 93%
+> Confidence: 87%
+> Progress: 65%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -58,5 +58,5 @@
 - 2026-09-03 wave 1: production code outside `src/app/` no longer calls `setTerrain`; `playRun` now relies on the default flat terrain instead of mutating the terrain global.
 - 2026-09-03 wave 1: `tests/architecture.mjs` now fails if a non-test production file outside `src/app/` calls `setTerrain`, and `adr_007_make_terrain_an_explicit_dependency` records the migration rule.
 - 2026-09-03 validation: `rtk npm run test:architecture` passed; `rtk npm exec -- vitest run src/sim/playthrough.test.ts` passed.
-- 2026-09-04 terrain injection 1: createUtilityRenderer and createTrafficRenderer now receive height sampling from app.ts; render/utilities.ts and render/trafficMovers.ts no longer import terrainHeight.
-- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed through build after the renderer height injection; the first ci run then failed only on Logics indicators corrected by logics-manager.
+- 2026-09-04 terrain injection 1: createUtilityRenderer, createTrafficRenderer, createRoadRenderer, and createBuildingRenderer now receive height sampling from app.ts; render/utilities.ts, render/trafficMovers.ts, render/roadMesh.ts, and render/buildings.ts no longer import terrainHeight.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts src/render/roadMesh.test.ts src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into the utility, traffic, road, and building renderers.

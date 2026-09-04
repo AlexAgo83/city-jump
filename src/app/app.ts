@@ -80,7 +80,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   createOcean(scene);
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
-  const roads = createRoadRenderer(scene, graph);
+  const roads = createRoadRenderer(scene, graph, (x, z) => heightmap.heightAt(x, z));
   const traffic = createTrafficRenderer(scene, graph, frameDelta, (x, z) => heightmap.heightAt(x, z));
   const fps = createFpsMeter();
   const signals = createSignalRenderer(scene, graph, frameDelta);
@@ -92,7 +92,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const kaiju = createKaijuRenderer(scene, shadows);
   const missiles = createMissileRenderer(scene);
   const waveMarkers = createWaveMarkerRenderer(scene, (x, z) => heightmap.heightAt(x, z));
-  const buildings = await createBuildingRenderer(scene, graph, shadows);
+  const buildings = await createBuildingRenderer(scene, graph, shadows, (x, z) => heightmap.heightAt(x, z));
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;

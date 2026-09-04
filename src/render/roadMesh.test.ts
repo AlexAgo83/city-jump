@@ -82,7 +82,7 @@ describe("road mesh geometry", () => {
     const id = graph.addSegment(a, b, v3(80, 0, 0), "avenue_2lane");
     const engine = new NullEngine();
     const scene = new Scene(engine);
-    const roads = createRoadRenderer(scene, graph);
+    const roads = createRoadRenderer(scene, graph, () => 0);
 
     roads.rebuild();
     const road = scene.getMeshByName(`road_${id}`);
