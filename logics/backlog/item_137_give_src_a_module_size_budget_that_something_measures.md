@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 15%
+> Progress: 30%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -52,3 +52,6 @@
 # Priority
 - Priority: Medium
 - Rationale: The budget is what stops app.ts drifting back; it waits on nothing, but the record it produces is more valuable than the lines it removes.
+
+# Validation
+- 2026-09-04: Added tests/architecture.mjs module-size budget check and recorded ponytail: module-size reasons on every non-test src module over 700 lines. Validated with rtk npm run typecheck and rtk npm run test:architecture.

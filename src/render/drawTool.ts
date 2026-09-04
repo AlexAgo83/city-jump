@@ -178,6 +178,8 @@ export interface UtilityTools {
   refresh(): void;
 }
 
+// ponytail: module-size is the pointer adapter for every edit tool; keep it together until another
+// controller owns a full mode, its preview, and its cancel path.
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,

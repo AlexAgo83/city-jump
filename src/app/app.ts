@@ -56,6 +56,8 @@ const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
 type CameraMode = "free" | "orbit" | "follow";
 type TimeRate = 0 | 1 | 2 | 4;
 
+// ponytail: module-size is the composition root owning the live scene graph; split only when a
+// closed lifecycle slice can move with its timers, observers, persistence and renderer calls.
 export async function startApp(startedAt = performance.now()): Promise<{ dispose(): void }> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
   const renderScene = createScene(canvas);

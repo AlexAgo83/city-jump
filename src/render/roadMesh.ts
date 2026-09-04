@@ -66,6 +66,8 @@ const walkTurnColor = new Color3(0.55, 0.85, 0.55);
 /**
  * Turns the graph into road surface. Every mesh here is derived: `rebuild` disposes what
  * it made and builds again from the graph, and nothing else ever touches these meshes.
+ * ponytail: module-size is kept here because roads, junctions, crossings, tunnels and portals all
+ * share the same Babylon materials and transfer geometry; split when one render pass can own less.
  */
 export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x: number, z: number) => number) {
   const material = new StandardMaterial("road", scene);

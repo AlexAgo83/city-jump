@@ -86,6 +86,8 @@ interface TrafficMoverState {
 
 export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null };
 
+// ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
+// per-frame loop; split when a pure planner can be tested without mesh position state.
 export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, heightAt: (x: number, z: number) => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
   const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkerPrototypes } = models;
 

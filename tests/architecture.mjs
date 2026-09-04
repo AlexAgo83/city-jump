@@ -98,6 +98,15 @@ test("shared link threat model matches the decompression cap", async () => {
   assert.ok(Buffer.byteLength(largeCity) < 1_000_000, "perf/cities/ma-ville.json fits under the documented cap");
 });
 
+test("large source modules carry their reason", async () => {
+  const budget = 700;
+  for (const file of files.filter((file) => !file.endsWith(".test.ts"))) {
+    const source = await readFile(new URL(file, src), "utf8");
+    const lines = source.split("\n").length;
+    if (lines > budget) assert.match(source, /ponytail: module-size\b/, `${file} has ${lines} lines without a module-size reason`);
+  }
+});
+
 test("static hosting and asset cache keys stay diagnosable", async () => {
   const render = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
   const assets = await readFile(new URL("render/assets.ts", src), "utf8");

@@ -16,6 +16,8 @@ import {
 } from "./saves";
 import { showRefusal } from "./hud";
 
+// ponytail: module-size is one static settings panel wired to DOM ids in index.html; split when a
+// sub-panel has an independent state model instead of forwarding handlers.
 export function bindControls(handlers: {
   onRoadMode(mode: "view" | "straight" | "curve" | "bulldoze" | "plant" | "spray" | "roundabout" | "zone" | "utility"): void;
   onRoadType(type: string): void;

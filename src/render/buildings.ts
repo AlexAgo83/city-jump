@@ -215,6 +215,8 @@ interface Model {
 /**
  * One mesh per model, one matrix per building. A city is thousands of buildings and one
  * draw call each does not render; thin instances make the count irrelevant.
+ * ponytail: module-size stays while GLB loading, fallback boxes, thin instances and decor share
+ * asset caches and one dirty renderer; split when one path gets a separate lifecycle.
  */
 export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator, heightAt: (x: number, z: number) => number) {
   const manifest = await loadManifest();
