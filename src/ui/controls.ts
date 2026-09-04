@@ -52,7 +52,12 @@ export function bindControls(handlers: {
   /** Replays a stored city. Returns false if it could not be replayed. */
   onLoad(city: CitySave): boolean;
   onNew(): void;
-}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setClock(hour: number, day: number, rate: 0 | 1 | 2 | 4): void; setPaused(paused: boolean): void; setToolEnabled(tool: string, enabled: boolean): void; updateUndoRedo(): void } {
+}): { applyCity(city: CitySave): void; applyRoadType(baseId: string, lanes: 1 | 2, oneWay: boolean): void; setClock(hour: number, day: number, rate: 0 | 1 | 2 | 4): void; setPaused(paused: boolean): void; setToolEnabled(tool: string, enabled: boolean): void; updateUndoRedo(): void; dispose(): void } {
+  const disposers: (() => void)[] = [];
+  const on = (target: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void => {
+    target.addEventListener(type, listener);
+    disposers.push(() => target.removeEventListener(type, listener));
+  };
   const toolbar = document.getElementById("toolbar")!;
   const toolbarContent = document.getElementById("toolbar-content")!;
   const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
@@ -62,7 +67,7 @@ export function bindControls(handlers: {
     toolbar.classList.toggle("collapsed", !open);
     toolbarContent.hidden = false;
   };
-  toolbarToggle.addEventListener("click", () => {
+  on(toolbarToggle, "click", () => {
     setToolbarOpen(toolbarToggle.getAttribute("aria-expanded") !== "true");
     persistSettings();
   });
@@ -84,13 +89,14 @@ export function bindControls(handlers: {
     undo.dataset.available = String(handlers.canUndo());
     redo.dataset.available = String(handlers.canRedo());
   };
-  undo.addEventListener("click", handlers.onUndo);
-  redo.addEventListener("click", handlers.onRedo);
-  window.addEventListener("keydown", (event) => {
-    if ((event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']")) return;
-    if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z") return;
-    event.preventDefault();
-    if (event.shiftKey) handlers.onRedo();
+  on(undo, "click", handlers.onUndo as EventListener);
+  on(redo, "click", handlers.onRedo as EventListener);
+  on(window, "keydown", (event) => {
+    const key = event as KeyboardEvent;
+    if ((key.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (!(key.metaKey || key.ctrlKey) || key.key.toLowerCase() !== "z") return;
+    key.preventDefault();
+    if (key.shiftKey) handlers.onRedo();
     else handlers.onUndo();
   });
   /** A tool the run's rules have switched off is not a tool the player should be able to pick. */
@@ -102,7 +108,7 @@ export function bindControls(handlers: {
     if (!enabled && button.getAttribute("aria-pressed") === "true") toolButtons.find((candidate) => candidate.dataset.tool === "select")?.click();
   };
   for (const button of toolButtons) {
-    button.addEventListener("click", () => {
+    on(button, "click", () => {
       if (button.disabled) return;
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
@@ -136,14 +142,14 @@ export function bindControls(handlers: {
   }
 
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="select-view"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       handlers.onSelectView(input.value === "no-buildings" ? "no-buildings" : input.value === "traffic" ? "traffic" : input.value === "utilities" ? "utilities" : input.value === "state" ? "state" : "all");
     });
   }
 
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="plant-mode"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       plantMode = input.value === "spray" ? "spray" : "plant";
       handlers.onRoadMode(plantMode);
@@ -151,7 +157,7 @@ export function bindControls(handlers: {
   }
 
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-shape"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       roadMode = input.value === "curve" ? "curve" : input.value === "roundabout" ? "roundabout" : "straight";
       handlers.onRoadMode(roadMode);
@@ -169,63 +175,63 @@ export function bindControls(handlers: {
   const showTraffic = document.getElementById("show-traffic") as HTMLInputElement;
   const trafficDensity = document.getElementById("traffic-density") as HTMLInputElement;
 
-  showGrid.addEventListener("change", () => {
+  on(showGrid, "change", () => {
     handlers.onWorldGrid(showGrid.checked);
     persistSettings();
   });
 
-  gridSnap.addEventListener("change", () => {
+  on(gridSnap, "change", () => {
     handlers.onGridSnap(gridSnap.checked);
     persistSettings();
   });
 
-  showBuildings.addEventListener("change", () => {
+  on(showBuildings, "change", () => {
     handlers.onBuildings(showBuildings.checked);
     persistSettings();
   });
 
-  showDecor.addEventListener("change", () => {
+  on(showDecor, "change", () => {
     handlers.onDecor(showDecor.checked);
     persistSettings();
   });
 
-  showBoxes.addEventListener("change", () => {
+  on(showBoxes, "change", () => {
     handlers.onBoxes(showBoxes.checked);
     persistSettings();
   });
 
-  showFps.addEventListener("change", () => {
+  on(showFps, "change", () => {
     handlers.onFps(showFps.checked);
     persistSettings();
   });
 
-  showShadows.addEventListener("change", () => {
+  on(showShadows, "change", () => {
     handlers.onShadows(showShadows.checked);
     persistSettings();
   });
 
-  showLights.addEventListener("change", () => {
+  on(showLights, "change", () => {
     handlers.onLights(showLights.checked);
     persistSettings();
   });
 
-  showTraffic.addEventListener("change", () => {
+  on(showTraffic, "change", () => {
     trafficDensity.disabled = !showTraffic.checked;
     handlers.onTraffic(showTraffic.checked);
     persistSettings();
   });
 
   let densityTimer = 0;
-  trafficDensity.addEventListener("input", () => {
+  on(trafficDensity, "input", () => {
     persistSettings();
     window.clearTimeout(densityTimer);
     densityTimer = window.setTimeout(() => handlers.onTrafficDensity(Number(trafficDensity.value)), 250);
   });
 
-  document.getElementById("tree-species")!.addEventListener("change", (event) => {
+  on(document.getElementById("tree-species")!, "change", (event) => {
     handlers.onTreeSpecies((event.currentTarget as HTMLSelectElement).value);
   });
-  document.getElementById("spray-radius")!.addEventListener("input", (event) => {
+  on(document.getElementById("spray-radius")!, "input", (event) => {
     handlers.onSprayRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
   const zonePrice = document.getElementById("zone-price") as HTMLOutputElement;
@@ -233,14 +239,14 @@ export function bindControls(handlers: {
     zonePrice.value = kind === "clear" ? "Clear" : "Zone";
   };
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="zone-kind"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       const kind = input.value === "clear" ? "clear" : input.value as ZoneKind;
       handlers.onZoneKind(kind);
       updateZonePrice(kind);
     });
   }
-  document.getElementById("zone-radius")!.addEventListener("input", (event) => {
+  on(document.getElementById("zone-radius")!, "input", (event) => {
     handlers.onZoneRadius(Number((event.currentTarget as HTMLInputElement).value));
   });
 
@@ -251,7 +257,7 @@ export function bindControls(handlers: {
     handlers.onUtility(utilityKind, utilityRole);
   }
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="utility-role"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       utilityRole = input.value === "diffuser" ? "diffuser" : "producer";
       emitUtility();
@@ -274,7 +280,7 @@ export function bindControls(handlers: {
   }
 
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="road-type"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       roadTypeValue = input.value;
       emitRoadType();
@@ -283,8 +289,8 @@ export function bindControls(handlers: {
   handlers.onZoneRadius(Number((document.getElementById("zone-radius") as HTMLInputElement).value));
     });
   }
-  roadLanes.addEventListener("change", emitRoadType);
-  roadOneway.addEventListener("change", emitRoadType);
+  on(roadLanes, "change", emitRoadType);
+  on(roadOneway, "change", emitRoadType);
 
   const sunHour = document.getElementById("sun-hour") as HTMLInputElement;
   const sunTime = document.getElementById("sun-time") as HTMLOutputElement;
@@ -322,7 +328,7 @@ export function bindControls(handlers: {
     for (const button of timeButtons) button.setAttribute("aria-pressed", String(Number(button.dataset.timeRate) === rate));
   };
   for (const button of timeButtons) {
-    button.addEventListener("click", () => {
+    on(button, "click", () => {
       const rate = Number(button.dataset.timeRate) as 0 | 1 | 2 | 4;
       handlers.onTimeRate(rate);
       if (rate === 1 || rate === 2 || rate === 4) {
@@ -346,13 +352,13 @@ export function bindControls(handlers: {
     }
     sunFrame = requestAnimationFrame(tickSun);
   };
-  sunHour.addEventListener("input", () => {
+  on(sunHour, "input", () => {
     updateSun();
     autoStartHour = Number(sunHour.value);
     autoStartedAt = performance.now();
     persistSettings();
   });
-  sunAuto.addEventListener("change", () => {
+  on(sunAuto, "change", () => {
     if (sunFrame) cancelAnimationFrame(sunFrame);
     sunFrame = null;
     if (sunAuto.checked) {
@@ -371,9 +377,9 @@ export function bindControls(handlers: {
       sunFrame = requestAnimationFrame(tickSun);
     }
   };
-  shortNight.addEventListener("change", persistSettings);
+  on(shortNight, "change", persistSettings);
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="camera-mode"]')) {
-    input.addEventListener("change", () => {
+    on(input, "change", () => {
       if (!input.checked) return;
       handlers.onCameraMode(input.value === "follow" ? "follow" : input.value === "orbit" ? "orbit" : "free");
       persistSettings();
@@ -441,10 +447,10 @@ export function bindControls(handlers: {
     handlers.onLook({ antialias: fxAntialias.checked, bloom: fxBloom.checked, ao: fxAo.checked, tiltShift: fxTilt.checked });
     persistSettings();
   };
-  for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) box.addEventListener("change", emitLook);
+  for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) on(box, "change", emitLook);
 
   const frameCap = document.getElementById("frame-cap") as HTMLSelectElement;
-  frameCap.addEventListener("change", () => {
+  on(frameCap, "change", () => {
     handlers.onFrameCap(Number(frameCap.value));
     persistSettings();
   });
@@ -456,7 +462,7 @@ export function bindControls(handlers: {
    * defaults here to fall out of step with the first. Dispatching the event each control already
    * listens to means this reuses every handler rather than repeating what they do.
    */
-  document.getElementById("settings-reset")!.addEventListener("click", () => {
+  on(document.getElementById("settings-reset")!, "click", () => {
     for (const control of document.querySelectorAll<HTMLInputElement | HTMLSelectElement>("#toolbar-content input, #toolbar-content select")) {
       if (control.id.startsWith("save-")) continue; // the saved-city picker is not a setting
       if (control instanceof HTMLSelectElement) {
@@ -509,13 +515,24 @@ export function bindControls(handlers: {
   applySetting(sunAuto, stored.sunAuto); // last: starting the auto-cycle reads the others' state
   restoringSettings = false;
 
-  bindSaves(handlers, applyCity);
+  const saves = bindSaves(handlers, applyCity, on);
   emitRoadType();
   updateSun();
   setClock(Number(sunHour.value), 1, 0);
   return {
     setToolEnabled,
- applyCity, applyRoadType, setClock, setPaused, updateUndoRedo };
+    applyCity,
+    applyRoadType,
+    setClock,
+    setPaused,
+    updateUndoRedo,
+    dispose() {
+      if (sunFrame) cancelAnimationFrame(sunFrame);
+      window.clearTimeout(densityTimer);
+      saves.dispose();
+      for (const dispose of disposers.splice(0)) dispose();
+    },
+  };
 }
 
 /**
@@ -526,7 +543,8 @@ export function bindControls(handlers: {
 function bindSaves(
   handlers: { onSave(): CitySave; onLoad(city: CitySave): boolean; onNew(): void },
   applyCity: (city: CitySave) => void,
-): void {
+  on: (target: EventTarget, type: string, listener: EventListenerOrEventListenerObject) => void,
+): { dispose(): void } {
   const slot = document.getElementById("save-slot") as HTMLSelectElement;
   const create = document.getElementById("save-new") as HTMLButtonElement;
   const store = document.getElementById("save-store") as HTMLButtonElement;
@@ -567,9 +585,9 @@ function bindSaves(
     refresh();
     showRefusal("New city.");
   };
-  create.addEventListener("click", startNewCity);
+  on(create, "click", startNewCity);
 
-  store.addEventListener("click", () => {
+  on(store, "click", () => {
     // The city being edited, not whichever name the picker happens to be showing -- suggesting
     // that one is how a new city gets saved over the demo.
     const suggested = readActiveSave() ?? slot.value ?? "My city";
@@ -585,7 +603,7 @@ function bindSaves(
     showRefusal(`Saved "${name}".`);
   });
 
-  load.addEventListener("click", () => {
+  on(load, "click", () => {
     const name = slot.value;
     const city = name ? readSave(name) : null;
     if (!city) {
@@ -598,7 +616,7 @@ function bindSaves(
     showRefusal(`Loaded "${name}".`);
   });
 
-  share.addEventListener("click", async () => {
+  on(share, "click", async () => {
     const name = window.prompt("Name this shared city:", readActiveSave() ?? "Shared city")?.trim();
     if (!name) return;
     let fragment: string | null;
@@ -624,7 +642,7 @@ function bindSaves(
 
   // A link carries a whole city in its fragment, which browsers and chat apps cut off well before
   // a big city fits. A file has no such ceiling, and is what you hand someone to compare cities.
-  exportCity.addEventListener("click", () => {
+  on(exportCity, "click", () => {
     const name = window.prompt("Export the city as:", readActiveSave() ?? "My city")?.trim();
     if (!name) return;
     const blob = new Blob([JSON.stringify(handlers.onSave())], { type: "application/json" });
@@ -636,12 +654,12 @@ function bindSaves(
     showRefusal(`Exported "${name}".`);
   });
 
-  importCity.addEventListener("click", () => {
+  on(importCity, "click", () => {
     importFile.value = ""; // so picking the same file twice still fires a change
     importFile.click();
   });
 
-  importFile.addEventListener("change", async () => {
+  on(importFile, "change", async () => {
     const file = importFile.files?.[0];
     if (!file) return;
     const city = parseCity(await file.text());
@@ -656,7 +674,7 @@ function bindSaves(
     showRefusal(`Imported "${name}".`);
   });
 
-  remove.addEventListener("click", () => {
+  on(remove, "click", () => {
     const name = slot.value;
     if (!name || !window.confirm(`Delete "${name}"?`)) return;
     deleteSave(name);
@@ -669,6 +687,11 @@ function bindSaves(
   // actually loaded instead of whichever name happens to sort first.
   refresh(readActiveSave() ?? undefined);
   void importSharedCity(handlers, applyCity, refresh);
+  return {
+    dispose(): void {
+      slot.replaceChildren();
+    },
+  };
 }
 
 async function importSharedCity(

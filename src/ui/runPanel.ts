@@ -3,6 +3,7 @@ import { buyUpgrade, FIRST_UPGRADE_WEB, type ProfileState, type RunState } from 
 export interface RunPanel {
   renderGameplayRules(): void;
   renderUpgradeWeb(): void;
+  dispose(): void;
 }
 
 export function bindRunPanel(options: {
@@ -18,6 +19,11 @@ export function bindRunPanel(options: {
   setToolEnabled(tool: string, enabled: boolean): void;
   showRefusal(reason: string): void;
 }): RunPanel {
+  const disposers: (() => void)[] = [];
+  const on = (target: EventTarget, type: string, listener: EventListenerOrEventListenerObject): void => {
+    target.addEventListener(type, listener);
+    disposers.push(() => target.removeEventListener(type, listener));
+  };
   const evacuateButton = document.getElementById("evacuate-run") as HTMLButtonElement;
   const callWaveButton = document.getElementById("call-wave") as HTMLButtonElement;
   const hardcoreBox = document.getElementById("hardcore-run") as HTMLInputElement;
@@ -69,6 +75,10 @@ export function bindRunPanel(options: {
         : run.ended === "population_zero" ? "The island emptied."
         : run.ended === "defeated" ? "The city fell." : "";
     },
+    dispose() {
+      for (const dispose of disposers.splice(0)) dispose();
+      upgradeWeb.replaceChildren();
+    },
   };
 
   const setRunRules = (): void => {
@@ -79,19 +89,19 @@ export function bindRunPanel(options: {
   };
 
   hardcoreBox.checked = options.getProfile().hardcore;
-  hardcoreBox.addEventListener("change", () => {
+  on(hardcoreBox, "change", () => {
     options.setProfile({ ...options.getProfile(), hardcore: hardcoreBox.checked });
   });
-  for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) box.addEventListener("change", setRunRules);
-  newRunButton.addEventListener("click", () => {
+  for (const box of [kaijuBox, instantBox, freeBuildBox, ignorePowerBox, ignoreWaterBox]) on(box, "change", setRunRules);
+  on(newRunButton, "click", () => {
     if (!window.confirm("Leave for a new island?")) return;
     options.onNewRun();
   });
-  evacuateButton.addEventListener("click", () => {
+  on(evacuateButton, "click", () => {
     if (!window.confirm("Evacuate this run?")) return;
     options.onEvacuate();
   });
-  callWaveButton.addEventListener("click", options.onCallWave);
+  on(callWaveButton, "click", options.onCallWave as EventListener);
   panel.renderGameplayRules();
   panel.renderUpgradeWeb();
   return panel;

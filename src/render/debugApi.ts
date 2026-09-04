@@ -41,7 +41,9 @@ export function installDebugApi(
   startedAt: number,
   stats: () => Record<string, unknown>,
   options: { controller?: DebugRoadController; setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number>; extra?: (api: DebugApi) => Record<string, unknown> } = {},
-): void {
+): { dispose(): void } {
+  let fpsFrame = 0;
+  let fpsResolve: ((fps: number) => void) | null = null;
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") =>
     options.controller?.addRoad(x0, z0, cx, cz, x1, z1, type) ?? { ok: false, reason: "Road drawing is unavailable." };
   const api: DebugApi = {
@@ -169,21 +171,36 @@ export function installDebugApi(
     measureFps(ms) {
       if (options.measureFps) return options.measureFps(ms);
       return new Promise<number>((resolve) => {
+        fpsResolve = resolve;
         let frames = 0;
         const started = performance.now();
         const tick = () => {
           frames++;
-          if (performance.now() - started < ms) requestAnimationFrame(tick);
-          else resolve(Math.round((frames * 1000) / (performance.now() - started)));
+          if (performance.now() - started < ms) fpsFrame = requestAnimationFrame(tick);
+          else {
+            fpsFrame = 0;
+            fpsResolve = null;
+            resolve(Math.round((frames * 1000) / (performance.now() - started)));
+          }
         };
-        requestAnimationFrame(tick);
+        fpsFrame = requestAnimationFrame(tick);
       });
     },
   };
 
   const baseApi = { ...api };
-  (window as unknown as { cityjump: DebugApi & { _scene: Scene; _graph: RoadGraph } }).cityjump = Object.assign(api, options.extra?.(baseApi), {
+  const target = window as unknown as { cityjump?: DebugApi & { _scene: Scene; _graph: RoadGraph } };
+  target.cityjump = Object.assign(api, options.extra?.(baseApi), {
     _scene: scene,
     _graph: graph,
   });
+  return {
+    dispose(): void {
+      if (fpsFrame) cancelAnimationFrame(fpsFrame);
+      fpsResolve?.(0);
+      fpsFrame = 0;
+      fpsResolve = null;
+      if (target.cityjump === api) delete target.cityjump;
+    },
+  };
 }

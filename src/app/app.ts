@@ -56,9 +56,10 @@ const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
 type CameraMode = "free" | "orbit" | "follow";
 type TimeRate = 0 | 1 | 2 | 4;
 
-export async function startApp(startedAt = performance.now()): Promise<void> {
+export async function startApp(startedAt = performance.now()): Promise<{ dispose(): void }> {
   const canvas = document.getElementById("app") as HTMLCanvasElement;
-  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap, frameDelta } = createScene(canvas);
+  const renderScene = createScene(canvas);
+  const { scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap, frameDelta } = renderScene;
   const detail = createDetailCuller(scene, camera);
   const postFx = createPostFx(scene, camera);
   const heightmap = new Heightmap({ size: GROUND_SIZE, cell: GROUND_CELL, generator: rollingHills() });
@@ -78,7 +79,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const treasury = new Treasury(startingMoney(profile));
   const cityEconomy = new CityEconomy(startingResources(profile, new CityEconomy().resources));
   const history = createCityHistory<CitySave>(20);
-  createOcean(scene);
+  const ocean = createOcean(scene);
   const ground = createGround(scene, heightmap);
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph, (x, z) => heightmap.heightAt(x, z));
@@ -157,7 +158,10 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
-    if (starterDistricts.length) window.setTimeout(layStarterDistricts, 0);
+    if (starterDistricts.length) {
+      window.clearTimeout(starterDistrictTimer);
+      starterDistrictTimer = window.setTimeout(layStarterDistricts, 0);
+    }
     measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
@@ -248,6 +252,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   let waveVerdictUntil = 0;
   let waveCalledEarly = false;
   let buildingRebuildTimer = 0;
+  let starterDistrictTimer = 0;
   let lastTerms: CityTerms | undefined;
   let darkDistricts = new Set<string>();
   let chargeConstructionStarts = true;
@@ -431,14 +436,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     stopFpsHud = null;
     showFps(null);
   };
+  const fpsMeasurements = new Map<number, { stop(): void; resolve(fps: number): void }>();
   const measureFps = (ms: number): Promise<number> => {
     const stop = fps.watch();
     return new Promise((resolve) => {
-      window.setTimeout(() => {
+      const timer = window.setTimeout(() => {
+        fpsMeasurements.delete(timer);
         const measured = fps.display;
         stop();
         resolve(measured);
       }, ms);
+      fpsMeasurements.set(timer, { stop, resolve });
     });
   };
   const startWave = (seed = String(Math.round(waveClock.elapsedSeconds))): void => {
@@ -951,7 +959,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const savedCamera = readCameraState();
   if (savedCamera) applyCamera(savedCamera);
   showCompass(camera.alpha);
-  scene.registerBeforeRender(() => {
+  const appFrameObserver = scene.onBeforeRenderObservable.add(() => {
     const dt = frameDelta() / 1000;
     const simDt = dt * timeRate;
     advanceClock(simDt);
@@ -1012,16 +1020,17 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     camera.target.z += (target.z - camera.target.z) * 0.14;
     camera.alpha = approachAngle(camera.alpha, -target.heading - Math.PI / 2, dt * 3);
   });
-  window.addEventListener("keydown", (event) => {
+  const keydown = (event: KeyboardEvent): void => {
     if (!(event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']") && event.code === "Space") {
       event.preventDefault();
       setPaused(!simPaused);
       return;
     }
     if (cameraMode !== "free" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
-  }, true);
+  };
+  window.addEventListener("keydown", keydown, true);
   let cameraSaveTimer = 0;
-  camera.onViewMatrixChangedObservable.add(() => {
+  const cameraSaveObserver = camera.onViewMatrixChangedObservable.add(() => {
     if (cameraMode !== "free") return;
     window.clearTimeout(cameraSaveTimer);
     cameraSaveTimer = window.setTimeout(
@@ -1031,7 +1040,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     );
   });
 
-  installDebugApi(scene, graph, rebuild, startedAt, () => ({
+  const debugApi = installDebugApi(scene, graph, rebuild, startedAt, () => ({
     segments: graph.allSegments().length,
     junctions: surfaceJunctions(),
     roundabouts: graph.allNodes().filter((node) => node.roundabout).length,
@@ -1175,6 +1184,45 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
   }
 
+  return {
+    dispose(): void {
+      scene.onBeforeRenderObservable.remove(appFrameObserver);
+      window.removeEventListener("keydown", keydown, true);
+      camera.onViewMatrixChangedObservable.remove(cameraSaveObserver);
+      window.clearTimeout(cameraSaveTimer);
+      window.clearTimeout(buildingRebuildTimer);
+      window.clearTimeout(starterDistrictTimer);
+      for (const [timer, measurement] of fpsMeasurements) {
+        window.clearTimeout(timer);
+        measurement.stop();
+        measurement.resolve(fps.display);
+      }
+      fpsMeasurements.clear();
+      scheduleAutosave.dispose();
+      debugApi.dispose();
+      controls?.dispose();
+      runPanel.dispose();
+      tool.dispose();
+      buildings.dispose();
+      waveMarkers.dispose();
+      missiles.dispose();
+      kaiju.dispose();
+      rubbleRenderer.dispose();
+      utilityOverlay.dispose();
+      zoneOverlay.dispose();
+      trees.dispose();
+      streetlights.dispose();
+      signals.dispose();
+      traffic.dispose();
+      roads.dispose();
+      worldGrid.dispose();
+      ground.dispose();
+      ocean.dispose();
+      postFx.dispose();
+      detail.dispose();
+      renderScene.dispose();
+    },
+  };
 }
 
 async function seedDefaultDemoSave(): Promise<void> {

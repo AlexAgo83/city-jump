@@ -25,11 +25,11 @@ export function applyCamera(camera: Camera, state: SavedCamera): void {
   camera.radius = state.radius;
 }
 
-export function createAutosave(save: () => CitySave, write: (city: CitySave) => boolean, onRefused: () => void): () => void {
+export function createAutosave(save: () => CitySave, write: (city: CitySave) => boolean, onRefused: () => void): (() => void) & { dispose(): void } {
   // ponytail: a timer, not a dirty-flag scheduler.
   let timer = 0;
   let refusedShown = false;
-  return () => {
+  const schedule = (): void => {
     window.clearTimeout(timer);
     timer = window.setTimeout(() => {
       if (write(save()) || refusedShown) return;
@@ -37,4 +37,6 @@ export function createAutosave(save: () => CitySave, write: (city: CitySave) => 
       onRefused();
     }, 2000);
   };
+  schedule.dispose = (): void => window.clearTimeout(timer);
+  return schedule;
 }

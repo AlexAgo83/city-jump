@@ -56,7 +56,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   camera.wheelPrecision = 0.6;
   camera.panningSensibility = 12;
   camera.panningInertia = 0.7;
-  attachKeyboardPan(scene, camera, () => frameDeltaMs);
+  const keyboardPan = attachKeyboardPan(scene, camera, () => frameDeltaMs);
 
   const ambient = new HemisphericLight("ambient", new Vector3(0, 1, 0), scene);
   ambient.intensity = 0.52;
@@ -126,9 +126,10 @@ export function createScene(canvas: HTMLCanvasElement) {
    */
   const shadowMap = shadows.getShadowMap();
   let shadowKey = "";
+  let shadowObserver: ReturnType<typeof scene.onBeforeRenderObservable.add> | null = null;
   if (shadowMap) {
     shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-    scene.onBeforeRenderObservable.add(() => {
+    shadowObserver = scene.onBeforeRenderObservable.add(() => {
       const key = `${camera.alpha.toFixed(4)},${camera.beta.toFixed(4)},${camera.radius.toFixed(2)},${camera.target.x.toFixed(2)},${camera.target.z.toFixed(2)},${sun.direction.x.toFixed(4)},${sun.direction.y.toFixed(4)}`;
       if (key === shadowKey) return;
       shadowKey = key;
@@ -166,13 +167,15 @@ export function createScene(canvas: HTMLCanvasElement) {
     frameIntervalMs = fps > 0 ? 1000 / fps : 0;
   };
   // Nobody is watching an unfocused window: it keeps running so the city stays live, slowly.
-  window.addEventListener("blur", () => {
+  const blur = (): void => {
     idleIntervalMs = 1000 / 10;
-  });
-  window.addEventListener("focus", () => {
+  };
+  const focus = (): void => {
     idleIntervalMs = 0;
-  });
-  engine.runRenderLoop(() => {
+  };
+  window.addEventListener("blur", blur);
+  window.addEventListener("focus", focus);
+  const renderLoop = (): void => {
     const interval = Math.max(frameIntervalMs, idleIntervalMs);
     if (interval > 0) {
       const now = performance.now();
@@ -185,10 +188,37 @@ export function createScene(canvas: HTMLCanvasElement) {
     frameDeltaMs = lastDrawn === 0 ? 1000 / 60 : drawnAt - lastDrawn;
     lastDrawn = drawnAt;
     scene.render();
-  });
-  window.addEventListener("resize", () => engine.resize());
+  };
+  engine.runRenderLoop(renderLoop);
+  const resize = (): void => engine.resize();
+  window.addEventListener("resize", resize);
 
-  return { engine, scene, camera, shadows, setSunHour, setShadowsEnabled, invalidateShadows, setFrameCap, frameDelta: () => frameDeltaMs };
+  return {
+    engine,
+    scene,
+    camera,
+    shadows,
+    setSunHour,
+    setShadowsEnabled,
+    invalidateShadows,
+    setFrameCap,
+    frameDelta: () => frameDeltaMs,
+    dispose(): void {
+      engine.stopRenderLoop(renderLoop);
+      window.removeEventListener("blur", blur);
+      window.removeEventListener("focus", focus);
+      window.removeEventListener("resize", resize);
+      keyboardPan.dispose();
+      if (shadowObserver) scene.onBeforeRenderObservable.remove(shadowObserver);
+      sky.dispose();
+      shadows.dispose();
+      ambient.dispose();
+      sun.dispose();
+      camera.detachControl();
+      scene.dispose();
+      engine.dispose();
+    },
+  };
 }
 
 const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
@@ -204,7 +234,7 @@ const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
  * turning the camera turns what "forward" means.
  * ponytail: held-key set + one per-frame vector, no input abstraction layer.
  */
-function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: () => number): void {
+function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: () => number): { dispose(): void } {
   camera.keysUp = [];
   camera.keysDown = [];
   camera.keysLeft = [];
@@ -221,12 +251,15 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: ()
     if (down) held.add(direction);
     else held.delete(direction);
   };
-  window.addEventListener("keydown", (event) => track(event, true));
-  window.addEventListener("keyup", (event) => track(event, false));
-  window.addEventListener("blur", () => held.clear());
+  const keydown = (event: KeyboardEvent): void => track(event, true);
+  const keyup = (event: KeyboardEvent): void => track(event, false);
+  const blur = (): void => held.clear();
+  window.addEventListener("keydown", keydown);
+  window.addEventListener("keyup", keyup);
+  window.addEventListener("blur", blur);
 
   const move = new Vector3();
-  scene.registerBeforeRender(() => {
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(() => {
     if (held.size === 0) return;
     const forward = camera.getDirection(Vector3.Forward());
     const right = camera.getDirection(Vector3.Right());
@@ -249,6 +282,15 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: ()
     camera.target.x = clamp(camera.target.x + move.x, PAN_LIMIT);
     camera.target.z = clamp(camera.target.z + move.z, PAN_LIMIT);
   });
+  return {
+    dispose(): void {
+      window.removeEventListener("keydown", keydown);
+      window.removeEventListener("keyup", keyup);
+      window.removeEventListener("blur", blur);
+      scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      held.clear();
+    },
+  };
 }
 
 /** Half the ground, so the camera cannot walk off the map. */
@@ -281,7 +323,7 @@ function createSky(scene: Scene, camera: ArcRotateCamera) {
   const moonDisc = celestialDisc(scene, "moon_disc", new Color3(0.72, 0.78, 0.86), 190);
   let sunVector = new Vector3(0, 1, 0);
 
-  scene.registerBeforeRender(() => {
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(() => {
     sunDisc.position.copyFrom(camera.position).addInPlace(sunVector.scale(6500));
     moonDisc.position.copyFrom(camera.position).addInPlace(sunVector.scale(-6500));
   });
@@ -294,6 +336,15 @@ function createSky(scene: Scene, camera: ArcRotateCamera) {
       moonDisc.setEnabled(nextSunVector.y < 0.35);
       (sunDisc.material as StandardMaterial).alpha = Math.min(1, Math.max(0, nextSunVector.y * 2));
       (moonDisc.material as StandardMaterial).alpha = Math.min(0.85, Math.max(0, 0.5 - nextSunVector.y));
+    },
+    dispose(): void {
+      scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      skybox.material?.dispose();
+      sunDisc.material?.dispose();
+      moonDisc.material?.dispose();
+      skybox.dispose();
+      sunDisc.dispose();
+      moonDisc.dispose();
     },
   };
 }
