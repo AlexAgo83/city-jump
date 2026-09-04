@@ -7,6 +7,7 @@ import { RoadGraph } from "../sim/graph";
 import { v3 } from "../sim/vec";
 import {
   circularQueueRooms,
+  accelerateToward,
   joinLaneQueue,
   laneQueueIsOrdered,
   laneStartBlocked,
@@ -16,6 +17,7 @@ import {
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
   scaledTrafficCount,
+  speedForRoom,
   trafficLaneOffset,
 } from "./driving";
 import { createTrafficRenderer } from "./traffic";
@@ -76,6 +78,15 @@ describe("traffic queues", () => {
     expect(trafficLaneOffset(outer, inner, span, 80, 1)).toBeCloseTo(3);
     expect(trafficLaneOffset(outer, inner, span, 80, -1)).toBeCloseTo(-3);
     expect(trafficLaneOffset(outer, inner, span, 20, -1)).toBeCloseTo(3);
+  });
+
+  it("eases up to target speed but brakes immediately", () => {
+    expect(speedForRoom(20, 8)).toBe(10);
+    expect(speedForRoom(20, -1)).toBe(0);
+    expect(speedForRoom(20, Infinity)).toBe(20);
+    expect(accelerateToward(4, 10, 0.5)).toBe(6);
+    expect(accelerateToward(9, 10, 0.5)).toBe(10);
+    expect(accelerateToward(10, 3, 0.5)).toBe(3);
   });
 
   it("removes emptied lane queues", () => {

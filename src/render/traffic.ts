@@ -39,7 +39,6 @@ import { streetlightsOnAt } from "./streetlights";
 import { createVehicleHeadlights } from "./vehicleLights";
 import { createVehicleModels } from "./vehicleModels";
 import {
-  ACCEL,
   BRAKING,
   CAR_GAP,
   CAR_STOP_SETBACK,
@@ -56,6 +55,7 @@ import {
   segmentTouchesBounds,
   WALKER_SPEED,
   WALKER_TURN_RATE,
+  accelerateToward,
   circularQueueRooms,
   joinLaneQueue,
   laneStartBlocked,
@@ -64,6 +64,7 @@ import {
   roundaboutEntryBlocked,
   roundaboutExitBlocked,
   scaledTrafficCount,
+  speedForRoom,
   trafficLaneOffset,
 } from "./driving";
 import type { TerrainBounds } from "../sim/heightmap";
@@ -759,8 +760,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         // Same ramp as the straight road it just left: a car pulling away into its turn keeps
         // accelerating rather than snapping straight to the turn's own pace.
         const room = occupancy.ringRooms.get(mover) ?? Infinity;
-        const target = mover.speed * ride.pace * Math.max(0, Math.min(1, room / BRAKING));
-        mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
+        const target = speedForRoom(mover.speed * ride.pace, room);
+        mover.currentSpeed = accelerateToward(mover.currentSpeed, target, dt);
         ride.travelled += mover.currentSpeed * dt;
         const total = ride.cumulative[ride.cumulative.length - 1]!;
         if (ride.travelled >= total) {
@@ -785,11 +786,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       // eased against its own exact target it would never quite arrive, and so never get asked
       // whether the crossing is clear.
       const room = mover.walk ? Infinity : (stopFor(mover, ahead.get(mover), now, occupancy) - mover.distance) * mover.direction;
-      const target = mover.speed * Math.max(0, Math.min(1, room / BRAKING));
+      const target = speedForRoom(mover.speed, room);
       // Braking follows that curve straight down -- a car easing off is as responsive as before.
       // Pulling away is the other way round: speed catches up to the target rather than jumping
       // to it, so leaving a stop is an acceleration rather than a teleport to cruising speed.
-      mover.currentSpeed = mover.currentSpeed < target ? Math.min(target, mover.currentSpeed + ACCEL * dt) : target;
+      mover.currentSpeed = accelerateToward(mover.currentSpeed, target, dt);
       mover.distance += mover.direction * mover.currentSpeed * dt;
 
       const limit = limitOf(mover);

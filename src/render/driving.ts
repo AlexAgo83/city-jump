@@ -211,6 +211,14 @@ export function laneStartBlocked<T extends QueuedMover>(queue: readonly T[] | un
   }) ?? false;
 }
 
+export function speedForRoom(speed: number, room: number): number {
+  return speed * Math.max(0, Math.min(1, room / BRAKING));
+}
+
+export function accelerateToward(current: number, target: number, dt: number): number {
+  return current < target ? Math.min(target, current + ACCEL * dt) : target;
+}
+
 export function scaledTrafficCount(base: number, density: number): number {
   return base <= 0 ? 0 : Math.max(1, Math.round(base * density));
 }
