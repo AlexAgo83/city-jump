@@ -1,21 +1,16 @@
 import type { Scene } from "@babylonjs/core/scene";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { ClusteredLightContainer } from "@babylonjs/core/Lights/Clustered/clusteredLightContainer";
-import { SpotLight } from "@babylonjs/core/Lights/spotLight";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
+import type { Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
 import { laneRank, pickExit, ringArc, ringEntryRadius, turnLaneRank } from "../sim/routing";
-import { canGo, signalAt, signalCycle, type SignalCycle, type SignalState } from "../sim/signals";
+import { canGo, signalAt, signalCycle, type SignalCycle } from "../sim/signals";
 import { laneCentres, roadType, walkCentres, type LaneCentre } from "../sim/roadTypes";
 import {
   armPort,
   junctionTurnPath,
-  laneChangeOffset,
   sampleQuadratic,
   approachAngle,
   laneChangeSpan,
@@ -41,583 +36,44 @@ import { normalizeXZ, perpXZ, v3, type Vec3 } from "../sim/vec";
 import { terrainHeight } from "../sim/terrain";
 import { ROAD_LIFT, SIDEWALK_LIFT, SIDEWALK_WIDTH } from "./roadMesh";
 import { streetlightsOnAt } from "./streetlights";
+import { createVehicleHeadlights } from "./vehicleLights";
+import { createVehicleModels } from "./vehicleModels";
+import {
+  ACCEL,
+  BRAKING,
+  CAR_GAP,
+  CAR_STOP_SETBACK,
+  CAR_TURN_RATE,
+  type FrameOccupancy,
+  JUNCTION_PACE,
+  laneQueueKey,
+  laneQueueKeyFor,
+  MAX_STEP_S,
+  type Mover,
+  type Plan,
+  RING_PACE,
+  type RoundaboutOccupancy,
+  segmentTouchesBounds,
+  WALKER_SPEED,
+  WALKER_TURN_RATE,
+  circularQueueRooms,
+  joinLaneQueue,
+  laneStartBlocked,
+  leaveLaneQueue,
+  pedestrianCanStartCrossing,
+  roundaboutEntryBlocked,
+  roundaboutExitBlocked,
+  scaledTrafficCount,
+  trafficLaneOffset,
+} from "./driving";
 import type { TerrainBounds } from "../sim/heightmap";
-import type { BuildingKind } from "../sim/buildingKinds";
-
-/** The width a car is built to, which is what the lane spacing is measured against. */
-const CAR_WIDTH = 3;
-/** A motorcycle's own, much narrower, width -- it still rides the lane a car would. */
-const MOTORCYCLE_WIDTH = 0.7;
-const CAR_VISUAL_SCALE = 0.81;
-
-/** Bumper to bumper: how much road a car keeps between itself and the one in front. */
-const CAR_GAP = 8.5;
-/** Within this far of what is stopping it, a car is already slowing for it. */
-const BRAKING = 16;
-/** Metres per second, per second: how quickly speed catches up when pulling away from a stop. */
-const ACCEL = 4;
-/** A car's own bonnet, so a red stops its bumper at the line rather than its centre. */
-const CAR_STOP_SETBACK = 3;
-
-/**
- * How fast a heading can turn, in radians a second. A car has a steering wheel and cannot flick
- * round a corner; someone on foot pivots almost freely.
- */
-const CAR_TURN_RATE = 2.6;
-const WALKER_TURN_RATE = 7;
-
-/** A ring keeps traffic moving; a plain junction still eases off a little. */
-const RING_PACE = 1.1;
-const JUNCTION_PACE = 0.8;
-
-/** A frame longer than this (a tab coming back from the background) is not driven through. */
-const MAX_STEP_S = 0.1;
-
-const CAR_COLORS = [
-  new Color3(0.86, 0.18, 0.14),
-  new Color3(0.12, 0.38, 0.82),
-  new Color3(0.93, 0.82, 0.18),
-  new Color3(0.9, 0.92, 0.88),
-];
-
-const WALKER_COLORS = [
-  new Color3(0.85, 0.4, 0.3),
-  new Color3(0.3, 0.45, 0.7),
-  new Color3(0.35, 0.6, 0.4),
-  new Color3(0.75, 0.7, 0.5),
-];
-
-/** Metres per second on foot. A car covers a block while a walker crosses it. */
-const WALKER_SPEED = 1.4;
-const PEDESTRIAN_CROSSING_CLEARANCE = CROSSING_DEPTH / WALKER_SPEED + 0.5;
-
-/**
- * A transfer in progress: the very polyline the Traffic view draws for this movement, being
- * driven along. When it runs out the mover lands on `exit`, in `lane`, at `trim` along it.
- */
-interface Ride {
-  readonly points: readonly Vec3[];
-  readonly cumulative: readonly number[];
-  readonly exit: SegmentId;
-  readonly from: NodeId;
-  readonly lane: LaneCentre;
-  readonly changing: LaneCentre | null;
-  readonly trim: number;
-  /** Slower than the road it came off: a junction or a ring is taken at a crawl. */
-  readonly pace: number;
-  readonly roundabout: { readonly node: NodeId; readonly radius: number } | null;
-  travelled: number;
-}
-
-/** What a car has already settled about the junction its road runs into. Cars only. */
-interface Plan {
-  readonly node: NodeId;
-  readonly exit: SegmentId;
-  /** How far round the ring, when that junction is a roundabout. */
-  readonly arc: number | null;
-  /** The lane the turn asks for, as a rank from the kerb, or -1 when it asks for nothing. */
-  readonly rank: number;
-}
-
-/** Anything moving on the network: a car in a lane, or someone on a footway. */
-interface Mover {
-  readonly mesh: Mesh | InstancedMesh;
-  /** What it is -- "Saloon", "Tractor", "Tanker" -- for the selection panel. Walkers have none. */
-  readonly vehicle: string;
-  /** Someone on foot: a footway rather than a lane, and no lane changes to make. */
-  readonly walk: boolean;
-  /** Bob while walking; zero in a car. */
-  readonly stride: number;
-  readonly phase: number;
-  readonly lift: number;
-  /** Personal pace, so a queue of cars on one road does not move as one block. */
-  readonly pace: number;
-  seed: number;
-  segment: Segment;
-  direction: 1 | -1;
-  /** Distance along the segment in its own a -> b sense, whichever way the mover faces. */
-  distance: number;
-  /** The lane it is in, or ends this road in when it is changing lane. */
-  lane: LaneCentre;
-  /** The lane it started this road in, while a lane change is still to happen or under way. */
-  changing: LaneCentre | null;
-  speed: number;
-  /** What it is actually doing, in the same units as `speed` -- eases toward it either way, so
-   *  pulling away from a stop is a car accelerating rather than teleporting up to cruising speed. */
-  currentSpeed: number;
-  /** Which way it is facing, which follows the path it is on rather than snapping to it. */
-  heading: number;
-  pitch: number;
-  ride: Ride | null;
-  plan: Plan | null;
-}
-
-interface RoundaboutOccupancy {
-  readonly occupied: { readonly at: number; readonly radius: number }[];
-  readonly exiting: { readonly exit: SegmentId; readonly travelled: number; readonly total: number }[];
-}
-
-interface FrameOccupancy {
-  readonly roundabouts: Map<NodeId, RoundaboutOccupancy>;
-  readonly crossingWalkers: Set<string>;
-  readonly ringRooms: Map<Mover, number>;
-}
-
-export function circularQueueRooms<T>(
-  entries: readonly { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[],
-): Map<T, number> {
-  const TAU = Math.PI * 2;
-  const byRing = new Map<string, { readonly item: T; readonly key: string; readonly at: number; readonly radius: number }[]>();
-  for (const entry of entries) {
-    const queue = byRing.get(entry.key);
-    if (queue) queue.push(entry);
-    else byRing.set(entry.key, [entry]);
-  }
-  const out = new Map<T, number>();
-  for (const queue of byRing.values()) {
-    if (queue.length < 2) continue;
-    const sorted = [...queue].sort((a, b) => a.at - b.at);
-    for (let i = 0; i < sorted.length; i++) {
-      const current = sorted[i]!;
-      const next = sorted[(i + 1) % sorted.length]!;
-      const arc = ((next.at - current.at + TAU) % TAU) || TAU;
-      out.set(current.item, arc * current.radius - CAR_GAP);
-    }
-  }
-  return out;
-}
-
-export function roundaboutEntryBlocked(
-  entry: number,
-  occupied: readonly { readonly at: number; readonly radius: number }[],
-): boolean {
-  const TAU = Math.PI * 2;
-  return occupied.some(({ at, radius }) => (((entry - at) % TAU) + TAU) % TAU * radius < CAR_GAP * 1.4);
-}
-
-export function roundaboutExitBlocked(
-  exiting: readonly { readonly exit: SegmentId; readonly travelled: number; readonly total: number }[],
-  segmentId: SegmentId,
-): boolean {
-  return exiting.some((ride) => ride.exit === segmentId && ride.total - ride.travelled < CAR_GAP * 2);
-}
-
-export const pedestrianCanCross = (state: SignalState): boolean => state === "red";
-
-export function pedestrianCanStartCrossing(cycle: SignalCycle, segment: SegmentId, time: number): boolean {
-  return pedestrianCanCross(signalAt(cycle, segment, time)) && pedestrianCanCross(signalAt(cycle, segment, time + PEDESTRIAN_CROSSING_CLEARANCE));
-}
-
-export function trafficLaneOffset(
-  lane: LaneCentre,
-  changing: LaneCentre | null,
-  span: { readonly start: number; readonly end: number },
-  distance: number,
-  direction: 1 | -1,
-): number {
-  if (!changing) return lane.offset;
-  const travelled = direction === 1 ? distance - span.start : span.end - distance;
-  return laneChangeOffset(changing.offset, lane.offset, travelled / (span.end - span.start));
-}
-
-function laneQueueKeyFor(segmentId: SegmentId, direction: 1 | -1, lane: LaneCentre): number {
-  return segmentId * 10000 + (direction === 1 ? 5000 : 0) + Math.round((lane.offset + 100) * 10);
-}
-
-function laneQueueKey(mover: Mover): number {
-  return laneQueueKeyFor(mover.segment.id, mover.direction, mover.lane);
-}
-
-interface QueuedMover {
-  readonly distance: number;
-  readonly direction: 1 | -1;
-}
-
-export function joinLaneQueue<T extends QueuedMover>(queues: Map<number, T[]>, queueOf: Map<T, number>, key: number, mover: T): void {
-  const queue = queues.get(key) ?? [];
-  if (!queues.has(key)) queues.set(key, queue);
-  const at = mover.distance * mover.direction;
-  const index = queue.findIndex((other) => other.distance * other.direction > at);
-  queue.splice(index < 0 ? queue.length : index, 0, mover);
-  queueOf.set(mover, key);
-}
-
-export function leaveLaneQueue<T extends QueuedMover>(queues: Map<number, T[]>, queueOf: Map<T, number>, mover: T): void {
-  const key = queueOf.get(mover);
-  if (key === undefined) return;
-  const queue = queues.get(key);
-  if (queue) {
-    const index = queue.indexOf(mover);
-    if (index >= 0) queue.splice(index, 1);
-    if (queue.length === 0) queues.delete(key);
-  }
-  queueOf.delete(mover);
-}
-
-export function laneQueueIsOrdered<T extends QueuedMover>(queue: readonly T[]): boolean {
-  return queue.every((mover, i) => i === 0 || queue[i - 1]!.distance * queue[i - 1]!.direction <= mover.distance * mover.direction);
-}
-
-export function laneStartBlocked<T extends QueuedMover>(queue: readonly T[] | undefined, distance: number, direction: 1 | -1): boolean {
-  return queue?.some((other) => {
-    const ahead = (other.distance - distance) * direction;
-    return ahead >= 0 && ahead < CAR_GAP;
-  }) ?? false;
-}
-
-export function scaledTrafficCount(base: number, density: number): number {
-  return base <= 0 ? 0 : Math.max(1, Math.round(base * density));
-}
-
-function segmentTouchesBounds(segment: Segment, bounds: TerrainBounds): boolean {
-  return segment.samples.some((p) => p.x >= bounds.minX && p.x <= bounds.maxX && p.z >= bounds.minZ && p.z <= bounds.maxZ);
-}
-
-/**
- * A body shape, in metres. Everything a car is made of comes off these numbers, so a new kind of
- * vehicle is a row in the table below rather than another lump of mesh-building code.
- */
-interface CarShape {
-  readonly name: string;
-  readonly length: number;
-  readonly width: number;
-  /** Height of the main body, whose underside sits clear of the road on the wheels. */
-  readonly hull: number;
-  /** Where the cabin sits along the car, and how long and tall it is; none for a motorcycle. */
-  readonly cabin: { at: number; length: number; height: number } | null;
-  /** Bonnet and boot ledges, each as a length; zero for a shape that has none. */
-  readonly bonnet: number;
-  readonly boot: number;
-  readonly wheelBase: number;
-  readonly wheel: number;
-  /** One wheel per end, on the centreline, rather than a pair either side of it. */
-  readonly singleTrack?: boolean;
-  /** The frontage this vehicle belongs to, so a dirt road carries tractors and not saloons. */
-  readonly theme?: BuildingKind;
-  /** Its own paint, when the ordinary car colours would be wrong (a pink tractor, say). */
-  readonly colors?: Color3[];
-  /** What makes it that vehicle rather than a box: a stack, a drum, side boards, a turret. */
-  readonly details?: CarDetail[];
-}
-
-/**
- * One extra piece bolted onto a shape. `y` is measured up from the road, `z` along the vehicle
- * (+ towards the front), `x` across it -- `mirrored` builds the same piece on the other side.
- * `round` makes it a cylinder along its own longest axis instead of a box, which is what tells a
- * tanker's drum and a tractor's exhaust from yet another slab.
- */
-interface CarDetail {
-  readonly name: string;
-  readonly width: number;
-  readonly height: number;
-  readonly depth: number;
-  readonly x: number;
-  readonly y: number;
-  readonly z: number;
-  /** Dark trim (stacks, tyres, stowage) rather than the vehicle's own paint. */
-  readonly dark?: boolean;
-  readonly mirrored?: boolean;
-  readonly round?: boolean;
-}
-
-const CAR_SHAPES: CarShape[] = [
-  {
-    name: "saloon",
-    length: 5.8 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 0.8 * CAR_VISUAL_SCALE,
-    cabin: { at: -0.3 * CAR_VISUAL_SCALE, length: 2.8 * CAR_VISUAL_SCALE, height: 0.52 * CAR_VISUAL_SCALE },
-    bonnet: 1.6 * CAR_VISUAL_SCALE,
-    boot: 1.1 * CAR_VISUAL_SCALE,
-    wheelBase: 1.85 * CAR_VISUAL_SCALE,
-    wheel: 0.92 * CAR_VISUAL_SCALE,
-  },
-  {
-    // Shorter, taller, all cabin and no boot: the small car that fills a city.
-    name: "hatchback",
-    length: 4.6 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 0.86 * CAR_VISUAL_SCALE,
-    cabin: { at: -0.5 * CAR_VISUAL_SCALE, length: 2.4 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
-    bonnet: 1.2 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 1.5 * CAR_VISUAL_SCALE,
-    wheel: 0.86 * CAR_VISUAL_SCALE,
-  },
-  {
-    // A cab at the front and a box behind it: a van, and the tallest thing on the road.
-    name: "van",
-    length: 6.6 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 1.35 * CAR_VISUAL_SCALE,
-    cabin: { at: 1.5 * CAR_VISUAL_SCALE, length: 2.4 * CAR_VISUAL_SCALE, height: 0.66 * CAR_VISUAL_SCALE },
-    bonnet: 1.3 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 2.2 * CAR_VISUAL_SCALE,
-    wheel: 1 * CAR_VISUAL_SCALE,
-  },
-  {
-    // No ledges, one wheel per end, and a tank-and-seat hump standing in for a cabin: everything
-    // a car has, with most of it left out.
-    name: "motorcycle",
-    length: 2,
-    width: MOTORCYCLE_WIDTH,
-    hull: 0.5,
-    cabin: { at: 0.15, length: 0.8, height: 0.2 },
-    bonnet: 0,
-    boot: 0,
-    wheelBase: 0.75,
-    wheel: 0.62,
-    singleTrack: true,
-  },
-  {
-    // Short, tall and narrow, sitting high on big wheels: a tractor, with the cab over the axle.
-    name: "tractor",
-    length: 4.4 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * 0.85 * CAR_VISUAL_SCALE,
-    hull: 1.1 * CAR_VISUAL_SCALE,
-    cabin: { at: -0.7 * CAR_VISUAL_SCALE, length: 1.6 * CAR_VISUAL_SCALE, height: 0.85 * CAR_VISUAL_SCALE },
-    bonnet: 1.8 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 1.5 * CAR_VISUAL_SCALE,
-    wheel: 1.25 * CAR_VISUAL_SCALE,
-    theme: "agricultural",
-    colors: [new Color3(0.16, 0.42, 0.2), new Color3(0.85, 0.5, 0.12)],
-    details: [
-      // The exhaust standing up beside the bonnet, and the mudguards over the back wheels.
-      { name: "stack", width: 0.22, height: 2.1, depth: 0.22, x: 0.9, y: 1.5, z: 1.1, dark: true, round: true },
-      { name: "guard", width: 0.2, height: 0.24, depth: 2.1, x: 1.25, y: 1.75, z: -1.5, mirrored: true },
-      { name: "weight", width: 1.5, height: 0.4, depth: 0.4, x: 0, y: 0.85, z: 2.2, dark: true },
-      { name: "hitch", width: 0.4, height: 0.24, depth: 0.7, x: 0, y: 0.7, z: -2.3, dark: true },
-    ],
-  },
-  {
-    // Long, low and open: the trailer a tractor tows, hauling the harvest.
-    name: "farm trailer",
-    length: 7.4 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 1 * CAR_VISUAL_SCALE,
-    cabin: { at: 2.2 * CAR_VISUAL_SCALE, length: 1.5 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
-    bonnet: 1 * CAR_VISUAL_SCALE,
-    boot: 3.4 * CAR_VISUAL_SCALE,
-    wheelBase: 2.4 * CAR_VISUAL_SCALE,
-    wheel: 1 * CAR_VISUAL_SCALE,
-    theme: "agricultural",
-    colors: [new Color3(0.62, 0.55, 0.35), new Color3(0.5, 0.42, 0.28)],
-    details: [
-      // Side boards and a tailgate around the load bed, and the drawbar reaching forward.
-      { name: "board", width: 0.18, height: 0.85, depth: 4.4, x: 1.4, y: 1.9, z: -1.4, mirrored: true },
-      { name: "tailgate", width: 2.9, height: 0.85, depth: 0.18, x: 0, y: 1.9, z: -3.6 },
-      { name: "load", width: 2.6, height: 0.5, depth: 4.0, x: 0, y: 2.1, z: -1.4, dark: true },
-      { name: "drawbar", width: 0.3, height: 0.24, depth: 1.4, x: 0, y: 0.75, z: 3.6, dark: true },
-    ],
-  },
-  {
-    // A cab and a long drum behind it: the tanker that feeds a works.
-    name: "tanker",
-    length: 9 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 1.6 * CAR_VISUAL_SCALE,
-    cabin: { at: 3 * CAR_VISUAL_SCALE, length: 2 * CAR_VISUAL_SCALE, height: 0.7 * CAR_VISUAL_SCALE },
-    bonnet: 0.9 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 3 * CAR_VISUAL_SCALE,
-    wheel: 1.05 * CAR_VISUAL_SCALE,
-    theme: "industrial",
-    colors: [new Color3(0.82, 0.83, 0.8), new Color3(0.75, 0.55, 0.2)],
-    details: [
-      // The drum itself, its end cap, the catwalk along the top and the hose locker under it.
-      { name: "drum", width: 2.7, height: 2.7, depth: 5.4, x: 0, y: 2.3, z: -1.6, round: true },
-      { name: "cap", width: 2.5, height: 2.5, depth: 0.3, x: 0, y: 2.3, z: -4.4, round: true, dark: true },
-      { name: "walk", width: 0.9, height: 0.12, depth: 5.0, x: 0, y: 3.7, z: -1.6, dark: true },
-      { name: "rail", width: 0.1, height: 0.4, depth: 5.0, x: 0.5, y: 3.95, z: -1.6, dark: true, mirrored: true },
-      { name: "locker", width: 0.5, height: 0.7, depth: 1.6, x: 1.4, y: 1.2, z: -2.4, dark: true, mirrored: true },
-    ],
-  },
-  {
-    // Cab forward, flat deck behind: the truck that carries everything else.
-    name: "flatbed",
-    length: 8 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 1.15 * CAR_VISUAL_SCALE,
-    cabin: { at: 2.6 * CAR_VISUAL_SCALE, length: 2.2 * CAR_VISUAL_SCALE, height: 0.75 * CAR_VISUAL_SCALE },
-    bonnet: 1 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 2.8 * CAR_VISUAL_SCALE,
-    wheel: 1 * CAR_VISUAL_SCALE,
-    theme: "industrial",
-    colors: [new Color3(0.3, 0.42, 0.55), new Color3(0.55, 0.28, 0.16)],
-    details: [
-      // Headboard behind the cab, low rails down the deck, and the load strapped to it.
-      { name: "headboard", width: 2.9, height: 1.2, depth: 0.2, x: 0, y: 2.3, z: 0.9 },
-      { name: "rail", width: 0.16, height: 0.4, depth: 4.4, x: 1.4, y: 1.9, z: -1.6, mirrored: true },
-      { name: "crate", width: 2.2, height: 1.1, depth: 1.8, x: 0, y: 2.25, z: -0.6, dark: true },
-      { name: "pipe", width: 0.6, height: 0.6, depth: 3.6, x: 0.6, y: 2.0, z: -2.8, dark: true, round: true },
-    ],
-  },
-  {
-    // Low, wide and blunt, with a squat turret-sized cabin: the armour.
-    name: "apc",
-    length: 7 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * 1.1 * CAR_VISUAL_SCALE,
-    hull: 1.2 * CAR_VISUAL_SCALE,
-    cabin: { at: -0.4 * CAR_VISUAL_SCALE, length: 1.8 * CAR_VISUAL_SCALE, height: 0.45 * CAR_VISUAL_SCALE },
-    bonnet: 2.2 * CAR_VISUAL_SCALE,
-    boot: 1.4 * CAR_VISUAL_SCALE,
-    wheelBase: 2.4 * CAR_VISUAL_SCALE,
-    wheel: 1 * CAR_VISUAL_SCALE,
-    theme: "military",
-    colors: [new Color3(0.3, 0.34, 0.24), new Color3(0.36, 0.36, 0.3)],
-    details: [
-      // A turret with a barrel out of it, skirts over the wheels, stowage on the back deck.
-      { name: "turret", width: 1.8, height: 0.55, depth: 2.0, x: 0, y: 2.3, z: -0.4 },
-      { name: "barrel", width: 0.22, height: 0.22, depth: 2.6, x: 0, y: 2.45, z: 1.4, dark: true, round: true },
-      { name: "skirt", width: 0.16, height: 0.55, depth: 5.2, x: 1.6, y: 1.0, z: 0, dark: true, mirrored: true },
-      { name: "stowage", width: 2.2, height: 0.45, depth: 1.0, x: 0, y: 2.1, z: -2.5, dark: true },
-    ],
-  },
-  {
-    // Canvas-backed troop truck: tall box behind a short cab.
-    name: "troop truck",
-    length: 7.6 * CAR_VISUAL_SCALE,
-    width: CAR_WIDTH * CAR_VISUAL_SCALE,
-    hull: 1.7 * CAR_VISUAL_SCALE,
-    cabin: { at: 2.4 * CAR_VISUAL_SCALE, length: 1.8 * CAR_VISUAL_SCALE, height: 0.6 * CAR_VISUAL_SCALE },
-    bonnet: 1.1 * CAR_VISUAL_SCALE,
-    boot: 0,
-    wheelBase: 2.7 * CAR_VISUAL_SCALE,
-    wheel: 1.05 * CAR_VISUAL_SCALE,
-    theme: "military",
-    colors: [new Color3(0.26, 0.3, 0.2), new Color3(0.4, 0.42, 0.3)],
-    details: [
-      // Canvas back on its hoops, a tailgate, and the spare wheel behind the cab.
-      { name: "canvas", width: 2.8, height: 1.5, depth: 4.2, x: 0, y: 2.6, z: -1.6 },
-      { name: "hoop", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -0.4, dark: true },
-      { name: "hoop_mid", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -1.8, dark: true },
-      { name: "hoop_back", width: 3.0, height: 0.14, depth: 0.14, x: 0, y: 3.35, z: -3.2, dark: true },
-      { name: "tailgate", width: 2.7, height: 0.9, depth: 0.16, x: 0, y: 1.9, z: -3.7, dark: true },
-      { name: "spare", width: 0.34, height: 1.0, depth: 1.0, x: 1.5, y: 1.3, z: 1.0, dark: true, round: true },
-    ],
-  },
-];
-
-/** The shapes a road's own frontage puts on it, by kind; anything else draws from all of them. */
-const THEMED_SHAPES = new Map<BuildingKind, number[]>();
-CAR_SHAPES.forEach((shape, index) => {
-  if (!shape.theme) return;
-  THEMED_SHAPES.set(shape.theme, [...(THEMED_SHAPES.get(shape.theme) ?? []), index]);
-});
-/** Ordinary traffic never gets handed a tanker or an APC. */
-const PLAIN_SHAPES = CAR_SHAPES.map((_, index) => index).filter((index) => !CAR_SHAPES[index]!.theme);
 
 /** `frameDelta` is milliseconds since the last drawn frame -- see `createScene`, and not the
  * engine's own delta, which counts animation frames the render loop may have skipped. */
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
-  /**
-   * Every shape in every colour, each built out of boxes and four wheels and merged into a
-   * single mesh, so a car on the map is one instance of one of them. Glass and wheels are a
-   * second prototype per shape in their own dark material -- a merged mesh carries one material,
-   * and two instances per car is cheaper than a multi-material one.
-   * ponytail: primitives, not a loaded model. It reads as a car at the distance a city is looked
-   * at from; swap in a glTF if the camera ever gets down to street level.
-   */
-  const carBodies = CAR_SHAPES.map((shape) =>
-    (shape.colors ?? CAR_COLORS).map((color, i) => {
-      const material = new StandardMaterial(`car_${shape.name}_${i}`, scene);
-      material.diffuseColor = color;
-      material.specularColor = new Color3(0.25, 0.25, 0.25);
+  const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkerPrototypes, lampMaterials } = createVehicleModels(scene);
 
-      const floor = shape.wheel / 2;
-      const parts = shape.singleTrack
-        ? [
-            slab(`bike_tank_${shape.name}_${i}`, shape.width * 0.92, shape.hull * 0.42, shape.length * 0.34, 0, floor + shape.hull * 0.78, 0.18, 0.16),
-            slab(`bike_tail_${shape.name}_${i}`, shape.width * 0.7, shape.hull * 0.22, shape.length * 0.28, 0, floor + shape.hull * 0.62, -0.45, 0.1),
-            slab(`bike_front_fender_${shape.name}_${i}`, shape.width * 0.6, shape.hull * 0.16, shape.length * 0.2, 0, floor + shape.hull * 0.34, shape.wheelBase, 0.08),
-            slab(`bike_rear_fender_${shape.name}_${i}`, shape.width * 0.68, shape.hull * 0.16, shape.length * 0.24, 0, floor + shape.hull * 0.34, -shape.wheelBase, 0.08),
-          ]
-        : [slab(`car_hull_${shape.name}_${i}`, shape.width - 0.1, shape.hull, shape.length, 0, floor + shape.hull / 2, 0)];
-      // Wider than the glass under it, so the roof caps the cabin instead of sitting inside it.
-      // A motorcycle has no cabin to roof over -- its hull is the whole body.
-      if (shape.cabin && !shape.singleTrack) {
-        parts.push(
-          slab(
-            `car_roof_${shape.name}_${i}`,
-            shape.width - 0.48,
-            0.16,
-            shape.cabin.length + 0.1,
-            0,
-            floor + shape.hull + shape.cabin.height + 0.08,
-            shape.cabin.at,
-          ),
-        );
-      }
-      // The ledges fore and aft, which is what tells the front of a car from its back from above.
-      const ledge = (name: string, depth: number, at: number) =>
-        slab(name, shape.width - 0.22, 0.16, depth, 0, floor + shape.hull + 0.08, at);
-      if (shape.bonnet > 0) parts.push(ledge(`car_bonnet_${shape.name}_${i}`, shape.bonnet, (shape.length - shape.bonnet) / 2));
-      if (shape.boot > 0) parts.push(ledge(`car_boot_${shape.name}_${i}`, shape.boot, -(shape.length - shape.boot) / 2));
-      parts.push(...detailParts(shape, false, `_${i}`));
-
-      const car = Mesh.MergeMeshes(parts, true, true, undefined, false, false);
-      if (!car) throw new Error("car failed to merge");
-      car.name = `car_body_${shape.name}_${i}`;
-      car.material = material;
-      car.isPickable = false;
-      car.isVisible = false;
-      return car;
-    }),
-  );
-
-  /**
-   * The lamps, one prototype per shape and per end. They light themselves rather than being lit,
-   * so they read as lamps at any hour, and the shared material is dimmed by day and turned up at
-   * night with everything else.
-   */
-  const lampMaterials = {
-    head: new StandardMaterial("car_head_lamps", scene),
-    tail: new StandardMaterial("car_tail_lamps", scene),
-  };
-  lampMaterials.head.disableLighting = true;
-  lampMaterials.tail.disableLighting = true;
-
-  const carLamps = CAR_SHAPES.map((shape) => {
-    const floor = shape.wheel / 2;
-    const lens = (end: "head" | "tail") => {
-      const at = end === "head" ? shape.length / 2 - 0.12 : -(shape.length / 2 - 0.12);
-      // One lamp on the centreline for a motorcycle, a pair either side for anything with a
-      // second wheel track to put them over.
-      const sides = shape.singleTrack ? [0] : [-1, 1];
-      const lamps = sides.map((side) =>
-        slab(
-          `car_${end}_${shape.name}_${side}`,
-          shape.singleTrack ? 0.3 : 0.62,
-          0.3,
-          0.3,
-          side * (shape.width / 2 - 0.55),
-          floor + shape.hull * 0.72,
-          at,
-          0.1,
-        ),
-      );
-      const merged = Mesh.MergeMeshes(lamps, true, true, undefined, false, false);
-      if (!merged) throw new Error("car lamps failed to merge");
-      merged.name = `car_${end}_${shape.name}`;
-      merged.material = lampMaterials[end];
-      merged.isPickable = false;
-      merged.isVisible = false;
-      return merged;
-    };
-    return { head: lens("head"), tail: lens("tail") };
-  });
-
-  /**
-   * A real light per car, so a headlight actually lights the road ahead rather than only looking
-   * like it does. Clustered, the way the streetlights are, and pooled the same way: creating or
-   * disposing one walks every mesh in the scene, so only the difference in count is ever built.
-   */
-  const headlightCluster = new ClusteredLightContainer("car_headlights", [], scene);
-  headlightCluster.maxRange = 42;
-  let headlights: SpotLight[] = [];
+  const headlights = createVehicleHeadlights(scene, lampMaterials);
   let sunHour = 14;
   let lightsEnabled = true;
   let trafficEnabled = true;
@@ -625,33 +81,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
   let density = 1;
   const lightsOn = () => trafficEnabled && lightsEnabled && streetlightsOnAt(sunHour);
 
-  function syncHeadlights(count: number): void {
-    while (headlights.length > count) {
-      const light = headlights.pop()!;
-      headlightCluster.removeLight(light);
-      light.dispose();
-    }
-    while (headlights.length < count) {
-      const beam = new SpotLight(`car_beam_${headlights.length}`, Vector3.Zero(), Vector3.Down(), 1.15, 2.4, scene);
-      beam.diffuse = new Color3(1, 0.96, 0.84);
-      beam.specular = new Color3(0.3, 0.3, 0.28);
-      beam.intensity = 9;
-      beam.range = 38;
-      headlightCluster.addLight(beam);
-      headlights.push(beam);
-    }
-    for (const light of headlights) light.setEnabled(lightsOn());
-    headlightCluster.setEnabled(lightsOn());
-  }
-
   /** Night turns the lamps up and the beams on; by day they are just coloured glass. */
   function setSunHour(hour: number): void {
     sunHour = hour;
-    const on = lightsOn();
-    lampMaterials.head.emissiveColor = on ? new Color3(1, 0.97, 0.86) : new Color3(0.5, 0.49, 0.44);
-    lampMaterials.tail.emissiveColor = on ? new Color3(0.95, 0.13, 0.1) : new Color3(0.34, 0.07, 0.06);
-    for (const light of headlights) light.setEnabled(on);
-    headlightCluster.setEnabled(on);
+    headlights.setLamps(lightsOn());
   }
   setSunHour(sunHour);
 
@@ -659,209 +92,6 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     lightsEnabled = enabled;
     setSunHour(sunHour);
   }
-
-  /** Wheels and glass for each shape: one prototype whatever colour the body it rides on is. */
-  const carParts = CAR_SHAPES.map((shape) => {
-    const dark = new StandardMaterial(`car_parts_${shape.name}`, scene);
-    dark.diffuseColor = new Color3(0.09, 0.1, 0.12);
-    dark.specularColor = new Color3(0.35, 0.35, 0.4);
-
-    const floor = shape.wheel / 2;
-    // Its hump is a tank and seat rather than a cabin, so there's nothing to glaze -- a
-    // motorcycle rider sits in the open.
-    const glass =
-      shape.cabin && !shape.singleTrack
-        ? [
-            slab(
-              `car_glass_${shape.name}_side`,
-              shape.width - 0.62,
-              shape.cabin.height * 0.74,
-              shape.cabin.length * 0.72,
-              0,
-              floor + shape.hull + shape.cabin.height * 0.37,
-              shape.cabin.at,
-              0.08,
-            ),
-            slab(
-              `car_glass_${shape.name}_front`,
-              shape.width - 0.78,
-              shape.cabin.height * 0.55,
-              0.18,
-              0,
-              floor + shape.hull + shape.cabin.height * 0.36,
-              shape.cabin.at + shape.cabin.length * 0.43,
-              0.05,
-            ),
-            slab(
-              `car_glass_${shape.name}_rear`,
-              shape.width - 0.84,
-              shape.cabin.height * 0.46,
-              0.16,
-              0,
-              floor + shape.hull + shape.cabin.height * 0.34,
-              shape.cabin.at - shape.cabin.length * 0.42,
-              0.05,
-            ),
-          ]
-        : [];
-    const sides = shape.singleTrack ? [0] : [-1, 1];
-    const wheels = sides.flatMap((side) =>
-      [shape.wheelBase, -shape.wheelBase].map((z) => {
-        const wheel = MeshBuilder.CreateCylinder(
-          `car_wheel_${shape.name}_${side}_${z}`,
-          { diameter: shape.wheel, height: shape.singleTrack ? 0.16 : 0.36, tessellation: 10 },
-          scene,
-        );
-        wheel.rotation.z = Math.PI / 2;
-        wheel.position.set(side * (shape.width / 2 - 0.1), floor, z);
-        return wheel;
-      }),
-    );
-    const trim =
-      shape.singleTrack
-        ? []
-        : [
-            slab(`car_front_bumper_${shape.name}`, shape.width - 0.4, 0.18, 0.16, 0, floor + shape.hull * 0.26, shape.length / 2 - 0.08, 0.05),
-            slab(`car_rear_bumper_${shape.name}`, shape.width - 0.4, 0.18, 0.16, 0, floor + shape.hull * 0.26, -shape.length / 2 + 0.08, 0.05),
-            ...sides.flatMap((side) =>
-              [shape.wheelBase, -shape.wheelBase].map((z) =>
-                slab(
-                  `car_arch_${shape.name}_${side}_${z}`,
-                  0.16,
-                  0.24,
-                  shape.wheel * 0.9,
-                  side * (shape.width / 2 - 0.03),
-                  floor + shape.hull * 0.36,
-                  z,
-                  0.05,
-                ),
-              ),
-            ),
-            ...sides.map((side) =>
-              slab(
-                `car_mirror_${shape.name}_${side}`,
-                0.16,
-                0.1,
-                0.28,
-                side * (shape.width / 2 + 0.03),
-                floor + shape.hull + shape.cabin!.height * 0.42,
-                shape.cabin!.at + shape.cabin!.length * 0.22,
-                0.04,
-              ),
-            ),
-          ];
-    // A rider, sitting where the seat is: a body and a head, the same two primitives a
-    // pedestrian is built from, just smaller and bolted to the bike instead of walking.
-    const rider: Mesh[] = [];
-    if (shape.singleTrack) {
-      const seatY = floor + shape.hull + shape.cabin!.height;
-      const at = shape.cabin!.at - 0.35;
-      rider.push(
-        slab(`bike_seat_${shape.name}`, 0.44, 0.14, 0.72, 0, seatY - 0.06, at, 0.08),
-        slab(`bike_handlebar_${shape.name}`, 0.82, 0.08, 0.08, 0, seatY + 0.22, shape.wheelBase - 0.18, 0.03),
-        slab(`bike_front_fork_${shape.name}`, 0.12, 0.62, 0.12, -0.16, floor + 0.42, shape.wheelBase - 0.06, 0.03),
-        slab(`bike_front_fork_2_${shape.name}`, 0.12, 0.62, 0.12, 0.16, floor + 0.42, shape.wheelBase - 0.06, 0.03),
-        slab(`bike_frame_${shape.name}`, 0.14, 0.18, 1.18, 0, floor + 0.42, 0, 0.04),
-        slab(`bike_exhaust_${shape.name}`, 0.14, 0.14, 0.84, shape.width * 0.48, floor + 0.24, -0.28, 0.04),
-      );
-      const torso = MeshBuilder.CreateCylinder(`car_rider_torso_${shape.name}`, { height: 0.58, diameter: 0.32, tessellation: 8 }, scene);
-      torso.position.set(0, seatY + 0.29, at);
-      const head = MeshBuilder.CreateSphere(`car_rider_head_${shape.name}`, { diameter: 0.28, segments: 6 }, scene);
-      head.position.set(0, seatY + 0.58 + 0.1, at);
-      rider.push(torso, head);
-    }
-    const parts = Mesh.MergeMeshes([...glass, ...wheels, ...trim, ...rider, ...detailParts(shape, true, "")], true, true, undefined, false, false);
-    if (!parts) throw new Error("car parts failed to merge");
-    parts.name = `car_parts_${shape.name}`;
-    parts.material = dark;
-    parts.isPickable = false;
-    parts.isVisible = false;
-    return parts;
-  });
-
-  /**
-   * A box with its corners taken off: two boxes crossed, plus a cylinder standing in each corner,
-   * merged into one. Flat sides, flat roof, soft corners. A plain box reads as a brick at this
-   * size, and rounding the whole body instead reads as a bar of soap.
-   * ponytail: built out of primitives rather than extruded, because an extrusion has to be
-   * oriented and this cannot be got wrong.
-   */
-  /**
-   * The pieces a shape declares for itself, in one of the two prototypes a vehicle is built from
-   * (its painted body, or the dark trim that rides along). A round piece becomes a cylinder along
-   * whichever of its dimensions is longest, so one spec covers a drum, an exhaust and a barrel.
-   */
-  function detailParts(shape: CarShape, dark: boolean, suffix: string): Mesh[] {
-    return (shape.details ?? [])
-      .filter((detail) => (detail.dark ?? false) === dark)
-      .flatMap((detail) => (detail.mirrored ? [1, -1] : [1]).map((side) => {
-        const name = `car_${shape.name}_${detail.name}${side < 0 ? "_l" : ""}${suffix}`;
-        const x = detail.x * side * CAR_VISUAL_SCALE;
-        const y = detail.y * CAR_VISUAL_SCALE;
-        const z = detail.z * CAR_VISUAL_SCALE;
-        const w = detail.width * CAR_VISUAL_SCALE;
-        const h = detail.height * CAR_VISUAL_SCALE;
-        const d = detail.depth * CAR_VISUAL_SCALE;
-        if (!detail.round) return slab(name, w, h, d, x, y, z, 0.08);
-        const longest = Math.max(w, h, d);
-        const mesh = MeshBuilder.CreateCylinder(name, { diameter: Math.min(w, h, d), height: longest, tessellation: 10 }, scene);
-        if (longest === d) mesh.rotation.x = Math.PI / 2;
-        else if (longest === w) mesh.rotation.z = Math.PI / 2;
-        mesh.position.set(x, y, z);
-        return mesh;
-      }));
-  }
-
-  function slab(
-    name: string,
-    width: number,
-    height: number,
-    depth: number,
-    x: number,
-    y: number,
-    z: number,
-    corner = 0.4,
-  ): Mesh {
-    const r = Math.min(corner, width / 2 - 0.01, depth / 2 - 0.01);
-    const parts = [
-      MeshBuilder.CreateBox(`${name}_x`, { width, height, depth: depth - 2 * r }, scene),
-      MeshBuilder.CreateBox(`${name}_z`, { width: width - 2 * r, height, depth }, scene),
-    ];
-    for (const sx of [-1, 1]) {
-      for (const sz of [-1, 1]) {
-        const post = MeshBuilder.CreateCylinder(`${name}_${sx}_${sz}`, { diameter: r * 2, height, tessellation: 10 }, scene);
-        post.position.set(sx * (width / 2 - r), 0, sz * (depth / 2 - r));
-        parts.push(post);
-      }
-    }
-    const mesh = Mesh.MergeMeshes(parts, true, true, undefined, false, false);
-    if (!mesh) throw new Error(`${name} failed to merge`);
-    mesh.name = name;
-    mesh.position.set(x, y, z);
-    return mesh;
-  }
-
-  /**
-   * One prototype per colour, each a body and a head merged together, and every walker on the map
-   * is an instance of one of them.
-   * ponytail: instances of four prototypes, rather than merging two primitives per person.
-   */
-  const walkerPrototypes = WALKER_COLORS.map((color, i) => {
-    const body = MeshBuilder.CreateCylinder(`walker_body_${i}`, { height: 1.15, diameter: 0.5, tessellation: 6 }, scene);
-    const head = MeshBuilder.CreateSphere(`walker_head_${i}`, { diameter: 0.46, segments: 5 }, scene);
-    head.position.y = 0.78;
-    const walker = Mesh.MergeMeshes([body, head], true, true, undefined, false, false);
-    if (!walker) throw new Error("walker failed to merge");
-    walker.name = `walker_${i}`;
-    const material = new StandardMaterial(`walker_${i}`, scene);
-    material.diffuseColor = color;
-    material.specularColor = Color3.Black();
-    walker.material = material;
-    walker.isPickable = false;
-    // The prototype itself is never seen; hiding it this way still draws its instances.
-    walker.isVisible = false;
-    return walker;
-  });
 
   let movers: Mover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
@@ -1301,7 +531,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     movers = [];
     queues.clear();
     queueOf.clear();
-    syncHeadlights(0);
+    headlights.sync(0, lightsOn());
   }
 
   function rebuild(dirty?: TerrainBounds): void {
@@ -1403,8 +633,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         // Shape and colour picked apart from each other, so a street carries a mix of both. A road
         // with a business of its own mostly carries that business's vehicles -- tractors down a
         // dirt track, tankers past a works -- but never only them: something still passes through.
-        const themed = type.frontageKind ? THEMED_SHAPES.get(type.frontageKind) ?? [] : [];
-        const pool = themed.length && (si + i) % 4 !== 3 ? themed : PLAIN_SHAPES;
+        const themed = type.frontageKind ? themedShapes.get(type.frontageKind) ?? [] : [];
+        const pool = themed.length && (si + i) % 4 !== 3 ? themed : plainShapes;
         const shape = pool[(si * 3 + i) % pool.length]!;
         const palette = carBodies[shape]!;
         const body = palette[(si + i) % palette.length]!.createInstance(`traffic_${seg.id}_${i}`);
@@ -1415,11 +645,11 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
           part.isPickable = false;
           part.parent = body;
         }
-        place(body, i, count, false, lanes[i % lanes.length]!, CAR_SHAPES[shape]!.name);
+        place(body, i, count, false, lanes[i % lanes.length]!, carShapes[shape]!.name);
       }
     }
 
-    syncHeadlights(movers.filter((mover) => !mover.walk).length);
+    headlights.sync(movers.filter((mover) => !mover.walk).length, lightsOn());
   }
 
   /** Faces a mover along a heading, turning towards it rather than snapping onto it. */
@@ -1503,7 +733,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     simTime += dt;
     const now = simTime;
 
-    const beams = lightsOn() ? headlights : null;
+    const beams = lightsOn() ? headlights.lights : null;
     let beam = 0;
 
     // Who is in front of whom. Queue membership changes only when a mover boards or leaves a
@@ -1544,7 +774,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
           const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);
           mover.mesh.position.set(position.x, position.y + mover.lift + bob, position.z);
           face(mover, Math.atan2(tangent.x, tangent.z), dt);
-          if (beams && !mover.walk) aimBeam(beams[beam++], mover);
+          if (beams && !mover.walk) headlights.aim(beams[beam++], mover);
           continue;
         }
       }
@@ -1579,22 +809,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
         position.z + normal.z * offset,
       );
       face(mover, Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction), dt);
-      if (beams && !mover.walk) aimBeam(beams[beam++], mover);
+      if (beams && !mover.walk) headlights.aim(beams[beam++], mover);
     }
     if (staleMovers.size > 0) movers = movers.filter((mover) => !staleMovers.has(mover));
   });
-
-  /** Puts a beam at the nose of its car, pointing the way the car faces and a little down. */
-  function aimBeam(beam: SpotLight | undefined, mover: Mover): void {
-    if (!beam) return;
-    const forward = { x: Math.sin(mover.heading), z: Math.cos(mover.heading) };
-    beam.position.set(
-      mover.mesh.position.x + forward.x * 2.6,
-      mover.mesh.position.y + 1,
-      mover.mesh.position.z + forward.z * 2.6,
-    );
-    beam.direction.set(forward.x, -0.42, forward.z);
-  }
 
   function vehicleTarget(mover: Mover): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } {
     return {

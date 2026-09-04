@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 70%
+> Understanding: 95%
+> Confidence: 90%
+> Progress: 80%
 > Complexity: High
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -69,3 +69,6 @@
 - 2026-09-03 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
 - 2026-09-03 wave 3f: commit `9675795` moved wave verdict settlement into `settleWaveOutcome` and added focused coverage for held-wave scheduling and breached-empty-city end state.
 - 2026-09-03 validation: `rtk npm exec -- vitest run src/app/waveLoop.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm run ci`, and `rtk git diff --check` passed.
+
+# Validation
+- 2026-09-04 validation: rtk npm exec -- vitest run src/app/cityRebuild.test.ts, rtk npm run typecheck, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after the cityRebuild helper extraction.

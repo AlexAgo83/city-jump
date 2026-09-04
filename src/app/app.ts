@@ -15,6 +15,7 @@ import { createSignalRenderer } from "../render/signals";
 import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { cellKey, createZoneRenderer } from "../render/zones";
+import { admittedParcels, parcelBounds, parcelId, samePosition } from "./cityRebuild";
 import { applyCamera as applyCameraState, cameraSnapshot as snapshotCamera, createAutosave } from "./persistence";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
@@ -30,7 +31,7 @@ import { allJunctions } from "../sim/junction";
 import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, Utilities } from "../sim/utilities";
-import { buildingParcels, buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, parcelsForDemand, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { buildableCells, lotsInRect, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
 import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
@@ -138,7 +139,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // the terrain flattening and the building renderer work from the same answer.
     if (!dirty) measure("parcels", () => {
       currentBuildableCells = solveBuildableCells();
-      currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
+      currentParcels = admittedParcels(currentBuildableCells, zones, cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
       syncBuildings();
     });
     let junctions: ReturnType<typeof allJunctions>;
@@ -211,7 +212,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       scheduleAutosave();
       return;
     }
-    currentParcels = parcelsForDemand(buildingParcels(currentBuildableCells, zones), cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
+    currentParcels = admittedParcels(currentBuildableCells, zones, cityEconomy.resources.population, simSeconds, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined).filter((parcel) => !rubble.blocks(parcel) || buildingLifecycle.stateOf(parcel) === "rebuilding");
     syncBuildings();
     // `delete` answers whether the lot was already standing, so one pass leaves the arrivals in
     // `changed` and the departures in `before`.
@@ -901,7 +902,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     // them. See `Zones.snapTo` and `BuildingLifecycle.snapTo`.
     const relaid = zones.snapTo(solveBuildableCells());
     const carried = buildingLifecycle.snapTo(
-      parcelsForDemand(buildingParcels(solveBuildableCells(), zones), city.resources?.population ?? 0, city.elapsed ?? 0, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined),
+      admittedParcels(solveBuildableCells(), zones, city.resources?.population ?? 0, city.elapsed ?? 0, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined),
     );
     if (relaid || carried) showAlert(`${relaid} zoned lots and ${carried} buildings were re-laid onto the city as it came back.`);
     simSeconds = city.elapsed ?? 0;
@@ -1152,24 +1153,6 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       .filter((node) => [...node.segments].filter((id) => !roadType(graph.segment(id).type).tunnelDepth).length >= 3).length;
   }
 
-  /** A lot's identity across re-packs: where it stands. */
-  function parcelId(parcel: BuildingParcel): string {
-    return `${Math.round(parcel.position.x)}:${Math.round(parcel.position.z)}`;
-  }
-
-  function parcelBounds(parcel: BuildingParcel): TerrainBounds {
-    const points = parcel.cells.flatMap((cell) => cell.corners);
-    return {
-      minX: Math.min(...points.map((point) => point.x)) - 16,
-      maxX: Math.max(...points.map((point) => point.x)) + 16,
-      minZ: Math.min(...points.map((point) => point.z)) - 16,
-      maxZ: Math.max(...points.map((point) => point.z)) + 16,
-    };
-  }
-
-  function samePosition(a: { x: number; z: number }, b: { x: number; z: number }): boolean {
-    return Math.abs(a.x - b.x) < 0.01 && Math.abs(a.z - b.z) < 0.01;
-  }
 }
 
 async function seedDefaultDemoSave(): Promise<void> {

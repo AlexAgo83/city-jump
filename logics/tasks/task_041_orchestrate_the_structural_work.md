@@ -4,11 +4,11 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 90%
-> Progress: 65%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-03 16:03:12
+> Indicators reviewed: 2026-09-04 00:00:00
 > Owner: Codex
 
 # AI Context
@@ -24,13 +24,13 @@
 - [x] 1. Precondition: req_035, req_036, req_037 and req_038 are done. app.ts has 143 commits; refactoring it earlier turns every fix in those chains into a conflict.
 - [x] 2. Wave 1: the three-line architecture assertion on setTerrain, and the documentation and gitignore items. Cheap, immediate, no conflict surface.
 - [x] 3. Wave 2: the linter and tsconfig flags, adopting the tool and fixing its findings as separate commits.
-- [ ] 4. Wave 3: the startApp extractions in the stated order, one commit each with npm run ci between.
+- [x] 4. Wave 3: the startApp extractions in the stated order, one commit each with npm run ci between.
 - [ ] 5. Wave 4: the traffic and buildings splits, after req_037 has finished with those hot paths.
 - [ ] 6. Wave 5: drawTool into app/, after req_035 item_106.
 - [ ] 7. Wave 6: the dispose contract, then the save migration hook.
 - [ ] 8. Behaviour must not change anywhere in this chain: an existing test needing an edit is a signal to stop and reconsider the seam.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready without automatic commits.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
 - [ ] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
@@ -63,10 +63,18 @@
 - request-AC9 -> `item_131_write_down_the_conventions_the_code_already_follows`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- 2026-09-04 validation: `rtk npm exec -- vitest run src/app/cityRebuild.test.ts`, `rtk npm run typecheck`, `rtk npm run lint`, `rtk git diff --check`, `rtk npm run ci`, `rtk logics-manager lint --require-status`, `rtk logics-manager audit --group-by-doc`, and `rtk logics-manager i18n validate` passed after wave 3g.
+- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4a.
+- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/traffic.test.ts src/app/cityRebuild.test.ts`, `rtk npm run lint`, and `rtk npm run ci` passed after wave 4b.
+- 2026-09-04 validation: `rtk npm run typecheck`, `rtk npm run lint`, `rtk npm exec -- vitest run src/render/traffic.test.ts`, and `rtk npm run ci` passed after wave 4c.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, and rtk npm run ci passed after wave 4d.
 
 # Report
-- Not started.
+- 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
+- 2026-09-04 wave 4a: extracted vehicle prototype construction and vehicle shape tables into `src/render/vehicleModels.ts`; `src/render/traffic.ts` now receives the built model collections.
+- 2026-09-04 wave 4b: moved the headless traffic rule helpers and constants into `src/render/driving.ts`; focused tests now import the pure helpers directly.
+- 2026-09-04 wave 4c: extracted the vehicle headlight pool, lamp emissive updates, and beam aiming into `src/render/vehicleLights.ts`; `src/render/traffic.ts` now delegates light sync/aiming while keeping traffic enablement and timing state.
+- 2026-09-04 wave 4d: moved the traffic mover types, driving constants, lane queue keys, and terrain dirty-bound helper into src/render/driving.ts; src/render/traffic.ts keeps the renderer loop and scene wiring.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

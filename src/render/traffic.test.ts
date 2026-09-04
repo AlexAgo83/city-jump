@@ -7,7 +7,6 @@ import { RoadGraph } from "../sim/graph";
 import { v3 } from "../sim/vec";
 import {
   circularQueueRooms,
-  createTrafficRenderer,
   joinLaneQueue,
   laneQueueIsOrdered,
   laneStartBlocked,
@@ -18,7 +17,8 @@ import {
   roundaboutExitBlocked,
   scaledTrafficCount,
   trafficLaneOffset,
-} from "./traffic";
+} from "./driving";
+import { createTrafficRenderer } from "./traffic";
 
 describe("traffic queues", () => {
   it("scales traffic counts without changing the default or making non-empty roads empty", () => {
