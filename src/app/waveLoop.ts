@@ -38,8 +38,8 @@ export function createWavePlan(seed: string, parcels: readonly BuildingParcel[])
     parcels.map((parcel) => v3(parcel.position.x, parcel.position.y, parcel.position.z)),
     v3(-360, 0, 1500),
   );
-  // Show the player the thing that is about to walk through their city. It lands a kilometre or
-  // more off the coast and walks in, so without this it destroyed the place off screen.
+  // Suggested framing only. The wave owns markers and the banner; the camera stays where the
+  // player left it, even though the kaiju starts offshore and walks in from the edge.
   const target = plan.target ?? plan.coast;
   const midX = (plan.landing.x + target.x) / 2;
   const midZ = (plan.landing.z + target.z) / 2;

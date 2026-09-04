@@ -1,13 +1,14 @@
 ## item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it - Sit the FPS counter beside the Wave panel instead of above it
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 21:27:21
 
 # AI Context
 - Summary: The FPS counter and the Wave panel share the right-hand column, so the counter pushes the panel down instead of sitting beside it. The column's flow contract -- hidden takes no room, no per-pair rules -- has to survive the change.

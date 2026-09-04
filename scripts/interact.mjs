@@ -505,8 +505,11 @@ check("startup does not wait for all parcel models", fresh.startupModels < 28, `
 await page.waitForFunction(() => window.cityjump.stats().models === 28, null, { timeout: 20_000 });
 // 16 lot models plus a farm, a works and a compound for each of the four deep lot sizes.
 check("all parcel models load", (await stats()).models === 28, `${(await stats()).models} models`);
+const cameraBeforeForcedWave = await page.evaluate(() => window.cityjump.cameraState());
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
+const cameraAfterForcedWave = await page.evaluate(() => window.cityjump.cameraState());
+check("a forced wave leaves the camera where the player left it", JSON.stringify(cameraAfterForcedWave) === JSON.stringify(cameraBeforeForcedWave));
 check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled())));
 check("an active wave shows the kaiju HP banner", /Kaiju \d+\/\d+ HP - \d+ dmg\/min/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.forceHeldWave());

@@ -1,13 +1,14 @@
 ## item_154_blow_a_building_up_and_set_its_rubble_alight - Blow a building up and set its rubble alight
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 21:27:21
 
 # AI Context
 - Summary: A destroyed building just becomes a box of rubble. There is no ParticleSystem or Sprite anywhere in the project, so this is new render infrastructure -- and the explosion and the fire have different lifetimes: one is an event, the other is derived from saved state.

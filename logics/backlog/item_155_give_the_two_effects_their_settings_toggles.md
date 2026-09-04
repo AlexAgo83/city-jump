@@ -1,13 +1,14 @@
 ## item_155_give_the_two_effects_their_settings_toggles - Give the two effects their settings toggles
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 21:27:21
 
 # AI Context
 - Summary: Everything in this project that costs frames can be switched off. UiSettings is a flat object of optional localStorage keys, so the toggles need no new machinery -- only a decision about which toolbar row they belong to.

@@ -1,7 +1,7 @@
 ## item_150_drop_the_second_the_bulldozer_waits_for_nothing - Drop the second the bulldozer waits for nothing
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 95%
 > Confidence: 95%
 > Progress: 100%

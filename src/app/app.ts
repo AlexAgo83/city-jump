@@ -476,7 +476,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     nextSalvoAt = 0;
     waveVerdict = null;
     waveVerdictUntil = 0;
-    applyCamera(planned.camera);
   };
   const finishWave = (verdict: WaveVerdict): void => {
     waveVerdict = verdict;

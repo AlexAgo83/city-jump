@@ -1,13 +1,14 @@
 ## item_156_file_show_fps_with_the_camera - File Show FPS with the camera
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 21:27:21
 
 # AI Context
 - Summary: show-fps sits in the World row beside Grid, Buildings, Details and Boxes, none of which it relates to, while a Camera row already exists.
