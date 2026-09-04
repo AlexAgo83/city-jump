@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 97%
-> Confidence: 93%
-> Progress: 90%
+> Understanding: 98%
+> Confidence: 95%
+> Progress: 96%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -57,9 +57,11 @@
 - 2026-09-04 controller slice 1: tests/architecture.mjs now fails if production render code calls graph.addNode, graph.addSegment, graph.removeSegment, graph.setRoundabout, or commitSegment directly.
 - 2026-09-04 e2e repair: scripts/interact.mjs now derives zoning, node, roundabout, tree, and road pointer targets from visible graph/buildable state instead of stale fixed pixels after temporary camera focus changes.
 - 2026-09-04 controller slice 2: app/drawController.ts now owns road spend/refund and dirty rebuild effects for road commit, road removal, and roundabout toggles; debug roads opt out of those gameplay effects.
+- 2026-09-04 controller slice 3: app/drawController.ts now owns road snap resolution, preview validation/sampling, junction lookup, and road/roundabout bulldoze targets; render/drawTool.ts calls those controller decisions and keeps pointer/preview sequencing.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after the controller injection.
 - 2026-09-04 browser check: rtk npm run test:e2e passed the road drawing, undo/redo, utility placement/destruction, zoning, and building-decoration checks touched by the controller slice, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021.
 - 2026-09-04 validation: rtk npm run test:e2e, rtk npm run typecheck, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after stabilizing the pointer e2e targets for the controller slice.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, and rtk npm run test:e2e passed after moving road transaction effects into app/drawController.ts.
+- 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/app/drawController.test.ts src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk npm run test:e2e, and rtk npm run ci passed after moving road snap/preview/target decisions into app/drawController.ts.

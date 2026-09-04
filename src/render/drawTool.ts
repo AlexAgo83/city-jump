@@ -9,10 +9,9 @@ import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
 import type { RoadGraph, Segment } from "../sim/graph";
-import { roundaboutRadius } from "../sim/junction";
-import { resolveSnap, validateSegment, type Snap } from "../sim/rules";
+import type { Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
-import { flatTerrain, type Terrain } from "../sim/terrain";
+import type { Terrain } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
 import { buildingBuildCost, demolitionRefund } from "../sim/economy";
 import { UTILITY_CATALOG, type SavedUtility, type UtilityKind, type UtilityRole } from "../sim/utilities";
@@ -20,7 +19,7 @@ import type { BuildingKind } from "../sim/buildingKinds";
 import { workforceDemand } from "../sim/workforce";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
-import { type Vec3, v3, lerp } from "../sim/vec";
+import { type Vec3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
 import { GRID } from "../sim/slots";
 import { toBabylon } from "./convert";
@@ -41,7 +40,7 @@ type BulldozeTarget =
   | { kind: "building"; status: BuildingStatus }
   | { kind: "utility"; utility: SavedUtility }
   | { kind: "tree"; x: number; z: number }
-  | { kind: "roundabout"; node: number; x: number; z: number; radius: number };
+  | { kind: "roundabout"; node: number; x: number; z: number; radius: number; lanes: 1 | 2 };
 
 export type FollowTarget = () => { x: number; y: number; z: number; heading: number; segment: Segment } | null;
 
@@ -85,8 +84,14 @@ export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | "utility" |
 export type RoadTypeId = string;
 
 export interface DrawController {
-  commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId, dirty: TerrainBounds, effects?: boolean): { ok: true } | { ok: false; reason: string };
-  removeRoad(segment: Segment, dirty: TerrainBounds, effects?: boolean): boolean;
+  resolveSnap(x: number, z: number, gridSnap: boolean): Snap;
+  previewRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId): { points: Vec3[]; ok: boolean };
+  junctionNodeAt(x: number, z: number): number | null;
+  roundaboutEnabled(node: number): boolean;
+  roundaboutAt(x: number, z: number): Extract<BulldozeTarget, { kind: "roundabout" }> | null;
+  roadAt(x: number, z: number): Segment | null;
+  commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId, effects?: boolean): { ok: true } | { ok: false; reason: string };
+  removeRoad(segment: Segment, effects?: boolean): boolean;
   setRoundabout(node: number, enabled: boolean, lanes?: 1 | 2): boolean;
 }
 
@@ -111,10 +116,6 @@ const SPRAY_RING_POINTS = 56;
  * a node, plant a tree, or bulldoze whatever you happened to release over.
  */
 const CLICK_SLOP = 5;
-
-/** How far from a node you can click and still mean that node. */
-const NODE_REACH = 22;
-const BRIDGE_NODE_REACH = 60;
 
 /** How far from the pointer the bulldozer will look for a tree, once it has found no road. */
 export const TREE_REACH = 8;
@@ -323,7 +324,7 @@ export function createDrawTool(
     selectRing.position.set(target.x, heightAt(target.x, target.z) + PREVIEW_LIFT, target.z);
     selectRing.scaling.set(target.radius, 1, target.radius);
     selectRing.setEnabled(true);
-    onSelect({ kind: "roundabout", lanes: graph.node(target.node).roundaboutLanes, radius: target.radius });
+    onSelect({ kind: "roundabout", lanes: target.lanes, radius: target.radius });
   }
 
   function selectAt(x: number, z: number): void {
@@ -462,7 +463,8 @@ export function createDrawTool(
       return;
     }
     targetHighlight.setEnabled(false);
-    const snap = resolveDrawingSnap(at.x, at.z);
+    const snap = controller?.resolveSnap(at.x, at.z, gridSnap);
+    if (!snap) return clearPreview();
     nodeHighlight.setEnabled(snap.kind === "node");
     if (snap.kind === "node") {
       nodeHighlight.position.copyFromFloats(snap.position.x, snap.position.y + PREVIEW_LIFT, snap.position.z);
@@ -472,13 +474,13 @@ export function createDrawTool(
     if (stage.phase === "control") {
       // Before the control point is placed, the preview is the straight it would be.
       const mid = lerp(stage.from.position, snap.position, 0.5);
-      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), heightAt);
-      drawPreview(sampleQuadratic(stage.from.position, mid, snap.position, 32, heightAt), check.ok);
+      const preview = controller?.previewRoad(stage.from, snap, mid, typeId);
+      if (preview) drawPreview(preview.points, preview.ok);
       return;
     }
 
-    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), heightAt);
-    drawPreview(sampleQuadratic(stage.from.position, stage.control, snap.position, 32, heightAt), check.ok);
+    const preview = controller?.previewRoad(stage.from, snap, stage.control, typeId);
+    if (preview) drawPreview(preview.points, preview.ok);
   }
 
   function onClick(): void {
@@ -522,18 +524,17 @@ export function createDrawTool(
         history?.beforeChange();
         history?.afterChange(controller?.setRoundabout(target.node, false) ?? false);
       } else {
-        const dirty = boundsOf(target.segment.samples);
-        scheduleDemolition(() => controller?.removeRoad(target.segment, dirty) ?? false);
+        scheduleDemolition(() => controller?.removeRoad(target.segment) ?? false);
       }
       return;
     }
     if (mode === "roundabout") {
-      const node = nearestJunctionNode(at.x, at.z);
+      const node = controller?.junctionNodeAt(at.x, at.z);
       if (!node) return onRefused("Click where two or more roads meet.");
       history?.beforeChange();
       // The road panel's lane choice applies here too -- a roundabout has no type of its own,
       // so it takes lanes from whatever is currently selected to draw with.
-      history?.afterChange(controller?.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes) ?? false);
+      history?.afterChange(controller?.setRoundabout(node, !controller.roundaboutEnabled(node), roadType(typeId).lanes) ?? false);
       return;
     }
     if (mode === "plant") {
@@ -569,7 +570,8 @@ export function createDrawTool(
       history?.afterChange(placed);
       return;
     }
-    const snap = resolveDrawingSnap(at.x, at.z);
+    const snap = controller?.resolveSnap(at.x, at.z, gridSnap);
+    if (!snap) return onRefused("Road drawing is unavailable.");
 
     if (stage.phase === "idle") {
       stage = { phase: "control", from: snap };
@@ -588,9 +590,8 @@ export function createDrawTool(
   }
 
   function finish(from: Snap, to: Snap, control: Vec3): void {
-    const dirty = boundsOf(sampleQuadratic(from.position, control, to.position, 32, heightAt));
     history?.beforeChange();
-    const result = controller?.commitRoad(from, to, control, typeId, dirty) ?? { ok: false, reason: "Road drawing is unavailable." };
+    const result = controller?.commitRoad(from, to, control, typeId) ?? { ok: false, reason: "Road drawing is unavailable." };
     if (!result.ok) {
       onRefused(result.reason);
       history?.afterChange(false);
@@ -599,35 +600,6 @@ export function createDrawTool(
     stage = { phase: "idle" };
     clearPreview();
     history?.afterChange(true);
-  }
-
-  function resolveDrawingSnap(x: number, z: number): Snap {
-    // The ground point under an elevated node sits well off its own x/z, so bridge ends get extra
-    // reach -- but only when nothing ordinary is under the pointer, or a distant viaduct steals
-    // every click made near it.
-    const snap = resolveSnap(graph, x, z, gridSnap);
-    if (snap.kind !== "free") return snap;
-    return nearestElevatedEndpoint(x, z) ?? snap;
-  }
-
-  function nearestElevatedEndpoint(x: number, z: number): Snap | null {
-    let best: Snap | null = null;
-    let bestDistance = BRIDGE_NODE_REACH;
-    for (const node of graph.allNodes()) {
-      if (![...node.segments].some((id) => graph.segment(id).elevated)) continue;
-      const distance = Math.hypot(node.pos.x - x, node.pos.z - z);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = { kind: "node", nodeId: node.id, position: node.pos };
-      }
-    }
-    return best;
-  }
-
-  function touchesElevated(snap: Snap): boolean {
-    if (snap.kind === "segment") return !!graph.segment(snap.segmentId).elevated;
-    if (snap.kind !== "node") return false;
-    return [...graph.node(snap.nodeId).segments].some((id) => graph.segment(id).elevated);
   }
 
   /** Drawing state only -- never the selection, which an option change has no business erasing. */
@@ -667,25 +639,6 @@ export function createDrawTool(
   }
 
   /**
-   * Nodes are not pickable meshes, so the nearest one within reach is the click target. Only nodes
-   * with roads meeting them count: a dead end can sit a few metres from a junction, and picking
-   * the plain nearest would hand back the one that cannot carry a roundabout.
-   */
-  function nearestJunctionNode(x: number, z: number): number | null {
-    let best: number | null = null;
-    let bestDistance = NODE_REACH;
-    for (const node of graph.allNodes()) {
-      if (node.segments.size < 2) continue;
-      const distance = Math.hypot(node.pos.x - x, node.pos.z - z);
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = node.id;
-      }
-    }
-    return best;
-  }
-
-  /**
    * What the bulldozer would take, in the order a player means them. A tree right under the
    * pointer beats the road it stands beside; a roundabout beats the roads running into it, since
    * their geometry still passes through the node under the ring; and a tree merely nearby is the
@@ -695,13 +648,8 @@ export function createDrawTool(
     const onTree = nature.treeAt(x, z, TREE_HIT);
     if (onTree) return { kind: "tree", ...onTree };
 
-    for (const node of graph.allNodes()) {
-      if (!node.roundabout) continue;
-      const radius = roundaboutRadius(graph, node.id);
-      if (Math.hypot(node.pos.x - x, node.pos.z - z) <= radius) {
-        return { kind: "roundabout", node: node.id, x: node.pos.x, z: node.pos.z, radius };
-      }
-    }
+    const roundabout = controller?.roundaboutAt(x, z);
+    if (roundabout) return roundabout;
 
     const building = selection.buildingAt(x, z);
     if (building) return { kind: "building", status: building };
@@ -709,11 +657,8 @@ export function createDrawTool(
     const utility = utilities?.nearest(x, z, 10);
     if (utility) return { kind: "utility", utility };
 
-    const nearest = graph.nearestOnSegment(x, z, 20);
-    if (nearest) {
-      const hit = Math.hypot(x - nearest.position.x, z - nearest.position.z);
-      if (hit <= roadType(nearest.segment.type).width / 2 + 3) return { kind: "road", segment: nearest.segment };
-    }
+    const road = controller?.roadAt(x, z);
+    if (road) return { kind: "road", segment: road };
 
     const nearTree = nature.treeAt(x, z, TREE_REACH);
     return nearTree ? { kind: "tree", ...nearTree } : null;
@@ -814,33 +759,6 @@ export function createDrawTool(
 
 function expandBounds(bounds: TerrainBounds, by: number): TerrainBounds {
   return { minX: bounds.minX - by, maxX: bounds.maxX + by, minZ: bounds.minZ - by, maxZ: bounds.maxZ + by };
-}
-
-function boundsOf(points: readonly Vec3[]): TerrainBounds {
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minZ = Infinity;
-  let maxZ = -Infinity;
-  for (const p of points) {
-    minX = Math.min(minX, p.x);
-    maxX = Math.max(maxX, p.x);
-    minZ = Math.min(minZ, p.z);
-    maxZ = Math.max(maxZ, p.z);
-  }
-  return { minX, maxX, minZ, maxZ };
-}
-
-/** Preview sampling only; the graph builds its own table once the segment is accepted. */
-export function sampleQuadratic(a: Vec3, c: Vec3, b: Vec3, steps = 32, heightAt: Terrain["heightAt"] = flatTerrain.heightAt): Vec3[] {
-  const out: Vec3[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const u = 1 - t;
-    const x = a.x * u * u + c.x * 2 * u * t + b.x * t * t;
-    const z = a.z * u * u + c.z * 2 * u * t + b.z * t * t;
-    out.push(v3(x, heightAt(x, z), z));
-  }
-  return out;
 }
 
 export function brushMovedFarEnough(last: { x: number; z: number } | null, at: { x: number; z: number }, radius: number): boolean {

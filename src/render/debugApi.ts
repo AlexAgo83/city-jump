@@ -1,10 +1,6 @@
 import type { Scene } from "@babylonjs/core/scene";
-import type { RoadGraph, Segment } from "../sim/graph";
-import { resolveSnap } from "../sim/rules";
-import type { Snap } from "../sim/rules";
+import type { RoadGraph } from "../sim/graph";
 import type { TerrainBounds } from "../sim/heightmap";
-import { v3 } from "../sim/vec";
-import type { Vec3 } from "../sim/vec";
 
 export interface DebugApi {
   /** Escape hatch for the verification scripts; not used by the game. */
@@ -30,8 +26,8 @@ export interface DebugApi {
 }
 
 export interface DebugRoadController {
-  commitRoad(from: Snap, to: Snap, control: Vec3, type: string, dirty: TerrainBounds, effects?: boolean): { ok: true } | { ok: false; reason: string };
-  removeRoad(segment: Segment, dirty: TerrainBounds, effects?: boolean): boolean;
+  addRoad(x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type: string): { ok: true } | { ok: false; reason: string };
+  clearRoads(): void;
 }
 
 /**
@@ -46,14 +42,11 @@ export function installDebugApi(
   stats: () => Record<string, unknown>,
   options: { controller?: DebugRoadController; setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number>; extra?: (api: DebugApi) => Record<string, unknown> } = {},
 ): void {
-  const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
-    const from = resolveSnap(graph, x0, z0);
-    const to = resolveSnap(graph, x1, z1);
-    return options.controller?.commitRoad(from, to, v3(cx, 0, cz), type, { minX: Math.min(x0, cx, x1), maxX: Math.max(x0, cx, x1), minZ: Math.min(z0, cz, z1), maxZ: Math.max(z0, cz, z1) }, false) ?? { ok: false, reason: "Road drawing is unavailable." };
-  };
+  const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") =>
+    options.controller?.addRoad(x0, z0, cx, cz, x1, z1, type) ?? { ok: false, reason: "Road drawing is unavailable." };
   const api: DebugApi = {
     reset() {
-      for (const seg of graph.allSegments()) options.controller?.removeRoad(seg, { minX: -Infinity, maxX: Infinity, minZ: -Infinity, maxZ: Infinity }, false);
+      options.controller?.clearRoads();
       rebuild();
     },
     rebuild,
