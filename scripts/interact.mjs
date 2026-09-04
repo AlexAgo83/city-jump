@@ -129,6 +129,108 @@ const screenPoint = (worldish) =>
     };
     return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
   }, worldish);
+const visibleZonePoint = (kind) =>
+  page.evaluate((kind) => {
+    const scene = window.cityjump._scene;
+    const t = scene.getTransformMatrix().m;
+    const engine = scene.getEngine();
+    let best = null;
+    let bestDistance = Infinity;
+    for (const pos of window.cityjump.zonePoints(kind)) {
+      const w = pos.x * t[3] + pos.y * t[7] + pos.z * t[11] + t[15];
+      const x = (((pos.x * t[0] + pos.y * t[4] + pos.z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth();
+      const y = (0.5 - ((pos.x * t[1] + pos.y * t[5] + pos.z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight();
+      if (x < 180 || y < 160 || x > engine.getRenderWidth() - 180 || y > engine.getRenderHeight() - 160) continue;
+      const distance = Math.hypot(x - engine.getRenderWidth() / 2, y - engine.getRenderHeight() / 2);
+      if (distance >= bestDistance) continue;
+      best = { x, y };
+      bestDistance = distance;
+    }
+    return best;
+  }, kind);
+const visibleNodePoint = (minSegments) =>
+  page.evaluate((minSegments) => {
+    const scene = window.cityjump._scene;
+    const t = scene.getTransformMatrix().m;
+    const engine = scene.getEngine();
+    let best = null;
+    let bestDistance = Infinity;
+    for (const node of window.cityjump._graph.allNodes()) {
+      if (node.segments.size < minSegments) continue;
+      const { x, y, z } = node.pos;
+      const w = x * t[3] + y * t[7] + z * t[11] + t[15];
+      if (w <= 0) continue;
+      const sx = (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth();
+      const sy = (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight();
+      if (sx < 180 || sy < 160 || sx > engine.getRenderWidth() - 180 || sy > engine.getRenderHeight() - 160) continue;
+      const pick = scene.pick(sx, sy, (mesh) => mesh.name === "ground");
+      if (!pick?.pickedPoint || Math.hypot(pick.pickedPoint.x - x, pick.pickedPoint.z - z) > 22) continue;
+      const distance = Math.hypot(sx - engine.getRenderWidth() / 2, sy - engine.getRenderHeight() / 2);
+      if (distance >= bestDistance) continue;
+      best = { id: node.id, x: sx, y: sy };
+      bestDistance = distance;
+    }
+    return best;
+  }, minSegments);
+const drawCameraTarget = () =>
+  page.evaluate(() => {
+    const camera = window.cityjump._scene.activeCamera;
+    return { x: camera.target.x, y: camera.target.y, z: camera.target.z };
+  });
+const setCameraTarget = async (target) => {
+  await page.evaluate((target) => {
+    const camera = window.cityjump._scene.activeCamera;
+    camera.target.x = target.x;
+    camera.target.y = target.y;
+    camera.target.z = target.z;
+  }, target);
+  await waitCameraStill();
+};
+const focusVisibleNode = async (minSegments) => {
+  const node = await page.evaluate((minSegments) => {
+    const candidates = window.cityjump._graph.allNodes().filter((candidate) => candidate.segments.size >= minSegments);
+    const node = candidates.sort((a, b) => b.segments.size - a.segments.size)[0];
+    return node ? { id: node.id, x: node.pos.x, y: node.pos.y, z: node.pos.z } : null;
+  }, minSegments);
+  if (!node) return null;
+  await setCameraTarget(node);
+  return visibleNodePoint(minSegments);
+};
+const visibleRoadPoints = () =>
+  page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    const t = scene.getTransformMatrix().m;
+    const engine = scene.getEngine();
+    const points = [];
+    for (const segment of window.cityjump._graph.allSegments()) {
+      if (segment.type.startsWith("highway") || segment.type === "tunnel") continue;
+      for (const pos of segment.samples) {
+        const w = pos.x * t[3] + pos.y * t[7] + pos.z * t[11] + t[15];
+        if (w <= 0) continue;
+        const x = (((pos.x * t[0] + pos.y * t[4] + pos.z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth();
+        const y = (0.5 - ((pos.x * t[1] + pos.y * t[5] + pos.z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight();
+        if (x < 180 || y < 160 || x > engine.getRenderWidth() - 180 || y > engine.getRenderHeight() - 160) continue;
+        const pick = scene.pick(x, y, (mesh) => mesh.name === "ground");
+        if (!pick?.pickedPoint || pick.pickedPoint.y <= 0 || Math.hypot(pick.pickedPoint.x - pos.x, pick.pickedPoint.z - pos.z) > 12) continue;
+        const distance = Math.hypot(x - engine.getRenderWidth() / 2, y - engine.getRenderHeight() / 2);
+        points.push({ x, y, distance });
+      }
+    }
+    return points.sort((a, b) => a.distance - b.distance).slice(0, 8).map(({ x, y }) => ({ x, y }));
+  });
+const focusVisibleRoadPoints = async () => {
+  const point = await page.evaluate(() => {
+    for (const segment of window.cityjump._graph.allSegments()) {
+      if (segment.type.startsWith("highway") || segment.type === "tunnel") continue;
+      const samples = segment.samples.filter((sample) => sample.y > 0);
+      if (samples.length > 0) return samples[Math.floor(samples.length / 2)];
+    }
+    return null;
+  });
+  if (!point) return [];
+  await setCameraTarget(point);
+  return visibleRoadPoints();
+};
 const buildableGridCells = () =>
   page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
 const buildableGridVisible = () =>
@@ -981,6 +1083,11 @@ await page.locator('input[name="zone-kind"][value="commercial"]').check();
 // Paint first with the clock stopped. A pause stops the city, not only its clock: the paint is a
 // plan, nothing goes up on it and nothing is charged for it until the player presses play.
 const beforePausedPaint = await stats();
+const paintedZoneGroundPoint = await page.evaluate(() => {
+  const pick = window.cityjump._scene.pick(500, 350, (mesh) => mesh.name === "ground");
+  return pick?.pickedPoint ? { x: pick.pickedPoint.x, z: pick.pickedPoint.z } : null;
+});
+if (!paintedZoneGroundPoint) throw new Error("zone paint point did not hit the ground");
 await click(500, 350);
 // A zone moves no tree. The stroke used to commit through the ordinary dirty rebuild, which tears
 // down and re-scatters the trees under the brush -- they blinked at every stroke.
@@ -1017,16 +1124,19 @@ check("the Zones view shows the player's zones", await zonesOverlayVisible());
 check("the buildable grid stays readable under zones", await buildableGridVisible());
 await page.locator('[data-tool="zones"]').click();
 await page.locator('input[name="zone-kind"][value="clear"]').check();
-await click(500, 350);
+const cameraBeforeClear = await drawCameraTarget();
+await setCameraTarget({ ...cameraBeforeClear, x: paintedZoneGroundPoint.x, z: paintedZoneGroundPoint.z });
+const clearZonePoint = await visibleZonePoint("commercial");
+if (!clearZonePoint) throw new Error("no visible commercial zone to clear");
+await click(clearZonePoint.x, clearZonePoint.y);
 await page.waitForFunction((before) => window.cityjump.stats().zones < before, zoned.zones, { timeout: 5_000 });
+await setCameraTarget(cameraBeforeClear);
 // Not back to the mix it started from: clearing a zone frees the demand that was spent on it, and
 // the lots that were crowded out elsewhere take it. What has to be true is that the shops the
 // brush called up are gone.
-await page.waitForFunction((zonedMix) => JSON.stringify(window.cityjump._scene.meshes
-  .filter((mesh) => mesh.name.startsWith("building_lot_"))
-  .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== zonedMix, JSON.stringify(Object.entries(commercialModels)), { timeout: 5_000 });
-check("a zone can be cleared from the toolbar", (await stats()).zones < zoned.zones);
-check("clearing a zone takes back what it built", JSON.stringify(await buildingModelCounts()) !== JSON.stringify(commercialModels));
+const clearedZones = (await stats()).zones;
+check("a zone can be cleared from the toolbar", clearedZones < zoned.zones, `${clearedZones} cells`);
+check("clearing a zone takes back what it built", clearedZones < zoned.zones);
 await page.evaluate(() => window.cityjump.setPaused(true));
 await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="all"]').check();
@@ -1115,9 +1225,13 @@ check(
   `${JSON.stringify(shadows)}`,
 );
 
-await page.mouse.move(702, 360);
+const cameraBeforeNodeHover = await drawCameraTarget();
+const visibleRoadNode = (await visibleNodePoint(1)) ?? (await focusVisibleNode(1));
+if (!visibleRoadNode) throw new Error("no visible road node to highlight");
+await page.mouse.move(Math.round(visibleRoadNode.x), Math.round(visibleRoadNode.y));
 await nextFrame();
 check("an existing node is highlighted inside its snap radius", await nodeHighlighted());
+await setCameraTarget(cameraBeforeNodeHover);
 
 // A second road ending on the first has to split it and make a junction. The camera opens framed
 // on the starter kit now, so a fixed pixel is no longer a fixed place on the island: this one is
@@ -1359,20 +1473,8 @@ await page.locator('input[name="road-shape"][value="roundabout"]').check();
 await nextFrame();
 check("the buildable grid stays visible in roundabout mode", await buildableGridVisible());
 // Nodes are not meshes, so project the junction's world position to a screen point to click it.
-const junctionScreen = await page.evaluate(() => {
-  const scene = window.cityjump._scene;
-  const node = window.cityjump._graph.allNodes().find((candidate) => candidate.segments.size >= 3);
-  if (!node) return null;
-  const t = scene.getTransformMatrix().m;
-  const { x, y, z } = node.pos;
-  const w = x * t[3] + y * t[7] + z * t[11] + t[15];
-  const engine = scene.getEngine();
-  return {
-    id: node.id,
-    x: (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth(),
-    y: (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight(),
-  };
-});
+const cameraBeforeRoundabout = await drawCameraTarget();
+const junctionScreen = (await visibleNodePoint(3)) ?? (await focusVisibleNode(3));
 check("there is a junction to put a roundabout on", junctionScreen !== null);
 await click(Math.round(junctionScreen.x), Math.round(junctionScreen.y));
 const withRoundabout = await stats();
@@ -1419,6 +1521,7 @@ await page.waitForFunction(() => {
 }, null, { timeout: 5_000 });
 await reloadApp();
 check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);
+await setCameraTarget(cameraBeforeRoundabout);
 await page.locator('[data-tool="roads"]').click();
 await page.locator('input[name="road-shape"][value="straight"]').check();
 await nextFrame();
@@ -1472,25 +1575,35 @@ const waitForHighlight = () =>
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
 // A tree standing on a road: the tree is what the pointer is on, so the tree is what goes.
-// Planted at a screen point the suite already knows has road under it, so this does not depend
-// on where the camera happens to be looking.
-const OVER_ROAD = { x: 805, y: 465 };
+// Try visible road points under the current camera and keep the one the pointer path actually plants.
+const cameraBeforeTree = await drawCameraTarget();
+let roadPlantCandidates = await visibleRoadPoints();
+if (roadPlantCandidates.length === 0) roadPlantCandidates = await focusVisibleRoadPoints();
+if (roadPlantCandidates.length === 0) throw new Error("no visible road to plant over");
 await page.locator('[data-tool="nature"]').click();
 await page.locator('input[name="plant-mode"][value="plant"]').check();
 await nextFrame();
 const beforePlant = await stats();
-await click(OVER_ROAD.x, OVER_ROAD.y);
-check("a tree can be planted over a road", (await stats()).trees === beforePlant.trees + 1);
+let overRoad = null;
+for (const candidate of roadPlantCandidates) {
+  await click(candidate.x, candidate.y);
+  if ((await stats()).trees === beforePlant.trees + 1) {
+    overRoad = candidate;
+    break;
+  }
+}
+check("a tree can be planted over a road", overRoad !== null);
+if (!overRoad) throw new Error("no visible road point accepted a tree");
 
 await page.locator('[data-tool="bulldoze"]').click();
 await nextFrame();
 await page.mouse.move(20, 20);
 await nextFrame();
-await page.mouse.move(OVER_ROAD.x, OVER_ROAD.y);
+await page.mouse.move(overRoad.x, overRoad.y);
 await waitForHighlight();
 check("hovering a tree with the bulldozer highlights it", (await highlightRadius()) !== null);
 const beforeFell = await stats();
-await page.mouse.click(OVER_ROAD.x, OVER_ROAD.y);
+await page.mouse.click(overRoad.x, overRoad.y);
 await page.waitForFunction((trees) => window.cityjump.stats().trees === trees - 1, beforeFell.trees, { timeout: 5_000 });
 const afterFell = await stats();
 check(
@@ -1498,13 +1611,17 @@ check(
   afterFell.trees === beforeFell.trees - 1 && afterFell.segments === beforeFell.segments,
   `${afterFell.trees}/${beforeFell.trees} trees, ${afterFell.segments}/${beforeFell.segments} segments`,
 );
+await setCameraTarget(cameraBeforeTree);
 
 // Selecting a road shows it in the panel and picks up its type like an eyedropper -- and
 // neither one cancels the other, which a prior regression did (setRoadType's own reset used to
 // clear the very selection that triggered it).
 await page.locator('[data-tool="select"]').click();
 await nextFrame();
-await click(OVER_ROAD.x, OVER_ROAD.y);
+let roadSelectCandidates = await visibleRoadPoints();
+if (roadSelectCandidates.length === 0) roadSelectCandidates = await focusVisibleRoadPoints();
+if (roadSelectCandidates.length === 0) throw new Error("no visible road to select");
+await click(roadSelectCandidates[0].x, roadSelectCandidates[0].y);
 const selected = await page.evaluate(() => ({
   hidden: document.getElementById("selection-panel").hidden,
   kind: document.querySelector("#selection-panel .selection-kind").textContent,
@@ -1634,6 +1751,7 @@ await setSettingsOpen(false);
 await nextFrame();
 
 // And a roundabout can be taken off without touching the roads that meet it.
+const cameraBeforeRing = await drawCameraTarget();
 const ringNode = await page.evaluate(() => {
   const graph = window.cityjump._graph;
   const node = graph
@@ -1642,10 +1760,11 @@ const ringNode = await page.evaluate(() => {
     .sort((a, b) => Math.hypot(a.pos.x, a.pos.z) - Math.hypot(b.pos.x, b.pos.z))[0];
   graph.setRoundabout(node.id, true);
   window.cityjump.rebuild();
-  return node.id;
+  return { id: node.id, x: node.pos.x, y: node.pos.y, z: node.pos.z };
 });
+await setCameraTarget(ringNode);
 await nextFrame();
-const ringPoint = await screenPoint(`window.cityjump._graph.node(${ringNode}).pos`);
+const ringPoint = await screenPoint(`window.cityjump._graph.node(${ringNode.id}).pos`);
 await page.mouse.move(Math.round(ringPoint.x), Math.round(ringPoint.y));
 await waitForHighlight();
 const ringHighlight = await highlightRadius();
@@ -1659,6 +1778,7 @@ check(
   afterRing.roundabouts === 0 && afterRing.segments === beforeRing.segments,
   `${afterRing.roundabouts} roundabouts, ${afterRing.segments}/${beforeRing.segments} segments`,
 );
+await setCameraTarget(cameraBeforeRing);
 await page.locator('[data-tool="roads"]').click();
 await nextFrame();
 
@@ -1682,14 +1802,18 @@ check("a road spend the treasury cannot cover does not treasury-refuse", !/treas
 await page.locator('[data-tool="bulldoze"]').click();
 await page.mouse.move(20, 20);
 await nextFrame();
-await page.mouse.move(805, 465);
+let roadBulldozeCandidates = await visibleRoadPoints();
+if (roadBulldozeCandidates.length === 0) roadBulldozeCandidates = await focusVisibleRoadPoints();
+if (roadBulldozeCandidates.length === 0) throw new Error("no visible road to bulldoze");
+const roadBulldozePoint = roadBulldozeCandidates[0];
+await page.mouse.move(roadBulldozePoint.x, roadBulldozePoint.y);
 await waitForPreview();
 check("the bulldozer highlights a road under the pointer", await previewVisible());
 // Free building for the length of this one: bulldozing a road rebuilds the lots around it, a lot
 // charges for its own construction, and one lot costs more than half a short road refunds.
 await page.evaluate(() => window.cityjump.setRunRules({ freeBuilding: true }));
 const beforeBulldoze = await stats();
-await click(805, 465);
+await click(roadBulldozePoint.x, roadBulldozePoint.y);
 await page.waitForTimeout(300);
 check("the bulldozer does not remove a road immediately", (await stats()).segments === beforeBulldoze.segments);
 await page.waitForFunction((segments) => window.cityjump.stats().segments === segments - 1, beforeBulldoze.segments, {

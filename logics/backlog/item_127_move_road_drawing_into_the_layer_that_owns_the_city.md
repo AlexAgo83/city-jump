@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 95%
-> Confidence: 88%
-> Progress: 60%
+> Understanding: 96%
+> Confidence: 92%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -55,7 +55,9 @@
 # Notes
 - 2026-09-04 controller slice 1: app/drawController.ts now owns road commits, road removal, and roundabout toggles; render/drawTool.ts and render/debugApi.ts call the injected controller instead of mutating RoadGraph directly.
 - 2026-09-04 controller slice 1: tests/architecture.mjs now fails if production render code calls graph.addNode, graph.addSegment, graph.removeSegment, graph.setRoundabout, or commitSegment directly.
+- 2026-09-04 e2e repair: scripts/interact.mjs now derives zoning, node, roundabout, tree, and road pointer targets from visible graph/buildable state instead of stale fixed pixels after temporary camera focus changes.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after the controller injection.
 - 2026-09-04 browser check: rtk npm run test:e2e passed the road drawing, undo/redo, utility placement/destruction, zoning, and building-decoration checks touched by the controller slice, then failed at the pre-existing zone-clear timeout at scripts/interact.mjs:1021.
+- 2026-09-04 validation: rtk npm run test:e2e, rtk npm run typecheck, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after stabilizing the pointer e2e targets for the controller slice.

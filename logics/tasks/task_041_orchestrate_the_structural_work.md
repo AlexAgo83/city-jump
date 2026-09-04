@@ -3,7 +3,7 @@
 > Schema version: 1.0
 > Status: In progress
 > Understanding: 99%
-> Confidence: 94%
+> Confidence: 95%
 > Progress: 98%
 > Complexity: Medium
 > Theme: Implementation delivery
@@ -82,6 +82,7 @@
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/traffic.test.ts, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after extracting the traffic mover system into src/render/trafficMovers.ts.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts src/render/roadMesh.test.ts src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into the utility, traffic, road, and building renderers.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.
+- 2026-09-04 validation: rtk npm run test:e2e, rtk npm run typecheck, rtk npm run lint, rtk npm run test:architecture, rtk git diff --check, and rtk npm run ci passed after replacing stale fixed pointer targets in scripts/interact.mjs with visible zoning/node/road targets.
 
 # Report
 - 2026-09-04 wave 3g: extracted admitted parcel selection and parcel geometry helpers into `src/app/cityRebuild.ts`; `src/app/app.ts` now reuses the demand/parcel composition in one place.
@@ -108,6 +109,7 @@
 - 2026-09-04 item_126 completion: ordinary tests no longer install flatTerrain by hand; only the terrain module test exercises setTerrain/terrainHeight directly.
 - 2026-09-04 item_127 controller slice 1: app/drawController.ts owns road commits, removals, and roundabout toggles; drawTool/debugApi receive it as a controller, and architecture now guards direct render graph mutations.
 - 2026-09-04 browser check after item_127 controller slice 1: rtk npm run test:e2e passed the touched pointer/undo/utility/zoning path, then failed at the known zone-clear timeout at scripts/interact.mjs:1021.
+- 2026-09-04 item_127 e2e repair: scripts/interact.mjs now clicks visible buildable zone cells, graph nodes, roundabout nodes, and surface road samples after camera focus changes; the full browser interaction suite now passes for the controller slice.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

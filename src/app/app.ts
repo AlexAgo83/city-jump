@@ -1079,6 +1079,13 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       tool.paintZoneAt(x, z, radius, kind);
       return currentBuildableCells.filter((cell) => cell.zone).length;
     },
+    zonePoints(kind: ZoneKind) {
+      const centreOf = (cell: (typeof currentBuildableCells)[number]) => {
+        const sum = cell.corners.reduce((point, corner) => ({ x: point.x + corner.x, y: point.y + corner.y, z: point.z + corner.z }), v3(0, 0, 0));
+        return { x: sum.x / cell.corners.length, y: sum.y / cell.corners.length, z: sum.z / cell.corners.length };
+      };
+      return currentBuildableCells.filter((cell) => cell.zone === kind).map(centreOf);
+    },
     buildingPoint: (nearX?: number, nearZ?: number) => buildings.buildingPoint(nearX, nearZ),
     vehiclePoint: () => traffic.vehiclePoint(),
     selectVehicle() {
