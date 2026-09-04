@@ -1,10 +1,10 @@
 ## item_126_make_the_terrain_dependency_visible - Make the terrain dependency visible
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 98%
-> Confidence: 92%
-> Progress: 95%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -63,6 +63,8 @@
 - 2026-09-04 terrain injection 2: RoadGraph now receives a height sampler, defaults to flat terrain for isolated tests, and exposes it to rules/slots; sim/graph.ts, sim/rules.ts, and sim/slots.ts no longer import terrainHeight.
 - 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.
 - 2026-09-04 terrain injection 3: createDrawTool now receives height sampling from app.ts; render/drawTool.ts no longer imports terrainHeight, and sampleQuadratic defaults to flat terrain for isolated geometry tests.
+- 2026-09-04 completion: non-terrain tests no longer call setTerrain(flatTerrain); rg shows setTerrain only in app setup, terrain.ts, the terrain module test, and the architecture assertion.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/drawTool.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into drawTool.
+- 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/save.test.ts src/sim/replay.test.ts src/sim/heightmap.test.ts src/render/drawTool.test.ts and rtk npm run ci passed after removing the remaining flat-terrain resets from ordinary tests.

@@ -11,7 +11,6 @@ import { Utilities } from "./utilities";
 import { createRun } from "./run";
 import { createWaveClock } from "./wave";
 import { commitSegment, resolveSnap } from "./rules";
-import { setTerrain, flatTerrain } from "./terrain";
 import { v3 } from "./vec";
 
 describe("replay drift", () => {
@@ -20,7 +19,6 @@ describe("replay drift", () => {
   // back cut about a metre from where it was: 249 of 1806 lots in the same place. The zoning fell
   // off the ones that moved, and every building on them started its construction over.
   it("cuts the same lots after a round trip", () => {
-    setTerrain(flatTerrain);
     const graph = new RoadGraph();
     const road = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
       const from = resolveSnap(graph, x0, z0);
@@ -48,7 +46,6 @@ describe("replay drift", () => {
 
 describe("replay of what stands on the lots", () => {
   it("brings every building back in the state it was saved in", () => {
-    setTerrain(flatTerrain);
     const graph = new RoadGraph();
     const road = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
       const from = resolveSnap(graph, x0, z0);

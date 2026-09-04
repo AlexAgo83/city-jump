@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
 import { Plantings } from "./plantings";
 import { Rubble } from "./rubble";
@@ -8,7 +8,6 @@ import { serializeCity, restoreCity, parseCity, SAVE_VERSION, type CitySave } fr
 import { createWaveClock, scheduleNextWave } from "./wave";
 import { buildingParcels, buildableCells } from "./slots";
 import { v3 } from "./vec";
-import { setTerrain, flatTerrain } from "./terrain";
 import { Zones } from "./zones";
 import { Utilities, UTILITY_BITS } from "./utilities";
 import { createRun, DEFAULT_RUN_RULES } from "./run";
@@ -24,8 +23,6 @@ function city(): RoadGraph {
 }
 
 describe("city saves", () => {
-  beforeEach(() => setTerrain(flatTerrain));
-
   it("leaves out the nodes no road stands on", () => {
     const graph = city();
     // What the offshore bridge leaves behind: its segment is scenery and is dropped, and its two

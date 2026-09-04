@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 98%
-> Confidence: 93%
-> Progress: 97%
+> Understanding: 99%
+> Confidence: 94%
+> Progress: 98%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -105,6 +105,7 @@
 - 2026-09-04 terrain injection 1: createUtilityRenderer, createTrafficRenderer, createRoadRenderer, and createBuildingRenderer now receive height sampling from app.ts instead of reading the terrain module global directly.
 - 2026-09-04 terrain injection 2: RoadGraph now owns a height sampler supplied by app.ts; sim/rules.ts and sim/slots.ts read terrain through the graph instead of importing the terrain module global.
 - 2026-09-04 terrain injection 3: drawTool now receives the app height sampler instead of reading terrainHeight; this removes the last production render consumer of the terrain module global.
+- 2026-09-04 item_126 completion: ordinary tests no longer install flatTerrain by hand; only the terrain module test exercises setTerrain/terrainHeight directly.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`
