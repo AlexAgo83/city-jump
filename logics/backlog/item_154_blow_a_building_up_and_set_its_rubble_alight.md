@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: A destroyed building just becomes a box of rubble. There is no ParticleSystem or Sprite anywhere in the project, so this is new render infrastructure -- and the explosion and the fire have different lifetimes: one is an event, the other is derived from saved state.
@@ -62,3 +62,7 @@
 
 # Notes
 - 2026-09-04, codex: added a thin-instance destruction effects renderer with a one-shot explosion and saved-rubble-driven fire, wired it to wave destruction/rebuild/reload, and validated with a targeted Playwright check: destruction produced rubble/fire/explosion counts 12/12/1, reload restored rubble/fire 12/12 and did not replay the explosion.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

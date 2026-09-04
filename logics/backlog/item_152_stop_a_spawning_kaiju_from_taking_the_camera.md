@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: startWave applies a computed camera, so a wave arriving moves the view out from under the player. The jump has a recorded reason -- the kaiju lands a kilometre offshore -- which the landing markers and the banner may already answer.
@@ -58,3 +58,7 @@
 # Notes
 - 2026-09-04, operator: update the written decision ("on met a jour la decision ecrite"). The comment at src/app/waveLoop.ts:41-44 is part of this slice's deliverable, not context to leave alone.
 - 2026-09-04, codex: removed the wave-start camera application, rewrote the framing comment, and added an e2e assertion plus a targeted Playwright check proving `forceWave()` keeps `cameraState()` unchanged while the kaiju banner appears.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

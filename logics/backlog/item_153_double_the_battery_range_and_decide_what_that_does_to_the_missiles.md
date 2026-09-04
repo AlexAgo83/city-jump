@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: batteryRangeM is 220 and the operator wants it doubled. That multiplies firepower by more than two and, because flight time is a fraction of range rather than a speed, doubles missile speed as a side effect.
@@ -59,3 +59,7 @@
 # Notes
 - 2026-09-04, operator: flight time lengthening is the wanted behaviour ("ca me va que ca le rallonge"). This slice no longer carries an open question -- it implements a constant-speed missile whose flight lengthens with the doubled reach.
 - 2026-09-04, codex: doubled `batteryRangeM` to 440, replaced range-fraction flight timing with constant-speed `missileTravelSeconds(distanceM)`, and measured scenarios still inside band: expanding city 21/21 waves held, static city 31/31 held, 0 outside the 13-85s / 4-21 salvo band.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

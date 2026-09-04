@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: Everything in this project that costs frames can be switched off. UiSettings is a flat object of optional localStorage keys, so the toggles need no new machinery -- only a decision about which toolbar row they belong to.
@@ -55,3 +55,7 @@
 
 # Notes
 - 2026-09-04, codex: put both toggles in the Look row because they are optional visual effects, not world layers. Defaults are on via the checked markup and absent `UiSettings` keys. A targeted Playwright check turned both off, reloaded, then forced destruction: rubble appeared with fire/explosion thin instance counts 0/0.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

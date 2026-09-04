@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: The FPS counter and the Wave panel share the right-hand column, so the counter pushes the panel down instead of sitting beside it. The column's flow contract -- hidden takes no room, no per-pair rules -- has to survive the change.
@@ -52,3 +52,7 @@
 
 # Notes
 - 2026-09-04, codex: wrapped `#fps-counter` and `#run-panel` in a flow row inside `#right-stack`. A targeted Playwright check measured both at y=12, an 8 px gap, no panel-owned `top`, and the run panel stayed at the same y/right edge when FPS was hidden.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

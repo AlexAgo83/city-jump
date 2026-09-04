@@ -7,6 +7,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:14
 
 # AI Context
 - Summary: Six needs from playing 0.4.0: a wave that stops seizing the camera, batteries that reach twice as far, an explosion and a burning rubble pile a project with no particle infrastructure has to build, and two HUD placements.

@@ -1,11 +1,12 @@
 ## prod_033_a_wave_you_watch_on_your_own_terms - A wave you watch on your own terms
 > Date: 2026-09-04
-> Status: Proposed
+> Status: Settled
 > Related request: `req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning`
-> Related backlog: `item_152_stop_a_spawning_kaiju_from_taking_the_camera`, `item_153_double_the_battery_range_and_decide_what_that_does_to_the_missiles`, `item_154_blow_a_building_up_and_set_its_rubble_alight`, `item_155_give_the_two_effects_their_settings_toggles`, `item_156_file_show_fps_with_the_camera`, `item_157_sit_the_fps_counter_beside_the_wave_panel_instead_of_above_it`
+> Related backlog: `item_152_stop_a_spawning_kaiju_from_taking_the_camera`
 > Related task: `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # Overview
 The wave takes the player's view, the batteries cannot reach, and nothing burns.
@@ -63,5 +64,5 @@ Playing 0.4.0, the wave takes things from the player and gives little back. It s
 - Both effects can be switched off, and off means nothing is drawn or stepped.
 
 # References
-- Product back-reference: `req_042_let_the_player_keep_the_camera_let_the_batteries_reach_and_show_a_destroyed_building_burning`
+- Product back-reference: `item_152_stop_a_spawning_kaiju_from_taking_the_camera`
 - Task back-reference: `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`

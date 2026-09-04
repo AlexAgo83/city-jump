@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 21:27:21
+> Indicators reviewed: 2026-09-04 22:12:15
 
 # AI Context
 - Summary: show-fps sits in the World row beside Grid, Buildings, Details and Boxes, none of which it relates to, while a Camera row already exists.
@@ -50,3 +50,7 @@
 
 # Notes
 - 2026-09-04, codex: moved the unchanged `show-fps` checkbox into the Camera row. The persisted `fps` key remains unchanged.
+- Task `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work` was finished via `logics-manager flow finish task` on 2026-09-04.
+
+# Tasks
+- `task_044_orchestrate_the_camera_battery_reach_and_destruction_effects_work`
