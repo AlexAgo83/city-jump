@@ -297,7 +297,7 @@ export function playRun(seed = 1, rules: Partial<ScenarioRules> = {}, maxWaves =
     while (waveClock.active && waveClock.active.hitPoints > 0 && seconds - started < COMBAT_CAP_SECONDS && parcels.length) {
       const live = statuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel.position);
       assault = advanceKaijuAssault(assault, live, COMBAT_STEP_SECONDS);
-      const batteries = batteriesForParcels(parcels, economy.resources.population);
+      const batteries = batteriesForParcels(statuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel), economy.resources.population);
       if (seconds - started >= nextSalvoAt) {
         const firing = batteriesInRange(batteries, assault.position);
         salvos += firing.length ? 1 : 0;

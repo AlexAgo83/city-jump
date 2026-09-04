@@ -1,13 +1,14 @@
 ## item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju - Say that the city was levelled, and decide what happens to the kaiju
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: Confirmed: when the last building falls the wave finishes as breached, the kaiju's mesh is hidden, the banner gives the same three words as any breach, and the run does not end -- the player is left on an empty island still waiting for the next wave.

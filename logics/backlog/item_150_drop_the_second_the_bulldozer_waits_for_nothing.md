@@ -1,13 +1,14 @@
 ## item_150_drop_the_second_the_bulldozer_waits_for_nothing - Drop the second the bulldozer waits for nothing
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: `DEMOLITION_MS = 1_000` defers every demolition by a second that nothing waits on -- no animation, and the target highlight is switched off at the click. It arrived with no comment, in a file where every deliberate simplification carries one.

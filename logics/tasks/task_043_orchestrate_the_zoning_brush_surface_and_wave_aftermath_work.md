@@ -1,13 +1,15 @@
 ## task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work - Orchestrate the zoning, brush surface and wave aftermath work
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: codex
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: Nine slices: the rubble battery and the opening treasury first because both move the balance band, then the bulldozer's second, the click-only brushes, the levelled-city message, evacuation, the zoning surface, and the brush minimum last.

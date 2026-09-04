@@ -119,4 +119,19 @@ describe("building lifecycle", () => {
 
     expect(lifecycle.sync([parcel("military", 0, 4, 4)], 0, 1, 0)[0]!.state).toBe("idle");
   });
+
+  it("does not staff a lot while rubble is rebuilding", () => {
+    const lifecycle = new BuildingLifecycle();
+    const ruined = parcel("military", 0, 4, 4);
+    const shop = parcel("commercial", 20, 1, 1);
+    lifecycle.sync([ruined, shop], 60, 0, 0);
+    lifecycle.rebuild(ruined, 1);
+
+    const statuses = lifecycle.sync([ruined, shop], 60, 2, BUILDING_STAGE_SECONDS, true);
+
+    expect(statuses.map((status) => [status.state, status.staffed])).toEqual([
+      ["rebuilding", false],
+      ["working", true],
+    ]);
+  });
 });

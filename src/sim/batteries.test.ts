@@ -22,4 +22,14 @@ describe("batteries", () => {
     expect(batteriesForParcels([{ kind: "military", frontageCells: 1, depthCells: 4, position: v3(0, 0, 0) }], 11)).toHaveLength(0);
     expect(batteriesForParcels([{ kind: "military", frontageCells: 1, depthCells: 4, position: v3(0, 0, 0) }], 12)).toHaveLength(1);
   });
+
+  it("fires only from standing military lots", () => {
+    const statuses = [
+      { state: "rebuilding", parcel: { kind: "military", frontageCells: 4, depthCells: 4, position: v3(0, 0, 0) } },
+      { state: "working", parcel: { kind: "commercial", frontageCells: 4, depthCells: 4, position: v3(100, 0, 0) } },
+    ] as const;
+    const standing = statuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel);
+
+    expect(batteriesForParcels(standing, 100)).toHaveLength(0);
+  });
 });

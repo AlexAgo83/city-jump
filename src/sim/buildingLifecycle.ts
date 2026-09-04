@@ -70,7 +70,16 @@ export class BuildingLifecycle {
     // Whoever had the shift keeps it: see `allocateWorkforce`. And it is dealt on a population that
     // moves in steps rather than by the resident: see `committed`.
     if (Math.abs(population - this.committed) > Math.max(WORKFORCE_BAND_FLOOR, this.committed * WORKFORCE_BAND)) this.committed = population;
-    const staffing = new Map(allocateWorkforce(parcels, this.committed, (parcel) => this.states.get(parcelKey(parcel))?.staffed === true).parcels.map((parcel) => [parcel.index, parcel.staffed]));
+    const workforceParcels = parcels
+      .map((parcel, index) => ({ parcel, index }))
+      .filter(({ parcel }) => this.states.get(parcelKey(parcel))?.state !== "rebuilding");
+    const staffing = new Map(
+      allocateWorkforce(
+        workforceParcels.map(({ parcel }) => parcel),
+        this.committed,
+        (parcel) => this.states.get(parcelKey(parcel))?.staffed === true,
+      ).parcels.map((parcel) => [workforceParcels[parcel.index]!.index, parcel.staffed]),
+    );
     const live = new Map<string, { state: BuildingState; startedAt: number; seenAt: number; staffed: boolean }>();
     const statuses = parcels.map((parcel, index) => {
       const key = parcelKey(parcel);
@@ -84,10 +93,11 @@ export class BuildingLifecycle {
       const held = previous.state === "rebuilding" && rebuildPaused;
       const underWork = held || ((previous.state === "rising" || previous.state === "rebuilding") && now - previous.startedAt < stageSeconds);
       const state = underWork ? previous.state : staffing.get(index) === false ? "idle" : "working";
+      const isStaffed = state === "rebuilding" ? false : staffing.get(index) !== false;
       // A held rebuild keeps restarting its stage, so the work begins when the wave lifts.
       const startedAt = held ? now : state === previous.state ? previous.startedAt : now;
-      live.set(key, { state, startedAt, seenAt: now, staffed: staffing.get(index) !== false });
-      return status(parcel, state, staffing.get(index) !== false, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
+      live.set(key, { state, startedAt, seenAt: now, staffed: isStaffed });
+      return status(parcel, state, isStaffed, startedAt, now, stageSeconds, state === "rising" || state === "rebuilding" ? "construction" : state === "idle" ? "workers" : undefined);
     });
     // The lots that were not in this tick's list keep their state for a while rather than being
     // dropped: see MEMORY_SECONDS.

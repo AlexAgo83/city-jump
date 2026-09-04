@@ -1,13 +1,14 @@
 ## item_144_put_the_zoning_tool_choice_in_its_own_panel - Put the zoning tool choice in its own panel
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: `#zone-options` is one row holding the zone kinds, the brush slider and the price, so a brush-or-fill switch added to it would put the choice of tool on the same line as that tool's settings.

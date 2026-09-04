@@ -1,13 +1,14 @@
 ## item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider - Open the zone brush at the minimum of its own slider
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: The zone brush opens at 32 with a minimum of 8, and the tool's radius is a hand-kept copy of that default which has already drifted from the slider once.

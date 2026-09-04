@@ -45,8 +45,8 @@ describe("run state", () => {
     const owned = { prestige: 0, upgrades: ["starter-funds"], hardcore: false };
     const resources = { population: 12, food: 0, materials: 0 };
 
-    expect(startingMoney(profile())).toBe(40_000);
-    expect(startingMoney(owned)).toBe(50_000);
+    expect(startingMoney(profile())).toBe(100_000);
+    expect(startingMoney(owned)).toBe(110_000);
     expect(startingResources(profile(), resources)).toEqual(resources);
     expect(startingResources(owned, resources)).toEqual(resources);
     expect(FIRST_UPGRADE_WEB.every((node) => node.effect.kind.startsWith("starting-"))).toBe(true);

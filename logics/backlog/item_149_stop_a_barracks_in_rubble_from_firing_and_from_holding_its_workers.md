@@ -1,13 +1,14 @@
 ## item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers - Stop a barracks in rubble from firing and from holding its workers
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: Confirmed: batteries are built from every parcel while the kaiju targets only the ones standing, so a flattened barracks keeps firing -- and keeps the workers the survivors are being refused, because military is first in the workforce priority and rubble preserves its staffed flag.
@@ -53,3 +54,6 @@
 # Priority
 - Priority: High
 - Rationale: A live defect that gives the city firepower it has lost and starves the survivors of workers; it also moves the balance band, so it goes first.
+
+# Validation
+- 2026-09-04: BuildingLifecycle excludes rebuilding lots from workforce allocation, app/playthrough batteries use non-rebuilding building statuses, and tests cover rubble staffing and standing batteries. Validated with rtk npm exec -- vitest run src/sim/buildingLifecycle.test.ts src/sim/batteries.test.ts src/sim/run.test.ts src/sim/economy.test.ts src/sim/playthrough.test.ts, rtk npm run typecheck, and rtk npm run scenarios. Scenarios stayed inside 13-85s / 4-21 salvo band.

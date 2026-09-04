@@ -1,13 +1,14 @@
 ## item_151_open_a_run_with_a_treasury_that_can_build_a_city - Open a run with a treasury that can build a city
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: A run opens with $40,000 against per-metre roads and per-cell buildings. Raising it moves the Starter grant's worth, which is a quarter of that base today, and feeds the balance band directly.
@@ -51,3 +52,6 @@
 # Priority
 - Priority: Medium
 - Rationale: The first constraint a player meets, and the operator has named the figure; it moves the balance band, so it is measured alongside the rubble fix.
+
+# Validation
+- 2026-09-04: STARTING_MONEY raised to 100,000; Starter grant deliberately remains 10,000 as a small first upgrade. Validated with rtk npm exec -- vitest run src/sim/run.test.ts src/sim/economy.test.ts and rtk npm run scenarios. Scenarios stayed inside 13-85s / 4-21 salvo band.

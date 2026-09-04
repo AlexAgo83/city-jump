@@ -42,6 +42,7 @@ export interface RunRules {
 
 export const EARLY_WAVE_SCIENCE_MULTIPLIER = 2;
 export const DEFAULT_RUN_RULES: RunRules = { kaijuSpawns: true, instantConstruction: false, freeBuilding: false, ignorePower: true, ignoreWater: true };
+/** Kept as a small first upgrade: useful, not a second opening treasury. */
 const STARTER_FUNDS_BONUS = 10_000;
 
 export const FIRST_UPGRADE_WEB: readonly PrestigeUpgrade[] = [

@@ -1,13 +1,14 @@
 ## item_147_make_evacuating_leave_the_island - Make evacuating leave the island
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: Evacuating banks the science, ends the run and tells the player to start a new one. The new island is a second click on a button hidden until the run ends, so one decision costs two confirmations.

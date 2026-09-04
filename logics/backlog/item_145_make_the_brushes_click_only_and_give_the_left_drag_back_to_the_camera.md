@@ -1,13 +1,14 @@
 ## item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera - Make the brushes click-only and give the left drag back to the camera
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: The brushes paint while the left button is held, which is exactly why the tool strips button 0 from the camera. Click-only painting removes the reason for the special case and gives the left drag back.

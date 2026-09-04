@@ -1,13 +1,14 @@
 ## item_143_zone_a_contiguous_run_of_lots_from_one_click - Zone a contiguous run of lots from one click
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:04:12
 
 # AI Context
 - Summary: Zoning a district the roads already define means dragging a round brush across it. Zoning is keyed by lot, and BuildableCell already carries the segment, side and block a fill needs to know where to stop.

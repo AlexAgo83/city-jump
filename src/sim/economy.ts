@@ -3,7 +3,8 @@ import type { BuildingKind } from "./buildingKinds";
 import { roadType } from "./roadTypes";
 import type { BuildingParcel } from "./slots";
 
-export const STARTING_MONEY = 40_000;
+/** $100k lets the opening player build a complete first city before the first defence check. */
+export const STARTING_MONEY = 100_000;
 /**
  * Two and a half days of food for the people who arrive with the run.
  *

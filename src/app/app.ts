@@ -335,7 +335,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
     // empty after every load and every refresh, until the player pressed play.
     lastTerms ??= cityEconomy.advance(currentBuildingStatuses, 0);
-    showCityStats(residents, buildingNeeds(currentParcels, residents, projectedThreat()), cityEconomy.resources, { ...lastTerms, trade: income });
+    showCityStats(residents, buildingNeeds(currentBuildingStatuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel), residents, projectedThreat()), cityEconomy.resources, { ...lastTerms, trade: income });
     showMoney(treasury.money, income, stateCounts());
   };
   const refreshUtilities = (): void => {
@@ -588,7 +588,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // down at the edge of the map -- and a kaiju coming out of the sea wades in rather than
     // walking along the bottom of it.
     kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
-    const batteries = batteriesForParcels(currentParcels, cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel));
+    const batteries = batteriesForParcels(livingBuildings.map((status) => status.parcel), cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel));
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
         const launchedAt = seconds + index * 0.22;
