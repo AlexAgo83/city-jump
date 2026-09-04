@@ -1,14 +1,14 @@
 ## item_137_give_src_a_module_size_budget_that_something_measures - Give src a module size budget that something measures
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 97%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:53:38
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: req_039 asserted a 700-line module budget that nothing measures, and six modules exceed it -- including the 1238-line app.ts the request was written about, which carries no recorded reason at all.
@@ -55,3 +55,9 @@
 
 # Validation
 - 2026-09-04: Added tests/architecture.mjs module-size budget check and recorded ponytail: module-size reasons on every non-test src module over 700 lines. Validated with rtk npm run typecheck and rtk npm run test:architecture.
+
+# Tasks
+- `task_042_orchestrate_the_review_findings_work`
+
+# Notes
+- Task `task_042_orchestrate_the_review_findings_work` was finished via `logics-manager flow finish task` on 2026-09-04.

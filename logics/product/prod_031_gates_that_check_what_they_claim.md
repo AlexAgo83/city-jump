@@ -1,11 +1,12 @@
 ## prod_031_gates_that_check_what_they_claim - Gates that check what they claim
 > Date: 2026-09-04
-> Status: Proposed
+> Status: Settled
 > Related request: `req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them`
-> Related backlog: `item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states`, `item_137_give_src_a_module_size_budget_that_something_measures`, `item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof`, `item_139_test_the_sequence_that_turns_a_shared_link_into_a_saved_city`, `item_140_cover_the_three_modules_nothing_reaches_or_record_why_not`, `item_141_pin_third_party_actions_the_same_way_in_every_workflow`, `item_142_the_fixes_whose_record_is_the_change_itself`
+> Related backlog: `item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states`
 > Related task: `task_042_orchestrate_the_review_findings_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # Overview
 An assurance is only as strong as the thing that fails when it stops being true.
@@ -60,5 +61,5 @@ The 0.4.0 corpus review found the product sound and its assurances slightly over
 - biome lint and logics-manager audit are clean, so the next warning is news.
 
 # References
-- Product back-reference: `req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them`
+- Product back-reference: `item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states`
 - Task back-reference: `task_042_orchestrate_the_review_findings_work`

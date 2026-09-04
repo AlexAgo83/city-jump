@@ -1,14 +1,14 @@
 ## item_138_repair_the_traceability_line_that_closed_req_039_ac1_with_another_criterion_s_proof - Repair the traceability line that closed req_039 AC1 with another criterion's proof
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 94%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:53:38
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: The task that orchestrated req_039 closes its AC1 -- the module size budget -- by citing 5ece535, which is AC5's disposal work, on two duplicated lines. The corpus records a budget as met that was never measured.
@@ -55,6 +55,10 @@
 
 # Notes
 - The audit warning `lineage_mentioned_but_not_declared` for `task_041_orchestrate_the_structural_work` on this item is expected and must not be silenced by declaring it under `# Tasks`. That task is the document this slice repairs, not this slice's parent; the task that implements this slice is `task_042_orchestrate_the_review_findings_work`. Declaring false lineage to clear a heuristic warning is the same class of mistake as the mis-cited proof this slice exists to fix.
+- Task `task_042_orchestrate_the_review_findings_work` was finished via `logics-manager flow finish task` on 2026-09-04.
 
 # Validation
 - 2026-09-04: Replaced duplicated task_041 request-AC1 traceability with ca7fd93, which carries the module-size budget forward through item_137/task_042. Validated with rtk logics-manager flow validate-closeout task_041_orchestrate_the_structural_work and rtk logics-manager audit --group-by-doc.
+
+# Tasks
+- `task_042_orchestrate_the_review_findings_work`

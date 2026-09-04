@@ -1,14 +1,14 @@
 ## item_142_the_fixes_whose_record_is_the_change_itself - The fixes whose record is the change itself
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 94%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:53:38
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: The residue: two accumulating-spread reduces in playthrough.ts, five fixable lint items across the scripts and one test, and three runbook code anchors pointing at commits no longer in the repo.
@@ -54,3 +54,9 @@
 
 # Validation
 - 2026-09-04: Cleared biome warnings in src/scripts/tests and removed stale runbook code anchors. Validated with rtk npm run lint, rtk npm run typecheck, rtk npm run scenarios, and rtk logics-manager audit --group-by-doc --include-deferred.
+
+# Tasks
+- `task_042_orchestrate_the_review_findings_work`
+
+# Notes
+- Task `task_042_orchestrate_the_review_findings_work` was finished via `logics-manager flow finish task` on 2026-09-04.

@@ -1,14 +1,14 @@
 ## item_136_make_the_shared_link_decompression_cap_the_number_the_threat_model_states - Make the shared-link decompression cap the number the threat model states
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 94%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:53:38
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: The threat model requires a 96 KB decompression cap; the code has always allowed 1 MB. The document never described the code, and it is the only control in it with no test.
@@ -55,3 +55,9 @@
 
 # Validation
 - 2026-09-04: Chose 1 MB because perf/cities/ma-ville.json is 141,355 bytes decompressed and would fail a 96 KB cap while fitting under the existing 1,000,000-byte streaming cap. Validated with rtk npm run test:architecture.
+
+# Tasks
+- `task_042_orchestrate_the_review_findings_work`
+
+# Notes
+- Task `task_042_orchestrate_the_review_findings_work` was finished via `logics-manager flow finish task` on 2026-09-04.

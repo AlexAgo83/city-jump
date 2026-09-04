@@ -1,12 +1,13 @@
 ## req_040_close_the_gaps_the_0_4_0_corpus_review_found_in_the_gates_that_were_meant_to_catch_them - Close the gaps the 0.4.0 corpus review found in the gates that were meant to catch them
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: A review of the whole 0.4.0 corpus found the code in good order and the gates around it not quite honest: a threat-model control that never matched the code it describes, a Done request whose size criterion is unmet and whose proof cites another criterion's work, and the trust boundary that imports a shared link sitting untested.

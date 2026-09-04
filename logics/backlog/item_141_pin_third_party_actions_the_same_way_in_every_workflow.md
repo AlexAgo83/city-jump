@@ -1,14 +1,14 @@
 ## item_141_pin_third_party_actions_the_same_way_in_every_workflow - Pin third-party actions the same way in every workflow
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 94%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:53:38
+> Indicators reviewed: 2026-09-04 17:03:45
 
 # AI Context
 - Summary: ci.yml pins actions/checkout@v4 while render-release-deploy.yml pins it by SHA, and the architecture test asserts the SHA pin only on the workflow that was already correct.
@@ -52,3 +52,9 @@
 
 # Validation
 - 2026-09-04: Pinned every third-party action in .github/workflows by SHA and added an architecture test that enumerates all workflow files. Validated with rtk npm run test:architecture and rtk npm run check:versions.
+
+# Tasks
+- `task_042_orchestrate_the_review_findings_work`
+
+# Notes
+- Task `task_042_orchestrate_the_review_findings_work` was finished via `logics-manager flow finish task` on 2026-09-04.
