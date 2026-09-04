@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
 import { RULES, resolveSnap, validateSegment, commitSegment, quantise } from "./rules";
 import { v3 } from "./vec";
-import { setTerrain, flatTerrain } from "./terrain";
 
 function road(g: RoadGraph, x0: number, z0: number, x1: number, z1: number) {
   const from = resolveSnap(g, x0, z0);
@@ -137,12 +136,7 @@ describe("validation", () => {
   });
 
   it("accepts a gradient at the limit", () => {
-    setTerrain({ heightAt: (x) => x * RULES.maxGradient });
-    try {
-      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 100 * RULES.maxGradient, 0), "street").ok).toBe(true);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 100 * RULES.maxGradient, 0), "street", false, (x) => x * RULES.maxGradient).ok).toBe(true);
   });
 
   it("keeps a refused segment out of the graph", () => {
@@ -163,24 +157,14 @@ describe("validation", () => {
   });
 
   it("enforces the gradient rule on real relief", () => {
-    setTerrain({ heightAt: (x) => x * 0.6 });
-    try {
-      const g = new RoadGraph();
-      const result = road(g, 0, 0, 100, 0);
-      expect(result.ok).toBe(false);
-      expect(!result.ok && result.reason).toMatch(/steep/i);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    const g = new RoadGraph((x) => x * 0.6);
+    const result = road(g, 0, 0, 100, 0);
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.reason).toMatch(/steep/i);
   });
 
   it("lets tunnels pass through steep relief", () => {
-    setTerrain({ heightAt: (x) => x * 0.6 });
-    try {
-      expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 60, 0), "tunnel").ok).toBe(true);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    expect(validateSegment(v3(0, 0, 0), v3(50, 0, 0), v3(100, 60, 0), "tunnel", false, (x) => x * 0.6).ok).toBe(true);
   });
 
   it("extends an elevated bridge with another elevated road", () => {

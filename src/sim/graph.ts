@@ -1,5 +1,5 @@
 import { type Vec3, v3, lerp, distXZ, normalizeXZ, sub, smoothstep01 } from "./vec";
-import { terrainHeight } from "./terrain";
+import { flatTerrain, type Terrain } from "./terrain";
 import { DEFAULT_ROAD_TYPE, roadType } from "./roadTypes";
 import { angleBetween, OPPOSITE_BEARING_TOLERANCE } from "./facing";
 
@@ -64,7 +64,7 @@ const ELEVATED_CLEARANCE = 2;
  * ponytail: two passes (shape, then elevation) rather than solving arc length in closed
  * form -- the table is what every consumer wants anyway.
  */
-function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE, elevated = false) {
+function buildSamples(heightAt: Terrain["heightAt"], a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE, elevated = false) {
   const spec = roadType(type);
   const chord = distXZ(a, b) + distXZ(a, control) + distXZ(control, b);
   const count = Math.min(MAX_SAMPLES, Math.max(MIN_SAMPLES, Math.ceil(chord / 2 / SAMPLE_SPACING_M)));
@@ -87,11 +87,11 @@ function buildSamples(a: Vec3, control: Vec3, b: Vec3, type = DEFAULT_ROAD_TYPE,
     ? ts.map((t, i) => {
         const u = 1 - t;
         const p = flat[i]!;
-        return Math.max(a.y * u * u + control.y * 2 * u * t + b.y * t * t, terrainHeight(p.x, p.z) + ELEVATED_CLEARANCE);
+        return Math.max(a.y * u * u + control.y * 2 * u * t + b.y * t * t, heightAt(p.x, p.z) + ELEVATED_CLEARANCE);
       })
     : spec.tunnelDepth
     ? flat.map((_, i) => a.y + (b.y - a.y) * (i / count) - tunnelDrop(i / count, spec.tunnelDepth!))
-    : smoothHeights(flat.map((p) => terrainHeight(p.x, p.z)));
+    : smoothHeights(flat.map((p) => heightAt(p.x, p.z)));
   heights[0] = a.y;
   heights[heights.length - 1] = b.y;
   const samples: Vec3[] = flat.map((p, i) => v3(p.x, heights[i]!, p.z));
@@ -109,6 +109,8 @@ function smoothHeights(heights: number[]): number[] {
 }
 
 export class RoadGraph {
+  constructor(readonly heightAt: Terrain["heightAt"] = flatTerrain.heightAt) {}
+
   /**
    * Bumped by every change to the roads, so a caller can tell whether an answer it derived from
    * the graph -- the buildable cells, above all, which cost 65ms to solve -- is still current.
@@ -121,7 +123,7 @@ export class RoadGraph {
 
   /** Places a node, sampling its elevation once. A placed road is a fixed road. */
   addNode(x: number, z: number): NodeId {
-    return this.addNodeAt(v3(x, terrainHeight(x, z), z));
+    return this.addNodeAt(v3(x, this.heightAt(x, z), z));
   }
 
   /** Places a node at an exact position, bypassing the terrain sample. Used to replay a save. */
@@ -138,7 +140,7 @@ export class RoadGraph {
     roadType(type); // rejects an unknown type here rather than at render time
     const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
     this.nextStreetId = Math.max(this.nextStreetId, id + 1);
-    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type), false, utilities);
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(this.heightAt, na.pos, control, nb.pos, type), false, utilities);
   }
 
   addElevatedSegment(a: NodeId, b: NodeId, control: Vec3, type: string = DEFAULT_ROAD_TYPE, streetId?: number, utilities = 0): SegmentId {
@@ -147,7 +149,7 @@ export class RoadGraph {
     roadType(type);
     const id = streetId ?? this.inheritedStreetId(a, b, control, type) ?? this.nextStreetId++;
     this.nextStreetId = Math.max(this.nextStreetId, id + 1);
-    return this.addBuiltSegment(a, b, control, type, id, buildSamples(na.pos, control, nb.pos, type, true), true, utilities);
+    return this.addBuiltSegment(a, b, control, type, id, buildSamples(this.heightAt, na.pos, control, nb.pos, type, true), true, utilities);
   }
 
   private nextStreetId = 1;
@@ -308,8 +310,8 @@ export class RoadGraph {
     const elevated = !!seg.elevated;
     // Attach the halves before dropping the original: `removeSegment` collects nodes
     // that are left with nothing, and a and b would be collected here.
-    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, buildSamples(this.node(seg.a).pos, q0, mid, seg.type, elevated), elevated, seg.utilities);
-    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, buildSamples(mid, q1, this.node(seg.b).pos, seg.type, elevated), elevated, seg.utilities);
+    this.addBuiltSegment(seg.a, midId, q0, seg.type, seg.streetId, buildSamples(this.heightAt, this.node(seg.a).pos, q0, mid, seg.type, elevated), elevated, seg.utilities);
+    this.addBuiltSegment(midId, seg.b, q1, seg.type, seg.streetId, buildSamples(this.heightAt, mid, q1, this.node(seg.b).pos, seg.type, elevated), elevated, seg.utilities);
     this.removeSegment(id);
     return midId;
   }

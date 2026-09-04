@@ -3,7 +3,6 @@ import type { BuildingKind } from "./buildingKinds";
 import { roadType } from "./roadTypes";
 import { junctionRadius } from "./junction";
 import { type Vec3, v3, normalizeXZ, perpXZ, distXZ } from "./vec";
-import { terrainHeight } from "./terrain";
 import type { ZoneKind, Zones } from "./zones";
 
 export interface Slot {
@@ -142,7 +141,7 @@ export function buildableCells(graph: RoadGraph, zones?: Zones): BuildableCell[]
     const industrial = type.industrial === true;
     const buildingKind = type.frontageKind ?? "residential";
     for (const [blockIndex, block] of slotBlocks(graph, segment.id).entries()) {
-      for (const candidate of cellsForBlock(block, blockIndex, lowRise, industrial, buildingKind, zones)) {
+      for (const candidate of cellsForBlock(graph, block, blockIndex, lowRise, industrial, buildingKind, zones)) {
         if (cellTouchesOtherRoad(roads, candidate)) continue;
         const keys = bucketKeys(candidate);
         const nearby = new Set(keys.flatMap((key) => buckets.get(key) ?? []));
@@ -394,7 +393,7 @@ function pointInCell(p: Vec3, cell: BuildableCell): boolean {
 }
 
 
-function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, industrial: boolean, buildingKind: BuildingKind, zones?: Zones): BuildableCell[] {
+function cellsForBlock(graph: RoadGraph, block: Slot[], blockIndex: number, lowRise: boolean, industrial: boolean, buildingKind: BuildingKind, zones?: Zones): BuildableCell[] {
   const rotationY = averageRotation(block);
   const alongX = Math.cos(rotationY);
   const alongZ = -Math.sin(rotationY);
@@ -406,7 +405,7 @@ function cellsForBlock(block: Slot[], blockIndex: number, lowRise: boolean, indu
   const point = (along: number, out: number) => {
     const x = originX + alongX * along + outX * out;
     const z = originZ + alongZ * along + outZ * out;
-    return v3(x, terrainHeight(x, z), z);
+    return v3(x, graph.heightAt(x, z), z);
   };
   const cells: BuildableCell[] = [];
   for (let row = 0; row < GRID.depth; row++) {

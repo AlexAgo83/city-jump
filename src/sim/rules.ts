@@ -1,7 +1,7 @@
-import { RoadGraph, type NodeId, type SegmentId } from "./graph";
+import type { RoadGraph, NodeId, SegmentId } from "./graph";
 import { type Vec3, v3, add, distXZ, lerp, scale, sub } from "./vec";
 import { roadType } from "./roadTypes";
-import { terrainHeight } from "./terrain";
+import { flatTerrain, type Terrain } from "./terrain";
 
 /**
  * The four drawing rules. Angle snapping is deliberately absent: it is what would make
@@ -42,7 +42,7 @@ export function resolveSnap(graph: RoadGraph, x: number, z: number, gridSnap = t
 
   const qx = gridSnap ? quantise(x) : x;
   const qz = gridSnap ? quantise(z) : z;
-  return { kind: "free", position: v3(qx, terrainHeight(qx, qz), qz) };
+  return { kind: "free", position: v3(qx, graph.heightAt(qx, qz), qz) };
 }
 
 export type Validation = { ok: true } | { ok: false; reason: string };
@@ -51,7 +51,14 @@ export type Validation = { ok: true } | { ok: false; reason: string };
  * Draw-time validation. A refused segment never enters the graph, and the reason is the
  * message shown to the player, so it is written for them rather than for a log.
  */
-export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: string, allowSteep = false): Validation {
+export function validateSegment(
+  start: Vec3,
+  control: Vec3,
+  end: Vec3,
+  type: string,
+  allowSteep = false,
+  heightAt: Terrain["heightAt"] = flatTerrain.heightAt,
+): Validation {
   roadType(type);
 
   const length = quadraticLengthXZ(start, control, end);
@@ -60,7 +67,7 @@ export function validateSegment(start: Vec3, control: Vec3, end: Vec3, type: str
   }
 
   if (!allowSteep && !roadType(type).tunnelDepth) {
-    const gradient = maxSampleGradient(start, control, end);
+    const gradient = maxSampleGradient(start, control, end, heightAt);
     if (gradient > RULES.maxGradient + 1e-6) {
       return {
         ok: false,
@@ -92,7 +99,7 @@ export function quadraticLengthXZ(a: Vec3, c: Vec3, b: Vec3): number {
   return total;
 }
 
-function maxSampleGradient(a: Vec3, c: Vec3, b: Vec3): number {
+function maxSampleGradient(a: Vec3, c: Vec3, b: Vec3, heightAt: Terrain["heightAt"]): number {
   let steepest = 0;
   let prev = v3(a.x, a.y, a.z);
   for (let i = 1; i <= 24; i++) {
@@ -100,7 +107,7 @@ function maxSampleGradient(a: Vec3, c: Vec3, b: Vec3): number {
     const u = 1 - t;
     const x = a.x * u * u + c.x * 2 * u * t + b.x * t * t;
     const z = a.z * u * u + c.z * 2 * u * t + b.z * t * t;
-    const p = v3(x, i === 24 ? b.y : terrainHeight(x, z), z);
+    const p = v3(x, i === 24 ? b.y : heightAt(x, z), z);
     const run = distXZ(prev, p);
     if (run > 1e-9) steepest = Math.max(steepest, Math.abs(p.y - prev.y) / run);
     prev = p;
@@ -120,7 +127,7 @@ export function commitSegment(
   type: string,
 ): { ok: true; segmentId: SegmentId } | { ok: false; reason: string } {
   const elevated = touchesElevated(graph, from) || touchesElevated(graph, to);
-  const validation = validateSegment(from.position, control, to.position, type, elevated);
+  const validation = validateSegment(from.position, control, to.position, type, elevated, graph.heightAt);
   if (!validation.ok) return validation;
 
   const a = resolveEndpoint(graph, from);

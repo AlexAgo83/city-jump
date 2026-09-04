@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { RoadGraph } from "./graph";
 import { v3, distXZ } from "./vec";
-import { setTerrain, flatTerrain, terrainHeight } from "./terrain";
+import { terrainHeight } from "./terrain";
 
 function straight(g: RoadGraph, x0: number, z0: number, x1: number, z1: number) {
   const a = g.addNode(x0, z0);
@@ -78,15 +78,11 @@ describe("graph basics", () => {
   });
 
   it("keeps elevated roads from dipping under terrain", () => {
-    setTerrain({ heightAt: (x) => 30 * Math.sin((Math.PI * x) / 100) });
-    try {
-      const g = new RoadGraph();
-      const id = g.addElevatedSegment(g.addNodeAt(v3(0, 0, 0)), g.addNodeAt(v3(100, 0, 0)), v3(50, 0, 0));
-      const middle = g.segment(id).samples[Math.floor(g.segment(id).samples.length / 2)]!;
-      expect(middle.y).toBeGreaterThan(terrainHeight(middle.x, middle.z));
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    const heightAt = (x: number) => 30 * Math.sin((Math.PI * x) / 100);
+    const g = new RoadGraph(heightAt);
+    const id = g.addElevatedSegment(g.addNodeAt(v3(0, 0, 0)), g.addNodeAt(v3(100, 0, 0)), v3(50, 0, 0));
+    const middle = g.segment(id).samples[Math.floor(g.segment(id).samples.length / 2)]!;
+    expect(middle.y).toBeGreaterThan(heightAt(middle.x));
   });
 
   it("preserves carried utilities when splitting a segment", () => {
@@ -183,58 +179,36 @@ describe("split", () => {
   });
 
   it("keeps the original road elevation when splitting after terrain changes", () => {
-    setTerrain({ heightAt: () => 12 });
-    try {
-      const g = new RoadGraph();
-      const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
-      setTerrain({ heightAt: () => -20 });
-      const mid = g.splitSegment(id, 50);
-      expect(g.node(mid).pos.y).toBeCloseTo(12, 6);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    const g = new RoadGraph(() => 12);
+    const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
+    const mid = g.splitSegment(id, 50);
+    expect(g.node(mid).pos.y).toBeCloseTo(12, 6);
   });
 });
 
 describe("elevation", () => {
   it("reads every node elevation from the terrain function", () => {
-    setTerrain({ heightAt: (x) => x / 10 });
-    try {
-      const g = new RoadGraph();
-      const n = g.addNode(50, 0);
-      expect(g.node(n).pos.y).toBeCloseTo(5, 6);
-      expect(terrainHeight(50, 0)).toBeCloseTo(5, 6);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    const heightAt = (x: number) => x / 10;
+    const g = new RoadGraph(heightAt);
+    const n = g.addNode(50, 0);
+    expect(g.node(n).pos.y).toBeCloseTo(5, 6);
+    expect(heightAt(50)).toBeCloseTo(5, 6);
   });
 
   it("follows sampled terrain elevation along the segment", () => {
-    setTerrain({ heightAt: (x) => x / 10 });
-    let id: number;
-    let g: RoadGraph;
-    try {
-      g = new RoadGraph();
-      const a = g.addNode(0, 0);
-      const b = g.addNode(100, 0);
-      id = g.addSegment(a, b, v3(50, 0, 0));
-    } finally {
-      setTerrain(flatTerrain);
-    }
-    expect(g!.gradient(id!)).toBeCloseTo(0.1, 6);
-    expect(g!.pointAt(id!, 50).position.y).toBeCloseTo(5, 1);
-    expect(g!.pointAt(id!, 100).position.y).toBeCloseTo(10, 3);
+    const g = new RoadGraph((x) => x / 10);
+    const a = g.addNode(0, 0);
+    const b = g.addNode(100, 0);
+    const id = g.addSegment(a, b, v3(50, 0, 0));
+    expect(g.gradient(id)).toBeCloseTo(0.1, 6);
+    expect(g.pointAt(id, 50).position.y).toBeCloseTo(5, 1);
+    expect(g.pointAt(id, 100).position.y).toBeCloseTo(10, 3);
   });
 
   it("climbs terrain between endpoints instead of bridging over it", () => {
-    setTerrain({ heightAt: (x) => 12 * Math.sin((Math.PI * x) / 100) });
-    try {
-      const g = new RoadGraph();
-      const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
-      expect(g.pointAt(id, 50).position.y).toBeGreaterThan(8);
-    } finally {
-      setTerrain(flatTerrain);
-    }
+    const g = new RoadGraph((x) => 12 * Math.sin((Math.PI * x) / 100));
+    const id = g.addSegment(g.addNode(0, 0), g.addNode(100, 0), v3(50, 0, 0));
+    expect(g.pointAt(id, 50).position.y).toBeGreaterThan(8);
   });
 
   it("is flat when the terrain is flat", () => {

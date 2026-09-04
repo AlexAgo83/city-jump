@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 93%
-> Confidence: 87%
-> Progress: 65%
+> Understanding: 95%
+> Confidence: 88%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -60,3 +60,5 @@
 - 2026-09-03 validation: `rtk npm run test:architecture` passed; `rtk npm exec -- vitest run src/sim/playthrough.test.ts` passed.
 - 2026-09-04 terrain injection 1: createUtilityRenderer, createTrafficRenderer, createRoadRenderer, and createBuildingRenderer now receive height sampling from app.ts; render/utilities.ts, render/trafficMovers.ts, render/roadMesh.ts, and render/buildings.ts no longer import terrainHeight.
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/buildings.test.ts src/render/roadMesh.test.ts src/render/traffic.test.ts, rtk npm run test:architecture, rtk npm run lint, rtk git diff --check, and rtk npm run ci passed after injecting height sampling into the utility, traffic, road, and building renderers.
+- 2026-09-04 terrain injection 2: RoadGraph now receives a height sampler, defaults to flat terrain for isolated tests, and exposes it to rules/slots; sim/graph.ts, sim/rules.ts, and sim/slots.ts no longer import terrainHeight.
+- 2026-09-04 validation: rtk npm exec -- vitest run src/sim/graph.test.ts src/sim/rules.test.ts src/sim/slots.test.ts src/sim/heightmap.test.ts and rtk npm run ci passed after moving graph/rules/slots terrain reads behind RoadGraph.heightAt.

@@ -10,6 +10,8 @@ import { junctionGeometry, ringElevation } from "./junction";
 const map = () =>
   new Heightmap({ size: 600, cell: 4, generator: (x, z) => 8 * Math.sin(x / 90) + 5 * Math.cos(z / 70) });
 
+const graphOn = (h: Heightmap) => new RoadGraph((x, z) => h.heightAt(x, z));
+
 const parcelAt = (x: number, y: number): BuildingParcel => ({
   kind: "residential",
   position: v3(x, y, 0),
@@ -39,8 +41,7 @@ describe("heightmap", () => {
 
   it("levels the ground under a road to the road's own elevation", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const a = g.addNode(-200, 0);
     const b = g.addNode(200, 0);
     const id = g.addSegment(a, b, v3(0, 0, 0));
@@ -68,8 +69,7 @@ describe("heightmap", () => {
 
   it("blends back to the untouched ground across the embankment", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const a = g.addNode(-200, 0);
     const b = g.addNode(200, 0);
     g.addSegment(a, b, v3(0, 0, 0));
@@ -85,8 +85,7 @@ describe("heightmap", () => {
 
   it("follows a roundabout ring's own per-arm elevation, not one flat plane under it", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const hub = g.addNode(0, 0);
     // Four arms around a roundabout, at bearings uneven enough that a flat ring (the node's own
     // elevation) would sit above the ground at some angles and below it at others: the ring
@@ -116,8 +115,7 @@ describe("heightmap", () => {
 
   it("flattens a junction's true corner, not just a circle sized off the widest arm's trim", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const hub = g.addNode(0, 0);
     // A wide avenue and a narrow street meeting at a sharp angle: the ring corner where they
     // meet sits sideways as well as out from the node, well past a circle sized off either
@@ -152,8 +150,7 @@ describe("heightmap", () => {
 
   it("restores the ground when the road is removed", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const a = g.addNode(-200, 0);
     const b = g.addNode(200, 0);
     const id = g.addSegment(a, b, v3(0, 0, 0));
@@ -205,8 +202,7 @@ describe("heightmap", () => {
 
   it("gives a cell to the nearest road when two are close", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const near = g.addSegment(g.addNode(-200, 0), g.addNode(200, 0), v3(0, 0, 0));
     g.addSegment(g.addNode(-200, 14), g.addNode(200, 14), v3(0, 0, 14));
     h.conformToRoads(g);
@@ -218,8 +214,7 @@ describe("heightmap", () => {
 
   it("levels terraces under building parcels", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     g.addSegment(g.addNode(-200, 20), g.addNode(200, 20), v3(0, 0, 0));
     h.conformToRoads(g);
     const parcels = buildingParcels(buildableCells(g));
@@ -234,8 +229,7 @@ describe("heightmap", () => {
 
   it("keeps road beds ahead of building terraces", () => {
     const h = map();
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const road = g.addSegment(g.addNode(-200, 20), g.addNode(200, 20), v3(0, 0, 0));
     h.conformToRoads(g);
     const parcel = buildingParcels(buildableCells(g))[0]!;
@@ -282,8 +276,7 @@ describe("heightmap", () => {
 
   it("leaves the graph untouched: roads and slots follow the ground through the interface", () => {
     const h = new Heightmap({ size: 800, cell: 4, generator: rollingHills() });
-    setTerrain(h);
-    const g = new RoadGraph();
+    const g = graphOn(h);
     const a = g.addNode(-150, 0);
     const b = g.addNode(150, 0);
     const id = g.addSegment(a, b, v3(0, 0, 40));

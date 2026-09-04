@@ -67,7 +67,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   };
   frameTerrain();
 
-  const graph = new RoadGraph();
+  const graph = new RoadGraph((x, z) => heightmap.heightAt(x, z));
   const plantings = new Plantings();
   const zones = new Zones();
   const rubble = new Rubble();

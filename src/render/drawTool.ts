@@ -8,7 +8,7 @@ import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
-import { RoadGraph, type Segment } from "../sim/graph";
+import type { RoadGraph, Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
 import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
@@ -465,12 +465,12 @@ export function createDrawTool(
     if (stage.phase === "control") {
       // Before the control point is placed, the preview is the straight it would be.
       const mid = lerp(stage.from.position, snap.position, 0.5);
-      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap));
+      const check = validateSegment(stage.from.position, mid, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), terrainHeight);
       drawPreview(sampleQuadratic(stage.from.position, mid, snap.position), check.ok);
       return;
     }
 
-    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap));
+    const check = validateSegment(stage.from.position, stage.control, snap.position, typeId, touchesElevated(stage.from) || touchesElevated(snap), terrainHeight);
     drawPreview(sampleQuadratic(stage.from.position, stage.control, snap.position), check.ok);
   }
 
