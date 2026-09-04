@@ -79,6 +79,7 @@ export function bindControls(handlers: {
   const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;
   const natureOptions = document.getElementById("nature-options")!;
+  const zoneToolOptions = document.getElementById("zone-tool-options")!;
   const zoneOptions = document.getElementById("zone-options")!;
   const utilityOptions = document.getElementById("utility-options")!;
   const toolButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-tool]")];
@@ -119,6 +120,7 @@ export function bindControls(handlers: {
       roadTypeOptions.hidden = tool !== "roads";
       roadOptions.hidden = tool !== "roads";
       natureOptions.hidden = tool !== "nature";
+      zoneToolOptions.hidden = tool !== "zones";
       zoneOptions.hidden = tool !== "zones";
       utilityOptions.hidden = tool !== "power" && tool !== "water";
       if (tool === "power" || tool === "water") {

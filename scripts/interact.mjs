@@ -1114,6 +1114,9 @@ await page.evaluate(() => window.cityjump.growCity(2000, 200));
 await nextFrame();
 const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
+const zoneToolBox = await page.locator("#zone-tool-options").boundingBox();
+const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
+check("zoning tool choice sits above zone settings", zoneToolBox && zoneOptionsBox && zoneToolBox.y < zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
 await page.locator("#zone-radius").evaluate((input) => {
   input.value = "56";
   input.dispatchEvent(new Event("input", { bubbles: true }));

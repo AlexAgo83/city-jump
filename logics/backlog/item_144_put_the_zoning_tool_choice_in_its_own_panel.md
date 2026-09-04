@@ -1,10 +1,10 @@
 ## item_144_put_the_zoning_tool_choice_in_its_own_panel - Put the zoning tool choice in its own panel
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -49,3 +49,6 @@
 # Priority
 - Priority: Medium
 - Rationale: Small and self-contained, but it is the panel the fill's own switch will live in, so it lands just before the fill.
+
+# Validation
+- 2026-09-04: Added `#zone-tool-options` above `#zone-options` using the existing `.segmented` group idiom and wired it to appear only with the Zones tool. `scripts/interact.mjs` now asserts the zoning tool choice is visible and positioned above the zone settings. Validation passed with `rtk npm run typecheck` and `rtk npm run test:e2e`.
