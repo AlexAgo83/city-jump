@@ -4,7 +4,7 @@
 
 <br clear="left"/>
 
-![Version](https://img.shields.io/badge/version-0.4.0-4C8BF5)
+![Version](https://img.shields.io/badge/version-0.5.0-4C8BF5)
 ![License](https://img.shields.io/badge/license-MIT-2E8B57)
 ![TypeScript](https://img.shields.io/badge/TypeScript-7-3178C6?logo=typescript&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-9-BB464B)

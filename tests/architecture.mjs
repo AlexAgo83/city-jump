@@ -72,6 +72,10 @@ function inlineHash(html, tag) {
   return createHash("sha256").update(match[1]).digest("base64");
 }
 
+function regexEscape(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   const hud = await readFile(new URL("ui/hud.ts", src), "utf8");
   const render = await readFile(new URL("../render.yaml", import.meta.url), "utf8");
@@ -82,8 +86,8 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   assert.match(render, /default-src 'self'/);
   assert.match(render, /object-src 'none'/);
   assert.match(render, /base-uri 'none'/);
-  assert.match(render, new RegExp(`script-src 'self' 'sha256-${inlineHash(html, "script")}'`));
-  assert.match(render, new RegExp(`style-src 'self' 'sha256-${inlineHash(html, "style")}'`));
+  assert.match(render, new RegExp(`script-src 'self' 'sha256-${regexEscape(inlineHash(html, "script"))}'`));
+  assert.match(render, new RegExp(`style-src 'self' 'sha256-${regexEscape(inlineHash(html, "style"))}'`));
   assert.doesNotMatch(render, /style-src[^\\n]*'unsafe-inline'/);
 });
 
