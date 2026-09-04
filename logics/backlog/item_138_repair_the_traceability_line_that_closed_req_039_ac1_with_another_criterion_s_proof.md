@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 30%
+> Progress: 45%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -55,3 +55,6 @@
 
 # Notes
 - The audit warning `lineage_mentioned_but_not_declared` for `task_041_orchestrate_the_structural_work` on this item is expected and must not be silenced by declaring it under `# Tasks`. That task is the document this slice repairs, not this slice's parent; the task that implements this slice is `task_042_orchestrate_the_review_findings_work`. Declaring false lineage to clear a heuristic warning is the same class of mistake as the mis-cited proof this slice exists to fix.
+
+# Validation
+- 2026-09-04: Replaced duplicated task_041 request-AC1 traceability with ca7fd93, which carries the module-size budget forward through item_137/task_042. Validated with rtk logics-manager flow validate-closeout task_041_orchestrate_the_structural_work and rtk logics-manager audit --group-by-doc.

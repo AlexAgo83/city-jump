@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-04 16:05:26
+> Indicators reviewed: 2026-09-04 16:57:29
 > Owner: Codex
 
 # AI Context
@@ -51,8 +51,7 @@
 - [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
-- request-AC1 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
-- request-AC1 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
+- request-AC1 -> `item_137_give_src_a_module_size_budget_that_something_measures`. Proof: The module-size budget was carried forward to req_040/task_042 and enforced in ca7fd93 with tests/architecture.mjs checking src modules over 700 lines for a `ponytail: module-size` reason. Validated with rtk npm run typecheck and rtk npm run test:architecture on 2026-09-04. Source: `ca7fd93`
 - request-AC2 -> `item_125_move_the_driving_logic_where_a_test_can_reach_it`. Proof deferred to slice closeout.
 - request-AC3 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
 - request-AC4 -> This task. Proof: Implemented through task_041 slices; final disposal slice in 5ece535. Validated with rtk npm run test:e2e and rtk npm run ci on 2026-09-04. Source: `5ece535`
