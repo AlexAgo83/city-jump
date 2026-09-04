@@ -13,8 +13,13 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   const root = new TransformNode("kaiju", scene);
   root.setEnabled(false);
   const parts = new Map<string, Mesh>();
+  let disposed = false;
 
   void SceneLoader.ImportMeshAsync("", "/", `kaiju.glb?v=${ASSET_VERSION}`, scene).then((result) => {
+    if (disposed) {
+      for (const node of result.meshes) node.dispose();
+      return;
+    }
     for (const mesh of result.meshes) {
       if (!(mesh instanceof Mesh) || mesh.getTotalVertices() === 0) continue;
       mesh.setParent(root);
@@ -42,6 +47,12 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
     },
     visible(): boolean {
       return root.isEnabled();
+    },
+    dispose(): void {
+      disposed = true;
+      for (const mesh of parts.values()) shadows.removeShadowCaster(mesh);
+      parts.clear();
+      root.dispose(false, true);
     },
   };
 }

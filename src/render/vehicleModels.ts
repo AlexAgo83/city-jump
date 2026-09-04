@@ -1,6 +1,7 @@
 import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
+import type { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math";
 
@@ -574,5 +575,11 @@ export function createVehicleModels(scene: Scene) {
     carParts,
     walkerPrototypes,
     lampMaterials,
+    dispose(): void {
+      const meshes = [...carBodies.flat(), ...carLamps.flatMap((pair) => [pair.head, pair.tail]), ...carParts, ...walkerPrototypes];
+      const materials = new Set(meshes.map((mesh) => mesh.material).filter((material): material is Material => material !== null));
+      for (const mesh of meshes) mesh.dispose();
+      for (const material of materials) material.dispose();
+    },
   };
 }

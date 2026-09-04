@@ -86,8 +86,17 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   }
 
   refresh();
-  createOffshoreIsland(scene, material);
-  return { mesh, refresh };
+  const offshore = createOffshoreIsland(scene, material);
+  return {
+    mesh,
+    refresh,
+    dispose(): void {
+      offshore.dispose();
+      mesh.dispose();
+      material.bumpTexture?.dispose();
+      material.dispose();
+    },
+  };
 }
 
 function createOffshoreIsland(scene: Scene, material: StandardMaterial): Mesh {
@@ -320,8 +329,8 @@ function createFarOcean(scene: Scene): Mesh {
 }
 
 export function createOcean(scene: Scene) {
-  createSeafloorSkirt(scene);
-  createFarOcean(scene);
+  const skirt = createSeafloorSkirt(scene);
+  const far = createFarOcean(scene);
   const material = new StandardMaterial("ocean", scene);
   material.diffuseColor = Color3.White();
   material.emissiveColor = Color3.White();
@@ -368,7 +377,7 @@ export function createOcean(scene: Scene) {
   // them: at 30 Hz that is half the work for a difference nobody can see in water.
   const WAVE_INTERVAL_MS = 33;
   let lastWave = 0;
-  scene.registerBeforeRender(() => {
+  const beforeRender = () => {
     const now = performance.now();
     if (now - lastWave < WAVE_INTERVAL_MS) return;
     lastWave = now;
@@ -386,8 +395,19 @@ export function createOcean(scene: Scene) {
     mesh.updateVerticesData(VertexBuffer.PositionKind, current);
     VertexData.ComputeNormals(current, indices, normals as unknown as number[]);
     mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
-  });
-  return mesh;
+  };
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
+  return {
+    mesh,
+    dispose(): void {
+      scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      for (const owned of [skirt, far, mesh]) {
+        owned.material?.dispose();
+        owned.dispose();
+      }
+      material.dispose();
+    },
+  };
 }
 
 /**
@@ -603,6 +623,10 @@ export function createWorldGrid(scene: Scene, heightmap: Heightmap) {
     setVisible(next: boolean): void {
       visible = next;
       rebuild();
+    },
+    dispose(): void {
+      mesh?.dispose();
+      mesh = null;
     },
   };
 }

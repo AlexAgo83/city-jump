@@ -374,6 +374,12 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
       faded = next;
       applyFade();
     },
+    dispose(): void {
+      for (const mesh of meshes) mesh.dispose();
+      meshes = [];
+      disposeTrafficOverlay();
+      for (const m of [material, industrialMaterial, dirtMaterial, militaryMaterial, industrialPaintMaterial, pavingMaterial, paintMaterial, portalMaterial, tubeMaterial, guardrailMaterial]) m.dispose();
+    },
   };
 }
 

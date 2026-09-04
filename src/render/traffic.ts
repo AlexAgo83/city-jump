@@ -71,5 +71,10 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     vehiclePoint: movers.vehiclePoint,
     count: movers.count,
     pedestrians: movers.pedestrians,
+    dispose(): void {
+      movers.dispose();
+      headlights.dispose();
+      models.dispose();
+    },
   };
 }

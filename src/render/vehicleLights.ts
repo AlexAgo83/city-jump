@@ -52,5 +52,14 @@ export function createVehicleHeadlights(scene: Scene, lampMaterials: LampMateria
     beam.direction.set(forward.x, -0.42, forward.z);
   }
 
-  return { lights, setLamps, sync, aim };
+  return {
+    lights,
+    setLamps,
+    sync,
+    aim,
+    dispose(): void {
+      sync(0, false);
+      cluster.dispose(false, true);
+    },
+  };
 }

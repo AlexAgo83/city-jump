@@ -3,7 +3,7 @@ import { PointLight } from "@babylonjs/core/Lights/pointLight";
 import { SpotLight } from "@babylonjs/core/Lights/spotLight";
 import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
 import type { Scene } from "@babylonjs/core/scene";
@@ -285,6 +285,15 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     setFaded,
     count: () => lamps,
     realLightCount: () => (lightCluster.isEnabled() ? lampRecords.filter((record) => record.lights).length * 2 : 0),
+    dispose(): void {
+      for (const record of lampRecords) if (record.lights) disposeLights(record.lights);
+      lampRecords = [];
+      lampPositions = [];
+      for (const mesh of [pole, arm, head, bulb, bulbWhite]) mesh.dispose();
+      for (const material of [metal, glow, glowWhite]) material.dispose();
+      groundShadow.dispose();
+      lightCluster.dispose(false, true);
+    },
   };
 }
 

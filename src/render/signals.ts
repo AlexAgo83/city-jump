@@ -176,11 +176,12 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
   }
 
   // Driven from the same clock the traffic reads, so the lamp and the car agree on the moment.
-  scene.registerBeforeRender(() => {
+  const beforeRender = () => {
     if (paused) return;
     simTime += (frameDelta() / 1000) * timeScale;
     update(simTime);
-  });
+  };
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
 
   return {
     rebuild,
@@ -190,6 +191,17 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
       paused = timeScale === 0;
     },
     count: () => masts.length,
+    dispose(): void {
+      scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      for (const mesh of meshes) mesh.dispose();
+      meshes = [];
+      masts = [];
+      mastMesh.dispose();
+      lamp.dispose();
+      metal.dispose();
+      lampMaterial.dispose();
+      cycles.clear();
+    },
   };
 }
 

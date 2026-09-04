@@ -64,7 +64,15 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
     mesh.thinInstanceCount = bases.length;
   }
 
-  return { mesh, setInstances };
+  return {
+    mesh,
+    setInstances,
+    dispose(): void {
+      mesh.dispose();
+      material.dispose();
+      texture.dispose();
+    },
+  };
 }
 
 export type GroundShadowBase = { x: number; y: number; z: number; radius: number };

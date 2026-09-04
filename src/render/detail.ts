@@ -53,5 +53,8 @@ export function createDetailCuller(scene: Scene, camera: ArcRotateCamera) {
     get level(): number {
       return applied;
     },
+    dispose(): void {
+      applied = -1;
+    },
   };
 }

@@ -578,7 +578,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     joinLaneQueue(queues, queueOf, laneQueueKey(mover), mover);
   }
   
-  scene.registerBeforeRender(() => {
+  const beforeRender = () => {
     if (!state.enabled || state.paused || movers.length === 0) return;
     const dt = Math.min(MAX_STEP_S, (frameDelta() / 1000) * state.timeScale);
     simTime += dt;
@@ -663,7 +663,8 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
       if (beams && !mover.walk) headlights.aim(beams[beam++], mover);
     }
     if (staleMovers.size > 0) movers = movers.filter((mover) => !staleMovers.has(mover));
-  });
+  };
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
   
   function vehicleTarget(mover: RenderMover): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } {
     return {
@@ -708,5 +709,9 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     },
     count: () => movers.filter((mover) => !mover.walk).length,
     pedestrians: () => movers.filter((mover) => mover.walk).length,
+    dispose(): void {
+      scene.onBeforeRenderObservable.remove(beforeRenderObserver);
+      clearMovers();
+    },
   };
 }

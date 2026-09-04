@@ -116,5 +116,15 @@ export function createPostFx(scene: Scene, camera: ArcRotateCamera) {
     pipeline.depthOfField.focalLength = Math.min(9000, Math.sqrt(8.7 * distanceMm * fStop * MINIATURE_BLUR));
   }
 
-  return { setLook, setNight, update, get pipeline() { return pipeline; } };
+  return {
+    setLook,
+    setNight,
+    update,
+    get pipeline() { return pipeline; },
+    dispose(): void {
+      ssao?.dispose();
+      ssao = null;
+      pipeline.dispose();
+    },
+  };
 }

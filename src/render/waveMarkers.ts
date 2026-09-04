@@ -24,6 +24,10 @@ export function createWaveMarkerRenderer(scene: Scene, heightAt: (x: number, z: 
       edge.setEnabled(false);
       target.setEnabled(false);
     },
+    dispose(): void {
+      edge.dispose();
+      target.dispose();
+    },
   };
 
   function place(mesh: LinesMesh, x: number, z: number, radius: number): void {

@@ -66,6 +66,7 @@ type Stage =
 export interface DrawTool {
   readonly mode: () => ToolMode;
   cancel(): void;
+  dispose(): void;
   setMode(mode: ToolMode): void;
   setGridSnap(enabled: boolean): void;
   setRoadType(type: RoadTypeId): void;
@@ -665,7 +666,7 @@ export function createDrawTool(
     return nearTree ? { kind: "tree", ...nearTree } : null;
   }
 
-  scene.onPointerObservable.add((info) => {
+  const pointerObserver = scene.onPointerObservable.add((info) => {
     if (info.type === PointerEventTypes.POINTERMOVE) {
       // The brush follows the pointer whatever the button is doing; it only paints while held.
       if (mode === "spray") return onSprayMove(leftPointerDown);
@@ -693,12 +694,15 @@ export function createDrawTool(
     if (isLeftClick && !sprayed && travelled <= CLICK_SLOP) onClick();
   });
 
-  window.addEventListener("keydown", (e) => {
+  const keydown = (e: KeyboardEvent) => {
     if (e.key === "Escape") cancel();
-  });
+  };
+  window.addEventListener("keydown", keydown);
 
   // Right-click cancels rather than opening the browser menu.
-  scene.getEngine().getRenderingCanvas()?.addEventListener("contextmenu", (e) => e.preventDefault());
+  const canvas = scene.getEngine().getRenderingCanvas();
+  const contextmenu = (e: Event) => e.preventDefault();
+  canvas?.addEventListener("contextmenu", contextmenu);
 
   /**
    * Spray paints with a held left drag, which is also how the camera orbits. Taking button 0 off
@@ -717,6 +721,20 @@ export function createDrawTool(
   return {
     mode: () => mode,
     cancel,
+    dispose() {
+      cancel();
+      clearSelection();
+      for (const timer of pendingDemolitions) window.clearTimeout(timer);
+      pendingDemolitions.clear();
+      preview?.dispose();
+      preview = null;
+      nodeHighlight.dispose();
+      targetHighlight.dispose();
+      selectRing.dispose();
+      scene.onPointerObservable.remove(pointerObserver);
+      window.removeEventListener("keydown", keydown);
+      canvas?.removeEventListener("contextmenu", contextmenu);
+    },
     setMode(next) {
       mode = next;
       setCameraDrag(next !== "spray" && next !== "zone");

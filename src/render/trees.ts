@@ -330,7 +330,25 @@ export function createTreeRenderer(
     return best;
   }
 
-  return { rebuild, setSunHour, nearestTree, count: () => treeCount };
+  return {
+    rebuild,
+    setSunHour,
+    nearestTree,
+    count: () => treeCount,
+    dispose(): void {
+      groundShadows.dispose();
+      shadowMaterial.dispose();
+      contactShadow.dispose();
+      for (const { trunk, canopy } of built) {
+        trunk.material?.dispose();
+        canopy.material?.dispose();
+        trunk.dispose();
+        canopy.dispose();
+      }
+      treeBases = [];
+      treeCount = 0;
+    },
+  };
 }
 
 function expandBounds(bounds: TerrainBounds, by: number): TerrainBounds {

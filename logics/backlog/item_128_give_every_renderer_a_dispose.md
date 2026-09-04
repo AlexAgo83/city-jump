@@ -2,9 +2,9 @@
 > From version: 0.4.0
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 94%
-> Confidence: 88%
-> Progress: 55%
+> Understanding: 97%
+> Confidence: 91%
+> Progress: 88%
 > Complexity: Medium
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -56,6 +56,8 @@
 
 # Notes
 - 2026-09-04 dispose slice 1: createZoneRenderer, createUtilityRenderer, createRubbleRenderer, and createMissileRenderer now expose dispose() and release their owned meshes/materials; src/render/dispose.test.ts covers the create/rebuild/dispose scene cleanup for these simple renderers.
+- 2026-09-04 dispose slice 2: createDrawTool, road, ocean, world grid, signals, streetlights, trees, traffic, vehicle prototypes/headlights, wave markers, post-FX, detail culler, ground shadow, buildings, and kaiju now expose dispose() for their owned meshes/materials/observers; the building glass reflection texture moved from module scope into the building renderer closure.
 
 # Validation
 - 2026-09-04 validation: rtk npm run typecheck, rtk npm exec -- vitest run src/render/dispose.test.ts, rtk npm run test:architecture, rtk npm run lint, and rtk npm run ci passed after adding dispose() to the simple renderers.
+- 2026-09-04 validation: rtk npm exec -- vitest run src/render/dispose.test.ts src/render/traffic.test.ts src/render/roadMesh.test.ts, rtk npm run test:e2e, and rtk npm run ci passed after renderer dispose wave 2.

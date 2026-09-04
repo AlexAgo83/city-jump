@@ -59,7 +59,6 @@ export function buildingStateSignature(
   }
   return hash >>> 0;
 }
-let glassReflectionTexture: RawCubeTexture | null = null;
 
 type RoofGeometry =
   | { readonly kind: "flat"; readonly deckY: number }
@@ -220,6 +219,11 @@ interface Model {
 export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator, heightAt: (x: number, z: number) => number) {
   const manifest = await loadManifest();
   const available: Model[] = [];
+  let glassReflectionTexture: RawCubeTexture | null = null;
+  const glassReflection = (): RawCubeTexture => {
+    glassReflectionTexture ??= createGlassReflection(scene);
+    return glassReflectionTexture;
+  };
   const roofProps = buildRoofProps(scene, shadows);
   const footDecor = buildFootDecor(scene);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
@@ -547,9 +551,18 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
   // as new models kept restarting the same city-wide pass. Debounced so the burst of arrivals
   // collapses into one rebuild after they settle, the same pattern the dirty-edit path already uses.
   let modelLoadRebuildTimer = 0;
+  let disposed = false;
   for (const id of BUILDING_MODELS) {
-    void loadModel(scene, id, shadows, manifest.models[id]).then((model) => {
+    void loadModel(scene, id, shadows, manifest.models[id], glassReflection).then((model) => {
       if (!model) return;
+      if (disposed) {
+        shadows.removeShadowCaster(model.mesh);
+        model.mesh.material?.dispose();
+        model.mesh.dispose();
+        glassReflectionTexture?.dispose();
+        glassReflectionTexture = null;
+        return;
+      }
       available.push(model);
       modelById.set(model.id, model);
       clearTimeout(modelLoadRebuildTimer);
@@ -613,6 +626,31 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
       return available.length;
     },
     startupModelCount,
+    dispose(): void {
+      disposed = true;
+      clearTimeout(modelLoadRebuildTimer);
+      grid?.dispose();
+      taken?.dispose();
+      groundPad.dispose();
+      groundPadMaterial.dispose();
+      takenMaterial.dispose();
+      distant.dispose();
+      distantMaterial.dispose();
+      groundShadow.dispose();
+      for (const mesh of [...Object.values(roofProps), ...Object.values(footDecor)]) {
+        mesh.material?.dispose();
+        mesh.dispose();
+      }
+      for (const model of available) {
+        shadows.removeShadowCaster(model.mesh);
+        model.mesh.material?.dispose();
+        model.mesh.dispose();
+      }
+      glassReflectionTexture?.dispose();
+      glassReflectionTexture = null;
+      available.length = 0;
+      modelById.clear();
+    },
   };
 }
 
@@ -917,7 +955,7 @@ async function loadManifest(): Promise<BuildingManifest> {
   }
 }
 
-async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roof: RoofGeometry | undefined): Promise<Model | null> {
+async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roof: RoofGeometry | undefined, glassReflection: () => RawCubeTexture): Promise<Model | null> {
   try {
     const result = await SceneLoader.ImportMeshAsync("", "/buildings/", `${id}.glb?v=${ASSET_VERSION}`, scene);
     const parts = result.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
@@ -925,7 +963,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roo
 
     const mesh = parts.length === 1 ? parts[0]! : Mesh.MergeMeshes(parts, true, true, undefined, false, true)!;
     mesh.name = `building_${id}`;
-    mesh.material = normalizeBuildingMaterial(scene, mesh.material);
+    mesh.material = normalizeBuildingMaterial(scene, mesh.material, glassReflection);
     mesh.isPickable = false;
     mesh.receiveShadows = true;
     mesh.alwaysSelectAsActiveMesh = true; // one bounding box for the whole city is useless
@@ -951,7 +989,7 @@ async function loadModel(scene: Scene, id: string, shadows: ShadowGenerator, roo
   }
 }
 
-function normalizeBuildingMaterial(scene: Scene, material: Material | null): Material | null {
+function normalizeBuildingMaterial(scene: Scene, material: Material | null, glassReflection: () => RawCubeTexture): Material | null {
   const lit = material as
     | (Material & {
         ambientColor?: Color3;
@@ -968,18 +1006,18 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
     | null;
   if (!lit) return null;
   if (lit.subMaterials) {
-    lit.subMaterials = lit.subMaterials.map((sub) => normalizeBuildingMaterial(scene, sub));
+    lit.subMaterials = lit.subMaterials.map((sub) => normalizeBuildingMaterial(scene, sub, glassReflection));
   } else if (lit.albedoColor && !lit.diffuseColor) {
     const standard = new StandardMaterial(`${lit.name}_standard`, scene);
     standard.diffuseColor = lit.albedoColor.clone();
-    finishBuildingMaterial(standard);
+    finishBuildingMaterial(standard, glassReflection);
     return standard;
   }
   if (lit.name.includes("_glass") && lit.diffuseColor) {
     lit.diffuseColor = new Color3(0.28, 0.38, 0.44);
     lit.alpha = 1;
     lit.transparencyMode = Material.MATERIAL_OPAQUE;
-    lit.reflectionTexture = mirrorGlassReflection(scene);
+    lit.reflectionTexture = glassReflection();
     if (lit.specularColor) lit.specularColor = new Color3(0.8, 0.9, 1);
     if (typeof lit.specularPower === "number") lit.specularPower = 96;
   } else if (lit.name.includes("_trim")) {
@@ -997,13 +1035,13 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null): Mat
   return lit;
 }
 
-function finishBuildingMaterial(material: StandardMaterial): void {
+function finishBuildingMaterial(material: StandardMaterial, glassReflection: () => RawCubeTexture): void {
   if (material.name.includes("_glass")) {
     material.diffuseColor = new Color3(0.28, 0.38, 0.44);
     material.emissiveColor = Color3.Black();
     material.alpha = 1;
     material.transparencyMode = Material.MATERIAL_OPAQUE;
-    material.reflectionTexture = mirrorGlassReflection(material.getScene());
+    material.reflectionTexture = glassReflection();
     material.specularColor = new Color3(0.8, 0.9, 1);
     material.specularPower = 96;
   } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
@@ -1022,11 +1060,10 @@ function finishBuildingMaterial(material: StandardMaterial): void {
   material.maxSimultaneousLights = 32;
 }
 
-function mirrorGlassReflection(scene: Scene): RawCubeTexture {
-  if (glassReflectionTexture) return glassReflectionTexture;
+function createGlassReflection(scene: Scene): RawCubeTexture {
   const face = (top: [number, number, number], bottom: [number, number, number]) =>
     new Uint8Array([...top, ...top, ...bottom, ...bottom]);
-  glassReflectionTexture = new RawCubeTexture(
+  const texture = new RawCubeTexture(
     scene,
     [
       face([90, 125, 150], [28, 34, 38]),
@@ -1043,8 +1080,8 @@ function mirrorGlassReflection(scene: Scene): RawCubeTexture {
     false,
     Texture.BILINEAR_SAMPLINGMODE,
   );
-  glassReflectionTexture.name = "building_glass_reflection";
-  glassReflectionTexture.coordinatesMode = Texture.CUBIC_MODE;
-  glassReflectionTexture.level = 0.55;
-  return glassReflectionTexture;
+  texture.name = "building_glass_reflection";
+  texture.coordinatesMode = Texture.CUBIC_MODE;
+  texture.level = 0.55;
+  return texture;
 }
