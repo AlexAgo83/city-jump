@@ -12,6 +12,7 @@ import { Utilities, suppliedDiffusers } from "../sim/utilities";
 import { v3 } from "../sim/vec";
 import { Zones } from "../sim/zones";
 import { createDetailCuller } from "./detail";
+import { createDestructionEffects } from "./destructionEffects";
 import { createMissileRenderer } from "./missiles";
 import { createOcean, createWorldGrid } from "./ground";
 import { createRoadRenderer } from "./roadMesh";
@@ -41,11 +42,15 @@ describe("renderer disposal", () => {
     const zoneRenderer = createZoneRenderer(scene);
     const utilityRenderer = createUtilityRenderer(scene, graph, utilities, () => 0);
     const rubbleRenderer = createRubbleRenderer(scene, () => 0);
+    const destructionEffects = createDestructionEffects(scene, () => 0);
     const missileRenderer = createMissileRenderer(scene);
 
     zoneRenderer.rebuild([cell], zones);
     utilityRenderer.rebuild(suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()));
     rubbleRenderer.rebuild([[0, 0]]);
+    destructionEffects.rebuildFires([[0, 0]]);
+    destructionEffects.explode(v3(0, 0, 0), 0);
+    destructionEffects.step(0.5);
     missileRenderer.rebuild([{ from: v3(0, 0, 0), to: v3(10, 0, 0), progress: 0.5 }]);
 
     expect(scene.meshes.length).toBeGreaterThan(0);
@@ -54,6 +59,7 @@ describe("renderer disposal", () => {
     zoneRenderer.dispose();
     utilityRenderer.dispose();
     rubbleRenderer.dispose();
+    destructionEffects.dispose();
     missileRenderer.dispose();
 
     expect(scene.meshes).toHaveLength(0);

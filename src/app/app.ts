@@ -1,4 +1,5 @@
 import { createBuildingRenderer } from "../render/buildings";
+import { createDestructionEffects } from "../render/destructionEffects";
 import { installDebugApi } from "../render/debugApi";
 import { createDrawTool, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
@@ -94,6 +95,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const zoneOverlay = createZoneRenderer(scene);
   const utilityOverlay = createUtilityRenderer(scene, graph, utilities, (x, z) => heightmap.heightAt(x, z));
   const rubbleRenderer = createRubbleRenderer(scene, (x, z) => heightmap.heightAt(x, z));
+  const destructionEffects = createDestructionEffects(scene, (x, z) => heightmap.heightAt(x, z));
   const kaiju = createKaijuRenderer(scene, shadows);
   const missiles = createMissileRenderer(scene);
   const waveMarkers = createWaveMarkerRenderer(scene, (x, z) => heightmap.heightAt(x, z));
@@ -182,7 +184,11 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     measure("traffic", () => traffic.rebuild(dirty));
     measure("signals", () => signals.rebuild(junctions, dirty));
     measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
-    measure("rubble", () => rubbleRenderer.rebuild(rubble.toJSON()));
+    measure("rubble", () => {
+      const savedRubble = rubble.toJSON();
+      rubbleRenderer.rebuild(savedRubble);
+      destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
+    });
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
     if (dirty) scheduleBuildingRebuild();
     else measure("buildings", () => buildings.rebuild(currentBuildableCells, currentBuildingStatuses));
@@ -347,7 +353,12 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       rubble.clear(status.parcel);
       clearedRubble = true;
     }
-    if (clearedRubble) rubbleRenderer.rebuild(rubble.toJSON());
+    if (clearedRubble) {
+      const savedRubble = rubble.toJSON();
+      rubbleRenderer.rebuild(savedRubble);
+      destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
+      detail.invalidate();
+    }
     const income = incomePerSecond(residents, currentBuildingStatuses);
     // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
     // empty after every load and every refresh, until the player pressed play.
@@ -648,6 +659,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     const hit = kaijuAssault?.destroyed ? currentParcels.find((parcel) => samePosition(parcel.position, kaijuAssault!.destroyed!)) : null;
     if (!hit) return;
     rubble.destroy(hit);
+    destructionEffects.explode(hit.position, performance.now() / 1000);
+    detail.invalidate();
     treasury.spend(rebuildingCost(buildingBuildCost(hit)), true);
     buildingLifecycle.rebuild(hit, simSeconds);
     syncBuildings();
@@ -1024,6 +1037,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       }
     }
     updateWave(simDt);
+    destructionEffects.step(performance.now() / 1000);
     detail.update();
     postFx.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
@@ -1243,6 +1257,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       waveMarkers.dispose();
       missiles.dispose();
       kaiju.dispose();
+      destructionEffects.dispose();
       rubbleRenderer.dispose();
       utilityOverlay.dispose();
       zoneOverlay.dispose();

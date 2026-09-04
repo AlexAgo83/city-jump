@@ -1,10 +1,10 @@
 ## item_154_blow_a_building_up_and_set_its_rubble_alight - Blow a building up and set its rubble alight
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: High
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -59,3 +59,6 @@
 # Priority
 - Priority: Medium
 - Rationale: The whole point of a wave is a building being destroyed, and it is the one slice here that is new infrastructure rather than a change.
+
+# Notes
+- 2026-09-04, codex: added a thin-instance destruction effects renderer with a one-shot explosion and saved-rubble-driven fire, wired it to wave destruction/rebuild/reload, and validated with a targeted Playwright check: destruction produced rubble/fire/explosion counts 12/12/1, reload restored rubble/fire 12/12 and did not replay the explosion.
