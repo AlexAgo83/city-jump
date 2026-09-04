@@ -48,6 +48,7 @@ import { DEFAULT_HOUR, streetlightsOnAt } from "../sim/time";
 import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
 import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, settleWaveOutcome, type PendingMissile, type WaveVerdict } from "./waveLoop";
+import { createDrawController } from "./drawController";
 
 /** Where a run opens: the far side of the island from the bridge. */
 const STARTER_KIT_AT = { x: 210, z: -1350 } as const;
@@ -93,6 +94,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
   const missiles = createMissileRenderer(scene);
   const waveMarkers = createWaveMarkerRenderer(scene, (x, z) => heightmap.heightAt(x, z));
   const buildings = await createBuildingRenderer(scene, graph, shadows, (x, z) => heightmap.heightAt(x, z));
+  const drawController = createDrawController(graph);
   // What the World > Buildings checkbox itself says -- the select-tool view can hide buildings
   // on top of that, but flipping back to "All" has to restore this, not just force them on.
   let buildingsVisible = true;
@@ -723,6 +725,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
       nearest: (x, z, within) => utilities.nearest(x, z, within),
       refresh: refreshUtilities,
     },
+    drawController,
   );
 
   await seedDefaultDemoSave();
@@ -1060,7 +1063,7 @@ export async function startApp(startedAt = performance.now()): Promise<void> {
     timeRate,
     simDay,
     simHour: sunHour,
-  }), { setWorldGridVisible: worldGrid.setVisible, measureFps, extra: (debugApi) => ({
+  }), { controller: drawController, setWorldGridVisible: worldGrid.setVisible, measureFps, extra: (debugApi) => ({
     reset() {
       resetWave();
       runState = createRun();

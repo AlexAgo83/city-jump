@@ -10,7 +10,7 @@ import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
 import type { RoadGraph, Segment } from "../sim/graph";
 import { roundaboutRadius } from "../sim/junction";
-import { quadraticLengthXZ, resolveSnap, validateSegment, commitSegment, type Snap } from "../sim/rules";
+import { quadraticLengthXZ, resolveSnap, validateSegment, type Snap } from "../sim/rules";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { flatTerrain, type Terrain } from "../sim/terrain";
 import { addressForParcel, streetForSegment } from "../sim/streets";
@@ -83,6 +83,12 @@ export type PlantMode = "plant" | "spray";
 export type ToolMode = "view" | "bulldoze" | "roundabout" | "zone" | "utility" | DrawMode | PlantMode;
 /** Any key `ROAD_TYPES` recognizes -- a base id, or one composed with lanes/one-way. */
 export type RoadTypeId = string;
+
+export interface DrawController {
+  commitRoad(from: Snap, to: Snap, control: Vec3, type: RoadTypeId): { ok: true } | { ok: false; reason: string };
+  removeRoad(segment: Segment): void;
+  setRoundabout(node: number, enabled: boolean, lanes?: 1 | 2): void;
+}
 
 /** The spray brush: trees land at random inside this radius, so the ring shows where they can go. */
 const SPRAY_RADIUS = 45;
@@ -186,6 +192,7 @@ export function createDrawTool(
   economy?: EconomyTools,
   demolition?: DemolitionTools,
   utilities?: UtilityTools,
+  controller?: DrawController,
 ): DrawTool {
   let stage: Stage = { phase: "idle" };
   let mode: ToolMode = "view";
@@ -515,14 +522,14 @@ export function createDrawTool(
       if (target.kind === "roundabout") {
         history?.beforeChange();
         const radius = target.radius + TERRAIN_DIRTY_PAD;
-        graph.setRoundabout(target.node, false);
+        controller?.setRoundabout(target.node, false);
         history?.afterChange(true);
         onCommitted({ minX: target.x - radius, maxX: target.x + radius, minZ: target.z - radius, maxZ: target.z + radius });
       } else {
         const dirty = expandBounds(boundsOf(target.segment.samples), TERRAIN_DIRTY_PAD);
         const refund = demolitionRefund(economy?.roadCost(target.segment.type, pathLength(target.segment.samples)) ?? 0);
         scheduleDemolition(() => {
-          graph.removeSegment(target.segment.id);
+          controller?.removeRoad(target.segment);
           if (refund > 0) economy?.refund(refund);
           onCommitted(dirty);
           return true;
@@ -536,7 +543,7 @@ export function createDrawTool(
       history?.beforeChange();
       // The road panel's lane choice applies here too -- a roundabout has no type of its own,
       // so it takes lanes from whatever is currently selected to draw with.
-      graph.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
+      controller?.setRoundabout(node, !graph.node(node).roundabout, roadType(typeId).lanes);
       const pos = graph.node(node).pos;
       const radius = roundaboutRadius(graph, node) + TERRAIN_DIRTY_PAD;
       history?.afterChange(true);
@@ -598,7 +605,7 @@ export function createDrawTool(
     const dirty = expandBounds(boundsOf(sampleQuadratic(from.position, control, to.position, 32, heightAt)), TERRAIN_DIRTY_PAD);
     history?.beforeChange();
     const cost = economy?.roadCost(typeId, quadraticLengthXZ(from.position, control, to.position)) ?? 0;
-    const result = commitSegment(graph, from, to, control, typeId);
+    const result = controller?.commitRoad(from, to, control, typeId) ?? { ok: false, reason: "Road drawing is unavailable." };
     if (!result.ok) {
       onRefused(result.reason);
       history?.afterChange(false);

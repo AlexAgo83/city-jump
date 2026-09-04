@@ -1,8 +1,10 @@
 import type { Scene } from "@babylonjs/core/scene";
-import type { RoadGraph } from "../sim/graph";
-import { resolveSnap, commitSegment } from "../sim/rules";
+import type { RoadGraph, Segment } from "../sim/graph";
+import { resolveSnap } from "../sim/rules";
+import type { Snap } from "../sim/rules";
 import type { TerrainBounds } from "../sim/heightmap";
 import { v3 } from "../sim/vec";
+import type { Vec3 } from "../sim/vec";
 
 export interface DebugApi {
   /** Escape hatch for the verification scripts; not used by the game. */
@@ -27,6 +29,11 @@ export interface DebugApi {
   measureFps(ms: number): Promise<number>;
 }
 
+export interface DebugRoadController {
+  commitRoad(from: Snap, to: Snap, control: Vec3, type: string): { ok: true } | { ok: false; reason: string };
+  removeRoad(segment: Segment): void;
+}
+
 /**
  * Drives the app from outside the browser UI, so the visual acceptance criteria and the
  * frame-rate figure can be checked by a script instead of asserted in prose.
@@ -37,16 +44,16 @@ export function installDebugApi(
   rebuild: (dirty?: TerrainBounds, timings?: Record<string, number>) => void,
   startedAt: number,
   stats: () => Record<string, unknown>,
-  options: { setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number>; extra?: (api: DebugApi) => Record<string, unknown> } = {},
+  options: { controller?: DebugRoadController; setWorldGridVisible?: (visible: boolean) => void; measureFps?: (ms: number) => Promise<number>; extra?: (api: DebugApi) => Record<string, unknown> } = {},
 ): void {
   const addRoad = (x0: number, z0: number, cx: number, cz: number, x1: number, z1: number, type = "street") => {
     const from = resolveSnap(graph, x0, z0);
     const to = resolveSnap(graph, x1, z1);
-    return commitSegment(graph, from, to, v3(cx, 0, cz), type);
+    return options.controller?.commitRoad(from, to, v3(cx, 0, cz), type) ?? { ok: false, reason: "Road drawing is unavailable." };
   };
   const api: DebugApi = {
     reset() {
-      for (const seg of graph.allSegments()) graph.removeSegment(seg.id);
+      for (const seg of graph.allSegments()) options.controller?.removeRoad(seg);
       rebuild();
     },
     rebuild,

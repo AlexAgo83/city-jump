@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-04 00:00:00
+> Indicators reviewed: 2026-09-04 13:13:26
 > Owner: Codex
 
 # AI Context
@@ -106,6 +106,8 @@
 - 2026-09-04 terrain injection 2: RoadGraph now owns a height sampler supplied by app.ts; sim/rules.ts and sim/slots.ts read terrain through the graph instead of importing the terrain module global.
 - 2026-09-04 terrain injection 3: drawTool now receives the app height sampler instead of reading terrainHeight; this removes the last production render consumer of the terrain module global.
 - 2026-09-04 item_126 completion: ordinary tests no longer install flatTerrain by hand; only the terrain module test exercises setTerrain/terrainHeight directly.
+- 2026-09-04 item_127 controller slice 1: app/drawController.ts owns road commits, removals, and roundabout toggles; drawTool/debugApi receive it as a controller, and architecture now guards direct render graph mutations.
+- 2026-09-04 browser check after item_127 controller slice 1: rtk npm run test:e2e passed the touched pointer/undo/utility/zoning path, then failed at the known zone-clear timeout at scripts/interact.mjs:1021.
 
 # Links
 - Request: `req_039_give_the_code_its_seams_back`

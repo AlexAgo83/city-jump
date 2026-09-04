@@ -43,6 +43,16 @@ test("only app code installs the active terrain", async () => {
   }
 });
 
+test("render code does not mutate the road graph", async () => {
+  const mutators = ["graph.addNode(", "graph.addNodeAt(", "graph.addSegment(", "graph.addElevatedSegment(", "graph.removeSegment(", "graph.setRoundabout(", "commitSegment("];
+  for (const file of files.filter((file) => file.startsWith("render/") && !file.endsWith(".test.ts"))) {
+    const source = await readFile(new URL(file, src), "utf8");
+    for (const mutator of mutators) {
+      assert.equal(source.includes(mutator), false, `${file} calls ${mutator}`);
+    }
+  }
+});
+
 test("main is only the application bootstrap", async () => {
   const source = await readFile(new URL("main.ts", src), "utf8");
   assert.deepEqual(imports(source), ["./app/app"]);
