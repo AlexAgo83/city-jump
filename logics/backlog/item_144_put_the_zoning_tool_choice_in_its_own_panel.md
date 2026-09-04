@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: `#zone-options` is one row holding the zone kinds, the brush slider and the price, so a brush-or-fill switch added to it would put the choice of tool on the same line as that tool's settings.
@@ -52,3 +52,9 @@
 
 # Validation
 - 2026-09-04: Added `#zone-tool-options` above `#zone-options` using the existing `.segmented` group idiom and wired it to appear only with the Zones tool. `scripts/interact.mjs` now asserts the zoning tool choice is visible and positioned above the zone settings. Validation passed with `rtk npm run typecheck` and `rtk npm run test:e2e`.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

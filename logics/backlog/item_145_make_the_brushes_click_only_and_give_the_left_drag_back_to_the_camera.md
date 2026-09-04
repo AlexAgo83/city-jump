@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: The brushes paint while the left button is held, which is exactly why the tool strips button 0 from the camera. Click-only painting removes the reason for the special case and gives the left drag back.
@@ -55,3 +55,7 @@
 
 # Notes
 - 2026-09-04: Removed drag-painting from the spray and zone brushes and deleted the camera button override. Brush preview rings still follow pointer movement, but city changes only happen on a click within `CLICK_SLOP`; each successful brush click is one undo entry. `scripts/interact.mjs` now asserts that zone and spray left-drags orbit the camera without painting, and that spray still paints on click.
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: Evacuating banks the science, ends the run and tells the player to start a new one. The new island is a second click on a button hidden until the run ends, so one decision costs two confirmations.
@@ -56,3 +56,9 @@
 
 # Validation
 - 2026-09-04: Evacuation now banks science, opens a fresh island immediately, keeps the prestige web reachable there, hides the second new-run confirmation, and autosaves the fresh island. Updated the interaction checks for evacuation, share-link startup, and debug forced waves. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/ui/controls.test.ts src/ui/runPanel.test.ts src/sim/kaiju.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

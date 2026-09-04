@@ -1,13 +1,13 @@
 ## req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath - What playing 0.4.0 turned up in the zoning tools, the brush surface and the wave's aftermath
 > From version: 0.4.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:18:26
+> Indicators reviewed: 2026-09-05 00:22:21
 
 # AI Context
 - Summary: Nine things from playing 0.4.0, in three groups: the zoning surface (a fill tool, a tool-choice panel, a brush that opens at its minimum), the wave's aftermath (a levelled city that says so, an evacuation that leaves, a barracks in rubble that stops firing), and two bare constants that shape how the game feels -- a bulldozer that waits a second for nothing and an opening treasury of $40,000.

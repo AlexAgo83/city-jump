@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: `DEMOLITION_MS = 1_000` defers every demolition by a second that nothing waits on -- no animation, and the target highlight is switched off at the click. It arrived with no comment, in a file where every deliberate simplification carries one.
@@ -56,3 +56,9 @@
 
 # Validation
 - 2026-09-04: Removed `DEMOLITION_MS`, the pending timeout set, and the revision guard in `src/render/drawTool.ts`; demolition now commits synchronously inside the same history boundary. Updated `scripts/interact.mjs` to assert immediate building and road bulldozes. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/render/drawTool.test.ts`, and `rtk npm run test:e2e`.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

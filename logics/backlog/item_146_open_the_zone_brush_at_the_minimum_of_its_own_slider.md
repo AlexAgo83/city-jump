@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: The zone brush opens at 32 with a minimum of 8, and the tool's radius is a hand-kept copy of that default which has already drifted from the slider once.
@@ -52,3 +52,9 @@
 
 # Validation
 - 2026-09-05: Removed the hand-kept zone brush radius constant, made `#zone-radius` default to its own `min`, and had `bindControls` emit that DOM value at startup. `scripts/interact.mjs` now fails if the zone brush no longer opens at the slider minimum. Validation passed with `rtk npm run typecheck` and `rtk npm run test:e2e`.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

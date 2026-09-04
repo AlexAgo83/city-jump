@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: Confirmed: when the last building falls the wave finishes as breached, the kaiju's mesh is hidden, the banner gives the same three words as any breach, and the run does not end -- the player is left on an empty island still waiting for the next wave.
@@ -59,3 +59,9 @@
 
 # Validation
 - 2026-09-04: A city levelled to its last building now ends the run as defeated, keeps the wave from scheduling again, and shows "The city was levelled" in the banner/run panel. Validated with rtk npm exec -- vitest run src/app/waveLoop.test.ts src/ui/runPanel.test.ts src/sim/run.test.ts src/sim/save.test.ts and rtk npm run ci.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

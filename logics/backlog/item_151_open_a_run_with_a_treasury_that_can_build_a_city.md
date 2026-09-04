@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: A run opens with $40,000 against per-metre roads and per-cell buildings. Raising it moves the Starter grant's worth, which is a quarter of that base today, and feeds the balance band directly.
@@ -55,3 +55,9 @@
 
 # Validation
 - 2026-09-04: STARTING_MONEY raised to 100,000; Starter grant deliberately remains 10,000 as a small first upgrade. Validated with rtk npm exec -- vitest run src/sim/run.test.ts src/sim/economy.test.ts and rtk npm run scenarios. Scenarios stayed inside 13-85s / 4-21 salvo band.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

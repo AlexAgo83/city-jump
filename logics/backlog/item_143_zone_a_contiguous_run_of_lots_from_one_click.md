@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City legibility
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: Zoning a district the roads already define means dragging a round brush across it. Zoning is keyed by lot, and BuildableCell already carries the segment, side and block a fill needs to know where to stop.
@@ -59,3 +59,9 @@
 
 # Validation
 - 2026-09-05: Added Fill as the default zoning tool, with Brush beside it under the zone kinds. Fill uses `contiguousLotsFrom`, bounded to the clicked cell's segment, side and block, crossing only four-way neighbours that share the clicked lot's current zone. Validation passed with `rtk npm run typecheck`, `rtk npm exec -- vitest run src/sim/slots.test.ts`, `rtk npm run test:e2e`, and `rtk npm run ci`.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

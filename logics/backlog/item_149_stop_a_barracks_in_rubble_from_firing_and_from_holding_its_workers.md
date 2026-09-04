@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-04 17:04:12
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # AI Context
 - Summary: Confirmed: batteries are built from every parcel while the kaiju targets only the ones standing, so a flattened barracks keeps firing -- and keeps the workers the survivors are being refused, because military is first in the workforce priority and rubble preserves its staffed flag.
@@ -57,3 +57,9 @@
 
 # Validation
 - 2026-09-04: BuildingLifecycle excludes rebuilding lots from workforce allocation, app/playthrough batteries use non-rebuilding building statuses, and tests cover rubble staffing and standing batteries. Validated with rtk npm exec -- vitest run src/sim/buildingLifecycle.test.ts src/sim/batteries.test.ts src/sim/run.test.ts src/sim/economy.test.ts src/sim/playthrough.test.ts, rtk npm run typecheck, and rtk npm run scenarios. Scenarios stayed inside 13-85s / 4-21 salvo band.
+
+# Tasks
+- `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
+
+# Notes
+- Task `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work` was finished via `logics-manager flow finish task` on 2026-09-05.

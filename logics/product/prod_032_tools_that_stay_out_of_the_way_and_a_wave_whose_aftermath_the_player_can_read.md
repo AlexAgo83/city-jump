@@ -1,11 +1,12 @@
 ## prod_032_tools_that_stay_out_of_the_way_and_a_wave_whose_aftermath_the_player_can_read - Tools that stay out of the way, and a wave whose aftermath the player can read
 > Date: 2026-09-04
-> Status: Proposed
+> Status: Settled
 > Related request: `req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath`
-> Related backlog: `item_143_zone_a_contiguous_run_of_lots_from_one_click`, `item_144_put_the_zoning_tool_choice_in_its_own_panel`, `item_145_make_the_brushes_click_only_and_give_the_left_drag_back_to_the_camera`, `item_146_open_the_zone_brush_at_the_minimum_of_its_own_slider`, `item_147_make_evacuating_leave_the_island`, `item_148_say_that_the_city_was_levelled_and_decide_what_happens_to_the_kaiju`, `item_149_stop_a_barracks_in_rubble_from_firing_and_from_holding_its_workers`, `item_150_drop_the_second_the_bulldozer_waits_for_nothing`, `item_151_open_a_run_with_a_treasury_that_can_build_a_city`
+> Related backlog: `item_143_zone_a_contiguous_run_of_lots_from_one_click`
 > Related task: `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-05 00:22:22
 
 # Overview
 A tool the player has to work around, and a wave that stops explaining itself.
@@ -67,5 +68,5 @@ Nine things came out of playing 0.4.0, and they fall into three groups. The zoni
 - npm run scenarios reports a band, and its reason is recorded when it moves.
 
 # References
-- Product back-reference: `req_041_what_playing_0_4_0_turned_up_in_the_zoning_tools_the_brush_surface_and_the_wave_s_aftermath`
+- Product back-reference: `item_143_zone_a_contiguous_run_of_lots_from_one_click`
 - Task back-reference: `task_043_orchestrate_the_zoning_brush_surface_and_wave_aftermath_work`
