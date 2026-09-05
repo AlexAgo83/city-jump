@@ -99,6 +99,7 @@ jobs:
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
           RENDER_POLL_TIMEOUT_SECONDS: 900
           RENDER_POLL_INTERVAL_SECONDS: 15
@@ -106,7 +107,20 @@ jobs:
           set -euo pipefail
 
           if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVICE_ID" ]; then
-            echo "Missing RENDER_API_KEY or RENDER_SERVICE_ID secret."
+            expected="${RELEASE_TAG#v}"
+            site_url="$(git show "${RELEASE_SHA}:package.json" | node -e 'let b=""; process.stdin.on("data", c => b += c); process.stdin.on("end", () => console.log(JSON.parse(b).homepage));')"
+            deadline=$((SECONDS + RENDER_POLL_TIMEOUT_SECONDS))
+            while [ "$SECONDS" -le "$deadline" ]; do
+              html="$(curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "$site_url")"
+              script="$(grep -oE 'src="/assets/index-[^"]+\.js"' <<< "$html" | head -n 1 | cut -d '"' -f 2)"
+              if [ -n "$script" ] && curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "${site_url%/}${script}" | grep -q "\"${expected}\""; then
+                echo "Public site serves release ${expected}."
+                exit 0
+              fi
+              sleep "$RENDER_POLL_INTERVAL_SECONDS"
+            done
+
+            echo "Timed out after ${RENDER_POLL_TIMEOUT_SECONDS}s waiting for public site to serve release ${expected}."
             exit 1
           fi
 
