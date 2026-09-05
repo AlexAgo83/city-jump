@@ -1,0 +1,442 @@
+{
+  "budgets": {
+    "max_docs": 64,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits task_047_land_the_large_city_frame_cost_reductions_in_measured_order item_166_bound_terrain_picking_in_the_drawing_tools item_167_short_circuit_empty_rubble_maps item_168_stop_repeating_equivalent_workforce_sorts item_169_defer_hidden_overlay_geometry_until_reveal item_170_update_hud_nodes_only_when_displayed_values_change item_171_skip_replacing_empty_explosion_buffers --mode summary-only --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ],
+        "task": [
+          "task_039_orchestrate_the_per_frame_cost_work"
+        ]
+      },
+      "path": "logics/product/prod_028_a_city_that_costs_what_it_is_changing.md",
+      "ref": "prod_028_a_city_that_costs_what_it_is_changing",
+      "status": "Settled",
+      "title": "A city that costs what it is changing"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "performance, picking, rubble, workforce, overlays, hud, frame cost",
+        "skip when": "changing the measurement scripts themselves, or game balance.",
+        "summary": "Terrain picking, empty rubble scans, repeated workforce sorts, hidden overlay geometry and per-frame HUD rebuilds cost measurable frame time in a 1,287-building city.",
+        "use when": "reducing frame cost or edit latency in large cities."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_166_bound_terrain_picking_in_the_drawing_tools",
+          "item_167_short_circuit_empty_rubble_maps",
+          "item_168_stop_repeating_equivalent_workforce_sorts",
+          "item_169_defer_hidden_overlay_geometry_until_reveal",
+          "item_170_update_hud_nodes_only_when_displayed_values_change",
+          "item_171_skip_replacing_empty_explosion_buffers"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing",
+          "req_045_review_findings_gameplay_performance_and_benchmark_validity",
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "run": [
+          "run_009_rerun_the_large_city_performance_review"
+        ]
+      },
+      "path": "logics/request/req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits.md",
+      "ref": "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits",
+      "schema_version": "1.0",
+      "status": "Draft",
+      "title": "Cut the per frame cost the large city review measured in gameplay and edits"
+    },
+    {
+      "ai_context": {
+        "keywords": "thin instance upload, change signature, sun fan-out, roundabout occupancy, stale mover segment, measured evidence",
+        "skip when": "changing what the simulation computes, or splitting the render modules (req_039). Do not start before req_036 records a clean perf baseline.",
+        "summary": "A settled city rebuilds every building instance buffer each frame, and a sun moving 0.0013 h per frame fans out to five renderers.",
+        "use when": "touching the render loop, or the cost of drawing a city nobody is editing."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_113_gate_the_building_state_upload_on_a_change_signature",
+          "item_114_derive_the_supplied_utility_set_only_when_it_can_have_changed",
+          "item_115_fan_the_sun_out_once_per_visible_step",
+          "item_116_build_the_yield_and_crossing_occupancy_once_per_frame",
+          "item_117_re_resolve_a_mover_s_segment_after_a_rebuild",
+          "item_118_show_the_frame_cost_came_down",
+          "item_133_make_the_performance_scenario_measure_a_city_with_buildings_in_it"
+        ],
+        "prod": [
+          "prod_028_a_city_that_costs_what_it_is_changing"
+        ],
+        "req": [
+          "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing"
+        ]
+      },
+      "path": "logics/request/req_037_stop_paying_every_frame_for_a_city_that_is_not_changing.md",
+      "ref": "req_037_stop_paying_every_frame_for_a_city_that_is_not_changing",
+      "schema_version": "1.0",
+      "status": "Done",
+      "title": "Stop paying every frame for a city that is not changing"
+    },
+    {
+      "ai_context": {
+        "keywords": "benchmark, measurement, ablation, fps, paused, validity",
+        "skip when": "implementing a gameplay optimization; that work is req_047.",
+        "summary": "The performance scripts measure a paused city, report only the last HUD window and divide every ablation by a stale baseline, so their numbers cannot select an optimization.",
+        "use when": "repairing or trusting the performance measurement tooling."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_165_review_findings_gameplay_performance_and_benchmark_validity"
+        ],
+        "req": [
+          "req_045_review_findings_gameplay_performance_and_benchmark_validity",
+          "req_046_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence",
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "run": [
+          "run_009_rerun_the_large_city_performance_review"
+        ]
+      },
+      "path": "logics/request/req_045_review_findings_gameplay_performance_and_benchmark_validity.md",
+      "ref": "req_045_review_findings_gameplay_performance_and_benchmark_validity",
+      "schema_version": "1.0",
+      "status": "Draft",
+      "title": "Review findings: gameplay performance and benchmark validity"
+    },
+    {
+      "ai_context": {
+        "keywords": "bound, terrain, picking, drawing, tools",
+        "skip when": "changing what the tools do once a hit position is known.",
+        "summary": "Bound the terrain intersection work that every pointer move performs against a 911,250-triangle ground mesh.",
+        "use when": "changing pointer picking in the road, zone, nature or bulldoze tools."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_166_bound_terrain_picking_in_the_drawing_tools"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_166_bound_terrain_picking_in_the_drawing_tools.md",
+      "ref": "item_166_bound_terrain_picking_in_the_drawing_tools",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Bound terrain picking in the drawing tools"
+    },
+    {
+      "ai_context": {
+        "keywords": "short, circuit, empty, rubble, maps",
+        "skip when": "changing rubble expiry or how rubble is created.",
+        "summary": "Short-circuit Rubble.blocks when its map is empty, instead of walking parcel cells and building keys every gameplay frame.",
+        "use when": "changing rubble blocking checks or the per-frame parcel loop that calls them."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_167_short_circuit_empty_rubble_maps"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_167_short_circuit_empty_rubble_maps.md",
+      "ref": "item_167_short_circuit_empty_rubble_maps",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Short circuit empty rubble maps"
+    },
+    {
+      "ai_context": {
+        "keywords": "repeating, equivalent, workforce, sorts",
+        "skip when": "changing job supply or demand rules themselves.",
+        "summary": "Cache workforce allocations when their inputs have not changed, instead of sorting jobs three times per gameplay frame.",
+        "use when": "changing workforce allocation, building lifecycle staffing, or battery parcel derivation."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_168_stop_repeating_equivalent_workforce_sorts"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_168_stop_repeating_equivalent_workforce_sorts.md",
+      "ref": "item_168_stop_repeating_equivalent_workforce_sorts",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Stop repeating equivalent workforce sorts"
+    },
+    {
+      "ai_context": {
+        "keywords": "defer, hidden, overlay, geometry, until, reveal",
+        "skip when": "changing what the overlays display once visible.",
+        "summary": "Defer zone and utility overlay geometry while hidden, and realize it on reveal, instead of rebuilding it during every dirty rebuild.",
+        "use when": "changing overlay invalidation, zone or utility rendering, or dirty rebuild scope."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_169_defer_hidden_overlay_geometry_until_reveal"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_169_defer_hidden_overlay_geometry_until_reveal.md",
+      "ref": "item_169_defer_hidden_overlay_geometry_until_reveal",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Defer hidden overlay geometry until reveal"
+    },
+    {
+      "ai_context": {
+        "keywords": "update, hud, nodes, only, displayed, values, change",
+        "skip when": "changing which figures the HUD shows.",
+        "summary": "Update existing HUD nodes when displayed values change, instead of replacing the needs and ledger subtrees on every gameplay frame.",
+        "use when": "changing the HUD stats panel, the ledger, or the per-frame syncBuildings path that writes them."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_170_update_hud_nodes_only_when_displayed_values_change"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_170_update_hud_nodes_only_when_displayed_values_change.md",
+      "ref": "item_170_update_hud_nodes_only_when_displayed_values_change",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Update HUD nodes only when displayed values change"
+    },
+    {
+      "ai_context": {
+        "keywords": "land, large, city, frame, cost, reductions, measured, order",
+        "skip when": "repairing the measurement scripts, which is task_048.",
+        "summary": "Land the six per-frame cost reductions from req_047 in measured impact order, each validated on the large-demo-v14 fixture.",
+        "use when": "picking up or sequencing any of the large-city frame cost slices."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_166_bound_terrain_picking_in_the_drawing_tools",
+          "item_167_short_circuit_empty_rubble_maps",
+          "item_168_stop_repeating_equivalent_workforce_sorts",
+          "item_169_defer_hidden_overlay_geometry_until_reveal",
+          "item_170_update_hud_nodes_only_when_displayed_values_change",
+          "item_171_skip_replacing_empty_explosion_buffers"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/tasks/task_047_land_the_large_city_frame_cost_reductions_in_measured_order.md",
+      "ref": "task_047_land_the_large_city_frame_cost_reductions_in_measured_order",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Land the large city frame cost reductions in measured order"
+    },
+    {
+      "ai_context": {
+        "keywords": "skip, replacing, empty, explosion, buffers",
+        "skip when": "changing explosion visuals or lifetimes.",
+        "summary": "Skip replacing the explosion thin-instance buffer when the explosion set is empty and unchanged, while still clearing the last expired explosion once.",
+        "use when": "changing destruction effect instancing or its per-frame write."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_171_skip_replacing_empty_explosion_buffers"
+        ],
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits"
+        ],
+        "task": [
+          "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+        ]
+      },
+      "path": "logics/backlog/item_171_skip_replacing_empty_explosion_buffers.md",
+      "ref": "item_171_skip_replacing_empty_explosion_buffers",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Skip replacing empty explosion buffers"
+    }
+  ],
+  "estimates": {
+    "char_count": 11058,
+    "companion_doc_count": 1,
+    "doc_count": 10
+  },
+  "generated_at": "2026-09-05T08:51:52Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits",
+      "task_047_land_the_large_city_frame_cost_reductions_in_measured_order",
+      "item_166_bound_terrain_picking_in_the_drawing_tools",
+      "item_167_short_circuit_empty_rubble_maps",
+      "item_168_stop_repeating_equivalent_workforce_sorts",
+      "item_169_defer_hidden_overlay_geometry_until_reveal",
+      "item_170_update_hud_nodes_only_when_displayed_values_change",
+      "item_171_skip_replacing_empty_explosion_buffers"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "summary-only",
+  "profile": "deep",
+  "ref": "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits,task_047_land_the_large_city_frame_cost_reductions_in_measured_order,item_166_bound_terrain_picking_in_the_drawing_tools,item_167_short_circuit_empty_rubble_maps,item_168_stop_repeating_equivalent_workforce_sorts,item_169_defer_hidden_overlay_geometry_until_reveal,item_170_update_hud_nodes_only_when_displayed_values_change,item_171_skip_replacing_empty_explosion_buffers",
+  "refs": [
+    "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits",
+    "task_047_land_the_large_city_frame_cost_reductions_in_measured_order",
+    "item_166_bound_terrain_picking_in_the_drawing_tools",
+    "item_167_short_circuit_empty_rubble_maps",
+    "item_168_stop_repeating_equivalent_workforce_sorts",
+    "item_169_defer_hidden_overlay_geometry_until_reveal",
+    "item_170_update_hud_nodes_only_when_displayed_values_change",
+    "item_171_skip_replacing_empty_explosion_buffers"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.0",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_047_land_the_large_city_frame_cost_reductions_in_measured_order.md",
+      "ref": "task_047_land_the_large_city_frame_cost_reductions_in_measured_order"
+    }
+  ]
+}
