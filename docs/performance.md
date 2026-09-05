@@ -4,7 +4,7 @@
 
 ```sh
 npm run perf                                                  # the built-in demo city
-npm run perf -- --city perf/cities/ma-ville.json --label ma-ville
+npm run perf -- --city perf/cities/ma-ville.json --label large-demo-v14
 npm run perf -- --city '#city=H4sIA…' --label shared
 ```
 
@@ -41,8 +41,254 @@ than most changes do. Mesh counts are deterministic; frame rates are not. To jud
 run the two builds alternately in one sitting, more than once, and only believe a difference that
 survives that.
 
-`perf/cities/ma-ville.json` is the reference city. Export your own from the app (Export, beside
-Share) and drop it in beside it.
+`perf/cities/ma-ville.json` is the reference city, replaced on 2026-09-05 with the supplied
+`save.large_demo.json` (save version 14). It contains 131 road segments, about 13,553 residents,
+and 1,287 saved building states (1,274 working, 13 rising), across all five zone kinds.
+The original gameplay rules, resources and camera are preserved. Food is depleted and waves
+are enabled, so running-game comparisons must control their evolution explicitly.
+Use the label `large-demo-v14` for this fixture; older `ma-ville` records describe a different city.
+The harness still starts paused; these measurements do not yet cover running gameplay.
+
+Export your own from the app (Export, beside Share) to add another fixture.
+
+## Reusable review probes
+
+The review instrumentation now lives in `scripts/review/`, using the installed Playwright rather
+than machine-specific imports. It does not instrument the shipped app or fix the findings below.
+It intentionally targets the current `large-demo-v14` fixture: 28 models, 1,287 buildings and saved
+camera coordinates. Changing the fixture requires reviewing those preconditions and edit positions.
+
+Prerequisites: Node 22+, `npm ci`, and `npm exec -- playwright install chromium`. The default uses
+a visible Chromium window; keep it unobscured, the machine plugged in and other workloads idle.
+Do not run probes concurrently. `--headless` is available for diagnostic execution, but is not a
+substitute for comparable GPU measurements. The actual renderer is recorded, not assumed.
+
+```sh
+npm run perf:review                              # interactions, rebuilds, x1/x4
+npm run perf:review -- --probe profile            # ablations and Chrome CPU profile
+npm run perf:review -- --probe soak               # edit/restore cycles + three minutes x4
+npm run perf:review -- --probe all                # all seven probes, sequentially
+node scripts/review/run.mjs --help
+```
+
+The npm command reuses the project's existing development-server wrapper on port 5173. For a
+different port, start the server explicitly and pass its URL (the runner does not own that server):
+
+```sh
+npm run dev -- --host 127.0.0.1 --port 5190 --strictPort
+# Another terminal:
+node scripts/review/run.mjs http://127.0.0.1:5190 --probe extra
+```
+
+Production startup is included in `extra` only when `--preview-url` is supplied. Build the same
+checkout before starting preview; otherwise the manifest's source hash will not describe its bundle.
+
+```sh
+npm run build
+npm run preview -- --host 127.0.0.1 --port 5191 --strictPort
+# Another terminal, with the development server also running:
+node scripts/review/run.mjs http://127.0.0.1:5190 --probe extra --preview-url http://127.0.0.1:5191
+```
+
+| Probe | Workload | Main output |
+| --- | --- | --- |
+| `profile` | Three ablation rounds, 8 s CPU trace, full/dirty rebuilds | `large-profile.json`, `large.cpuprofile` |
+| `focus` | Lifecycle, staffing sorts, HUD churn, uploads, 30 s play, preliminary wave observation | `large-focus.json` |
+| `rubble` | Three baseline/temporary empty-map-guard pairs | `rubble-ab.json` |
+| `wave` | Debug advance to combat, then 20 s real-time observation | `wave-profile.json` |
+| `interactions` | Pointer tools, zoning, follow, ten rebuilds/loads, x1/x4 windows | `review-completion.json` |
+| `extra` | Asserted same-city loads, picking confirmations, uploads, display sizes, optional startup | `review-extra.json` |
+| `soak` | Five actual road-create/bulldoze/restore cycles, three minutes x4, paused autosave flush | `review-soak.json` |
+
+Allow roughly 10-15 minutes for `all`, depending on the machine. Each run creates a fresh directory
+under `.tmp/perf-review/<timestamp>/`, or the new directory specified by `--out`. Existing directories
+are refused. Outputs are ignored by Git and historical `perf/reviews/` evidence is never overwritten.
+`run.json` records command, source/script/fixture hashes, commit and dirty state, browser, renderer,
+hardware, URLs, timestamps and completion/failure per probe. The renderer is queried from a separate
+diagnostic WebGL2 context before workloads. Samples and auxiliary screenshots remain beside it.
+Some probes write incrementally; `focus`, `rubble` and `wave` write at completion. Failed or interrupted
+runs keep whatever evidence has already been written and must not be treated as complete.
+
+To continue in another session, read this section and req_045, inspect the previous `run.json`, then
+rerun the relevant probe into a **new** directory. Retain selected JSON/profile evidence under
+`perf/reviews/` when adding a dated conclusion; retain screenshots only under `docs/media/` if needed.
+Do not compare `profile`/`focus`/`rubble`/`wave` (expanded toolbar) directly with the collapsed-toolbar
+completion probes as a before/after optimization. Fixtures/settings reset on navigation; waves are
+disabled except in combat observations. Synthetic combat fast-forward is excluded from live frame
+timing, and the rubble guard only exists inside that experiment's browser page.
+
+The migrated interaction probe explicitly selects the Review save slot and asserts its building
+count. Its load/bulldoze measurements supersede the discarded Demo-slot samples, not the valid
+historical pointer measurements. No aggregated historical JSON is regenerated by these commands.
+These probes are diagnostics with instrumentation overhead, not universal FPS pass/fail gates.
+Their CLI/portability check runs with `node --test tests/perf-review.mjs` and in `test:architecture`.
+
+## Current reference: large-demo-v14 (2026-09-05)
+
+Measured on application commit `5a5cbd2`, with the replacement fixture and unchanged application
+sources: headed Chromium, confirmed ANGLE Metal / Apple M3 Pro, 1280x800, saved camera, default
+graphics, toolbar expanded and frame cap Max. Each sample starts from a fresh load and cleared
+settings. Only automatic waves are disabled for steady-state comparisons; original resources and
+construction remain active. Day is 10:00, night 22:00. These are development-server measurements,
+not a production-build or mobile benchmark.
+
+The temporary probe counts actual rendered frames across the full 3.5-second measurement after
+1.8 seconds of warmup, instead of using the existing HUD-based `measureFps`. Three rounds were
+run, reversing scenario order in round two. Values are medians of the three results; p95 is the
+95th percentile of inter-frame time within each sample. No short sample recorded a task over 50 ms.
+
+| Scenario | FPS | p95 frame time |
+| --- | ---: | ---: |
+| Day, paused | 120 | 8.7 ms |
+| Day, running | 78 | 14.5 ms |
+| Day, traffic disabled | 93 | 12.1 ms |
+| Day, camera rotating | 77 | 14.4 ms |
+| Night, running | 67 | 17.0 ms |
+| Night, lights disabled | 80 | 14.1 ms |
+| Night, shadows disabled | 69 | 16.2 ms |
+| Night, buildings hidden | 75 | 14.8 ms |
+| Night, bloom disabled | 71 | 15.9 ms |
+
+The running city starts with 1,287 buildings, 166 cars, 311 pedestrians and 2,650 scene meshes.
+The night sample enables 642 street lights plus vehicle headlights. Traffic-off removes both the
+mover simulation and its meshes; buildings-hidden keeps the building simulation. These ablations
+are diagnostic upper bounds, not proposals to remove those features or additive optimization gains.
+
+### CPU work worth addressing
+
+- **Empty rubble checks:** `Rubble.blocks` still walks every parcel cell and constructs position
+  keys when its map is empty. The CPU profile attributes about 0.73 s of an 8.70 s trace to that
+  path, called from `syncBuildings` every frame. A separate three-pair A/B experiment inserted only
+  an in-browser empty-map guard: median 78.1 -> 88.4 FPS, with paired gains of 9.6%, 11.3% and
+  14.2%. Mean `scene.render()` wall duration fell from about 12.1 to 10.6 ms. The guard was not
+  applied to the source, and its gain only applies while no rubble exists.
+- **Repeated staffing:** a separate 12-second instrumented run observed 979 lifecycle calls and
+  2,939 workforce sorts (three per frame, plus diagnostic reads). Sorting accounted for about
+  1.55 ms/frame. `BuildingLifecycle.sync` accounted for 2.12 ms/frame and the whole app observer
+  for 4.52 ms/frame; these inclusive costs overlap and must not be added. Lifecycle staffing uses
+  a population band and incumbent preference, while the needs panel independently allocates for
+  staffing and batteries. Cache each policy on its actual inputs and share identical panel
+  calculations; do not merge policies that intentionally differ.
+- **Hidden overlay rebuilds:** a 200x200 m dirty rebuild took a median 33.1 ms. Zones and utility
+  overlays consumed about 11.6 ms of it despite being hidden. `rebuild` creates their geometry
+  unconditionally. Deferring hidden overlays until needed is a more focused candidate than a
+  renderer rewrite.
+- **HUD churn remains:** the instrumented run inserted 44,055 elements over 979 frames, still
+  45/frame. It is worth fixing, but the CPU profile ranked staffing and empty rubble checks above
+  `showCityStats`. Building matrix/color uploads occurred in ten batches over those 12 seconds,
+  not every frame; the existing visible-state signature is doing useful work.
+
+### Stalls and rebuilds
+
+A 30-second normal-speed observation completed all 13 rising buildings. Its p95/p99 frame times
+were 14.2/16.1 ms, with a maximum 51.5 ms and two recorded 50-51 ms long tasks, one around the
+initial resume and one around the next 20-second demand boundary. A separate combat observation,
+advanced to the first destruction before measuring, ran for 20 seconds at 68.5 FPS, p95 16.3 ms,
+p99 21.6 ms and maximum 55.9 ms. The rubble-cell count rose from 1 to 23; 55 ms long tasks occurred
+near two later destruction events. These are individual observations, not stable tail-latency
+estimates. The synthetic fast-forward's 621 ms CPU cost is not a live gameplay freeze.
+
+Three full rebuilds measured 326-340 ms (median 327.5): ground about 191 ms, roads 63 ms, buildings
+15 ms. Three direct dirty rebuilds measured 30-37 ms. Dirty timings exclude the deferred parcel
+repack and are not complete road-placement latency. Steady-state FPS and reconstruction stalls
+need separate budgets.
+
+Raw data: [measurement record](../perf/reviews/large-demo-v14-2026-09-05.json).
+The [Chrome CPU profile](../perf/reviews/large-demo-v14-2026-09-05.cpuprofile) can be imported in DevTools.
+The record includes the fixture SHA-256, sample counts, runtime state and experiment conditions.
+The earlier run with settings leaking between samples was discarded and is not in this record.
+
+### Interactive tools and display size
+
+The completion pass uses the same fixture and GPU, but with the toolbar **collapsed**. Do not
+interpret differences against the expanded-toolbar table above as code improvements. Settings
+are cleared on each navigation; waves alone are disabled and the frame cap is Max.
+
+- With the city running, a stationary pointer and selection-mode pointer movement both measured
+  about 75 FPS. Road-preview movement measured 42 FPS, and zone-brush movement 46 FPS. Each probe
+  sent 100 pointer moves with at least 15 ms between them; these are repeatable scripted workloads,
+  not a fixed-frequency hardware mouse trace. Vehicle follow measured 73 FPS in a four-second sample.
+- The shared `groundPoint` at `src/render/drawTool.ts:400` calls triangle picking for each move.
+  Runtime inspection confirms 456,976 vertices, 911,250 triangles and one ground submesh. The
+  dependency's triangle picker scans the submesh indices. Mean pick cost was 18-19 ms initially;
+  two fresh-load confirmations measured 17.7/17.5 ms and 43/43 FPS during active road preview.
+  Spatially bounded terrain picking is the strongest new interactive-performance candidate.
+  Preserve exact intersections on slopes and road cuts; a flat-plane replacement is not equivalent.
+- Four commercial-zone brush clicks produced eight 84-116 ms long tasks and a maximum frame
+  interval of 134 ms. This captures immediate work and delayed parcel repacking, unlike the earlier
+  direct dirty-rebuild timings. It does not attribute every millisecond to hidden overlays.
+
+Two fresh-load rounds, 1.8-second warmup and full 3.5-second windows, gave these daytime results:
+
+| View | Actual render buffer | FPS range | p95 frame time |
+| --- | --- | ---: | ---: |
+| Saved camera, 1280x800, DPR 1 | 1280x800 | 82-83 | 13.2-13.3 ms |
+| Street, radius 140 | 1280x800 | 97 | 11.6-11.7 ms |
+| Overview, radius 1200 | 1280x800 | 83 | 13.4-13.5 ms |
+| Saved camera, 1920x1080, DPR 2 | 2880x1620 | 69 | 16.3-16.8 ms |
+
+The existing 1.5x pixel-ratio cap works. The larger viewport changes aspect ratio as well as pixel
+count, so this is a display-configuration comparison, not an isolated GPU fill-rate measurement.
+Street and high-resolution screenshots were inspected: both show the populated reference city.
+
+### Speed, resource lifetime and residual uploads
+
+Separate 30-second fresh-load observations measured 73.7 FPS at x1 and 69.7 FPS at x4, with p95
+17.8/19.0 ms and maximum frame intervals 50.2/89.3 ms. These single samples are not stable tail
+estimates; accelerated simulation advances farther through construction and daylight.
+
+Ten full rebuilds kept 2,650 meshes, 610 materials, 1,040 geometries and eight before-render
+observers, with post-GC JS heap moving from 147.1 to 149.5 MB. Ten in-page loads of the **Review**
+slot kept the same counts, 11 scene textures and 13 internal textures; heap moved from 147.3 to
+150.6 MB. Five actual road-create/bulldoze/restore cycles changed segments 132 -> 139 -> 138 -> 132
+each time and restored the same resource counts. Heap increased from 148.1 to 180.9 MB on the first
+cycle, then to 183.7 MB by cycle five. This is not evidence of an unbounded resource leak; the
+first-use retained allocation deserves separation from repeated growth. Babylon also lazily caches
+terrain positions as Vector3 objects for picking; the probe does not isolate that allocation. These counters do not
+measure GPU memory bytes or prove hour-long stability. An initial load test selected Demo by
+mistake; its load/edit results were discarded and replaced by the asserted Review-slot test.
+
+Twelve-second upload observations counted 58 tree-shadow matrix replacements / 9.38 MB at x1,
+and 231 / 37.37 MB at x4, following displayed simulation minutes. The upload method itself took
+16.9/67.4 ms total, excluding matrix construction. Empty explosion matrices were still replaced
+949/927 times, with zero payload and only 36.4/29.7 ms total method time. A no-active-effects guard
+is a small cleanup candidate, not a major FPS gain. Building uploads remain batched, not per-frame.
+
+The same observation exposed a correctness risk: four autosave writes occurred at x1, none at x4.
+`maybeAutosaveClock` requests a save every 15 displayed minutes (about 0.78 real seconds at x4),
+while `createAutosave` restarts a two-second debounce on every request. Sustained accelerated play
+can therefore indefinitely defer persistence. A bounded maximum wait must accompany any save
+batching optimization; lower write frequency is not a performance win when progress is not saved.
+
+A subsequent three-minute x4 run after the five edit/restore cycles confirmed **zero autosave
+writes**, followed by one write 2.5 seconds after pausing. Saved elapsed time stayed at 13,944.55 s
+throughout play and then became 14,666.11 s. The city advanced from day 7 at 10:17 to day 9 at 20:00.
+Its three one-minute windows measured 53.9/52.5/50.0 FPS, p95 37.1/35.5/33.9 ms and maxima
+200/207/167 ms. This longer day/night workload exposes stalls absent from short daylight samples;
+the probe does not identify their individual causes or establish progressive slowdown. Scene
+meshes/materials/geometries/observers remained constant; internal textures warmed from 13 to 17
+and stayed there. Post-GC heap was 191.8/194.9/195.4 MB at the minute boundaries. Forced collections
+are outside the measured frame windows. Three minutes is a bounded soak, not an hour-long test.
+
+### Production startup
+
+A fresh production build (`npm run build`, then Vite preview) was tested separately from gameplay.
+The ready condition requires all 28 models and 1,287 buildings, not merely the first WebGL draw.
+Two cold-cache local loads took 1.86/1.94 s to reach that condition; first draw was at 591/587 ms.
+A warmed-cache reload took 1.86 s, first draw at 515 ms. This points to meaningful initialization
+work beyond network transfer, but does not isolate shader compilation from CPU scene creation.
+
+Cold resource transfers totalled 2.53 MB over 126 resources, excluding the HTML document: 1.82 MB
+of GLBs and 0.68 MB of JavaScript. The 1.20 MB minified main chunk alone is not the complete load.
+With simulated 10 Mbit/s, 40 ms latency and 4x CPU slowdown, one cold load took 9.43 s; first draw
+was at 2.50 s. This is a diagnostic throttled desktop run, **not a measured mobile device**.
+Loading/readiness instrumentation should remain separate from steady-state FPS benchmarks.
+
+Completion evidence: [interaction, display, loading and lifetime record](../perf/reviews/large-demo-v14-2026-09-05-completion.json).
+
+## Historical measurements
+
+The remaining sections describe earlier fixtures and builds, not the replacement city above.
 
 ## What actually costs
 

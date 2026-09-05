@@ -10,6 +10,7 @@
     "test:e2e": "node scripts/with-dev-server.mjs scripts/interact.mjs",
     "test:visual": "node scripts/with-dev-server.mjs scripts/shot.mjs",
     "perf": "node scripts/with-dev-server.mjs scripts/perf.mjs",
+    "perf:review": "node scripts/with-dev-server.mjs scripts/review/run.mjs",
     "balance": "node scripts/build-sim.mjs && node scripts/balance.mjs",
     "ablate": "node scripts/with-dev-server.mjs scripts/ablate.mjs",
     "check:versions": "node scripts/check-versions.mjs",

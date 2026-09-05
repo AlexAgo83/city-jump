@@ -1,0 +1,2719 @@
+{
+  "method": {
+    "sourceCommit": "5a5cbd2",
+    "applicationSourceChanges": false,
+    "browser": "Playwright Chromium headed, ANGLE Metal Apple M3 Pro",
+    "frameCap": "Max",
+    "settings": "localStorage cleared before each sample; original reference save loaded; default graphics; toolbar expanded",
+    "steadyState": "Waves disabled, original food/materials/population preserved; saved camera; 1800 ms warmup; 3500 ms complete render-frame window; three rounds with reversed order in round two",
+    "dayHour": 10,
+    "nightHour": 22,
+    "cpuProfile": "Separate day-running sample, 500 microsecond CDP sampling interval",
+    "focus": "Separate instrumented day sample; then 30 seconds running and 12 seconds of approach/combat",
+    "rubbleAB": "Six fresh loads, waves disabled; 4000 ms windows after 1800 ms warmup; only experiment is an in-browser Rubble.blocks wrapper returning false when count() is zero; no source edit",
+    "wave": "Original rules; debug advance to first destruction, then 20 seconds at normal speed. Fast-forward CPU duration is not an actual gameplay frame."
+  },
+  "steadyState": {
+    "fixtureSha256": "2af5975a819a80e4ae2427655eeb9ffc742ac168793ba5e14c08a5fe69c3e052",
+    "at": "2026-09-05T07:34:21.641Z",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "scenario": "Saved camera, reload before each sample, waves disabled, otherwise original resources and rules",
+    "samples": [
+      {
+        "round": 0,
+        "mode": "day-paused",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3506,
+        "frames": 421,
+        "fps": 120.07986309184255,
+        "cpuMs": {
+          "mean": 6.412114002925483,
+          "p50": 6.200000047683716,
+          "p95": 7.299999952316284,
+          "p99": 8.099999904632568,
+          "max": 12.400000095367432
+        },
+        "frameMs": {
+          "mean": 8.332380952153887,
+          "p50": 8.299999952316284,
+          "p95": 8.5,
+          "p99": 9.100000143051147,
+          "max": 12.700000047683716
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "round": 0,
+        "mode": "day-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3510.2000000476837,
+        "frames": 267,
+        "fps": 76.0640419338992,
+        "cpuMs": {
+          "mean": 12.417602997147634,
+          "p50": 12.099999904632568,
+          "p95": 15.199999809265137,
+          "p99": 16.799999952316284,
+          "max": 19.5
+        },
+        "frameMs": {
+          "mean": 13.137969924094982,
+          "p50": 12.700000047683716,
+          "p95": 16.299999952316284,
+          "p99": 17.90000009536743,
+          "max": 21.59999990463257
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.858283912956,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.146943999996225,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.478734081606,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.427687999992393,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.265042999348,
+          "y": 48.91021798128524,
+          "z": 1379.8841472427785
+        }
+      },
+      {
+        "round": 0,
+        "mode": "day-no-traffic",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3508.9000000953674,
+        "frames": 327,
+        "fps": 93.19159850412167,
+        "cpuMs": {
+          "mean": 10.077064215225546,
+          "p50": 9.899999856948853,
+          "p95": 11.200000047683716,
+          "p99": 12.100000143051147,
+          "max": 14
+        },
+        "frameMs": {
+          "mean": 10.7309815956771,
+          "p50": 10.600000143051147,
+          "p95": 12.099999904632568,
+          "p99": 13.900000095367432,
+          "max": 14.600000143051147
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.851457415263,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.147296000003763,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.47086793043,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.428112000007502,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": null
+      },
+      {
+        "round": 0,
+        "mode": "night-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3503.9000000953674,
+        "frames": 235,
+        "fps": 67.06812408847395,
+        "cpuMs": {
+          "mean": 14.239574468896745,
+          "p50": 14.100000143051147,
+          "p95": 15.599999904632568,
+          "p99": 17.90000009536743,
+          "max": 20.09999990463257
+        },
+        "frameMs": {
+          "mean": 14.913675213471437,
+          "p50": 14.799999952316284,
+          "p95": 16.600000143051147,
+          "p99": 18.600000143051147,
+          "max": 21
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.732380917689,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.153392000007614,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.360312621648,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.43397600000388,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -475.0703228832522,
+          "y": 48.92713132614017,
+          "z": 1378.9951182509483
+        }
+      },
+      {
+        "round": 0,
+        "mode": "night-no-lights",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3509.899999856949,
+        "frames": 285,
+        "fps": 81.19889455870982,
+        "cpuMs": {
+          "mean": 11.67228070225632,
+          "p50": 11.599999904632568,
+          "p95": 12.800000190734863,
+          "p99": 14.299999952316284,
+          "max": 17.700000047683716
+        },
+        "frameMs": {
+          "mean": 12.31338028169014,
+          "p50": 12.200000047683716,
+          "p95": 13.600000143051147,
+          "p99": 15.400000095367432,
+          "max": 18.399999856948853
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.832692535989,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.14825600000384,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.452281760192,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.429096000003874,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.50607915625153,
+          "y": 48.91525027683559,
+          "z": 1379.618043325557
+        }
+      },
+      {
+        "round": 0,
+        "mode": "night-no-shadows",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3523.5,
+        "frames": 240,
+        "fps": 68.11409110259684,
+        "cpuMs": {
+          "mean": 13.930833331743877,
+          "p50": 13.700000047683716,
+          "p95": 16.399999856948853,
+          "p99": 17.700000047683716,
+          "max": 20
+        },
+        "frameMs": {
+          "mean": 14.685774057978865,
+          "p50": 14.5,
+          "p95": 17.700000047683716,
+          "p99": 18.799999952316284,
+          "max": 20.59999990463257
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.841682027854,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.147791999988527,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.439061953432,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.42979199998853,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.6252277075043,
+          "y": 48.91773783194766,
+          "z": 1379.486503324974
+        }
+      },
+      {
+        "round": 0,
+        "mode": "night-no-buildings",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3506.699999809265,
+        "frames": 265,
+        "fps": 75.56962386700138,
+        "cpuMs": {
+          "mean": 12.559622653025501,
+          "p50": 12.400000095367432,
+          "p95": 13.900000095367432,
+          "p99": 14.400000095367432,
+          "max": 18
+        },
+        "frameMs": {
+          "mean": 13.232575757936997,
+          "p50": 13.100000143051147,
+          "p95": 14.799999952316284,
+          "p99": 16.699999809265137,
+          "max": 18.700000047683716
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 0,
+          "population": 13549.833768039192,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.148200000000074,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1794,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 0,
+          "population": 13544.45795818717,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.428792000007732,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1793,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.45403725981413,
+          "y": 48.91416375850059,
+          "z": 1379.675497579224
+        }
+      },
+      {
+        "round": 0,
+        "mode": "night-no-bloom",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3512.9000000953674,
+        "frames": 248,
+        "fps": 70.59694269500052,
+        "cpuMs": {
+          "mean": 13.465725803567517,
+          "p50": 13.300000190734863,
+          "p95": 15.099999904632568,
+          "p99": 16.899999856948853,
+          "max": 20.59999990463257
+        },
+        "frameMs": {
+          "mean": 14.167611335453234,
+          "p50": 14,
+          "p95": 15.900000095367432,
+          "p99": 18.299999952316284,
+          "max": 21.299999952316284
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.850929520635,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.14731999999998,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.463039985489,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.428520000000027,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.40747345584856,
+          "y": 48.913191610477185,
+          "z": 1379.7269040188019
+        }
+      },
+      {
+        "round": 0,
+        "mode": "day-moving-camera",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3508.7000000476837,
+        "frames": 270,
+        "fps": 76.95157750629312,
+        "cpuMs": {
+          "mean": 12.322962960490473,
+          "p50": 12.200000047683716,
+          "p95": 13.700000047683716,
+          "p99": 15.300000190734863,
+          "max": 18
+        },
+        "frameMs": {
+          "mean": 12.995910780137356,
+          "p50": 12.900000095367432,
+          "p95": 14.400000095367432,
+          "p99": 15.900000095367432,
+          "max": 19.5
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.847513598334,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.147496000003834,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.467906227026,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.428263999996211,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1873,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -8.464538234235778,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.3636486997508,
+          "y": 48.912276647643644,
+          "z": 1379.7752865495338
+        }
+      },
+      {
+        "round": 1,
+        "mode": "day-moving-camera",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3509.600000143051,
+        "frames": 273,
+        "fps": 77.78664234923426,
+        "cpuMs": {
+          "mean": 12.201098896208263,
+          "p50": 12.100000143051147,
+          "p95": 13.5,
+          "p99": 15.299999952316284,
+          "max": 17.299999952316284
+        },
+        "frameMs": {
+          "mean": 12.856985293767032,
+          "p50": 12.700000047683716,
+          "p95": 14.299999952316284,
+          "p99": 16.899999856948853,
+          "max": 18.299999952316284
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.839560202347,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.147903999996188,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.459640378995,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.428703999996152,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1872,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -8.455538234235778,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.4389724981711,
+          "y": 48.91384923999035,
+          "z": 1379.692129076078
+        }
+      },
+      {
+        "round": 1,
+        "mode": "night-no-bloom",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3521.5999999046326,
+        "frames": 251,
+        "fps": 71.27442071978568,
+        "cpuMs": {
+          "mean": 13.366533863591957,
+          "p50": 13.200000047683716,
+          "p95": 14.599999904632568,
+          "p99": 17.09999990463257,
+          "max": 20.5
+        },
+        "frameMs": {
+          "mean": 14.029199999809265,
+          "p50": 13.900000095367432,
+          "p95": 15.5,
+          "p99": 18.100000143051147,
+          "max": 21.09999990463257
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.849989809618,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.14736799999237,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.451303166696,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.429143999996157,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.51429629659117,
+          "y": 48.91542183233705,
+          "z": 1379.608971602622
+        }
+      },
+      {
+        "round": 1,
+        "mode": "night-no-buildings",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3501.2000000476837,
+        "frames": 262,
+        "fps": 74.83148634651884,
+        "cpuMs": {
+          "mean": 12.699236649593324,
+          "p50": 12.600000143051147,
+          "p95": 13.900000095367432,
+          "p99": 14.799999952316284,
+          "max": 18
+        },
+        "frameMs": {
+          "mean": 13.365517240831222,
+          "p50": 13.299999952316284,
+          "p95": 14.700000047683716,
+          "p99": 16.299999952316284,
+          "max": 18.59999990463257
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 0,
+          "population": 13549.835642114027,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.148103999996245,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1794,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 0,
+          "population": 13544.465480187742,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.428391999988676,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1793,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.3855610761671,
+          "y": 48.912734129026326,
+          "z": 1379.7510952859702
+        }
+      },
+      {
+        "round": 1,
+        "mode": "night-no-shadows",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3507,
+        "frames": 253,
+        "fps": 72.14143142286855,
+        "cpuMs": {
+          "mean": 13.153754937318945,
+          "p50": 12.900000095367432,
+          "p95": 14.600000143051147,
+          "p99": 16.799999952316284,
+          "max": 20.399999856948853
+        },
+        "frameMs": {
+          "mean": 13.861904761147878,
+          "p50": 13.700000047683716,
+          "p95": 15.400000095367432,
+          "p99": 17.5,
+          "max": 21
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.828872234992,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.148448000011413,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.452468049449,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.429080000000013,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.50334010838316,
+          "y": 48.91519309164571,
+          "z": 1379.6210672344037
+        }
+      },
+      {
+        "round": 1,
+        "mode": "night-no-lights",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3520.5999999046326,
+        "frames": 273,
+        "fps": 77.54360052473872,
+        "cpuMs": {
+          "mean": 12.222710613802676,
+          "p50": 12.099999904632568,
+          "p95": 13.799999952316284,
+          "p99": 15.199999809265137,
+          "max": 17.200000047683716
+        },
+        "frameMs": {
+          "mean": 12.896691176821204,
+          "p50": 12.700000047683716,
+          "p95": 14.699999809265137,
+          "p99": 16.09999990463257,
+          "max": 18
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.855166351781,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.14710399999622,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.456624992306,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.428863999996224,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.46636297032387,
+          "y": 48.914421091752786,
+          "z": 1379.6618899948212
+        }
+      },
+      {
+        "round": 1,
+        "mode": "night-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3503.2000000476837,
+        "frames": 233,
+        "fps": 66.51061886184874,
+        "cpuMs": {
+          "mean": 14.317167383406806,
+          "p50": 14.200000047683716,
+          "p95": 16,
+          "p99": 18.299999952316284,
+          "max": 20.09999990463257
+        },
+        "frameMs": {
+          "mean": 15.040086206691019,
+          "p50": 14.800000190734863,
+          "p95": 17,
+          "p99": 19,
+          "max": 21.200000047683716
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.722995467606,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.15387199998854,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.353966935274,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.43431199998856,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.92652290118497,
+          "y": 48.92402820133447,
+          "z": 1379.1538734311505
+        }
+      },
+      {
+        "round": 1,
+        "mode": "day-no-traffic",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3507.899999856949,
+        "frames": 326,
+        "fps": 92.93309387761744,
+        "cpuMs": {
+          "mean": 10.071165639929976,
+          "p50": 9.899999856948853,
+          "p95": 11.299999952316284,
+          "p99": 12.5,
+          "max": 13.799999952316284
+        },
+        "frameMs": {
+          "mean": 10.758153846447284,
+          "p50": 10.599999904632568,
+          "p95": 12.099999904632568,
+          "p99": 13.799999952316284,
+          "max": 15.100000143051147
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.85161020523,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.147288000011415,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.474024218289,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.427944000015238,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": null
+      },
+      {
+        "round": 1,
+        "mode": "day-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3502,
+        "frames": 274,
+        "fps": 78.24100513992005,
+        "cpuMs": {
+          "mean": 12.142700733059515,
+          "p50": 12,
+          "p95": 13.400000095367432,
+          "p99": 16,
+          "max": 20.59999990463257
+        },
+        "frameMs": {
+          "mean": 12.78278388295855,
+          "p50": 12.600000143051147,
+          "p95": 14.5,
+          "p99": 17.799999952316284,
+          "max": 21.09999990463257
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.849073306608,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.147415999984752,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.476488271828,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.427807999992396,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.28558585346246,
+          "y": 48.910646870107065,
+          "z": 1379.8614679318362
+        }
+      },
+      {
+        "round": 1,
+        "mode": "day-paused",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3506.600000143051,
+        "frames": 420,
+        "fps": 119.77414018789317,
+        "cpuMs": {
+          "mean": 7.103571433680398,
+          "p50": 6.900000095367432,
+          "p95": 8,
+          "p99": 8.700000047683716,
+          "max": 14.400000095367432
+        },
+        "frameMs": {
+          "mean": 8.350119331856048,
+          "p50": 8.300000190734863,
+          "p95": 8.700000047683716,
+          "p99": 9.800000190734863,
+          "max": 15.5
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "round": 2,
+        "mode": "day-paused",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3505.9000000953674,
+        "frames": 420,
+        "fps": 119.79805470451957,
+        "cpuMs": {
+          "mean": 7.176666662238893,
+          "p50": 7,
+          "p95": 8.100000143051147,
+          "p99": 8.700000047683716,
+          "max": 12
+        },
+        "frameMs": {
+          "mean": 8.350119331856048,
+          "p50": 8.300000190734863,
+          "p95": 8.899999856948853,
+          "p99": 10.100000143051147,
+          "max": 12.5
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10,
+          "rate": 0,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1898,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      },
+      {
+        "round": 2,
+        "mode": "day-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3503.5,
+        "frames": 286,
+        "fps": 81.63265306122449,
+        "cpuMs": {
+          "mean": 11.608391606724346,
+          "p50": 11.5,
+          "p95": 12.900000095367432,
+          "p99": 14,
+          "max": 16.700000047683716
+        },
+        "frameMs": {
+          "mean": 12.24526315822936,
+          "p50": 12.199999809265137,
+          "p95": 13.800000190734863,
+          "p99": 15,
+          "max": 17.299999952316284
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.824415910094,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.148680000000006,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.455891025385,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.428903999996187,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.4732105883621,
+          "y": 48.9145640546934,
+          "z": 1379.654330224507
+        }
+      },
+      {
+        "round": 2,
+        "mode": "day-no-traffic",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3505.600000143051,
+        "frames": 321,
+        "fps": 91.56777726691611,
+        "cpuMs": {
+          "mean": 10.28130841032367,
+          "p50": 10.099999904632568,
+          "p95": 11.400000095367432,
+          "p99": 12.600000143051147,
+          "max": 14.400000095367432
+        },
+        "frameMs": {
+          "mean": 10.922812499850988,
+          "p50": 10.799999952316284,
+          "p95": 12.200000047683716,
+          "p99": 14.399999856948853,
+          "max": 15.200000047683716
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.859262149279,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.146896000003771,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.481998993177,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 0,
+          "pedestrians": 0,
+          "lights": 0,
+          "hour": 10.427519999999888,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1402,
+          "totalMeshes": 1675
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": null
+      },
+      {
+        "round": 2,
+        "mode": "night-running",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3524.5,
+        "frames": 230,
+        "fps": 65.25748333096894,
+        "cpuMs": {
+          "mean": 14.6391304316728,
+          "p50": 14.400000095367432,
+          "p95": 16.700000047683716,
+          "p99": 17.899999856948853,
+          "max": 21.600000143051147
+        },
+        "frameMs": {
+          "mean": 15.328384279684208,
+          "p50": 15.099999904632568,
+          "p95": 17.700000047683716,
+          "p99": 19.199999809265137,
+          "max": 22.40000009536743
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.708806181205,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.15459999999998,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.309155898505,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.436696000003778,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -475.39353045334906,
+          "y": 48.93411489468959,
+          "z": 1378.6382970935613
+        }
+      },
+      {
+        "round": 2,
+        "mode": "night-no-lights",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3517.600000143051,
+        "frames": 282,
+        "fps": 80.16829656258012,
+        "cpuMs": {
+          "mean": 11.808510634070593,
+          "p50": 11.600000143051147,
+          "p95": 13.199999809265137,
+          "p99": 14.699999809265137,
+          "max": 17.700000047683716
+        },
+        "frameMs": {
+          "mean": 12.47259786459899,
+          "p50": 12.300000190734863,
+          "p95": 14.099999904632568,
+          "p99": 15.5,
+          "max": 18.299999952316284
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.828154620018,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.148487999992405,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.43405882655,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 22.43006399999627,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.67179151146985,
+          "y": 48.91870997997107,
+          "z": 1379.435096885396
+        }
+      },
+      {
+        "round": 2,
+        "mode": "night-no-shadows",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3513.4000000953674,
+        "frames": 242,
+        "fps": 68.87914840138646,
+        "cpuMs": {
+          "mean": 13.863223140889948,
+          "p50": 13.700000047683716,
+          "p95": 15.400000095367432,
+          "p99": 16.700000047683716,
+          "max": 20
+        },
+        "frameMs": {
+          "mean": 14.521576763683335,
+          "p50": 14.400000095367432,
+          "p95": 16.200000047683716,
+          "p99": 18.199999809265137,
+          "max": 20.700000047683716
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.86263416823,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.146720000000037,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.473862715548,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.427943999996174,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.3088677554456,
+          "y": 48.911132944118776,
+          "z": 1379.8357647120467
+        }
+      },
+      {
+        "round": 2,
+        "mode": "night-no-buildings",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3519.9000000953674,
+        "frames": 263,
+        "fps": 74.71803176024157,
+        "cpuMs": {
+          "mean": 12.746007608370183,
+          "p50": 12.599999904632568,
+          "p95": 13.900000095367432,
+          "p99": 14.599999904632568,
+          "max": 18.299999952316284
+        },
+        "frameMs": {
+          "mean": 13.381297710287662,
+          "p50": 13.299999952316284,
+          "p95": 14.799999952316284,
+          "p99": 16,
+          "max": 18.90000009536743
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 0,
+          "population": 13549.859531806822,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.14687999999999,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1794,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 0,
+          "population": 13544.462325220322,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.428560000000004,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1793,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.41432107388664,
+          "y": 48.91333457341779,
+          "z": 1379.719344248488
+        }
+      },
+      {
+        "round": 2,
+        "mode": "night-no-bloom",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3514,
+        "frames": 244,
+        "fps": 69.43653955606146,
+        "cpuMs": {
+          "mean": 13.774590163934427,
+          "p50": 13.600000143051147,
+          "p95": 15.299999952316284,
+          "p99": 17,
+          "max": 21.300000190734863
+        },
+        "frameMs": {
+          "mean": 14.401234567901234,
+          "p50": 14.299999952316284,
+          "p95": 16,
+          "p99": 18.100000143051147,
+          "max": 22
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.856389949779,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.147039999999997,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.466491564473,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 642,
+          "hour": 22.42833599998474,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1819,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -9.27453823423581,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.3759744102609,
+          "y": 48.91253398089585,
+          "z": 1379.7616789651306
+        }
+      },
+      {
+        "round": 2,
+        "mode": "day-moving-camera",
+        "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+        "elapsed": 3508.2999999523163,
+        "frames": 270,
+        "fps": 76.96035116827801,
+        "cpuMs": {
+          "mean": 12.352962957488167,
+          "p50": 12.299999952316284,
+          "p95": 13.699999809265137,
+          "p99": 15.599999904632568,
+          "max": 17.600000143051147
+        },
+        "frameMs": {
+          "mean": 12.997026022482096,
+          "p50": 12.899999856948853,
+          "p95": 14.5,
+          "p99": 16.799999952316284,
+          "max": 18.300000190734863
+        },
+        "longTasks": [],
+        "before": {
+          "buildings": 1287,
+          "population": 13549.834544009544,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.148160000000082,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1820,
+          "totalMeshes": 2650
+        },
+        "after": {
+          "buildings": 1287,
+          "population": 13544.452693372594,
+          "states": {
+            "working": 1274,
+            "rising": 13
+          },
+          "cars": 166,
+          "pedestrians": 311,
+          "lights": 0,
+          "hour": 10.429071999988658,
+          "rate": 1,
+          "wave": "waiting",
+          "rubble": 0,
+          "activeMeshes": 1873,
+          "totalMeshes": 2650
+        },
+        "camera": {
+          "targetX": -1007.6628208379182,
+          "targetY": 12.56372462118857,
+          "targetZ": -286.78926856592733,
+          "alpha": -8.464538234235778,
+          "beta": 0.9980139603850843,
+          "radius": 875.9952048927407
+        },
+        "vehicle": {
+          "x": -474.50197058281634,
+          "y": 48.91516449901668,
+          "z": 1379.6225791906295
+        }
+      }
+    ],
+    "cpuProfileTop": [
+      {
+        "us": 1169969,
+        "functionName": "(program)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      },
+      {
+        "us": 731859,
+        "functionName": "_evaluateActiveMeshes",
+        "scriptId": "128",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/scene.pure-CQbsjT-6.js?v=4aa59761",
+        "lineNumber": 5522,
+        "columnNumber": 22
+      },
+      {
+        "us": 542858,
+        "functionName": "",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 40,
+        "columnNumber": 42
+      },
+      {
+        "us": 415703,
+        "functionName": "_renderForCamera",
+        "scriptId": "128",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/scene.pure-CQbsjT-6.js?v=4aa59761",
+        "lineNumber": 5670,
+        "columnNumber": 17
+      },
+      {
+        "us": 365957,
+        "functionName": "key",
+        "scriptId": "35",
+        "url": "http://127.0.0.1:5187/src/sim/rubble.ts",
+        "lineNumber": 51,
+        "columnNumber": 12
+      },
+      {
+        "us": 355964,
+        "functionName": "sync",
+        "scriptId": "32",
+        "url": "http://127.0.0.1:5187/src/sim/buildingLifecycle.ts",
+        "lineNumber": 42,
+        "columnNumber": 5
+      },
+      {
+        "us": 292281,
+        "functionName": "render",
+        "scriptId": "143",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/mesh.pure-DKPZfmOO.js?v=4aa59761",
+        "lineNumber": 4937,
+        "columnNumber": 7
+      },
+      {
+        "us": 280211,
+        "functionName": "",
+        "scriptId": "35",
+        "url": "http://127.0.0.1:5187/src/sim/rubble.ts",
+        "lineNumber": 19,
+        "columnNumber": 27
+      },
+      {
+        "us": 236639,
+        "functionName": "render",
+        "scriptId": "194",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/subMesh.pure-COcnWxat.js?v=4aa59761",
+        "lineNumber": 416,
+        "columnNumber": 7
+      },
+      {
+        "us": 199737,
+        "functionName": "allocateWorkforce",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 27,
+        "columnNumber": 33
+      },
+      {
+        "us": 147577,
+        "functionName": "",
+        "scriptId": "32",
+        "url": "http://127.0.0.1:5187/src/sim/buildingLifecycle.ts",
+        "lineNumber": 52,
+        "columnNumber": 31
+      },
+      {
+        "us": 130683,
+        "functionName": "_RenderSorted",
+        "scriptId": "178",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/renderingManager-CAdukuug.js?v=4aa59761",
+        "lineNumber": 306,
+        "columnNumber": 21
+      },
+      {
+        "us": 124414,
+        "functionName": "_updateLightData",
+        "scriptId": "95",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/@babylonjs_core_Lights_Clustered_clusteredLightContainer.js?v=4aa59761",
+        "lineNumber": 750,
+        "columnNumber": 18
+      },
+      {
+        "us": 115112,
+        "functionName": "ComputeNormals",
+        "scriptId": "137",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/mesh.vertexData-DDXD5A-s.js?v=4aa59761",
+        "lineNumber": 1095,
+        "columnNumber": 23
+      },
+      {
+        "us": 108319,
+        "functionName": "_update",
+        "scriptId": "150",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/boundingInfo-C2njc4Na.js?v=4aa59761",
+        "lineNumber": 115,
+        "columnNumber": 8
+      },
+      {
+        "us": 97496,
+        "functionName": "computeWorldMatrix",
+        "scriptId": "144",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/transformNode.pure-C_rpu57i.js?v=4aa59761",
+        "lineNumber": 830,
+        "columnNumber": 20
+      },
+      {
+        "us": 93224,
+        "functionName": "",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 40,
+        "columnNumber": 42
+      },
+      {
+        "us": 76725,
+        "functionName": "",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 40,
+        "columnNumber": 42
+      },
+      {
+        "us": 74416,
+        "functionName": "",
+        "scriptId": "10",
+        "url": "http://127.0.0.1:5187/src/app/app.ts",
+        "lineNumber": 361,
+        "columnNumber": 186
+      },
+      {
+        "us": 69055,
+        "functionName": "(garbage collector)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      },
+      {
+        "us": 66616,
+        "functionName": "_activeMesh",
+        "scriptId": "128",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/scene.pure-CQbsjT-6.js?v=4aa59761",
+        "lineNumber": 5620,
+        "columnNumber": 12
+      },
+      {
+        "us": 65568,
+        "functionName": "allocateWorkforce",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 27,
+        "columnNumber": 33
+      },
+      {
+        "us": 64588,
+        "functionName": "isReadyForSubMesh",
+        "scriptId": "67",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/@babylonjs_core_Materials_standardMaterial.js?v=4aa59761",
+        "lineNumber": 902,
+        "columnNumber": 19
+      },
+      {
+        "us": 64379,
+        "functionName": "getWorldMatrix",
+        "scriptId": "170",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/node-B6Vbp9t0.js?v=4aa59761",
+        "lineNumber": 362,
+        "columnNumber": 16
+      },
+      {
+        "us": 63858,
+        "functionName": "blocks",
+        "scriptId": "35",
+        "url": "http://127.0.0.1:5187/src/sim/rubble.ts",
+        "lineNumber": 18,
+        "columnNumber": 7
+      },
+      {
+        "us": 61405,
+        "functionName": "_cacheFloat4",
+        "scriptId": "149",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/abstractEngine.pure-CyQ3_kuk.js?v=4aa59761",
+        "lineNumber": 174,
+        "columnNumber": 13
+      },
+      {
+        "us": 56512,
+        "functionName": "syncBuildings",
+        "scriptId": "10",
+        "url": "http://127.0.0.1:5187/src/app/app.ts",
+        "lineNumber": 358,
+        "columnNumber": 23
+      },
+      {
+        "us": 56359,
+        "functionName": "",
+        "scriptId": "10",
+        "url": "http://127.0.0.1:5187/src/app/app.ts",
+        "lineNumber": 1084,
+        "columnNumber": 61
+      },
+      {
+        "us": 53385,
+        "functionName": "PainterSortCompare",
+        "scriptId": "178",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/renderingManager-CAdukuug.js?v=4aa59761",
+        "lineNumber": 381,
+        "columnNumber": 26
+      },
+      {
+        "us": 50456,
+        "functionName": "allocateWorkforce",
+        "scriptId": "90",
+        "url": "http://127.0.0.1:5187/src/sim/workforce.ts",
+        "lineNumber": 27,
+        "columnNumber": 33
+      },
+      {
+        "us": 48723,
+        "functionName": "isReady",
+        "scriptId": "141",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/instancedMesh.pure-B1e0Rnhq.js?v=4aa59761",
+        "lineNumber": 142,
+        "columnNumber": 8
+      },
+      {
+        "us": 48159,
+        "functionName": "beforeRender",
+        "scriptId": "23",
+        "url": "http://127.0.0.1:5187/src/render/ground.ts",
+        "lineNumber": 335,
+        "columnNumber": 22
+      },
+      {
+        "us": 48055,
+        "functionName": "beforeRender",
+        "scriptId": "92",
+        "url": "http://127.0.0.1:5187/src/render/trafficMovers.ts",
+        "lineNumber": 452,
+        "columnNumber": 22
+      },
+      {
+        "us": 43482,
+        "functionName": "round",
+        "scriptId": "114",
+        "url": "http://127.0.0.1:5187/src/ui/ledger.ts",
+        "lineNumber": 0,
+        "columnNumber": 14
+      },
+      {
+        "us": 42074,
+        "functionName": "_renderWithInstances",
+        "scriptId": "143",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/mesh.pure-DKPZfmOO.js?v=4aa59761",
+        "lineNumber": 4770,
+        "columnNumber": 21
+      },
+      {
+        "us": 40951,
+        "functionName": "(idle)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      },
+      {
+        "us": 40535,
+        "functionName": "get effect",
+        "scriptId": "194",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/subMesh.pure-COcnWxat.js?v=4aa59761",
+        "lineNumber": 162,
+        "columnNumber": 11
+      },
+      {
+        "us": 39175,
+        "functionName": "computeWorldMatrix",
+        "scriptId": "144",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/transformNode.pure-C_rpu57i.js?v=4aa59761",
+        "lineNumber": 830,
+        "columnNumber": 20
+      },
+      {
+        "us": 39123,
+        "functionName": "bindForSubMesh",
+        "scriptId": "67",
+        "url": "http://127.0.0.1:5187/node_modules/.vite/deps/@babylonjs_core_Materials_standardMaterial.js?v=4aa59761",
+        "lineNumber": 1311,
+        "columnNumber": 16
+      },
+      {
+        "us": 39065,
+        "functionName": "pointAt",
+        "scriptId": "31",
+        "url": "http://127.0.0.1:5187/src/sim/graph.ts",
+        "lineNumber": 180,
+        "columnNumber": 8
+      }
+    ],
+    "rebuilds": [
+      {
+        "round": 0,
+        "dirty": false,
+        "ms": 340.2000000476837,
+        "timings": {
+          "parcels": 13.200000047683716,
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.2999999523162842,
+          "heightmap": 7.1000001430511475,
+          "ground": 191.39999985694885,
+          "trees": 12.299999952316284,
+          "worldGrid": 0,
+          "roads": 69.10000014305115,
+          "streetlights": 1.2000000476837158,
+          "traffic": 12,
+          "signals": 6.199999809265137,
+          "zones": 4.5,
+          "rubble": 0,
+          "utilities": 6.900000095367432,
+          "buildings": 15.799999952316284
+        }
+      },
+      {
+        "round": 0,
+        "dirty": true,
+        "ms": 36.5,
+        "timings": {
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.2999999523162842,
+          "heightmap": 1.9000000953674316,
+          "ground": 0.5,
+          "trees": 3.3999998569488525,
+          "worldGrid": 0,
+          "roads": 14.600000143051147,
+          "streetlights": 0.8999998569488525,
+          "traffic": 2.3000001907348633,
+          "signals": 0.7999999523162842,
+          "zones": 4.700000047683716,
+          "rubble": 0.09999990463256836,
+          "utilities": 7
+        }
+      },
+      {
+        "round": 1,
+        "dirty": false,
+        "ms": 327.5,
+        "timings": {
+          "parcels": 11.900000095367432,
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.2999999523162842,
+          "heightmap": 7.700000047683716,
+          "ground": 191.59999990463257,
+          "trees": 10.200000047683716,
+          "worldGrid": 0,
+          "roads": 62.59999990463257,
+          "streetlights": 1.2000000476837158,
+          "traffic": 10.400000095367432,
+          "signals": 5.599999904632568,
+          "zones": 4.400000095367432,
+          "rubble": 0.09999990463256836,
+          "utilities": 6.799999952316284,
+          "buildings": 14.600000143051147
+        }
+      },
+      {
+        "round": 1,
+        "dirty": true,
+        "ms": 33.09999990463257,
+        "timings": {
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.2999999523162842,
+          "heightmap": 0.9000000953674316,
+          "ground": 0.39999985694885254,
+          "trees": 3.1000001430511475,
+          "worldGrid": 0.09999990463256836,
+          "roads": 13.200000047683716,
+          "streetlights": 1.0999999046325684,
+          "traffic": 1.9000000953674316,
+          "signals": 0.7000000476837158,
+          "zones": 4.5,
+          "rubble": 0,
+          "utilities": 6.8999998569488525
+        }
+      },
+      {
+        "round": 2,
+        "dirty": false,
+        "ms": 326.40000009536743,
+        "timings": {
+          "parcels": 12.200000047683716,
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.2999999523162842,
+          "heightmap": 7.400000095367432,
+          "ground": 190.90000009536743,
+          "trees": 10.099999904632568,
+          "worldGrid": 0,
+          "roads": 62.299999952316284,
+          "streetlights": 0.9000000953674316,
+          "traffic": 7.799999952316284,
+          "signals": 5.700000047683716,
+          "zones": 7.799999952316284,
+          "rubble": 0.09999990463256836,
+          "utilities": 7,
+          "buildings": 13.800000190734863
+        }
+      },
+      {
+        "round": 2,
+        "dirty": true,
+        "ms": 30.200000047683716,
+        "timings": {
+          "allJunctionsCalls": 1,
+          "allJunctions": 0.20000004768371582,
+          "heightmap": 1,
+          "ground": 0.5,
+          "trees": 2.799999952316284,
+          "worldGrid": 0.09999990463256836,
+          "roads": 9.400000095367432,
+          "streetlights": 0.9000000953674316,
+          "traffic": 2.0999999046325684,
+          "signals": 0.5999999046325684,
+          "zones": 5.700000047683716,
+          "rubble": 0,
+          "utilities": 6.900000095367432
+        }
+      }
+    ]
+  },
+  "focus": {
+    "at": "2026-09-05T07:38:26.609Z",
+    "cpu": {
+      "sync": {
+        "calls": 979,
+        "ms": 2079.6999995708466,
+        "max": 2.9000000953674316
+      },
+      "sort": {
+        "calls": 2939,
+        "ms": 1519.9999997615814
+      },
+      "hud": {
+        "calls": 1958,
+        "nodes": 44055
+      },
+      "uploads": {
+        "roofprop_rubble_explosion": {
+          "calls": 979,
+          "bytes": 0,
+          "ms": 32.49999976158142
+        },
+        "building_lot_2x1": {
+          "calls": 20,
+          "bytes": 800,
+          "ms": 0.6999998092651367
+        },
+        "building_lot_2x3": {
+          "calls": 20,
+          "bytes": 48000,
+          "ms": 0.40000009536743164
+        },
+        "building_lot_1x3": {
+          "calls": 20,
+          "bytes": 92000,
+          "ms": 0.2999997138977051
+        },
+        "building_lot_2x2": {
+          "calls": 20,
+          "bytes": 42400,
+          "ms": 0.09999990463256836
+        },
+        "building_lot_1x2": {
+          "calls": 20,
+          "bytes": 800,
+          "ms": 0.5000004768371582
+        },
+        "building_lot_1x1": {
+          "calls": 20,
+          "bytes": 419200,
+          "ms": 0.8000004291534424
+        },
+        "building_lot_3x4": {
+          "calls": 20,
+          "bytes": 8800,
+          "ms": 0.09999990463256836
+        },
+        "building_lot_3x2": {
+          "calls": 20,
+          "bytes": 20800,
+          "ms": 0.09999990463256836
+        },
+        "building_lot_2x4": {
+          "calls": 20,
+          "bytes": 15200,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_3x3": {
+          "calls": 20,
+          "bytes": 31200,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_4x1": {
+          "calls": 20,
+          "bytes": 36000,
+          "ms": 0.40000033378601074
+        },
+        "building_lot_4x2": {
+          "calls": 20,
+          "bytes": 10400,
+          "ms": 0
+        },
+        "building_lot_4x4": {
+          "calls": 20,
+          "bytes": 11200,
+          "ms": 0.19999980926513672
+        },
+        "building_lot_4x3": {
+          "calls": 20,
+          "bytes": 23200,
+          "ms": 0.20000004768371582
+        },
+        "building_farm_2x4": {
+          "calls": 20,
+          "bytes": 43200,
+          "ms": 0.19999980926513672
+        },
+        "building_farm_1x4": {
+          "calls": 20,
+          "bytes": 71200,
+          "ms": 0.40000009536743164
+        },
+        "building_farm_3x4": {
+          "calls": 20,
+          "bytes": 25600,
+          "ms": 0.20000028610229492
+        },
+        "building_farm_4x4": {
+          "calls": 20,
+          "bytes": 18400,
+          "ms": 0
+        },
+        "building_industrial_1x4": {
+          "calls": 20,
+          "bytes": 41600,
+          "ms": 0.39999961853027344
+        },
+        "building_industrial_2x4": {
+          "calls": 20,
+          "bytes": 23200,
+          "ms": 0.10000014305114746
+        },
+        "building_industrial_3x4": {
+          "calls": 20,
+          "bytes": 8000,
+          "ms": 0
+        },
+        "building_industrial_4x4": {
+          "calls": 20,
+          "bytes": 4000,
+          "ms": 0.09999990463256836
+        },
+        "building_military_2x4": {
+          "calls": 20,
+          "bytes": 24800,
+          "ms": 0.3000001907348633
+        },
+        "building_military_3x4": {
+          "calls": 20,
+          "bytes": 9600,
+          "ms": 0
+        },
+        "building_distant": {
+          "calls": 20,
+          "bytes": 1029600,
+          "ms": 1.500000238418579
+        },
+        "tree_ground_shadows": {
+          "calls": 57,
+          "bytes": 9222144,
+          "ms": 17.00000023841858
+        }
+      },
+      "callbacks": [
+        {
+          "name": "() => {\n\t\tif (held.size === 0) return;\n\t\tconst forward = camera.getDirection(Vector3.Forward());\n\t\tconst right = camera.getDirection(Vector3.Right());",
+          "calls": 979,
+          "ms": 0.7999997138977051,
+          "max": 0.10000014305114746
+        },
+        {
+          "name": "() => this._computeShadowCastersBoundingInfo()",
+          "calls": 979,
+          "ms": 14.099997282028198,
+          "max": 0.20000004768371582
+        },
+        {
+          "name": "() => {\n\t\tsunDisc.position.copyFrom(camera.position).addInPlace(sunVector.scale(6500));\n\t\tmoonDisc.position.copyFrom(camera.position).addInPlace(sunVe",
+          "calls": 979,
+          "ms": 0.9000000953674316,
+          "max": 0.10000014305114746
+        },
+        {
+          "name": "() => {\n\t\t\tconst key = `${camera.alpha.toFixed(4)},${camera.beta.toFixed(4)},${camera.radius.toFixed(2)},${camera.target.x.toFixed(2)},${camera.target",
+          "calls": 979,
+          "ms": 3.1000001430511475,
+          "max": 0.10000014305114746
+        },
+        {
+          "name": "() => {\n\t\tconst now = performance.now();\n\t\tif (now - lastWave < WAVE_INTERVAL_MS) return;\n\t\tlastWave = now;\n\t\tconst t = now / 1e3;\n\t\tconst current = m",
+          "calls": 979,
+          "ms": 336.0000011920929,
+          "max": 1.7000000476837158
+        },
+        {
+          "name": "() => {\n\t\tif (!state.enabled || state.paused || movers.length === 0) return;\n\t\tconst dt = Math.min(MAX_STEP_S, frameDelta() / 1e3 * state.timeScale);\n",
+          "calls": 979,
+          "ms": 406.3000042438507,
+          "max": 1.1000001430511475
+        },
+        {
+          "name": "() => {\n\t\tif (paused) return;\n\t\tsimTime += frameDelta() / 1e3 * timeScale;\n\t\tupdate(simTime);\n\t}",
+          "calls": 979,
+          "ms": 40.79999780654907,
+          "max": 0.20000004768371582
+        },
+        {
+          "name": "() => {\n\t\tconst dt = frameDelta() / 1e3;\n\t\tconst simDt = dt * timeRate;\n\t\tadvanceClock(simDt);\n\t\tif (simDt > 0 && currentParcels.length) {\n\t\t\t// Only ",
+          "calls": 979,
+          "ms": 4425.900000572205,
+          "max": 12.299999952316284
+        }
+      ],
+      "states": {
+        "working": 1274,
+        "rising": 13
+      }
+    },
+    "longRun": {
+      "elapsed": 30022.099999904633,
+      "frames": 2354,
+      "p95": 14.200000047683716,
+      "p99": 16.100000143051147,
+      "max": 51.5,
+      "tasks": [
+        {
+          "start": 0.09999990463256836,
+          "duration": 50
+        },
+        {
+          "start": 15409.599999904633,
+          "duration": 51
+        }
+      ],
+      "states": {
+        "working": 1287
+      },
+      "population": 13599.112768813588
+    },
+    "wave": {
+      "initial": {
+        "ms": 438.90000009536743,
+        "rubble": 0,
+        "wave": "active"
+      },
+      "setupMs": 439,
+      "elapsed": 12005.899999856949,
+      "frames": 879,
+      "p95": 15.299999952316284,
+      "p99": 17.90000009536743,
+      "max": 24.5,
+      "longTasks": [],
+      "before": {
+        "wave": "active",
+        "rubble": 0,
+        "missiles": 1
+      },
+      "after": {
+        "wave": "active",
+        "rubble": 0,
+        "missiles": 13
+      }
+    }
+  },
+  "rubbleAB": [
+    {
+      "round": 0,
+      "guard": false,
+      "fps": 77.48062984253937,
+      "cpuMs": 12.163548384943317,
+      "frames": 310,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.721105317685
+    },
+    {
+      "round": 0,
+      "guard": true,
+      "fps": 88.44927247569144,
+      "cpuMs": 10.64676056244004,
+      "frames": 355,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.720899293865
+    },
+    {
+      "round": 1,
+      "guard": true,
+      "fps": 88.52205570760817,
+      "cpuMs": 10.64309858940017,
+      "frames": 355,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.715053555463
+    },
+    {
+      "round": 1,
+      "guard": false,
+      "fps": 79.56699590846202,
+      "cpuMs": 11.871473352737187,
+      "frames": 319,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.670058720363
+    },
+    {
+      "round": 2,
+      "guard": false,
+      "fps": 78.10745389756805,
+      "cpuMs": 12.102236427819005,
+      "frames": 313,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.727411277316
+    },
+    {
+      "round": 2,
+      "guard": true,
+      "fps": 85.57030236299755,
+      "cpuMs": 11.036443145907654,
+      "frames": 343,
+      "rubble": 0,
+      "buildings": 1287,
+      "population": 13543.722379488376
+    }
+  ],
+  "waveDestruction": {
+    "initial": {
+      "ms": 620.8000001907349,
+      "rubble": 1,
+      "wave": "active"
+    },
+    "elapsed": 20029.5,
+    "fps": 68.54889038667964,
+    "p95": 16.299999952316284,
+    "p99": 21.600000143051147,
+    "max": 55.90000009536743,
+    "tasks": [
+      {
+        "time": 20,
+        "ms": 50
+      },
+      {
+        "time": 11235,
+        "ms": 55
+      },
+      {
+        "time": 17229.10000014305,
+        "ms": 55
+      }
+    ],
+    "events": [
+      {
+        "time": 5252,
+        "rubble": 7,
+        "wave": "active"
+      },
+      {
+        "time": 11317.299999952316,
+        "rubble": 19,
+        "wave": "active"
+      },
+      {
+        "time": 17311.299999952316,
+        "rubble": 23,
+        "wave": "active"
+      }
+    ],
+    "after": {
+      "wave": "active",
+      "rubble": 23,
+      "buildings": 1287
+    }
+  }
+}

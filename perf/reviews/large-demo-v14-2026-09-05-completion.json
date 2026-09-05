@@ -1,0 +1,6104 @@
+{
+  "schema": 1,
+  "at": "2026-09-05T07:55:39.085Z",
+  "applicationCommit": "5a5cbd2",
+  "applicationSourcesModified": false,
+  "fixture": {
+    "path": "perf/cities/ma-ville.json",
+    "label": "large-demo-v14",
+    "sha256": "2af5975a819a80e4ae2427655eeb9ffc742ac168793ba5e14c08a5fe69c3e052"
+  },
+  "methodology": {
+    "browser": "Headed Chromium, same ANGLE Metal Apple M3 Pro setup as earlier review",
+    "settings": "Fresh localStorage on each navigation, supplied save preserved except kaijuSpawns=false, Max frame cap, toolbar collapsed",
+    "gameplayServer": "Vite development server",
+    "startupServer": "Fresh production build through Vite preview",
+    "interactions": "100 sinusoidal pointer moves, >=15 ms wait between moves; zone painting four real clicks >=600 ms apart; full elapsed frame counts, wrapping scene.pick and pointer callbacks",
+    "confirmation": "Two additional road-preview runs; frame windows 3.5 s while pointer workload continues, pick statistics cover all 100 moves",
+    "display": "Two rounds, fresh page per configuration, 1.8 s warmup then full 3.5 s frame window; screenshots inspected for street and retina framing",
+    "memory": "Explicit CDP HeapProfiler.collectGarbage before Runtime.getHeapUsage; in-page named loads explicitly select Review and assert 1287 buildings",
+    "soak": "Five actual road-create/bulldoze/restore cycles, then three one-minute x4 windows, forced GC between windows excluded from frame statistics, then pause 2.5 s to allow save timer",
+    "loading": "Two cleared-cache loads, one reload after warming same page, one cleared-cache 10 Mbit/s/40 ms network +4x CPU-throttled desktop load. Ready: 28 models and 1287 buildings. First WebGL draw is not complete readiness.",
+    "limitations": [
+      "No real mobile device, GPU-memory-byte accounting, hour-long soak or repeated extended combat session.",
+      "Display configurations differ in aspect ratio as well as pixels.",
+      "Single-run long-window maxima are observations, not stable percentiles across sessions.",
+      "Runtime wrappers add overhead; method upload duration excludes matrix preparation."
+    ]
+  },
+  "discarded": "Initial named-load test selected Demo instead of Review. Its load/edit/bulldoze results are excluded; repeated-load and edit evidence below explicitly uses the supplied reference.",
+  "interactions": [
+    {
+      "name": "running-still",
+      "elapsed": 4007.5,
+      "fps": 74.85963817841547,
+      "frame": {
+        "count": 299,
+        "mean": 13.322742474916389,
+        "p95": 15.200000047683716,
+        "max": 18.700000047683716
+      },
+      "picking": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pointer": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "longTasks": [],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1274,
+          "rising": 13
+        },
+        "segments": 132,
+        "population": 13546.357902760155,
+        "rate": 1,
+        "zones": 8327
+      }
+    },
+    {
+      "name": "select-pointer",
+      "elapsed": 2680.7000000476837,
+      "fps": 74.98041556176545,
+      "frame": {
+        "count": 200,
+        "mean": 13.295499999523162,
+        "p95": 14.900000095367432,
+        "max": 17.200000047683716
+      },
+      "picking": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pointer": {
+        "count": 200,
+        "mean": 0.0025000011920928954,
+        "p95": 0,
+        "max": 0.10000014305114746
+      },
+      "longTasks": [],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1274,
+          "rising": 13
+        },
+        "segments": 132,
+        "population": 13548.412975007726,
+        "rate": 1,
+        "zones": 8327
+      }
+    },
+    {
+      "name": "road-preview",
+      "elapsed": 4714.299999952316,
+      "fps": 42.21199329741697,
+      "frame": {
+        "count": 198,
+        "mean": 23.71262626214461,
+        "p95": 35.700000047683716,
+        "max": 44.299999952316284
+      },
+      "picking": {
+        "count": 100,
+        "mean": 19.309000000953674,
+        "p95": 19.899999856948853,
+        "max": 20
+      },
+      "pointer": {
+        "count": 200,
+        "mean": 10.46250000357628,
+        "p95": 21.40000009536743,
+        "max": 22.09999990463257
+      },
+      "longTasks": [],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1274,
+          "rising": 13
+        },
+        "segments": 132,
+        "population": 13544.735500974257,
+        "rate": 1,
+        "zones": 8327
+      }
+    },
+    {
+      "name": "zone-pointer",
+      "elapsed": 4347.400000095367,
+      "fps": 46.004508440818114,
+      "frame": {
+        "count": 199,
+        "mean": 21.750753769323456,
+        "p95": 32.5,
+        "max": 50.90000009536743
+      },
+      "picking": {
+        "count": 100,
+        "mean": 18.431000020503998,
+        "p95": 18.799999952316284,
+        "max": 27.300000190734863
+      },
+      "pointer": {
+        "count": 200,
+        "mean": 9.250500013828278,
+        "p95": 18.799999952316284,
+        "max": 27.699999809265137
+      },
+      "longTasks": [
+        {
+          "time": 19.299999952316284,
+          "ms": 50
+        }
+      ],
+      "stats": {
+        "buildings": 0,
+        "states": {
+          "working": 1274,
+          "rising": 13
+        },
+        "segments": 132,
+        "population": 13545.087801132804,
+        "rate": 1,
+        "zones": 8327
+      }
+    },
+    {
+      "name": "zone-paint",
+      "elapsed": 2780,
+      "fps": 57.194244604316545,
+      "frame": {
+        "count": 158,
+        "mean": 17.517721520194524,
+        "p95": 97.29999995231628,
+        "max": 134.39999985694885
+      },
+      "picking": {
+        "count": 16,
+        "mean": 18.85624998807907,
+        "p95": 19.59999990463257,
+        "max": 19.59999990463257
+      },
+      "pointer": {
+        "count": 32,
+        "mean": 5.831250011920929,
+        "p95": 27.700000047683716,
+        "max": 27.90000009536743
+      },
+      "longTasks": [
+        {
+          "time": 11.900000095367432,
+          "ms": 85
+        },
+        {
+          "time": 355.2999999523163,
+          "ms": 98
+        },
+        {
+          "time": 699.9000000953674,
+          "ms": 84
+        },
+        {
+          "time": 1040.2000000476837,
+          "ms": 98
+        },
+        {
+          "time": 1388.7999999523163,
+          "ms": 84
+        },
+        {
+          "time": 1731.2999999523163,
+          "ms": 116
+        },
+        {
+          "time": 2088.2000000476837,
+          "ms": 86
+        },
+        {
+          "time": 2428.2999999523163,
+          "ms": 98
+        }
+      ],
+      "stats": {
+        "buildings": 0,
+        "states": {
+          "working": 1270,
+          "rising": 15
+        },
+        "segments": 132,
+        "population": 13540.929062855055,
+        "rate": 1,
+        "zones": 8329
+      }
+    },
+    {
+      "name": "vehicle-follow",
+      "elapsed": 4004.7000000476837,
+      "fps": 73.16403226122088,
+      "frame": {
+        "count": 292,
+        "mean": 13.670205479615355,
+        "p95": 15.400000095367432,
+        "max": 18.09999990463257
+      },
+      "picking": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pointer": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "longTasks": [],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1274,
+          "rising": 13
+        },
+        "segments": 132,
+        "population": 13545.729722112328,
+        "rate": 1,
+        "zones": 8327
+      }
+    }
+  ],
+  "fullRebuildLifetime": [
+    {
+      "name": "baseline",
+      "usedHeap": 147056736,
+      "meshes": 2650,
+      "materials": 610,
+      "textures": 11,
+      "geometries": 1040,
+      "lights": 4,
+      "beforeRender": 8,
+      "internalTextures": 13,
+      "buildings": 1287
+    },
+    {
+      "name": "rebuild-1",
+      "usedHeap": 148196204,
+      "meshes": 2650,
+      "materials": 610,
+      "textures": 11,
+      "geometries": 1040,
+      "lights": 4,
+      "beforeRender": 8,
+      "internalTextures": 13,
+      "buildings": 1287
+    },
+    {
+      "name": "rebuild-5",
+      "usedHeap": 149054880,
+      "meshes": 2650,
+      "materials": 610,
+      "textures": 11,
+      "geometries": 1040,
+      "lights": 4,
+      "beforeRender": 8,
+      "internalTextures": 13,
+      "buildings": 1287
+    },
+    {
+      "name": "rebuild-10",
+      "usedHeap": 149470776,
+      "meshes": 2650,
+      "materials": 610,
+      "textures": 11,
+      "geometries": 1040,
+      "lights": 4,
+      "beforeRender": 8,
+      "internalTextures": 13,
+      "buildings": 1287
+    }
+  ],
+  "speed": [
+    {
+      "rate": 1,
+      "elapsed": 30047.799999952316,
+      "fps": 73.68259905894986,
+      "frame": {
+        "count": 2213,
+        "mean": 13.536737460439365,
+        "p95": 17.799999952316284,
+        "max": 50.200000047683716
+      },
+      "picking": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pointer": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "longTasks": [
+        {
+          "time": 36.5,
+          "ms": 54
+        },
+        {
+          "time": 15447,
+          "ms": 50
+        }
+      ],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1287
+        },
+        "segments": 132,
+        "population": 13600.140827479654,
+        "rate": 1,
+        "zones": 8327
+      }
+    },
+    {
+      "rate": 4,
+      "elapsed": 30057,
+      "fps": 69.70090162025485,
+      "frame": {
+        "count": 2094,
+        "mean": 14.346991403965918,
+        "p95": 19,
+        "max": 89.29999995231628
+      },
+      "picking": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "pointer": {
+        "count": 0,
+        "mean": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "longTasks": [
+        {
+          "time": 48.700000047683716,
+          "ms": 55
+        },
+        {
+          "time": 8875.299999952316,
+          "ms": 51
+        }
+      ],
+      "stats": {
+        "buildings": 1287,
+        "states": {
+          "working": 1287
+        },
+        "segments": 132,
+        "population": 13576.023739493807,
+        "rate": 4,
+        "zones": 8327
+      }
+    }
+  ],
+  "memory": [
+    {
+      "name": "baseline",
+      "heap": 147314728,
+      "meshes": 2650,
+      "materials": 610,
+      "geometries": 1040,
+      "textures": 11,
+      "internalTextures": 13,
+      "observers": 8,
+      "buildings": 1287,
+      "segments": 132
+    },
+    {
+      "name": "load-1",
+      "heap": 147972936,
+      "meshes": 2650,
+      "materials": 610,
+      "geometries": 1040,
+      "textures": 11,
+      "internalTextures": 13,
+      "observers": 8,
+      "buildings": 1287,
+      "segments": 132
+    },
+    {
+      "name": "load-5",
+      "heap": 149976832,
+      "meshes": 2650,
+      "materials": 610,
+      "geometries": 1040,
+      "textures": 11,
+      "internalTextures": 13,
+      "observers": 8,
+      "buildings": 1287,
+      "segments": 132
+    },
+    {
+      "name": "load-10",
+      "heap": 150604996,
+      "meshes": 2650,
+      "materials": 610,
+      "geometries": 1040,
+      "textures": 11,
+      "internalTextures": 13,
+      "observers": 8,
+      "buildings": 1287,
+      "segments": 132
+    }
+  ],
+  "picking": [
+    {
+      "round": 0,
+      "frame": {
+        "fps": 42.95386015699596,
+        "p95": 34.19999980926514,
+        "max": 37.299999952316284,
+        "frames": 151,
+        "elapsed": 3515.4000000953674,
+        "canvas": [
+          1280,
+          800
+        ],
+        "radius": 875.9952048927407
+      },
+      "pick": {
+        "vertices": 456976,
+        "triangles": 911250,
+        "subMeshes": 1,
+        "count": 100,
+        "mean": 17.685000004768373,
+        "p95": 18.09999990463257
+      }
+    },
+    {
+      "round": 1,
+      "frame": {
+        "fps": 43.241104485787496,
+        "p95": 35.09999990463257,
+        "max": 38.40000009536743,
+        "frames": 153,
+        "elapsed": 3538.2999999523163,
+        "canvas": [
+          1280,
+          800
+        ],
+        "radius": 875.9952048927407
+      },
+      "pick": {
+        "vertices": 456976,
+        "triangles": 911250,
+        "subMeshes": 1,
+        "count": 100,
+        "mean": 17.531999981403352,
+        "p95": 18.09999990463257
+      }
+    }
+  ],
+  "display": [
+    {
+      "round": 0,
+      "name": "standard-saved",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 875.9952048927407,
+      "fps": 83.03135788970262,
+      "p95": 13.200000047683716,
+      "max": 14.900000095367432,
+      "frames": 291,
+      "elapsed": 3504.7000000476837,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 0,
+      "name": "standard-street",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 140,
+      "fps": 96.84054161747896,
+      "p95": 11.599999904632568,
+      "max": 17.600000143051147,
+      "frames": 339,
+      "elapsed": 3500.600000143051,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 0,
+      "name": "standard-overview",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 1200,
+      "fps": 82.52427184466019,
+      "p95": 13.400000095367432,
+      "max": 18.600000143051147,
+      "frames": 289,
+      "elapsed": 3502,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 0,
+      "name": "retina-saved",
+      "width": 1920,
+      "height": 1080,
+      "dpr": 2,
+      "radius": 875.9952048927407,
+      "fps": 68.72754235058301,
+      "p95": 16.299999952316284,
+      "max": 19.40000009536743,
+      "frames": 241,
+      "elapsed": 3506.5999999046326,
+      "canvas": [
+        2880,
+        1620
+      ]
+    },
+    {
+      "round": 1,
+      "name": "standard-saved",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 875.9952048927407,
+      "fps": 82.36764371845251,
+      "p95": 13.299999952316284,
+      "max": 16,
+      "frames": 290,
+      "elapsed": 3520.7999999523163,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 1,
+      "name": "standard-street",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 140,
+      "fps": 96.90751033205073,
+      "p95": 11.700000047683716,
+      "max": 16.799999952316284,
+      "frames": 340,
+      "elapsed": 3508.5,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 1,
+      "name": "standard-overview",
+      "width": 1280,
+      "height": 800,
+      "dpr": 1,
+      "radius": 1200,
+      "fps": 82.69175933846593,
+      "p95": 13.5,
+      "max": 15.899999856948853,
+      "frames": 290,
+      "elapsed": 3507,
+      "canvas": [
+        1280,
+        800
+      ]
+    },
+    {
+      "round": 1,
+      "name": "retina-saved",
+      "width": 1920,
+      "height": 1080,
+      "dpr": 2,
+      "radius": 875.9952048927407,
+      "fps": 68.96943206746195,
+      "p95": 16.799999952316284,
+      "max": 19.600000143051147,
+      "frames": 243,
+      "elapsed": 3523.2999999523163,
+      "canvas": [
+        2880,
+        1620
+      ]
+    }
+  ],
+  "loading": [
+    {
+      "mode": "cold",
+      "readyWallMs": 1864.0283339999878,
+      "firstDrawMs": 590.6000001430511,
+      "now": 1897.6000001430511,
+      "navigation": {
+        "name": "http://127.0.0.1:5188/",
+        "entryType": "navigation",
+        "startTime": 0,
+        "duration": 544.1000001430511,
+        "navigationId": 7253,
+        "initiatorType": "navigation",
+        "deliveryType": "",
+        "nextHopProtocol": "http/1.1",
+        "renderBlockingStatus": "non-blocking",
+        "contentType": "text/html",
+        "contentEncoding": "gzip",
+        "workerStart": 0,
+        "workerRouterEvaluationStart": 0,
+        "workerCacheLookupStart": 0,
+        "workerMatchedSourceType": "",
+        "workerFinalSourceType": "",
+        "redirectStart": 0,
+        "redirectEnd": 0,
+        "fetchStart": 0.20000004768371582,
+        "domainLookupStart": 0.20000004768371582,
+        "domainLookupEnd": 0.20000004768371582,
+        "connectStart": 0.20000004768371582,
+        "secureConnectionStart": 0,
+        "connectEnd": 0.20000004768371582,
+        "requestStart": 0.6000001430511475,
+        "responseStart": 6.900000095367432,
+        "firstInterimResponseStart": 0,
+        "finalResponseHeadersStart": 6.900000095367432,
+        "responseEnd": 7.200000047683716,
+        "transferSize": 7516,
+        "encodedBodySize": 7216,
+        "decodedBodySize": 31740,
+        "responseStatus": 200,
+        "serverTiming": [],
+        "unloadEventStart": 0,
+        "unloadEventEnd": 0,
+        "domInteractive": 46.200000047683716,
+        "domContentLoadedEventStart": 543.5,
+        "domContentLoadedEventEnd": 543.5,
+        "domComplete": 544.1000001430511,
+        "loadEventStart": 544.1000001430511,
+        "loadEventEnd": 544.1000001430511,
+        "type": "navigate",
+        "redirectCount": 0,
+        "activationStart": 0,
+        "criticalCHRestart": 0,
+        "notRestoredReasons": null,
+        "confidence": {
+          "randomizedTriggerRate": 0.4994798,
+          "value": "high"
+        }
+      },
+      "resources": [
+        {
+          "name": "index-C3DmJ98X.js",
+          "duration": 53.10000014305115,
+          "transfer": 311639,
+          "encoded": 311339,
+          "type": "script"
+        },
+        {
+          "name": "performanceConfigurator-UtxC_Odd.js",
+          "duration": 9.799999952316284,
+          "transfer": 800,
+          "encoded": 500,
+          "type": "other"
+        },
+        {
+          "name": "math.scalar.functions-lnL7TJ7T.js",
+          "duration": 12.299999952316284,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "other"
+        },
+        {
+          "name": "engineStore-BCGLUAAJ.js",
+          "duration": 13.299999952316284,
+          "transfer": 1517,
+          "encoded": 1217,
+          "type": "other"
+        },
+        {
+          "name": "typeStore-Cu_sj2zM.js",
+          "duration": 15,
+          "transfer": 380,
+          "encoded": 80,
+          "type": "other"
+        },
+        {
+          "name": "timingTools-B8PaVbYY.js",
+          "duration": 16.200000047683716,
+          "transfer": 4967,
+          "encoded": 4667,
+          "type": "other"
+        },
+        {
+          "name": "logger-CuBYPcDK.js",
+          "duration": 18.5,
+          "transfer": 1126,
+          "encoded": 826,
+          "type": "other"
+        },
+        {
+          "name": "halfFloat-Ce77JD5z.js",
+          "duration": 19.100000143051147,
+          "transfer": 903,
+          "encoded": 603,
+          "type": "other"
+        },
+        {
+          "name": "guid-gRBbzhpv.js",
+          "duration": 19.800000190734863,
+          "transfer": 1902,
+          "encoded": 1602,
+          "type": "other"
+        },
+        {
+          "name": "math.color.pure-DAjhOxZx.js",
+          "duration": 20.600000143051147,
+          "transfer": 18406,
+          "encoded": 18106,
+          "type": "other"
+        },
+        {
+          "name": "fileTools.pure-Cv26Tr8E.js",
+          "duration": 20.800000190734863,
+          "transfer": 4914,
+          "encoded": 4614,
+          "type": "other"
+        },
+        {
+          "name": "shaderStore-D-XQlhUT.js",
+          "duration": 22.40000009536743,
+          "transfer": 769,
+          "encoded": 469,
+          "type": "other"
+        },
+        {
+          "name": "tools.pure-0bBaBwCY.js",
+          "duration": 22.600000143051147,
+          "transfer": 5002,
+          "encoded": 4702,
+          "type": "other"
+        },
+        {
+          "name": "internalTexture-Dbf8pg9P.js",
+          "duration": 24.200000047683716,
+          "transfer": 2294,
+          "encoded": 1994,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.pure-D7FtdBsH.js",
+          "duration": 25.90000009536743,
+          "transfer": 14784,
+          "encoded": 14484,
+          "type": "other"
+        },
+        {
+          "name": "decorators-C_ra_8EP.js",
+          "duration": 27.600000143051147,
+          "transfer": 1879,
+          "encoded": 1579,
+          "type": "other"
+        },
+        {
+          "name": "smartArray-BRfcgNbX.js",
+          "duration": 27.90000009536743,
+          "transfer": 737,
+          "encoded": 437,
+          "type": "other"
+        },
+        {
+          "name": "thinEngine.pure-DjswqH4Y.js",
+          "duration": 28.100000143051147,
+          "transfer": 17152,
+          "encoded": 16852,
+          "type": "other"
+        },
+        {
+          "name": "math.size-DRdQnhLN.js",
+          "duration": 30.299999952316284,
+          "transfer": 2375,
+          "encoded": 2075,
+          "type": "other"
+        },
+        {
+          "name": "animation.pure-DffjI9C9.js",
+          "duration": 32,
+          "transfer": 7084,
+          "encoded": 6784,
+          "type": "other"
+        },
+        {
+          "name": "drawWrapper-DMTcaFT6.js",
+          "duration": 31.59999990463257,
+          "transfer": 965,
+          "encoded": 665,
+          "type": "other"
+        },
+        {
+          "name": "preload-helper-Czpn1I53.js",
+          "duration": 32,
+          "transfer": 975,
+          "encoded": 675,
+          "type": "other"
+        },
+        {
+          "name": "buffer.pure-ChJiR4SA.js",
+          "duration": 32.299999952316284,
+          "transfer": 2790,
+          "encoded": 2490,
+          "type": "other"
+        },
+        {
+          "name": "effectRenderer.pure-CL5NsU1V.js",
+          "duration": 34.299999952316284,
+          "transfer": 2783,
+          "encoded": 2483,
+          "type": "other"
+        },
+        {
+          "name": "math.plane-B6GwI2-I.js",
+          "duration": 35.19999980926514,
+          "transfer": 1062,
+          "encoded": 762,
+          "type": "other"
+        },
+        {
+          "name": "lightConstants-CqPbYxd8.js",
+          "duration": 35.89999985694885,
+          "transfer": 3804,
+          "encoded": 3504,
+          "type": "other"
+        },
+        {
+          "name": "renderingManager-BC_MosmL.js",
+          "duration": 35.59999990463257,
+          "transfer": 5213,
+          "encoded": 4913,
+          "type": "other"
+        },
+        {
+          "name": "scene.pure-Bcw18THM.js",
+          "duration": 39.799999952316284,
+          "transfer": 32931,
+          "encoded": 32631,
+          "type": "other"
+        },
+        {
+          "name": "baseTexture.pure-B01kiO6j.js",
+          "duration": 37.30000019073486,
+          "transfer": 4118,
+          "encoded": 3818,
+          "type": "other"
+        },
+        {
+          "name": "texture.pure-DVySCaAg.js",
+          "duration": 39,
+          "transfer": 5746,
+          "encoded": 5446,
+          "type": "other"
+        },
+        {
+          "name": "constants-DNxlZnxc.js",
+          "duration": 39.200000047683716,
+          "transfer": 3494,
+          "encoded": 3194,
+          "type": "other"
+        },
+        {
+          "name": "objectModelMapping-CCr-dGyf.js",
+          "duration": 39.700000047683716,
+          "transfer": 10596,
+          "encoded": 10296,
+          "type": "other"
+        },
+        {
+          "name": "bone.pure-iEkoIqTY.js",
+          "duration": 41.5,
+          "transfer": 3087,
+          "encoded": 2787,
+          "type": "other"
+        },
+        {
+          "name": "imageProcessing-DUnvhT2z.js",
+          "duration": 42.89999985694885,
+          "transfer": 4368,
+          "encoded": 4068,
+          "type": "other"
+        },
+        {
+          "name": "material.pure-zyyjU_AF.js",
+          "duration": 45.5,
+          "transfer": 20496,
+          "encoded": 20196,
+          "type": "other"
+        },
+        {
+          "name": "material.detailMapConfiguration-BHTVzXbZ.js",
+          "duration": 43,
+          "transfer": 4444,
+          "encoded": 4144,
+          "type": "other"
+        },
+        {
+          "name": "sphericalPolynomial.pure-DUuPdIp_.js",
+          "duration": 43.200000047683716,
+          "transfer": 1638,
+          "encoded": 1338,
+          "type": "other"
+        },
+        {
+          "name": "postProcess.pure-DQvIGMZh.js",
+          "duration": 44.60000014305115,
+          "transfer": 5372,
+          "encoded": 5072,
+          "type": "other"
+        },
+        {
+          "name": "renderTargetTexture.pure-DAS0XMs9.js",
+          "duration": 47.10000014305115,
+          "transfer": 8162,
+          "encoded": 7862,
+          "type": "other"
+        },
+        {
+          "name": "environmentTextureTools.pure-CVov5NyJ.js",
+          "duration": 46.69999980926514,
+          "transfer": 3207,
+          "encoded": 2907,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.cubeTexture.pure-BxLVtZGY.js",
+          "duration": 47.09999990463257,
+          "transfer": 2584,
+          "encoded": 2284,
+          "type": "other"
+        },
+        {
+          "name": "math.color-Brtqds-S.js",
+          "duration": 47.799999952316284,
+          "transfer": 354,
+          "encoded": 54,
+          "type": "other"
+        },
+        {
+          "name": "geometryBufferRenderer.pure-ypy4he-N.js",
+          "duration": 48.69999980926514,
+          "transfer": 11823,
+          "encoded": 11523,
+          "type": "other"
+        },
+        {
+          "name": "shadowMap.fragment-DX4Yo1bp.js",
+          "duration": 4.299999952316284,
+          "transfer": 1465,
+          "encoded": 1165,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneFragment-DVK0wgyZ.js",
+          "duration": 4.5,
+          "transfer": 659,
+          "encoded": 359,
+          "type": "script"
+        },
+        {
+          "name": "packingFunctions-DpGwbupU.js",
+          "duration": 3.200000047683716,
+          "transfer": 829,
+          "encoded": 529,
+          "type": "script"
+        },
+        {
+          "name": "shadowMap.vertex-CMpfNXd4.js",
+          "duration": 4.300000190734863,
+          "transfer": 1883,
+          "encoded": 1583,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneVertex-Cqy6RCeP.js",
+          "duration": 5.300000190734863,
+          "transfer": 2106,
+          "encoded": 1806,
+          "type": "script"
+        },
+        {
+          "name": "sceneUboDeclaration-B5VhSG0v.js",
+          "duration": 3.0999999046325684,
+          "transfer": 664,
+          "encoded": 364,
+          "type": "script"
+        },
+        {
+          "name": "meshUboDeclaration-BmNu2KU_.js",
+          "duration": 6.200000047683716,
+          "transfer": 645,
+          "encoded": 345,
+          "type": "script"
+        },
+        {
+          "name": "depthBoxBlur.fragment-CLEAG5DG.js",
+          "duration": 6.299999952316284,
+          "transfer": 834,
+          "encoded": 534,
+          "type": "script"
+        },
+        {
+          "name": "sceneVertexDeclaration-CluTp-RC.js",
+          "duration": 7,
+          "transfer": 630,
+          "encoded": 330,
+          "type": "script"
+        },
+        {
+          "name": "morphTargetsVertex-6N5r7oF1.js",
+          "duration": 7,
+          "transfer": 1290,
+          "encoded": 990,
+          "type": "script"
+        },
+        {
+          "name": "helperFunctions-BXbvU0Ia.js",
+          "duration": 7.199999809265137,
+          "transfer": 2589,
+          "encoded": 2289,
+          "type": "script"
+        },
+        {
+          "name": "shadowMapFragmentSoftTransparentShadow-R_iOKnyx.js",
+          "duration": 6.799999952316284,
+          "transfer": 670,
+          "encoded": 370,
+          "type": "script"
+        },
+        {
+          "name": "sharpen.fragment-CCLDkKbj.js",
+          "duration": 2.700000047683716,
+          "transfer": 1060,
+          "encoded": 760,
+          "type": "script"
+        },
+        {
+          "name": "postprocess.vertex-DJCmMhI8.js",
+          "duration": 3,
+          "transfer": 760,
+          "encoded": 460,
+          "type": "script"
+        },
+        {
+          "name": "circleOfConfusion.fragment-CEj6DZ22.js",
+          "duration": 3.5,
+          "transfer": 1114,
+          "encoded": 814,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.fragment-DHQjf6lq.js",
+          "duration": 4.700000047683716,
+          "transfer": 1070,
+          "encoded": 770,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlurVaryingDeclaration-DP2Wr9Oc.js",
+          "duration": 3.200000047683716,
+          "transfer": 512,
+          "encoded": 212,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.vertex-C2dESVl-.js",
+          "duration": 3.299999952316284,
+          "transfer": 1189,
+          "encoded": 889,
+          "type": "script"
+        },
+        {
+          "name": "depthOfFieldMerge.fragment-BKOejQJL.js",
+          "duration": 5.099999904632568,
+          "transfer": 860,
+          "encoded": 560,
+          "type": "script"
+        },
+        {
+          "name": "extractHighlights.fragment-B_GfF3FR.js",
+          "duration": 4.5,
+          "transfer": 980,
+          "encoded": 680,
+          "type": "script"
+        },
+        {
+          "name": "bloomMerge.fragment-vwVNEATu.js",
+          "duration": 5.1000001430511475,
+          "transfer": 787,
+          "encoded": 487,
+          "type": "script"
+        },
+        {
+          "name": "grain.fragment-gjcXlkpe.js",
+          "duration": 4.900000095367432,
+          "transfer": 1073,
+          "encoded": 773,
+          "type": "script"
+        },
+        {
+          "name": "chromaticAberration.fragment-cDPo3aCd.js",
+          "duration": 5.599999904632568,
+          "transfer": 895,
+          "encoded": 595,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessing.fragment-B33gBOCI.js",
+          "duration": 5.199999809265137,
+          "transfer": 1211,
+          "encoded": 911,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessingFunctions-kkEl3dsU.js",
+          "duration": 5.5,
+          "transfer": 2240,
+          "encoded": 1940,
+          "type": "script"
+        },
+        {
+          "name": "kaiju.glb?v=0.5.0",
+          "duration": 2.6999998092651367,
+          "transfer": 19036,
+          "encoded": 18736,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "manifest.json?v=0.5.0",
+          "duration": 2.299999952316284,
+          "transfer": 758,
+          "encoded": 458,
+          "type": "fetch"
+        },
+        {
+          "name": "default.vertex-Cpw2eOHN.js",
+          "duration": 6.800000190734863,
+          "transfer": 2527,
+          "encoded": 2227,
+          "type": "script"
+        },
+        {
+          "name": "instancesDeclaration-CJBvtBV5.js",
+          "duration": 3.700000047683716,
+          "transfer": 1233,
+          "encoded": 933,
+          "type": "script"
+        },
+        {
+          "name": "vertexColorMixing-B7dmaeCQ.js",
+          "duration": 3.799999952316284,
+          "transfer": 1051,
+          "encoded": 751,
+          "type": "script"
+        },
+        {
+          "name": "logDepthDeclaration-D_lEqJ0h.js",
+          "duration": 4.5,
+          "transfer": 746,
+          "encoded": 446,
+          "type": "script"
+        },
+        {
+          "name": "defaultUboDeclaration-C53xcSdv.js",
+          "duration": 5.5,
+          "transfer": 851,
+          "encoded": 551,
+          "type": "script"
+        },
+        {
+          "name": "logDepthVertex-DbaC19x4.js",
+          "duration": 6.699999809265137,
+          "transfer": 2069,
+          "encoded": 1769,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertexDeclaration-Cb04kLz9.js",
+          "duration": 8,
+          "transfer": 641,
+          "encoded": 341,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertex-CWhdIpqj.js",
+          "duration": 9.599999904632568,
+          "transfer": 822,
+          "encoded": 522,
+          "type": "script"
+        },
+        {
+          "name": "pointCloudVertex-CmkEsLzf.js",
+          "duration": 9.400000095367432,
+          "transfer": 546,
+          "encoded": 246,
+          "type": "script"
+        },
+        {
+          "name": "fogFragment-CISE_m3s.js",
+          "duration": 10.700000047683716,
+          "transfer": 792,
+          "encoded": 492,
+          "type": "script"
+        },
+        {
+          "name": "default.fragment-Dk8gWzGi.js",
+          "duration": 11.300000190734863,
+          "transfer": 6033,
+          "encoded": 5733,
+          "type": "script"
+        },
+        {
+          "name": "clusteredLightingFunctions-BFCOODPn.js",
+          "duration": 11,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "script"
+        },
+        {
+          "name": "oitFragment-DZqjKtzR.js",
+          "duration": 12.399999856948853,
+          "transfer": 9019,
+          "encoded": 8719,
+          "type": "script"
+        },
+        {
+          "name": "reflectionFunction-CivoLMz9.js",
+          "duration": 12.799999952316284,
+          "transfer": 1418,
+          "encoded": 1118,
+          "type": "script"
+        },
+        {
+          "name": "bumpFragment-BtJd9tYZ.js",
+          "duration": 12.799999952316284,
+          "transfer": 2696,
+          "encoded": 2396,
+          "type": "script"
+        },
+        {
+          "name": "lightFragment-rVWlNRVM.js",
+          "duration": 15.799999952316284,
+          "transfer": 3468,
+          "encoded": 3168,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.vertex-D31Dq5dR.js",
+          "duration": 15.299999952316284,
+          "transfer": 1181,
+          "encoded": 881,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.fragment-BMZMzcxB.js",
+          "duration": 13.200000047683716,
+          "transfer": 656,
+          "encoded": 356,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterial.pure-pkeH4nB8.js",
+          "duration": 11.299999952316284,
+          "transfer": 25837,
+          "encoded": 25537,
+          "type": "script"
+        },
+        {
+          "name": "brdfTextureTools-Bd9uSI-7.js",
+          "duration": 10.5,
+          "transfer": 45075,
+          "encoded": 44775,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterialLoadingAdapter-DihvRlxB.js",
+          "duration": 8.900000095367432,
+          "transfer": 2694,
+          "encoded": 2394,
+          "type": "script"
+        },
+        {
+          "name": "icon.svg",
+          "duration": 1.7999999523162842,
+          "transfer": 1249,
+          "encoded": 949,
+          "type": "other"
+        },
+        {
+          "name": "lot_1x1.glb?v=0.5.0",
+          "duration": 3.200000047683716,
+          "transfer": 23776,
+          "encoded": 23476,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x2.glb?v=0.5.0",
+          "duration": 4.800000190734863,
+          "transfer": 185804,
+          "encoded": 185504,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x3.glb?v=0.5.0",
+          "duration": 4.800000190734863,
+          "transfer": 156268,
+          "encoded": 155968,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x4.glb?v=0.5.0",
+          "duration": 4.200000047683716,
+          "transfer": 121168,
+          "encoded": 120868,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x1.glb?v=0.5.0",
+          "duration": 4.3999998569488525,
+          "transfer": 71680,
+          "encoded": 71380,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x2.glb?v=0.5.0",
+          "duration": 3.700000047683716,
+          "transfer": 43444,
+          "encoded": 43144,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x3.glb?v=0.5.0",
+          "duration": 7.900000095367432,
+          "transfer": 105660,
+          "encoded": 105360,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x4.glb?v=0.5.0",
+          "duration": 8,
+          "transfer": 77952,
+          "encoded": 77652,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x1.glb?v=0.5.0",
+          "duration": 7.900000095367432,
+          "transfer": 105656,
+          "encoded": 105356,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x2.glb?v=0.5.0",
+          "duration": 8.700000047683716,
+          "transfer": 105084,
+          "encoded": 104784,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x3.glb?v=0.5.0",
+          "duration": 8.200000047683716,
+          "transfer": 70936,
+          "encoded": 70636,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x4.glb?v=0.5.0",
+          "duration": 9,
+          "transfer": 127320,
+          "encoded": 127020,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x2.glb?v=0.5.0",
+          "duration": 10.600000143051147,
+          "transfer": 136396,
+          "encoded": 136096,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x1.glb?v=0.5.0",
+          "duration": 10.299999952316284,
+          "transfer": 58992,
+          "encoded": 58692,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x3.glb?v=0.5.0",
+          "duration": 10.5,
+          "transfer": 114360,
+          "encoded": 114060,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x4.glb?v=0.5.0",
+          "duration": 10.399999856948853,
+          "transfer": 74176,
+          "encoded": 73876,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_1x4.glb?v=0.5.0",
+          "duration": 10.899999856948853,
+          "transfer": 17332,
+          "encoded": 17032,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_2x4.glb?v=0.5.0",
+          "duration": 10.799999952316284,
+          "transfer": 16676,
+          "encoded": 16376,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_3x4.glb?v=0.5.0",
+          "duration": 12.599999904632568,
+          "transfer": 43196,
+          "encoded": 42896,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_4x4.glb?v=0.5.0",
+          "duration": 12.299999952316284,
+          "transfer": 18368,
+          "encoded": 18068,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_2x4.glb?v=0.5.0",
+          "duration": 12.100000143051147,
+          "transfer": 11772,
+          "encoded": 11472,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_1x4.glb?v=0.5.0",
+          "duration": 12.600000143051147,
+          "transfer": 6812,
+          "encoded": 6512,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_4x4.glb?v=0.5.0",
+          "duration": 12.5,
+          "transfer": 26696,
+          "encoded": 26396,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_3x4.glb?v=0.5.0",
+          "duration": 12.599999904632568,
+          "transfer": 10716,
+          "encoded": 10416,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_1x4.glb?v=0.5.0",
+          "duration": 14.400000095367432,
+          "transfer": 12908,
+          "encoded": 12608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_2x4.glb?v=0.5.0",
+          "duration": 14,
+          "transfer": 10032,
+          "encoded": 9732,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_3x4.glb?v=0.5.0",
+          "duration": 14.400000095367432,
+          "transfer": 19908,
+          "encoded": 19608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_4x4.glb?v=0.5.0",
+          "duration": 14.099999904632568,
+          "transfer": 32348,
+          "encoded": 32048,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "default-demo.json",
+          "duration": 14.399999856948853,
+          "transfer": 17482,
+          "encoded": 17182,
+          "type": "fetch"
+        },
+        {
+          "name": "fxaa.fragment-BJI4ON-J.js",
+          "duration": 2.4000000953674316,
+          "transfer": 1935,
+          "encoded": 1635,
+          "type": "script"
+        },
+        {
+          "name": "fxaa.vertex-CEYszSUi.js",
+          "duration": 2.200000047683716,
+          "transfer": 1299,
+          "encoded": 999,
+          "type": "script"
+        },
+        {
+          "name": "color.vertex-DTibeIxe.js",
+          "duration": 3,
+          "transfer": 945,
+          "encoded": 645,
+          "type": "script"
+        },
+        {
+          "name": "color.fragment-CxH-oW8C.js",
+          "duration": 2.799999952316284,
+          "transfer": 1229,
+          "encoded": 929,
+          "type": "script"
+        },
+        {
+          "name": "rgbdDecode.fragment-BQrXAbxc.js",
+          "duration": 2.3000001907348633,
+          "transfer": 820,
+          "encoded": 520,
+          "type": "script"
+        }
+      ],
+      "buildings": 1287,
+      "models": 28
+    },
+    {
+      "mode": "cold",
+      "readyWallMs": 1941.671875,
+      "firstDrawMs": 586.5,
+      "now": 1975.8999998569489,
+      "navigation": {
+        "name": "http://127.0.0.1:5188/",
+        "entryType": "navigation",
+        "startTime": 0,
+        "duration": 536.8999998569489,
+        "navigationId": 5747,
+        "initiatorType": "navigation",
+        "deliveryType": "",
+        "nextHopProtocol": "http/1.1",
+        "renderBlockingStatus": "non-blocking",
+        "contentType": "text/html",
+        "contentEncoding": "gzip",
+        "workerStart": 0,
+        "workerRouterEvaluationStart": 0,
+        "workerCacheLookupStart": 0,
+        "workerMatchedSourceType": "",
+        "workerFinalSourceType": "",
+        "redirectStart": 0,
+        "redirectEnd": 0,
+        "fetchStart": 0.19999980926513672,
+        "domainLookupStart": 0.19999980926513672,
+        "domainLookupEnd": 0.19999980926513672,
+        "connectStart": 0.19999980926513672,
+        "secureConnectionStart": 0,
+        "connectEnd": 0.19999980926513672,
+        "requestStart": 0.5999999046325684,
+        "responseStart": 1.5999999046325684,
+        "firstInterimResponseStart": 0,
+        "finalResponseHeadersStart": 1.5999999046325684,
+        "responseEnd": 1.7999999523162842,
+        "transferSize": 7516,
+        "encodedBodySize": 7216,
+        "decodedBodySize": 31740,
+        "responseStatus": 200,
+        "serverTiming": [],
+        "unloadEventStart": 0,
+        "unloadEventEnd": 0,
+        "domInteractive": 45.39999985694885,
+        "domContentLoadedEventStart": 536.0999999046326,
+        "domContentLoadedEventEnd": 536.1999998092651,
+        "domComplete": 536.8999998569489,
+        "loadEventStart": 536.8999998569489,
+        "loadEventEnd": 536.8999998569489,
+        "type": "navigate",
+        "redirectCount": 0,
+        "activationStart": 0,
+        "criticalCHRestart": 0,
+        "notRestoredReasons": null,
+        "confidence": {
+          "randomizedTriggerRate": 0.4994798,
+          "value": "low"
+        }
+      },
+      "resources": [
+        {
+          "name": "index-C3DmJ98X.js",
+          "duration": 46.30000019073486,
+          "transfer": 311639,
+          "encoded": 311339,
+          "type": "script"
+        },
+        {
+          "name": "performanceConfigurator-UtxC_Odd.js",
+          "duration": 6.5,
+          "transfer": 800,
+          "encoded": 500,
+          "type": "other"
+        },
+        {
+          "name": "engineStore-BCGLUAAJ.js",
+          "duration": 9.099999904632568,
+          "transfer": 1517,
+          "encoded": 1217,
+          "type": "other"
+        },
+        {
+          "name": "math.scalar.functions-lnL7TJ7T.js",
+          "duration": 8.700000047683716,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "other"
+        },
+        {
+          "name": "typeStore-Cu_sj2zM.js",
+          "duration": 9.5,
+          "transfer": 380,
+          "encoded": 80,
+          "type": "other"
+        },
+        {
+          "name": "timingTools-B8PaVbYY.js",
+          "duration": 11.399999856948853,
+          "transfer": 4967,
+          "encoded": 4667,
+          "type": "other"
+        },
+        {
+          "name": "logger-CuBYPcDK.js",
+          "duration": 12.199999809265137,
+          "transfer": 1126,
+          "encoded": 826,
+          "type": "other"
+        },
+        {
+          "name": "halfFloat-Ce77JD5z.js",
+          "duration": 12.699999809265137,
+          "transfer": 903,
+          "encoded": 603,
+          "type": "other"
+        },
+        {
+          "name": "guid-gRBbzhpv.js",
+          "duration": 14.199999809265137,
+          "transfer": 1902,
+          "encoded": 1602,
+          "type": "other"
+        },
+        {
+          "name": "math.color.pure-DAjhOxZx.js",
+          "duration": 14.399999856948853,
+          "transfer": 18406,
+          "encoded": 18106,
+          "type": "other"
+        },
+        {
+          "name": "shaderStore-D-XQlhUT.js",
+          "duration": 16.200000047683716,
+          "transfer": 769,
+          "encoded": 469,
+          "type": "other"
+        },
+        {
+          "name": "fileTools.pure-Cv26Tr8E.js",
+          "duration": 16.40000009536743,
+          "transfer": 4914,
+          "encoded": 4614,
+          "type": "other"
+        },
+        {
+          "name": "tools.pure-0bBaBwCY.js",
+          "duration": 16.90000009536743,
+          "transfer": 5002,
+          "encoded": 4702,
+          "type": "other"
+        },
+        {
+          "name": "internalTexture-Dbf8pg9P.js",
+          "duration": 18,
+          "transfer": 2294,
+          "encoded": 1994,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.pure-D7FtdBsH.js",
+          "duration": 18.90000009536743,
+          "transfer": 14784,
+          "encoded": 14484,
+          "type": "other"
+        },
+        {
+          "name": "decorators-C_ra_8EP.js",
+          "duration": 20.200000047683716,
+          "transfer": 1879,
+          "encoded": 1579,
+          "type": "other"
+        },
+        {
+          "name": "smartArray-BRfcgNbX.js",
+          "duration": 20.600000143051147,
+          "transfer": 737,
+          "encoded": 437,
+          "type": "other"
+        },
+        {
+          "name": "math.size-DRdQnhLN.js",
+          "duration": 20.700000047683716,
+          "transfer": 2375,
+          "encoded": 2075,
+          "type": "other"
+        },
+        {
+          "name": "thinEngine.pure-DjswqH4Y.js",
+          "duration": 21.300000190734863,
+          "transfer": 17152,
+          "encoded": 16852,
+          "type": "other"
+        },
+        {
+          "name": "animation.pure-DffjI9C9.js",
+          "duration": 22.799999952316284,
+          "transfer": 7084,
+          "encoded": 6784,
+          "type": "other"
+        },
+        {
+          "name": "drawWrapper-DMTcaFT6.js",
+          "duration": 23.299999952316284,
+          "transfer": 965,
+          "encoded": 665,
+          "type": "other"
+        },
+        {
+          "name": "buffer.pure-ChJiR4SA.js",
+          "duration": 25.5,
+          "transfer": 2790,
+          "encoded": 2490,
+          "type": "other"
+        },
+        {
+          "name": "preload-helper-Czpn1I53.js",
+          "duration": 26,
+          "transfer": 975,
+          "encoded": 675,
+          "type": "other"
+        },
+        {
+          "name": "effectRenderer.pure-CL5NsU1V.js",
+          "duration": 26.200000047683716,
+          "transfer": 2783,
+          "encoded": 2483,
+          "type": "other"
+        },
+        {
+          "name": "math.plane-B6GwI2-I.js",
+          "duration": 28.200000047683716,
+          "transfer": 1062,
+          "encoded": 762,
+          "type": "other"
+        },
+        {
+          "name": "lightConstants-CqPbYxd8.js",
+          "duration": 28.40000009536743,
+          "transfer": 3804,
+          "encoded": 3504,
+          "type": "other"
+        },
+        {
+          "name": "renderingManager-BC_MosmL.js",
+          "duration": 29.700000047683716,
+          "transfer": 5213,
+          "encoded": 4913,
+          "type": "other"
+        },
+        {
+          "name": "baseTexture.pure-B01kiO6j.js",
+          "duration": 29.90000009536743,
+          "transfer": 4118,
+          "encoded": 3818,
+          "type": "other"
+        },
+        {
+          "name": "texture.pure-DVySCaAg.js",
+          "duration": 31.600000143051147,
+          "transfer": 5746,
+          "encoded": 5446,
+          "type": "other"
+        },
+        {
+          "name": "scene.pure-Bcw18THM.js",
+          "duration": 33.700000047683716,
+          "transfer": 32931,
+          "encoded": 32631,
+          "type": "other"
+        },
+        {
+          "name": "constants-DNxlZnxc.js",
+          "duration": 31.59999990463257,
+          "transfer": 3494,
+          "encoded": 3194,
+          "type": "other"
+        },
+        {
+          "name": "bone.pure-iEkoIqTY.js",
+          "duration": 32.799999952316284,
+          "transfer": 3087,
+          "encoded": 2787,
+          "type": "other"
+        },
+        {
+          "name": "objectModelMapping-CCr-dGyf.js",
+          "duration": 33.69999980926514,
+          "transfer": 10596,
+          "encoded": 10296,
+          "type": "other"
+        },
+        {
+          "name": "imageProcessing-DUnvhT2z.js",
+          "duration": 35.40000009536743,
+          "transfer": 4368,
+          "encoded": 4068,
+          "type": "other"
+        },
+        {
+          "name": "material.pure-zyyjU_AF.js",
+          "duration": 37.09999990463257,
+          "transfer": 20496,
+          "encoded": 20196,
+          "type": "other"
+        },
+        {
+          "name": "sphericalPolynomial.pure-DUuPdIp_.js",
+          "duration": 36.10000014305115,
+          "transfer": 1638,
+          "encoded": 1338,
+          "type": "other"
+        },
+        {
+          "name": "material.detailMapConfiguration-BHTVzXbZ.js",
+          "duration": 36.5,
+          "transfer": 4444,
+          "encoded": 4144,
+          "type": "other"
+        },
+        {
+          "name": "postProcess.pure-DQvIGMZh.js",
+          "duration": 36.90000009536743,
+          "transfer": 5372,
+          "encoded": 5072,
+          "type": "other"
+        },
+        {
+          "name": "environmentTextureTools.pure-CVov5NyJ.js",
+          "duration": 39.40000009536743,
+          "transfer": 3207,
+          "encoded": 2907,
+          "type": "other"
+        },
+        {
+          "name": "renderTargetTexture.pure-DAS0XMs9.js",
+          "duration": 39.200000047683716,
+          "transfer": 8162,
+          "encoded": 7862,
+          "type": "other"
+        },
+        {
+          "name": "math.color-Brtqds-S.js",
+          "duration": 39,
+          "transfer": 354,
+          "encoded": 54,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.cubeTexture.pure-BxLVtZGY.js",
+          "duration": 39.59999990463257,
+          "transfer": 2584,
+          "encoded": 2284,
+          "type": "other"
+        },
+        {
+          "name": "geometryBufferRenderer.pure-ypy4he-N.js",
+          "duration": 40,
+          "transfer": 11823,
+          "encoded": 11523,
+          "type": "other"
+        },
+        {
+          "name": "shadowMap.fragment-DX4Yo1bp.js",
+          "duration": 3.6000001430511475,
+          "transfer": 1465,
+          "encoded": 1165,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneFragment-DVK0wgyZ.js",
+          "duration": 3.8000001907348633,
+          "transfer": 659,
+          "encoded": 359,
+          "type": "script"
+        },
+        {
+          "name": "packingFunctions-DpGwbupU.js",
+          "duration": 2.9000000953674316,
+          "transfer": 829,
+          "encoded": 529,
+          "type": "script"
+        },
+        {
+          "name": "shadowMap.vertex-CMpfNXd4.js",
+          "duration": 4.400000095367432,
+          "transfer": 1883,
+          "encoded": 1583,
+          "type": "script"
+        },
+        {
+          "name": "sceneUboDeclaration-B5VhSG0v.js",
+          "duration": 2.799999952316284,
+          "transfer": 664,
+          "encoded": 364,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneVertex-Cqy6RCeP.js",
+          "duration": 4.199999809265137,
+          "transfer": 2106,
+          "encoded": 1806,
+          "type": "script"
+        },
+        {
+          "name": "meshUboDeclaration-BmNu2KU_.js",
+          "duration": 5.200000047683716,
+          "transfer": 645,
+          "encoded": 345,
+          "type": "script"
+        },
+        {
+          "name": "helperFunctions-BXbvU0Ia.js",
+          "duration": 6.700000047683716,
+          "transfer": 2589,
+          "encoded": 2289,
+          "type": "script"
+        },
+        {
+          "name": "morphTargetsVertex-6N5r7oF1.js",
+          "duration": 6.900000095367432,
+          "transfer": 1290,
+          "encoded": 990,
+          "type": "script"
+        },
+        {
+          "name": "sceneVertexDeclaration-CluTp-RC.js",
+          "duration": 5.900000095367432,
+          "transfer": 630,
+          "encoded": 330,
+          "type": "script"
+        },
+        {
+          "name": "depthBoxBlur.fragment-CLEAG5DG.js",
+          "duration": 5.8999998569488525,
+          "transfer": 834,
+          "encoded": 534,
+          "type": "script"
+        },
+        {
+          "name": "shadowMapFragmentSoftTransparentShadow-R_iOKnyx.js",
+          "duration": 6.1000001430511475,
+          "transfer": 670,
+          "encoded": 370,
+          "type": "script"
+        },
+        {
+          "name": "sharpen.fragment-CCLDkKbj.js",
+          "duration": 2.700000047683716,
+          "transfer": 1060,
+          "encoded": 760,
+          "type": "script"
+        },
+        {
+          "name": "postprocess.vertex-DJCmMhI8.js",
+          "duration": 2.6999998092651367,
+          "transfer": 760,
+          "encoded": 460,
+          "type": "script"
+        },
+        {
+          "name": "circleOfConfusion.fragment-CEj6DZ22.js",
+          "duration": 2.4000000953674316,
+          "transfer": 1114,
+          "encoded": 814,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.fragment-DHQjf6lq.js",
+          "duration": 3.9000000953674316,
+          "transfer": 1070,
+          "encoded": 770,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlurVaryingDeclaration-DP2Wr9Oc.js",
+          "duration": 2.6000001430511475,
+          "transfer": 512,
+          "encoded": 212,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.vertex-C2dESVl-.js",
+          "duration": 2.6000001430511475,
+          "transfer": 1189,
+          "encoded": 889,
+          "type": "script"
+        },
+        {
+          "name": "depthOfFieldMerge.fragment-BKOejQJL.js",
+          "duration": 6,
+          "transfer": 860,
+          "encoded": 560,
+          "type": "script"
+        },
+        {
+          "name": "extractHighlights.fragment-B_GfF3FR.js",
+          "duration": 4,
+          "transfer": 980,
+          "encoded": 680,
+          "type": "script"
+        },
+        {
+          "name": "bloomMerge.fragment-vwVNEATu.js",
+          "duration": 4.5,
+          "transfer": 787,
+          "encoded": 487,
+          "type": "script"
+        },
+        {
+          "name": "chromaticAberration.fragment-cDPo3aCd.js",
+          "duration": 5.599999904632568,
+          "transfer": 895,
+          "encoded": 595,
+          "type": "script"
+        },
+        {
+          "name": "grain.fragment-gjcXlkpe.js",
+          "duration": 5,
+          "transfer": 1073,
+          "encoded": 773,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessing.fragment-B33gBOCI.js",
+          "duration": 4.799999952316284,
+          "transfer": 1211,
+          "encoded": 911,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessingFunctions-kkEl3dsU.js",
+          "duration": 5.299999952316284,
+          "transfer": 2240,
+          "encoded": 1940,
+          "type": "script"
+        },
+        {
+          "name": "kaiju.glb?v=0.5.0",
+          "duration": 1.5,
+          "transfer": 19036,
+          "encoded": 18736,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "manifest.json?v=0.5.0",
+          "duration": 1,
+          "transfer": 758,
+          "encoded": 458,
+          "type": "fetch"
+        },
+        {
+          "name": "default.vertex-Cpw2eOHN.js",
+          "duration": 3.799999952316284,
+          "transfer": 2527,
+          "encoded": 2227,
+          "type": "script"
+        },
+        {
+          "name": "vertexColorMixing-B7dmaeCQ.js",
+          "duration": 3.299999952316284,
+          "transfer": 1051,
+          "encoded": 751,
+          "type": "script"
+        },
+        {
+          "name": "instancesDeclaration-CJBvtBV5.js",
+          "duration": 3.299999952316284,
+          "transfer": 1233,
+          "encoded": 933,
+          "type": "script"
+        },
+        {
+          "name": "logDepthDeclaration-D_lEqJ0h.js",
+          "duration": 3.200000047683716,
+          "transfer": 746,
+          "encoded": 446,
+          "type": "script"
+        },
+        {
+          "name": "defaultUboDeclaration-C53xcSdv.js",
+          "duration": 3.9000000953674316,
+          "transfer": 851,
+          "encoded": 551,
+          "type": "script"
+        },
+        {
+          "name": "logDepthVertex-DbaC19x4.js",
+          "duration": 4.099999904632568,
+          "transfer": 2069,
+          "encoded": 1769,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertexDeclaration-Cb04kLz9.js",
+          "duration": 7.799999952316284,
+          "transfer": 641,
+          "encoded": 341,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertex-CWhdIpqj.js",
+          "duration": 7.699999809265137,
+          "transfer": 822,
+          "encoded": 522,
+          "type": "script"
+        },
+        {
+          "name": "pointCloudVertex-CmkEsLzf.js",
+          "duration": 7.799999952316284,
+          "transfer": 546,
+          "encoded": 246,
+          "type": "script"
+        },
+        {
+          "name": "default.fragment-Dk8gWzGi.js",
+          "duration": 10.699999809265137,
+          "transfer": 6033,
+          "encoded": 5733,
+          "type": "script"
+        },
+        {
+          "name": "fogFragment-CISE_m3s.js",
+          "duration": 9.800000190734863,
+          "transfer": 792,
+          "encoded": 492,
+          "type": "script"
+        },
+        {
+          "name": "oitFragment-DZqjKtzR.js",
+          "duration": 10.700000047683716,
+          "transfer": 9019,
+          "encoded": 8719,
+          "type": "script"
+        },
+        {
+          "name": "clusteredLightingFunctions-BFCOODPn.js",
+          "duration": 11.100000143051147,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "script"
+        },
+        {
+          "name": "reflectionFunction-CivoLMz9.js",
+          "duration": 12.099999904632568,
+          "transfer": 1418,
+          "encoded": 1118,
+          "type": "script"
+        },
+        {
+          "name": "bumpFragment-BtJd9tYZ.js",
+          "duration": 12.399999856948853,
+          "transfer": 2696,
+          "encoded": 2396,
+          "type": "script"
+        },
+        {
+          "name": "lightFragment-rVWlNRVM.js",
+          "duration": 13,
+          "transfer": 3468,
+          "encoded": 3168,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.vertex-D31Dq5dR.js",
+          "duration": 12.200000047683716,
+          "transfer": 1181,
+          "encoded": 881,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.fragment-BMZMzcxB.js",
+          "duration": 11.400000095367432,
+          "transfer": 656,
+          "encoded": 356,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterial.pure-pkeH4nB8.js",
+          "duration": 9.5,
+          "transfer": 25837,
+          "encoded": 25537,
+          "type": "script"
+        },
+        {
+          "name": "brdfTextureTools-Bd9uSI-7.js",
+          "duration": 9.599999904632568,
+          "transfer": 45075,
+          "encoded": 44775,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterialLoadingAdapter-DihvRlxB.js",
+          "duration": 7.299999952316284,
+          "transfer": 2694,
+          "encoded": 2394,
+          "type": "script"
+        },
+        {
+          "name": "icon.svg",
+          "duration": 1.7000000476837158,
+          "transfer": 1249,
+          "encoded": 949,
+          "type": "other"
+        },
+        {
+          "name": "lot_1x1.glb?v=0.5.0",
+          "duration": 3.6000001430511475,
+          "transfer": 23776,
+          "encoded": 23476,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x2.glb?v=0.5.0",
+          "duration": 5,
+          "transfer": 185804,
+          "encoded": 185504,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x3.glb?v=0.5.0",
+          "duration": 4.6000001430511475,
+          "transfer": 156268,
+          "encoded": 155968,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x4.glb?v=0.5.0",
+          "duration": 4,
+          "transfer": 121168,
+          "encoded": 120868,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x1.glb?v=0.5.0",
+          "duration": 4.400000095367432,
+          "transfer": 71680,
+          "encoded": 71380,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x2.glb?v=0.5.0",
+          "duration": 3.6999998092651367,
+          "transfer": 43444,
+          "encoded": 43144,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x3.glb?v=0.5.0",
+          "duration": 6.400000095367432,
+          "transfer": 105660,
+          "encoded": 105360,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x4.glb?v=0.5.0",
+          "duration": 6.5,
+          "transfer": 77952,
+          "encoded": 77652,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x1.glb?v=0.5.0",
+          "duration": 6.700000047683716,
+          "transfer": 105656,
+          "encoded": 105356,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x2.glb?v=0.5.0",
+          "duration": 6.799999952316284,
+          "transfer": 105084,
+          "encoded": 104784,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x3.glb?v=0.5.0",
+          "duration": 6.799999952316284,
+          "transfer": 70936,
+          "encoded": 70636,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x4.glb?v=0.5.0",
+          "duration": 6.799999952316284,
+          "transfer": 127320,
+          "encoded": 127020,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x1.glb?v=0.5.0",
+          "duration": 9.600000143051147,
+          "transfer": 58992,
+          "encoded": 58692,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x2.glb?v=0.5.0",
+          "duration": 12.399999856948853,
+          "transfer": 136396,
+          "encoded": 136096,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x3.glb?v=0.5.0",
+          "duration": 11.5,
+          "transfer": 114360,
+          "encoded": 114060,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x4.glb?v=0.5.0",
+          "duration": 11.699999809265137,
+          "transfer": 74176,
+          "encoded": 73876,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_1x4.glb?v=0.5.0",
+          "duration": 10.5,
+          "transfer": 17332,
+          "encoded": 17032,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_2x4.glb?v=0.5.0",
+          "duration": 11.200000047683716,
+          "transfer": 16676,
+          "encoded": 16376,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_3x4.glb?v=0.5.0",
+          "duration": 13.200000047683716,
+          "transfer": 43196,
+          "encoded": 42896,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_4x4.glb?v=0.5.0",
+          "duration": 13.700000047683716,
+          "transfer": 18368,
+          "encoded": 18068,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_1x4.glb?v=0.5.0",
+          "duration": 13.900000095367432,
+          "transfer": 6812,
+          "encoded": 6512,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_2x4.glb?v=0.5.0",
+          "duration": 13.900000095367432,
+          "transfer": 11772,
+          "encoded": 11472,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_3x4.glb?v=0.5.0",
+          "duration": 14.200000047683716,
+          "transfer": 10716,
+          "encoded": 10416,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_4x4.glb?v=0.5.0",
+          "duration": 17.299999952316284,
+          "transfer": 26696,
+          "encoded": 26396,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_1x4.glb?v=0.5.0",
+          "duration": 17.800000190734863,
+          "transfer": 12908,
+          "encoded": 12608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_2x4.glb?v=0.5.0",
+          "duration": 17.700000047683716,
+          "transfer": 10032,
+          "encoded": 9732,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_3x4.glb?v=0.5.0",
+          "duration": 18,
+          "transfer": 19908,
+          "encoded": 19608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_4x4.glb?v=0.5.0",
+          "duration": 18.200000047683716,
+          "transfer": 32348,
+          "encoded": 32048,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "default-demo.json",
+          "duration": 18.600000143051147,
+          "transfer": 17482,
+          "encoded": 17182,
+          "type": "fetch"
+        },
+        {
+          "name": "fxaa.vertex-CEYszSUi.js",
+          "duration": 2.200000047683716,
+          "transfer": 1299,
+          "encoded": 999,
+          "type": "script"
+        },
+        {
+          "name": "fxaa.fragment-BJI4ON-J.js",
+          "duration": 2.3000001907348633,
+          "transfer": 1935,
+          "encoded": 1635,
+          "type": "script"
+        },
+        {
+          "name": "color.vertex-DTibeIxe.js",
+          "duration": 2,
+          "transfer": 945,
+          "encoded": 645,
+          "type": "script"
+        },
+        {
+          "name": "color.fragment-CxH-oW8C.js",
+          "duration": 1.8999998569488525,
+          "transfer": 1229,
+          "encoded": 929,
+          "type": "script"
+        },
+        {
+          "name": "rgbdDecode.fragment-BQrXAbxc.js",
+          "duration": 1.2000000476837158,
+          "transfer": 820,
+          "encoded": 520,
+          "type": "script"
+        }
+      ],
+      "buildings": 1287,
+      "models": 28
+    },
+    {
+      "mode": "warm",
+      "readyWallMs": 1863.5362920000043,
+      "firstDrawMs": 514.6999998092651,
+      "now": 1896.8999998569489,
+      "navigation": {
+        "name": "http://127.0.0.1:5188/",
+        "entryType": "navigation",
+        "startTime": 0,
+        "duration": 466.19999980926514,
+        "navigationId": 807,
+        "initiatorType": "navigation",
+        "deliveryType": "cache",
+        "nextHopProtocol": "",
+        "renderBlockingStatus": "non-blocking",
+        "contentType": "text/html",
+        "contentEncoding": "gzip",
+        "workerStart": 0,
+        "workerRouterEvaluationStart": 0,
+        "workerCacheLookupStart": 0,
+        "workerMatchedSourceType": "",
+        "workerFinalSourceType": "",
+        "redirectStart": 0,
+        "redirectEnd": 0,
+        "fetchStart": 0.09999990463256836,
+        "domainLookupStart": 0.09999990463256836,
+        "domainLookupEnd": 0.09999990463256836,
+        "connectStart": 0.09999990463256836,
+        "secureConnectionStart": 0,
+        "connectEnd": 0.09999990463256836,
+        "requestStart": 0.5999999046325684,
+        "responseStart": 1.2999999523162842,
+        "firstInterimResponseStart": 0,
+        "finalResponseHeadersStart": 1.2999999523162842,
+        "responseEnd": 1.5999999046325684,
+        "transferSize": 300,
+        "encodedBodySize": 7216,
+        "decodedBodySize": 31740,
+        "responseStatus": 200,
+        "serverTiming": [],
+        "unloadEventStart": 39.299999952316284,
+        "unloadEventEnd": 39.299999952316284,
+        "domInteractive": 66.09999990463257,
+        "domContentLoadedEventStart": 465.7999999523163,
+        "domContentLoadedEventEnd": 465.89999985694885,
+        "domComplete": 466.19999980926514,
+        "loadEventStart": 466.19999980926514,
+        "loadEventEnd": 466.19999980926514,
+        "type": "navigate",
+        "redirectCount": 0,
+        "activationStart": 0,
+        "criticalCHRestart": 0,
+        "notRestoredReasons": null,
+        "confidence": {
+          "randomizedTriggerRate": 0.4994798,
+          "value": "high"
+        }
+      },
+      "resources": [
+        {
+          "name": "index-C3DmJ98X.js",
+          "duration": 2.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "performanceConfigurator-UtxC_Odd.js",
+          "duration": 3.1000001430511475,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "engineStore-BCGLUAAJ.js",
+          "duration": 3.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "math.scalar.functions-lnL7TJ7T.js",
+          "duration": 4.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "typeStore-Cu_sj2zM.js",
+          "duration": 5.199999809265137,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "math.color.pure-DAjhOxZx.js",
+          "duration": 5.599999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "timingTools-B8PaVbYY.js",
+          "duration": 3.0999999046325684,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "halfFloat-Ce77JD5z.js",
+          "duration": 5.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "guid-gRBbzhpv.js",
+          "duration": 6.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "fileTools.pure-Cv26Tr8E.js",
+          "duration": 6.700000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "tools.pure-0bBaBwCY.js",
+          "duration": 7.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "logger-CuBYPcDK.js",
+          "duration": 7.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "shaderStore-D-XQlhUT.js",
+          "duration": 9.900000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "internalTexture-Dbf8pg9P.js",
+          "duration": 8.300000190734863,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.pure-D7FtdBsH.js",
+          "duration": 8.700000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "thinEngine.pure-DjswqH4Y.js",
+          "duration": 9.100000143051147,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "decorators-C_ra_8EP.js",
+          "duration": 9.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "smartArray-BRfcgNbX.js",
+          "duration": 11.300000190734863,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "math.size-DRdQnhLN.js",
+          "duration": 10.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "animation.pure-DffjI9C9.js",
+          "duration": 10.299999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "buffer.pure-ChJiR4SA.js",
+          "duration": 10.599999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "drawWrapper-DMTcaFT6.js",
+          "duration": 10.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "effectRenderer.pure-CL5NsU1V.js",
+          "duration": 11.399999856948853,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "preload-helper-Czpn1I53.js",
+          "duration": 12.899999856948853,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "math.plane-B6GwI2-I.js",
+          "duration": 11.600000143051147,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "lightConstants-CqPbYxd8.js",
+          "duration": 12.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "renderingManager-BC_MosmL.js",
+          "duration": 12.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "baseTexture.pure-B01kiO6j.js",
+          "duration": 13.100000143051147,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "scene.pure-Bcw18THM.js",
+          "duration": 14.299999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "texture.pure-DVySCaAg.js",
+          "duration": 13.299999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "constants-DNxlZnxc.js",
+          "duration": 13.599999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "objectModelMapping-CCr-dGyf.js",
+          "duration": 13.899999856948853,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "bone.pure-iEkoIqTY.js",
+          "duration": 15.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "material.pure-zyyjU_AF.js",
+          "duration": 14.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "imageProcessing-DUnvhT2z.js",
+          "duration": 14.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "material.detailMapConfiguration-BHTVzXbZ.js",
+          "duration": 15.100000143051147,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "sphericalPolynomial.pure-DUuPdIp_.js",
+          "duration": 15.300000190734863,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "renderTargetTexture.pure-DAS0XMs9.js",
+          "duration": 15.900000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "environmentTextureTools.pure-CVov5NyJ.js",
+          "duration": 16.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.cubeTexture.pure-BxLVtZGY.js",
+          "duration": 16.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "geometryBufferRenderer.pure-ypy4he-N.js",
+          "duration": 16.800000190734863,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "postProcess.pure-DQvIGMZh.js",
+          "duration": 17,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "math.color-Brtqds-S.js",
+          "duration": 17.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "other"
+        },
+        {
+          "name": "shadowMap.fragment-DX4Yo1bp.js",
+          "duration": 1.6000001430511475,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneFragment-DVK0wgyZ.js",
+          "duration": 2.299999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "packingFunctions-DpGwbupU.js",
+          "duration": 3.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "shadowMap.vertex-CMpfNXd4.js",
+          "duration": 4.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneVertex-Cqy6RCeP.js",
+          "duration": 4.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "sceneUboDeclaration-B5VhSG0v.js",
+          "duration": 5.1000001430511475,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "meshUboDeclaration-BmNu2KU_.js",
+          "duration": 2.5999999046325684,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "helperFunctions-BXbvU0Ia.js",
+          "duration": 7.700000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "morphTargetsVertex-6N5r7oF1.js",
+          "duration": 5.400000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "sceneVertexDeclaration-CluTp-RC.js",
+          "duration": 6,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "depthBoxBlur.fragment-CLEAG5DG.js",
+          "duration": 6.599999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "shadowMapFragmentSoftTransparentShadow-R_iOKnyx.js",
+          "duration": 7.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "sharpen.fragment-CCLDkKbj.js",
+          "duration": 5.400000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "postprocess.vertex-DJCmMhI8.js",
+          "duration": 4,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "circleOfConfusion.fragment-CEj6DZ22.js",
+          "duration": 4.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.fragment-DHQjf6lq.js",
+          "duration": 4.400000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlurVaryingDeclaration-DP2Wr9Oc.js",
+          "duration": 4.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.vertex-C2dESVl-.js",
+          "duration": 6.400000095367432,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "depthOfFieldMerge.fragment-BKOejQJL.js",
+          "duration": 5.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "extractHighlights.fragment-B_GfF3FR.js",
+          "duration": 5.1000001430511475,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "bloomMerge.fragment-vwVNEATu.js",
+          "duration": 5.299999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "chromaticAberration.fragment-cDPo3aCd.js",
+          "duration": 5.3999998569488525,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "grain.fragment-gjcXlkpe.js",
+          "duration": 6.200000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessing.fragment-B33gBOCI.js",
+          "duration": 5.599999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessingFunctions-kkEl3dsU.js",
+          "duration": 5.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "kaiju.glb?v=0.5.0",
+          "duration": 1.5,
+          "transfer": 300,
+          "encoded": 18736,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "manifest.json?v=0.5.0",
+          "duration": 1.5,
+          "transfer": 300,
+          "encoded": 458,
+          "type": "fetch"
+        },
+        {
+          "name": "default.vertex-Cpw2eOHN.js",
+          "duration": 1.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "vertexColorMixing-B7dmaeCQ.js",
+          "duration": 1.6999998092651367,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "instancesDeclaration-CJBvtBV5.js",
+          "duration": 2.1999998092651367,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "defaultUboDeclaration-C53xcSdv.js",
+          "duration": 2.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "logDepthDeclaration-D_lEqJ0h.js",
+          "duration": 3,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertexDeclaration-Cb04kLz9.js",
+          "duration": 1.7000000476837158,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "logDepthVertex-DbaC19x4.js",
+          "duration": 3.8999998569488525,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertex-CWhdIpqj.js",
+          "duration": 6.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "pointCloudVertex-CmkEsLzf.js",
+          "duration": 4.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "default.fragment-Dk8gWzGi.js",
+          "duration": 5.099999904632568,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "fogFragment-CISE_m3s.js",
+          "duration": 5.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "oitFragment-DZqjKtzR.js",
+          "duration": 5.800000190734863,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "clusteredLightingFunctions-BFCOODPn.js",
+          "duration": 7.700000047683716,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "reflectionFunction-CivoLMz9.js",
+          "duration": 6.5,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "bumpFragment-BtJd9tYZ.js",
+          "duration": 6.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "lightFragment-rVWlNRVM.js",
+          "duration": 7,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.vertex-D31Dq5dR.js",
+          "duration": 6.799999952316284,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.fragment-BMZMzcxB.js",
+          "duration": 8,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterial.pure-pkeH4nB8.js",
+          "duration": 0.8999998569488525,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "brdfTextureTools-Bd9uSI-7.js",
+          "duration": 0.9000000953674316,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterialLoadingAdapter-DihvRlxB.js",
+          "duration": 0.8999998569488525,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "icon.svg",
+          "duration": 1,
+          "transfer": 300,
+          "encoded": 949,
+          "type": "other"
+        },
+        {
+          "name": "lot_1x1.glb?v=0.5.0",
+          "duration": 1.3999998569488525,
+          "transfer": 300,
+          "encoded": 23476,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x2.glb?v=0.5.0",
+          "duration": 1.9000000953674316,
+          "transfer": 300,
+          "encoded": 185504,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x3.glb?v=0.5.0",
+          "duration": 2.6000001430511475,
+          "transfer": 300,
+          "encoded": 155968,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x4.glb?v=0.5.0",
+          "duration": 2.799999952316284,
+          "transfer": 300,
+          "encoded": 120868,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x1.glb?v=0.5.0",
+          "duration": 3.3999998569488525,
+          "transfer": 300,
+          "encoded": 71380,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x2.glb?v=0.5.0",
+          "duration": 3.6000001430511475,
+          "transfer": 300,
+          "encoded": 43144,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x3.glb?v=0.5.0",
+          "duration": 5,
+          "transfer": 300,
+          "encoded": 105360,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x4.glb?v=0.5.0",
+          "duration": 3.5999999046325684,
+          "transfer": 300,
+          "encoded": 77652,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x1.glb?v=0.5.0",
+          "duration": 3.9000000953674316,
+          "transfer": 300,
+          "encoded": 105356,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x2.glb?v=0.5.0",
+          "duration": 4.299999952316284,
+          "transfer": 300,
+          "encoded": 104784,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x3.glb?v=0.5.0",
+          "duration": 4.5,
+          "transfer": 300,
+          "encoded": 70636,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x1.glb?v=0.5.0",
+          "duration": 5.8999998569488525,
+          "transfer": 300,
+          "encoded": 58692,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x4.glb?v=0.5.0",
+          "duration": 7.299999952316284,
+          "transfer": 300,
+          "encoded": 127020,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x2.glb?v=0.5.0",
+          "duration": 6.400000095367432,
+          "transfer": 300,
+          "encoded": 136096,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x3.glb?v=0.5.0",
+          "duration": 6.700000047683716,
+          "transfer": 300,
+          "encoded": 114060,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x4.glb?v=0.5.0",
+          "duration": 7,
+          "transfer": 300,
+          "encoded": 73876,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_2x4.glb?v=0.5.0",
+          "duration": 7.200000047683716,
+          "transfer": 300,
+          "encoded": 16376,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_1x4.glb?v=0.5.0",
+          "duration": 8.099999904632568,
+          "transfer": 300,
+          "encoded": 17032,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_3x4.glb?v=0.5.0",
+          "duration": 7.300000190734863,
+          "transfer": 300,
+          "encoded": 42896,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_4x4.glb?v=0.5.0",
+          "duration": 7.5,
+          "transfer": 300,
+          "encoded": 18068,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_1x4.glb?v=0.5.0",
+          "duration": 7.599999904632568,
+          "transfer": 300,
+          "encoded": 6512,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_3x4.glb?v=0.5.0",
+          "duration": 7.900000095367432,
+          "transfer": 300,
+          "encoded": 10416,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_4x4.glb?v=0.5.0",
+          "duration": 8.100000143051147,
+          "transfer": 300,
+          "encoded": 26396,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_2x4.glb?v=0.5.0",
+          "duration": 8.799999952316284,
+          "transfer": 300,
+          "encoded": 11472,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_1x4.glb?v=0.5.0",
+          "duration": 8.099999904632568,
+          "transfer": 300,
+          "encoded": 12608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_2x4.glb?v=0.5.0",
+          "duration": 8.299999952316284,
+          "transfer": 300,
+          "encoded": 9732,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_4x4.glb?v=0.5.0",
+          "duration": 8.900000095367432,
+          "transfer": 300,
+          "encoded": 32048,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_3x4.glb?v=0.5.0",
+          "duration": 9.299999952316284,
+          "transfer": 300,
+          "encoded": 19608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "default-demo.json",
+          "duration": 8.5,
+          "transfer": 300,
+          "encoded": 17182,
+          "type": "fetch"
+        },
+        {
+          "name": "fxaa.fragment-BJI4ON-J.js",
+          "duration": 1,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "fxaa.vertex-CEYszSUi.js",
+          "duration": 1.3000001907348633,
+          "transfer": 300,
+          "encoded": 0,
+          "type": "script"
+        },
+        {
+          "name": "color.vertex-DTibeIxe.js",
+          "duration": 1.2999999523162842,
+          "transfer": 300,
+          "encoded": 645,
+          "type": "script"
+        },
+        {
+          "name": "color.fragment-CxH-oW8C.js",
+          "duration": 1.4000000953674316,
+          "transfer": 300,
+          "encoded": 929,
+          "type": "script"
+        },
+        {
+          "name": "rgbdDecode.fragment-BQrXAbxc.js",
+          "duration": 2.299999952316284,
+          "transfer": 300,
+          "encoded": 520,
+          "type": "script"
+        }
+      ],
+      "buildings": 1287,
+      "models": 28
+    },
+    {
+      "mode": "throttled-cold",
+      "readyWallMs": 9427.415083999993,
+      "firstDrawMs": 2497.7999999523163,
+      "now": 9428.799999952316,
+      "navigation": {
+        "name": "http://127.0.0.1:5188/",
+        "entryType": "navigation",
+        "startTime": 0,
+        "duration": 2291,
+        "navigationId": 1345,
+        "initiatorType": "navigation",
+        "deliveryType": "",
+        "nextHopProtocol": "http/1.1",
+        "renderBlockingStatus": "non-blocking",
+        "contentType": "text/html",
+        "contentEncoding": "gzip",
+        "workerStart": 0,
+        "workerRouterEvaluationStart": 0,
+        "workerCacheLookupStart": 0,
+        "workerMatchedSourceType": "",
+        "workerFinalSourceType": "",
+        "redirectStart": 0,
+        "redirectEnd": 0,
+        "fetchStart": 0.20000004768371582,
+        "domainLookupStart": 0.20000004768371582,
+        "domainLookupEnd": 0.20000004768371582,
+        "connectStart": 0.20000004768371582,
+        "secureConnectionStart": 0,
+        "connectEnd": 0.20000004768371582,
+        "requestStart": 0.6000001430511475,
+        "responseStart": 1.5,
+        "firstInterimResponseStart": 0,
+        "finalResponseHeadersStart": 1.5,
+        "responseEnd": 50.10000014305115,
+        "transferSize": 7516,
+        "encodedBodySize": 7216,
+        "decodedBodySize": 31740,
+        "responseStatus": 200,
+        "serverTiming": [],
+        "unloadEventStart": 0,
+        "unloadEventEnd": 0,
+        "domInteractive": 85.5,
+        "domContentLoadedEventStart": 2287.9000000953674,
+        "domContentLoadedEventEnd": 2288,
+        "domComplete": 2291,
+        "loadEventStart": 2291,
+        "loadEventEnd": 2291,
+        "type": "navigate",
+        "redirectCount": 0,
+        "activationStart": 0,
+        "criticalCHRestart": 0,
+        "notRestoredReasons": null,
+        "confidence": {
+          "randomizedTriggerRate": 0.4994798,
+          "value": "low"
+        }
+      },
+      "resources": [
+        {
+          "name": "performanceConfigurator-UtxC_Odd.js",
+          "duration": 46.89999985694885,
+          "transfer": 800,
+          "encoded": 500,
+          "type": "other"
+        },
+        {
+          "name": "engineStore-BCGLUAAJ.js",
+          "duration": 55.39999985694885,
+          "transfer": 1517,
+          "encoded": 1217,
+          "type": "other"
+        },
+        {
+          "name": "index-C3DmJ98X.js",
+          "duration": 501.7999999523163,
+          "transfer": 311639,
+          "encoded": 311339,
+          "type": "script"
+        },
+        {
+          "name": "math.scalar.functions-lnL7TJ7T.js",
+          "duration": 48.39999985694885,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "other"
+        },
+        {
+          "name": "typeStore-Cu_sj2zM.js",
+          "duration": 51.09999990463257,
+          "transfer": 380,
+          "encoded": 80,
+          "type": "other"
+        },
+        {
+          "name": "math.color.pure-DAjhOxZx.js",
+          "duration": 82.20000004768372,
+          "transfer": 18406,
+          "encoded": 18106,
+          "type": "other"
+        },
+        {
+          "name": "logger-CuBYPcDK.js",
+          "duration": 91.60000014305115,
+          "transfer": 1126,
+          "encoded": 826,
+          "type": "other"
+        },
+        {
+          "name": "timingTools-B8PaVbYY.js",
+          "duration": 97.70000004768372,
+          "transfer": 4967,
+          "encoded": 4667,
+          "type": "other"
+        },
+        {
+          "name": "halfFloat-Ce77JD5z.js",
+          "duration": 95,
+          "transfer": 903,
+          "encoded": 603,
+          "type": "other"
+        },
+        {
+          "name": "guid-gRBbzhpv.js",
+          "duration": 100.89999985694885,
+          "transfer": 1902,
+          "encoded": 1602,
+          "type": "other"
+        },
+        {
+          "name": "fileTools.pure-Cv26Tr8E.js",
+          "duration": 130.89999985694885,
+          "transfer": 4914,
+          "encoded": 4614,
+          "type": "other"
+        },
+        {
+          "name": "shaderStore-D-XQlhUT.js",
+          "duration": 137.79999995231628,
+          "transfer": 769,
+          "encoded": 469,
+          "type": "other"
+        },
+        {
+          "name": "tools.pure-0bBaBwCY.js",
+          "duration": 142.79999995231628,
+          "transfer": 5002,
+          "encoded": 4702,
+          "type": "other"
+        },
+        {
+          "name": "internalTexture-Dbf8pg9P.js",
+          "duration": 146.20000004768372,
+          "transfer": 2294,
+          "encoded": 1994,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.pure-D7FtdBsH.js",
+          "duration": 168,
+          "transfer": 14784,
+          "encoded": 14484,
+          "type": "other"
+        },
+        {
+          "name": "decorators-C_ra_8EP.js",
+          "duration": 184.79999995231628,
+          "transfer": 1879,
+          "encoded": 1579,
+          "type": "other"
+        },
+        {
+          "name": "smartArray-BRfcgNbX.js",
+          "duration": 187.10000014305115,
+          "transfer": 737,
+          "encoded": 437,
+          "type": "other"
+        },
+        {
+          "name": "thinEngine.pure-DjswqH4Y.js",
+          "duration": 205.20000004768372,
+          "transfer": 17152,
+          "encoded": 16852,
+          "type": "other"
+        },
+        {
+          "name": "math.size-DRdQnhLN.js",
+          "duration": 194.29999995231628,
+          "transfer": 2375,
+          "encoded": 2075,
+          "type": "other"
+        },
+        {
+          "name": "animation.pure-DffjI9C9.js",
+          "duration": 218.80000019073486,
+          "transfer": 7084,
+          "encoded": 6784,
+          "type": "other"
+        },
+        {
+          "name": "buffer.pure-ChJiR4SA.js",
+          "duration": 228.5,
+          "transfer": 2790,
+          "encoded": 2490,
+          "type": "other"
+        },
+        {
+          "name": "drawWrapper-DMTcaFT6.js",
+          "duration": 229.60000014305115,
+          "transfer": 965,
+          "encoded": 665,
+          "type": "other"
+        },
+        {
+          "name": "preload-helper-Czpn1I53.js",
+          "duration": 235.70000004768372,
+          "transfer": 975,
+          "encoded": 675,
+          "type": "other"
+        },
+        {
+          "name": "effectRenderer.pure-CL5NsU1V.js",
+          "duration": 248.70000004768372,
+          "transfer": 2783,
+          "encoded": 2483,
+          "type": "other"
+        },
+        {
+          "name": "math.plane-B6GwI2-I.js",
+          "duration": 260.90000009536743,
+          "transfer": 1062,
+          "encoded": 762,
+          "type": "other"
+        },
+        {
+          "name": "lightConstants-CqPbYxd8.js",
+          "duration": 277.5,
+          "transfer": 3804,
+          "encoded": 3504,
+          "type": "other"
+        },
+        {
+          "name": "renderingManager-BC_MosmL.js",
+          "duration": 284.60000014305115,
+          "transfer": 5213,
+          "encoded": 4913,
+          "type": "other"
+        },
+        {
+          "name": "scene.pure-Bcw18THM.js",
+          "duration": 356.7000000476837,
+          "transfer": 32931,
+          "encoded": 32631,
+          "type": "other"
+        },
+        {
+          "name": "baseTexture.pure-B01kiO6j.js",
+          "duration": 298.59999990463257,
+          "transfer": 4118,
+          "encoded": 3818,
+          "type": "other"
+        },
+        {
+          "name": "texture.pure-DVySCaAg.js",
+          "duration": 314,
+          "transfer": 5746,
+          "encoded": 5446,
+          "type": "other"
+        },
+        {
+          "name": "constants-DNxlZnxc.js",
+          "duration": 327.2999999523163,
+          "transfer": 3494,
+          "encoded": 3194,
+          "type": "other"
+        },
+        {
+          "name": "bone.pure-iEkoIqTY.js",
+          "duration": 352.39999985694885,
+          "transfer": 3087,
+          "encoded": 2787,
+          "type": "other"
+        },
+        {
+          "name": "objectModelMapping-CCr-dGyf.js",
+          "duration": 357,
+          "transfer": 10596,
+          "encoded": 10296,
+          "type": "other"
+        },
+        {
+          "name": "imageProcessing-DUnvhT2z.js",
+          "duration": 377.59999990463257,
+          "transfer": 4368,
+          "encoded": 4068,
+          "type": "other"
+        },
+        {
+          "name": "material.pure-zyyjU_AF.js",
+          "duration": 393,
+          "transfer": 20496,
+          "encoded": 20196,
+          "type": "other"
+        },
+        {
+          "name": "material.detailMapConfiguration-BHTVzXbZ.js",
+          "duration": 402.59999990463257,
+          "transfer": 4444,
+          "encoded": 4144,
+          "type": "other"
+        },
+        {
+          "name": "sphericalPolynomial.pure-DUuPdIp_.js",
+          "duration": 403.7000000476837,
+          "transfer": 1638,
+          "encoded": 1338,
+          "type": "other"
+        },
+        {
+          "name": "postProcess.pure-DQvIGMZh.js",
+          "duration": 410.5,
+          "transfer": 5372,
+          "encoded": 5072,
+          "type": "other"
+        },
+        {
+          "name": "renderTargetTexture.pure-DAS0XMs9.js",
+          "duration": 430.7000000476837,
+          "transfer": 8162,
+          "encoded": 7862,
+          "type": "other"
+        },
+        {
+          "name": "environmentTextureTools.pure-CVov5NyJ.js",
+          "duration": 439.2000000476837,
+          "transfer": 3207,
+          "encoded": 2907,
+          "type": "other"
+        },
+        {
+          "name": "abstractEngine.cubeTexture.pure-BxLVtZGY.js",
+          "duration": 447.59999990463257,
+          "transfer": 2584,
+          "encoded": 2284,
+          "type": "other"
+        },
+        {
+          "name": "geometryBufferRenderer.pure-ypy4he-N.js",
+          "duration": 465.39999985694885,
+          "transfer": 11823,
+          "encoded": 11523,
+          "type": "other"
+        },
+        {
+          "name": "math.color-Brtqds-S.js",
+          "duration": 453.2000000476837,
+          "transfer": 354,
+          "encoded": 54,
+          "type": "other"
+        },
+        {
+          "name": "shadowMap.fragment-DX4Yo1bp.js",
+          "duration": 49.90000009536743,
+          "transfer": 1465,
+          "encoded": 1165,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneFragment-DVK0wgyZ.js",
+          "duration": 43.69999980926514,
+          "transfer": 659,
+          "encoded": 359,
+          "type": "script"
+        },
+        {
+          "name": "packingFunctions-DpGwbupU.js",
+          "duration": 44.299999952316284,
+          "transfer": 829,
+          "encoded": 529,
+          "type": "script"
+        },
+        {
+          "name": "shadowMap.vertex-CMpfNXd4.js",
+          "duration": 50.09999990463257,
+          "transfer": 1883,
+          "encoded": 1583,
+          "type": "script"
+        },
+        {
+          "name": "clipPlaneVertex-Cqy6RCeP.js",
+          "duration": 50.89999985694885,
+          "transfer": 2106,
+          "encoded": 1806,
+          "type": "script"
+        },
+        {
+          "name": "sceneUboDeclaration-B5VhSG0v.js",
+          "duration": 47.299999952316284,
+          "transfer": 664,
+          "encoded": 364,
+          "type": "script"
+        },
+        {
+          "name": "meshUboDeclaration-BmNu2KU_.js",
+          "duration": 88,
+          "transfer": 645,
+          "encoded": 345,
+          "type": "script"
+        },
+        {
+          "name": "helperFunctions-BXbvU0Ia.js",
+          "duration": 92.70000004768372,
+          "transfer": 2589,
+          "encoded": 2289,
+          "type": "script"
+        },
+        {
+          "name": "morphTargetsVertex-6N5r7oF1.js",
+          "duration": 89.70000004768372,
+          "transfer": 1290,
+          "encoded": 990,
+          "type": "script"
+        },
+        {
+          "name": "sceneVertexDeclaration-CluTp-RC.js",
+          "duration": 90.90000009536743,
+          "transfer": 630,
+          "encoded": 330,
+          "type": "script"
+        },
+        {
+          "name": "depthBoxBlur.fragment-CLEAG5DG.js",
+          "duration": 93.10000014305115,
+          "transfer": 834,
+          "encoded": 534,
+          "type": "script"
+        },
+        {
+          "name": "shadowMapFragmentSoftTransparentShadow-R_iOKnyx.js",
+          "duration": 93.89999985694885,
+          "transfer": 670,
+          "encoded": 370,
+          "type": "script"
+        },
+        {
+          "name": "sharpen.fragment-CCLDkKbj.js",
+          "duration": 94.29999995231628,
+          "transfer": 1060,
+          "encoded": 760,
+          "type": "script"
+        },
+        {
+          "name": "postprocess.vertex-DJCmMhI8.js",
+          "duration": 95.20000004768372,
+          "transfer": 760,
+          "encoded": 460,
+          "type": "script"
+        },
+        {
+          "name": "circleOfConfusion.fragment-CEj6DZ22.js",
+          "duration": 94.69999980926514,
+          "transfer": 1114,
+          "encoded": 814,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.fragment-DHQjf6lq.js",
+          "duration": 95,
+          "transfer": 1070,
+          "encoded": 770,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlurVaryingDeclaration-DP2Wr9Oc.js",
+          "duration": 95.79999995231628,
+          "transfer": 512,
+          "encoded": 212,
+          "type": "script"
+        },
+        {
+          "name": "kernelBlur.vertex-C2dESVl-.js",
+          "duration": 96.79999995231628,
+          "transfer": 1189,
+          "encoded": 889,
+          "type": "script"
+        },
+        {
+          "name": "depthOfFieldMerge.fragment-BKOejQJL.js",
+          "duration": 136.09999990463257,
+          "transfer": 860,
+          "encoded": 560,
+          "type": "script"
+        },
+        {
+          "name": "extractHighlights.fragment-B_GfF3FR.js",
+          "duration": 135,
+          "transfer": 980,
+          "encoded": 680,
+          "type": "script"
+        },
+        {
+          "name": "bloomMerge.fragment-vwVNEATu.js",
+          "duration": 135.70000004768372,
+          "transfer": 787,
+          "encoded": 487,
+          "type": "script"
+        },
+        {
+          "name": "chromaticAberration.fragment-cDPo3aCd.js",
+          "duration": 135.09999990463257,
+          "transfer": 895,
+          "encoded": 595,
+          "type": "script"
+        },
+        {
+          "name": "grain.fragment-gjcXlkpe.js",
+          "duration": 135.60000014305115,
+          "transfer": 1073,
+          "encoded": 773,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessing.fragment-B33gBOCI.js",
+          "duration": 135.79999995231628,
+          "transfer": 1211,
+          "encoded": 911,
+          "type": "script"
+        },
+        {
+          "name": "imageProcessingFunctions-kkEl3dsU.js",
+          "duration": 175.89999985694885,
+          "transfer": 2240,
+          "encoded": 1940,
+          "type": "script"
+        },
+        {
+          "name": "kaiju.glb?v=0.5.0",
+          "duration": 59.799999952316284,
+          "transfer": 19036,
+          "encoded": 18736,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "manifest.json?v=0.5.0",
+          "duration": 42.200000047683716,
+          "transfer": 758,
+          "encoded": 458,
+          "type": "fetch"
+        },
+        {
+          "name": "default.vertex-Cpw2eOHN.js",
+          "duration": 52.09999990463257,
+          "transfer": 2527,
+          "encoded": 2227,
+          "type": "script"
+        },
+        {
+          "name": "vertexColorMixing-B7dmaeCQ.js",
+          "duration": 46.799999952316284,
+          "transfer": 1051,
+          "encoded": 751,
+          "type": "script"
+        },
+        {
+          "name": "instancesDeclaration-CJBvtBV5.js",
+          "duration": 47.200000047683716,
+          "transfer": 1233,
+          "encoded": 933,
+          "type": "script"
+        },
+        {
+          "name": "defaultUboDeclaration-C53xcSdv.js",
+          "duration": 49.59999990463257,
+          "transfer": 851,
+          "encoded": 551,
+          "type": "script"
+        },
+        {
+          "name": "logDepthDeclaration-D_lEqJ0h.js",
+          "duration": 48,
+          "transfer": 746,
+          "encoded": 446,
+          "type": "script"
+        },
+        {
+          "name": "logDepthVertex-DbaC19x4.js",
+          "duration": 52.90000009536743,
+          "transfer": 2069,
+          "encoded": 1769,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertexDeclaration-Cb04kLz9.js",
+          "duration": 90.79999995231628,
+          "transfer": 641,
+          "encoded": 341,
+          "type": "script"
+        },
+        {
+          "name": "bumpVertex-CWhdIpqj.js",
+          "duration": 91.69999980926514,
+          "transfer": 822,
+          "encoded": 522,
+          "type": "script"
+        },
+        {
+          "name": "pointCloudVertex-CmkEsLzf.js",
+          "duration": 92.70000004768372,
+          "transfer": 546,
+          "encoded": 246,
+          "type": "script"
+        },
+        {
+          "name": "default.fragment-Dk8gWzGi.js",
+          "duration": 104.70000004768372,
+          "transfer": 6033,
+          "encoded": 5733,
+          "type": "script"
+        },
+        {
+          "name": "fogFragment-CISE_m3s.js",
+          "duration": 95.09999990463257,
+          "transfer": 792,
+          "encoded": 492,
+          "type": "script"
+        },
+        {
+          "name": "oitFragment-DZqjKtzR.js",
+          "duration": 107.30000019073486,
+          "transfer": 9019,
+          "encoded": 8719,
+          "type": "script"
+        },
+        {
+          "name": "clusteredLightingFunctions-BFCOODPn.js",
+          "duration": 130.10000014305115,
+          "transfer": 1064,
+          "encoded": 764,
+          "type": "script"
+        },
+        {
+          "name": "reflectionFunction-CivoLMz9.js",
+          "duration": 130.90000009536743,
+          "transfer": 1418,
+          "encoded": 1118,
+          "type": "script"
+        },
+        {
+          "name": "bumpFragment-BtJd9tYZ.js",
+          "duration": 133.29999995231628,
+          "transfer": 2696,
+          "encoded": 2396,
+          "type": "script"
+        },
+        {
+          "name": "lightFragment-rVWlNRVM.js",
+          "duration": 136.5,
+          "transfer": 3468,
+          "encoded": 3168,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.vertex-D31Dq5dR.js",
+          "duration": 141,
+          "transfer": 1181,
+          "encoded": 881,
+          "type": "script"
+        },
+        {
+          "name": "lightProxy.fragment-BMZMzcxB.js",
+          "duration": 143.10000014305115,
+          "transfer": 656,
+          "encoded": 356,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterial.pure-pkeH4nB8.js",
+          "duration": 217.70000004768372,
+          "transfer": 25837,
+          "encoded": 25537,
+          "type": "script"
+        },
+        {
+          "name": "brdfTextureTools-Bd9uSI-7.js",
+          "duration": 291.60000014305115,
+          "transfer": 45075,
+          "encoded": 44775,
+          "type": "script"
+        },
+        {
+          "name": "pbrMaterialLoadingAdapter-DihvRlxB.js",
+          "duration": 131.59999990463257,
+          "transfer": 2694,
+          "encoded": 2394,
+          "type": "script"
+        },
+        {
+          "name": "icon.svg",
+          "duration": 108,
+          "transfer": 1249,
+          "encoded": 949,
+          "type": "other"
+        },
+        {
+          "name": "lot_1x1.glb?v=0.5.0",
+          "duration": 149.39999985694885,
+          "transfer": 23776,
+          "encoded": 23476,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x2.glb?v=0.5.0",
+          "duration": 853.6000001430511,
+          "transfer": 185804,
+          "encoded": 185504,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x3.glb?v=0.5.0",
+          "duration": 789.7999999523163,
+          "transfer": 156268,
+          "encoded": 155968,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_1x4.glb?v=0.5.0",
+          "duration": 635,
+          "transfer": 121168,
+          "encoded": 120868,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x2.glb?v=0.5.0",
+          "duration": 388.5,
+          "transfer": 43444,
+          "encoded": 43144,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x1.glb?v=0.5.0",
+          "duration": 504.80000019073486,
+          "transfer": 71680,
+          "encoded": 71380,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x3.glb?v=0.5.0",
+          "duration": 740.2999999523163,
+          "transfer": 105660,
+          "encoded": 105360,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_2x4.glb?v=0.5.0",
+          "duration": 777.5,
+          "transfer": 77952,
+          "encoded": 77652,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x1.glb?v=0.5.0",
+          "duration": 1009.6000001430511,
+          "transfer": 105656,
+          "encoded": 105356,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x2.glb?v=0.5.0",
+          "duration": 1125.8999998569489,
+          "transfer": 105084,
+          "encoded": 104784,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x3.glb?v=0.5.0",
+          "duration": 1087.9000000953674,
+          "transfer": 70936,
+          "encoded": 70636,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_3x4.glb?v=0.5.0",
+          "duration": 1366.0999999046326,
+          "transfer": 127320,
+          "encoded": 127020,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x1.glb?v=0.5.0",
+          "duration": 1098.1999998092651,
+          "transfer": 58992,
+          "encoded": 58692,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x2.glb?v=0.5.0",
+          "duration": 1457,
+          "transfer": 136396,
+          "encoded": 136096,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x3.glb?v=0.5.0",
+          "duration": 1470.2000000476837,
+          "transfer": 114360,
+          "encoded": 114060,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "lot_4x4.glb?v=0.5.0",
+          "duration": 1439.7000000476837,
+          "transfer": 74176,
+          "encoded": 73876,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_1x4.glb?v=0.5.0",
+          "duration": 1217.4000000953674,
+          "transfer": 17332,
+          "encoded": 17032,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_2x4.glb?v=0.5.0",
+          "duration": 1244.9000000953674,
+          "transfer": 16676,
+          "encoded": 16376,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_4x4.glb?v=0.5.0",
+          "duration": 1376.2999999523163,
+          "transfer": 18368,
+          "encoded": 18068,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "farm_3x4.glb?v=0.5.0",
+          "duration": 1439.7000000476837,
+          "transfer": 43196,
+          "encoded": 42896,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_1x4.glb?v=0.5.0",
+          "duration": 1436.2000000476837,
+          "transfer": 6812,
+          "encoded": 6512,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_2x4.glb?v=0.5.0",
+          "duration": 1457.2000000476837,
+          "transfer": 11772,
+          "encoded": 11472,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_3x4.glb?v=0.5.0",
+          "duration": 1500.6000001430511,
+          "transfer": 10716,
+          "encoded": 10416,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_1x4.glb?v=0.5.0",
+          "duration": 1517,
+          "transfer": 12908,
+          "encoded": 12608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "industrial_4x4.glb?v=0.5.0",
+          "duration": 1556.6999998092651,
+          "transfer": 26696,
+          "encoded": 26396,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_2x4.glb?v=0.5.0",
+          "duration": 1530.7000000476837,
+          "transfer": 10032,
+          "encoded": 9732,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_3x4.glb?v=0.5.0",
+          "duration": 1561.6000001430511,
+          "transfer": 19908,
+          "encoded": 19608,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "military_4x4.glb?v=0.5.0",
+          "duration": 1584.5,
+          "transfer": 32348,
+          "encoded": 32048,
+          "type": "xmlhttprequest"
+        },
+        {
+          "name": "default-demo.json",
+          "duration": 1575.3999998569489,
+          "transfer": 17482,
+          "encoded": 17182,
+          "type": "fetch"
+        },
+        {
+          "name": "rgbdDecode.fragment-BQrXAbxc.js",
+          "duration": 1303,
+          "transfer": 820,
+          "encoded": 520,
+          "type": "script"
+        },
+        {
+          "name": "fxaa.fragment-BJI4ON-J.js",
+          "duration": 47.09999990463257,
+          "transfer": 1935,
+          "encoded": 1635,
+          "type": "script"
+        },
+        {
+          "name": "fxaa.vertex-CEYszSUi.js",
+          "duration": 44.299999952316284,
+          "transfer": 1299,
+          "encoded": 999,
+          "type": "script"
+        },
+        {
+          "name": "color.vertex-DTibeIxe.js",
+          "duration": 44.59999990463257,
+          "transfer": 945,
+          "encoded": 645,
+          "type": "script"
+        },
+        {
+          "name": "color.fragment-CxH-oW8C.js",
+          "duration": 42.59999990463257,
+          "transfer": 1229,
+          "encoded": 929,
+          "type": "script"
+        }
+      ],
+      "buildings": 1287,
+      "models": 28
+    }
+  ],
+  "uploads": [
+    {
+      "rate": 1,
+      "uploads": {
+        "ground_shadow_buildings": {
+          "calls": 1,
+          "bytes": 82368,
+          "ms": 0.19999980926513672
+        },
+        "building-ground-pads": {
+          "calls": 2,
+          "bytes": 102960,
+          "ms": 0.20000004768371582
+        },
+        "building_distant": {
+          "calls": 22,
+          "bytes": 1132560,
+          "ms": 1.6000003814697266
+        },
+        "building_lot_1x1": {
+          "calls": 22,
+          "bytes": 461120,
+          "ms": 0.9000005722045898
+        },
+        "building_lot_1x2": {
+          "calls": 22,
+          "bytes": 880,
+          "ms": 0
+        },
+        "building_lot_2x3": {
+          "calls": 22,
+          "bytes": 52800,
+          "ms": 0.10000014305114746
+        },
+        "building_lot_1x3": {
+          "calls": 22,
+          "bytes": 101200,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_2x1": {
+          "calls": 22,
+          "bytes": 880,
+          "ms": 0.09999990463256836
+        },
+        "building_lot_2x2": {
+          "calls": 22,
+          "bytes": 46640,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_3x2": {
+          "calls": 22,
+          "bytes": 22880,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_3x3": {
+          "calls": 22,
+          "bytes": 34320,
+          "ms": 0.40000009536743164
+        },
+        "building_lot_3x4": {
+          "calls": 22,
+          "bytes": 9680,
+          "ms": 0.20000028610229492
+        },
+        "building_lot_2x4": {
+          "calls": 22,
+          "bytes": 16720,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_4x2": {
+          "calls": 22,
+          "bytes": 11440,
+          "ms": 0.19999980926513672
+        },
+        "building_lot_4x3": {
+          "calls": 22,
+          "bytes": 25520,
+          "ms": 0.09999990463256836
+        },
+        "building_lot_4x1": {
+          "calls": 22,
+          "bytes": 39600,
+          "ms": 0.10000014305114746
+        },
+        "building_farm_3x4": {
+          "calls": 22,
+          "bytes": 28160,
+          "ms": 0.19999980926513672
+        },
+        "building_lot_4x4": {
+          "calls": 22,
+          "bytes": 12320,
+          "ms": 0.2999999523162842
+        },
+        "building_farm_1x4": {
+          "calls": 22,
+          "bytes": 78320,
+          "ms": 0.20000028610229492
+        },
+        "building_farm_2x4": {
+          "calls": 22,
+          "bytes": 47520,
+          "ms": 0.19999980926513672
+        },
+        "building_industrial_2x4": {
+          "calls": 22,
+          "bytes": 25520,
+          "ms": 0.20000004768371582
+        },
+        "building_farm_4x4": {
+          "calls": 22,
+          "bytes": 20240,
+          "ms": 0.09999990463256836
+        },
+        "building_industrial_1x4": {
+          "calls": 22,
+          "bytes": 45760,
+          "ms": 0.2999999523162842
+        },
+        "building_military_2x4": {
+          "calls": 22,
+          "bytes": 27280,
+          "ms": 0.09999990463256836
+        },
+        "building_military_3x4": {
+          "calls": 22,
+          "bytes": 10560,
+          "ms": 0.09999990463256836
+        },
+        "building_industrial_3x4": {
+          "calls": 22,
+          "bytes": 8800,
+          "ms": 0.20000004768371582
+        },
+        "building_industrial_4x4": {
+          "calls": 22,
+          "bytes": 4400,
+          "ms": 0.3000001907348633
+        },
+        "roofprop_ac": {
+          "calls": 1,
+          "bytes": 11840,
+          "ms": 0
+        },
+        "roofprop_tank": {
+          "calls": 1,
+          "bytes": 3328,
+          "ms": 0
+        },
+        "roofprop_antenna": {
+          "calls": 1,
+          "bytes": 7872,
+          "ms": 0.10000014305114746
+        },
+        "roofprop_chimney": {
+          "calls": 1,
+          "bytes": 23936,
+          "ms": 0
+        },
+        "roofprop_hut": {
+          "calls": 1,
+          "bytes": 3648,
+          "ms": 0
+        },
+        "roofprop_solar": {
+          "calls": 1,
+          "bytes": 8448,
+          "ms": 0
+        },
+        "footdecor_bench": {
+          "calls": 1,
+          "bytes": 3968,
+          "ms": 0
+        },
+        "footdecor_bollard": {
+          "calls": 1,
+          "bytes": 3776,
+          "ms": 0
+        },
+        "footdecor_planter": {
+          "calls": 1,
+          "bytes": 8832,
+          "ms": 0.09999990463256836
+        },
+        "footdecor_utility": {
+          "calls": 1,
+          "bytes": 12288,
+          "ms": 0
+        },
+        "footdecor_trash": {
+          "calls": 1,
+          "bytes": 18240,
+          "ms": 0
+        },
+        "footdecor_mail": {
+          "calls": 1,
+          "bytes": 4288,
+          "ms": 0
+        },
+        "footdecor_sign": {
+          "calls": 1,
+          "bytes": 4800,
+          "ms": 0
+        },
+        "footdecor_shrub": {
+          "calls": 1,
+          "bytes": 12032,
+          "ms": 0
+        },
+        "footdecor_bikeRack": {
+          "calls": 1,
+          "bytes": 4288,
+          "ms": 0
+        },
+        "footdecor_crate": {
+          "calls": 1,
+          "bytes": 11520,
+          "ms": 0
+        },
+        "footdecor_barrier": {
+          "calls": 1,
+          "bytes": 12480,
+          "ms": 0.10000014305114746
+        },
+        "footdecor_wallLight": {
+          "calls": 1,
+          "bytes": 3648,
+          "ms": 0
+        },
+        "footdecor_vending": {
+          "calls": 1,
+          "bytes": 3968,
+          "ms": 0
+        },
+        "roofprop_rubble_explosion": {
+          "calls": 949,
+          "bytes": 0,
+          "ms": 36.39999794960022
+        },
+        "tree_ground_shadows": {
+          "calls": 58,
+          "bytes": 9383936,
+          "ms": 16.90000033378601
+        }
+      },
+      "saves": [
+        {
+          "key": "cityjump.camera",
+          "bytes": 168,
+          "ms": 0
+        },
+        {
+          "key": "cityjump.autosave",
+          "bytes": 284404,
+          "ms": 0.19999980926513672
+        },
+        {
+          "key": "cityjump.autosave",
+          "bytes": 284402,
+          "ms": 0.09999990463256836
+        },
+        {
+          "key": "cityjump.autosave",
+          "bytes": 284405,
+          "ms": 0.09999990463256836
+        },
+        {
+          "key": "cityjump.autosave",
+          "bytes": 284403,
+          "ms": 0.09999990463256836
+        }
+      ]
+    },
+    {
+      "rate": 4,
+      "uploads": {
+        "ground_shadow_buildings": {
+          "calls": 3,
+          "bytes": 247104,
+          "ms": 0.5999999046325684
+        },
+        "building-ground-pads": {
+          "calls": 6,
+          "bytes": 308880,
+          "ms": 0.4999997615814209
+        },
+        "building_distant": {
+          "calls": 48,
+          "bytes": 2471040,
+          "ms": 4.200000047683716
+        },
+        "building_lot_1x1": {
+          "calls": 48,
+          "bytes": 1006080,
+          "ms": 2.3999991416931152
+        },
+        "building_lot_1x2": {
+          "calls": 48,
+          "bytes": 1920,
+          "ms": 0.39999961853027344
+        },
+        "building_lot_1x3": {
+          "calls": 48,
+          "bytes": 220800,
+          "ms": 0.6000001430511475
+        },
+        "building_lot_2x1": {
+          "calls": 48,
+          "bytes": 1920,
+          "ms": 0.5000004768371582
+        },
+        "building_lot_2x2": {
+          "calls": 48,
+          "bytes": 101760,
+          "ms": 0.5999999046325684
+        },
+        "building_lot_2x4": {
+          "calls": 48,
+          "bytes": 36480,
+          "ms": 0.19999980926513672
+        },
+        "building_lot_2x3": {
+          "calls": 48,
+          "bytes": 115200,
+          "ms": 0.40000009536743164
+        },
+        "building_lot_4x1": {
+          "calls": 48,
+          "bytes": 86400,
+          "ms": 0.7999999523162842
+        },
+        "building_lot_4x2": {
+          "calls": 48,
+          "bytes": 24960,
+          "ms": 0
+        },
+        "building_lot_3x2": {
+          "calls": 48,
+          "bytes": 49920,
+          "ms": 0.20000004768371582
+        },
+        "building_lot_3x3": {
+          "calls": 48,
+          "bytes": 74880,
+          "ms": 0.5000004768371582
+        },
+        "building_lot_3x4": {
+          "calls": 48,
+          "bytes": 21120,
+          "ms": 0.5000004768371582
+        },
+        "building_lot_4x4": {
+          "calls": 48,
+          "bytes": 26880,
+          "ms": 0.2999999523162842
+        },
+        "building_farm_1x4": {
+          "calls": 48,
+          "bytes": 170880,
+          "ms": 0.39999985694885254
+        },
+        "building_farm_2x4": {
+          "calls": 48,
+          "bytes": 103680,
+          "ms": 0.5999999046325684
+        },
+        "building_lot_4x3": {
+          "calls": 48,
+          "bytes": 55680,
+          "ms": 0.2999999523162842
+        },
+        "building_industrial_1x4": {
+          "calls": 48,
+          "bytes": 99840,
+          "ms": 0.7000000476837158
+        },
+        "building_industrial_2x4": {
+          "calls": 48,
+          "bytes": 55680,
+          "ms": 0.6000001430511475
+        },
+        "building_farm_3x4": {
+          "calls": 48,
+          "bytes": 61440,
+          "ms": 0.10000014305114746
+        },
+        "building_farm_4x4": {
+          "calls": 48,
+          "bytes": 44160,
+          "ms": 0.5
+        },
+        "building_military_2x4": {
+          "calls": 48,
+          "bytes": 59520,
+          "ms": 0.40000009536743164
+        },
+        "building_military_3x4": {
+          "calls": 48,
+          "bytes": 23040,
+          "ms": 0.4999997615814209
+        },
+        "building_industrial_3x4": {
+          "calls": 48,
+          "bytes": 19200,
+          "ms": 0.39999985694885254
+        },
+        "building_industrial_4x4": {
+          "calls": 48,
+          "bytes": 9600,
+          "ms": 0.2999999523162842
+        },
+        "roofprop_ac": {
+          "calls": 4,
+          "bytes": 47744,
+          "ms": 0.20000004768371582
+        },
+        "roofprop_tank": {
+          "calls": 4,
+          "bytes": 13568,
+          "ms": 0
+        },
+        "roofprop_antenna": {
+          "calls": 4,
+          "bytes": 32000,
+          "ms": 0
+        },
+        "roofprop_chimney": {
+          "calls": 4,
+          "bytes": 96128,
+          "ms": 0
+        },
+        "roofprop_hut": {
+          "calls": 4,
+          "bytes": 14592,
+          "ms": 0.09999990463256836
+        },
+        "roofprop_solar": {
+          "calls": 4,
+          "bytes": 33792,
+          "ms": 0.09999990463256836
+        },
+        "footdecor_bench": {
+          "calls": 4,
+          "bytes": 16128,
+          "ms": 0.10000014305114746
+        },
+        "footdecor_bollard": {
+          "calls": 4,
+          "bytes": 15104,
+          "ms": 0
+        },
+        "footdecor_planter": {
+          "calls": 4,
+          "bytes": 35584,
+          "ms": 0
+        },
+        "footdecor_utility": {
+          "calls": 4,
+          "bytes": 49152,
+          "ms": 0.19999980926513672
+        },
+        "footdecor_trash": {
+          "calls": 4,
+          "bytes": 73344,
+          "ms": 0.20000028610229492
+        },
+        "footdecor_mail": {
+          "calls": 4,
+          "bytes": 17408,
+          "ms": 0.09999990463256836
+        },
+        "footdecor_sign": {
+          "calls": 4,
+          "bytes": 19456,
+          "ms": 0
+        },
+        "footdecor_shrub": {
+          "calls": 4,
+          "bytes": 48128,
+          "ms": 0.10000014305114746
+        },
+        "footdecor_bikeRack": {
+          "calls": 4,
+          "bytes": 17408,
+          "ms": 0
+        },
+        "footdecor_crate": {
+          "calls": 4,
+          "bytes": 46464,
+          "ms": 0.09999990463256836
+        },
+        "footdecor_barrier": {
+          "calls": 4,
+          "bytes": 50176,
+          "ms": 0.10000014305114746
+        },
+        "footdecor_wallLight": {
+          "calls": 4,
+          "bytes": 14592,
+          "ms": 0
+        },
+        "footdecor_vending": {
+          "calls": 4,
+          "bytes": 15872,
+          "ms": 0.19999980926513672
+        },
+        "tree_ground_shadows": {
+          "calls": 231,
+          "bytes": 37373952,
+          "ms": 67.39999914169312
+        },
+        "roofprop_rubble_explosion": {
+          "calls": 927,
+          "bytes": 0,
+          "ms": 29.700005292892456
+        }
+      },
+      "saves": [
+        {
+          "key": "cityjump.camera",
+          "bytes": 168,
+          "ms": 0
+        }
+      ]
+    }
+  ],
+  "soak": {
+    "snapshots": [
+      {
+        "name": "baseline",
+        "heap": 148102496,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1898,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "restored-1",
+        "heap": 180915772,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1879,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "restored-2",
+        "heap": 182769968,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1879,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "restored-3",
+        "heap": 182940156,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1879,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "restored-4",
+        "heap": 183531324,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1879,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "restored-5",
+        "heap": 183676532,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 13,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13552.753411866333,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13552,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 565,
+              "ratio": 0.6247787610619469
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135121,
+              "ratio": 0.829715588250531
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1274,
+            "rising": 13
+          },
+          "buildingReasons": {
+            "construction": 13
+          },
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 1902238.6315830701,
+          "income": 529.3550682373261,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1879,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 7,
+          "simHour": 10.28409999996424
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "minute-1",
+        "heap": 191803568,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 17,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13564.51070230328,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13564,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 566,
+              "ratio": 0.6236749116607774
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135227,
+              "ratio": 0.8290652014760366
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 642,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1287
+          },
+          "buildingReasons": {},
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 2031181.7957518166,
+          "income": 536.2402140460651,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1811,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 4,
+          "simDay": 8,
+          "simHour": 5.539331999933729
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "minute-2",
+        "heap": 194855524,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 17,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13560.368553362063,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13560,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 566,
+              "ratio": 0.6236749116607774
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135190,
+              "ratio": 0.8292921074043939
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 642,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1287
+          },
+          "buildingReasons": {},
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 2160042.6710577756,
+          "income": 536.1573710672408,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1817,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 4,
+          "simDay": 9,
+          "simHour": 0.7657319999336849
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "minute-3",
+        "heap": 195376372,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 17,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13560.03006607064,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13560,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 566,
+              "ratio": 0.6236749116607774
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135187,
+              "ratio": 0.8293105106260217
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 0,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1287
+          },
+          "buildingReasons": {},
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 2288977.7445429284,
+          "income": 536.1506013214123,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1818,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 4,
+          "simDay": 9,
+          "simHour": 20.00429199993377
+        },
+        "savedElapsed": 13944.548300004777,
+        "savedHour": 10.28409999996424,
+        "saves": 0
+      },
+      {
+        "name": "paused-flush",
+        "heap": 194348532,
+        "meshes": 2650,
+        "materials": 610,
+        "geometries": 1040,
+        "textures": 11,
+        "internalTextures": 17,
+        "observers": 8,
+        "stats": {
+          "segments": 132,
+          "junctions": 66,
+          "roundabouts": 3,
+          "buildings": 1287,
+          "population": 13560.03004665297,
+          "needs": [
+            {
+              "kind": "residential",
+              "supply": 13560,
+              "need": 12094,
+              "ratio": 1
+            },
+            {
+              "kind": "commercial",
+              "supply": 158,
+              "need": 283,
+              "ratio": 0.558303886925795
+            },
+            {
+              "kind": "agricultural",
+              "supply": 353,
+              "need": 566,
+              "ratio": 0.6236749116607774
+            },
+            {
+              "kind": "industrial",
+              "supply": 3640,
+              "need": 3638,
+              "ratio": 1
+            },
+            {
+              "kind": "military",
+              "supply": 112112,
+              "need": 135187,
+              "ratio": 0.8293105106260217
+            }
+          ],
+          "avenues": 15,
+          "tunnels": 0,
+          "cars": 166,
+          "signals": 159,
+          "pedestrians": 311,
+          "streetlights": 321,
+          "realStreetlights": 642,
+          "trees": 2528,
+          "zones": 8327,
+          "rubble": 0,
+          "utilities": 10,
+          "buildingStates": {
+            "working": 1287
+          },
+          "buildingReasons": {},
+          "materialsShort": false,
+          "staffedKey": -37336745,
+          "money": 2289010.9858801863,
+          "income": 536.1506009330589,
+          "models": 28,
+          "startupModels": 0,
+          "activeMeshes": 1818,
+          "kaiju": false,
+          "missiles": 0,
+          "wave": "waiting",
+          "waveHp": null,
+          "run": {
+            "wave": 14,
+            "science": 910,
+            "ended": null,
+            "rules": {
+              "kaijuSpawns": false,
+              "instantConstruction": false,
+              "freeBuilding": false,
+              "ignorePower": true,
+              "ignoreWater": true,
+              "residentsPerWave": 1000
+            }
+          },
+          "profile": {
+            "prestige": 0,
+            "upgrades": [],
+            "hardcore": false
+          },
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          },
+          "timeRate": 0,
+          "simDay": 9,
+          "simHour": 20.009251999933767
+        },
+        "savedElapsed": 14666.112700004445,
+        "savedHour": 20.009251999933767,
+        "saves": 1
+      }
+    ],
+    "edits": [
+      {
+        "before": 132,
+        "after": 139,
+        "deleted": 138
+      },
+      {
+        "before": 132,
+        "after": 139,
+        "deleted": 138
+      },
+      {
+        "before": 132,
+        "after": 139,
+        "deleted": 138
+      },
+      {
+        "before": 132,
+        "after": 139,
+        "deleted": 138
+      },
+      {
+        "before": 132,
+        "after": 139,
+        "deleted": 138
+      }
+    ],
+    "windows": [
+      {
+        "elapsed": 60011.10000014305,
+        "fps": 53.87336676035422,
+        "p95": 37.09999990463257,
+        "p99": 41.299999952316284,
+        "max": 200.09999990463257
+      },
+      {
+        "elapsed": 60001.40000009537,
+        "fps": 52.4821087507124,
+        "p95": 35.5,
+        "p99": 41,
+        "max": 206.90000009536743
+      },
+      {
+        "elapsed": 60005.799999952316,
+        "fps": 50.04516230101734,
+        "p95": 33.90000009536743,
+        "p99": 37.299999952316284,
+        "max": 166.79999995231628
+      }
+    ]
+  }
+}
