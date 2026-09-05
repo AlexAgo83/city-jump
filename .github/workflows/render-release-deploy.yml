@@ -113,9 +113,12 @@ jobs:
             while [ "$SECONDS" -le "$deadline" ]; do
               html="$(curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "$site_url")"
               script="$(grep -oE 'src="/assets/index-[^"]+\.js"' <<< "$html" | head -n 1 | cut -d '"' -f 2)"
-              if [ -n "$script" ] && curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "${site_url%/}${script}" | grep -q "$expected"; then
-                echo "Public site serves release ${expected}."
-                exit 0
+              if [ -n "$script" ]; then
+                bundle="$(curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "${site_url%/}${script}")"
+                if grep -q "$expected" <<< "$bundle"; then
+                  echo "Public site serves release ${expected}."
+                  exit 0
+                fi
               fi
               sleep "$RENDER_POLL_INTERVAL_SECONDS"
             done
