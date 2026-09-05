@@ -1,6 +1,6 @@
 ## road_003_city_jump_a_city_that_holds_up_when_it_is_checked - city-jump: a city that holds up when it is checked
 > Date: 2026-09-03
-> Status: Active
+> Status: Settled
 > Related product: `prod_026_a_city_that_survives_the_roads_you_draw_on_it`
 > Related request: `req_035_fix_the_correctness_defects_the_0_4_0_review_found`
 > Reminder: Update status, milestone scope, linked refs, risks, and success signals when you edit this doc.
