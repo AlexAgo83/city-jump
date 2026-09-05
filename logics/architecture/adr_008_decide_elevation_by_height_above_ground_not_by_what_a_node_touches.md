@@ -1,6 +1,6 @@
 ## adr_008_decide_elevation_by_height_above_ground_not_by_what_a_node_touches - Decide elevation by height above ground, not by what a node touches
 > Date: 2026-09-04
-> Status: Accepted
+> Status: Settled
 > Related request: `req_044_land_the_bridge_open_a_run_on_a_designed_island_and_stop_the_elevation_where_a_bridge_lands`
 > Related backlog: `item_164_stop_the_elevation_where_a_bridge_lands`
 > Related task: `task_046_record_the_bridge_landing_the_starter_island_and_the_elevation_rule`
