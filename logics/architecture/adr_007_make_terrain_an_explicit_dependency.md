@@ -1,6 +1,6 @@
 ## adr_007_make_terrain_an_explicit_dependency - Make terrain an explicit dependency
 > Date: 2026-09-03
-> Status: Accepted
+> Status: Settled
 > Related request: `req_039_give_the_code_its_seams_back`
 > Related backlog: `item_126_make_the_terrain_dependency_visible`
 > Related task: `task_041_orchestrate_the_structural_work`
