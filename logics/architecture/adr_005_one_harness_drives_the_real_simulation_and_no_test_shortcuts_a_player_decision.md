@@ -1,6 +1,6 @@
 ## adr_005_one_harness_drives_the_real_simulation_and_no_test_shortcuts_a_player_decision - One harness drives the real simulation, and no test shortcuts a player decision
 > Date: 2026-09-01
-> Status: Proposed
+> Status: Settled
 > Related request: `req_032_a_run_played_end_to_end_a_headless_playthrough_a_threat_the_city_generates_and_the_gameplay_switches_that_make_both_testable`
 > Related backlog: (none yet)
 > Related task: (none yet)
