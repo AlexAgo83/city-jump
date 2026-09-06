@@ -75,3 +75,27 @@ test("hand-authored fallback building models declare usable height in the GLB", 
     assert.ok(bounds.max[1] > bounds.min[1], `${model} has no GLB height`);
   }
 });
+
+test("military batteries keep their footprint, origin and instancing budget", async () => {
+  for (let frontage = 1; frontage <= 4; frontage++) {
+    const model = `military_${frontage}x4`;
+    const buffer = await readFile(new URL(`${model}.glb`, BUILDINGS));
+    const gltf = glbJson(buffer);
+    const bounds = boundsOf(gltf);
+    close(bounds.min[0], 0, model, "left edge");
+    close(bounds.min[1], 0, model, "ground");
+    close(bounds.max[2], 0, model, "front edge");
+    close(bounds.max[0], frontage * 8 - 1.5, model, "width");
+    close(bounds.min[2], -30.5, model, "depth");
+    assert.ok(bounds.max[1] >= 8 && bounds.max[1] < 14, `${model} radar height`);
+    assert.equal(gltf.meshes.length, 1, `${model} must remain one merged building`);
+    for (const node of gltf.nodes) {
+      assert.equal(node.translation, undefined);
+      assert.equal(node.rotation, undefined);
+      assert.equal(node.scale, undefined);
+    }
+    const triangles = gltf.meshes[0].primitives.reduce((sum, primitive) => sum + gltf.accessors[primitive.indices].count / 3, 0);
+    assert.ok(triangles > 2000 && triangles < 20000, `${model}: ${triangles} triangles`);
+    assert.ok(buffer.length < 1024 * 1024, `${model}: ${buffer.length} bytes`);
+  }
+});

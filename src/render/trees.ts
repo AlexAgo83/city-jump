@@ -1,7 +1,7 @@
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Mesh } from "@babylonjs/core/Meshes/mesh";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
 import type { Scene } from "@babylonjs/core/scene";
@@ -14,6 +14,7 @@ import { GRID, SLOT } from "../sim/slots";
 import { GROUND_SIZE } from "./ground";
 import { createGroundShadow } from "./groundShadow";
 import { daylightAt, sunAzimuthAt } from "./scene";
+import { createTreeModel } from "./treeModels";
 
 const FOREST_PATCHES = Array.from({ length: 12 }, (_, i) => {
   const angle = randomish(i, 20) * Math.PI * 2;
@@ -41,78 +42,26 @@ interface TreeBase {
 /** Species differ only in geometry and colour; everything else about a tree is shared. */
 const SPECIES = {
   fir: {
-    trunk: { height: 5, diameter: 0.8 },
-    trunkLift: 2.5,
-    canopy: (scene: Scene, name: string) =>
-      MeshBuilder.CreateCylinder(name, { height: 8, diameterTop: 0.4, diameterBottom: 5.6, tessellation: 7 }, scene),
-    canopyLift: 8.3,
     trunkColor: new Color3(0.25, 0.14, 0.08),
     canopyColor: new Color3(0.12, 0.42, 0.14),
     spread: 1,
   },
   oak: {
-    trunk: { height: 5, diameter: 1.3 },
-    trunkLift: 2.5,
-    // A squashed sphere: baked into the vertices so thin instances inherit the shape.
-    canopy: (scene: Scene, name: string) => {
-      const mesh = MeshBuilder.CreateSphere(name, { diameter: 8, segments: 5 }, scene);
-      mesh.scaling.y = 0.72;
-      mesh.bakeCurrentTransformIntoVertices();
-      return mesh;
-    },
-    canopyLift: 6.5,
     trunkColor: new Color3(0.3, 0.19, 0.1),
     canopyColor: new Color3(0.2, 0.44, 0.16),
     spread: 1.5,
   },
   apple: {
-    trunk: { height: 3.6, diameter: 0.7 },
-    trunkLift: 1.8,
-    canopy: (scene: Scene, name: string) => MeshBuilder.CreateSphere(name, { diameter: 5.4, segments: 5 }, scene),
-    canopyLift: 4.8,
     trunkColor: new Color3(0.28, 0.17, 0.09),
     canopyColor: new Color3(0.34, 0.56, 0.22),
     spread: 1.05,
   },
   palm: {
-    trunk: { height: 10, diameter: 0.6 },
-    trunkLift: 5,
-    canopy: palmCrown,
-    canopyLift: 10,
     trunkColor: new Color3(0.42, 0.32, 0.18),
     canopyColor: new Color3(0.26, 0.5, 0.2),
     spread: 1.7,
   },
 } as const;
-
-/**
- * Eight tapered blades swung out and down from a crown. Any single cone reads as a parasol,
- * whatever its proportions; separate fronds with sky between them is what makes it a palm.
- * ponytail: baked transforms merged into one mesh, so the whole crown is still one draw call
- * and one thin-instance buffer, like every other species here.
- */
-function palmCrown(scene: Scene, name: string): Mesh {
-  const FRONDS = 8;
-  const parts = Array.from({ length: FRONDS }, (_, i) => {
-    const blade = MeshBuilder.CreateCylinder(
-      `${name}_frond_${i}`,
-      { height: 5.4, diameterTop: 0.25, diameterBottom: 1.5, tessellation: 3 },
-      scene,
-    );
-    // Stand the blade on the origin, then swing it out past horizontal so its tip hangs.
-    blade.bakeTransformIntoVertices(Matrix.Translation(0, 2.7, 0));
-    // Three angles in rotation: one rising, one near horizontal, one hanging past it. A single
-    // angle makes a wheel; the mix gives the crown some depth.
-    const droop = 1.4 + (i % 3) * 0.3;
-    blade.bakeTransformIntoVertices(Matrix.RotationX(droop).multiply(Matrix.RotationY((i / FRONDS) * Math.PI * 2)));
-    return blade;
-  });
-  const heart = MeshBuilder.CreateSphere(`${name}_heart`, { diameter: 1.3, segments: 4 }, scene);
-  const merged = Mesh.MergeMeshes([...parts, heart], true, true, undefined, false, false);
-  if (!merged) throw new Error("palm crown failed to merge");
-  merged.name = name;
-  return merged;
-}
 
 export type TreeSpeciesId = keyof typeof SPECIES;
 export const TREE_SPECIES = Object.keys(SPECIES) as TreeSpeciesId[];
@@ -148,20 +97,17 @@ export function createTreeRenderer(
 
   const built = TREE_SPECIES.map((id) => {
     const look = SPECIES[id];
-    const trunk = MeshBuilder.CreateCylinder(
-      `tree_trunks_${id}`,
-      { height: look.trunk.height, diameter: look.trunk.diameter, tessellation: 6 },
-      scene,
-    );
-    const canopy = look.canopy(scene, `tree_canopies_${id}`);
+    const { trunk, canopy } = createTreeModel(scene, id, look.trunkColor, look.canopyColor);
 
     const trunkMaterial = new StandardMaterial(`tree_trunk_${id}`, scene);
-    trunkMaterial.diffuseColor = look.trunkColor;
+    trunkMaterial.diffuseColor = Color3.White();
     trunkMaterial.specularColor = Color3.Black();
     trunk.material = trunkMaterial;
 
     const canopyMaterial = new StandardMaterial(`tree_canopy_${id}`, scene);
-    canopyMaterial.diffuseColor = look.canopyColor;
+    canopyMaterial.diffuseColor = Color3.White();
+    canopyMaterial.backFaceCulling = false;
+    canopyMaterial.twoSidedLighting = true;
     canopyMaterial.specularColor = Color3.Black();
     canopy.material = canopyMaterial;
 
@@ -189,12 +135,12 @@ export function createTreeRenderer(
     const step = 58;
 
     const putBase = (base: TreeBase): void => {
-      const look = SPECIES[base.species];
       const into = matrices.get(base.species)!;
       const size = new Vector3(base.scale, base.scale, base.scale);
       const rotation = Quaternion.FromEulerAngles(0, base.yaw, 0);
-      into.trunks.push(Matrix.Compose(size, rotation, new Vector3(base.x, base.y + look.trunkLift * base.scale, base.z)));
-      into.canopies.push(Matrix.Compose(size, rotation, new Vector3(base.x, base.y + look.canopyLift * base.scale, base.z)));
+      const matrix = Matrix.Compose(size, rotation, new Vector3(base.x, base.y, base.z));
+      into.trunks.push(matrix);
+      into.canopies.push(matrix);
       bases.push(base);
     };
 

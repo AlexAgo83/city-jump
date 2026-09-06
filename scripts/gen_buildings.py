@@ -413,59 +413,153 @@ def build_industrial(name, w, d, variant):
 
 
 def build_military(name, w, d, variant):
-    """A compound. The variant decides what stands behind the barracks:
-    1 motor pool, 2 hangar, 3 ammunition silos, 4 the whole base."""
+    """Air-defense batteries: field post, hangar, magazine, and regional command."""
+    from mathutils import Vector
+
     clear_scene()
-    parts = [(box(f"{name}_apron", 0.0, 10.0, 0.0, w, d, 0.15), "hard")]
-    # Barracks blocks along the frontage: long, low, gabled, evenly spaced.
-    blocks = max(1, int(w // 9.0))
-    for i in range(blocks):
-        x = 0.5 + i * 9.0
-        bw = min(7.5, w - x - 0.5)
-        if bw < 3.0:
-            break
-        parts.append((box(f"{name}_barrack_{i}", x, 1.0, 0.0, x + bw, 8.0, 3.6), "wall"))
-        parts.append((gabled_roof_at(f"{name}_barrack_roof_{i}", x, 1.0, bw, 7.0, 3.6, 1.3), "trim"))
-        parts.append((box(f"{name}_barrack_door_{i}", x + bw / 2 - 0.6, 0.9, 0.0, x + bw / 2 + 0.6, 1.05, 2.2), "trim"))
-    if variant in (2, 4):
-        # The hangar: one big shed with the doors facing the apron.
-        hangar_w = min(w - 1.0, 18.0)
-        parts.append((box(f"{name}_hangar", 0.5, 11.0, 0.0, 0.5 + hangar_w, 22.0, 7.0), "wall"))
-        parts.append((gabled_roof_at(f"{name}_hangar_roof", 0.5, 11.0, hangar_w, 11.0, 7.0, 2.6), "trim"))
-        parts.append((box(f"{name}_hangar_door", 1.5, 10.85, 0.0, 0.5 + hangar_w - 1.0, 11.05, 5.2), "hard"))
-    if variant in (3, 4):
-        # Ammunition silos, each in its own revetment.
-        silos = max(1, int((w - 2.0) // 6.0))
-        for i in range(silos):
-            cx = 3.5 + i * 6.0
-            if cx + 2.5 > w:
-                break
-            parts.append((prism(f"{name}_silo_{i}", cx, 26.0, 2.2, 0.0, 6.5), "hard"))
-            parts.append((prism(f"{name}_silo_cap_{i}", cx, 26.0, 2.2, 6.5, 7.4, 8), "trim"))
-            parts.append((box(f"{name}_revet_{i}", cx - 3.0, 22.8, 0.0, cx + 3.0, 23.4, 2.0), "wall"))
-    if variant in (1, 4):
-        # Motor pool: a vehicle shelter and rows of crates under it.
-        shelter_w = min(w - 1.0, 16.0)
-        parts.append((box(f"{name}_shelter_roof", 0.5, 12.0, 3.4, 0.5 + shelter_w, 20.0, 3.9), "trim"))
-        for i in range(4):
-            x = 1.2 + i * (shelter_w / 4 if shelter_w > 4 else 4)
-            if x + 1.0 > w:
-                break
-            parts.append((box(f"{name}_post_{i}", x, 12.4, 0.0, x + 0.5, 12.9, 3.4), "trim"))
-            parts.append((box(f"{name}_post_b_{i}", x, 19.2, 0.0, x + 0.5, 19.7, 3.4), "trim"))
+    parts = []
+
+    def block(label, corners, mat="wall", bevel=0):
+        obj = box(f"{name}_{label}", *corners)
+        if bevel:
+            modifier = obj.modifiers.new("machined edges", "BEVEL")
+            modifier.width = bevel
+            modifier.segments = 2
+            bpy.context.view_layer.objects.active = obj
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
+        parts.append((obj, mat))
+        return obj
+
+    def rod(label, start, end, radius, mat="steel", sides=12):
+        a, b = Vector(start), Vector(end)
+        obj = prism(f"{name}_{label}", 0, 0, radius, 0, (b-a).length, sides)
+        rotation = (b-a).to_track_quat('Z', 'Y')
+        for vert in obj.data.vertices:
+            vert.co = rotation @ vert.co + a
+        for poly in obj.data.polygons:
+            poly.use_smooth = len(poly.vertices) == 4
+        parts.append((obj, mat))
+
+    block("foundation", (0,0,0,w,d,.22), "concrete")
+    block("apron", (.3,.4,.22,w-.3,d-.4,.25), "asphalt")
+    for x in range(4, int(w), 4):
+        block("slab_joint", (x,.5,.251,x+.035,d-.5,.26), "steel")
+    for y in range(4, int(d), 4):
+        block("slab_joint", (.5,y,.251,w-.5,y+.035,.26), "steel")
+
+    # Front command cabin keeps the existing 3.6 m roof-deck contract.
+    cabin_w = min(w-1.6, 9)
+    block("command", (.8,1.2,.25,.8+cabin_w,7.5,3.6), bevel=.12)
+    block("roof", (.65,1.05,3.6,.95+cabin_w,7.65,3.82), "steel")
+    for x in range(1, int(cabin_w)+1):
+        block("roof_seam", (x,1.1,3.82,x+.055,7.6,3.9), "trim")
+    block("door_frame", (1.05,1.03,.3,2.4,1.24,2.75), "steel")
+    block("door", (1.2,.99,.3,2.25,1.05,2.55), "trim")
+    block("door_glass", (1.36,.965,1.55,2.09,.99,2.22), "glass")
+    for x in range(3, int(cabin_w), 2):
+        block("window_frame", (x,1.03,1.4,x+1.35,1.24,2.6), "steel")
+        block("window", (x+.1,1,1.52,x+1.25,1.03,2.48), "glass")
+    block("hvac", (1.2,5.3,3.82,2.6,6.8,4.5), "concrete", .08)
+    for y in range(6):
+        block("hvac_louvre", (1.3,5.4+y*.2,4.51,2.5,5.47+y*.2,4.54), "steel")
+    rod("aerial", (cabin_w,6.7,3.8),(cabin_w,6.7,7.1),.045)
+    rod("aerial_cross", (cabin_w-.6,6.7,6.5),(cabin_w+.6,6.7,6.5),.035)
+
+    # The main launcher stands at the parcel centre, where gameplay originates salvos.
+    cx, cy = w/2, d/2
+    block("launch_pad", (cx-2.65,cy-3.4,.26,cx+2.65,cy+3.4,.42), "concrete")
+    for side in (-1,1):
+        for i in range(7):
+            block("warning", (cx+side*2.35-.12,cy-3+i*.9,.43,cx+side*2.35+.12,cy-2.5+i*.9,.445), "warning")
+    rod("turntable", (cx,cy,.42),(cx,cy,1.05),1.7,"steel",24)
+    rod("bearing", (cx,cy,1.05),(cx,cy,1.45),1.3,"trim",24)
+    block("pedestal", (cx-.7,cy-.75,1.3,cx+.7,cy+.75,3.4), "wall", .12)
+    rod("elevation_axle", (cx-1.4,cy,3.2),(cx+1.4,cy,3.2),.35)
+    direction = Vector((0,-.5,.866))
+    for side in (-1,1):
+        for row in range(2):
+            start = Vector((cx+side*.57,cy+1+row*.85,2.7+row*.48))
+            end = start + direction*5.3
+            rod("launch_canister", start,end,.44,"wall",16)
+            for fraction in (.06,.55,.92):
+                collar = start+direction*(5.3*fraction)
+                rod("canister_band",collar,collar+direction*.16,.48,"steel",16)
+            rod("canister_mouth",end,end+direction*.07,.36,"dark",16)
+            rod("canister_rim",end-direction*.08,end,.46,"warning",16)
+    for side in (-1,1):
+        rod("hydraulic",(cx+side*.9,cy-.9,1.4),(cx+side*.9,cy-.35,4),.12)
+        rod("piston",(cx+side*.9,cy-.35,4),(cx+side*.9,cy-.7,4.65),.07,"light")
+
+    if variant in (2,4):
+        hw = min(w-1.6, 12)
+        block("hangar",(.8,22,.25,.8+hw,d-1,5.1),"wall",.15)
+        parts.append((gabled_roof_at(f"{name}_hangar_roof",.65,21.85,hw+.3,d-22.7,5.1,1.3),"steel"))
+        block("hangar_opening",(1.2,21.9,.3,hw+.4,22.05,4.5),"dark")
+        for x in range(2, int(hw)):
+            block("door_rib",(x,21.82,.4,x+.07,21.95,4.45),"trim")
+        for y in range(23, int(d)-1):
+            block("wall_rib",(.7,y,.3,.82,y+.08,5.0),"trim")
+        rod("hangar_gutter",(.6,21.8,5.1),(hw+1,21.8,5.1),.09)
+    else:
+        block("magazine",(.8,23,.25,w-.8,d-1,2.8),"concrete",.25)
+        for x in range(1,int(w)-1,3):
+            block("blast_door",(x,22.9,.4,min(x+2,w-1),23.05,2.5),"trim")
+
+    # Phased-array radar on a braced tower, above the rear shelter.
+    rx, ry = (w-3.2 if variant >= 3 else w/2), d-4
+    base = 2.8 if variant in (1,3) else (6.6 if variant==2 else .25)
+    for sx in (-.6,.6):
+        for sy in (-.6,.6):
+            rod("radar_leg",(rx+sx,ry+sy,base),(rx+sx*.45,ry+sy*.45,base+3),.085)
+    for level in range(3):
+        rod("tower_brace",(rx-.6,ry-.6,base+level),(rx+.6,ry-.6,base+level+1),.045)
+    rod("radar_yoke",(rx,ry,base+2.7),(rx,ry,base+3.6),.24)
+    block("radar_back",(rx-1.6,ry-.3,base+3.4,rx+1.6,ry+.1,base+5.5),"steel",.1)
+    block("radar_face",(rx-1.48,ry-.35,base+3.52,rx+1.48,ry-.30,base+5.38),"light")
+    for x in range(8):
+        for z in range(5):
+            block("radar_element",(rx-1.35+x*.35,ry-.39,base+3.62+z*.33,rx-1.12+x*.35,ry-.35,base+3.83+z*.33),"trim")
+
+    if variant >= 3:
+        # Service container and protected fuel tank occupy the unused right-hand apron.
+        block("service_container",(w-6,2,.25,w-1,8,3.0),"trim",.08)
+        for y in range(11):
+            block("container_rib",(w-6.06,2.2+y*.5,.35,w-5.96,2.28+y*.5,2.9),"steel")
+        rod("fuel_tank",(w-3,20,1.5),(w-3,23,1.5),.9,"light",20)
+        block("fuel_bund",(w-4.4,19,.25,w-1.6,24,.6),"concrete")
+    if variant == 4:
+        block("motor_chassis",(12,3,.85,15,8,1.4),"steel",.08)
+        block("motor_cab",(12,3,1.4,15,5,2.9),"wall",.16)
+        block("windscreen",(12.2,2.95,1.9,14.8,3,2.65),"glass")
+        block("motor_bed",(12,5,1.4,15,8,1.95),"trim")
+        for x in (11.9,15.1):
+            for y in (4,7):
+                rod("tyre",(x-.17,y,.85),(x+.17,y,.85),.58,"dark",16)
+
+    # Open perimeter fencing leaves the equipment legible from the game camera.
+    for x in (.2,w-.2):
+        for y in range(9,int(d),3):
+            rod("fence_post",(x,y,.25),(x,y,2.55),.065)
+        for z in (.8,1.6,2.35):
+            rod("fence_wire",(x,8.5,z),(x,d-.5,z),.025)
     for i in range(3):
-        x = 1.0 + i * 3.4
-        if x + 2.4 > w:
-            break
-        parts.append((box(f"{name}_crate_{i}", x, d - 3.0, 0.0, x + 2.4, d - 1.2, 1.6), "wall"))
-    # A wire fence down both sides of the compound.
-    for i, fx in enumerate([0.1, w - 0.35]):
-        parts.append((box(f"{name}_fence_{i}", fx, 9.5, 0.0, fx + 0.25, d, 2.4), "trim"))
+        x=.5+i*.9
+        block("barrier",(x,.1,.25,x+.65,.5,1.1),"concrete",.08)
+        block("barrier_marker",(x+.1,.085,.7,x+.5,.1,.9),"warning")
+
     mats = {
-        "wall": material(name, MILITARY_WALL),
-        "trim": material(f"{name}_trim", MILITARY_TRIM),
-        "hard": material(f"{name}_hard", MILITARY_HARD),
+        key: material(f"{name}_{key}",color) for key,color in {
+            "wall":(.21,.26,.19,1), "trim":(.105,.14,.115,1),
+            "steel":(.12,.15,.16,1), "concrete":(.37,.39,.37,1),
+            "asphalt":(.13,.15,.15,1), "warning":(.78,.52,.12,1),
+            "glass":(.065,.19,.23,1), "dark":(.025,.032,.03,1),
+            "light":(.58,.61,.57,1),
+        }.items()
     }
+    for key in ("steel","light"):
+        bsdf=mats[key].node_tree.nodes["Principled BSDF"]
+        bsdf.inputs["Metallic"].default_value=.65
+        bsdf.inputs["Roughness"].default_value=.42
     export_parts(name, parts, mats, f"compound {w} x {d} m")
 
 
@@ -581,6 +675,10 @@ def build_farm(name, w, d, variant):
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    if "--military-only" in sys.argv:
+        for spec in works_specs("military"):
+            build_military(*spec)
+        return
     manifest = {"models": {}}
     for spec in building_specs():
         name, w, d, h, roof, *_ = spec
