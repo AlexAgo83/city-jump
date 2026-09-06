@@ -24,3 +24,21 @@ test("the shipped kaiju model matches its declared height", async () => {
   assert.equal(manifest.models.kaiju.file, "kaiju.glb");
   assert.ok(Math.abs(maxY - manifest.models.kaiju.heightM) <= 1, `height ${maxY}`);
 });
+
+test("the kaiju includes textured skin and complete articulated limbs within its browser budget", async () => {
+  const buffer = await readFile(new URL("../public/kaiju.glb", import.meta.url));
+  const gltf = glbJson(buffer);
+  for (const name of ["body", "head", "jaw", "tail", "left_arm", "right_arm", "left_leg", "right_leg"]) {
+    const node = gltf.nodes.find((candidate) => candidate.name === `kaiju_${name}`);
+    assert.ok(node && node.mesh !== undefined, `missing ${name}`);
+    assert.equal(node.rotation, undefined, `${name} must export in its neutral pose`);
+    assert.equal(node.scale, undefined, `${name} must have baked scale`);
+    assert.ok(gltf.meshes[node.mesh].primitives.length >= 2, `${name} must retain its attached details`);
+  }
+  const skin = gltf.materials.find((mat) => mat.name === "kaiju_scaled_hide");
+  assert.ok(skin?.normalTexture && skin.pbrMetallicRoughness.baseColorTexture);
+  assert.ok(gltf.images.length >= 2 && gltf.images.every((image) => image.bufferView !== undefined && !image.uri));
+  const triangles = gltf.meshes.flatMap((mesh) => mesh.primitives).reduce((sum, primitive) => sum + gltf.accessors[primitive.indices].count / 3, 0);
+  assert.ok(triangles > 20000 && triangles < 180000, `${triangles} triangles`);
+  assert.ok(buffer.length < 12 * 1024 * 1024, `${buffer.length} bytes`);
+});

@@ -2,7 +2,9 @@
   "models": {
     "kaiju": {
       "file": "kaiju.glb",
-      "heightM": 98
+      "heightM": 98,
+      "triangles": 134718,
+      "style": "armored reptilian titan"
     }
   }
 }
