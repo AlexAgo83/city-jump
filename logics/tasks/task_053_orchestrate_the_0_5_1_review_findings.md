@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 90%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -26,7 +26,7 @@
 - [x] 3. Wave 3 - the gate that is manual: add the CSP hash script, prove it by editing the inline style and running only that command, and confirm the existing architecture assertion passes against its output.
 - [x] 4. Wave 4 - the composition root: extract city loading behind explicit dependencies, add its colocated test and the shrinking ceiling assertion. Gate on `npm run ci` plus `npm run test:e2e`, which is required here because persistence and loading are in scope.
 - [x] 5. Wave 5 - measure and decide coverage over `src/sim/`, now that waves 2 and 4 have landed the tests that change the number. Record the figure, then take the gating decision against it.
-- [ ] 6. Wave 6 - hygiene and weight: clear the scratch copies, settle the hidden script and the root screenshots, then take the disposition of the 14 unreferenced media files and write the CONTRIBUTING screenshot rule.
+- [x] 6. Wave 6 - hygiene and weight: clear the scratch copies, settle the hidden script and the root screenshots, then take the disposition of the 14 unreferenced media files and write the CONTRIBUTING screenshot rule.
 - [ ] 7. Closeout - `npm run ci` green, `npm run test:e2e` green, and the evidence for every AC recorded. Waves 1 to 3 are independent of each other; wave 5 depends on 2 and 4; nothing depends on wave 6.
 - [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
 - [ ] Keep commit creation under operator control; do not force one commit per micro-step.
@@ -64,6 +64,7 @@
 - Wave 3: the manual gate. scripts/csp-hashes.mjs derives both digests from index.html with the same extraction tests/architecture.mjs uses, and rewrites the policy value in render.yaml; npm run csp:sync is the entry point and CONTRIBUTING points at it from the inline-markup path. Proved end to end: a real edit to the inline style made the architecture test fail (1 not ok), one run of the command fixed it (12 pass, 0 fail), and reverting the edit and rerunning restored the original digest byte for byte. Removing the inline style block makes the script exit 1 with a named error rather than writing an empty digest. biome clean over 155 files.
 - Wave 4: the composition root. src/app/cityLoad.ts owns the load - it replays the save and decides, while everything reaching the scene, the HUD, the heightmap or a closure variable stays in app.ts as one of 15 hooks. src/app/cityLoad.test.ts: 12 cases covering the full call sequence, terrain normalization including an unknown preset, the wave-in-progress refusal, the elapsed and day defaults, the re-laid alert with and without counts, the absent camera, and a rejected replay running nothing past the replay. tests/architecture.mjs caps app.ts at 1346 lines and can only be lowered; verified it fails at 1349. npx vitest run: 386 tests across 54 files. node --test tests/*.mjs: 29. npm run test:e2e: all interaction checks passed, including loading restores every segment 58/58, loading twice gives exactly the same city, a page reload resumes the autosaved city and its day and hour, a reload keeps the zoning, an older build's save still loads, a corrupted autosave is ignored, and the city is autosaved while a kaiju is on it without the wave.
 - Wave 5: coverage measured, then gated. src/sim at 96.86% lines, 94.62% statements, 97.54% functions, 87.5% branches, measured after waves 2 and 4 landed the tests that move it. Thresholds in vite.config.mjs sit just under those figures and are scoped to src/sim; verified they bite by raising the line threshold to 99.5 and getting 'Coverage for lines (96.86%) does not meet global threshold (99.5%)'. npm run ci now runs the suite once with coverage instead of twice, and passed on the first attempt with the threshold in place.
+- Wave 6: hygiene and weight. scripts/.lights.mjs moved to scripts/review/lights.mjs, which drops the leading dot that kept biome from processing it - confirmed linted. Deleted: .tmp/app.ts.orig, .tmp/app.kit.ts, .tmp/rules.fixed.ts, the three regenerable root screenshots, and three .DS_Store files. docs/media/README.md indexes all 35 captures with per-file commit attribution from git log --diff-filter=A, splitting the 21 shown in documents from the 14 kept as evidence; nothing was deleted, and the index warns that some are cited from release notes this repository cannot see. Measured every image: 390 to 1440 px wide, so nothing is oversized and nothing was resized. CONTRIBUTING.md carries the rule for the next capture. npm run ci green: 386 tests, 29 architecture tests, coverage thresholds met, Logics lint OK with 9 warnings, all expected deferred AC proofs plus one pre-existing.
 
 # Report
 - Not started.

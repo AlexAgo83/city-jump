@@ -68,7 +68,12 @@ Logics gates -- everything whose answer does not depend on a frame arriving.
 
 - Explain the behavior changed and why.
 - List the validation commands that passed.
-- Include a screenshot when rendering or controls change.
+- Include a screenshot when rendering or controls change. It goes in `docs/media/`, at the
+  width it will be displayed and no wider, and gets a row in
+  [`docs/media/README.md`](docs/media/README.md) saying which wave it evidenced. That index is
+  what stops a closed wave's proof looking like litter later. The directory grows once per wave
+  and is the largest single driver of repository weight, so add the capture that proves the
+  change and not the four around it.
 - State known limits and follow-up work explicitly.
 - Update the versioned changelog when preparing a release.
 

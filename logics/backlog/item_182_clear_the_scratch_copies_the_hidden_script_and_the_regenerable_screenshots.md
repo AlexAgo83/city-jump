@@ -1,14 +1,15 @@
 ## item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots - Clear the scratch copies, the hidden script and the regenerable screenshots
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:16:42
+> Owner: Claude
 
 # AI Context
 - Summary: Stale scratch copies of live modules, one script hidden from lint by a leading dot, and regenerable screenshots at the repository root.
@@ -18,13 +19,13 @@
 
 # Problem
 - `.tmp/` holds 19 scratch files including `app.ts.orig` and `app.kit.ts`; a stale copy of the largest module in the repository invites being reopened or partially copied back.
-- `scripts/.lights.mjs` is hidden behind a leading dot, is not processed by biome, and is otherwise an exact sibling of `terrain-shot.mjs`, `buildings-shot.mjs` and `kaiju-shot.mjs`.
+- scripts/.lights.mjs (as it was then named) is hidden behind a leading dot, is not processed by biome, and is otherwise an exact sibling of `terrain-shot.mjs`, `buildings-shot.mjs` and `kaiju-shot.mjs`.
 - `shot.png`, `shot-rugged.png` and `vehicle-closeup.png` at the root are the default output names of `scripts/shot.mjs:11`, and `.DS_Store` files sit at the root and in `src/`.
 
 # Scope
 - In:
   - Delete the stale scratch copies of live modules.
-  - Either rename `scripts/.lights.mjs` into the shot-script family so lint covers it, or delete it.
+  - Either rename the dot-hidden probe into a linted sibling of the other scripts, or delete it.
   - Remove the default-named root screenshots and the `.DS_Store` files already covered by `.gitignore`.
   - Confirm `npm run lint` reaches every script in `scripts/` afterwards.
 - Out:
@@ -43,6 +44,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- The dot-hidden probe was moved rather than deleted, to scripts/review/lights.mjs. It was tracked, and it is a substantial signals-versus-roundabout verification probe of the same shape as its neighbours in scripts/review/ - the home req_045 established for exactly this. Renaming it drops the leading dot that kept biome from processing it, which was the actual defect; biome now checks it, verified directly. Deleted instead: .tmp/app.ts.orig, .tmp/app.kit.ts and .tmp/rules.fixed.ts (untracked scratch copies of live modules), the three default-named screenshots at the repository root that scripts/shot.mjs regenerates, and three .DS_Store files. The rest of .tmp is left alone: those probes are still in use.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`

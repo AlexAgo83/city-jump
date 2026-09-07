@@ -1,14 +1,15 @@
 ## item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes - Settle the unreferenced review screenshots and say where a new one goes
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 75%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:16:43
+> Owner: Claude
 
 # AI Context
 - Summary: docs/media is 22 MB and 14 of its files are referenced by no document; the rule for where a delivery capture goes is unwritten.
@@ -43,6 +44,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- All 14 orphans retained and linked, none deleted. docs/media/README.md now indexes every capture in the directory with the commit and dated wave that added it, split into the 21 shown in documents and the 14 kept as evidence only, and says explicitly that some are cited from published GitHub release notes - a reference this repository cannot see - so an unlinked file must not be deleted for being unlinked. Attribution came from git log --diff-filter=A per file, so each row is a fact rather than a guess. AC2 on image sizing turned out to be based on a wrong premise and is satisfied as it stands: every capture measures between 390 px and 1440 px wide, which is right for content displayed at 800-900 px plus four deliberate mobile shots at 390 px. The weight is PNG encoding of dense 3D renders, inherent to what they show, not excessive dimensions - and rewriting the files could not shrink the repository anyway, only add a second copy of each to history. Nothing was resized. CONTRIBUTING.md now says where a capture goes, at what width, that it needs an index row, and to add the one that proves the change rather than the four around it.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`
