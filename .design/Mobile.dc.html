@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font: 12px/1.2 ui-sans-serif, system-ui, sans-serif; background: #0b0e11; color: #e6ebef; }
+    a { color: #75b9d1; } a:hover { color: #b9dbe7; }
+    .screen { position: relative; overflow: hidden; background: #0b0e11; }
+    .screen img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .glass { background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px; }
+    .lbl { color: #7f8b95; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .num { font-variant-numeric: tabular-nums; }
+    .btn { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 5px 9px; font: inherit; cursor: pointer; }
+    .btn:hover { background: #333c45; }
+    .btn.acc { background: #3c5965; border-color: #75b9d16b; color: #fff; }
+    .seg { display: flex; border: 1px solid #ffffff2b; border-radius: 5px; overflow: hidden; }
+    .seg > span { padding: 5px 9px; color: #aeb8c0; cursor: pointer; }
+    .seg > span[data-on="1"] { color: #fff; background: #3c5965; }
+    .bar { height: 3px; border-radius: 2px; background: #ffffff1a; overflow: hidden; }
+    .bar > i { display: block; height: 100%; border-radius: 2px; background: #75b9d1; }
+      .stat { display: flex; align-items: baseline; gap: 5px; }
+    .stat b { font-size: 14px; font-weight: 600; }
+    /* Thumb targets, not mouse targets. */
+    .tool { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; flex: 1 1 0; min-width: 0; height: 54px; border: 0; background: transparent; color: #93a0aa; font: inherit; font-size: 11px; cursor: pointer; border-radius: 6px; }
+    .tool[data-on="1"] { color: #fff; background: #3c5965; }
+    .ti { display: flex; }
+    .grab { width: 34px; height: 4px; border-radius: 2px; background: #ffffff33; margin: 7px auto 3px; }
+</style>
+</helmet>
+
+<div class="screen" style="width: 390px; height: 844px;">
+  <img class="bg" src="city.jpg" alt="" />
+
+  <div class="glass" style="position: absolute; top: 12px; left: 8px; right: 8px; display: flex; align-items: center; gap: 10px; padding: 9px 11px;">
+    <span class="stat"><b class="num">$1.90M</b></span>
+    <span class="num" style="color: #8fc7a4; font-size: 11px;">+529/s</span>
+    <span style="flex: 1 1 auto;"></span>
+    <span class="stat"><span class="lbl">Pop</span><b class="num">14.0k</b></span>
+    <span class="stat"><span class="lbl">Wave</span><b class="num">14</b></span>
+    <button class="btn" style="padding: 5px 7px; display: flex;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="6" height="11"/><rect x="10" y="4" width="5" height="17"/><rect x="16" y="8" width="5" height="13"/></svg></button>
+  </div>
+
+  <div class="glass" style="position: absolute; top: 60px; left: 8px; right: 8px; padding: 7px 11px; color: #d9c48a; font-size: 11px;">
+    Kaiju at 14,000 residents &mdash; 448 to go
+  </div>
+
+  <div class="glass" style="position: absolute; right: 8px; bottom: 222px; display: flex; flex-direction: column; padding: 4px;">
+    <button class="btn" style="border: 0; background: #3c5965; padding: 10px 11px; color: #fff;">II</button>
+    <button class="btn" style="border: 0; background: transparent; padding: 10px 11px;">&#9654;</button>
+    <button class="btn" style="border: 0; background: transparent; padding: 10px 11px;">2&times;</button>
+    <button class="btn" style="border: 0; background: transparent; padding: 10px 11px;">4&times;</button>
+  </div>
+
+  <div class="glass" style="position: absolute; left: 8px; right: 8px; bottom: 8px;">
+    <div class="grab"></div>
+    <div style="display: flex; align-items: center; gap: 9px; padding: 2px 11px 9px;">
+      <span class="lbl">Short</span>
+      <span style="color: #d9c48a;">Commerce 125</span>
+      <span style="color: #d9c48a;">Farming 212</span>
+      <span style="flex: 1 1 auto;"></span>
+      <span class="num" style="color: #b9dbe7;">Day 7</span>
+    </div>
+    <div style="padding: 0 8px 8px;">
+      <div class="seg" style="width: 100%;">
+        <span data-on="1" style="flex: 1 1 0; text-align: center;">All</span>
+        <span style="flex: 1 1 0; text-align: center;">Zones</span>
+        <span style="flex: 1 1 0; text-align: center;">Traffic</span>
+        <span style="flex: 1 1 0; text-align: center;">State</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 2px; padding: 0 6px 10px;">
+        <button class="tool" data-on="1"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l6 15 2.2-6.2L19.5 9.8z"/></svg></span><span>Select</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 5 21M16 3l3 18M12 4v3M12 11v3M12 18v3"/></svg></span><span>Roads</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg></span><span>Zones</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 13.5h5.5L11 22l8-11.5h-5.5z"/></svg></span><span>Power</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5s6 6.4 6 10.2a6 6 0 0 1-12 0C6 9.9 12 3.5 12 3.5Z"/></svg></span><span>Water</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-5M12 16l-4.5-2.6A5 5 0 0 1 12 4.2a5 5 0 0 1 4.5 9.2Z"/></svg></span><span>Nature</span></button>
+        <button class="tool" data-on="0"><span class="ti"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></span><span>More</span></button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

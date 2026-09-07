@@ -137,29 +137,27 @@
   #toolbar button:not(#toolbar-toggle):hover { background: #333c45; }
   #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
+  /* One surface: the active tool's options sit beside the tools that own them, not floating above. */
   #action-dock {
-    position: fixed; right: 12px; bottom: 12px;
-    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-    max-width: calc(100vw - 220px); color: #e6ebef;
-    font: 12px/1.2 ui-sans-serif, system-ui;
+    position: fixed; right: 12px; bottom: 12px; z-index: 2;
+    display: flex; align-items: stretch; gap: 6px; padding: 5px;
+    max-width: calc(100vw - 24px); box-sizing: border-box;
+    background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
+    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
   }
-  #action-palette, .tool-options {
-    background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
-    box-shadow: 0 5px 18px #0000004d;
-  }
-  #action-palette { display: flex; max-width: 100%; overflow-x: auto; padding: 4px; box-sizing: border-box; }
+  #action-palette { display: flex; gap: 2px; align-items: center; max-width: 100%; overflow-x: auto; box-sizing: border-box; }
   .tool-button {
-    min-width: 78px; min-height: 40px; padding: 7px 10px; border: 0; border-right: 1px solid #ffffff18;
-    color: #aeb8c0; background: transparent; font: inherit; cursor: pointer; white-space: nowrap;
+    min-width: 62px; min-height: 44px; padding: 7px 10px; border: 0; border-radius: 6px;
+    color: #8e9aa4; background: transparent; font: inherit; cursor: pointer; white-space: nowrap;
   }
-  .tool-button:last-child { border-right: 0; }
-  .tool-button[aria-pressed="true"] { color: #fff; background: #3c5965; }
+  .tool-button[aria-pressed="true"] { color: #fff; background: #35525d; }
   .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
-  .tool-button:hover { color: #fff; background: #2b343b; }
+  .tool-button:hover { color: #e8edf1; background: #ffffff0d; }
   .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   .tool-options {
-    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
-    gap: 10px; max-width: 100%; padding: 7px 9px; box-sizing: border-box;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
+    max-width: 290px; padding: 6px 11px 6px 7px; box-sizing: border-box;
+    border-right: 1px solid #ffffff12; font-size: 11.5px;
   }
   .tool-options[hidden] { display: none; }
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -183,10 +181,10 @@
     max-width: min(560px, calc(100vw - 24px));
   }
   #selection-panel {
-    min-width: 150px; max-width: 240px;
-    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
-    border-radius: 6px; font: 12px/1.4 ui-sans-serif, system-ui; padding: 8px 12px;
-    box-sizing: border-box;
+    min-width: 176px; max-width: 240px; box-sizing: border-box;
+    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
+    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    font: 12px/1.4 ui-sans-serif, system-ui; padding: 9px 11px 11px;
   }
   #fps-counter {
     min-width: 60px; box-sizing: border-box;
@@ -197,11 +195,12 @@
   #fps-counter[hidden] { display: none; }
   #selection-panel[hidden] { display: none; }
   #selection-panel .selection-kind {
-    font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #7f8b95;
+    font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #6d7883;
+    padding-bottom: 6px; border-bottom: 1px solid #ffffff12;
   }
-  #selection-panel dl { margin: 4px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; }
-  #selection-panel dt { color: #aeb8c0; }
-  #selection-panel dd { margin: 0; text-align: right; }
+  #selection-panel dl { margin: 7px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; }
+  #selection-panel dt { color: #a6b1ba; }
+  #selection-panel dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
   #touch-notice {
     position: fixed; left: 50%; top: 12px; transform: translateX(-50%);
     cursor: pointer; appearance: none; text-align: center;
@@ -231,15 +230,15 @@
   #wave-banner[data-state="active"] { border-color: #ffcf66aa; color: #ffdf91; }
   #wave-banner[data-state="held"] { border-color: #8ee6a8aa; color: #bdf5cc; }
   #wave-banner[data-state="breached"] { border-color: #ff8d7aaa; color: #ffc5bc; }
-  #run-panel, #between-runs {
+  #between-runs {
     display: flex; align-items: center; flex-wrap: wrap; gap: 10px; max-width: min(560px, calc(100vw - 24px)); box-sizing: border-box;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff2b; border-radius: 6px;
-    font: 12px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-shadow: 0 1px 2px #000;
+    font: 12px/1.2 ui-sans-serif, system-ui; padding: 7px 9px;
   }
   #between-runs { max-width: min(360px, calc(100vw - 24px)); }
   #between-runs[hidden] { display: none; }
-  #run-panel b, #between-runs b { color: #f4fbff; font-weight: 600; }
-  #run-panel button, #between-runs button {
+  #between-runs b { color: #f4fbff; font-weight: 600; }
+  #between-runs button {
     color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
     padding: 3px 8px; cursor: pointer; font: inherit;
   }
@@ -252,15 +251,43 @@
   }
   /* A narrow column: label on the left, value on the right, one line each. It used to be ten
      columns across, which made a bar as wide as the screen with a hole in the middle of it. */
-  #city-strip {
-    display: grid; grid-template-columns: auto 1fr; justify-content: start;
-    align-items: center; gap: 3px 12px; width: 210px; box-sizing: border-box;
-    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px;
-    font: 11px/1.2 ui-sans-serif, system-ui; padding: 7px 9px; text-align: left; cursor: pointer;
+  /*
+   * One status bar, centred on the top edge: the numbers a player watches while deciding, in the
+   * order they decide with. Money leads because it gates every action. Each of these used to sit
+   * in its own corner, so reading the city meant reading three corners.
+   */
+  #status-bar {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+    display: flex; align-items: stretch; max-width: calc(100vw - 24px);
+    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
+    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    font: 12px/1.25 ui-sans-serif, system-ui; box-sizing: border-box;
   }
-  #city-strip span { color: #8fa0aa; }
-  #city-strip b { color: #f4fbff; font-weight: 600; text-align: right; }
+  #city-strip, #run-panel {
+    display: flex; align-items: baseline; gap: 5px; padding: 8px 14px; white-space: nowrap;
+    color: inherit; background: transparent; border: 0; font: inherit; text-align: left;
+  }
+  /* Each label belongs to the number after it, so the space goes before the label, not between. */
+  #city-strip > span:not(:first-child), #run-panel > span:not(:first-child) { margin-left: 11px; }
+  #run-panel button { margin-left: 11px; align-self: center; }
+  #city-strip { cursor: pointer; }
+  #city-strip:hover { background: #ffffff08; }
+  #city-strip:focus-visible, #run-panel button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  #run-panel { border-left: 1px solid #ffffff12; }
+  #status-bar span { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  #status-bar b {
+    color: #f4fbff; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums;
+    letter-spacing: -.01em;
+  }
+  #city-strip b#money { font-size: 15px; }
+  #run-panel button {
+    color: #dbe3e9; background: #232a31; border: 1px solid #ffffff24; border-radius: 5px;
+    padding: 5px 9px; font: inherit; cursor: pointer;
+  }
+  #run-panel button:hover { background: #2d353d; }
+  #run-panel #call-wave { background: #35525d; border-color: #75b9d15c; color: #fff; }
   #ledger {
+    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
     width: min(340px, calc(100vw - 24px));
     color: #e6ebef; background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
     box-shadow: 0 5px 18px #0000004d; font: 11px/1.35 ui-sans-serif, system-ui; padding: 9px;
@@ -269,11 +296,15 @@
   #ledger[hidden] { display: none; }
   /* The five needs run across the strip rather than down it: a column of short rows left a hole
      the width of the stats line beside it. */
-  #needs-panel {
-    grid-column: 1 / -1; display: grid; gap: 3px; width: 100%; margin-top: 3px;
-    padding-top: 5px; border-top: 1px solid #ffffff14; color: #e6ebef;
-    font: 11px/1 ui-sans-serif, system-ui; box-sizing: border-box;
+  /* Five meters instead of nine lines of prose: what is short is read, not parsed. */
+  #supply {
+    display: flex; flex-direction: column; gap: 7px; width: 188px; box-sizing: border-box;
+    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
+    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    font: 12px/1.25 ui-sans-serif, system-ui; padding: 10px 12px 11px;
   }
+  .supply-label { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  #needs-panel { display: grid; gap: 7px; }
   #ledger-lines {
     display: grid; gap: 0; color: #c8d2d9; font-variant-numeric: tabular-nums;
   }
@@ -315,18 +346,29 @@
   </div>
 </div>
 <div id="wave-banner" hidden></div>
-<div id="left-stack">
-<div id="ledger" hidden>
-  <div id="ledger-lines"></div>
-</div>
+<div id="status-bar">
 <button id="city-strip" type="button" aria-expanded="false" aria-controls="ledger">
   <span>Pop</span><b id="population">0 residents</b>
   <span>Money</span><b id="money">$40,000 +$0.0/s</b>
   <span>Workers</span><b id="workers">0/0</b>
   <span>Food</span><b id="food">0</b>
   <span>Short</span><b id="shortage">None</b>
-  <span id="needs-panel" aria-label="City needs"></span>
 </button>
+<div id="run-panel" aria-label="Run status">
+      <span>Wave <b id="run-wave">1</b></span>
+      <span>Science <b id="run-science">0</b></span>
+      <button id="call-wave" type="button">Call wave</button>
+      <button id="evacuate-run" type="button">Evacuate</button>
+    </div>
+  <div id="ledger" hidden>
+    <div id="ledger-lines"></div>
+  </div>
+</div>
+<div id="left-stack">
+<div id="supply" aria-label="City needs">
+  <span class="supply-label">Supply</span>
+  <span id="needs-panel"></span>
+</div>
 <div id="time-controls" aria-label="Simulation time">
   <div class="segmented">
     <button type="button" data-time-rate="0" aria-pressed="true" title="Pause">Pause</button>
@@ -529,12 +571,6 @@
 <div id="right-stack">
   <div id="run-line">
     <div id="fps-counter" hidden></div>
-    <div id="run-panel" aria-label="Run status">
-      <span>Wave <b id="run-wave">1</b></span>
-      <span>Science <b id="run-science">0</b></span>
-      <button id="call-wave" type="button">Call wave</button>
-      <button id="evacuate-run" type="button">Evacuate</button>
-    </div>
   </div>
 <div id="between-runs" aria-label="Between runs" hidden>
   <span id="run-outcome"></span>
