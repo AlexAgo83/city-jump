@@ -1,12 +1,13 @@
 ## req_046_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence - Bound autosave latency so accelerated play cannot starve persistence
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Low
 > Theme: Persistence
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:19:37
 
 # AI Context
 - Summary: Autosave uses a purely trailing debounce, so continuous x2/x4 play defers every write and progress is lost on an abrupt exit.
