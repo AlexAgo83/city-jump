@@ -26,7 +26,12 @@ const profilePrestige = document.getElementById("profile-prestige") as HTMLSpanE
 cityStrip.addEventListener("click", () => {
   ledger.hidden = !ledger.hidden;
   cityStrip.setAttribute("aria-expanded", String(!ledger.hidden));
+  // Nothing was built while it was collapsed, so it is filled in on the way open rather than on
+  // the next gameplay frame: opening it must show the figures, not an empty panel for a frame.
+  renderLedger(lastLedger.terms, lastLedger.resources);
 });
+
+let lastLedger: { terms?: CityTerms; resources?: CityResources } = {};
 
 export function showRefusal(reason: string): void {
   showToast(reason, "refusal");
@@ -63,6 +68,7 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
   workersText.textContent = workers ? `${workers.supply}/${workers.need}` : "0/0";
   foodText.textContent = compact(Math.floor(resources?.food ?? 0));
   shortageText.textContent = shortage(needs);
+  lastLedger = { terms, resources };
   renderNeeds(needs);
   renderLedger(terms, resources);
 }

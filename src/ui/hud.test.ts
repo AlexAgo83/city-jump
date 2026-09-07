@@ -112,5 +112,18 @@ describe("hud rendering", () => {
     ledger.hidden = false;
     showCityStats(1234, [], { population: 1234, food: 9, materials: 2 }, terms());
     expect(elements.get("ledger-lines")?.children.length).toBeGreaterThan(0);
+
+    // And opening it fills it on the way open, not a frame later: the click handler renders from
+    // the figures of the last frame rather than leaving a stale panel on screen.
+    ledger.hidden = true;
+    const built = (document.createElement as ReturnType<typeof vi.fn>).mock.calls.length;
+    showCityStats(1234, [], { population: 1234, food: 9, materials: 2 }, { ...terms(), trade: 99 });
+    expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBe(built);
+
+    // The handler is the toggle itself: it opens the collapsed ledger and fills it in one go.
+    const [[, toggle]] = (elements.get("city-strip")?.addEventListener as ReturnType<typeof vi.fn>).mock.calls;
+    (toggle as () => void)();
+    expect(ledger.hidden).toBe(false);
+    expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(built);
   });
 });
