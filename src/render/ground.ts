@@ -11,6 +11,9 @@ import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Color3, Color4, Vector3 } from "@babylonjs/core/Maths/math";
 import { VertexBuffer } from "@babylonjs/core/Buffers/buffer";
 import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap";
+import { PickingInfo } from "@babylonjs/core/Collisions/pickingInfo";
+import type { Ray } from "@babylonjs/core/Culling/ray";
+import { pickHeightmap } from "./terrainPick";
 
 export const GROUND_SIZE = 5400;
 export const GROUND_CELL = 8;
@@ -58,6 +61,30 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   data.uvs = uvs as unknown as number[];
   data.colors = colors as unknown as number[];
   data.applyToMesh(mesh, true);
+
+  /**
+   * A ray against the ground answered from the heightmap instead of its 911,250 triangles.
+   *
+   * Babylon still picks the scene on pointer-up, and the picks the review harness takes go
+   * through here too. Both used to walk every triangle of this one mesh. `pickHeightmap` visits
+   * only the cells the ray crosses and tests the same two triangles per cell this mesh is built
+   * from, so the point it reports is the one the full walk reported -- `terrainPick.test.ts`
+   * holds it to that against a full triangle scan.
+   *
+   * The ray arrives in world space and this mesh sits at the origin unrotated and unscaled, so
+   * no transform is needed. `AbstractMesh.intersects` would otherwise do that itself.
+   */
+  mesh.intersects = (ray: Ray): PickingInfo => {
+    const info = new PickingInfo();
+    const hit = pickHeightmap(heightmap, ray);
+    if (!hit) return info;
+    info.hit = true;
+    info.pickedMesh = mesh;
+    info.pickedPoint = new Vector3(hit.x, hit.y, hit.z);
+    info.distance = Vector3.Distance(ray.origin, info.pickedPoint);
+    info.ray = ray;
+    return info;
+  };
 
   function refresh(dirty?: TerrainBounds): void {
     const bounds = dirty ? groundGridBounds(heightmap, dirty) : { minIx: 0, maxIx: n - 1, minIz: 0, maxIz: n - 1 };

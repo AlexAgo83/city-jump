@@ -44,6 +44,20 @@ export function createScene(canvas: HTMLCanvasElement) {
   // ocean has no visible end. ponytail: exp2 fog, swap for a real atmosphere shader only if needed.
   scene.fogMode = Scene.FOGMODE_EXP2;
   scene.fogDensity = 0.00016;
+  /**
+   * Babylon picks the whole scene on both halves of a click, to hand `onPointerObservable` a
+   * `pickInfo`. On the large city that measured 18-20 ms a pick, twice per click.
+   *
+   * The pointer-down one is skipped outright: nothing reads it. The draw tool works from
+   * `scene.pointerX`/`pointerY` and picks for itself. The pointer-up one is left alone, because
+   * something does read it -- the interaction suite fails without a ground hit on release, and
+   * only a ground hit -- so it is made cheap instead, by `createGround` teaching the ground mesh
+   * to intersect a ray against the heightmap rather than its 911,250 triangles.
+   *
+   * Skipping the down pick means `ActionManager` pointer-down triggers would no longer fire.
+   * Nothing uses one.
+   */
+  scene.skipPointerDownPicking = true;
 
   // Top-down-ish orbit camera: the city-builder default.
   const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3.6, 220, Vector3.Zero(), scene);
