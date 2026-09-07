@@ -55,6 +55,7 @@
 | [prod_036_a_varied_residential_and_commercial_skyline](product/prod_036_a_varied_residential_and_commercial_skyline.md) | A varied residential and commercial skyline | Settled |  |  | product/prod_036_a_varied_residential_and_commercial_skyline.md |
 | [prod_037_continuous_roads_and_legible_terrain_zoning](product/prod_037_continuous_roads_and_legible_terrain_zoning.md) | Continuous roads and legible terrain zoning | Settled |  |  | product/prod_037_continuous_roads_and_legible_terrain_zoning.md |
 | [prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded](product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md) | A repository that keeps its own rules without being reminded | Settled |  |  | product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md |
+| [prod_039_a_shop_window_that_shows_the_game_that_exists](product/prod_039_a_shop_window_that_shows_the_game_that_exists.md) | A shop window that shows the game that exists | Settled |  |  | product/prod_039_a_shop_window_that_shows_the_game_that_exists.md |
 
 ## Roadmaps
 
@@ -120,6 +121,7 @@
 | [req_049_residential_and_commercial_variety_with_a_mixed_skyline](request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md) | Residential and commercial variety with a mixed skyline | Done |  |  | request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md |
 | [req_050_keep_roads_and_zone_overlays_clear_of_terrain](request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md) | Keep roads and zone overlays clear of terrain | Done |  |  | request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md |
 | [req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand](request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md) | Review findings: a save the parser refuses, sim seams no test reaches, and gates kept by hand | Done |  |  | request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md |
+| [req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing](request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md) | Ship the played Demo city, reshoot the README from it, and stop the README overstating what is missing | Done |  |  | request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md |
 
 ## Backlog
 
@@ -308,6 +310,9 @@
 | [item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies](backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md) | Let a bot move the pinned action SHAs and the in-range dependencies | Done | Claude | 100% | backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md |
 | [item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots](backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md) | Clear the scratch copies, the hidden script and the regenerable screenshots | Done | Claude | 100% | backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md |
 | [item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes](backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md) | Settle the unreferenced review screenshots and say where a new one goes | Done | Claude | 100% | backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md |
+| [item_184_replace_the_bundled_demo_with_a_city_that_has_been_played](backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md) | Replace the bundled Demo with a city that has been played | Done | Claude | 100% | backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md |
+| [item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing](backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md) | Retake the README captures from the Demo on its own framing | Done | Claude | 100% | backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md |
+| [item_186_make_every_readme_claim_one_the_code_or_the_record_can_support](backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md) | Make every README claim one the code or the record can support | Done | Claude | 100% | backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md |
 
 ## Tasks
 
@@ -366,6 +371,7 @@
 | [task_051_deliver_residential_commercial_variety_and_skyline](tasks/task_051_deliver_residential_commercial_variety_and_skyline.md) | Deliver residential commercial variety and skyline | Done | Codex | 100% | tasks/task_051_deliver_residential_commercial_variety_and_skyline.md |
 | [task_052_fix_terrain_crossing_roads_and_zones](tasks/task_052_fix_terrain_crossing_roads_and_zones.md) | Fix terrain crossing roads and zones | Done | Codex | 100% | tasks/task_052_fix_terrain_crossing_roads_and_zones.md |
 | [task_053_orchestrate_the_0_5_1_review_findings](tasks/task_053_orchestrate_the_0_5_1_review_findings.md) | Orchestrate the 0.5.1 review findings | Done | Claude | 100% | tasks/task_053_orchestrate_the_0_5_1_review_findings.md |
+| [task_054_orchestrate_the_demo_swap_and_readme_correction](tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md) | Orchestrate the Demo swap and README correction | Done | Claude | 100% | tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md |
 
 ## Runbooks
 

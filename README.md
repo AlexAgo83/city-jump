@@ -35,9 +35,10 @@ Nothing here is placed by hand except the roads. Everything else is what the roa
 
 ## What you can do
 
-**Build.** Straight roads, curves, avenues, one-ways, dual carriageways, highways, footpaths,
-tunnels and roundabouts. Everything snaps to the grid, to existing junctions, and to roads
-already drawn — so a network stays a network.
+**Build.** Eight kinds of road — footpath, street, avenue, industrial, dirt, military, highway,
+tunnel — straight or curved, one-way or dual carriageway, with roundabouts on any junction.
+Everything snaps to the grid, to existing junctions, and to roads already drawn, so a network
+stays a network. Bulldoze takes any of it back out.
 
 **Shape the ground.** Roads cut into the hills they cross and the terrain grades back around
 them. Junctions flatten to their real footprint. A tunnel digs its approach trench and leaves
@@ -46,17 +47,21 @@ the hill whole over the middle.
 **Plant.** Trees one at a time or by the spray, in any of four species, anywhere the ground is
 above the waterline and clear of the road.
 
+**Supply it.** Power and water each need a producer, a road network to travel along, and a
+diffuser at the far end. A lot out of range of either does nothing, when the run rules ask for
+them.
+
 **Watch it run.** Cars queue behind each other, stop at red, change lane before their turn, and
 take roundabouts properly. Pedestrians walk the pavements, go round corners rather than through
 them, and cross at the crossings.
 
-**Zone it.** Paint an area low or dense and what gets built there follows — different footprints,
-different silhouettes, visible from a normal playing camera. Land you never zone keeps behaving
-exactly as it always did.
+**Zone it.** Paint an area residential, commercial, industrial, agricultural or military, and
+what gets built there follows — different footprints, different silhouettes, different work.
+A lot has to be zoned before anything will stand on it: land you never paint stays empty.
 
-**Read it.** Switch to Zones to see what you zoned, over the grid of which plots are taken and
-which are open. Switch to Traffic to watch the lanes and turns from above, with the buildings out
-of the way.
+**Read it.** Five ways to look at the same city: everything, the zoning over the grid of which
+plots are taken, the traffic lanes and turns with the buildings out of the way, the utility
+coverage, or the state of every lot — building, working, unstaffed, unsupplied, rubble.
 
 **Point at anything.** Click a road and it tells you its street name, its type and its length.
 Click a building and it gives you a street address. Click a car and you get the street it is on.
@@ -78,20 +83,29 @@ copies the whole city into a link — no server, no upload, the city travels ins
 
 ## Where it's going
 
-city-jump is a prototype, and an honest one. Everything above works today. What isn't there yet:
-demand, an economy, services, progression, bridges. Zoning has landed, so a building can now
-appear because someone asked for that kind of building there — but nothing yet decides whether a
-plot fills at all, or changes what stands on it over time. That is the next real step, and it has
-something to act on for the first time.
+city-jump is a prototype, and an honest one. Everything above works today, and so does the loop
+below it: demand decides whether a lot fills, money and a workforce decide what gets built and
+what actually runs, waves come for the city on their own, and science carried off the island
+becomes prestige on the next one.
 
-The plan lives in [`logics/roadmap/`](logics/roadmap/), as long-running strands rather than
-dated releases.
+What still isn't there: **services** — no police, fire, health or schooling of any kind — and
+**redevelopment**, because nothing yet changes what stands on a plot once it is built. A lot
+fills, works, and stays whatever it first became until a kaiju flattens it. That is the next real
+step.
+
+Finished strands are recorded in [`logics/roadmap/`](logics/roadmap/); all three are settled or
+superseded, so there is no active roadmap to read. The next one gets written when the strand above
+is chosen.
 
 ## Get started
 
-Open the [live demo](https://city-jump.onrender.com/) — a `Demo` city is already in the load
-menu. **Straight** takes two clicks, **Curve** takes start, bend and end, **Roundabout** toggles
-an existing junction. Right-click or `Esc` cancels.
+Open the [live demo](https://city-jump.onrender.com/). A `Demo` city is already in the load
+menu — the one in the screenshots above: 13,000 residents on day 41, on its seventeenth wave,
+framed where it was left. Load it to walk around a city that has been played, or press **New** to start
+your own on an empty island.
+
+Drawing: **Straight** takes two clicks, **Curve** takes start, bend and end, **Roundabout**
+toggles an existing junction. Right-click or `Esc` cancels.
 
 The build tools are desktop-only for now. They need a mouse because hover previews show what
 will be placed, right-click cancels, and drag already moves the camera. Touch visitors can still
@@ -222,11 +236,16 @@ it lasts a stage rather than for ever.
 | `scripts/` | Browser interaction and visual checks. |
 | `logics/` | Product, roadmap, decisions, runbooks, and delivery corpus. |
 
-A last measured run: 237 roads, 126 junctions, 1,688 buildings, 237 cars and 474 pedestrians at
-50 fps on an Apple M3 Pro.
+The largest city measured so far: 132 roads, 1,287 buildings, 2,528 trees, 166 cars and 311
+pedestrians, drawing 1,819 meshes a frame. Every run in
+[`perf/history.jsonl`](perf/history.jsonl) was taken on a software rasteriser, so it records what
+the city costs to build and draw, not what a real GPU does with it — no device frame rate is
+claimed here, because none has been measured.
 
-`npm run ci` is the push gate — types, unit tests, the architecture test, the build, and Logics
-validation. The browser interaction and visual suites run on demand.
+`npm run ci` is the push gate — the version check, the linter, the unit tests with a coverage
+floor on `src/sim/`, the architecture and asset tests, the scenario harness, the build with
+types, and Logics validation. The browser interaction and visual suites run on demand, because
+GitHub's runners have no GPU.
 [`CONTRIBUTING.md`](CONTRIBUTING.md) has the full list and when to reach for each.
 
 ## More

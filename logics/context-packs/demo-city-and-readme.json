@@ -1,0 +1,400 @@
+{
+  "budgets": {
+    "max_docs": 10,
+    "max_docs_per_ref": 2
+  },
+  "changed_paths": [
+    "logics/backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md",
+    "logics/backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md",
+    "logics/backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md",
+    "logics/product/prod_039_a_shop_window_that_shows_the_game_that_exists.md",
+    "logics/request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md",
+    "logics/tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md",
+    "scripts/readme-shots.mjs"
+  ],
+  "command": "logics-manager sync context-pack req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing item_184_replace_the_bundled_demo_with_a_city_that_has_been_played item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing item_186_make_every_readme_claim_one_the_code_or_the_record_can_support task_054_orchestrate_the_demo_swap_and_readme_correction --mode diff-first --profile tiny --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+          "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+          "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ],
+        "task": [
+          "task_054_orchestrate_the_demo_swap_and_readme_correction"
+        ]
+      },
+      "path": "logics/product/prod_039_a_shop_window_that_shows_the_game_that_exists.md",
+      "ref": "prod_039_a_shop_window_that_shows_the_game_that_exists",
+      "sections": {
+        "Goals": [
+          "- A sample city that can demonstrate the loop the documents describe, because it has been played through it.",
+          "- Captures that come from that city, on the framing it carries, retakeable by one command.",
+          "- Feature claims checked against the code rather than remembered from when they were written.",
+          "- No performance figure that the repository's own record cannot source."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "The README and the bundled Demo are what a visitor meets first, and both were describing an older game than the one that ships."
+        ],
+        "References": [
+          "- Product back-reference: `req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing`",
+          "- Task back-reference: `task_054_orchestrate_the_demo_swap_and_readme_correction`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A shop window that shows the game that exists"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "ship, played, demo, city, reshoot, readme, overstating, missing",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+          "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+          "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ]
+      },
+      "path": "logics/request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md",
+      "ref": "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The bundled Demo is a current-version played city, its assertions pin what the screenshots depend on, and the browser interaction suite still passes.",
+          "- AC2: One command retakes the three README captures from the bundled Demo, on the camera the save carries, refusing to shoot if that camera has drifted.",
+          "- AC3: No README statement about what the game does or does not have contradicts the code, and no performance figure is quoted that the repository cannot source."
+        ],
+        "Needs": [
+          "- Ship a Demo city that has actually been played, instead of a version-4 road network.",
+          "- Take the README captures from that Demo, on the framing the save itself carries.",
+          "- Stop the README claiming features are absent that ship, and stop it quoting a frame rate nothing measured."
+        ]
+      },
+      "status": "Draft",
+      "title": "Ship the played Demo city, reshoot the README from it, and stop the README overstating what is missing"
+    },
+    {
+      "ai_context": {
+        "keywords": "replace, bundled, demo, city, been, played",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ],
+        "task": [
+          "task_054_orchestrate_the_demo_swap_and_readme_correction"
+        ]
+      },
+      "path": "logics/backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md",
+      "ref": "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The bundled Demo parses at the current save version and loads as a populated city.",
+          "- AC2: Its assertions fail if the city arrives empty or the framing changes.",
+          "- AC3: `npm run test:e2e` passes with it bundled."
+        ],
+        "Problem": [
+          "- `public/default-demo.json` was a version-4 save with 68 segments, no zones and no buildings, against SAVE_VERSION 14.",
+          "- It predates zoning, the economy, the workforce and waves, so the first city a visitor loads cannot show any of the loop the README describes.",
+          "- `tests/default-demo.mjs` pinned only version, hour and three lengths, none of which would notice an empty city."
+        ]
+      },
+      "status": "Ready",
+      "title": "Replace the bundled Demo with a city that has been played"
+    },
+    {
+      "ai_context": {
+        "keywords": "retake, readme, captures, demo, own, framing",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ],
+        "task": [
+          "task_054_orchestrate_the_demo_swap_and_readme_correction"
+        ]
+      },
+      "path": "logics/backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md",
+      "ref": "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: One command produces all three README captures.",
+          "- AC2: The three differ only in the view selected, which is what the README claims about them.",
+          "- AC3: The script exits non-zero if the camera has drifted from the save's, or if the page reports an error."
+        ],
+        "Problem": [
+          "- The three README captures were taken from a scripted city built by `scripts/shot.mjs`, not from the Demo the alt text names.",
+          "- Nothing could retake them: reproducing the framing meant matching a camera by hand.",
+          "- The save now carries its own camera, so the framing is a fact in the fixture rather than a thing to reproduce."
+        ]
+      },
+      "status": "Ready",
+      "title": "Retake the README captures from the Demo on its own framing"
+    },
+    {
+      "ai_context": {
+        "keywords": "readme, claim, code, record, can, support",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ],
+        "task": [
+          "task_054_orchestrate_the_demo_swap_and_readme_correction"
+        ]
+      },
+      "path": "logics/backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md",
+      "ref": "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every feature claim in the README matches the code, checked claim by claim.",
+          "- AC2: No performance number appears that `perf/history.jsonl` cannot source.",
+          "- AC3: What the README says is missing is missing, and what it says is next is not already built."
+        ],
+        "Problem": [
+          "- `Where it's going` listed demand, an economy and progression as absent while the loop diagram in the same document described them and the code ships them.",
+          "- Zoning was described as `low or dense`, which survive only as legacy save values; the road list named five of eight types; the view list named two of five; power and water were absent entirely.",
+          "- A frame rate on an Apple M3 Pro was quoted although all 41 recorded runs are software-rasteriser, which req_045 had already flagged as not establishing device performance.",
+          "- `logics/roadmap/` was offered as the plan, where every roadmap is settled or superseded."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make every README claim one the code or the record can support"
+    },
+    {
+      "ai_context": {
+        "keywords": "orchestrate, demo, swap, readme, correction",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+          "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+          "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support"
+        ],
+        "prod": [
+          "prod_039_a_shop_window_that_shows_the_game_that_exists"
+        ],
+        "req": [
+          "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing"
+        ],
+        "task": [
+          "task_054_orchestrate_the_demo_swap_and_readme_correction"
+        ]
+      },
+      "path": "logics/tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md",
+      "ref": "task_054_orchestrate_the_demo_swap_and_readme_correction",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the Demo swap and README correction"
+    }
+  ],
+  "estimates": {
+    "char_count": 9886,
+    "companion_doc_count": 1,
+    "doc_count": 5
+  },
+  "generated_at": "2026-09-07T12:32:30Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing",
+      "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+      "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+      "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support",
+      "task_054_orchestrate_the_demo_swap_and_readme_correction"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "tiny",
+  "ref": "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing,item_184_replace_the_bundled_demo_with_a_city_that_has_been_played,item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing,item_186_make_every_readme_claim_one_the_code_or_the_record_can_support,task_054_orchestrate_the_demo_swap_and_readme_correction",
+  "refs": [
+    "req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing",
+    "item_184_replace_the_bundled_demo_with_a_city_that_has_been_played",
+    "item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing",
+    "item_186_make_every_readme_claim_one_the_code_or_the_record_can_support",
+    "task_054_orchestrate_the_demo_swap_and_readme_correction"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "github_release",
+        "required": true,
+        "state": "github_release",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.1",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md",
+      "ref": "task_054_orchestrate_the_demo_swap_and_readme_correction"
+    }
+  ]
+}
