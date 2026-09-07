@@ -1,14 +1,14 @@
 ## item_188_cull_distant_traffic_visuals_without_stopping_the_simulation - Cull distant traffic visuals without stopping the simulation
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 16:13:12
 
 # AI Context
 - Summary: The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.
@@ -54,3 +54,10 @@
 # Priority
 - Priority: High
 - Rationale: A bounded visibility pass is the smallest distance experiment; daytime traffic-off showed a cost but includes simulation.
+
+# Outcome
+- Rejected by measurement on 2026-09-07. Two candidates were prototyped and both removed; see the Report section of `task_055_deliver_and_validate_the_distance_aware_performance_slices` for the full figures.
+- Conservative reach `clamp(camera.radius * 2.3, 320, 2000)` m: `perf/reviews/task055-wave2-traffic-retry/`, three rounds, best gain +2.1% frame p50.
+- Tuned reach `clamp(camera.radius * 1.2, 180, 1100)` m: `perf/reviews/task055-wave2-traffic-tuned-full/`, three rounds, frame p50 between -1.9% and +1.1%.
+- AC1 and AC2 held in the prototype: focused checks covered hysteresis, paused camera travel, spawned movers and follow exemption, and offscreen queues, counts and light allocation matched unculled execution. AC3 fails: no headed A/B reaches the shared retention threshold, so nothing is retained.
+- Root cause of the null result: culling removed up to 20.9% of active meshes at follow without moving frame time. These scenarios are not bound by traffic mesh count. The distance behavior request AC2 asks for must come from `item_189`, where the 1287 buildings dominate the mesh population against 166 vehicles.
