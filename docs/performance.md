@@ -6,11 +6,20 @@
 npm run perf                                                  # the built-in demo city
 npm run perf -- --city perf/cities/ma-ville.json --label large-demo-v14
 npm run perf -- --city '#city=H4sIA…' --label shared
+npm run perf -- --paused                                      # the still scene, on purpose
 ```
+
+The app boots paused, and until 2026-09-07 neither `perf` nor `ablate` started the clock: every
+number they recorded described a still city, without saying so. Both now start the simulated clock
+and refuse to continue unless it advanced and the traffic moved with it. It is not a small
+difference -- the reference city reads **120 fps paused and 83 running** at every framing on this
+machine's software rasteriser. `--paused` keeps the still scene measurable on purpose, under its
+own `<label>-paused`, so the two never share a history line.
 
 A run loads the city, waits for every building model to be in (a half-loaded city draws half the
 buildings and reads as fast for the wrong reason), then reports:
 
+- **workload** -- `running` or `paused`, the simulation rate, and the renderer.
 - **fps** at three framings -- the whole map, a district, street level. A city is slow in
   different ways depending on how much of it is on screen.
 - **rebuild** -- one full `rebuild()`, which is what loading a city costs. Editing a road uses the
@@ -22,7 +31,13 @@ which means SwiftShader -- a software rasteriser that prices triangles and draw 
 a GPU does. GPU runs are recorded under their own `<label>-gpu`.
 
 Every run appends a line to `perf/history.jsonl` with the commit, and prints the delta against the
-last run carrying the same `--label`.
+last run carrying the same `--label`. Each line also carries the workload, the simulation rate, the
+renderer and the camera state the app actually settled on for each framing -- a frame rate only
+means something beside one taken under the same conditions, and the camera clamps the radius the
+script asks for.
+
+An empty city is refused explicitly rather than measured: nothing standing renders fast for the
+wrong reason, and the number looks like a win.
 
 Entries from `418c133` through `2258a5c` are clean but not comparable with built-city records:
 the harness loaded the demo roads and models, then measured before construction produced any
@@ -47,7 +62,8 @@ and 1,287 saved building states (1,274 working, 13 rising), across all five zone
 The original gameplay rules, resources and camera are preserved. Food is depleted and waves
 are enabled, so running-game comparisons must control their evolution explicitly.
 Use the label `large-demo-v14` for this fixture; older `ma-ville` records describe a different city.
-The harness still starts paused; these measurements do not yet cover running gameplay.
+Records before 2026-09-07 were taken paused, whatever their label says; they are not comparable
+with the running measurements taken since.
 
 Export your own from the app (Export, beside Share) to add another fixture.
 
@@ -314,8 +330,12 @@ after.
 ## What costs the frame rate
 
 `npm run ablate` switches one thing off at a time and measures, re-measuring the full scene
-between every ablation so the answer is a ratio taken minutes apart at most. On the reference
-city, at 1024 x 4 cascades:
+between every ablation so the answer is a ratio taken minutes apart at most. Each ablation is
+divided by the mean of the two baselines that bracket it; a comment used to claim this while the
+code still divided by the round's first baseline, which by the last ablation is minutes and a
+thermal state away, so the machine's own drift was being read as the feature's cost. Every table
+below the 2026-09-07 line was taken running, at simulation rate 1, with the camera state recorded.
+On the reference city, at 1024 x 4 cascades:
 
 | off        | overview | street |
 | ---------- | -------: | -----: |
