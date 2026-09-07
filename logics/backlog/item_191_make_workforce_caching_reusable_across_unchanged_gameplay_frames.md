@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: Workforce has a single last-allocation cache keyed by array and callback identity. Lifecycle builds fresh arrays/closures; the needs path builds another array and interleaves a distinct policy.
@@ -61,3 +61,9 @@
 - AC3: `perf/reviews/task055-wave3-workforce-ab-retry/`, 42 samples, three rounds, complete. Read as per-round paired deltas, frame time does not move: between -6.2% and +4.3% with no consistent direction, which is noise on this machine. CPU p50 is positive where the cache can help most -- paused +10.5% -- and mixed elsewhere. No frame-time gain is claimed.
 - The retention rests on AC5 as written: it asks that the two allocations reuse results for unchanged semantic inputs and stay correct and deterministic, not that a frame-time threshold is met. A per-frame sort over 1287 parcels is real work removed; that it does not surface in a frame budget dominated elsewhere is recorded, not dressed up.
 - First A/B attempt `perf/reviews/task055-wave3-workforce-ab/` is kept and labelled: every case's baseline varied 1.45x to 1.89x across rounds under machine contention, and reading it as a median per side produced a spurious +36.6% on day-street. It is the run that prompted `scripts/review/paired.mjs`.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

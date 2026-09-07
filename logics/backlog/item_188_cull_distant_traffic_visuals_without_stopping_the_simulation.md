@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 16:44:28
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.
@@ -62,3 +62,9 @@
 - Re-read through `scripts/review/paired.mjs` after that tool was written in wave 3: day-street is +8.2% as a median of paired deltas, from rounds of -2.1%, +8.2% and +13.4%. That is an unstable view, not a gain, and every other framing stays flat or negative under either reading. The rejection stands and does not rest on this number.
 - AC1 and AC2 held in the prototype: focused checks covered hysteresis, paused camera travel, spawned movers and follow exemption, and offscreen queues, counts and light allocation matched unculled execution. AC3 fails: no headed A/B reaches the shared retention threshold, so nothing is retained.
 - Root cause of the null result: culling removed up to 20.9% of active meshes at follow without moving frame time. These scenarios are not bound by traffic mesh count. The distance behavior request AC2 asks for must come from `item_189`, where the 1287 buildings dominate the mesh population against 166 vehicles.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

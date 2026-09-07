@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: Streetlights and vehicle headlights use city-wide clustered containers. Removing distant emitters may still leave a costly clustered pass.
@@ -67,3 +67,9 @@
 - This is the risk the slice was scoped around -- "removing distant emitters may still leave a costly clustered pass" -- now settled by measurement instead of left as a caveat. The only lever that pays is disabling a whole container, which is the existing all-or-nothing player switch and not a distance policy.
 - Not attempted as a result: the emissive-substitute pool prototype. Its appearance was never the blocker; there was no gain for it to preserve. Anything better would mean replacing the clustered lighting approach, which this request puts out of scope.
 - Method note, because the first attempt at this split was wrong twice. A clustered container removes its lights from `scene.lights`, so an ablation filtering that array found nothing and read as 0%; and every lighting ablation is undone within a frame or two because the running clock calls `updateLights()`, which re-enables lights and rewrites bulb colours. `scripts/review/distance.mjs` now reaches emitters through `container.lights` and re-applies each ablation every frame. The invalid runs were deleted rather than kept: unlike a rejected candidate, they measured nothing and would only mislead a later reader.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

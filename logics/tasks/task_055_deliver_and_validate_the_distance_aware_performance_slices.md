@@ -1,14 +1,14 @@
 ## task_055_deliver_and_validate_the_distance_aware_performance_slices - Deliver and validate the distance-aware performance slices
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 100%
 > Confidence: 90%
-> Progress: 92%
+> Progress: 100%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-07 16:44:29
+> Indicators reviewed: 2026-09-07 18:53:54
 > Owner: Codex
 
 # AI Context
@@ -24,19 +24,19 @@
 
 # Plan
 - [x] 1. Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.
-- [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
+- [x] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
 - [x] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail measured and retained. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
 - [x] 4. Wave 3 (High): workforce cache reuse measured and retained; the night-light experiment measured and closed as an evidenced no-change.
 - [x] 5. Wave 4 (Medium): spatial batching and terrain tiling/LOD all measured and rejected before implementation, each decided separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
 - [x] 6. Wave 5 (Low): resolution and MSAA costs isolated; one minimal persisted option delivered.
-- [ ] 7. Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.
-- [ ] 8. Integrated validation: repeat saved/street/district/overview, day/night and camera travel A/B with running x1; include x4/paused diagnostics and one 30 s real-time combat window after warmup. Run ten load/edit/restore cycles for stable scene/light/texture counts; measure complete road/zone edit latency with deferred rebuild work.
-- [ ] 9. GATE: each retained optimization satisfies the shared repeated-measurement rule and visual/correctness checks. Every rejected prototype is removed and has committed results; terrain, lighting or resolution cannot disappear from the report because they were inconclusive.
-- [ ] 10. GATE: npm run ci and npm run test:e2e pass, plus targeted renderer/simulation tests and visual comparisons for changed rendering. Update docs/performance.md with actual shipped distance policies, catalog readiness, knobs, limitations and final evidence. Do not rerun all performance probes concurrently.
-- [ ] 11. Closeout: validate each backlog slice and all request AC1-AC9 with real proof; run Logics lint/audit/flow validate and context-pack refresh. Use flow closeout/finish to settle completed lineage and consumed product; no hand-edited status/lineage. Commit final results only as authorized by the operator.
-- [ ] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
-- [ ] Keep commit creation under operator control; do not force one commit per micro-step.
-- [ ] GATE: do not close until lint, audit, and scaffold validation pass.
+- [x] 7. Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.
+- [x] 8. Integrated validation: repeat saved/street/district/overview, day/night and camera travel A/B with running x1; include x4/paused diagnostics and one 30 s real-time combat window after warmup. Run ten load/edit/restore cycles for stable scene/light/texture counts; measure complete road/zone edit latency with deferred rebuild work.
+- [x] 9. GATE: each retained optimization satisfies the shared repeated-measurement rule and visual/correctness checks. Every rejected prototype is removed and has committed results; terrain, lighting or resolution cannot disappear from the report because they were inconclusive.
+- [x] 10. GATE: npm run ci and npm run test:e2e pass, plus targeted renderer/simulation tests and visual comparisons for changed rendering. Update docs/performance.md with actual shipped distance policies, catalog readiness, knobs, limitations and final evidence. Do not rerun all performance probes concurrently.
+- [x] 11. Closeout: validate each backlog slice and all request AC1-AC9 with real proof; run Logics lint/audit/flow validate and context-pack refresh. Use flow closeout/finish to settle completed lineage and consumed product; no hand-edited status/lineage. Commit final results only as authorized by the operator.
+- [x] ADR 009 checkpoint: update affected Logics docs during each meaningful wave and leave the repo commit-ready.
+- [x] Keep commit creation under operator control; do not force one commit per micro-step.
+- [x] GATE: do not close until lint, audit, and scaffold validation pass.
 
 # Backlog
 - `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`
@@ -49,14 +49,23 @@
 - `item_194_evaluate_a_minimal_render_resolution_quality_option`
 
 # Definition of Done (DoD)
-- [ ] All eight slices are addressed: delivered fixes or documented measured rejection for conditional prototypes; no silent omission.
-- [ ] Request AC1-AC9 have actual implementation/test/measurement evidence; scaffolded acceptance text is not completion proof.
-- [ ] Retained optimizations meet the shared A/B frame-time rule and all visual/simulation invariants.
-- [ ] Current docs and reproducible probes describe shipped policies; final context pack and committed evidence are available.
-- [ ] npm run ci, npm run test:e2e, visual checks and Logics validation pass; product brief is settled through closeout.
-- [ ] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
+- [x] All eight slices are addressed: delivered fixes or documented measured rejection for conditional prototypes; no silent omission.
+- [x] Request AC1-AC9 have actual implementation/test/measurement evidence; scaffolded acceptance text is not completion proof.
+- [x] Retained optimizations meet the shared A/B frame-time rule and all visual/simulation invariants.
+- [x] Current docs and reproducible probes describe shipped policies; final context pack and committed evidence are available.
+- [x] npm run ci, npm run test:e2e, visual checks and Logics validation pass; product brief is settled through closeout.
+- [x] Meaningful waves followed ADR 009: affected docs updated and the repo left commit-ready without automatic commits.
 
 # AC Traceability
+- request-AC1 -> This task. Proof: wave 1 rebuilt harness readiness on a shared manifest and captured 33 baseline samples at a recorded application source hash (`perf/reviews/task055-wave1-baseline/`, `-additional/`).
+- request-AC2 -> This task. Proof: the traffic prototype was measured and rejected; the distance behaviour ships as automatic building detail at +28.7% night-overview and +15.5% day-overview over three paired rounds (`perf/reviews/task055-wave2-detail/`).
+- request-AC3 -> This task. Proof: `nextDistantDetail` checks in `src/render/buildings.test.ts`, the visual and shadow assertions in `scripts/review/detail.mjs`, and four e2e assertions holding the shipped contract in `scripts/interact.mjs`.
+- request-AC4 -> This task. Proof: the evidenced no-change decision this AC allows, from the five-way ablation split in `perf/reviews/task055-wave3-lights-ablation-*`.
+- request-AC5 -> This task. Proof: allocation counts in `perf/reviews/task055-wave3-workforce/` and the cached-against-uncached equivalence run in `src/sim/buildingLifecycle.test.ts`.
+- request-AC6 -> This task. Proof: separate ceilings for buildings, trees and streetlight geometry plus the perfect-cull ceiling in `perf/reviews/task055-wave4-*`, all rejected before implementation.
+- request-AC7 -> This task. Proof: ground-only cost across seven framings including day/night pairs at identical cameras in `perf/reviews/task055-wave4-ceiling-ground*`.
+- request-AC8 -> This task. Proof: three measured candidates in `perf/reviews/task055-wave5-*` and the shipped-wiring probe `perf/reviews/task055-wave5-look/`.
+- request-AC9 -> This task. Proof: three interleaved rounds per candidate read as per-round paired deltas or a documented rejection; integrated before/after in `perf/reviews/task055-integrated/`, stability in `-soak/`, `npm run ci` and `npm run test:e2e` green.
 - request-AC1 -> `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`. Proof deferred to slice closeout.
 - request-AC9 -> `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`. Proof deferred to slice closeout.
 - request-AC2 -> `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`. NOT satisfied here: the traffic prototype was measured and rejected. Satisfied instead by `item_189` automatic building detail.
@@ -76,6 +85,8 @@
 
 # Validation
 - Wave 1: `npm run ci` passed on 2026-09-07 (386 tests, architecture checks, deterministic scenarios, build and Logics validation). After final harness metadata edits, `node --test tests/perf-review.mjs`, targeted Biome lint and `git diff --check` passed.
+- Finish workflow executed on 2026-09-07.
+- Linked backlog/request close verification passed.
 
 # Report
 - Wave 1: shared manifest-based readiness replaces historical model-count assumptions in perf, ablate and all seven existing review probes. The new distance probe records interleaved comparisons, running simulation/traffic proof, frame tails, CPU, draw calls, active meshes and actual GPU/camera/buffer conditions.
@@ -117,7 +128,13 @@
   - Measured first, three rounds each, night-saved / day-district / moving: multisampling off +21.6% / +4.7% / +7.0%; two-thirds render resolution +18.6% / +9.1% / +4.7%; multisampling halved to two +10.3% / +3.7% / +2.6%.
   - Multisampling was chosen over resolution scaling on that evidence: the larger win where it matters, and it costs edge quality only rather than blurring text and road markings. `pipeline.samples = 4` had no player control before this, so the slice's gap was a missing option, not a missing optimisation.
   - `scripts/review/look.mjs` proves the shipped wiring end to end -- four samples by default, one unchecked, four re-checked, and the choice persisted. Its first `scale` measurement was invalid rather than null: `setHardwareScalingLevel(1)` at device pixel ratio 1 changed nothing. It now renders at two thirds and throws if the level does not move.
+- Integrated validation. `perf/reviews/task055-integrated/` compares the delivered build against the pre-task application baseline `071ae34` over eleven framings, three rounds each: night-overview +29.2%, day-overview +11.3%, and every other framing flat, which is what shipping a policy that only fires above 1100 m should look like. `Extra AA` off adds +21.6% at the saved night framing at the player's choice, and is not added to those numbers because it is not the default.
+- `perf/reviews/task055-integrated-soak/` ran the edit/restore cycles and three minutes at x4: meshes hold at 2716 and lights at 1397 from the first restore to the paused flush, so nothing leaks across load, edit and restore.
+- `npm run ci` and `npm run test:e2e` both pass (1166 unit tests, 30 node tests, 280 e2e checks). The e2e suite caught the one real conflict in this task: two assertions held the opposite contract, because `6d390f3` had deliberately removed the automatic detail this task restored. They were rewritten to the new contract with both commits named, and the gap that reversal leaves -- no "never boxes" state -- is recorded on `item_189` as a follow-up rather than dropped.
 - Remaining: spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
+- Finished on 2026-09-07.
+- Linked backlog item(s): `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`, `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`, `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`, `item_190_bound_distant_night_lighting_while_preserving_city_readability`, `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`, `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`, `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`, `item_194_evaluate_a_minimal_render_resolution_quality_option`
+- Related request(s): `req_054_deliver_measured_distance_aware_city_performance`
 
 # Links
 - Request: `req_054_deliver_measured_distance_aware_city_performance`

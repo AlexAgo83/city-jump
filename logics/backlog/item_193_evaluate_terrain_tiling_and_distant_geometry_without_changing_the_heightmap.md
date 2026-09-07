@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: The 5400 m heightfield is one dense render mesh. Heightmap picking and dirty row uploads already exist and must survive a rendering change.
@@ -62,3 +62,9 @@
 - AC1 asks for separate tiling and LOD decisions. Both are rejected by the same measurement, and it is one measurement rather than two: the ground's cost is per-pixel shading as the largest receiver of the clustered lights, not its 911250 triangles. Tiling addresses geometry submitted outside the frustum, which produces no pixels and therefore no shading; distant LOD addresses triangle density, which the day figures show costs nothing. Neither mechanism touches the cost that exists.
 - This is the same clustered-lighting cost `item_190` characterised: disabling the streetlight container buys +32.1% at night-saved, and the ground is a large part of what those lights shade. It is not reachable by a terrain rendering change, which is why that slice closed as a no-change too.
 - The 193 ms full ground rebuild remains a loading cost, as the slice framing already suspected; nothing here claims it as a per-frame cost or changes it.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

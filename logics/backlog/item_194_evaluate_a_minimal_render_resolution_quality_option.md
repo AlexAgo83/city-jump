@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: Engine DPR is capped at 1.5 while the postprocessing pipeline always uses four MSAA samples; no measured render-scale control exists.
@@ -64,3 +64,9 @@
 - `pipeline.samples = 4` had no player control at all before this; "Smooth" is FXAA and always was. The slice's gap was a missing option, not a missing optimisation.
 - Shipped behaviour is proved by `scripts/review/look.mjs`, a new probe asserting the checkbox drives the pipeline end to end -- four samples by default, one when unchecked, four again when re-checked, and the choice written to the persisted settings. Evidence in `perf/reviews/task055-wave5-look/`.
 - Correction recorded: the first `scale` measurement was invalid, not null. The variant called `setHardwareScalingLevel(1)` while the probe already runs at device pixel ratio 1, so it changed nothing and read as no gain. It now renders at two thirds and throws if the level does not move, which is the same self-verification rule the other ablations gained in this task.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

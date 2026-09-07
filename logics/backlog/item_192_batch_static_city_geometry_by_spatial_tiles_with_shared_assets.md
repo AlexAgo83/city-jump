@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # AI Context
 - Summary: Buildings, tree species and streetlight geometry force global meshes active. Thin-instance bounds span the city and cannot reject individual instances.
@@ -67,3 +67,9 @@
 - The reason, and it invalidates the slice's premise rather than just failing its threshold: removing 49% of the building instances buys nothing, while removing 100% buys 12.6%. The cost is not proportional to submitted instances -- it is a fixed per-mesh and per-material cost. Tile batching moves in the wrong direction on exactly that axis, since one batch per occupied tile per model multiplies meshes to reduce instances whose reduction is free.
 - Trees and streetlight geometry are closed on the same evidence without their own perfect-cull run. Stated as the inference it is: their ceilings are at or near zero everywhere except trees at `moving`, where the offscreen share is 14%, and the building result shows that culling half the instances of a far more expensive geometry returns nothing.
 - Probe change made here and kept: an ablation that reaches no instances now throws instead of returning a sample. A null result must mean "no gain", never "no measurement" -- the distinction cost four discarded lighting runs earlier in this task.
+
+# Tasks
+- `task_055_deliver_and_validate_the_distance_aware_performance_slices`
+
+# Notes
+- Task `task_055_deliver_and_validate_the_distance_aware_performance_slices` was finished via `logics-manager flow finish task` on 2026-09-07.

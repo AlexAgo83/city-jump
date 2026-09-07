@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "startedAt": "2026-09-07T16:48:46.751Z",
-  "status": "running",
+  "status": "complete",
   "command": [
     "http://127.0.0.1:5173",
     "--probe",
@@ -43,10 +43,13 @@
   "probes": [
     {
       "name": "soak",
-      "status": "running",
-      "startedAt": "2026-09-07T16:48:49.684Z"
+      "status": "complete",
+      "startedAt": "2026-09-07T16:48:49.684Z",
+      "exitCode": 0,
+      "finishedAt": "2026-09-07T16:52:12.222Z"
     }
   ],
   "browser": "151.0.7922.34",
-  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)"
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+  "finishedAt": "2026-09-07T16:52:12.222Z"
 }

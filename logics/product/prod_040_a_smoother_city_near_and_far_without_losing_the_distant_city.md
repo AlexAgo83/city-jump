@@ -1,11 +1,12 @@
 ## prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city - A smoother city near and far without losing the distant city
 > Date: 2026-09-07
-> Status: Proposed
+> Status: Settled
 > Related request: `req_054_deliver_measured_distance_aware_city_performance`
-> Related backlog: `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`, `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`, `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`, `item_190_bound_distant_night_lighting_while_preserving_city_readability`, `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`, `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`, `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`, `item_194_evaluate_a_minimal_render_resolution_quality_option`
+> Related backlog: `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`
 > Related task: `task_055_deliver_and_validate_the_distance_aware_performance_slices`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-07 18:53:55
 
 # Overview
 Improve camera movement and running-city frame times while keeping distant traffic alive, the nighttime city readable, and roads/terrain accurate. Use existing detail controls and shared assets; select added rendering complexity only when comparable measurements support it.
@@ -57,5 +58,5 @@ flowchart TD
 ```
 
 # References
-- Product back-reference: `req_054_deliver_measured_distance_aware_city_performance`
+- Product back-reference: `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`
 - Task back-reference: `task_055_deliver_and_validate_the_distance_aware_performance_slices`
