@@ -1,12 +1,13 @@
 ## req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits - Cut the per frame cost the large city review measured in gameplay and edits
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 85%
 > Confidence: 80%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:49:38
 
 # AI Context
 - Summary: Terrain picking, empty rubble scans, repeated workforce sorts, hidden overlay geometry and per-frame HUD rebuilds cost measurable frame time in a 1,287-building city.

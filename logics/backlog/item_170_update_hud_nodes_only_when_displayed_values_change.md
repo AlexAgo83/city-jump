@@ -1,14 +1,14 @@
 ## item_170_update_hud_nodes_only_when_displayed_values_change - Update HUD nodes only when displayed values change
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 10%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:20:07
+> Indicators reviewed: 2026-09-07 09:49:39
 
 # AI Context
 - Summary: Update existing HUD nodes when displayed values change, instead of replacing the needs and ledger subtrees on every gameplay frame.
@@ -46,8 +46,8 @@
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits.md`
-- Primary task(s): (none yet)
+- Request: `req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits`
+- Primary task(s): `task_047_land_the_large_city_frame_cost_reductions_in_measured_order`
 
 # Priority
 - Priority: Medium
@@ -57,6 +57,7 @@
 - Hybrid rationale: Derived from request `req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits.md`.
 - Generated locally by logics-manager.
+- Task `task_047_land_the_large_city_frame_cost_reductions_in_measured_order` was finished via `logics-manager flow finish task` on 2026-09-07.
 
 # Tasks
 - `task_047_land_the_large_city_frame_cost_reductions_in_measured_order`

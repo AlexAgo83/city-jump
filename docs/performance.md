@@ -327,6 +327,36 @@ Instanced meshes (traffic, pedestrians, signals, lamps) already batch into one d
 prototype, so their count costs CPU traversal, not draw calls. The unique geometry is what to go
 after.
 
+## The req_047 frame cost slices (2026-09-07)
+
+Six slices, landed in measured order against `large-demo-v14`, running at simulation rate 1.
+
+| slice | what it was | what it is |
+| ----- | ----------- | ---------- |
+| bounded terrain picking | `scene.pick` walked all 911,250 ground triangles per pointer move | a DDA over the heightmap grid, testing the same two triangles per cell it crosses |
+| empty rubble maps | a coordinate key per parcel cell, per frame, against an empty map | one size check |
+| workforce allocations | three allocations a frame, sorting with a map lookup per comparison | one shared allocation, memoized on unchanged inputs, keys settled before the sort |
+| hidden overlays | zone and utility geometry recreated per dirty rebuild, then disabled | recorded while hidden, built on reveal from the latest edit |
+| HUD rows | both subtrees replaced every frame, ~45 elements | written only when a displayed value moves; the ledger is not computed while collapsed |
+| explosion buffer | an empty matrix array and buffer replacement every frame | skipped once the buffer is already empty, cleared exactly once |
+
+Software rasteriser, `npm run perf --city perf/cities/ma-ville.json --label large-demo-v14`,
+running workload: **83 / 84 / 83 fps before, 102-103 / 104 / 105-106 after**, repeated.
+
+Headed GPU, `npm run perf:review --probe interactions`:
+
+| probe | before | after |
+| ----- | -----: | ----: |
+| road-preview | 42.5 | 87.2 |
+| zone-pointer | 44.4 | 94.9 |
+| bulldoze-pointer | 69.2 | 97.1 |
+| zone-paint | 58.9 | 70.7 |
+| running-still | 77.2 | 82.4 |
+| speed x1 / x4 | 77.8 / 72.8 | 100.5 / 93.2 |
+
+What is left: `zone-paint` and `bulldoze-clicks` still pay 19-21 ms per pick, from the click-time
+`scene.pick` in `drawTool.selectMesh`. That is req_048, not this chain.
+
 ## What costs the frame rate
 
 `npm run ablate` switches one thing off at a time and measures, re-measuring the full scene
