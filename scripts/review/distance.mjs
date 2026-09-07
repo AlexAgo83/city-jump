@@ -25,6 +25,9 @@ const variants = [
 	"traffic",
 	"boxes",
 	"trees",
+	"buildings",
+	"streetgeo",
+	"perfectcull",
 	"ground",
 	"lights",
 	"streetlights",
@@ -124,11 +127,52 @@ try {
 									? /^tree_/
 									: variant === "ground"
 										? /^ground$/
-										: null;
-						// isVisible affects drawing only; simulation and transform updates still execute.
-						if (pattern)
-							for (const mesh of scene.meshes)
-								if (pattern.test(mesh.name)) mesh.isVisible = false;
+										: variant === "buildings"
+											? /^(building_|roofprop_|footdecor_)/
+											: variant === "streetgeo"
+												? /^streetlight_(poles|arms|heads|bulbs)/
+												: null;
+						// isVisible affects drawing only; simulation and transform updates still
+						// execute. Re-applied each frame for the same reason the lighting ablations
+						// are: anything the renderers touch again would otherwise undo it silently.
+						// The exact ceiling of any spatial rejection scheme: keep only the building
+						// instances inside the frustum. Valid for a still camera only, which is why
+						// it is applied once, after the camera is placed, and not for `moving`.
+						if (variant === "perfectcull") {
+							const planes = scene.frustumPlanes;
+							const visible = (m, i) => {
+								const x = m[i * 16 + 12], y = m[i * 16 + 13], z = m[i * 16 + 14];
+								return planes.every((plane) => plane.dotCoordinate({ x, y, z }) >= -40);
+							};
+							let before = 0;
+							let after = 0;
+							for (const mesh of scene.meshes) {
+								if (!/^building_/.test(mesh.name) || !mesh.thinInstanceCount) continue;
+								const matrix = mesh._thinInstanceDataStorage?.matrixData;
+								if (!matrix) continue;
+								before += mesh.thinInstanceCount;
+								const kept = [];
+								for (let i = 0; i < mesh.thinInstanceCount; i++)
+									if (visible(matrix, i)) kept.push(matrix.slice(i * 16, i * 16 + 16));
+								const buffer = new Float32Array(kept.length * 16);
+								for (const [i, m] of kept.entries()) buffer.set(m, i * 16);
+								mesh.thinInstanceSetBuffer("matrix", buffer, 16, false);
+								mesh.thinInstanceCount = kept.length;
+								after += kept.length;
+							}
+							// An ablation that quietly reaches nothing reads as "no gain" and is
+							// indistinguishable from a real null result. Refuse to produce one.
+							if (!before || after >= before)
+								throw new Error(`perfectcull reached ${before} instances and removed ${before - after}`);
+						}
+						if (pattern) {
+							const hide = () => {
+								for (const mesh of scene.meshes)
+									if (pattern.test(mesh.name)) mesh.isVisible = false;
+							};
+							hide();
+							scene.onBeforeRenderObservable.add(hide);
+						}
 						if (variant === "traffic")
 							for (const light of scene.lights)
 								if (light.name === "car_headlights") light.setEnabled(false);

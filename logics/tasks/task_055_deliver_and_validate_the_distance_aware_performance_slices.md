@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 85%
-> Progress: 62%
+> Progress: 75%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -27,7 +27,7 @@
 - [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
 - [x] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail measured and retained. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
 - [x] 4. Wave 3 (High): workforce cache reuse measured and retained; the night-light experiment measured and closed as an evidenced no-change.
-- [ ] 5. Wave 4 (Medium): prototype spatial building batches, then trees and streetlight geometry, deciding each separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
+- [~] 5. Wave 4 (Medium): spatial batching measured and rejected before implementation for buildings, trees and streetlight geometry, each decided separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
 - [ ] 6. Wave 5 (Low): isolate resolution/MSAA costs after higher-priority changes and either deliver one minimal persisted option or record the measured no-change verdict.
 - [ ] 7. Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.
 - [ ] 8. Integrated validation: repeat saved/street/district/overview, day/night and camera travel A/B with running x1; include x4/paused diagnostics and one 30 s real-time combat window after warmup. Run ten load/edit/restore cycles for stable scene/light/texture counts; measure complete road/zone edit latency with deferred rebuild work.
@@ -67,8 +67,8 @@
 - request-AC9 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof: separate street, car, emitter, bulb and combined measurements, three rounds each, recorded with the reason no distance policy can reach the cost.
 - request-AC5 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof: allocation counts in `perf/reviews/task055-wave3-workforce/` and the cached-against-uncached equivalence run in `src/sim/buildingLifecycle.test.ts`.
 - request-AC9 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof: `perf/reviews/task055-wave3-workforce-ab-retry/`, three complete rounds, recorded as no measurable frame-time change rather than as a gain.
-- request-AC6 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof deferred to slice closeout.
-- request-AC9 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof deferred to slice closeout.
+- request-AC6 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof: three separate ceiling measurements plus the perfect-cull ceiling under `perf/reviews/task055-wave4-*`, each three rounds.
+- request-AC9 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof: documented measured rejection with the reason the premise fails, not merely the threshold.
 - request-AC7 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof deferred to slice closeout.
 - request-AC9 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof deferred to slice closeout.
 - request-AC8 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof deferred to slice closeout.
@@ -104,6 +104,12 @@
   - The night cost is the clustered container's own pass, not the emitters in it. A distance policy can only reach individual lamps, so it can only buy that +1.0% while paying for a substitute pool and a distance scan. The scoped risk -- "removing distant emitters may still leave a costly clustered pass" -- is now settled by measurement.
   - The emissive-substitute prototype was therefore never ported. Its appearance was not the blocker; there was no gain for it to preserve.
   - Two measurement bugs were found and fixed here, and the runs they produced were deleted rather than kept, because they measured nothing rather than measuring a rejected candidate: a clustered container removes its lights from `scene.lights`, so an ablation filtering that array silently hit zero lights; and the running clock calls `updateLights()` every hour change, which undoes any one-shot lighting mutation within a frame or two. `scripts/review/distance.mjs` now reaches emitters through `container.lights` and re-applies every lighting ablation each frame.
+- Wave 4 / item_192 REJECTED before implementation, on measurement. No spatial tile batching ships for buildings, trees or streetlight geometry.
+  - Buildings: hiding the geometry outright costs day-street +12.6%, day-district +19.3%, day-overview +3.1%, moving +39.5% (`perf/reviews/task055-wave4-ceiling-buildings/`). In-frustum shares are 609/1287 at radius 140, 1102/1287 at 600 and all of them at 1200, so a perfect scheme could reject at most 53% / 14% / 0%.
+  - The exact ceiling, `perf/reviews/task055-wave4-perfectcull/`: keeping only in-frustum instances at a still camera -- ideal granularity, no added draw calls, strictly better than any tile grid -- removes 1316 of 2574 instances and buys -0.0% at day-district and -4.3% at day-street.
+  - Trees (`.../ceiling-trees/`) cost nothing at three of four framings and +24.7% at `moving`, which is the framing with only 14% offscreen. Streetlight geometry (`.../ceiling-streetgeo/`) costs nothing anywhere.
+  - The premise fails, not just the threshold: removing 49% of building instances buys nothing while removing 100% buys 12.6%, so the cost is fixed per mesh and per material rather than proportional to submitted instances. Tile batching multiplies meshes to reduce instances whose reduction is free.
+  - Probe rule added here: an ablation that reaches no instances now throws rather than returning a sample, so a null result cannot mean "no measurement".
 - Remaining: spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
 
 # Links

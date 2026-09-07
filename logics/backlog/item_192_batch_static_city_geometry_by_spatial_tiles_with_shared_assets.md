@@ -1,10 +1,10 @@
 ## item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets - Batch static city geometry by spatial tiles with shared assets
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -55,3 +55,15 @@
 # Priority
 - Priority: Medium
 - Rationale: City-wide thin-instance groups prevent useful spatial rejection, but more batches can increase draw calls.
+
+# Outcome
+- Rejected on 2026-09-07 before any tile implementation, on measurement. No spatial batching ships for buildings, trees or streetlight geometry; global thin-instance batching stays as it is.
+- AC3's three separate decisions, each three rounds against the integrated baseline, read as per-round paired deltas.
+  - Buildings. Total cost of the geometry, measured by hiding it outright (`perf/reviews/task055-wave4-ceiling-buildings/`): day-street +12.6%, day-district +19.3%, day-overview +3.1%, moving +39.5%. The overview figure is small because `item_189` already draws boxes there.
+  - Buildings, achievable share. At camera radius 140, 609 of 1287 buildings are inside the frustum; at 600, 1102 of 1287; at 1200, all of them. So a perfect spatial scheme could reject at most 53% / 14% / 0%.
+  - Buildings, exact ceiling. `perf/reviews/task055-wave4-perfectcull/` keeps only the in-frustum building instances at a still camera -- ideal granularity, no added draw calls, which is strictly better than any tile grid can be. It removes 1316 of 2574 instances and buys day-district -0.0% and day-street -4.3%.
+  - Trees (`.../ceiling-trees/`): day-street -4.3%, day-district +1.9%, day-overview +0.0%, moving +24.7%. Only one framing carries any cost, and it is the one where just 14% of the city is offscreen.
+  - Streetlight geometry (`.../ceiling-streetgeo/`): +0.0% / -2.2% / +6.1% / +2.4%, with the overview figure unstable across rounds (+6.1 / +6.7 / -4.1). Nothing to reclaim.
+- The reason, and it invalidates the slice's premise rather than just failing its threshold: removing 49% of the building instances buys nothing, while removing 100% buys 12.6%. The cost is not proportional to submitted instances -- it is a fixed per-mesh and per-material cost. Tile batching moves in the wrong direction on exactly that axis, since one batch per occupied tile per model multiplies meshes to reduce instances whose reduction is free.
+- Trees and streetlight geometry are closed on the same evidence without their own perfect-cull run. Stated as the inference it is: their ceilings are at or near zero everywhere except trees at `moving`, where the offscreen share is 14%, and the building result shows that culling half the instances of a far more expensive geometry returns nothing.
+- Probe change made here and kept: an ablation that reaches no instances now throws instead of returning a sample. A null result must mean "no gain", never "no measurement" -- the distinction cost four discarded lighting runs earlier in this task.

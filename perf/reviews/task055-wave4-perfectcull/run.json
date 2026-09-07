@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "startedAt": "2026-09-07T15:48:21.739Z",
+  "status": "complete",
+  "command": [
+    "http://127.0.0.1:5173",
+    "--probe",
+    "distance",
+    "--variant",
+    "perfectcull",
+    "--cases",
+    "day-street,day-district",
+    "--out",
+    "perf/reviews/task055-wave4-perfectcull"
+  ],
+  "commit": "e5952fdbf3bc1294f097237d12719ea50e75e1ff",
+  "worktree": "M scripts/review/distance.mjs\n M scripts/review/run.mjs\n?? perf/reviews/task055-wave4-ceiling-buildings/\n?? perf/reviews/task055-wave4-ceiling-streetgeo/\n?? perf/reviews/task055-wave4-ceiling-trees/",
+  "sourceHash": "23ad4c9ccb0075ed65e5ee8f145b7401d220aeed01f0d0a761e5e63e756411f4",
+  "readinessHash": "59564559d0c5e6e4efcafcf4b4e9dac0eaa2563d37c2b925305efe11bbd32149",
+  "fixture": {
+    "path": "perf/cities/ma-ville.json",
+    "sha256": "2af5975a819a80e4ae2427655eeb9ffc742ac168793ba5e14c08a5fe69c3e052"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M3 Pro",
+  "node": "v22.16.0",
+  "headed": true,
+  "devUrl": "http://127.0.0.1:5173",
+  "scripts": {
+    "config.mjs": "1895719b3a70d5ac22758eb66ff8485c1b7afa22bed51372e013537fe8c86bc3",
+    "detail.mjs": "4bc91a2dba66f5d7b99bf6ed035f356406dc8751e2908bfe3bce08d1aa494507",
+    "distance.mjs": "09c009a61caf52c51801a6de8d6017e92ec823ba6d4902260ce27fd03177b47d",
+    "extra.mjs": "d559ba16afd3808e37b84e8983e7ae6c5878af97c3b0e91cda80be11bf684b5b",
+    "focus.mjs": "b804544e37da1de73a95bd6416eff2f14197b0e91f90813ae6a4b317184f3b43",
+    "interactions.mjs": "c8037c6dbc0daeeb9de741da1fefff42a8c521b62ba70b03f1f2dd553f82f548",
+    "lights.mjs": "d69bc98d9dc883af5f7aed66e4a69b32340fbe1ecd679352a9cf39fff5ec3449",
+    "paired.mjs": "6d0328cfb93afa7e39daff651207064fb42d02eb1c64b71cb3cb2f69ea30f358",
+    "profile.mjs": "5292e86838e5c2125703f2fdf77c6bef558ec73dab80038dd90b0003538e28bc",
+    "rubble.mjs": "d7f0c59618637f7afe0cfe22c4eaf016bdaf9664c5a71514658e60dda676af03",
+    "run.mjs": "fe43bd63541d39faf825dae7c9861e235d69795de13cf57d690eca683001353d",
+    "soak.mjs": "024f0a48ee97f617e7b51182a069ac7b58c9be6992863bab40921d6a4b7fc30f",
+    "wave.mjs": "23cc59b777c76285fb6593171703a8d1fa45467fd99404bf568aeeff623b3b4c",
+    "workforce.mjs": "8daf9e9df0fd8eb1f43bacb111ddb720d56043f70ae697b2f95b24bbcc245324"
+  },
+  "probes": [
+    {
+      "name": "distance",
+      "status": "complete",
+      "startedAt": "2026-09-07T15:48:22.361Z",
+      "exitCode": 0,
+      "finishedAt": "2026-09-07T15:50:21.876Z"
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+  "finishedAt": "2026-09-07T15:50:21.876Z"
+}
