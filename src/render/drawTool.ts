@@ -5,6 +5,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
 
 import type { RoadGraph, Segment } from "../sim/graph";
@@ -18,6 +19,7 @@ import type { BuildingKind } from "../sim/buildingKinds";
 import { workforceDemand } from "../sim/workforce";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
 import type { TerrainBounds } from "../sim/heightmap";
+import type { PickRay } from "./trafficMovers";
 import { type Vec3, lerp } from "../sim/vec";
 import type { ZoneKind } from "../sim/zones";
 import { GRID } from "../sim/slots";
@@ -142,7 +144,7 @@ export interface ZoneTools {
 export interface SelectionTools {
   buildingAt(x: number, z: number): BuildingStatus | null;
   vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
-  vehicleByMesh(name: string): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
+  vehicleAlong(ray: PickRay): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
 }
 
 export interface HistoryTools {
@@ -332,8 +334,9 @@ export function createDrawTool(
     showSelection(target);
   }
   function selectMesh(): boolean {
-    const pick = scene.pick(scene.pointerX, scene.pointerY, (m) => m.name.startsWith("traffic_"));
-    const vehicle = pick?.pickedMesh ? selection.vehicleByMesh(pick.pickedMesh.name) : null;
+    // The ray against the cars' own bounding spheres, rather than scene.pick walking every car
+    // body's triangles: 18-20 ms a click on the large city, for a question about 166 boxes.
+    const vehicle = selection.vehicleAlong(scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), null));
     if (!vehicle) return false;
     showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
     return true;

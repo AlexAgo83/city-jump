@@ -790,7 +790,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     {
       buildingAt: (x, z) => buildings.buildingAt(x, z),
       vehicleAt: (x, z) => traffic.vehicleAt(x, z),
-      vehicleByMesh: (name) => traffic.vehicleByMesh(name),
+      vehicleAlong: (ray) => traffic.vehicleAlong(ray),
     },
     onSelect,
     "street",

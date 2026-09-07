@@ -84,6 +84,15 @@ interface TrafficMoverState {
   timeScale: number;
 }
 
+/** Half a car's length, near enough: the sphere a click has to land in to select it. */
+const VEHICLE_PICK_RADIUS = 2.4;
+
+/** Only what a ray pick needs, so this stays testable without a scene. */
+export interface PickRay {
+  readonly origin: { readonly x: number; readonly y: number; readonly z: number };
+  readonly direction: { readonly x: number; readonly y: number; readonly z: number };
+}
+
 export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null };
 
 // ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
@@ -702,9 +711,32 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
       }
       return best ? vehicleTarget(best) : null;
     },
-    vehicleByMesh(name: string): VehicleTarget | null {
-      const mover = movers.find((candidate) => !candidate.walk && candidate.mesh.name === name);
-      return mover ? vehicleTarget(mover) : null;
+    /**
+     * The vehicle a picking ray hits, nearest first.
+     *
+     * `scene.pick` did this by ray-testing every pickable car body's triangles -- 166 of them on
+     * the large city, 18-20 ms a click. A car is a box about four metres long, so a sphere around
+     * its centre answers the same question: which one is under the cursor. Screen-space accuracy
+     * is the point, which is why this is not the flat 14 m `vehicleAt` fallback.
+     */
+    vehicleAlong(ray: PickRay): VehicleTarget | null {
+      let best: RenderMover | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+      for (const mover of movers) {
+        if (mover.walk) continue;
+        const toCentreX = mover.mesh.position.x - ray.origin.x;
+        const toCentreY = mover.mesh.position.y - ray.origin.y;
+        const toCentreZ = mover.mesh.position.z - ray.origin.z;
+        const along = toCentreX * ray.direction.x + toCentreY * ray.direction.y + toCentreZ * ray.direction.z;
+        if (along <= 0 || along >= bestDistance) continue;
+        const offX = toCentreX - ray.direction.x * along;
+        const offY = toCentreY - ray.direction.y * along;
+        const offZ = toCentreZ - ray.direction.z * along;
+        if (offX * offX + offY * offY + offZ * offZ > VEHICLE_PICK_RADIUS * VEHICLE_PICK_RADIUS) continue;
+        best = mover;
+        bestDistance = along;
+      }
+      return best ? vehicleTarget(best) : null;
     },
     firstVehicle(): VehicleTarget | null {
       const mover = movers.find((candidate) => !candidate.walk);

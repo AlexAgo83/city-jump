@@ -66,7 +66,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       rebuild();
     },
     vehicleAt: movers.vehicleAt,
-    vehicleByMesh: movers.vehicleByMesh,
+    vehicleAlong: movers.vehicleAlong,
     firstVehicle: movers.firstVehicle,
     vehiclePoint: movers.vehiclePoint,
     positionsKey: movers.positionsKey,
