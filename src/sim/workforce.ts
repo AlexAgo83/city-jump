@@ -26,6 +26,19 @@ export function workforceDemand(parcel: WorkforceParcel): number {
 }
 
 /**
+ * The last allocation, returned again when nothing it depends on has moved.
+ *
+ * The panel asks for this every frame -- twice, until the batteries started sharing the answer --
+ * with the same parcels and a population that only matters to the whole resident. The allocation
+ * is a pure function of the parcel list, the whole-resident workforce and the incumbency callback,
+ * so an identical call has an identical answer. Two things are taken on trust, and both hold in
+ * the city: a parcel array is replaced on every rebuild rather than mutated in place, and an
+ * incumbency callback whose answers move between ticks is a fresh closure each tick -- the
+ * building lifecycle builds one per `sync`, so its allocation is always dealt afresh.
+ */
+let lastAllocation: { parcels: readonly unknown[]; workforce: number; wasStaffed: unknown; staffing: Staffing } | null = null;
+
+/**
  * @param wasStaffed Which lots had the workforce a moment ago, if the caller remembers.
  *
  * The allocation is re-dealt from scratch every tick, and a lot is staffed whole or not at all, so
@@ -39,18 +52,19 @@ export function workforceDemand(parcel: WorkforceParcel): number {
  */
 export function allocateWorkforce<T extends WorkforceParcel>(parcels: readonly T[], population: number, wasStaffed?: (parcel: T) => boolean): Staffing {
   let available = workforceFromPopulation(population);
+  if (lastAllocation && lastAllocation.parcels === parcels && lastAllocation.workforce === available && lastAllocation.wasStaffed === wasStaffed) {
+    return lastAllocation.staffing;
+  }
   const byKind = Object.fromEntries(PRIORITY.map((kind) => [kind, { demand: 0, staffedDemand: 0, staffed: 0, idle: 0 }])) as Record<Exclude<BuildingKind, "residential">, MutableBucket>;
   const staffed = new Map<number, boolean>();
+  // Priority and incumbency are settled before the sort, not inside its comparator: both were
+  // being asked for O(n log n) times per frame for an answer that cannot change mid-sort, and
+  // incumbency is a coordinate key built to look up a map.
   const jobs = parcels
-    .map((parcel, index) => ({ parcel, index, demand: workforceDemand(parcel) }))
-    .filter((job): job is { parcel: T & { kind: Exclude<BuildingKind, "residential"> }; index: number; demand: number } => job.demand > 0)
-    .sort(
-      (a, b) =>
-        PRIORITY.indexOf(a.parcel.kind) - PRIORITY.indexOf(b.parcel.kind) ||
-        Number(wasStaffed?.(b.parcel as T) ?? false) - Number(wasStaffed?.(a.parcel as T) ?? false) ||
-        b.demand - a.demand ||
-        a.index - b.index,
-    );
+    .map((parcel, index) => ({ parcel, index, demand: workforceDemand(parcel), priority: PRIORITY.indexOf(parcel.kind as Exclude<BuildingKind, "residential">), incumbent: 0 }))
+    .filter((job): job is { parcel: T & { kind: Exclude<BuildingKind, "residential"> }; index: number; demand: number; priority: number; incumbent: number } => job.demand > 0);
+  if (wasStaffed) for (const job of jobs) job.incumbent = wasStaffed(job.parcel as T) ? 1 : 0;
+  jobs.sort((a, b) => a.priority - b.priority || b.incumbent - a.incumbent || b.demand - a.demand || a.index - b.index);
 
   for (const job of jobs) {
     const bucket = byKind[job.parcel.kind];
@@ -66,11 +80,13 @@ export function allocateWorkforce<T extends WorkforceParcel>(parcels: readonly T
     }
   }
 
-  return {
+  const staffing: Staffing = {
     workforce: workforceFromPopulation(population),
     demand: jobs.reduce((sum, job) => sum + job.demand, 0),
     staffedDemand: Object.values(byKind).reduce((sum, bucket) => sum + bucket.staffedDemand, 0),
     parcels: jobs.map((job) => ({ index: job.index, demand: job.demand, staffed: staffed.get(job.index) === true })),
     byKind,
   };
+  lastAllocation = { parcels, workforce: workforceFromPopulation(population), wasStaffed, staffing };
+  return staffing;
 }

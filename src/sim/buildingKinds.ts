@@ -2,7 +2,7 @@ import type { BuildingParcel } from "./slots";
 import { allocateWorkforce } from "./workforce";
 import { housingCapacity, MATERIALS_PER_COMMERCE_CELL, MATERIALS_PER_MILITARY_CELL } from "./economy";
 import { parcelDemandLimits } from "./slots";
-import { batteriesForParcels } from "./batteries";
+import { batteriesForStaffing } from "./batteries";
 
 export type BuildingKind = "residential" | "commercial" | "industrial" | "agricultural" | "military";
 
@@ -51,9 +51,11 @@ export function buildingNeeds(
 ): BuildingNeed[] {
   const staffing = allocateWorkforce(parcels, residents);
   const limits = parcelDemandLimits(residents);
+  // The batteries want the staffed military lots, which is what the panel just allocated: asking
+  // batteriesForParcels for a population made it deal the same hand a second time.
   const firepower = projectedThreat === undefined
     ? null
-    : batteriesForParcels(parcels as Parameters<typeof batteriesForParcels>[0], residents).reduce((sum, battery) => sum + battery.damage, 0) * SALVO_TARGET;
+    : batteriesForStaffing(parcels as Parameters<typeof batteriesForStaffing>[0], staffing).reduce((sum, battery) => sum + battery.damage, 0) * SALVO_TARGET;
   return [
     need("residential", staffing.workforce, staffing.demand),
     need("commercial", parcels.filter((parcel) => parcel.kind === "commercial").length, limits.commercial),

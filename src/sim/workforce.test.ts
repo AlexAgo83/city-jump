@@ -66,6 +66,30 @@ describe("workforce", () => {
     expect(warm.parcels.find((job) => job.staffed)?.index).toBe(1);
   });
 
+  it("answers an unchanged question without dealing the hand again", () => {
+    const parcels = [parcel("industrial", 2, 2), parcel("commercial", 2, 2)];
+    let asked = 0;
+    const counting = (candidate: (typeof parcels)[number]) => {
+      asked++;
+      return candidate === parcels[0];
+    };
+
+    const first = allocateWorkforce(parcels, 1000);
+    // Same parcels, same whole resident: the population moved by a fraction of a person, which
+    // cannot move an allocation dealt on Math.floor of it.
+    expect(allocateWorkforce(parcels, 1000.4)).toBe(first);
+    // A different question is a different answer, every time.
+    expect(allocateWorkforce(parcels, 8)).not.toBe(first);
+    expect(allocateWorkforce(parcels.slice(), 1000)).not.toBe(first);
+
+    // An incumbency callback is asked once per lot, not once per comparison, and a fresh callback
+    // is a fresh question.
+    allocateWorkforce(parcels, 1000, counting);
+    expect(asked).toBe(parcels.length);
+    allocateWorkforce(parcels, 1000, counting);
+    expect(asked).toBe(parcels.length);
+  });
+
   it("still serves military before the rest, incumbent or not", () => {
     const farm = parcel("agricultural", 2, 2);
     const barracks = parcel("military", 2, 2);
