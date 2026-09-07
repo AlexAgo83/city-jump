@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:24
 
 # AI Context
 - Summary: Bound the terrain intersection work that every pointer move performs against a 911,250-triangle ground mesh.
@@ -34,6 +34,7 @@
 
 # AC Traceability
 - request-AC1 -> This backlog slice. Proof: AC1: Pointer movement in road, zone, nature and bulldoze tools no longer performs unbounded terrain intersection work; slopes, road cuts and misses keep their current hit positions, and a miss is still a miss.
+- request-AC7 -> This backlog slice. Proof: Paired running measurements on large-demo-v14, camera state and renderer recorded: road preview 42.5 -> 87.2 fps, zone pointer 44.4 -> 94.9, bulldoze pointer 69.2 -> 97.1 (npm run perf:review --probe interactions, headed). Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed

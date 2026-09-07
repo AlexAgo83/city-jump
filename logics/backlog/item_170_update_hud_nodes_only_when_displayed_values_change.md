@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:25
 
 # AI Context
 - Summary: Update existing HUD nodes when displayed values change, instead of replacing the needs and ledger subtrees on every gameplay frame.
@@ -34,6 +34,7 @@
 
 # AC Traceability
 - request-AC5 -> This backlog slice. Proof: AC5: Unchanged displayed needs and ledger values do not replace their DOM subtrees per frame; changed values and construction feedback remain correct.
+- request-AC7 -> This backlog slice. Proof: Measured within the paired large-demo-v14 running runs; the element churn it removes is pinned by src/ui/hud.test.ts rather than claimed. Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed

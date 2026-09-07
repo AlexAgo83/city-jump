@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:25
 
 # AI Context
 - Summary: Skip replacing the explosion thin-instance buffer when the explosion set is empty and unchanged, while still clearing the last expired explosion once.
@@ -33,6 +33,7 @@
 
 # AC Traceability
 - request-AC6 -> This backlog slice. Proof: AC6: An empty explosion set does not replace the thin-instance buffer, while the last expired explosion is still cleared exactly once.
+- request-AC7 -> This backlog slice. Proof: Measured within the paired large-demo-v14 running runs; the skipped buffer writes are pinned by src/render/destructionEffects.test.ts. Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed

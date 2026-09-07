@@ -8,7 +8,7 @@
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:25
 
 # AI Context
 - Summary: Short-circuit Rubble.blocks when its map is empty, instead of walking parcel cells and building keys every gameplay frame.
@@ -34,6 +34,7 @@
 
 # AC Traceability
 - request-AC2 -> This backlog slice. Proof: AC2: Empty rubble maps short-circuit without cell traversal, while nonempty maps preserve blocking behaviour.
+- request-AC7 -> This backlog slice. Proof: Measured within the paired large-demo-v14 running runs behind this chain: 83 -> 102-106 fps across three framings, repeated (npm run perf --city perf/cities/ma-ville.json --label large-demo-v14). Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed

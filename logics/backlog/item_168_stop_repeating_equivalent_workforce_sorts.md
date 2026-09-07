@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:25
 
 # AI Context
 - Summary: Cache workforce allocations when their inputs have not changed, instead of sorting jobs three times per gameplay frame.
@@ -34,6 +34,7 @@
 
 # AC Traceability
 - request-AC3 -> This backlog slice. Proof: AC3: Unchanged workforce inputs do not repeat equivalent allocation sorts; policy-specific staffing semantics, population hysteresis and incumbent staffing remain covered by tests.
+- request-AC7 -> This backlog slice. Proof: Measured within the paired large-demo-v14 running runs, with scenario outcomes unchanged (31 waves fought, 31 held) so the gain is not a semantics change. Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed

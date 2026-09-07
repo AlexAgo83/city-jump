@@ -45,9 +45,9 @@
 - Architecture decision(s): (none yet)
 
 # References
-- `logics_manager/flow.py`
-- `logics_manager/assist.py`
-- `tests/python/test_logics_manager_cli.py`
+- `src/render/drawTool.ts`
+- `src/render/terrainPick.ts`
+- `scripts/review/interactions.mjs`
 
 # Backlog
 - none

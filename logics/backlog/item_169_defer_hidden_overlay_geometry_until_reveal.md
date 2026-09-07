@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:39
+> Indicators reviewed: 2026-09-07 09:51:25
 
 # AI Context
 - Summary: Defer zone and utility overlay geometry while hidden, and realize it on reveal, instead of rebuilding it during every dirty rebuild.
@@ -34,6 +34,7 @@
 
 # AC Traceability
 - request-AC4 -> This backlog slice. Proof: AC4: Hidden zone and utility overlays defer geometry generation and refresh correctly when revealed after edits, with no stale geometry.
+- request-AC7 -> This backlog slice. Proof: Paired dirty-rebuild measurement on the e2e placement path: zones 3.8 -> 0 ms, utilities 8.4 -> 0.1 ms, placement 41.6 -> 26.5 ms. Source: `5cb9d0c`
 
 # Decision framing
 - Product framing: Not needed
