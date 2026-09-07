@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 38%
+> Progress: 50%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -23,7 +23,7 @@
 # Plan
 - [x] 1. Wave 1 - the defect and the bot, both independent of everything else: normalize the run end reason in the save parser with its test, and add the dependency bot configuration. Gate on `npm test`.
 - [x] 2. Wave 2 - the simulation test net: add the colocated traffic test, verifying each property fails on a deliberate local break before accepting it. Gate on `npm test`.
-- [ ] 3. Wave 3 - the gate that is manual: add the CSP hash script, prove it by editing the inline style and running only that command, and confirm the existing architecture assertion passes against its output.
+- [x] 3. Wave 3 - the gate that is manual: add the CSP hash script, prove it by editing the inline style and running only that command, and confirm the existing architecture assertion passes against its output.
 - [ ] 4. Wave 4 - the composition root: extract city loading behind explicit dependencies, add its colocated test and the shrinking ceiling assertion. Gate on `npm run ci` plus `npm run test:e2e`, which is required here because persistence and loading are in scope.
 - [ ] 5. Wave 5 - measure and decide coverage over `src/sim/`, now that waves 2 and 4 have landed the tests that change the number. Record the figure, then take the gating decision against it.
 - [ ] 6. Wave 6 - hygiene and weight: clear the scratch copies, settle the hidden script and the root screenshots, then take the disposition of the 14 unreferenced media files and write the CONTRIBUTING screenshot rule.
@@ -61,6 +61,7 @@
 # Validation
 - Wave 1: save parser and dependency bot. src/sim/save.ts:217 now normalizes an absent `ended` to null before validating it, matching readWaveClock below. New save.test.ts case proves it, and was verified to fail against the previous code (expected undefined to be null) before being accepted. .github/dependabot.yml covers github-actions and npm, groups minor and patch, and ignores majors; a new architecture test asserts both ecosystems and the major exclusion, so the config cannot be silently dropped. npx vitest run: 372 tests across 52 files. node --test tests/architecture.mjs: 12 tests. biome lint and tsc clean.
 - Wave 2: the simulation test net. src/sim/traffic.test.ts holds sixteen driving-rule cases with no Babylon import; src/render/traffic.test.ts keeps the single renderer case. CAR_GAP and CAR_STOP_SETBACK are asserted against the exported constants, with the meaning of the stop-line setback stated beside the two regression literals. MAX_STEP_S and CAR_TURN_RATE were untested anywhere and are now held in src/render/trafficMovers.test.ts, where they run: two oversized frames land on identical positionsKey values, and a car driven round a right angle saturates CAR_TURN_RATE * MAX_STEP_S exactly without exceeding it. Each new case was checked against a deliberate break - removing the step clamp gave 61853.43 against 61985.34; turning cars at the walker rate gave 0.697 against a 0.260 cap. npx vitest run: 374 tests across 53 files. tsc and biome clean.
+- Wave 3: the manual gate. scripts/csp-hashes.mjs derives both digests from index.html with the same extraction tests/architecture.mjs uses, and rewrites the policy value in render.yaml; npm run csp:sync is the entry point and CONTRIBUTING points at it from the inline-markup path. Proved end to end: a real edit to the inline style made the architecture test fail (1 not ok), one run of the command fixed it (12 pass, 0 fail), and reverting the edit and rerunning restored the original digest byte for byte. Removing the inline style block makes the script exit 1 with a named error rather than writing an empty digest. biome clean over 155 files.
 
 # Report
 - Not started.

@@ -1,14 +1,15 @@
 ## item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them - Derive the CSP hashes from index.html instead of transcribing them
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 38%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:06:44
+> Owner: Claude
 
 # AI Context
 - Summary: The two CSP digests in render.yaml are transcribed by hand; a test catches a stale one but nothing produces the correct value.
@@ -42,6 +43,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- scripts/csp-hashes.mjs replaces only the digest inside an existing 'sha256-...' source, and refuses to run if it does not find exactly one in script-src and one in style-src. Adding, removing or reordering a directive stays a deliberate edit to the policy rather than something the script can do by accident. Not wired into npm run ci: the architecture assertion already refuses a drifted header, so a --check in the gate would be a second copy of the same rule. --check exists for a quick local answer.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`
