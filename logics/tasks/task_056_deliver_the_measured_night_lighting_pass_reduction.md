@@ -1,13 +1,15 @@
 ## task_056_deliver_the_measured_night_lighting_pass_reduction - Deliver the measured night lighting pass reduction
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: claw
+> Indicators reviewed: 2026-09-07 19:42:05
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)

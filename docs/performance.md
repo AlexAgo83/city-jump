@@ -492,6 +492,42 @@ flat. Plus **Extra AA** off at the player's choice, +21.6% at the saved night fr
 The thread through all of it: this scene is fill-bound, not geometry-bound. Every geometric lever
 measured about zero; every per-pixel lever measured 10-30%.
 
+### What the night lighting pass costs (req_055, 2026-09-07)
+
+`req_054` established that the night cost is the clustered light container's own per-frame pass:
+disabling the streetlight container buys +32.1% at the saved night framing and the headlight
+container +14.0%, while all 808 emitters inside them are worth +1.0%. This request attributed that
+pass and found nothing worth shipping.
+
+Each parameter varied alone, three rounds, night-saved / night-street / night-overview:
+
+- **`maxRange` 52 and 42 m down to 24 m: +7.5% / +12.9% / +4.2%.** The only parameter that carries
+  the cost.
+- Tiles halved: -3.2% / -0.7% / -4.1%. Depth slices halved: -2.7% / -4.3% / -7.5%. Both negative,
+  which matches Babylon's own note that fewer tiles make the clustering step faster and the
+  rendering step slower.
+- Half the lamps keeping a real light: +0.5% / -0.7% / +0.8%.
+
+So the pass costs the volume each light occupies in the cluster, and nothing else. That makes every
+saving a purchase from the picture:
+
+- 24 m puts the facades out entirely (`docs/media/nightrange-max24.png` against
+  `nightrange-current.png`).
+- 32 m keeps the facades and shrinks the ground pools, for +4.3% / +7.1% / +0.8%
+  (`nightrange-max32.png`).
+- Fitting `maxRange` to the longest light each container actually holds, 44 m and 38 m, clips
+  nothing and buys nothing: +0.5% / +0.0% / +0.0%. The headroom between 52 and 44 is free to keep.
+
+Nothing shipped. The cheapest lighting model that would help is no real lights, which is already
+the player's Lights switch: +39.5%, and `docs/media/nightrange-lights-off.png` shows why it is a
+switch and not a default.
+
+One more probe rule came out of it: the container's own parameters persist, unlike the enabled
+flags and material colours the game rewrites on every hour change. Re-applying them each frame
+makes the container rebuild its clustering continuously and measures that rebuild instead, which
+the probe's "city and traffic advanced" guard catches. `distance.mjs` applies those three once and
+everything else every frame.
+
 ### Ablations must prove they applied
 
 Three separate ablations in this work silently measured nothing and read as "no gain": a filter

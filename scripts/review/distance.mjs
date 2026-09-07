@@ -34,6 +34,12 @@ const variants = [
 	"headlights",
 	"emitters",
 	"bulbs",
+	"range",
+	"rangefit",
+	"range32",
+	"tiles",
+	"slices",
+	"halflamps",
 	"scale",
 	"msaa",
 	"msaa2",
@@ -227,10 +233,68 @@ try {
 								for (const light of scene.lights)
 									if (light.name === "car_headlights") light.setEnabled(false);
 							},
+							// One clustered parameter at a time, so the pass cost is attributed to a
+							// cause rather than to the container as a whole. Each throws if the
+							// value it wants is the value already in place.
+							range: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										if (c.maxRange <= 24) throw new Error(`range already ${c.maxRange}`);
+										c.maxRange = 24;
+									}
+							},
+							// maxRange only has to cover the longest light actually in the container.
+							// 52 and 42 are guesses above ranges of 44, 40 and 38, so fitting it
+							// clips nothing at all.
+							range32: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										if (c.maxRange <= 32) throw new Error(`range already ${c.maxRange}`);
+										c.maxRange = 32;
+									}
+							},
+							rangefit: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										const longest = Math.max(...[...c.lights].map((l) => l.range));
+										if (!(longest < c.maxRange)) throw new Error(`${c.name} already fits at ${c.maxRange}`);
+										c.maxRange = longest;
+									}
+							},
+							tiles: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										if (c.horizontalTiles <= 8) throw new Error(`tiles already ${c.horizontalTiles}`);
+										c.horizontalTiles = Math.max(1, c.horizontalTiles >> 1);
+										c.verticalTiles = Math.max(1, c.verticalTiles >> 1);
+									}
+							},
+							slices: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										if (c.depthSlices <= 4) throw new Error(`slices already ${c.depthSlices}`);
+										c.depthSlices = Math.max(1, c.depthSlices >> 1);
+									}
+							},
+							// Half the lamps keep a real light, the rest keep their lit bulb: the
+							// lamp-count axis, separate from every range and tile axis above.
+							halflamps: () => {
+								for (const c of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
+										const lights = [...c.lights];
+										if (!lights.length) throw new Error(`${c.name} has no lights`);
+										for (const [i, l] of lights.entries()) if (i % 2) l.setEnabled(false);
+									}
+							},
 						}[variant];
 						if (lighting) {
 							lighting();
-							scene.onBeforeRenderObservable.add(lighting);
+							// Only the state the game rewrites needs re-applying. The clustered
+							// container's own parameters persist, and setting them every frame makes
+							// it rebuild its clustering continuously -- which measures that rebuild,
+							// not the parameter.
+							if (!["range", "range32", "rangefit", "tiles", "slices"].includes(variant))
+								scene.onBeforeRenderObservable.add(lighting);
 						}
 						api.setTimeRate(mode.rate ?? 1);
 					},

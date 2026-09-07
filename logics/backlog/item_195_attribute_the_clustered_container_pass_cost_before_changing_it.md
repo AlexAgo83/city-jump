@@ -1,13 +1,14 @@
 ## item_195_attribute_the_clustered_container_pass_cost_before_changing_it - Attribute the clustered container pass cost before changing it
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 0%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 19:42:05
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)
@@ -45,3 +46,11 @@
 # Priority
 - Priority: High
 - Rationale: Set by scaffold input or defaulted for grooming.
+
+# Outcome
+- Attribution complete on 2026-09-07, three rounds each, per-round paired deltas at night-saved / night-street / night-overview. Every ablation refuses to run if the value it wants is already in place, so a null reading cannot mean "no measurement".
+- `maxRange` 52 and 42 m down to 24 m (`perf/reviews/task056-attrib-range/`): +7.5% / +12.9% / +4.2%. This is the parameter that carries the pass cost.
+- Horizontal and vertical tiles halved (`.../task056-attrib-tiles/`): -3.2% / -0.7% / -4.1%. Negative, and consistent with Babylon's own note that fewer tiles make clustering faster and rendering slower.
+- Depth slices halved (`.../task056-attrib-slices/`): -2.7% / -4.3% / -7.5%. Also negative.
+- Half the lamps keeping a real light (`.../task056-attrib-halflamps/`): +0.5% / -0.7% / +0.8%. Lamp count does not carry the cost, which repeats what task_055 already measured with all 808 emitters disabled.
+- Method note kept with the result: the clustered container's own parameters persist, unlike the enabled flags and material colours the game rewrites every hour change. Re-applying them each frame makes the container rebuild its clustering continuously, which fails the probe's own "city and traffic advanced" guard and would have measured that rebuild rather than the parameter. `scripts/review/distance.mjs` applies these three once and the rest every frame.
