@@ -11,16 +11,26 @@ import { resolve } from "node:path";
 import { fixturePath, launchOptions, root, url } from "./config.mjs";
 import { waitForModels } from "../model-readiness.mjs";
 
+/** The settings panel shows one section at a time: open the one that owns this control. */
+const pane = async (page, selector) => {
+	await page.evaluate((sel) => {
+		const owner = document.querySelector(sel)?.closest(".pane");
+		if (owner?.hidden)
+			document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
+	}, selector);
+};
+
 const save = JSON.parse(readFileSync(fixturePath, "utf8"));
 const media = (name) => resolve(root, "docs/media", `detail-${name}.png`);
 const browser = await chromium.launch(launchOptions);
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 page.setDefaultTimeout(90_000);
 const errors = [];
+
 page.on("pageerror", (error) => errors.push(error.message));
 await page.addInitScript((city) => {
-  localStorage.clear();
-  localStorage.setItem("cityjump.autosave", JSON.stringify(city));
+	localStorage.clear();
+	localStorage.setItem("cityjump.autosave", JSON.stringify(city));
 }, save);
 await page.goto(url);
 await waitForModels(page, save.buildingStates.length);
@@ -28,28 +38,37 @@ await page.locator("#toolbar-toggle").click();
 
 /** What the scene actually shows right now, named the way the acceptance criteria are. */
 const look = () =>
-  page.evaluate(() => {
-    const scene = window.cityjump._scene;
-    const boxes = scene.meshes.find((m) => m.name === "building_distant");
-    const models = scene.meshes.filter((m) => m.name.startsWith("building_") && m.name !== "building_distant" && m.thinInstanceCount > 0);
-    const colors = boxes?.thinInstanceGetWorldMatrices ? boxes.thinInstanceCount : 0;
-    return {
-      radius: window.cityjump.cameraState().radius,
-      boxesOn: Boolean(boxes?.isEnabled()),
-      boxInstances: colors,
-      modelsOn: models.filter((m) => m.isEnabled()).length,
-      modelKinds: models.length,
-      shadowCasters: scene.lights.flatMap((l) => l.getShadowGenerator?.()?.getShadowMap()?.renderList ?? []).length,
-    };
-  });
+	page.evaluate(() => {
+		const scene = window.cityjump._scene;
+		const boxes = scene.meshes.find((m) => m.name === "building_distant");
+		const models = scene.meshes.filter(
+			(m) =>
+				m.name.startsWith("building_") &&
+				m.name !== "building_distant" &&
+				m.thinInstanceCount > 0,
+		);
+		const colors = boxes?.thinInstanceGetWorldMatrices
+			? boxes.thinInstanceCount
+			: 0;
+		return {
+			radius: window.cityjump.cameraState().radius,
+			boxesOn: Boolean(boxes?.isEnabled()),
+			boxInstances: colors,
+			modelsOn: models.filter((m) => m.isEnabled()).length,
+			modelKinds: models.length,
+			shadowCasters: scene.lights.flatMap(
+				(l) => l.getShadowGenerator?.()?.getShadowMap()?.renderList ?? [],
+			).length,
+		};
+	});
 
 const at = async (radius, name) => {
-  await page.evaluate((r) => window.cityjump.camera(r, Math.PI / 3), radius);
-  await page.waitForTimeout(1500);
-  await page.screenshot({ path: media(name) });
-  const state = await look();
-  console.log(name, JSON.stringify(state));
-  return state;
+	await page.evaluate((r) => window.cityjump.camera(r, Math.PI / 3), radius);
+	await page.waitForTimeout(1500);
+	await page.screenshot({ path: media(name) });
+	const state = await look();
+	console.log(name, JSON.stringify(state));
+	return state;
 };
 
 const near = await at(300, "near-models");
@@ -61,36 +80,66 @@ await page.waitForTimeout(800);
 const between = await at(1050, "between-thresholds");
 
 const fail = [];
-const check = (ok, why) => { if (!ok) fail.push(why); };
-check(near.boxesOn === false && near.modelsOn > 0, "near view must draw models, not boxes");
-check(far.boxesOn === true && far.modelsOn === 0, "far view must draw boxes, not models");
+const check = (ok, why) => {
+	if (!ok) fail.push(why);
+};
+check(
+	near.boxesOn === false && near.modelsOn > 0,
+	"near view must draw models, not boxes",
+);
+check(
+	far.boxesOn === true && far.modelsOn === 0,
+	"far view must draw boxes, not models",
+);
 check(far.boxInstances > 0, "far view must have distant boxes to draw");
-check(back.boxesOn === false && back.modelsOn === near.modelsOn, "zooming back must restore every model and leave no stale boxes");
-check(between.boxesOn === true, "coming down from far, boxes must survive between the thresholds");
-check(near.shadowCasters > 0 && far.shadowCasters > 0, "both details must keep casting shadows");
+check(
+	back.boxesOn === false && back.modelsOn === near.modelsOn,
+	"zooming back must restore every model and leave no stale boxes",
+);
+check(
+	between.boxesOn === true,
+	"coming down from far, boxes must survive between the thresholds",
+);
+check(
+	near.shadowCasters > 0 && far.shadowCasters > 0,
+	"both details must keep casting shadows",
+);
 
 // The manual override still wins at any height, and releasing it hands the city back to the camera.
 await page.evaluate(() => window.cityjump.camera(300, Math.PI / 3));
+await pane(page, "#building-detail");
 await page.selectOption("#building-detail", "boxes");
 await page.waitForTimeout(800);
 await page.screenshot({ path: media("forced-boxes-near") });
 const forced = await look();
 console.log("forced-boxes-near", JSON.stringify(forced));
-check(forced.boxesOn === true && forced.modelsOn === 0, "holding boxes must draw them even close in");
+check(
+	forced.boxesOn === true && forced.modelsOn === 0,
+	"holding boxes must draw them even close in",
+);
+await pane(page, "#building-detail");
 await page.selectOption("#building-detail", "auto");
 await page.waitForTimeout(800);
 const released = await look();
 console.log("released", JSON.stringify(released));
-check(released.boxesOn === false && released.modelsOn === near.modelsOn, "back on auto close in must restore the models");
+check(
+	released.boxesOn === false && released.modelsOn === near.modelsOn,
+	"back on auto close in must restore the models",
+);
 
 // Holding models must keep them at a height where auto would have swapped in boxes.
 await page.evaluate(() => window.cityjump.camera(1600, Math.PI / 3));
+await pane(page, "#building-detail");
 await page.selectOption("#building-detail", "models");
 await page.waitForTimeout(1000);
 await page.screenshot({ path: media("held-models-far") });
 const heldModels = await look();
 console.log("held-models-far", JSON.stringify(heldModels));
-check(heldModels.boxesOn === false && heldModels.modelsOn === near.modelsOn, "holding models must keep them high up");
+check(
+	heldModels.boxesOn === false && heldModels.modelsOn === near.modelsOn,
+	"holding models must keep them high up",
+);
+await pane(page, "#building-detail");
 await page.selectOption("#building-detail", "auto");
 await page.waitForTimeout(800);
 
@@ -101,12 +150,15 @@ await page.evaluate(() => window.cityjump.rebuild());
 await page.waitForTimeout(1500);
 const rebuilt = await look();
 console.log("after-rebuild-far", JSON.stringify(rebuilt));
-check(rebuilt.boxesOn === true && rebuilt.modelsOn === 0, "a rebuild far out must still be boxes");
+check(
+	rebuilt.boxesOn === true && rebuilt.modelsOn === 0,
+	"a rebuild far out must still be boxes",
+);
 
 check(errors.length === 0, `page errors: ${errors.join("; ")}`);
 await browser.close();
 if (fail.length) {
-  for (const why of fail) console.error("FAIL", why);
-  process.exit(1);
+	for (const why of fail) console.error("FAIL", why);
+	process.exit(1);
 }
 console.log("detail: OK");

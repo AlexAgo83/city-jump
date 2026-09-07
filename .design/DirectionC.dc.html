@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+
+    body { margin: 0; font: 12px/1.2 ui-sans-serif, system-ui, sans-serif; background: #0b0e11; color: #e6ebef; }
+    a { color: #75b9d1; } a:hover { color: #b9dbe7; }
+    .stage { position: relative; width: 100%; height: 100%; overflow: hidden; background: #14181c; }
+    .stage img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .stage .scrim { position: absolute; inset: 0; background: #0b0e11; opacity: .62; }
+    .stage .fg { position: relative; height: 100%; box-sizing: border-box; padding: 26px; display: flex; flex-direction: column; gap: 18px; }
+    .zoom { transform: scale(1.7); transform-origin: top left; }
+    .zwrap { flex: none; }
+    .panel { border: 1px solid #ffffff1f; border-radius: 6px; background: #171b20e8; overflow: hidden; }
+    .cap { margin-top: auto; color: #c2ccd4; font-size: 15px; line-height: 1.6; }
+    .cap b { color: #fff; }
+    .cap b { color: #b9c3ca; font-weight: 600; }
+    .sw { width: 26px; height: 15px; border-radius: 8px; background: #272d34; border: 1px solid #ffffff2b; position: relative; flex: none; }
+    .sw i { position: absolute; top: 2px; left: 2px; width: 9px; height: 9px; border-radius: 50%; background: #7f8b95; display: block; }
+    .sw[data-on="1"] { background: #3c5965; border-color: #75b9d16b; }
+    .sw[data-on="1"] i { left: 13px; background: #b9dbe7; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; }
+    .row + .row { border-top: 1px solid #ffffff0d; }
+    .sel { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 6px; font: inherit; }
+    .grp { color: #7f8b95; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 11px 0 3px; }
+  
+    .tab { padding: 5px 10px; border: 0; background: transparent; color: #aeb8c0; font: inherit; cursor: pointer; }
+    .tab:hover { color: #e6ebef; }
+    .tab[data-on="1"] { color: #fff; background: #3c5965; }
+    .tabstrip { display: flex; border: 1px solid #ffffff2b; border-radius: 5px; overflow: hidden; }
+    .btn { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 4px 0; cursor: pointer; font: inherit; }
+    .btn:hover { background: #333c45; }
+  </style>
+</helmet>
+
+<div class="stage">
+  <div class="fg">
+    <div class="zwrap" style="width: 544px; height: 510px;"><div class="zoom"><div class="panel" style="width: 320px;">
+      <div style="padding: 8px 10px; border-bottom: 1px solid #ffffff14;">
+        <div class="tabstrip">
+          <button class="tab" data-on="{{t.world.on}}" onClick="{{t.world.pick}}">World</button>
+          <button class="tab" data-on="{{t.look.on}}" onClick="{{t.look.pick}}">Look</button>
+          <button class="tab" data-on="{{t.play.on}}" onClick="{{t.play.pick}}">Play</button>
+          <button class="tab" data-on="{{t.city.on}}" onClick="{{t.city.pick}}">City</button>
+        </div>
+      </div>
+      <div style="padding: 4px 10px 12px; min-height: 208px; box-sizing: border-box;">
+        <sc-if value="{{isLook}}" hint-placeholder-val="{{true}}">
+          <div>
+            <div class="row"><span>Shadows</span><span class="sw" data-on="1"><i></i></span></div>
+            <div class="row"><span>Lights</span><span class="sw" data-on="1"><i></i></span></div>
+            <div class="row"><span>Glow</span><span class="sw" data-on="1"><i></i></span></div>
+            <div class="row"><span>Depth</span><span class="sw" data-on="0"><i></i></span></div>
+            <div class="grp">Performance</div>
+            <div class="row"><span>Extra AA</span><span class="sw" data-on="1"><i></i></span></div>
+            <div class="row"><span>Frames</span><select class="sel"><option>60</option></select></div>
+            <div class="row"><span>Far city</span><select class="sel"><option>Auto</option></select></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{isCity}}" hint-placeholder-val="{{false}}">
+          <div>
+            <div class="row"><span>Saved city</span><select class="sel" style="flex: 1 1 0; min-width: 0;"><option>Demo</option></select></div>
+            <div class="grp">History</div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;"><button class="btn">Undo</button><button class="btn">Redo</button></div>
+            <div class="grp">This city</div>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;"><button class="btn">New</button><button class="btn">Save</button><button class="btn">Load</button><button class="btn">Delete</button></div>
+            <div class="grp">Transfer</div>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;"><button class="btn">Share</button><button class="btn">Export</button><button class="btn">Import</button><button class="btn">Reset</button></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{isOther}}" hint-placeholder-val="{{false}}">
+          <div style="padding: 18px 0; color: #7f8b95; line-height: 1.5;">{{activeName}} lives here.<br />The panel keeps one height, whatever tab is open.</div>
+        </sc-if>
+      </div>
+    </div></div></div>
+    <div class="cap"><b>C &middot; Tab strip</b> &mdash; 320 &times; 300, fixed. Reuses the segmented control the game already has under the map, so it is the smallest break from what exists. Named tabs, nothing moves.<br />Costs: 320px fits four tabs, so World swallows Traffic and Camera folds into Look. The widest of the three.</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":430,"height":460}}'>
+class Component extends DCLogic {
+  constructor(p) { super(p); this.state = { at: "look" }; }
+  renderVals() {
+    const defs = [["world", "World"], ["look", "Look"], ["play", "Play"], ["city", "City"]];
+    const at = this.state.at;
+    const t = {};
+    for (const [id] of defs) t[id] = { on: id === at ? "1" : "0", pick: () => this.setState({ at: id }) };
+    return { t, activeName: defs.find(([id]) => id === at)[1], isLook: at === "look", isCity: at === "city", isOther: at !== "look" && at !== "city" };
+  }
+}
+</script>
+</body>
+</html>

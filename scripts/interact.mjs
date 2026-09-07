@@ -39,6 +39,20 @@ page.on("console", (m) => {
   if (m.type() === "error" || /needs to be imported/.test(text)) noise.push(text);
 });
 
+
+/**
+ * The settings panel shows one section at a time, so a control has to have its section open
+ * before it can be clicked. Finding the owning pane in the DOM beats hard-coding the map here:
+ * moving a setting between sections then costs nothing.
+ */
+const pane = async (selector) => {
+  await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    const owner = el?.closest(".pane");
+    if (owner?.hidden) document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
+  }, selector);
+};
+
 const nextFrame = async () => {
   const frame = await page.evaluate(() => window.cityjump?._scene?.getFrameId?.() ?? 0);
   await page.waitForFunction((start) => (window.cityjump?._scene?.getFrameId?.() ?? 0) > start, frame, { timeout: 5_000 });
@@ -69,7 +83,9 @@ const setSettingsOpen = async (open) => {
 // that are about utilities turn the rules back on around themselves.
 const setUtilityRules = async (enforced) => {
   await setSettingsOpen(true);
+  await pane("#ignore-power");
   await page.locator("#ignore-power").setChecked(!enforced);
+  await pane("#ignore-water");
   await page.locator("#ignore-water").setChecked(!enforced);
 };
 const reloadApp = async () => {
@@ -84,7 +100,10 @@ await page.goto(url, { waitUntil: "load" });
 await waitForApp();
 // The game caps itself at 60 to spare a laptop; these checks step frame by frame and want the
 // machine flat out. The cap has its own check further down, which puts this back afterwards.
-const uncapFrames = () => page.selectOption("#frame-cap", "0");
+const uncapFrames = async () => {
+  await pane("#frame-cap");
+  await page.selectOption("#frame-cap", "0");
+};
 // The settings menu opens closed now, and a select nobody can see cannot be chosen from.
 await setSettingsOpen(true);
 await uncapFrames();
@@ -563,6 +582,7 @@ check("a held wave shows the held banner", /Wave held/.test(await waveBanner()),
 const rewardedRun = await stats();
 check("a held wave adds science to the run", rewardedRun.run.science > 0 && rewardedRun.run.wave === 2, JSON.stringify(rewardedRun.run));
 check("the prestige web is off the play panel during a run", (await page.locator("#run-panel #upgrade-web").count()) === 0 && await page.locator("#between-runs").isHidden());
+await pane("#hardcore-run");
 check("hardcore is in Gameplay settings, not the play panel", (await page.locator("#run-panel #hardcore-run").count()) === 0 && await page.locator("#toolbar #hardcore-run").isVisible());
 check(
   "Gameplay settings expose kaiju, instant build and free build",
@@ -570,15 +590,19 @@ check(
   // is checked once pacifist has given it something to say, just below.
   await page.locator("#kaiju-spawns").isVisible() && await page.locator("#instant-construction").isVisible() && await page.locator("#free-building").isVisible() && (await page.locator("#gameplay-note").count()) === 1,
 );
+await pane("#kaiju-spawns");
 await page.locator("#kaiju-spawns").setChecked(false);
 await nextFrame();
 check("pacifist mode pauses waves", !(await stats()).rules.kaijuSpawns && /Pacifist/.test(await waveBanner()) && !(await stats()).kaiju, await waveBanner());
+await pane("#instant-construction");
 await page.locator("#instant-construction").setChecked(true);
+await pane("#free-building");
 await page.locator("#free-building").setChecked(true);
 await realTime(2200);
 await reloadApp();
 const savedRules = (await stats()).rules;
 check("gameplay switches are saved with the run", !savedRules.kaijuSpawns && savedRules.instantConstruction && savedRules.freeBuilding, JSON.stringify(savedRules));
+await pane("#settings-reset");
 await page.locator("#settings-reset").click();
 await nextFrame();
 page.once("dialog", (dialog) => dialog.dismiss());
@@ -607,35 +631,48 @@ await page.reload({ waitUntil: "load" });
 await waitForApp();
 check("the settings toolbar opens closed, whatever it was left as", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#city-strip").isVisible());
 await page.locator("#toolbar-toggle").click();
-check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#show-fps").isVisible());
+// The rail is in every section, so this asks whether the panel is showing at all. Which section
+// it reopens on is the player's last one, which the reload above deliberately restores.
+check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#toolbar-rail").isVisible());
 check(
   "the look settings offer the screen-space effects",
   (await page.locator("#fx-antialias").count()) === 1 && (await page.locator("#fx-bloom").count()) === 1 && (await page.locator("#fx-ao").count()) === 1 && (await page.locator("#fx-tilt").count()) === 1,
 );
 // Each one attaches or drops a real post-process, which is the part that can throw.
 for (const id of ["fx-ao", "fx-tilt"]) {
+  await pane(`#${id}`);
   await page.locator(`#${id}`).setChecked(true);
   await nextFrame();
   await nextFrame();
 }
 check("the heavier effects can be switched on", (await stats()).segments > 0 && noise.length === 0, noise.join(" | "));
+await pane("#fx-ao");
 await page.locator("#fx-ao").setChecked(false);
+await pane("#fx-tilt");
 await page.locator("#fx-tilt").setChecked(false);
 await nextFrame();
+await pane("#fx-antialias");
 await page.locator("#fx-antialias").setChecked(false);
 await reloadApp();
 check("the look settings are remembered across reload", !(await page.locator("#fx-antialias").isChecked()));
+await pane("#fx-antialias");
 await page.locator("#fx-antialias").setChecked(true);
 // Reset puts every kind of control back: a checkbox, a select, a range and a radio.
+await pane("#show-grid");
 await page.locator("#show-grid").setChecked(true);
+await pane("#show-shadows");
 await page.locator("#show-shadows").setChecked(false);
+await pane("#frame-cap");
 await page.selectOption("#frame-cap", "30");
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "22";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
+await pane('input[name="camera-mode"]');
 await page.locator('input[name="camera-mode"][value="orbit"]').check();
 await nextFrame();
+await pane("#settings-reset");
 await page.locator("#settings-reset").click();
 await nextFrame();
 const afterReset = await page.evaluate(() => ({
@@ -690,8 +727,10 @@ check("play resumes the simulation clock", await page.locator('[data-time-rate="
 // The cap is the one setting that spends less rather than showing more. It can only be seen on a
 // machine that would otherwise beat it -- a CI runner drawing a frame a second is already under
 // any cap, so there the check is that capping does not stop the picture.
+await pane("#frame-cap");
 await page.selectOption("#frame-cap", "0");
 const uncapped = await page.evaluate(() => window.cityjump.measureFps(1500));
+await pane("#frame-cap");
 await page.selectOption("#frame-cap", "30");
 const capped = await page.evaluate(() => window.cityjump.measureFps(1500));
 check(
@@ -710,6 +749,7 @@ const metresPerSecond = async () => page.evaluate(async () => {
   const seconds = (performance.now() - started) / 1000;
   return cars.reduce((sum, mesh, i) => sum + mesh.position.subtract(before[i]).length(), 0) / cars.length / seconds;
 });
+await pane("#frame-cap");
 await page.selectOption("#frame-cap", "30");
 const slowSpeed = await metresPerSecond();
 await uncapFrames();
@@ -730,6 +770,7 @@ check(
 );
 await page.locator('[data-time-rate="1"]').click();
 await uncapFrames();
+await pane("#show-fps");
 await page.locator("#show-fps").check();
 await page.waitForFunction(() => /^\d+ FPS$/.test(document.getElementById("fps-counter").textContent), null, { timeout: 5_000 });
 const fpsSample = await page.evaluate(async () => {
@@ -744,11 +785,14 @@ check(
 );
 await reloadApp();
 check("fps setting is remembered across reload", await page.locator("#show-fps").isChecked() && await page.locator("#fps-counter").isVisible());
+await pane("#show-fps");
 await page.locator("#show-fps").uncheck();
 check("fps counter turns off immediately", await page.locator("#fps-counter").isHidden());
 check("shadows and city lights are on by default", (await page.locator("#show-shadows").isChecked()) && (await page.locator("#show-lights").isChecked()));
 check("shadows are switched on at the sun light", (await shadowState()).sunShadowEnabled);
+await pane("#show-shadows");
 await page.locator("#show-shadows").uncheck();
+await pane("#show-lights");
 await page.locator("#show-lights").uncheck();
 check("shadows can be turned off without touching casters", !(await shadowState()).sunShadowEnabled);
 await reloadApp();
@@ -756,7 +800,9 @@ check(
   "shadow and light settings are remembered across reload",
   !(await page.locator("#show-shadows").isChecked()) && !(await page.locator("#show-lights").isChecked()) && !(await shadowState()).sunShadowEnabled,
 );
+await pane("#show-shadows");
 await page.locator("#show-shadows").check();
+await pane("#show-lights");
 await page.locator("#show-lights").check();
 check("shadows can be restored", (await shadowState()).sunShadowEnabled);
 // The starter kit is still going up at this point, and a building site wears nothing: push its
@@ -764,6 +810,7 @@ check("shadows can be restored", (await shadowState()).sunShadowEnabled);
 await page.evaluate(() => window.cityjump.measureBuildingStateChange());
 await nextFrame();
 check("details are on by default", await page.locator("#show-decor").isChecked() && (await decorInstances()) > 0, `${await decorInstances()} instances`);
+await pane("#show-decor");
 await page.locator("#show-decor").uncheck();
 await nextFrame();
 check("details can be switched off", (await decorInstances()) === 0, `${await decorInstances()} instances`);
@@ -776,6 +823,7 @@ await nextFrame();
 await page.evaluate(() => window.cityjump.camera(400, Math.PI / 3.4));
 await nextFrame();
 check("details stay off through a trip past the detail culler", (await decorInstances()) === 0, `${await decorInstances()} instances`);
+await pane("#show-decor");
 await page.locator("#show-decor").check();
 // The city that came back from the reload is a building site again -- it was saved as one -- so
 // finish a stage before asking for its clutter.
@@ -783,21 +831,26 @@ await page.evaluate(() => window.cityjump.measureBuildingStateChange());
 await nextFrame();
 check("details come back", (await decorInstances()) > 0, `${await decorInstances()} instances`);
 check("traffic is on by default", await page.locator("#show-traffic").isChecked());
+await pane("#show-traffic");
 await page.locator("#show-traffic").uncheck();
 await reloadApp();
 check("traffic setting is remembered across reload", !(await page.locator("#show-traffic").isChecked()) && await page.locator("#traffic-density").isDisabled());
+await pane("#show-traffic");
 await page.locator("#show-traffic").check();
+await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1.75";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 await reloadApp();
 check("traffic density is remembered across reload", (await page.locator("#traffic-density").inputValue()) === "1.75");
+await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
+await pane("#show-grid");
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
 await page.locator('[data-tool="roads"]').click();
@@ -833,6 +886,7 @@ const afternoonSun = await sunState();
 const afternoonSky = await skyState();
 check("the skybox shows the daytime sun", afternoonSky.sky && afternoonSky.sun && !afternoonSky.moon);
 check("the skybox stays behind the playable island", afternoonSky.far);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "20";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -856,6 +910,7 @@ check(
     eveningSun.ambient > 0.44,
 );
 check("the skybox shifts to evening", eveningSky.sun && eveningSky.moon && eveningSky.brightness < afternoonSky.brightness);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "23";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -863,16 +918,19 @@ await page.locator("#sun-hour").evaluate((input) => {
 await nextFrame();
 const nightSky = await skyState();
 check("the skybox shows the night moon", nightSky.moon && !nightSky.sun && nightSky.brightness < eveningSky.brightness);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 const morningTreeShadowX = await firstTreeShadowX();
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "16";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 check("tree ground shadows follow the sun direction", Math.abs((await firstTreeShadowX()) - morningTreeShadowX) > 2);
+await pane("#sun-auto");
 await page.locator("#sun-auto").check();
 await realTime(350);
 const autoMinute = Number((await page.locator("#sun-time").textContent()).split(":")[1]);
@@ -881,6 +939,7 @@ const autoMinute = Number((await page.locator("#sun-time").textContent()).split(
 // local machine ever would. The invariant worth asserting is "it moved forward on its own",
 // not a tight rate that only holds when every frame lands close to on time.
 check("the automatic sun cycle advances on its own", autoMinute > 0, `${autoMinute} minutes`);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "21.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -889,7 +948,9 @@ await realTime(350);
 check("the automatic sun cycle skips from 22:00 to 05:00", (await page.locator("#sun-time").textContent()).startsWith("05:"));
 
 // With short night off the clock wraps through 24 instead, so the whole night is playable.
+await pane("#short-night");
 await page.locator("#short-night").uncheck();
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "21.95";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -897,12 +958,15 @@ await page.locator("#sun-hour").evaluate((input) => {
 await realTime(350);
 const throughNight = await page.locator("#sun-time").textContent();
 check("with short night off the cycle runs past 22:00 into the night", throughNight.startsWith("22:"), throughNight);
+await pane("#short-night");
 await page.locator("#short-night").check();
+await pane("#sun-auto");
 await page.locator("#sun-auto").uncheck();
 // Auto freezes the hour wherever the real-time cycle last landed -- fine for the checks above,
 // which only assert it stayed within a broad window, but the streetlight checks right after the
 // next road is drawn need a hour that is reliably night. Pin it explicitly rather than trust the
 // frozen value, which is exactly as timing-sensitive as the cycle that produced it.
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "22";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -982,10 +1046,12 @@ await page.evaluate(async () => {
 });
 const highUp = await boxState();
 check("pulling the camera out past 1100 m draws the city as boxes", highUp.boxes && highUp.instances > 0 && highUp.models === 0, JSON.stringify(highUp));
+await pane("#building-detail");
 await page.selectOption("#building-detail", "boxes");
 await nextFrame();
 const boxed = await boxState();
 check("holding Boxes draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
+await pane("#building-detail");
 await page.selectOption("#building-detail", "auto");
 await nextFrame();
 const unboxed = await boxState();
@@ -1004,10 +1070,12 @@ await page.evaluate(async () => {
   window.cityjump.camera(1600, Math.PI / 3.4);
   await new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
 });
+await pane("#building-detail");
 await page.selectOption("#building-detail", "models");
 await nextFrame();
 const heldModels = await boxState();
 check("holding Models keeps the city in models from above", !heldModels.boxes && heldModels.models > 0, JSON.stringify(heldModels));
+await pane("#building-detail");
 await page.selectOption("#building-detail", "auto");
 await nextFrame();
 await page.evaluate(() => window.cityjump.camera(520, Math.PI / 3.4));
@@ -1031,22 +1099,26 @@ check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} 
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
 check("streetlights use clustered lighting", await clusteredStreetlights());
 await setSettingsOpen(true);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "8";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 check("streetlights switch off at 08:00", (await realStreetlightCount()) === 0);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "17";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 check("streetlights stay off at 17:00", (await realStreetlightCount()) === 0);
 check("buildings do not use fake emissive lighting by day", (await buildingFacadeEmission()) === 0);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "19.5";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 check("streetlights stay off at 19:30", (await realStreetlightCount()) === 0);
+await pane("#sun-hour");
 await page.locator("#sun-hour").evaluate((input) => {
   input.value = "20";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1073,6 +1145,7 @@ check(
 );
 const litCity = await cityLightState();
 check("city lights leave the sun and ambient sky fill alone", litCity.streetlights > 0 && litCity.headlights > 0 && litCity.sun > 0 && litCity.ambient > 0);
+await pane("#show-lights");
 await page.locator("#show-lights").uncheck();
 const playerDarkenedCity = await cityLightState();
 check(
@@ -1080,6 +1153,7 @@ check(
   playerDarkenedCity.streetlights === 0 && playerDarkenedCity.headlights === 0 && playerDarkenedCity.sun > 0 && playerDarkenedCity.ambient > 0,
   `${JSON.stringify(playerDarkenedCity)}`,
 );
+await pane("#show-lights");
 await page.locator("#show-lights").check();
 const relitCity = await cityLightState();
 check("city lights can be restored", relitCity.streetlights > 0 && relitCity.headlights > 0, `${JSON.stringify(relitCity)}`);
@@ -1087,17 +1161,23 @@ check("streetlights include facade fill lights", await streetlightFacadeLights()
 check("streetlights reach nearby buildings", await streetlightsReachBuildings());
 check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);
 check("buildings use the same night lighting pipeline as scenery", await buildingLightPipeline());
+await pane("#show-buildings");
 await page.locator("#show-buildings").uncheck();
 check("generated buildings can be hidden", (await stats()).buildings === 0);
+await pane("#show-buildings");
 await page.locator("#show-buildings").check();
 check("generated buildings can be restored", (await stats()).buildings > 0);
 const shortcut = process.platform === "darwin" ? "Meta" : "Control";
+await pane("#sun-hour");
 const hourBeforeUndo = await page.locator("#sun-hour").inputValue();
+await pane("#undo-city");
 await page.locator("#undo-city").click();
 check("undo button removes the last city change", (await stats()).segments === playBaseline.segments);
 check("undo leaves the sun hour alone", (await page.locator("#sun-hour").inputValue()) === hourBeforeUndo);
+await pane("#undo-city");
 await page.locator("#undo-city").click();
 check("empty undo says so", /Nothing to undo/.test(await toast()));
+await pane("#redo-city");
 await page.locator("#redo-city").click();
 check("redo button restores the city change", (await stats()).segments === drawn.segments);
 await page.keyboard.press(`${shortcut}+Z`);
@@ -1105,6 +1185,7 @@ check("undo shortcut removes the last city change", (await stats()).segments ===
 await page.keyboard.press(`${shortcut}+Shift+Z`);
 check("redo shortcut restores the city change", (await stats()).segments === drawn.segments);
 await setSettingsOpen(true);
+await pane("#save-slot");
 await page.locator("#save-slot").focus();
 await page.keyboard.press(`${shortcut}+Z`);
 check("undo shortcut is inert while a field has focus", (await stats()).segments === drawn.segments);
@@ -1118,6 +1199,7 @@ const utilityDiffuserPoint = await screenPoint(`(() => {
   const segment = graph.allSegments().find((s) => s.type !== "highway_2lane");
   return graph.pointAt(segment.id, segment.length * 0.75).position;
 })()`);
+await pane("#save-slot");
 await page.locator("#save-slot").blur();
 const utilitiesBefore = (await stats()).utilities;
 await page.locator('[data-tool="water"]').click();
@@ -1262,6 +1344,7 @@ await page.locator('[data-tool="select"]').click();
 await page.locator('input[name="select-view"][value="all"]').check();
 await page.locator('[data-tool="roads"]').click();
 check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
+await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "2";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1269,6 +1352,7 @@ await page.locator("#traffic-density").evaluate((input) => {
 await page.waitForFunction((cars) => window.cityjump.stats().cars > cars, drawn.cars, { timeout: 5_000 });
 const denseTraffic = await stats();
 check("traffic density can make the city busier", denseTraffic.cars > drawn.cars, `${denseTraffic.cars} vs ${drawn.cars}`);
+await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "0.25";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1277,10 +1361,13 @@ await page.waitForFunction((cars) => window.cityjump.stats().cars < cars, denseT
 const quietTraffic = await stats();
 check("traffic density can make the city quieter without emptying it", quietTraffic.cars > 0 && quietTraffic.cars < denseTraffic.cars, `${quietTraffic.cars}`);
 await setSettingsOpen(true);
+await pane("#show-traffic");
 await page.locator("#show-traffic").uncheck();
 await page.waitForFunction(() => window.cityjump.stats().cars === 0 && window.cityjump.stats().pedestrians === 0, null, { timeout: 5_000 });
 check("traffic can be switched off instead of hidden", (await stats()).cars === 0 && (await stats()).pedestrians === 0);
+await pane("#show-traffic");
 await page.locator("#show-traffic").check();
+await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
   input.value = "1";
   input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1792,6 +1879,7 @@ const selected = await page.evaluate(() => ({
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
 check("a road panel shows its street name", / (Street|Avenue|Walk|Expressway)$/.test(selected.rows.Street ?? ""), JSON.stringify(selected.rows));
 await setSettingsOpen(true);
+await pane("#show-fps");
 await page.locator("#show-fps").check();
 const hudOverlap = await page.evaluate(() => {
   const fps = document.getElementById("fps-counter").getBoundingClientRect();
@@ -1799,6 +1887,7 @@ const hudOverlap = await page.evaluate(() => {
   return !(fps.right <= panel.left || panel.right <= fps.left || fps.bottom <= panel.top || panel.bottom <= fps.top);
 });
 check("fps counter and selection panel do not overlap", !hudOverlap);
+await pane("#show-fps");
 await page.locator("#show-fps").uncheck();
 const pickedType = await page.evaluate(() => document.querySelector('input[name="road-type"]:checked').value);
 check(
@@ -1871,6 +1960,7 @@ await page.evaluate(() => window.cityjump.setPaused(false));
 await page.locator('input[name="select-view"][value="all"]').check();
 await setSettingsOpen(true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
+await pane('input[name="camera-mode"]');
 await page.locator('input[name="camera-mode"][value="orbit"]').check();
 await realTime(500);
 const cameraAfterOrbit = await page.evaluate(() => window.cityjump.cameraState());
@@ -1887,6 +1977,7 @@ check("there is still a vehicle to follow", followVehiclePoint !== null);
 await click(followVehiclePoint.x, followVehiclePoint.y);
 const cameraBeforeFollow = await page.evaluate(() => window.cityjump.cameraState());
 await setSettingsOpen(true); // the click above folded the menu away, and the camera controls live in it
+await pane('input[name="camera-mode"]');
 await page.locator('input[name="camera-mode"][value="follow"]').check();
 await realTime(650);
 const cameraAfterFollow = await page.evaluate(() => window.cityjump.cameraState());
@@ -1992,7 +2083,9 @@ await page.evaluate(() => {
 });
 await reloadApp();
 await setSettingsOpen(true);
+await pane("#save-slot");
 await page.locator("#save-slot").selectOption("Rugged");
+await pane("#save-load");
 await page.locator("#save-load").click();
 await nextFrame();
 const terrainRelief = await page.evaluate(() => {
@@ -2025,7 +2118,9 @@ await page.evaluate(() => {
 });
 await reloadApp();
 await setSettingsOpen(true);
+await pane("#save-slot");
 await page.locator("#save-slot").selectOption("Camera");
+await pane("#save-load");
 await page.locator("#save-load").click();
 const loadedCamera = await page.evaluate(() => window.cityjump.cameraState());
 check(
@@ -2192,6 +2287,7 @@ const builtHasOffshoreBridge = await page.evaluate(() =>
 );
 const loadedSegmentCount = built.segments + (builtHasOffshoreBridge ? 0 : 1);
 page.once("dialog", (dialog) => dialog.accept("Testville"));
+await pane("#save-store");
 await page.locator("#save-store").click();
 await nextFrame();
 const slotNames = await page.locator("#save-slot option").allTextContents();
@@ -2203,6 +2299,7 @@ await page.evaluate(() => {
   });
 });
 page.once("dialog", (dialog) => dialog.accept("Sharedville"));
+await pane("#save-share");
 await page.locator("#save-share").click();
 await page.waitForFunction(() => Boolean(window.__shareLink), null, { timeout: 5_000 });
 const shareLink = await page.evaluate(() => window.__shareLink ?? "");
@@ -2262,10 +2359,12 @@ check("the imported city appears in the picker", (await page.locator("#save-slot
 
 await page.evaluate(() => window.cityjump.reset());
 await nextFrame();
+await pane("#save-load");
 await page.locator("#save-load").click();
 await nextFrame();
 const loaded = await stats();
 check("loading restores every segment", loaded.segments === loadedSegmentCount, `${loaded.segments}/${loadedSegmentCount}`);
+await pane("#undo-city");
 await page.locator("#undo-city").click();
 check("loading clears undo history", /Nothing to undo/.test(await toast()) && (await stats()).segments === loaded.segments);
 // Replaying onto pristine terrain shifts road heights slightly, so parcel counts move a little.
@@ -2276,6 +2375,7 @@ const drift = built.buildings === 0 ? Math.abs(loaded.buildings - built.building
 check("loading lands within 2% of the original building count", drift < 0.02, `${(drift * 100).toFixed(2)}%`);
 await page.evaluate(() => window.cityjump.reset());
 await nextFrame();
+await pane("#save-load");
 await page.locator("#save-load").click();
 await nextFrame();
 const reloaded = await stats();
@@ -2351,6 +2451,7 @@ check(
 // New: a starter run, framed on the island, and no longer standing on the last save's name.
 const beforeNew = await stats(); // a dialog handler is already accepting everything by this point
 await setSettingsOpen(true);
+await pane("#save-new");
 await page.locator("#save-new").click();
 await page.waitForFunction((before) => window.cityjump.stats().segments < before, beforeNew.segments, { timeout: 10_000 });
 const started = await page.evaluate(() => ({ ...window.cityjump.stats(), active: localStorage.getItem("cityjump.activeSave"), radius: window.cityjump.cameraState().radius }));
@@ -2401,6 +2502,7 @@ await page.waitForFunction(() => {
 const afterWave = await stats();
 check("the kaiju rebuilds a damaged building and charges it", afterWave.money < beforeWave.money && afterWave.rubble > 0 && afterWave.buildingStates.rebuilding > 0, `$${afterWave.money}, rubble ${afterWave.rubble}, ${JSON.stringify(afterWave.buildingStates)}`);
 check("one damaged building does not breach while others remain", !/Wave breached/.test(await waveBanner()), await waveBanner());
+await pane("#undo-city");
 await page.locator("#undo-city").click();
 check("undo refuses to cross a wave", /Nothing to undo/.test(await toast()));
 const costs = await page.evaluate(() => window.cityjump.measureCosts());

@@ -77,6 +77,29 @@ export function bindControls(handlers: {
     persistSettings();
   });
 
+  /**
+   * The section rail. One pane is shown at a time, which is what keeps the panel 300px wide
+   * instead of 591 -- the settings did not shrink, they stopped being on screen all at once.
+   */
+  const railButtons = [...document.querySelectorAll<HTMLButtonElement>(".rail-btn")];
+  const paneName = document.getElementById("pane-name")!;
+  const paneHint = document.getElementById("pane-hint")!;
+  const showPane = (pane: string): void => {
+    for (const button of railButtons) {
+      const mine = button.dataset.pane === pane;
+      button.setAttribute("aria-selected", String(mine));
+      document.getElementById(`pane-${button.dataset.pane}`)!.hidden = !mine;
+      if (!mine) continue;
+      paneName.textContent = button.title;
+      paneHint.textContent = button.dataset.hint ?? paneHint.textContent;
+    }
+  };
+  for (const button of railButtons)
+    on(button, "click", () => {
+      showPane(button.dataset.pane!);
+      persistSettings();
+    });
+
   const selectViewOptions = document.getElementById("select-view-options")!;
   const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;
@@ -433,6 +456,7 @@ export function bindControls(handlers: {
       shadows: showShadows.checked,
       lights: showLights.checked,
       settingsOpen: !toolbar.classList.contains("collapsed"),
+      settingsPane: railButtons.find((b) => b.getAttribute("aria-selected") === "true")?.dataset.pane,
       traffic: showTraffic.checked,
       trafficDensity: Number(trafficDensity.value),
       sunHour: Number(sunHour.value),
@@ -509,6 +533,7 @@ export function bindControls(handlers: {
   const stored: UiSettings = readSettings();
   // Always closed on load. A run opens on the city, not on the settings menu.
   setToolbarOpen(false);
+  if (stored.settingsPane && railButtons.some((b) => b.dataset.pane === stored.settingsPane)) showPane(stored.settingsPane);
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showDecor, stored.decor);

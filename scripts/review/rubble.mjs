@@ -3,6 +3,16 @@ import { waitForModels } from "../model-readiness.mjs";
 import { fixturePath, launchOptions, output, url } from "./config.mjs";
 import { chromium } from "playwright";
 import { readFileSync, writeFileSync } from "node:fs";
+
+/** The settings panel shows one section at a time: open the one that owns this control. */
+const pane = async (page, selector) => {
+	await page.evaluate((sel) => {
+		const owner = document.querySelector(sel)?.closest(".pane");
+		if (owner?.hidden)
+			document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
+	}, selector);
+};
+
 const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
 fixture.run.rules.kaijuSpawns = false;
 const browser = await chromium.launch(launchOptions);
@@ -20,6 +30,7 @@ try {
 			await page.goto(url);
 			await waitForModels(page, 1287);
 			await page.locator("#toolbar-toggle").click();
+			await pane(page, "#frame-cap");
 			await page.selectOption("#frame-cap", "0");
 			if (guard)
 				await page.evaluate(async () => {

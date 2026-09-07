@@ -89,6 +89,7 @@ export interface UiSettings {
   shadows?: boolean;
   lights?: boolean;
   settingsOpen?: boolean;
+  settingsPane?: string;
   traffic?: boolean;
   trafficDensity?: number;
   sunHour?: number;

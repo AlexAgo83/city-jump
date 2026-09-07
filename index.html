@@ -21,21 +21,63 @@
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.2 ui-sans-serif, system-ui; box-sizing: border-box;
   }
-  #toolbar-content { display: flex; flex-direction: column; min-width: 0; padding: 2px 0; }
+  #toolbar-content { display: flex; min-width: 0; }
   #toolbar-content[hidden] { display: none; }
-  .toolbar-row {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px 6px 9px;
+  /* A fixed rail, so opening a section never reflows the panel or moves the game under it. */
+  #toolbar-rail { display: flex; flex-direction: column; flex: none; border-right: 1px solid #ffffff14; padding: 3px 0; }
+  .rail-btn {
+    display: flex; align-items: center; justify-content: center; position: relative;
+    width: 40px; height: 38px; padding: 0; border: 0; background: transparent;
+    color: #6f7c86; cursor: pointer;
   }
-  .toolbar-row + .toolbar-row { border-top: 1px solid #ffffff14; }
-  /* A row that continues the one above it, so no rule between the two. */
-  .toolbar-row + .toolbar-continued { padding-top: 0; border-top: 0; }
-  .toolbar-actions button { flex: 1 1 0; }
+  .rail-btn:hover { color: #e6ebef; background: #ffffff0a; }
+  .rail-btn[aria-selected="true"] { color: #b9dbe7; background: #ffffff0f; }
+  .rail-btn[aria-selected="true"]::before {
+    content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 2px;
+    border-radius: 0 2px 2px 0; background: #75b9d1;
+  }
+  .rail-btn:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  #toolbar-panes { display: flex; flex-direction: column; min-width: 0; width: 260px; }
+  #pane-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 10px; border-bottom: 1px solid #ffffff14;
+  }
+  #pane-name { color: #b9dbe7; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  #pane-hint { color: #7f8b95; font-size: 10px; }
+  .pane { padding: 4px 10px 10px; }
+  .pane[hidden] { display: none; }
+  .toolbar-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    min-height: 22px; padding: 6px 0;
+  }
+  .toolbar-row + .toolbar-row { border-top: 1px solid #ffffff0d; }
+  .toolbar-actions { display: grid; gap: 6px; padding: 4px 0 2px; }
+  .toolbar-actions.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toolbar-actions.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .row-label {
-    flex: none; width: 40px; color: #7f8b95; font-size: 10px; letter-spacing: .08em;
-    text-transform: uppercase;
+    display: block; padding: 11px 0 3px; color: #7f8b95; font-size: 10px;
+    letter-spacing: .08em; text-transform: uppercase;
   }
   #toolbar label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .toolbar-row > label:first-child, .toolbar-row > span:first-child { flex: 1 1 auto; min-width: 0; }
+  .toolbar-row input[type="range"] { flex: 0 1 112px; min-width: 72px; }
   #toolbar input, #toolbar select { accent-color: #75b9d1; }
+  /* A switch reads at a glance down a right-hand column; a checkbox does not. */
+  .pane input[type="checkbox"] {
+    appearance: none; flex: none; position: relative; width: 26px; height: 15px; margin: 0;
+    border: 1px solid #ffffff2b; border-radius: 8px; background: #272d34; cursor: pointer;
+  }
+  .pane input[type="checkbox"]::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 9px; height: 9px;
+    border-radius: 50%; background: #7f8b95; transition: left .14s ease, background .14s ease;
+  }
+  .pane input[type="checkbox"]:checked { background: #3c5965; border-color: #75b9d16b; }
+  .pane input[type="checkbox"]:checked::after { left: 13px; background: #b9dbe7; }
+  .pane input[type="checkbox"]:focus-visible { outline: 2px solid #75b9d1; outline-offset: 2px; }
+  .pane label { cursor: pointer; }
+  .pane input[type="number"] { width: 62px; }
+  /* The segmented camera control keeps its own look, so exempt its radios. */
+  .pane .segmented input { appearance: none; position: absolute; opacity: 0; }
   #toolbar-toggle {
     width: 34px; min-height: 38px; padding: 0; border: 0; border-left: 1px solid #ffffff1f;
     color: #b9c3ca; background: transparent; cursor: pointer;
@@ -299,107 +341,107 @@
 </div>
 <div id="toolbar" class="collapsed">
   <div id="toolbar-content">
-    <div class="toolbar-row">
-      <span class="row-label">World</span>
-      <label><input id="show-grid" type="checkbox" /> Grid</label>
-      <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
-      <label><input id="show-decor" type="checkbox" checked /> Details</label>
+    <div id="toolbar-rail" role="tablist" aria-label="Settings sections">
+      <button class="rail-btn" type="button" role="tab" id="rail-world" data-pane="world" data-hint="6 settings" aria-controls="pane-world" aria-selected="true" title="World"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="6" height="11"/><rect x="10" y="4" width="5" height="17"/><rect x="16" y="8" width="5" height="13"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-look" data-pane="look" data-hint="8 settings" aria-controls="pane-look" aria-selected="false" title="Look"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6Z"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-sun" data-pane="sun" data-hint="5 settings" aria-controls="pane-sun" aria-selected="false" title="Sun"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-camera" data-pane="camera" data-hint="2 settings" aria-controls="pane-camera" aria-selected="false" title="Camera"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 3 17.5Z"/><circle cx="11.8" cy="13" r="3.2"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-play" data-pane="play" data-hint="7 settings" aria-controls="pane-play" aria-selected="false" title="Gameplay"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-city" data-pane="city" data-hint="saves" aria-controls="pane-city" aria-selected="false" title="City"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V9.5L12 4l7 5.5V20"/><path d="M9.5 20v-5h5v5"/></svg></button>
     </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label">Look</span>
-      <label><input id="fx-antialias" type="checkbox" checked /> Smooth</label>
-      <label title="Multisampling, on top of Smooth. Costs about a fifth of a night frame; turn it off on a slower machine."><input id="fx-multisample" type="checkbox" checked /> Extra AA</label>
-      <label><input id="fx-bloom" type="checkbox" checked /> Glow</label>
-      <label><input id="fx-ao" type="checkbox" /> Depth</label>
-      <label><input id="fx-tilt" type="checkbox" /> Miniature</label>
-      <label><input id="fx-explosion" type="checkbox" checked /> Blasts</label>
-      <label><input id="fx-fire" type="checkbox" checked /> Fire</label>
-    </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label"></span>
-      <label><input id="show-shadows" type="checkbox" checked /> Shadows</label>
-      <label><input id="show-lights" type="checkbox" checked /> Lights</label>
-      <label>Frames
+    <div id="toolbar-panes">
+      <div id="pane-head">
+        <span id="pane-name">World</span>
+        <span id="pane-hint">6 settings</span>
+      </div>
+      <div class="pane" id="pane-world" role="tabpanel" aria-labelledby="rail-world">
+      <div class="toolbar-row"><label for="show-grid">Grid</label><input id="show-grid" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="show-buildings">Buildings</label><input id="show-buildings" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="show-decor">Details</label><input id="show-decor" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="building-detail">Far city</label>
+        <select id="building-detail" aria-label="Far city detail" title="Auto swaps buildings for boxes above 1100 m and back below 1000 m; Boxes and Models hold one at every height.">
+          <option value="auto" selected>Auto</option>
+          <option value="boxes">Boxes</option>
+          <option value="models">Models</option>
+        </select>
+      </div>
+      <span class="row-label">Traffic</span>
+      <div class="toolbar-row"><label for="show-traffic">Vehicles</label><input id="show-traffic" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="traffic-density">Busy</label><input id="traffic-density" type="range" min="0.25" max="2" step="0.25" value="1" aria-label="Traffic density" /></div>
+      </div>
+      <div class="pane" id="pane-look" role="tabpanel" aria-labelledby="rail-look" hidden>
+      <div class="toolbar-row"><label for="show-shadows">Shadows</label><input id="show-shadows" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="show-lights">Lights</label><input id="show-lights" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="fx-bloom">Glow</label><input id="fx-bloom" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="fx-ao">Depth</label><input id="fx-ao" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="fx-tilt">Miniature</label><input id="fx-tilt" type="checkbox" /></div>
+      <span class="row-label">Performance</span>
+      <div class="toolbar-row"><label for="fx-antialias">Smooth</label><input id="fx-antialias" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="fx-multisample" title="Multisampling, on top of Smooth. Costs about a fifth of a night frame; turn it off on a slower machine.">Extra AA</label><input id="fx-multisample" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="frame-cap">Frames</label>
         <select id="frame-cap" aria-label="Frame rate cap">
           <option value="30">30</option>
           <option value="60" selected>60</option>
           <option value="120">120</option>
           <option value="0">Max</option>
         </select>
-      </label>
-      <label title="How the far city is drawn. Auto swaps buildings for boxes above 1100 m and back below 1000 m; Boxes and Models hold one at every height.">Far
-        <select id="building-detail" aria-label="Far city detail">
-          <option value="auto" selected>Auto</option>
-          <option value="boxes">Boxes</option>
-          <option value="models">Models</option>
-        </select>
-      </label>
-    </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label"></span>
-      <label><input id="show-traffic" type="checkbox" checked /> Traffic</label>
-      <label>Busy <input id="traffic-density" type="range" min="0.25" max="2" step="0.25" value="1" aria-label="Traffic density" /></label>
-    </div>
-    <div class="toolbar-row">
-      <span class="row-label">Sun</span>
-      <input id="sun-hour" type="range" min="0" max="24" step="0.25" value="18.5" aria-label="Hour of day" />
-      <output id="sun-time" for="sun-hour">14:00</output>
-    </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label"></span>
-      <label><input id="sun-auto" type="checkbox" /> Auto</label>
-      <label><input id="short-night" type="checkbox" checked /> Short night</label>
-    </div>
-    <div class="toolbar-row">
-      <span class="row-label">Camera</span>
-      <label><input type="radio" name="camera-mode" value="free" checked /> Free</label>
-      <label><input type="radio" name="camera-mode" value="orbit" /> Orbit</label>
-      <label><input type="radio" name="camera-mode" value="follow" /> Follow</label>
-      <label><input id="show-fps" type="checkbox" /> Show FPS</label>
-    </div>
-    <div class="toolbar-row">
-      <span class="row-label">Gameplay</span>
-      <label title="A defeat deletes this run's save."><input id="hardcore-run" type="checkbox" /> Hardcore</label>
-      <label title="Uncheck for a city builder with no attacks at all."><input id="kaiju-spawns" type="checkbox" checked /> Kaiju attacks</label>
+      </div>
+      </div>
+      <div class="pane" id="pane-sun" role="tabpanel" aria-labelledby="rail-sun" hidden>
+      <div class="toolbar-row"><label for="sun-hour">Hour</label><input id="sun-hour" type="range" min="0" max="24" step="0.25" value="18.5" aria-label="Hour of day" /><output id="sun-time" for="sun-hour">14:00</output></div>
+      <div class="toolbar-row"><label for="sun-auto">Auto</label><input id="sun-auto" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="short-night">Short night</label><input id="short-night" type="checkbox" checked /></div>
+      <span class="row-label">Effects</span>
+      <div class="toolbar-row"><label for="fx-explosion">Blasts</label><input id="fx-explosion" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="fx-fire">Fire</label><input id="fx-fire" type="checkbox" checked /></div>
+      </div>
+      <div class="pane" id="pane-camera" role="tabpanel" aria-labelledby="rail-camera" hidden>
+      <div class="toolbar-row"><span>Mode</span>
+        <div class="segmented" role="group" aria-label="Camera mode">
+          <label><input type="radio" name="camera-mode" value="free" checked /><span>Free</span></label>
+          <label><input type="radio" name="camera-mode" value="orbit" /><span>Orbit</span></label>
+          <label><input type="radio" name="camera-mode" value="follow" /><span>Follow</span></label>
+        </div>
+      </div>
+      <div class="toolbar-row"><label for="show-fps">Show FPS</label><input id="show-fps" type="checkbox" /></div>
+      </div>
+      <div class="pane" id="pane-play" role="tabpanel" aria-labelledby="rail-play" hidden>
+      <div class="toolbar-row"><label for="hardcore-run" title="No rewinds: a lost wave ends the run.">Hardcore</label><input id="hardcore-run" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="kaiju-spawns" title="Waves arrive on their own.">Kaiju attacks</label><input id="kaiju-spawns" type="checkbox" checked /></div>
+      <span class="row-label">Assists</span>
+      <div class="toolbar-row"><label for="instant-construction">Build instantly</label><input id="instant-construction" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="free-building">Ignore build costs</label><input id="free-building" type="checkbox" /></div>
+      <div class="toolbar-row"><label for="ignore-power">Ignore power</label><input id="ignore-power" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="ignore-water">Ignore water</label><input id="ignore-water" type="checkbox" checked /></div>
+      <div class="toolbar-row"><label for="residents-per-wave">Residents / wave</label><input id="residents-per-wave" type="number" min="1" step="1" value="1000" /></div>
       <span id="gameplay-note"></span>
-    </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label"></span>
-      <label title="Buildings finish the moment they are placed."><input id="instant-construction" type="checkbox" /> Build instantly</label>
-      <label title="Buildings and roads cost nothing."><input id="free-building" type="checkbox" /> Ignore build costs</label>
-    </div>
-    <div class="toolbar-row toolbar-continued">
-      <span class="row-label"></span>
-      <label title="Buildings work without electricity."><input id="ignore-power" type="checkbox" checked /> Ignore power</label>
-      <label title="Buildings work without running water."><input id="ignore-water" type="checkbox" checked /> Ignore water</label>
-      <label title="Residents needed for each wave."><input id="residents-per-wave" type="number" min="1" step="1" value="1000" /> Residents/wave</label>
-    </div>
-    <div class="toolbar-row">
-      <span class="row-label">City</span>
-      <select id="save-slot" aria-label="Saved cities"></select>
-    </div>
-    <div class="toolbar-row toolbar-continued toolbar-actions">
-      <span class="row-label"></span>
-      <button id="undo-city" type="button" title="Undo the last city change">Undo</button>
-      <button id="redo-city" type="button" title="Redo the last city change">Redo</button>
-    </div>
-    <div class="toolbar-row toolbar-continued toolbar-actions">
-      <span class="row-label"></span>
-      <button id="save-share" type="button" title="Share the current city by link">Share</button>
-      <button id="save-export" type="button" title="Export the current city to a file">Export</button>
-      <button id="save-import" type="button" title="Import a city from a file">Import</button>
-      <button id="settings-reset" type="button" title="Put every setting back to its default">Reset</button>
-      <input id="save-import-file" type="file" accept="application/json,.json" hidden />
-    </div>
-    <div class="toolbar-row toolbar-continued toolbar-actions">
-      <span class="row-label"></span>
-      <button id="save-new" type="button" title="Start a new, empty city">New</button>
-      <button id="save-store" type="button" title="Save the current city">Save</button>
-      <button id="save-load" type="button" title="Load the selected city">Load</button>
-      <button id="save-delete" type="button" title="Delete the selected city">Delete</button>
+      </div>
+      <div class="pane" id="pane-city" role="tabpanel" aria-labelledby="rail-city" hidden>
+      <div class="toolbar-row"><label for="save-slot">Saved city</label><select id="save-slot" aria-label="Saved cities"></select></div>
+      <span class="row-label">History</span>
+      <div class="toolbar-actions two">
+        <button id="undo-city" type="button" title="Undo the last change">Undo</button>
+        <button id="redo-city" type="button" title="Redo the change just undone">Redo</button>
+      </div>
+      <span class="row-label">This city</span>
+      <div class="toolbar-actions four">
+        <button id="save-new" type="button" title="Start a new city">New</button>
+        <button id="save-store" type="button" title="Save this city">Save</button>
+        <button id="save-load" type="button" title="Load the selected city">Load</button>
+        <button id="save-delete" type="button" title="Delete the selected city">Delete</button>
+      </div>
+      <span class="row-label">Transfer</span>
+      <div class="toolbar-actions four">
+        <button id="save-share" type="button" title="Copy a link to this city">Share</button>
+        <button id="save-export" type="button" title="Download this city as a file">Export</button>
+        <button id="save-import" type="button" title="Load a city from a file">Import</button>
+        <button id="settings-reset" type="button" title="Put every setting back to its default">Reset</button>
+        <input id="save-import-file" type="file" accept="application/json,.json" hidden />
+      </div>
+      </div>
     </div>
   </div>
-  <button id="toolbar-toggle" type="button" aria-expanded="false" aria-controls="toolbar-content" title="Expand settings">
+  <button id="toolbar-toggle" type="button" aria-expanded="false" aria-controls="toolbar-content" title="Settings">
     <span class="toolbar-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
   </button>
 </div>

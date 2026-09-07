@@ -110,7 +110,7 @@ The review harness gained the parts that make a comparison mean something.
   `workforce.mjs` counts allocations against drawn frames; `look.mjs` proves the Extra AA control
   drives the pipeline and persists.
 
-`npm run ci` is green at 0.5.3: version check, 1167 unit tests across 162 files, `src/sim` line
+`npm run ci` is green at 0.5.3: version check, 393 unit tests across 54 files, `src/sim` line
 coverage 96.84%, 30 architecture and asset tests, the scenario suite unchanged from 0.5.2, the
 build with types, and Logics validation. `npm run test:e2e` passes 281 browser checks, four of them
 holding the new Far control to its contract in both directions.

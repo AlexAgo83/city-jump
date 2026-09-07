@@ -5,6 +5,15 @@ import { chromium } from "playwright";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
+/** The settings panel shows one section at a time: open the one that owns this control. */
+const pane = async (page, selector) => {
+	await page.evaluate((sel) => {
+		const owner = document.querySelector(sel)?.closest(".pane");
+		if (owner?.hidden)
+			document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
+	}, selector);
+};
+
 const raw = readFileSync(fixturePath, "utf8");
 const fixture = JSON.parse(raw);
 const controlled = structuredClone(fixture);
@@ -29,7 +38,9 @@ try {
 		await page.goto(url);
 		await waitForModels(page, 1287);
 		await page.locator("#toolbar-toggle").click();
+		await pane(page, "#frame-cap");
 		await page.selectOption("#frame-cap", "0");
+		await pane(page, "#sun-hour");
 		await page.locator("#sun-hour").evaluate(
 			(el, hour) => {
 				el.value = String(hour);

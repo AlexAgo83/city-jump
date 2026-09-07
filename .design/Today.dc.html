@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font: 12px/1.2 ui-sans-serif, system-ui, sans-serif; background: #0b0e11; color: #e6ebef; }
+    a { color: #75b9d1; } a:hover { color: #b9dbe7; }
+    .stage { position: relative; width: 100%; height: 100%; overflow: hidden; background: #14181c; }
+    .stage img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .stage .scrim { position: absolute; inset: 0; background: #0b0e11; opacity: .62; }
+    .stage .fg { position: relative; height: 100%; box-sizing: border-box; padding: 26px; display: flex; flex-direction: column; gap: 18px; }
+    .zoom { transform: scale(1.7); transform-origin: top left; }
+    .zwrap { flex: none; }
+    .panel { border: 1px solid #ffffff1f; border-radius: 6px; background: #171b20e8; overflow: hidden; }
+    .cap { margin-top: auto; color: #c2ccd4; font-size: 15px; line-height: 1.6; }
+    .cap b { color: #fff; }
+    .cap b { color: #b9c3ca; font-weight: 600; }
+    .r { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 12px 6px 9px; }
+    .r + .r { border-top: 1px solid #ffffff14; }
+    .r + .c { padding-top: 0; border-top: 0; }
+    .lab { flex: none; width: 40px; color: #7f8b95; font-size: 10px; letter-spacing: .08em; }
+    .cb { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .box { width: 11px; height: 11px; border-radius: 2px; border: 1px solid #ffffff40; background: #21262c; flex: none; }
+    .box[data-on="1"] { background: #75b9d1; border-color: #75b9d1; }
+    .sel { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; font: inherit; }
+    .btn { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 8px; font: inherit; }
+  </style>
+</helmet>
+
+<div class="stage">
+  <div class="fg">
+    <div class="zwrap" style="width: 1005px; height: 719px;"><div class="zoom"><div class="panel" style="width: 591px; display: flex;">
+    <div style="flex: 1 1 auto; min-width: 0; padding: 2px 0;">
+      <sc-for list="{{rows}}" as="row" hint-placeholder-count="14">
+        <div class="{{row.cls}}">
+          <span class="lab">{{row.label}}</span>
+          <sc-for list="{{row.items}}" as="it" hint-placeholder-count="4">
+            <sc-if value="{{it.isCheck}}" hint-placeholder-val="{{true}}">
+              <span class="cb"><span class="box" data-on="{{it.on}}"></span>{{it.text}}</span>
+            </sc-if>
+            <sc-if value="{{it.isSelect}}" hint-placeholder-val="{{false}}">
+              <span class="cb">{{it.text}}<select class="sel"><option>{{it.value}}</option></select></span>
+            </sc-if>
+            <sc-if value="{{it.isRange}}" hint-placeholder-val="{{false}}">
+              <input type="range" min="0" max="100" value="{{it.value}}" style="width: 150px; accent-color: #75b9d1;" />
+            </sc-if>
+            <sc-if value="{{it.isBtn}}" hint-placeholder-val="{{false}}">
+              <span class="btn">{{it.text}}</span>
+            </sc-if>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+    <div style="width: 34px; border-left: 1px solid #ffffff1f; display: flex; align-items: flex-start; justify-content: center; padding-top: 12px;">
+      <span style="display: inline-grid; gap: 4px; width: 18px;">
+        <i style="display: block; height: 2px; width: 13px; border-radius: 2px; background: #b9c3ca; justify-self: start;"></i>
+        <i style="display: block; height: 2px; width: 18px; border-radius: 2px; background: #b9c3ca;"></i>
+        <i style="display: block; height: 2px; width: 10px; border-radius: 2px; background: #b9c3ca; justify-self: end;"></i>
+      </span>
+    </div>
+  </div></div></div>
+
+    <div class="cap"><b>Today</b> &mdash; 591 &times; 423, 14 rows, about 30 controls. Six groups are in there, but only a 40px margin label says so, and three of the six are blank because the group continues. Nothing is grouped visually, so finding one setting means reading all thirty.</div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":660,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const C = (text, on) => ({ isCheck: true, isSelect: false, isRange: false, isBtn: false, text, on: on ? "1" : "0" });
+    const S = (text, value) => ({ isCheck: false, isSelect: true, isRange: false, isBtn: false, text, value });
+    const R = (value) => ({ isCheck: false, isSelect: false, isRange: true, isBtn: false, value });
+    const B = (text) => ({ isCheck: false, isSelect: false, isRange: false, isBtn: true, text });
+    const rows = [
+      ["World", "r", [C("Grid", 0), C("Buildings", 1), C("Details", 1)]],
+      ["Look", "r c", [C("Smooth", 1), C("Extra AA", 1), C("Glow", 1), C("Depth", 0), C("Miniature", 0), C("Blasts", 1), C("Fire", 1)]],
+      ["", "r c", [C("Shadows", 1), C("Lights", 1), S("Frames", "60"), S("Far", "Auto")]],
+      ["", "r c", [C("Traffic", 1), S("Busy", "1")]],
+      ["Sun", "r", [R(43), S("", "10:17")]],
+      ["", "r c", [C("Auto", 0), C("Short night", 1)]],
+      ["Camera", "r", [C("Free", 1), C("Orbit", 0), C("Follow", 0), C("Show FPS", 0)]],
+      ["Gameplay", "r", [C("Hardcore", 0), C("Kaiju attacks", 1)]],
+      ["", "r c", [C("Build instantly", 0), C("Ignore build costs", 0)]],
+      ["", "r c", [C("Ignore power", 1), C("Ignore water", 1), S("", "1000")]],
+      ["City", "r", [S("", "Demo")]],
+      ["", "r c", [B("Undo"), B("Redo")]],
+      ["", "r c", [B("Share"), B("Export"), B("Import"), B("Reset")]],
+      ["", "r c", [B("New"), B("Save"), B("Load"), B("Delete")]],
+    ];
+    return { rows: rows.map(([label, cls, items]) => ({ label, cls, items })) };
+  }
+}
+</script>
+</body>
+</html>

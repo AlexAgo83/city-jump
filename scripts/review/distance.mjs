@@ -4,6 +4,15 @@ import { createHash } from "node:crypto";
 import { fixturePath, launchOptions, options, output, url } from "./config.mjs";
 import { waitForModels } from "../model-readiness.mjs";
 
+/** The settings panel shows one section at a time: open the one that owns this control. */
+const pane = async (page, selector) => {
+	await page.evaluate((sel) => {
+		const owner = document.querySelector(sel)?.closest(".pane");
+		if (owner?.hidden)
+			document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
+	}, selector);
+};
+
 const cases = {
 	"day-saved": {},
 	"day-street": { radius: 140 },
@@ -93,7 +102,9 @@ try {
 				);
 				await waitForModels(page, save.buildingStates.length);
 				await page.locator("#toolbar-toggle").click();
+				await pane(page, "#frame-cap");
 				await page.selectOption("#frame-cap", "0");
+				await pane(page, "#sun-hour");
 				await page.locator("#sun-hour").evaluate(
 					(el, hour) => {
 						el.value = String(hour);
@@ -102,9 +113,11 @@ try {
 					cases[name].night ? 22 : 10,
 				);
 				if (candidate && options.variant === "boxes")
-					await page.selectOption("#building-detail", "boxes");
+					await pane(page, "#building-detail");
+				await page.selectOption("#building-detail", "boxes");
 				if (candidate && options.variant === "lights")
-					await page.locator("#show-lights").uncheck();
+					await pane(page, "#show-lights");
+				await page.locator("#show-lights").uncheck();
 				await page.locator("#toolbar-toggle").click();
 				await page.evaluate(
 					({ mode, variant }) => {
@@ -128,12 +141,15 @@ try {
 							const before = engine.getHardwareScalingLevel();
 							engine.setHardwareScalingLevel(1.5);
 							if (engine.getHardwareScalingLevel() === before)
-								throw new Error(`scale did not change hardware scaling from ${before}`);
+								throw new Error(
+									`scale did not change hardware scaling from ${before}`,
+								);
 						}
 						if (variant === "msaa" || variant === "msaa2") {
 							const pipeline =
 								scene.postProcessRenderPipelineManager._renderPipelines.look;
-							if (!pipeline) throw new Error("no look pipeline to change samples on");
+							if (!pipeline)
+								throw new Error("no look pipeline to change samples on");
 							const before = pipeline.samples;
 							pipeline.samples = variant === "msaa" ? 1 : 2;
 							if (pipeline.samples === before)
@@ -160,19 +176,25 @@ try {
 						if (variant === "perfectcull") {
 							const planes = scene.frustumPlanes;
 							const visible = (m, i) => {
-								const x = m[i * 16 + 12], y = m[i * 16 + 13], z = m[i * 16 + 14];
-								return planes.every((plane) => plane.dotCoordinate({ x, y, z }) >= -40);
+								const x = m[i * 16 + 12],
+									y = m[i * 16 + 13],
+									z = m[i * 16 + 14];
+								return planes.every(
+									(plane) => plane.dotCoordinate({ x, y, z }) >= -40,
+								);
 							};
 							let before = 0;
 							let after = 0;
 							for (const mesh of scene.meshes) {
-								if (!/^building_/.test(mesh.name) || !mesh.thinInstanceCount) continue;
+								if (!/^building_/.test(mesh.name) || !mesh.thinInstanceCount)
+									continue;
 								const matrix = mesh._thinInstanceDataStorage?.matrixData;
 								if (!matrix) continue;
 								before += mesh.thinInstanceCount;
 								const kept = [];
 								for (let i = 0; i < mesh.thinInstanceCount; i++)
-									if (visible(matrix, i)) kept.push(matrix.slice(i * 16, i * 16 + 16));
+									if (visible(matrix, i))
+										kept.push(matrix.slice(i * 16, i * 16 + 16));
 								const buffer = new Float32Array(kept.length * 16);
 								for (const [i, m] of kept.entries()) buffer.set(m, i * 16);
 								mesh.thinInstanceSetBuffer("matrix", buffer, 16, false);
@@ -182,7 +204,9 @@ try {
 							// An ablation that quietly reaches nothing reads as "no gain" and is
 							// indistinguishable from a real null result. Refuse to produce one.
 							if (!before || after >= before)
-								throw new Error(`perfectcull reached ${before} instances and removed ${before - after}`);
+								throw new Error(
+									`perfectcull reached ${before} instances and removed ${before - after}`,
+								);
 						}
 						if (pattern) {
 							const hide = () => {
@@ -213,21 +237,29 @@ try {
 							// emitters are only reachable through the container itself.
 							emitters: () => {
 								for (const container of scene.lights)
-									if (/^(streetlight_lights|car_headlights)$/.test(container.name))
-										for (const light of container.lights) light.setEnabled(false);
+									if (
+										/^(streetlight_lights|car_headlights)$/.test(container.name)
+									)
+										for (const light of container.lights)
+											light.setEnabled(false);
 							},
 							// The lit bulb materials alone, every real light still on: the other half
 							// of what the player's lights switch does.
 							bulbs: () => {
 								for (const material of scene.materials)
-									if (/^(streetlight_glow|car_head_lamps|car_tail_lamps)/.test(material.name))
+									if (
+										/^(streetlight_glow|car_head_lamps|car_tail_lamps)/.test(
+											material.name,
+										)
+									)
 										material.emissiveColor.set(0.25, 0.18, 0.08);
 							},
 							// Each clustered container costs a pass of its own: disabling one names
 							// that pass's price without touching the other's.
 							streetlights: () => {
 								for (const light of scene.lights)
-									if (light.name === "streetlight_lights") light.setEnabled(false);
+									if (light.name === "streetlight_lights")
+										light.setEnabled(false);
 							},
 							headlights: () => {
 								for (const light of scene.lights)
@@ -239,7 +271,8 @@ try {
 							range: () => {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
-										if (c.maxRange <= 24) throw new Error(`range already ${c.maxRange}`);
+										if (c.maxRange <= 24)
+											throw new Error(`range already ${c.maxRange}`);
 										c.maxRange = 24;
 									}
 							},
@@ -249,22 +282,29 @@ try {
 							range32: () => {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
-										if (c.maxRange <= 32) throw new Error(`range already ${c.maxRange}`);
+										if (c.maxRange <= 32)
+											throw new Error(`range already ${c.maxRange}`);
 										c.maxRange = 32;
 									}
 							},
 							rangefit: () => {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
-										const longest = Math.max(...[...c.lights].map((l) => l.range));
-										if (!(longest < c.maxRange)) throw new Error(`${c.name} already fits at ${c.maxRange}`);
+										const longest = Math.max(
+											...[...c.lights].map((l) => l.range),
+										);
+										if (!(longest < c.maxRange))
+											throw new Error(
+												`${c.name} already fits at ${c.maxRange}`,
+											);
 										c.maxRange = longest;
 									}
 							},
 							tiles: () => {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
-										if (c.horizontalTiles <= 8) throw new Error(`tiles already ${c.horizontalTiles}`);
+										if (c.horizontalTiles <= 8)
+											throw new Error(`tiles already ${c.horizontalTiles}`);
 										c.horizontalTiles = Math.max(1, c.horizontalTiles >> 1);
 										c.verticalTiles = Math.max(1, c.verticalTiles >> 1);
 									}
@@ -272,7 +312,8 @@ try {
 							slices: () => {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
-										if (c.depthSlices <= 4) throw new Error(`slices already ${c.depthSlices}`);
+										if (c.depthSlices <= 4)
+											throw new Error(`slices already ${c.depthSlices}`);
 										c.depthSlices = Math.max(1, c.depthSlices >> 1);
 									}
 							},
@@ -282,8 +323,10 @@ try {
 								for (const c of scene.lights)
 									if (/^(streetlight_lights|car_headlights)$/.test(c.name)) {
 										const lights = [...c.lights];
-										if (!lights.length) throw new Error(`${c.name} has no lights`);
-										for (const [i, l] of lights.entries()) if (i % 2) l.setEnabled(false);
+										if (!lights.length)
+											throw new Error(`${c.name} has no lights`);
+										for (const [i, l] of lights.entries())
+											if (i % 2) l.setEnabled(false);
 									}
 							},
 						}[variant];
@@ -293,7 +336,11 @@ try {
 							// container's own parameters persist, and setting them every frame makes
 							// it rebuild its clustering continuously -- which measures that rebuild,
 							// not the parameter.
-							if (!["range", "range32", "rangefit", "tiles", "slices"].includes(variant))
+							if (
+								!["range", "range32", "rangefit", "tiles", "slices"].includes(
+									variant,
+								)
+							)
 								scene.onBeforeRenderObservable.add(lighting);
 						}
 						api.setTimeRate(mode.rate ?? 1);

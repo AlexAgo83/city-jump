@@ -17,37 +17,38 @@ page.setDefaultTimeout(90_000);
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 await page.addInitScript((city) => {
-  localStorage.clear();
-  localStorage.setItem("cityjump.autosave", JSON.stringify(city));
+	localStorage.clear();
+	localStorage.setItem("cityjump.autosave", JSON.stringify(city));
 }, save);
 await page.goto(url);
 await waitForModels(page, save.buildingStates.length);
 await page.locator("#toolbar-toggle").click();
 
-const counts = () => page.evaluate(() => window.cityjump.stats().workforceAllocations);
+const counts = () =>
+	page.evaluate(() => window.cityjump.stats().workforceAllocations);
 const frames = (ms) =>
-  page.evaluate(async (wait) => {
-    const scene = window.cityjump._scene;
-    let n = 0;
-    const observer = scene.onAfterRenderObservable.add(() => n++);
-    await new Promise((r) => setTimeout(r, wait));
-    scene.onAfterRenderObservable.remove(observer);
-    return n;
-  }, ms);
+	page.evaluate(async (wait) => {
+		const scene = window.cityjump._scene;
+		let n = 0;
+		const observer = scene.onAfterRenderObservable.add(() => n++);
+		await new Promise((r) => setTimeout(r, wait));
+		scene.onAfterRenderObservable.remove(observer);
+		return n;
+	}, ms);
 
 const measure = async (label, rate) => {
-  await page.evaluate((r) => window.cityjump.setTimeRate(r), rate);
-  const before = await counts();
-  const drawn = await frames(6000);
-  const after = await counts();
-  const row = {
-    label,
-    frames: drawn,
-    lifecycle: after.lifecycle - before.lifecycle,
-    needs: after.needs - before.needs,
-  };
-  console.log(label, JSON.stringify(row));
-  return row;
+	await page.evaluate((r) => window.cityjump.setTimeRate(r), rate);
+	const before = await counts();
+	const drawn = await frames(6000);
+	const after = await counts();
+	const row = {
+		label,
+		frames: drawn,
+		lifecycle: after.lifecycle - before.lifecycle,
+		needs: after.needs - before.needs,
+	};
+	console.log(label, JSON.stringify(row));
+	return row;
 };
 
 // Paused: nothing the allocation depends on can move, so it must not be recomputed at all.
@@ -58,19 +59,42 @@ const running = await measure("running", 1);
 const fast = await measure("x4", 4);
 
 const fail = [];
-const check = (ok, why) => { if (!ok) fail.push(why); };
-check(paused.frames > 60, "the paused sample must have drawn frames to be worth anything");
-check(paused.lifecycle === 0 && paused.needs === 0, `paused must recompute nothing, got ${paused.lifecycle}/${paused.needs}`);
-check(running.needs < running.frames / 2, `the panel must reuse across frames, got ${running.needs} for ${running.frames} frames`);
-check(running.lifecycle < running.frames / 2, `the building cycle must reuse across frames, got ${running.lifecycle} for ${running.frames} frames`);
-check(fast.needs < fast.frames / 2, `x4 must still reuse across frames, got ${fast.needs} for ${fast.frames} frames`);
-check(fast.lifecycle < fast.frames / 2, `x4 must still reuse in the building cycle, got ${fast.lifecycle} for ${fast.frames} frames`);
+const check = (ok, why) => {
+	if (!ok) fail.push(why);
+};
+check(
+	paused.frames > 60,
+	"the paused sample must have drawn frames to be worth anything",
+);
+check(
+	paused.lifecycle === 0 && paused.needs === 0,
+	`paused must recompute nothing, got ${paused.lifecycle}/${paused.needs}`,
+);
+check(
+	running.needs < running.frames / 2,
+	`the panel must reuse across frames, got ${running.needs} for ${running.frames} frames`,
+);
+check(
+	running.lifecycle < running.frames / 2,
+	`the building cycle must reuse across frames, got ${running.lifecycle} for ${running.frames} frames`,
+);
+check(
+	fast.needs < fast.frames / 2,
+	`x4 must still reuse across frames, got ${fast.needs} for ${fast.frames} frames`,
+);
+check(
+	fast.lifecycle < fast.frames / 2,
+	`x4 must still reuse in the building cycle, got ${fast.lifecycle} for ${fast.frames} frames`,
+);
 check(errors.length === 0, `page errors: ${errors.join("; ")}`);
 
-writeFileSync(output("workforce.json"), `${JSON.stringify({ paused, running, fast }, null, "\t")}\n`);
+writeFileSync(
+	output("workforce.json"),
+	`${JSON.stringify({ paused, running, fast }, null, "\t")}\n`,
+);
 await browser.close();
 if (fail.length) {
-  for (const why of fail) console.error("FAIL", why);
-  process.exit(1);
+	for (const why of fail) console.error("FAIL", why);
+	process.exit(1);
 }
 console.log("workforce: OK");
