@@ -1,10 +1,10 @@
 ## item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames - Make workforce caching reusable across unchanged gameplay frames
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 90%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,11 @@
 # Priority
 - Priority: High
 - Rationale: The CPU profile still samples lifecycle sync and allocation; current identity-based cache misses are confirmed.
+
+# Outcome
+- Retained on 2026-09-07, on reuse evidence rather than on frame time. `createWorkforceAllocator()` gives each policy owner its own bounded cache: one inside `BuildingLifecycle`, one beside `buildingNeeds` in `buildingKinds.ts`. Each validates the parcel list by identity plus the fields that can move in place (kind, frontage, depth, incumbency) and the whole-resident workforce, which is the only way population reaches `allocateWorkforce`.
+- AC1: `perf/reviews/task055-wave3-workforce/` via the new `scripts/review/workforce.mjs` probe, which counts allocations against drawn frames. Paused: 353 frames, 0 lifecycle and 0 needs recomputes. Running x1: 351 frames, 0 and 9. Running x4: 336 frames, 1 and 94. Before the change the panel recomputed on every frame -- it passed a freshly mapped array, which the existing identity cache in `allocateWorkforce` could never validate.
+- AC2: covered in `src/sim/buildingLifecycle.test.ts`, which runs a cached lifecycle beside an uncached reference and asserts identical transitions and identical serialized state across population bands, workforce shortages, incumbency settling, parcel reordering, a rebuild hold, demolition expiry, reload through `replaceWith`, and an in-place parcel mutation that must force a recompute.
+- AC3: `perf/reviews/task055-wave3-workforce-ab-retry/`, 42 samples, three rounds, complete. Read as per-round paired deltas, frame time does not move: between -6.2% and +4.3% with no consistent direction, which is noise on this machine. CPU p50 is positive where the cache can help most -- paused +10.5% -- and mixed elsewhere. No frame-time gain is claimed.
+- The retention rests on AC5 as written: it asks that the two allocations reuse results for unchanged semantic inputs and stay correct and deterministic, not that a frame-time threshold is met. A per-frame sort over 1287 parcels is real work removed; that it does not surface in a frame budget dominated elsewhere is recorded, not dressed up.
+- First A/B attempt `perf/reviews/task055-wave3-workforce-ab/` is kept and labelled: every case's baseline varied 1.45x to 1.89x across rounds under machine contention, and reading it as a median per side produced a spurious +36.6% on day-street. It is the run that prompted `scripts/review/paired.mjs`.

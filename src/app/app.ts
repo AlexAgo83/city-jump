@@ -28,7 +28,7 @@ import { Plantings } from "../sim/plantings";
 import { Rubble } from "../sim/rubble";
 import { Zones, type ZoneKind } from "../sim/zones";
 import { batteriesForParcels, batteriesInRange, firepowerPerMinute } from "../sim/batteries";
-import { buildingNeeds, BUILDING_KIND_COLOR } from "../sim/buildingKinds";
+import { buildingNeeds, buildingNeedsAllocations, BUILDING_KIND_COLOR } from "../sim/buildingKinds";
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
@@ -1165,6 +1165,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     money: treasury.money,
     income: incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses),
     models: buildings.modelCount,
+    workforceAllocations: { lifecycle: buildingLifecycle.workforceAllocations, needs: buildingNeedsAllocations() },
     startupModels: buildings.startupModelCount,
     activeMeshes: scene.getActiveMeshes().length,
     kaiju: kaiju.visible(),

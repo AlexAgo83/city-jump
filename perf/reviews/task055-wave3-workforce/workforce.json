@@ -1,0 +1,20 @@
+{
+	"paused": {
+		"label": "paused",
+		"frames": 353,
+		"lifecycle": 0,
+		"needs": 0
+	},
+	"running": {
+		"label": "running",
+		"frames": 351,
+		"lifecycle": 0,
+		"needs": 9
+	},
+	"fast": {
+		"label": "x4",
+		"frames": 336,
+		"lifecycle": 1,
+		"needs": 94
+	}
+}

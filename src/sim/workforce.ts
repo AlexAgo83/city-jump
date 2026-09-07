@@ -38,6 +38,31 @@ export function workforceDemand(parcel: WorkforceParcel): number {
  */
 let lastAllocation: { parcels: readonly unknown[]; workforce: number; wasStaffed: unknown; staffing: Staffing } | null = null;
 
+/** One bounded cache per policy owner; fresh arrays and callbacks may ask the same question. */
+export function createWorkforceAllocator() {
+  let previous: { parcel: WorkforceParcel; kind: WorkforceParcel["kind"]; frontage: number; depth: number; incumbent: boolean }[] = [];
+  let workforce = Number.NaN;
+  let staffing: Staffing | null = null;
+  let allocations = 0;
+  return {
+    allocate<T extends WorkforceParcel>(parcels: readonly T[], population: number, wasStaffed?: (parcel: T) => boolean): Staffing {
+      const workers = workforceFromPopulation(population);
+      if (staffing && workforce === workers && previous.length === parcels.length && parcels.every((parcel, index) => {
+        const before = previous[index]!;
+        return before.parcel === parcel && before.kind === parcel.kind && before.frontage === parcel.frontageCells && before.depth === parcel.depthCells && before.incumbent === (wasStaffed?.(parcel) ?? false);
+      })) return staffing;
+      previous = parcels.map(parcel => ({ parcel, kind: parcel.kind, frontage: parcel.frontageCells, depth: parcel.depthCells, incumbent: wasStaffed?.(parcel) ?? false }));
+      workforce = workers;
+      // A fresh array bypasses the legacy identity cache, including in-place semantic edits.
+      staffing = allocateWorkforce([...parcels], population, wasStaffed);
+      allocations++;
+      return staffing;
+    },
+    get allocations(): number { return allocations; },
+    clear(): void { previous = []; staffing = null; },
+  };
+}
+
 /**
  * @param wasStaffed Which lots had the workforce a moment ago, if the caller remembers.
  *

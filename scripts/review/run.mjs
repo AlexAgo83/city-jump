@@ -23,6 +23,9 @@ if (options.help) {
   --out DIRECTORY    New output directory; existing directories are refused
   --headless         Diagnostic/CI mode, not comparable to headed GPU measurements
   --compare-url URL  Distance probe: baseline server (candidate is the positional URL)
+
+Read a finished distance run as per-round paired deltas, which is what a comparison
+is actually claiming, with: node scripts/review/paired.mjs <evidence dir>
   --cases LIST       Distance probe: day-street,day-district,day-overview,night-saved,moving,follow,x4,paused
   --variant NAME     Distance probe: none|traffic|boxes|trees|ground|lights|scale|msaa
   --rounds N --ms N  Distance samples (defaults 3 rounds, 5000 ms)

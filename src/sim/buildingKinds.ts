@@ -1,5 +1,5 @@
 import type { BuildingParcel } from "./slots";
-import { allocateWorkforce } from "./workforce";
+import { createWorkforceAllocator, type Staffing } from "./workforce";
 import { housingCapacity, MATERIALS_PER_COMMERCE_CELL, MATERIALS_PER_MILITARY_CELL } from "./economy";
 import { parcelDemandLimits } from "./slots";
 import { batteriesForStaffing } from "./batteries";
@@ -44,12 +44,24 @@ export const SALVO_TARGET = 8;
  * what it used to do -- reads "satisfied" for a fully staffed district of any size, so the panel
  * never once asked for defence.
  */
+/**
+ * The panel's own allocation, separate from the building cycle's: same parcels, but a different
+ * question asked on a different beat. Sharing one cache between them would make each miss on the
+ * other's call.
+ */
+const needsWorkforce = createWorkforceAllocator();
+
+/** How many times the panel actually recomputed -- the probe's way of proving the cache holds. */
+export function buildingNeedsAllocations(): number {
+  return needsWorkforce.allocations;
+}
+
 export function buildingNeeds(
   parcels: readonly Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">[],
   residents = population(parcels),
   projectedThreat?: number,
+  staffing: Staffing = needsWorkforce.allocate(parcels, residents),
 ): BuildingNeed[] {
-  const staffing = allocateWorkforce(parcels, residents);
   const limits = parcelDemandLimits(residents);
   // The batteries want the staffed military lots, which is what the panel just allocated: asking
   // batteriesForParcels for a population made it deal the same hand a second time.

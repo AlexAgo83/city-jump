@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { BuildingLifecycle, BUILDING_STAGE_SECONDS, type SavedBuildingState } from "./buildingLifecycle";
-import type { BuildingKind } from "./buildingKinds";
+import { buildingNeeds, type BuildingKind } from "./buildingKinds";
+import { allocateWorkforce, createWorkforceAllocator } from "./workforce";
 import type { BuildingParcel } from "./slots";
 import { v3 } from "./vec";
 
@@ -15,6 +16,54 @@ const parcel = (kind: BuildingKind, x: number, frontageCells = 1, depthCells = 1
 });
 
 describe("building lifecycle", () => {
+  it("reuses independent gameplay policies and matches uncached transitions", () => {
+    const cached = new BuildingLifecycle();
+    const reference = new BuildingLifecycle();
+    const needs = createWorkforceAllocator();
+    let parcels = [parcel("residential", 0, 4, 4), parcel("military", 20, 2, 2), parcel("military", 40, 2, 2), parcel("commercial", 60, 2, 2)];
+    const step = (population: number, now: number, held = false) => {
+      (reference as unknown as { workforce: ReturnType<typeof createWorkforceAllocator> }).workforce.clear();
+      const actual = cached.sync([...parcels], population, now, 24, held);
+      expect(actual).toEqual(reference.sync([...parcels], population, now, 24, held));
+      expect(cached.toJSON()).toEqual(reference.toJSON());
+      const eligible = actual.filter(status => status.state !== "rebuilding").map(status => status.parcel);
+      const staffing = needs.allocate(eligible, population);
+      expect(staffing).toEqual(allocateWorkforce([...eligible], population));
+      expect(buildingNeeds(eligible, population, 100, staffing)).toEqual(buildingNeeds([...eligible], population, 100));
+      return actual;
+    };
+    step(20, 0);
+    step(20, 1); // Incumbency settles after the initial allocation.
+    const counts = [cached.workforceAllocations, needs.allocations];
+    for (let now = 2; now < 100; now++) step(20.4, now);
+    expect([cached.workforceAllocations, needs.allocations]).toEqual(counts);
+    step(21, 100); // Needs observes integer population; lifecycle keeps its band.
+    expect(cached.workforceAllocations).toBe(counts[0]);
+    expect(needs.allocations).toBe(counts[1]! + 1);
+    for (const population of [8, 48, 13, 80]) step(population, 101);
+    parcels.reverse();
+    step(20, 102);
+    const damaged = parcels[0]!;
+    cached.rebuild(damaged, 103);
+    reference.rebuild(damaged, 103);
+    step(20, 110, true);
+    step(20, 140, true);
+    step(20, 170);
+    step(20, 171); // A recovered lot becomes eligible on the following existing tick.
+    parcels = parcels.slice(1);
+    step(20, 400); // Expire remembered demolition.
+    parcels.push(damaged);
+    step(20, 401);
+    const save = cached.toJSON();
+    cached.replaceWith(save);
+    reference.replaceWith(save);
+    step(20, 402);
+    const beforeMutation = needs.allocations;
+    Object.assign(parcels[0]!, { kind: "industrial", frontageCells: 3 });
+    step(20, 403);
+    expect(needs.allocations).toBeGreaterThan(beforeMutation);
+  });
+
   it("starts new parcels under construction, then moves them to working or idle", () => {
     const lifecycle = new BuildingLifecycle();
     const parcels = [parcel("residential", 0, 2, 2), parcel("military", 20), parcel("commercial", 40, 4, 4)];

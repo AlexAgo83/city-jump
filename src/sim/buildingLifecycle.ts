@@ -1,5 +1,5 @@
 import type { BuildingParcel } from "./slots";
-import { allocateWorkforce } from "./workforce";
+import { createWorkforceAllocator } from "./workforce";
 
 export type BuildingState = "rising" | "working" | "idle" | "rebuilding";
 type LegacyBuildingState = BuildingState | "waiting";
@@ -56,6 +56,8 @@ export class BuildingLifecycle {
    */
   private committed = 0;
   private last: StoredBuildingState[] = [];
+  private workforce = createWorkforceAllocator();
+  get workforceAllocations(): number { return this.workforce.allocations; }
 
   constructor(saved: readonly SavedBuildingState[] = []) {
     this.replaceWith(saved);
@@ -74,7 +76,7 @@ export class BuildingLifecycle {
       .map((parcel, index) => ({ parcel, index }))
       .filter(({ parcel }) => this.states.get(parcelKey(parcel))?.state !== "rebuilding");
     const staffing = new Map(
-      allocateWorkforce(
+      this.workforce.allocate(
         workforceParcels.map(({ parcel }) => parcel),
         this.committed,
         (parcel) => this.states.get(parcelKey(parcel))?.staffed === true,
@@ -169,6 +171,7 @@ export class BuildingLifecycle {
   }
 
   replaceWith(saved: readonly SavedBuildingState[]): void {
+    this.workforce.clear();
     this.states.clear();
     this.committed = 0;
     this.last = saved.map(([x, z, state, startedAt]) => [x, z, normalizeState(state), startedAt]);
