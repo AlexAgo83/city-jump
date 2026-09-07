@@ -24,6 +24,9 @@ export class Rubble {
   }
 
   blocks(parcel: Pick<BuildingParcel, "cells">): boolean {
+    // Called for every parcel of the city every gameplay frame, and most cities hold no rubble at
+    // all: without this the walk builds a coordinate key per cell to look it up in an empty map.
+    if (this.cells.size === 0) return false;
     return parcel.cells.some((cell) => {
       const { x, z } = buildableCellCentre(cell);
       return this.cells.has(key(x, z));
