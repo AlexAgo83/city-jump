@@ -960,9 +960,11 @@ check("three clicks draw a road", drawn.segments > playBaseline.segments, JSON.s
 check("the road grows buildings", drawn.buildings > 0, `${drawn.buildings} buildings`);
 check("building a road spends money", drawn.money < moneyBeforeRoad, `$${drawn.money} vs $${moneyBeforeRoad}`);
 await page.evaluate(() => window.cityjump.setMoney(200_000));
-// Boxes are the player's own switch now, not something the camera decides: pulling out used to
-// swap the city for them past 1100 m, which took the city away from anyone who wanted to look at
-// it from above.
+// The camera decides again past 1100 m, and the switch overrides it. 6d390f3 took the automatic
+// swap out because it "took the city away from anyone who wanted to look at it from above";
+// item_189 put it back on measured grounds -- +28.7% frame p50 at night-overview, +15.5% by day --
+// with hysteresis down to 1000 m and the checkbox as a force-on override. Both states are checked
+// here so the next person to change their mind has to change these lines on purpose.
 await setSettingsOpen(true);
 const boxState = () => page.evaluate(() => {
   const scene = window.cityjump._scene;
@@ -979,15 +981,23 @@ await page.evaluate(async () => {
   await new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
 });
 const highUp = await boxState();
-check("pulling the camera out leaves the models where they are", !highUp.boxes && highUp.models > 0, JSON.stringify(highUp));
+check("pulling the camera out past 1100 m draws the city as boxes", highUp.boxes && highUp.instances > 0 && highUp.models === 0, JSON.stringify(highUp));
 await page.locator("#show-boxes").check();
 await nextFrame();
 const boxed = await boxState();
-check("the Boxes switch draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
+check("the Force boxes switch draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
 await page.locator("#show-boxes").uncheck();
 await nextFrame();
 const unboxed = await boxState();
-check("and turning it off brings the models back", !unboxed.boxes && unboxed.models > 0, JSON.stringify(unboxed));
+check("turning the switch off high up leaves the camera in charge", unboxed.boxes && unboxed.models === 0, JSON.stringify(unboxed));
+await page.evaluate(async () => {
+  const scene = window.cityjump._scene;
+  window.cityjump.camera(300, Math.PI / 3.4);
+  await new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
+});
+await nextFrame();
+const backDown = await boxState();
+check("and coming back down below 1000 m brings the models back", !backDown.boxes && backDown.models > 0, JSON.stringify(backDown));
 await page.evaluate(() => window.cityjump.camera(520, Math.PI / 3.4));
 await nextFrame();
 const cityHud = await cityHudText();

@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:22:14
+> Indicators reviewed: 2026-09-07 18:46:32
 
 # AI Context
 - Summary: Buildings.setDistant is called only by the manual checkbox; the documented 1100 m automatic switch no longer exists.
@@ -61,3 +61,5 @@
 - AC2: `scripts/review/detail.mjs` is a new review probe that walks near -> far -> back and asserts what it captures: models near, boxes far, boxes surviving between the thresholds on the way down, every model restored with no stale boxes on return, the override winning close in and releasing cleanly, boxes still drawn after a rebuild far out, shadow casters present at both details, and no page errors. Captures in `docs/media/detail-*.png`.
 - AC3 and the shipped thresholds: the camera's real upper limit is 1200 m (`src/render/scene.ts`), so the automatic band is 1100-1200 m -- the top of the zoom, which is where both measured wins are. A lower pair was tried and rejected on sight, not on frame time: at 950 m the boxes lose towers, roof colours and farm rows that are still legible as models (`docs/media/detail-950-models-rejected-threshold.png` against `detail-950-boxes-rejected-threshold.png`).
 - Known trade, recorded rather than smoothed over: even at 1200 m the swap is visible. `docs/media/detail-1200-models-before.png` is the shipped-before skyline and `detail-far-boxes.png` the same framing after; state and construction colours carry over intact, but tower silhouettes flatten. This is the same trade the manual override always offered, now taken automatically at the top of the zoom in exchange for 15-28% frame time.
+- Reverses a deliberate earlier decision, recorded here so it is not rediscovered by accident. Commit `6d390f3` (2026-09-03) removed this same automatic swap on purpose: "Past 1100 m the city swapped itself for coloured boxes, which took the city away from anyone who wanted to look at it from above." Two e2e assertions in `scripts/interact.mjs` guarded that decision and failed when this slice landed; they were rewritten to the new contract rather than deleted, with both commits named in the comment above them.
+- What that earlier decision wanted and this slice does not give back: there is no "never boxes" state. Unchecked is automatic and checked is always-boxes, which is exactly what this slice specifies, but it leaves a player who wants to study the city from above in full models without a way to ask for it. Recorded as a follow-up candidate, not silently dropped.

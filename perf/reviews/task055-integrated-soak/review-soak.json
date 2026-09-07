@@ -1,0 +1,727 @@
+{
+  "snapshots": [
+    {
+      "name": "baseline",
+      "heap": 209716304,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 1,
+          "needs": 1
+        },
+        "startupModels": 0,
+        "activeMeshes": 1937,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    },
+    {
+      "name": "restored-1",
+      "heap": 210699732,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 2,
+          "needs": 2
+        },
+        "startupModels": 0,
+        "activeMeshes": 1918,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    },
+    {
+      "name": "restored-2",
+      "heap": 211391236,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 3,
+          "needs": 3
+        },
+        "startupModels": 0,
+        "activeMeshes": 1918,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    },
+    {
+      "name": "restored-3",
+      "heap": 211979536,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 4,
+          "needs": 4
+        },
+        "startupModels": 0,
+        "activeMeshes": 1918,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    },
+    {
+      "name": "restored-4",
+      "heap": 212152432,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 5,
+          "needs": 5
+        },
+        "startupModels": 0,
+        "activeMeshes": 1918,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    },
+    {
+      "name": "restored-5",
+      "heap": 212338432,
+      "meshes": 2716,
+      "materials": 1397,
+      "geometries": 1106,
+      "textures": 15,
+      "internalTextures": 15,
+      "observers": 8,
+      "stats": {
+        "segments": 132,
+        "junctions": 66,
+        "roundabouts": 3,
+        "buildings": 1287,
+        "population": 13552.753411866333,
+        "needs": [
+          {
+            "kind": "residential",
+            "supply": 13552,
+            "need": 12094,
+            "ratio": 1
+          },
+          {
+            "kind": "commercial",
+            "supply": 158,
+            "need": 283,
+            "ratio": 0.558303886925795
+          },
+          {
+            "kind": "agricultural",
+            "supply": 353,
+            "need": 565,
+            "ratio": 0.6247787610619469
+          },
+          {
+            "kind": "industrial",
+            "supply": 3640,
+            "need": 3638,
+            "ratio": 1
+          },
+          {
+            "kind": "military",
+            "supply": 112112,
+            "need": 135121,
+            "ratio": 0.829715588250531
+          }
+        ],
+        "avenues": 15,
+        "tunnels": 0,
+        "cars": 166,
+        "signals": 159,
+        "pedestrians": 311,
+        "streetlights": 321,
+        "realStreetlights": 0,
+        "trees": 2528,
+        "zones": 8327,
+        "rubble": 0,
+        "utilities": 10,
+        "buildingStates": {
+          "working": 1274,
+          "rising": 13
+        },
+        "buildingReasons": {
+          "construction": 13
+        },
+        "materialsShort": false,
+        "staffedKey": -37336745,
+        "money": 1902238.6315830701,
+        "income": 529.3550682373261,
+        "models": 107,
+        "workforceAllocations": {
+          "lifecycle": 6,
+          "needs": 6
+        },
+        "startupModels": 0,
+        "activeMeshes": 1918,
+        "kaiju": false,
+        "missiles": 0,
+        "wave": "waiting",
+        "waveHp": null,
+        "run": {
+          "wave": 14,
+          "science": 910,
+          "ended": null,
+          "rules": {
+            "kaijuSpawns": false,
+            "instantConstruction": false,
+            "freeBuilding": false,
+            "ignorePower": true,
+            "ignoreWater": true,
+            "residentsPerWave": 1000
+          }
+        },
+        "profile": {
+          "prestige": 0,
+          "upgrades": [],
+          "hardcore": false
+        },
+        "rules": {
+          "kaijuSpawns": false,
+          "instantConstruction": false,
+          "freeBuilding": false,
+          "ignorePower": true,
+          "ignoreWater": true,
+          "residentsPerWave": 1000
+        },
+        "timeRate": 0,
+        "simDay": 7,
+        "simHour": 10.28409999996424,
+        "simSeconds": 13944.548300004777,
+        "moverPositions": 0
+      },
+      "savedElapsed": 13944.548300004777,
+      "savedHour": 10.28409999996424,
+      "saves": 0
+    }
+  ],
+  "edits": [
+    {
+      "before": 132,
+      "after": 139,
+      "deleted": 138
+    },
+    {
+      "before": 132,
+      "after": 139,
+      "deleted": 138
+    },
+    {
+      "before": 132,
+      "after": 139,
+      "deleted": 138
+    },
+    {
+      "before": 132,
+      "after": 139,
+      "deleted": 138
+    },
+    {
+      "before": 132,
+      "after": 139,
+      "deleted": 138
+    }
+  ]
+}

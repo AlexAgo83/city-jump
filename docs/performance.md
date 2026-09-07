@@ -453,6 +453,57 @@ Merging has to keep the name the dirty-region rebuild matches on (`sidewalk_<seg
 `crossing_<segmentId>_<nodeId>`), see the regex in `roadMesh.ts` -- that is how an edit knows which
 meshes to throw away and which to keep.
 
+## What the distance work measured (req_054, 2026-09-07)
+
+Eight slices, each with a measured keep or reject. The method matters as much as the numbers: every
+comparison interleaves candidate and baseline within a round, and is read with
+`node scripts/review/paired.mjs <evidence dir>` as the median of per-round paired deltas. Reading a
+median per side instead once turned a contended run into a spurious +36.6%, and a two-round read
+once showed +5.2% where the third round brought it to +1.0%.
+
+Shipped, measured against the pre-task build over eleven framings
+(`perf/reviews/task055-integrated/`): night-overview +29.2%, day-overview +11.3%, everything else
+flat. Plus **Extra AA** off at the player's choice, +21.6% at the saved night framing.
+
+- **Kept: automatic building detail** above 1100 m -- see below.
+- **Kept: workforce allocation reuse.** One bounded cache per policy owner. Paused, nothing is
+  recomputed; at x1 the panel recomputes 9 times per 351 frames, at x4 94 times per 336. It used to
+  recompute every frame, handing a freshly mapped array to a cache keyed on array identity. Frame
+  time does not move and none is claimed (`perf/reviews/task055-wave3-workforce*`).
+- **Rejected: distance culling of traffic visuals.** Two reaches, three rounds each. Culls up to
+  20.9% of active meshes at follow without reaching the frame: these scenarios are not bound by
+  traffic mesh count (`perf/reviews/task055-wave2-traffic-*`).
+- **Rejected: distance policy for night lighting.** The night cost is the clustered container's own
+  pass, not the emitters in it. Disabling all 808 individual emitters with both containers still
+  enabled buys +1.0%; disabling the streetlight container buys +32.1% and the headlight container
+  +14.0%. A distance policy only reaches individual lamps, so it can only buy the first number
+  (`perf/reviews/task055-wave3-lights-ablation-*`).
+- **Rejected: spatial tile batching**, before implementing it. Perfect frustum culling of building
+  instances -- ideal granularity, no added draw calls, strictly better than any tile grid -- removes
+  1316 of 2574 instances and buys -0.0% at district and -4.3% at street. Removing 49% of the
+  instances buys nothing while removing 100% buys 12.6%, so the cost is fixed per mesh and per
+  material, not proportional to submitted instances. Tiles would multiply meshes to reduce instances
+  whose reduction is free (`perf/reviews/task055-wave4-*`).
+- **Rejected: terrain tiling and distant LOD**, before implementing them. The ground costs -0.0% by
+  day and +11.9% by night at the identical saved framing, so its cost is per-pixel shading as the
+  largest receiver of the clustered lights, not its 911250 triangles. Tiling rejects geometry that
+  draws no pixels; LOD reduces triangles that cost nothing.
+
+The thread through all of it: this scene is fill-bound, not geometry-bound. Every geometric lever
+measured about zero; every per-pixel lever measured 10-30%.
+
+### Ablations must prove they applied
+
+Three separate ablations in this work silently measured nothing and read as "no gain": a filter
+over `scene.lights` found none, because a clustered container removes its lights from that array; a
+one-shot mutation was undone within two frames, because the running clock calls `updateLights()` on
+every hour change; and `setHardwareScalingLevel(1)` was asked for while already at level 1. Four
+lighting runs were thrown away over the first two.
+
+`scripts/review/distance.mjs` now throws if an ablation matches no mesh, removes no instance, or
+leaves a setting where it found it, and re-applies the mesh and lighting ablations every frame. A
+null result has to mean "no gain", never "no measurement".
+
 ## Tried, and not kept
 
 - **Merging the carriageway into tiles** -- road ribbons, junction polygons and roundabout rings
@@ -470,9 +521,17 @@ meshes to throw away and which to keep.
 they cost fill rate rather than draw calls -- the one budget a city of thin instances still has to
 spare, and the player's to spend:
 
-- **Smooth** (FXAA) on top of 4x multisampling. The pipeline renders the scene into its own target,
-  which does not inherit the canvas's multisampling: leaving `samples` at 1 made every edge
-  stepped, which is worse than having no pipeline at all.
+- **Smooth** (FXAA) on top of multisampling. The pipeline renders the scene into its own target,
+  which does not inherit the canvas's multisampling.
+- **Extra AA** is that multisampling, now the player's to spend: on it is 4 samples, off it is 1.
+  It is the most expensive single thing in a night frame -- turning it off measured +21.6% frame
+  p50 at the saved night framing, +7.0% moving and +4.7% at district, over three paired rounds
+  (`perf/reviews/task055-wave5-msaa/`). It defaults to on. An older note here said one sample made
+  every edge stepped and was worse than having no pipeline at all; that is no longer what it looks
+  like, because FXAA above still smooths the edges -- `docs/media/aa-on-4x.png` against
+  `docs/media/aa-off-fxaa-only.png`. Off is softer on high-contrast edges, not stepped.
+  Two samples was measured as well (+10.3% at night) and rejected as an option: less than half the
+  gain for the same row of UI.
 - **Glow** (bloom), which follows the clock rather than a second switch -- a bloom that costs a
   pass at noon and shows nothing is waste.
 - **Depth** (SSAO, half resolution). The strongest of the four on a city of boxes: it is what puts
@@ -495,8 +554,25 @@ recomputed with them, for a difference nobody can see in water.
 ## Buildings at a distance
 
 Above 1100 m the models are swapped for one box each, in the colour the model generator would have
-painted that lot -- the same rule, so the swap is a change of detail rather than of palette.
-Measured back to back at 1600 m: 76 fps with the models, 94 with the boxes.
+painted that lot -- the same rule, so the swap is a change of detail rather than of palette. Below
+1000 m they come back; the gap between the two numbers is what stops a camera resting on the
+threshold from swapping the whole city every frame. The **Force boxes** checkbox overrides it and
+draws boxes at any height; unchecked leaves the decision to the camera.
+
+This automatic swap was removed on purpose in 6d390f3 and put back here on measured grounds. It
+still has the cost that removal named: from above, the city is boxes. There is no "never boxes"
+state -- the checkbox forces boxes on, it cannot force them off.
+
+The camera's own upper limit is 1200 m, so the automatic band is the top 100 m of the zoom. That is
+deliberate: at 950 m the boxes visibly lose towers, roof colours and farm rows that are still
+legible as models (`docs/media/detail-950-models-rejected-threshold.png` against
+`detail-950-boxes-rejected-threshold.png`).
+
+Measured over three paired rounds against the same build without it: night-overview +28.7% frame
+p50, day-overview +15.5%, and every framing below the threshold flat with an unchanged active-mesh
+count (`perf/reviews/task055-wave2-detail/`). The swap is visible even at 1200 m -- state and
+construction colours carry over intact, but tower silhouettes flatten
+(`docs/media/detail-1200-models-before.png` against `docs/media/detail-far-boxes.png`).
 
 It is a whole-city swap, not per building: the models are thin-instanced, and splitting their
 instance buffers by distance would cost more CPU every frame than the vertices save. Above that
