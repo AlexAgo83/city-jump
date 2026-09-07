@@ -42,9 +42,20 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
     fire.thinInstanceCount = fires.length;
   }
 
+  /** What the thin-instance buffer currently holds, so an empty one is not written twice. */
+  let explosionInstances = 0;
+
   function writeExplosionMatrices(now: number, enable: boolean): void {
     const active = explosions.filter((item) => now - item.startedAt <= EXPLOSION_SECONDS);
     explosions = active;
+    // Nothing exploding, and the buffer already says so. This runs every frame the feature is on,
+    // which was about 950 calls per twelve seconds spent allocating an empty matrix array and
+    // replacing the thin-instance buffer with it. The frame that expires the last explosion still
+    // goes the long way round, so it is cleared exactly once.
+    if (active.length === 0 && explosionInstances === 0) {
+      if (explosion.isEnabled()) explosion.setEnabled(false);
+      return;
+    }
     const matrices = new Float32Array(active.length * 16);
     for (const [item, i] of active.map((point, index) => [point, index] as const)) {
       const age = Math.max(0, now - item.startedAt) / EXPLOSION_SECONDS;
@@ -53,6 +64,7 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
     }
     explosion.thinInstanceSetBuffer("matrix", matrices, 16, false);
     explosion.thinInstanceCount = active.length;
+    explosionInstances = active.length;
     if (enable || active.length === 0) explosion.setEnabled(active.length > 0);
   }
 
@@ -72,6 +84,7 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
       else {
         explosions = [];
         explosion.thinInstanceCount = 0;
+        explosionInstances = 0;
         explosion.setEnabled(false);
       }
     },

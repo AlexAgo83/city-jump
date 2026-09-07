@@ -28,6 +28,41 @@ describe("destruction effects", () => {
     engine.dispose();
   });
 
+  it("clears the last explosion once, then leaves the empty buffer alone", () => {
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
+    const effects = createDestructionEffects(scene, () => 0);
+    const mesh = scene.getMeshByName("roofprop_rubble_explosion") as Mesh;
+    let writes = 0;
+    const set = mesh.thinInstanceSetBuffer.bind(mesh);
+    mesh.thinInstanceSetBuffer = (...args: Parameters<typeof set>) => {
+      writes++;
+      return set(...args);
+    };
+
+    // An idle city: no explosion has ever happened, so there is nothing to write.
+    for (let frame = 0; frame < 10; frame++) effects.step(frame * 0.1);
+    expect(writes).toBe(0);
+    expect(mesh.isEnabled()).toBe(false);
+
+    effects.explode(v3(0, 0, 0), 0);
+    expect(mesh.thinInstanceCount).toBe(1);
+    const duringExplosion = writes;
+
+    // The frame that expires it clears it, exactly once; the frames after it write nothing.
+    effects.step(2);
+    expect(mesh.thinInstanceCount).toBe(0);
+    expect(mesh.isEnabled()).toBe(false);
+    const cleared = writes;
+    expect(cleared).toBe(duringExplosion + 1);
+    for (let frame = 0; frame < 10; frame++) effects.step(2 + frame * 0.1);
+    expect(writes).toBe(cleared);
+
+    effects.dispose();
+    scene.dispose();
+    engine.dispose();
+  });
+
   it("draws and steps nothing for disabled effects", () => {
     const engine = new NullEngine();
     const scene = new Scene(engine);
