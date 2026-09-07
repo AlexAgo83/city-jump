@@ -1,6 +1,6 @@
 {
   "name": "city-jump",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run typecheck",
@@ -10,6 +10,7 @@
     "test:architecture": "node --test tests/*.mjs",
     "test:e2e": "node scripts/with-dev-server.mjs scripts/interact.mjs",
     "test:visual": "node scripts/with-dev-server.mjs scripts/shot.mjs",
+    "readme-shots": "node scripts/with-dev-server.mjs scripts/readme-shots.mjs",
     "perf": "node scripts/with-dev-server.mjs scripts/perf.mjs",
     "perf:review": "node scripts/with-dev-server.mjs scripts/review/run.mjs",
     "balance": "node scripts/build-sim.mjs && node scripts/balance.mjs",
