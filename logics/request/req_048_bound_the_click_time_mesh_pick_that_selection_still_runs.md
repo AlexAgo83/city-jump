@@ -2,8 +2,8 @@
 > From version: 0.5.0
 > Schema version: 1.0
 > Status: Draft
-> Understanding: 90%
-> Confidence: 85%
+> Understanding: 85%
+> Confidence: 80%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
