@@ -1,14 +1,15 @@
 ## item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it - Measure simulation coverage before deciding whether to gate on it
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 62%
+> Progress: 100%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:14:01
+> Owner: Claude
 
 # AI Context
 - Summary: No coverage tooling exists, so the gaps this review found by hand are invisible; a percentage is only meaningful over the pure simulation layer.
@@ -42,6 +43,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- Measured first, then gated. src/sim coverage at the time of measuring: 96.86% lines (2099/2167), 94.62% statements (2498/2640), 97.54% functions (596/611), 87.5% branches (1338/1529). Eight modules - batteries, buildingKinds, facing, roadTypes, routing, terrain, time, workforce - are absent from the text table because they are at 100% on all four metrics and the reporter omits complete files; they are still in the summary denominator, verified by measuring batteries.ts alone at 11/11 statements. Decision: gate, because the figure is high and the whole point of prod_038 is that a rule is enforced by something that runs. Thresholds sit just under the measured values (lines 95, statements 93, functions 96, branches 85) so a real regression fails while an honest refactor does not become a threshold edit. Scoped to src/sim only: over src/render the same percentage would prove a Babylon call ran, not that a mesh is right. npm run ci runs the suite once with coverage rather than twice - local npm test stays uninstrumented and fast. @vitest/coverage-v8 pinned to ^4 to match vitest 4; the unpinned install resolved toward 5 and failed.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`
