@@ -4,6 +4,7 @@ import { Scene } from "@babylonjs/core/scene";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { RoadGraph } from "../sim/graph";
+import { CAR_TURN_RATE, MAX_STEP_S } from "../sim/traffic";
 import { v3 } from "../sim/vec";
 import { createTrafficMoverSystem } from "./trafficMovers";
 import { createVehicleModels } from "./vehicleModels";
@@ -125,6 +126,104 @@ describe("traffic mover renderer", () => {
     expect(() => {
       for (let i = 0; i < 120; i++) s.onBeforeRenderObservable.notifyObservers(s);
     }).not.toThrow();
+
+    traffic.dispose();
+    models.dispose();
+  });
+
+  /**
+   * The step clamp lives in this system's own frame callback, so a rendered frame is the only way
+   * to reach it. Two systems built the same way and notified once each -- one with a frame of
+   * exactly the clamp, one with a frame a thousand times longer -- have to land on the same
+   * positions. Nothing here reads Math.random, so this is exact: where the movers are is a
+   * function of the graph and the accumulated step, and of nothing else.
+   *
+   * Without the clamp a tab returning from the background drove a whole minute of traffic into one
+   * frame, and every car left the road it was on.
+   */
+  it("does not drive through a frame longer than the step clamp", () => {
+    const stepped = (frameMs: number): number => {
+      const localEngine = new NullEngine();
+      const localScene = new Scene(localEngine);
+      const graph = new RoadGraph();
+      const a = graph.addNode(0, 0);
+      const b = graph.addNode(400, 0);
+      graph.addSegment(a, b, v3(200, 0, 0), "street");
+      const models = createVehicleModels(localScene);
+      const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
+      const traffic = createTrafficMoverSystem(localScene, graph, () => frameMs, () => 0, models, headlights, {
+        lightsOn: () => false,
+        enabled: true,
+        paused: false,
+        density: 1,
+        timeScale: 1,
+      });
+
+      traffic.rebuild();
+      const before = traffic.positionsKey();
+      localScene.onBeforeRenderObservable.notifyObservers(localScene);
+      const after = traffic.positionsKey();
+
+      traffic.dispose();
+      models.dispose();
+      localScene.dispose();
+      localEngine.dispose();
+      // A road with no traffic on it would satisfy every equality below while proving nothing.
+      expect(after).not.toBe(before);
+      return after;
+    };
+
+    const clamped = stepped(MAX_STEP_S * 1000);
+
+    expect(stepped(MAX_STEP_S * 1000 * 10)).toBe(clamped);
+    expect(stepped(MAX_STEP_S * 1000 * 1000)).toBe(clamped);
+  });
+
+  /**
+   * A car has a steering wheel: it turns towards a heading rather than snapping onto it. The rate
+   * is applied here, against the clamped step, so a rendered frame is again the only way to reach
+   * it. Driven round a right-angled corner the cap is saturated rather than merely respected -- the
+   * largest step observed over 400 frames is exactly CAR_TURN_RATE * MAX_STEP_S -- so this holds
+   * the constant rather than passing on a straight road where nothing turns at all.
+   */
+  it("turns a car no faster than its steering rate", () => {
+    engine = new NullEngine();
+    scene = new Scene(engine);
+    const s = scene;
+    const graph = new RoadGraph();
+    const a = graph.addNode(0, 0);
+    const b = graph.addNode(200, 0);
+    const c = graph.addNode(200, 200);
+    graph.addSegment(a, b, v3(100, 0, 0), "street");
+    graph.addSegment(b, c, v3(200, 0, 100), "street");
+    const models = createVehicleModels(scene);
+    const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
+    const traffic = createTrafficMoverSystem(scene, graph, () => MAX_STEP_S * 1000, () => 0, models, headlights, {
+      lightsOn: () => false,
+      enabled: true,
+      paused: false,
+      density: 1,
+      timeScale: 1,
+    });
+
+    traffic.rebuild();
+    const cap = CAR_TURN_RATE * MAX_STEP_S;
+    let previous = traffic.firstVehicle()?.target()?.heading;
+    let largest = 0;
+    for (let frame = 0; frame < 400; frame++) {
+      s.onBeforeRenderObservable.notifyObservers(s);
+      const heading = traffic.firstVehicle()?.target()?.heading;
+      if (previous !== undefined && heading !== undefined) {
+        const raw = Math.abs(heading - previous);
+        largest = Math.max(largest, raw > Math.PI ? Math.PI * 2 - raw : raw);
+      }
+      previous = heading;
+    }
+
+    expect(largest).toBeLessThanOrEqual(cap + 1e-9);
+    // The corner works the cap rather than leaving it slack, so the assertion above has something
+    // to hold: a straight road would pass it with every heading identical.
+    expect(largest).toBeCloseTo(cap);
 
     traffic.dispose();
     models.dispose();

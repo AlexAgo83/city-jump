@@ -1,14 +1,15 @@
 ## item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test - Hold the driving constants sim traffic publishes to their own test
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 25%
+> Progress: 100%
 > Complexity: Medium
 > Theme: City simulation core
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:06:32
+> Owner: Claude
 
 # AI Context
 - Summary: sim/traffic.ts is the one simulation module no colocated test reaches, and it is pure.
@@ -42,6 +43,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- Corrected premise. The request said sim/traffic.ts had no test. What was true: sixteen of the seventeen cases in src/render/traffic.test.ts were pure simulation assertions on sim/traffic exports, and only one needed a scene - so the module was well covered, but its tests were filed under render/ behind a Babylon NullEngine they never used, which is why the simulation layer looked untested from the outside. Implemented accordingly: the sixteen moved to src/sim/traffic.test.ts and run with no Babylon import, render/traffic.test.ts keeps the one renderer case, and the constants those cases turned on (CAR_GAP, CAR_STOP_SETBACK) are now written against the exported constant instead of the literal 8.5 or 71.5 they had become. Genuinely untested and now covered: MAX_STEP_S and CAR_TURN_RATE, honoured only inside the mover system's frame callback in src/render/trafficMovers.ts. They are tested there, where they run, rather than moved into sim - adr_006 gates that move on tests existing first, and this slice's scope excludes it.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`
