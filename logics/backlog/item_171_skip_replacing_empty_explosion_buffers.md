@@ -1,13 +1,14 @@
 ## item_171_skip_replacing_empty_explosion_buffers - Skip replacing empty explosion buffers
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Skip replacing the explosion thin-instance buffer when the explosion set is empty and unchanged, while still clearing the last expired explosion once.

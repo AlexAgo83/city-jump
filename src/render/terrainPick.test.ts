@@ -89,7 +89,8 @@ describe("bounded terrain picking", () => {
 
   it("stays bounded on a ray that crosses the whole map", () => {
     const wide = new Heightmap({ size: 5400, cell: 8, generator: () => 0 });
-    const grazing: PickRay = { origin: { x: -2700, y: 0.5, z: -2700 }, direction: { x: 0.7071, y: -0.00001, z: 0.7071 } };
+    const diagonal = Math.SQRT1_2;
+    const grazing: PickRay = { origin: { x: -2700, y: 0.5, z: -2700 }, direction: { x: diagonal, y: -0.00001, z: diagonal } };
 
     // 675 cells a side: a diagonal crossing visits about 1,350 of them, never the 455,625 the
     // full mesh holds. The cap is what makes "bounded" a property rather than a hope.

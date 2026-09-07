@@ -1,13 +1,14 @@
 ## item_170_update_hud_nodes_only_when_displayed_values_change - Update HUD nodes only when displayed values change
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Update existing HUD nodes when displayed values change, instead of replacing the needs and ledger subtrees on every gameplay frame.

@@ -1,13 +1,15 @@
 ## task_047_land_the_large_city_frame_cost_reductions_in_measured_order - Land the large city frame cost reductions in measured order
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
 > Progress: 0%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: claude
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Land the six per-frame cost reductions from req_047 in measured impact order, each validated on the large-demo-v14 fixture.

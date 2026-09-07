@@ -1,13 +1,14 @@
 ## item_167_short_circuit_empty_rubble_maps - Short circuit empty rubble maps
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Low
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Short-circuit Rubble.blocks when its map is empty, instead of walking parcel cells and building keys every gameplay frame.

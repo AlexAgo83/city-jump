@@ -1,13 +1,14 @@
 ## item_169_defer_hidden_overlay_geometry_until_reveal - Defer hidden overlay geometry until reveal
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Defer zone and utility overlay geometry while hidden, and realize it on reveal, instead of rebuilding it during every dirty rebuild.

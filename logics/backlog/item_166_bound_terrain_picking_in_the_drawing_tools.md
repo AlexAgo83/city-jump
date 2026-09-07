@@ -1,13 +1,14 @@
 ## item_166_bound_terrain_picking_in_the_drawing_tools - Bound terrain picking in the drawing tools
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Bound the terrain intersection work that every pointer move performs against a 911,250-triangle ground mesh.

@@ -1,13 +1,14 @@
 ## item_168_stop_repeating_equivalent_workforce_sorts - Stop repeating equivalent workforce sorts
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:20:07
 
 # AI Context
 - Summary: Cache workforce allocations when their inputs have not changed, instead of sorting jobs three times per gameplay frame.
