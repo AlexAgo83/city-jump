@@ -1,3 +1,4 @@
+import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { createBuildingRenderer } from "../render/buildings";
 import { createDestructionEffects } from "../render/destructionEffects";
 import { installDebugApi } from "../render/debugApi";
@@ -9,6 +10,7 @@ import { createRoadRenderer } from "../render/roadMesh";
 import { createRubbleRenderer } from "../render/rubble";
 import { createScene } from "../render/scene";
 import { createFpsMeter } from "../render/fps";
+import { pickHeightmap } from "../render/terrainPick";
 import { createStreetlightRenderer } from "../render/streetlights";
 import { createTrafficRenderer } from "../render/traffic";
 import { createUtilityRenderer } from "../render/utilities";
@@ -85,6 +87,15 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const history = createCityHistory<CitySave>(20);
   const ocean = createOcean(scene);
   const ground = createGround(scene, heightmap);
+  /**
+   * The pointer's place on the ground, walked over the heightmap grid rather than picked against
+   * the ground mesh: it is one mesh of 911,250 triangles, and `scene.pick` walked all of them on
+   * every pointer move a drawing tool made.
+   */
+  const pickGround = (pointerX: number, pointerY: number): { x: number; z: number } | null => {
+    const hit = pickHeightmap(heightmap, scene.createPickingRay(pointerX, pointerY, Matrix.Identity(), camera));
+    return hit ? { x: hit.x, z: hit.z } : null;
+  };
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph, (x, z) => heightmap.heightAt(x, z));
   const traffic = createTrafficRenderer(scene, graph, frameDelta, (x, z) => heightmap.heightAt(x, z));
@@ -729,7 +740,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const tool = createDrawTool(
     scene,
     graph,
-    ground.mesh,
+    pickGround,
     (x, z) => heightmap.heightAt(x, z),
     rebuild,
     showRefusal,

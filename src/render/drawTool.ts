@@ -2,7 +2,6 @@
 // is swallowed. Babylon only warns, so the tool looks broken rather than unconfigured.
 import "@babylonjs/core/Culling/ray";
 import type { Scene } from "@babylonjs/core/scene";
-import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
@@ -174,7 +173,7 @@ export interface UtilityTools {
 export function createDrawTool(
   scene: Scene,
   graph: RoadGraph,
-  ground: Mesh,
+  pickGround: (pointerX: number, pointerY: number) => { x: number; z: number } | null,
   heightAt: Terrain["heightAt"],
   _onCommitted: (dirty?: TerrainBounds) => void,
   onRefused: (reason: string) => void,
@@ -398,9 +397,7 @@ export function createDrawTool(
   }
 
   function groundPoint(): { x: number; z: number } | null {
-    const pick = scene.pick(scene.pointerX, scene.pointerY, (m) => m === ground);
-    if (!pick?.hit || !pick.pickedPoint) return null;
-    return { x: pick.pickedPoint.x, z: pick.pickedPoint.z };
+    return pickGround(scene.pointerX, scene.pointerY);
   }
 
   function onSprayMove(): void {
