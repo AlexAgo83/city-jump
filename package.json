@@ -55,8 +55,8 @@
     "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.22.2",
-    "@babylonjs/loaders": "^9.22.2"
+    "@babylonjs/core": "^9.25.0",
+    "@babylonjs/loaders": "^9.25.0"
   },
   "type": "module"
 }
