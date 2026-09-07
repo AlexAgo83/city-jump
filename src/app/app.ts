@@ -19,6 +19,7 @@ import { createTreeRenderer } from "../render/trees";
 import { createWaveMarkerRenderer } from "../render/waveMarkers";
 import { cellKey, createZoneRenderer } from "../render/zones";
 import { admittedParcels, parcelBounds, parcelId, samePosition } from "./cityRebuild";
+import { loadCityInto, type CityState } from "./cityLoad";
 import { applyCamera as applyCameraState, cameraSnapshot as snapshotCamera, createAutosave } from "./persistence";
 import { RoadGraph } from "../sim/graph";
 import { BUILDING_STAGE_SECONDS, BuildingLifecycle, type BuildingStatus } from "../sim/buildingLifecycle";
@@ -993,50 +994,47 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   updateUndoRedo();
   setTimeRate(0);
 
+  const cityState: CityState = { graph, plantings, zones, rubble, buildingLifecycle, treasury, cityEconomy, utilities, buildableCells: solveBuildableCells };
+
   function loadCity(city: CitySave): boolean {
-    tool.cancel();
-    try {
-      // The terrain has to be pristine before the replay: node elevations were recorded against
-      // the raw heightmap, and `rebuild` conforms it to the roads afterwards.
-      applyTerrain(city.terrain === "rugged" ? "rugged" : "rolling");
-      restoreCity(graph, plantings, zones, city, rubble, buildingLifecycle, treasury, cityEconomy, utilities);
-    } catch (error) {
-      showRefusal(`This city could not be loaded: ${(error as Error).message}`);
-      return false;
-    }
-    history.clear();
-    pendingHistorySnapshot = null;
-    resetWave();
-    lastTerms = undefined;
-    runState = city.run ?? createRun();
-    // Never restore a wave in progress. Nothing about the kaiju is saved -- not where it stands,
-    // not what it was walking towards, not the missiles in the air -- so reloading rebuilt the plan
-    // from a fresh seed and dropped a new monster on the other side of the island with the old
-    // hit points. A reload puts the city back to just before the wave; the city is still big
-    // enough to summon it, so it comes again.
-    waveClock = { ...(city.waveClock ?? createWaveClock()), active: null };
-    updateRunHud();
-    runPanel.renderGameplayRules();
-    runPanel.renderUpgradeWeb();
-    // The replay does not cut the city into exactly the same lots, so both the zoning and the
-    // buildings standing on it are moved onto the ones it did cut, before anything is drawn from
-    // them. See `Zones.snapTo` and `BuildingLifecycle.snapTo`.
-    const relaid = zones.snapTo(solveBuildableCells());
-    const carried = buildingLifecycle.snapTo(
-      admittedParcels(solveBuildableCells(), zones, city.resources?.population ?? 0, city.elapsed ?? 0, (parcel) => buildingLifecycle.stateOf(parcel) !== undefined),
-    );
-    if (relaid || carried) showAlert(`${relaid} zoned lots and ${carried} buildings were re-laid onto the city as it came back.`);
-    simSeconds = city.elapsed ?? 0;
-    simDay = city.day ?? 1;
-    setClockHour(city.hour, true);
-    autosavedClockSlot = `${simDay}:${Math.floor(displayedMinute(sunHour) / 15)}`;
-    addOffshoreBridge();
-    chargeConstructionStarts = false;
-    rebuild();
-    chargeConstructionStarts = true;
-    if (city.camera) applyCamera(city.camera);
-    updateUndoRedo();
-    return true;
+    const resumed = loadCityInto(city, cityState, {
+      cancelTool: () => tool.cancel(),
+      applyTerrain,
+      onRefused: showRefusal,
+      clearHistory: () => {
+        history.clear();
+        pendingHistorySnapshot = null;
+      },
+      resetWave: () => {
+        resetWave();
+        lastTerms = undefined;
+      },
+      resume: (state) => {
+        runState = state.run;
+        waveClock = state.waveClock;
+        simSeconds = state.elapsed;
+        simDay = state.day;
+      },
+      updateRunHud,
+      renderRunPanel: () => {
+        runPanel.renderGameplayRules();
+        runPanel.renderUpgradeWeb();
+      },
+      onAlert: showAlert,
+      setClockHour: (hour) => setClockHour(hour, true),
+      noteClockSlot: () => {
+        autosavedClockSlot = `${simDay}:${Math.floor(displayedMinute(sunHour) / 15)}`;
+      },
+      addOffshoreBridge,
+      rebuildWithoutCharging: () => {
+        chargeConstructionStarts = false;
+        rebuild();
+        chargeConstructionStarts = true;
+      },
+      applyCamera,
+      updateUndoRedo: () => updateUndoRedo(),
+    });
+    return resumed !== null;
   }
 
   // Pick up where the last session stopped. A city the player never named is still their work; only

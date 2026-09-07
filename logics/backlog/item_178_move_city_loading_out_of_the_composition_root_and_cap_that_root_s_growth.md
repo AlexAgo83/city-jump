@@ -1,14 +1,15 @@
 ## item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth - Move city loading out of the composition root and cap that root's growth
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: In progress
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 50%
+> Progress: 100%
 > Complexity: High
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 13:58:42
+> Indicators reviewed: 2026-09-07 14:07:52
+> Owner: Claude
 
 # AI Context
 - Summary: loadCity at app.ts:996 holds four load rules by comment alone, and nothing stops the composition root growing back after an extraction.
@@ -43,6 +44,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- The extraction is line-neutral in app.ts and that is the honest result: loadCity was 45 lines, the hook wiring that replaces it is 40, so the composition root went from 1347 to 1346 measured lines. Hook-based extraction from a closure of this size cannot do better without moving the scene, HUD and heightmap calls too, which is not what this slice is for. The value delivered is coverage, not size: the load order and its four defaulting rules now have 12 tests where they had four comments. The ceiling is therefore set at what was achieved rather than at a reduction, and its job is to stop regrowth, which it does wherever it starts. First shape tried passed every collaborator as a hook, which made app.ts grow by three lines; passing the city state in whole and hooking only what reaches the scene, the HUD or a closure variable is what brought it back down.
 
 # Links
 - Product brief(s): `prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded`

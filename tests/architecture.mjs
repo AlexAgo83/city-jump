@@ -102,6 +102,17 @@ test("shared link threat model matches the decompression cap", async () => {
   assert.ok(Buffer.byteLength(largeCity) < 1_000_000, "perf/cities/ma-ville.json fits under the documented cap");
 });
 
+test("the composition root only shrinks", async () => {
+  // The module-size reason below marks app.ts as deliberately large; it does not stop it growing.
+  // Four slices have been extracted from it with their tests -- cityRebuild, drawController,
+  // persistence, waveLoop, and now cityLoad -- and nothing prevented the next change putting the
+  // lines straight back. Lower this ceiling when a slice leaves; never raise it.
+  const ceiling = 1346;
+  const lines = (await readFile(new URL("app/app.ts", src), "utf8")).split("\n").length;
+
+  assert.ok(lines <= ceiling, `app/app.ts is ${lines} lines, past its ${ceiling}-line ceiling`);
+});
+
 test("large source modules carry their reason", async () => {
   const budget = 700;
   for (const file of files.filter((file) => !file.endsWith(".test.ts"))) {
