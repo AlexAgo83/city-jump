@@ -7,6 +7,7 @@
 > Complexity: Medium
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 14:21:02
 
 # AI Context
 - Summary: The 0.5.1 corpus review: one save-parser defect, and seven rules this repository already holds that are kept by hand rather than by something that runs.

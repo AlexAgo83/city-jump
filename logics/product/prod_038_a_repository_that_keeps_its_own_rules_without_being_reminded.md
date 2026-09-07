@@ -1,11 +1,12 @@
 ## prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded - A repository that keeps its own rules without being reminded
 > Date: 2026-09-07
-> Status: Proposed
+> Status: Settled
 > Related request: `req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand`
-> Related backlog: `item_176_accept_a_run_block_that_omits_its_end_reason`, `item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test`, `item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth`, `item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them`, `item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it`, `item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies`, `item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots`, `item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes`
+> Related backlog: `item_176_accept_a_run_block_that_omits_its_end_reason`
 > Related task: `task_053_orchestrate_the_0_5_1_review_findings`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-07 14:21:03
 
 # Overview
 Every rule this repository already believes in is enforced by something that runs, not by someone remembering - and the seams the tests need are reachable before the module gets large enough to hide them.
@@ -81,5 +82,5 @@ flowchart TD
 - Every file in docs/media is linked, recorded as externally cited, or gone.
 
 # References
-- Product back-reference: `req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand`
+- Product back-reference: `item_176_accept_a_run_block_that_omits_its_end_reason`
 - Task back-reference: `task_053_orchestrate_the_0_5_1_review_findings`
