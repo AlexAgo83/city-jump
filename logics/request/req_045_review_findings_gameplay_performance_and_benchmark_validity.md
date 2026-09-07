@@ -1,12 +1,13 @@
 ## req_045_review_findings_gameplay_performance_and_benchmark_validity - Review findings: gameplay performance and benchmark validity
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 95%
 > Confidence: 90%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:17:33
 
 # AI Context
 - Summary: The performance scripts measure a paused city, report only the last HUD window and divide every ablation by a stale baseline, so their numbers cannot select an optimization.

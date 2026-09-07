@@ -1,13 +1,14 @@
 ## item_165_review_findings_gameplay_performance_and_benchmark_validity - Review findings: gameplay performance and benchmark validity
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 09:17:34
 
 # AI Context
 - Summary: Repair the three defects that make scripts/perf.mjs and scripts/ablate.mjs report numbers that cannot select an optimization.
@@ -55,8 +56,8 @@
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_045_review_findings_gameplay_performance_and_benchmark_validity.md`
-- Primary task(s): (none yet)
+- Request: `req_045_review_findings_gameplay_performance_and_benchmark_validity`
+- Primary task(s): `task_048_review_findings_gameplay_performance_and_benchmark_validity`
 
 # Priority
 - Priority: High
@@ -66,6 +67,7 @@
 - Hybrid rationale: Derived from request `req_045_review_findings_gameplay_performance_and_benchmark_validity` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_045_review_findings_gameplay_performance_and_benchmark_validity.md`.
 - Generated locally by logics-manager.
+- Task `task_048_review_findings_gameplay_performance_and_benchmark_validity` was finished via `logics-manager flow finish task` on 2026-09-07.
 
 # Tasks
 - `task_048_review_findings_gameplay_performance_and_benchmark_validity`
