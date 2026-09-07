@@ -251,13 +251,19 @@ interface Model {
 const TO_BOXES = 1100;
 const TO_MODELS = 1000;
 
+/** What the player asked for: let the camera decide, or hold one detail at every height. */
+export type BuildingDetail = "auto" | "boxes" | "models";
+
 /**
  * The whole detail decision, kept pure so it can be checked without a scene: where the camera is,
- * whether the automatic half already chose boxes, and whether the player forced them.
+ * whether the automatic half already chose boxes, and what the player asked for.
+ *
+ * `auto` keeps running under "boxes" and "models" so the camera's answer is already correct the
+ * moment the player hands the decision back.
  */
-export function nextDistantDetail(radius: number, wasAuto: boolean, forced: boolean): { auto: boolean; far: boolean } {
+export function nextDistantDetail(radius: number, wasAuto: boolean, detail: BuildingDetail): { auto: boolean; far: boolean } {
   const auto = wasAuto ? radius > TO_MODELS : radius > TO_BOXES;
-  return { auto, far: forced || auto };
+  return { auto, far: detail === "boxes" || (detail === "auto" && auto) };
 }
 
 export async function createBuildingRenderer(scene: Scene, ground: Heightmap, shadows: ShadowGenerator) {
@@ -315,7 +321,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   let taken: Mesh | null = null;
   let visible = true;
   let far = false;
-  let forcedBoxes = false;
+  let detail: BuildingDetail = "auto";
   let autoBoxes = false;
   let gridVisible = false;
   // Roof props are created already opaque (see buildRoofProps), so this starts in sync with that
@@ -331,11 +337,11 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   const modelById = new Map<string, Model>();
 
   /**
-   * Boxes are on if either half asks for them. Both halves go through here so the manual override
-   * and the camera cannot fight over `far`, and a no-op change costs one comparison.
+   * One place decides `far`, so the player's choice and the camera cannot fight over it, and a
+   * no-op change costs one comparison.
    */
   function applyDistance(): void {
-    const next = forcedBoxes || autoBoxes;
+    const next = detail === "boxes" || (detail === "auto" && autoBoxes);
     if (next === far) return;
     far = next;
     applyBuildingVisibility();
@@ -642,9 +648,9 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       decorVisible = next;
       applyDecor();
     },
-    /** The manual override: checked draws boxes at any height, unchecked leaves it to the camera. */
-    setDistant(next: boolean) {
-      forcedBoxes = next;
+    /** "auto" leaves it to the camera; "boxes" and "models" hold one detail at every height. */
+    setDetail(next: BuildingDetail) {
+      detail = next;
       applyDistance();
     },
     /**
@@ -653,7 +659,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
      * from swapping the whole city back and forth every frame.
      */
     setCameraRadius(radius: number) {
-      autoBoxes = nextDistantDetail(radius, autoBoxes, forcedBoxes).auto;
+      autoBoxes = nextDistantDetail(radius, autoBoxes, detail).auto;
       applyDistance();
     },
     setGridVisible(next: boolean) {

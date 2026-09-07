@@ -559,9 +559,12 @@ painted that lot -- the same rule, so the swap is a change of detail rather than
 threshold from swapping the whole city every frame. The **Force boxes** checkbox overrides it and
 draws boxes at any height; unchecked leaves the decision to the camera.
 
-This automatic swap was removed on purpose in 6d390f3 and put back here on measured grounds. It
-still has the cost that removal named: from above, the city is boxes. There is no "never boxes"
-state -- the checkbox forces boxes on, it cannot force them off.
+This automatic swap was removed on purpose in 6d390f3 and put back here on measured grounds. The
+cost that removal named is real -- from above, the city is boxes -- so the **Far** control in the
+Look row has three states rather than two: `Auto` lets the camera decide, `Boxes` holds boxes at
+every height, and `Models` holds models at every height, which is the case 6d390f3 protected.
+`Auto` is the default and carries the measured gain; a player who would rather study the city from
+above in full models can say so.
 
 The camera's own upper limit is 1200 m, so the automatic band is the top 100 m of the zoom. That is
 deliberate: at 950 m the boxes visibly lose towers, roof colours and farm rows that are still

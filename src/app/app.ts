@@ -949,8 +949,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     onDecor(visible) {
       buildings.setDecor(visible);
     },
-    onBoxes(boxes) {
-      buildings.setDistant(boxes);
+    onBuildingDetail(detail) {
+      buildings.setDetail(detail);
     },
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,

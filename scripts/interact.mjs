@@ -982,14 +982,14 @@ await page.evaluate(async () => {
 });
 const highUp = await boxState();
 check("pulling the camera out past 1100 m draws the city as boxes", highUp.boxes && highUp.instances > 0 && highUp.models === 0, JSON.stringify(highUp));
-await page.locator("#show-boxes").check();
+await page.selectOption("#building-detail", "boxes");
 await nextFrame();
 const boxed = await boxState();
-check("the Force boxes switch draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
-await page.locator("#show-boxes").uncheck();
+check("holding Boxes draws the city as boxes", boxed.boxes && boxed.instances > 0 && boxed.models === 0, JSON.stringify(boxed));
+await page.selectOption("#building-detail", "auto");
 await nextFrame();
 const unboxed = await boxState();
-check("turning the switch off high up leaves the camera in charge", unboxed.boxes && unboxed.models === 0, JSON.stringify(unboxed));
+check("back on Auto high up leaves the camera in charge", unboxed.boxes && unboxed.models === 0, JSON.stringify(unboxed));
 await page.evaluate(async () => {
   const scene = window.cityjump._scene;
   window.cityjump.camera(300, Math.PI / 3.4);
@@ -998,6 +998,18 @@ await page.evaluate(async () => {
 await nextFrame();
 const backDown = await boxState();
 check("and coming back down below 1000 m brings the models back", !backDown.boxes && backDown.models > 0, JSON.stringify(backDown));
+// The case 6d390f3 protected, and the reason this control has a third state at all.
+await page.evaluate(async () => {
+  const scene = window.cityjump._scene;
+  window.cityjump.camera(1600, Math.PI / 3.4);
+  await new Promise((resolve) => scene.onAfterRenderObservable.addOnce(() => resolve()));
+});
+await page.selectOption("#building-detail", "models");
+await nextFrame();
+const heldModels = await boxState();
+check("holding Models keeps the city in models from above", !heldModels.boxes && heldModels.models > 0, JSON.stringify(heldModels));
+await page.selectOption("#building-detail", "auto");
+await nextFrame();
 await page.evaluate(() => window.cityjump.camera(520, Math.PI / 3.4));
 await nextFrame();
 const cityHud = await cityHudText();

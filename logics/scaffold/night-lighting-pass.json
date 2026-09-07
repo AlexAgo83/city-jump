@@ -1,0 +1,153 @@
+{
+  "title": "Reduce the clustered night lighting pass",
+  "references": [
+    "src/render/streetlights.ts",
+    "src/render/vehicleLights.ts",
+    "src/render/postFx.ts",
+    "scripts/review/distance.mjs",
+    "docs/performance.md",
+    "logics/backlog/item_190_bound_distant_night_lighting_while_preserving_city_readability.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Performance",
+    "needs": [
+      "Night frames pay for two clustered light containers whose cost is the pass itself, not the lamps in it; find whether any of that is recoverable without losing night readability."
+    ],
+    "context": [
+      "Measured in task_055 over three interleaved rounds each, read as per-round paired deltas. Disabling the streetlight clustered container buys +32.1% frame p50 at night-saved, +25.0% night-street and +11.8% night-overview; the headlight container buys +14.0% / +12.3% / +15.3%.",
+      "Disabling all 808 individual emitters while both containers stay enabled buys +1.0%, and dimming the emissive bulb materials buys nothing. The cost is the container's own per-frame pass, not the emitters or the lit bulbs.",
+      "item_190 rejected a distance policy on that evidence and remains correct: a distance policy can only reach individual lamps, which is the +1.0% row. This request does not revisit that decision, it attacks the pass instead.",
+      "Evidence lives in perf/reviews/task055-wave3-lights-ablation-streetlights, -headlights, -emitters, -bulbs and -all. Comparisons must be read with scripts/review/paired.mjs, and any new ablation must fail loudly rather than return a sample when it reaches nothing.",
+      "The ground is the largest receiver of these lights: it costs -0.0% by day and +11.9% by night at the identical saved framing, so a cheaper lighting model would show up there first."
+    ],
+    "acceptance_criteria": [
+      "AC1: The container pass cost is attributed before anything is changed: maxRange, tile and depth-slice counts, lamp count and receiver area are each varied independently and measured, so the shipped change targets a cause rather than a correlation.",
+      "AC2: Lowering ClusteredLightContainer maxRange, currently 52 m for streetlights and 42 m for headlights, is measured and either retained with night screenshots showing unchanged pool and facade reach, or rejected with its recorded cost and the reach it would have cost.",
+      "AC3: Reducing how many lamps carry a real light, by spacing or by a cap, is measured separately from maxRange and judged on paired night captures at street, district and saved framings; road and facade readability must not regress into dark gaps.",
+      "AC4: Whether this scene needs a clustered container at all is answered with a measured prototype of a cheaper lighting model, or with a recorded reason it cannot be tried; a rejected prototype is removed and keeps its evidence.",
+      "AC5: Each candidate carries three interleaved rounds against the current integrated baseline, read as per-round paired deltas, or a documented measured rejection. No feature ablation is reported as an implemented gain.",
+      "AC6: The player's lights switch keeps its current all-or-nothing behaviour, day frames still pay no night-light pass, and camera travel creates or disposes no emitter pools; npm run ci, npm run test:e2e and Logics validation pass, and docs/performance.md records the shipped policy and the rejected candidates."
+    ]
+  },
+  "product": {
+    "title": "A city that stays readable at night without paying twice for it",
+    "overview": "Night is the most expensive time of day in this city, and the cost sits in the lighting pass rather than in the lamps a player can see. Recover what is recoverable, and say plainly what is not.",
+    "goals": [
+      "A night frame that costs less without the streets going dark."
+    ],
+    "non_goals": [
+      "A new lighting engine, generated textures, removing the player's lights switch, or revisiting distance-based lamp culling already rejected on measurement."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Attribute the clustered container pass cost before changing it",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC1",
+        "AC5"
+      ],
+      "problem": [
+        "The container pass is known to cost 32.1% at night-saved, but not which of its parameters carries that cost."
+      ],
+      "scope_in": [
+        "Vary maxRange, tile counts, depth slices, lamp count and receiver area independently, each three rounds, each ablation failing loudly if it reaches nothing."
+      ],
+      "scope_out": [
+        "Shipping any change; revisiting the distance policy item_190 rejected."
+      ],
+      "acceptance_criteria": [
+        "AC1: Each parameter is varied alone and measured over three interleaved rounds, with the ablation proving it applied.",
+        "AC2: The report names which parameter carries the cost and which do not, so later slices target a cause."
+      ]
+    },
+    {
+      "title": "Measure a lower clustered maxRange against night reach",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC2",
+        "AC5",
+        "AC6"
+      ],
+      "problem": [
+        "maxRange bounds every light for clustering at 52 m and 42 m; a smaller bound may cost pool and facade reach."
+      ],
+      "scope_in": [
+        "Candidate ranges measured at street, district and saved night framings, with paired captures of pool and facade reach."
+      ],
+      "scope_out": [
+        "Changing light intensities or the lamp model to compensate."
+      ],
+      "acceptance_criteria": [
+        "AC1: Retained only with night captures showing unchanged usable reach, or rejected with the recorded cost and the reach it would have cost.",
+        "AC2: Day frames still pay no night-light pass and the player's lights switch is unchanged."
+      ]
+    },
+    {
+      "title": "Measure fewer real lights against dark gaps",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC3",
+        "AC5",
+        "AC6"
+      ],
+      "problem": [
+        "Every lamp carries a real pool and facade light; the city may not need one per lamp to read as lit."
+      ],
+      "scope_in": [
+        "Spacing or a cap on how many lamps carry real lights, measured separately from maxRange, with paired night captures at three framings."
+      ],
+      "scope_out": [
+        "Removing lamp geometry or emissive bulbs, which measured free."
+      ],
+      "acceptance_criteria": [
+        "AC1: Road and facade readability show no dark gaps in paired captures, or the candidate is rejected with them.",
+        "AC2: Camera travel creates or disposes no emitter pools."
+      ]
+    },
+    {
+      "title": "Answer whether this scene needs a clustered container",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": [
+        "AC4",
+        "AC5",
+        "AC6"
+      ],
+      "problem": [
+        "The clustered container is assumed to be the right model for hundreds of small lights, and that assumption has never been measured against a cheaper one."
+      ],
+      "scope_in": [
+        "One measured prototype of a cheaper lighting model, judged on night captures and the same three-round rule; removed if rejected, with its evidence kept."
+      ],
+      "scope_out": [
+        "A general lighting engine, new generated textures, or shipping a prototype that fails appearance."
+      ],
+      "acceptance_criteria": [
+        "AC1: Either a measured retained implementation, or a recorded reason it cannot be tried, with the ground as the receiver checked either way.",
+        "AC2: A rejected prototype is removed from src and keeps its committed results."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Deliver the measured night lighting pass reduction",
+    "plan": [
+      "Attribute the container pass cost parameter by parameter before changing anything.",
+      "Measure maxRange, then lamp count, then a cheaper lighting model, each decided separately against night captures.",
+      "Run the integrated night A/B, CI, e2e and Logics validation, and record shipped and rejected candidates in docs/performance.md."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/night-lighting-pass.json",
+    "mode": "summary-only",
+    "profile": "normal"
+  }
+}

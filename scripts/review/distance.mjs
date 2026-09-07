@@ -96,7 +96,7 @@ try {
 					cases[name].night ? 22 : 10,
 				);
 				if (candidate && options.variant === "boxes")
-					await page.locator("#show-boxes").check();
+					await page.selectOption("#building-detail", "boxes");
 				if (candidate && options.variant === "lights")
 					await page.locator("#show-lights").uncheck();
 				await page.locator("#toolbar-toggle").click();

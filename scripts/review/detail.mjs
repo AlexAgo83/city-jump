@@ -71,17 +71,28 @@ check(near.shadowCasters > 0 && far.shadowCasters > 0, "both details must keep c
 
 // The manual override still wins at any height, and releasing it hands the city back to the camera.
 await page.evaluate(() => window.cityjump.camera(300, Math.PI / 3));
-await page.locator("#show-boxes").check();
+await page.selectOption("#building-detail", "boxes");
 await page.waitForTimeout(800);
 await page.screenshot({ path: media("forced-boxes-near") });
 const forced = await look();
 console.log("forced-boxes-near", JSON.stringify(forced));
-check(forced.boxesOn === true && forced.modelsOn === 0, "the override must draw boxes even close in");
-await page.locator("#show-boxes").uncheck();
+check(forced.boxesOn === true && forced.modelsOn === 0, "holding boxes must draw them even close in");
+await page.selectOption("#building-detail", "auto");
 await page.waitForTimeout(800);
 const released = await look();
 console.log("released", JSON.stringify(released));
-check(released.boxesOn === false && released.modelsOn === near.modelsOn, "releasing the override close in must restore the models");
+check(released.boxesOn === false && released.modelsOn === near.modelsOn, "back on auto close in must restore the models");
+
+// Holding models must keep them at a height where auto would have swapped in boxes.
+await page.evaluate(() => window.cityjump.camera(1600, Math.PI / 3));
+await page.selectOption("#building-detail", "models");
+await page.waitForTimeout(1000);
+await page.screenshot({ path: media("held-models-far") });
+const heldModels = await look();
+console.log("held-models-far", JSON.stringify(heldModels));
+check(heldModels.boxesOn === false && heldModels.modelsOn === near.modelsOn, "holding models must keep them high up");
+await page.selectOption("#building-detail", "auto");
+await page.waitForTimeout(800);
 
 // A rebuild replaces every mesh: the detail must survive it rather than come back stale.
 await page.evaluate(() => window.cityjump.camera(1600, Math.PI / 3));

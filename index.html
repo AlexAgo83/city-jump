@@ -304,7 +304,6 @@
       <label><input id="show-grid" type="checkbox" /> Grid</label>
       <label><input id="show-buildings" type="checkbox" checked /> Buildings</label>
       <label><input id="show-decor" type="checkbox" checked /> Details</label>
-      <label title="Off: the city switches to boxes on its own once the camera is high enough. On: boxes at any height."><input id="show-boxes" type="checkbox" /> Force boxes</label>
     </div>
     <div class="toolbar-row toolbar-continued">
       <span class="row-label">Look</span>
@@ -326,6 +325,13 @@
           <option value="60" selected>60</option>
           <option value="120">120</option>
           <option value="0">Max</option>
+        </select>
+      </label>
+      <label title="How the far city is drawn. Auto swaps buildings for boxes above 1100 m and back below 1000 m; Boxes and Models hold one at every height.">Far
+        <select id="building-detail" aria-label="Far city detail">
+          <option value="auto" selected>Auto</option>
+          <option value="boxes">Boxes</option>
+          <option value="models">Models</option>
         </select>
       </label>
     </div>

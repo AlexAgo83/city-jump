@@ -14,6 +14,7 @@ import {
   writeActiveSave,
   type UiSettings,
 } from "./saves";
+import type { BuildingDetail } from "../render/buildings";
 import { showRefusal } from "./hud";
 
 // ponytail: module-size is one static settings panel wired to DOM ids in index.html; split when a
@@ -42,7 +43,7 @@ export function bindControls(handlers: {
   /** Street furniture and roof clutter: everything a building wears once it is finished. */
   onDecor(visible: boolean): void;
   /** Draw the city as coloured boxes rather than models, whatever the camera is doing. */
-  onBoxes(boxes: boolean): void;
+  onBuildingDetail(detail: BuildingDetail): void;
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
@@ -174,7 +175,7 @@ export function bindControls(handlers: {
   const gridSnap = document.getElementById("grid-snap") as HTMLInputElement;
   const showBuildings = document.getElementById("show-buildings") as HTMLInputElement;
   const showDecor = document.getElementById("show-decor") as HTMLInputElement;
-  const showBoxes = document.getElementById("show-boxes") as HTMLInputElement;
+  const buildingDetail = document.getElementById("building-detail") as HTMLSelectElement;
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
@@ -201,8 +202,8 @@ export function bindControls(handlers: {
     persistSettings();
   });
 
-  on(showBoxes, "change", () => {
-    handlers.onBoxes(showBoxes.checked);
+  on(buildingDetail, "change", () => {
+    handlers.onBuildingDetail(buildingDetail.value as BuildingDetail);
     persistSettings();
   });
 
@@ -426,7 +427,7 @@ export function bindControls(handlers: {
       grid: showGrid.checked,
       buildings: showBuildings.checked,
       decor: showDecor.checked,
-      boxes: showBoxes.checked,
+      buildingDetail: buildingDetail.value as BuildingDetail,
       gridSnap: gridSnap.checked,
       fps: showFps.checked,
       shadows: showShadows.checked,
@@ -511,7 +512,11 @@ export function bindControls(handlers: {
   applySetting(showGrid, stored.grid);
   applySetting(showBuildings, stored.buildings);
   applySetting(showDecor, stored.decor);
-  applySetting(showBoxes, stored.boxes);
+  // `boxes` is what this setting was before it grew a third state: a checked box meant boxes at
+  // every height, and unchecked meant models at every height, since the camera decided nothing.
+  if (stored.buildingDetail) buildingDetail.value = stored.buildingDetail;
+  else if (stored.boxes !== undefined) buildingDetail.value = stored.boxes ? "boxes" : "models";
+  buildingDetail.dispatchEvent(new Event("change"));
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
