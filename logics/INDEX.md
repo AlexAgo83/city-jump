@@ -56,6 +56,7 @@
 | [prod_037_continuous_roads_and_legible_terrain_zoning](product/prod_037_continuous_roads_and_legible_terrain_zoning.md) | Continuous roads and legible terrain zoning | Settled |  |  | product/prod_037_continuous_roads_and_legible_terrain_zoning.md |
 | [prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded](product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md) | A repository that keeps its own rules without being reminded | Settled |  |  | product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md |
 | [prod_039_a_shop_window_that_shows_the_game_that_exists](product/prod_039_a_shop_window_that_shows_the_game_that_exists.md) | A shop window that shows the game that exists | Settled |  |  | product/prod_039_a_shop_window_that_shows_the_game_that_exists.md |
+| [prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city](product/prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city.md) | A smoother city near and far without losing the distant city | Proposed |  |  | product/prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city.md |
 
 ## Roadmaps
 
@@ -122,6 +123,8 @@
 | [req_050_keep_roads_and_zone_overlays_clear_of_terrain](request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md) | Keep roads and zone overlays clear of terrain | Done |  |  | request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md |
 | [req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand](request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md) | Review findings: a save the parser refuses, sim seams no test reaches, and gates kept by hand | Done |  |  | request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md |
 | [req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing](request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md) | Ship the played Demo city, reshoot the README from it, and stop the README overstating what is missing | Done |  |  | request/req_052_ship_the_played_demo_city_reshoot_the_readme_from_it_and_stop_the_readme_overstating_what_is_missing.md |
+| [req_053_review_findings_distance_culling_and_remaining_frame_costs](request/req_053_review_findings_distance_culling_and_remaining_frame_costs.md) | Review findings: distance culling and remaining frame costs | Archived |  |  | request/req_053_review_findings_distance_culling_and_remaining_frame_costs.md |
+| [req_054_deliver_measured_distance_aware_city_performance](request/req_054_deliver_measured_distance_aware_city_performance.md) | Deliver measured distance-aware city performance | Ready |  |  | request/req_054_deliver_measured_distance_aware_city_performance.md |
 
 ## Backlog
 
@@ -313,6 +316,14 @@
 | [item_184_replace_the_bundled_demo_with_a_city_that_has_been_played](backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md) | Replace the bundled Demo with a city that has been played | Done | Claude | 100% | backlog/item_184_replace_the_bundled_demo_with_a_city_that_has_been_played.md |
 | [item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing](backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md) | Retake the README captures from the Demo on its own framing | Done | Claude | 100% | backlog/item_185_retake_the_readme_captures_from_the_demo_on_its_own_framing.md |
 | [item_186_make_every_readme_claim_one_the_code_or_the_record_can_support](backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md) | Make every README claim one the code or the record can support | Done | Claude | 100% | backlog/item_186_make_every_readme_claim_one_the_code_or_the_record_can_support.md |
+| [item_187_repair_performance_readiness_and_establish_comparable_distance_baselines](backlog/item_187_repair_performance_readiness_and_establish_comparable_distance_baselines.md) | Repair performance readiness and establish comparable distance baselines | Ready |  | 0% | backlog/item_187_repair_performance_readiness_and_establish_comparable_distance_baselines.md |
+| [item_188_cull_distant_traffic_visuals_without_stopping_the_simulation](backlog/item_188_cull_distant_traffic_visuals_without_stopping_the_simulation.md) | Cull distant traffic visuals without stopping the simulation | Ready |  | 0% | backlog/item_188_cull_distant_traffic_visuals_without_stopping_the_simulation.md |
+| [item_189_restore_automatic_building_detail_with_a_manual_boxes_override](backlog/item_189_restore_automatic_building_detail_with_a_manual_boxes_override.md) | Restore automatic building detail with a manual boxes override | Ready |  | 0% | backlog/item_189_restore_automatic_building_detail_with_a_manual_boxes_override.md |
+| [item_190_bound_distant_night_lighting_while_preserving_city_readability](backlog/item_190_bound_distant_night_lighting_while_preserving_city_readability.md) | Bound distant night lighting while preserving city readability | Ready |  | 0% | backlog/item_190_bound_distant_night_lighting_while_preserving_city_readability.md |
+| [item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames](backlog/item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames.md) | Make workforce caching reusable across unchanged gameplay frames | Ready |  | 0% | backlog/item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames.md |
+| [item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets](backlog/item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets.md) | Batch static city geometry by spatial tiles with shared assets | Ready |  | 0% | backlog/item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets.md |
+| [item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap](backlog/item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap.md) | Evaluate terrain tiling and distant geometry without changing the heightmap | Ready |  | 0% | backlog/item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap.md |
+| [item_194_evaluate_a_minimal_render_resolution_quality_option](backlog/item_194_evaluate_a_minimal_render_resolution_quality_option.md) | Evaluate a minimal render-resolution quality option | Ready |  | 0% | backlog/item_194_evaluate_a_minimal_render_resolution_quality_option.md |
 
 ## Tasks
 
@@ -372,6 +383,7 @@
 | [task_052_fix_terrain_crossing_roads_and_zones](tasks/task_052_fix_terrain_crossing_roads_and_zones.md) | Fix terrain crossing roads and zones | Done | Codex | 100% | tasks/task_052_fix_terrain_crossing_roads_and_zones.md |
 | [task_053_orchestrate_the_0_5_1_review_findings](tasks/task_053_orchestrate_the_0_5_1_review_findings.md) | Orchestrate the 0.5.1 review findings | Done | Claude | 100% | tasks/task_053_orchestrate_the_0_5_1_review_findings.md |
 | [task_054_orchestrate_the_demo_swap_and_readme_correction](tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md) | Orchestrate the Demo swap and README correction | Done | Claude | 100% | tasks/task_054_orchestrate_the_demo_swap_and_readme_correction.md |
+| [task_055_deliver_and_validate_the_distance_aware_performance_slices](tasks/task_055_deliver_and_validate_the_distance_aware_performance_slices.md) | Deliver and validate the distance-aware performance slices | Ready |  | 0% | tasks/task_055_deliver_and_validate_the_distance_aware_performance_slices.md |
 
 ## Runbooks
 

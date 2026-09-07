@@ -1,0 +1,502 @@
+{
+  "budgets": {
+    "max_docs": 16,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_054_deliver_measured_distance_aware_city_performance task_055_deliver_and_validate_the_distance_aware_performance_slices --mode full --profile deep",
+  "companion_docs": [],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "deliver, measured, distance, aware, city, performance",
+        "skip when": "proposing asset streaming, changing simulation rules or citing historical ablations as an implemented gain.",
+        "summary": "Execute eight measured performance slices from the September 7 review; preserve distant simulation and visual quality, with explicit rejection evidence for prototypes that do not earn their cost.",
+        "use when": "choosing and delivering the remaining distance, lighting, CPU, terrain and resolution improvements against the current model catalog."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_187_repair_performance_readiness_and_establish_comparable_distance_baselines",
+          "item_188_cull_distant_traffic_visuals_without_stopping_the_simulation",
+          "item_189_restore_automatic_building_detail_with_a_manual_boxes_override",
+          "item_190_bound_distant_night_lighting_while_preserving_city_readability",
+          "item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames",
+          "item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets",
+          "item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap",
+          "item_194_evaluate_a_minimal_render_resolution_quality_option"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_053_review_findings_distance_culling_and_remaining_frame_costs",
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "run": [
+          "run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint",
+          "run_009_rerun_the_large_city_performance_review"
+        ]
+      },
+      "path": "logics/request/req_054_deliver_measured_distance_aware_city_performance.md",
+      "ref": "req_054_deliver_measured_distance_aware_city_performance",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: All performance harnesses use current asset/fixture readiness with explicit missing-asset diagnostics, record the actual renderer and workload, and reproduce fresh baseline measurements without temporary script edits.",
+          "- AC2: Traffic visibility follows camera distance at bounded cadence while routes, queues, simulation time and gameplay outcomes continue offscreen; child meshes, headlights, selection and follow remain coherent.",
+          "- AC3: Automatic building detail uses hysteresis and the existing simplified geometry, retains a manual force-boxes override, composes with all view/tool toggles and preserves selection and shadow invalidation.",
+          "- AC4: Night lighting receives a measured distance-based implementation or an explicitly evidenced no-change decision; accepted changes preserve visible road/facade illumination and avoid per-camera light creation/disposal.",
+          "- AC5: Lifecycle and needs allocations reuse results for unchanged semantic inputs independently; policy-specific population bands, incumbency and rebuilding exclusions remain correct and deterministic.",
+          "- AC6: Spatial batching is prototyped for buildings and trees, with streetlight geometry evaluated separately, and either retained with measured frame-time benefit or removed with evidence; retained batches share assets, preserve identity, shadows and bounded rebuild equivalence."
+        ],
+        "Needs": [
+          "- Turn the September 7 performance review into an executable delivery chain covering every candidate, preserving city appearance and offscreen gameplay.",
+          "- Restore missing distance policies, investigate spatial rendering and night lighting, finish the confirmed workforce cache gap, and repair measurement/documentation drift.",
+          "- Every speculative rendering change includes a prototype and measured keep/reject outcome; no unmeasured FPS promise or silent omission. Keep shared assets resident; loading/streaming needs memory evidence outside this chain."
+        ]
+      },
+      "status": "Ready",
+      "title": "Deliver measured distance-aware city performance"
+    },
+    {
+      "ai_context": {
+        "keywords": "performance, FPS, distance, thin instances, terrain, workforce, benchmark",
+        "skip when": "changing game balance or implementing world streaming without evidence of memory pressure.",
+        "summary": "Review remaining frame costs and missing distance policies against the current renderer, without implementing optimizations.",
+        "use when": "choosing the next measured FPS optimization for large cities."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "req": [
+          "req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits",
+          "req_053_review_findings_distance_culling_and_remaining_frame_costs"
+        ]
+      },
+      "path": "logics/request/req_053_review_findings_distance_culling_and_remaining_frame_costs.md",
+      "ref": "req_053_review_findings_distance_culling_and_remaining_frame_costs",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Benchmark readiness reflects the current model catalog and fails clearly for missing assets; historical distance claims are reconciled with executable behavior.",
+          "- AC2: Any selected distance experiment preserves offscreen simulation, follow/selection, shadow coverage and visual continuity; compare street, district and overview cameras including movement.",
+          "- AC3: Any selected workforce change proves cache reuse for unchanged inputs separately for each policy and retains existing simulation outcomes.",
+          "- AC4: Accept optimizations only on repeated comparable measurements of frame-time median/p95/p99, CPU cost and relevant render counts, with actual GPU, resolution, city state and simulation rate recorded. Measure editing/loading stalls separately."
+        ],
+        "Needs": [
+          "- Prioritize distance-based visibility and detail experiments using current measurements, preserving simulation outside the camera.",
+          "- Repair benchmark preconditions and outdated performance documentation before relying on historical claims.",
+          "- Investigate the remaining workforce cache misses despite the completed item_168; reuse its policy constraints rather than creating a duplicate implementation commitment.",
+          "- Capture candidates only: no application changes, backlog, tasks or product brief in this review."
+        ]
+      },
+      "status": "Archived",
+      "title": "Review findings: distance culling and remaining frame costs"
+    },
+    {
+      "ai_context": {
+        "keywords": "repair, performance, readiness, establish, comparable, distance, baselines",
+        "skip when": "Changing gameplay or implementing optimizations in this measurement slice.",
+        "summary": "The profile probe times out waiting for exactly 28 models; the current city settles at 107. Other probes and docs carry the same historical assumptions.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_187_repair_performance_readiness_and_establish_comparable_distance_baselines"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_187_repair_performance_readiness_and_establish_comparable_distance_baselines.md",
+      "ref": "item_187_repair_performance_readiness_and_establish_comparable_distance_baselines",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: The documented runner finishes on the current reference without local patches; missing models produce a bounded actionable failure, covered by a small readiness test.",
+          "- AC2: Fresh baseline and per-feature diagnostics include the defined metadata and verify the simulation was running, while pause and traffic simulation-off are explicitly distinct controls.",
+          "- AC3: The comparison protocol and retention rule are recorded in docs/performance.md; feature removal is not presented as the expected gain of partial culling."
+        ],
+        "Problem": [
+          "- The profile probe times out waiting for exactly 28 models; the current city settles at 107. Other probes and docs carry the same historical assumptions.",
+          "- The committed September 7 review measures 93.2 FPS daytime and 58.6 at night, but uses a temporary readiness adaptation and one saved camera; it is evidence, not a complete before/after baseline."
+        ]
+      },
+      "status": "Ready",
+      "title": "Repair performance readiness and establish comparable distance baselines"
+    },
+    {
+      "ai_context": {
+        "keywords": "cull, distant, traffic, visuals, stopping, simulation",
+        "skip when": "Stopping, thinning or slowing offscreen simulation.",
+        "summary": "The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_188_cull_distant_traffic_visuals_without_stopping_the_simulation"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_188_cull_distant_traffic_visuals_without_stopping_the_simulation.md",
+      "ref": "item_188_cull_distant_traffic_visuals_without_stopping_the_simulation",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A focused check covers enter/exit hysteresis, paused camera movement, spawned movers, follow exemption and composition with pedestrian/part detail thresholds.",
+          "- AC2: Offscreen simulation positions, queues and counts match unculled execution for the same steps; no extra lights or meshes are created during camera travel.",
+          "- AC3: Headed street/district/overview A/B uses render-only visibility, with e2e selection/follow and night checks; retain only under the shared measurement rule. If the first candidate fails, record the result and revise the approach before claiming request AC2; a rejected traffic prototype alone does not satisfy the required distance behavior."
+        ],
+        "Problem": [
+          "- The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.",
+          "- Existing setEnabled(false) clears movers and is unsuitable as distance culling."
+        ]
+      },
+      "status": "Ready",
+      "title": "Cull distant traffic visuals without stopping the simulation"
+    },
+    {
+      "ai_context": {
+        "keywords": "restore, automatic, building, detail, manual, boxes, override",
+        "skip when": "Per-building distance buffer rewrites every frame.",
+        "summary": "Buildings.setDistant is called only by the manual checkbox; the documented 1100 m automatic switch no longer exists.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_189_restore_automatic_building_detail_with_a_manual_boxes_override"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_189_restore_automatic_building_detail_with_a_manual_boxes_override.md",
+      "ref": "item_189_restore_automatic_building_detail_with_a_manual_boxes_override",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Threshold oscillation does not flicker; manual override, visibility/tool combinations and async/rebuild paths have focused coverage.",
+          "- AC2: Near, far and transition captures preserve colors, construction, selection and shadows. Zooming back never leaves stale boxes or missing models.",
+          "- AC3: Paired far-view and moving-camera measurements meet the retention rule; record selected thresholds and exact shipped behavior."
+        ],
+        "Problem": [
+          "- Buildings.setDistant is called only by the manual checkbox; the documented 1100 m automatic switch no longer exists.",
+          "- Visibility setters and detail culler both enable meshes, so automatic transitions must not undo zoning/traffic views or decoration settings."
+        ]
+      },
+      "status": "Ready",
+      "title": "Restore automatic building detail with a manual boxes override"
+    },
+    {
+      "ai_context": {
+        "keywords": "bound, distant, night, lighting, while, preserving, city, readability",
+        "skip when": "Switching off all distant lighting with no visual substitute.",
+        "summary": "Streetlights and vehicle headlights use city-wide clustered containers. Removing distant emitters may still leave a costly clustered pass.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_190_bound_distant_night_lighting_while_preserving_city_readability"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_190_bound_distant_night_lighting_while_preserving_city_readability.md",
+      "ref": "item_190_bound_distant_night_lighting_while_preserving_city_readability",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Near lighting and distant road/facade readability remain demonstrably coherent in paired night screenshots; transitions have no sudden blackout.",
+          "- AC2: Camera movement and repeat load/edit cycles do not create/dispose emitter pools continuously or leak resources; daytime incurs no night-light pass.",
+          "- AC3: Report separate street/car/cluster measurements and a retained implementation or explicit measured rejection, including why earlier failed substitutes now work or remain unsuitable."
+        ],
+        "Problem": [
+          "- Streetlights and vehicle headlights use city-wide clustered containers. Removing distant emitters may still leave a costly clustered pass.",
+          "- Previous distance removal flattened the city and an additive substitute rendered black; simply disabling far lights is not an acceptable visual outcome."
+        ]
+      },
+      "status": "Ready",
+      "title": "Bound distant night lighting while preserving city readability"
+    },
+    {
+      "ai_context": {
+        "keywords": "workforce, caching, reusable, across, unchanged, gameplay, frames",
+        "skip when": "One shared allocation policy for lifecycle and HUD.",
+        "summary": "Workforce has a single last-allocation cache keyed by array and callback identity. Lifecycle builds fresh arrays/closures; the needs path builds another array and interleaves a distinct policy.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames.md",
+      "ref": "item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: An integration-level runnable check proves zero repeated allocation sorts across unchanged app-equivalent frames for both interleaved policies, and recalculation on every relevant input change.",
+          "- AC2: Compare cached and uncached outputs across population bands, workforce shortages, incumbent changes, parcel reordering, rebuild holds, expiry and reload; deterministic scenario outcomes match.",
+          "- AC3: Run existing lifecycle/workforce/battery/replay tests and scenarios; record allocation counts and CPU/frame-time evidence for x1 and x4 without changing simulation cadence."
+        ],
+        "Problem": [
+          "- Workforce has a single last-allocation cache keyed by array and callback identity. Lifecycle builds fresh arrays/closures; the needs path builds another array and interleaves a distinct policy.",
+          "- Completed item_168 already shares battery staffing and precomputes sort terms; this slice fixes the remaining invalidation gap, not those delivered changes."
+        ]
+      },
+      "status": "Ready",
+      "title": "Make workforce caching reusable across unchanged gameplay frames"
+    },
+    {
+      "ai_context": {
+        "keywords": "batch, static, city, geometry, spatial, tiles, shared, assets",
+        "skip when": "Network/disk streaming or unloading shared models based on camera distance.",
+        "summary": "Buildings, tree species and streetlight geometry force global meshes active. Thin-instance bounds span the city and cannot reject individual instances.",
+        "use when": "implementing this bounded performance slice after its stated dependencies and comparing it with the recorded GPU baseline."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/backlog/item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets.md",
+      "ref": "item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Boundary and negative-coordinate checks prove full/dirty scene equivalence; edits, zone switches, construction, destruction and load retain object identity and pick results.",
+          "- AC2: Outside-frustum tiles are actually rejected, while offscreen casters still shadow visible receivers; render counts and uploads show the intended bounded work.",
+          "- AC3: Each of buildings, trees and streetlight geometry has its own A/B decision, including overview/district/street and camera movement. Keep only qualifying variants and document tile size, draw-call tradeoff and rejected variants."
+        ],
+        "Problem": [
+          "- Buildings, tree species and streetlight geometry force global meshes active. Thin-instance bounds span the city and cannot reject individual instances.",
+          "- Grouping by tiles can reduce submitted geometry near the camera but can worsen overview traversal and draw calls."
+        ]
+      },
+      "status": "Ready",
+      "title": "Batch static city geometry by spatial tiles with shared assets"
+    },
+    {
+      "ai_context": {
+        "keywords": "deliver, validate, distance, aware, performance, slices",
+        "skip when": "reviewing without implementation authorization or measuring two GPU variants concurrently.",
+        "summary": "Deliver the eight slices in dependency and priority order, keeping repeatable measurements and correctness proof for each retained or rejected optimization.",
+        "use when": "starting or resuming the implementation; item_187 is the first executable slice and gates every later measurement."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_187_repair_performance_readiness_and_establish_comparable_distance_baselines",
+          "item_188_cull_distant_traffic_visuals_without_stopping_the_simulation",
+          "item_189_restore_automatic_building_detail_with_a_manual_boxes_override",
+          "item_190_bound_distant_night_lighting_while_preserving_city_readability",
+          "item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames",
+          "item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets",
+          "item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap",
+          "item_194_evaluate_a_minimal_render_resolution_quality_option"
+        ],
+        "prod": [
+          "prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city"
+        ],
+        "req": [
+          "req_054_deliver_measured_distance_aware_city_performance"
+        ],
+        "task": [
+          "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+        ]
+      },
+      "path": "logics/tasks/task_055_deliver_and_validate_the_distance_aware_performance_slices.md",
+      "ref": "task_055_deliver_and_validate_the_distance_aware_performance_slices",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Application baseline: 4d81541, reference city with 1287 buildings and 107 loaded models. Evidence: perf/reviews/fps-distance-2026-09-07.json. No performance implementation has started.",
+          "- Execution order: item_187, item_188, item_189, item_190, item_191, item_192, item_193, item_194. Dependency details and rejection criteria live in each slice.",
+          "- Check all main-pass and shadow-pass visibility consumers together; do not infer world streaming or simulation throttling from a render-distance requirement."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Deliver and validate the distance-aware performance slices"
+    }
+  ],
+  "estimates": {
+    "char_count": 20644,
+    "companion_doc_count": 0,
+    "doc_count": 9
+  },
+  "generated_at": "2026-09-07T13:21:08Z",
+  "handoff": {
+    "companion_doc_count": 0,
+    "enabled": false,
+    "source_refs": [
+      "req_054_deliver_measured_distance_aware_city_performance",
+      "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+    ],
+    "validation_summary_count": 0
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "full",
+  "profile": "deep",
+  "ref": "req_054_deliver_measured_distance_aware_city_performance,task_055_deliver_and_validate_the_distance_aware_performance_slices",
+  "refs": [
+    "req_054_deliver_measured_distance_aware_city_performance",
+    "task_055_deliver_and_validate_the_distance_aware_performance_slices"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "github_release",
+        "required": true,
+        "state": "github_release",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.2",
+    "targets": []
+  },
+  "validation_summary": []
+}

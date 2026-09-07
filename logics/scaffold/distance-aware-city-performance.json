@@ -1,0 +1,347 @@
+{
+  "title": "Deliver measured distance-aware city performance",
+  "references": [
+    "logics/request/req_053_review_findings_distance_culling_and_remaining_frame_costs.md",
+    "perf/reviews/fps-distance-2026-09-07.json",
+    "perf/cities/ma-ville.json",
+    "docs/performance.md",
+    "scripts/review/config.mjs",
+    "scripts/review/profile.mjs",
+    "scripts/review/run.mjs",
+    "scripts/perf.mjs",
+    "scripts/ablate.mjs",
+    "tests/perf-review.mjs",
+    "src/render/detail.ts",
+    "src/render/buildings.ts",
+    "src/render/trees.ts",
+    "src/render/streetlights.ts",
+    "src/render/vehicleLights.ts",
+    "src/render/trafficMovers.ts",
+    "src/render/ground.ts",
+    "src/render/terrainPick.ts",
+    "src/render/scene.ts",
+    "src/render/postFx.ts",
+    "src/sim/buildingLifecycle.ts",
+    "src/sim/workforce.ts",
+    "src/sim/buildingKinds.ts",
+    "src/app/app.ts",
+    "src/ui/controls.ts",
+    "logics/runbook/run_008_repaint_only_part_of_the_world_without_losing_what_you_did_not_repaint.md",
+    "logics/runbook/run_009_rerun_the_large_city_performance_review.md"
+  ],
+  "request": {
+    "complexity": "High",
+    "theme": "Performance",
+    "needs": [
+      "Turn the September 7 performance review into an executable delivery chain covering every candidate, preserving city appearance and offscreen gameplay.",
+      "Restore missing distance policies, investigate spatial rendering and night lighting, finish the confirmed workforce cache gap, and repair measurement/documentation drift.",
+      "Every speculative rendering change includes a prototype and measured keep/reject outcome; no unmeasured FPS promise or silent omission. Keep shared assets resident; loading/streaming needs memory evidence outside this chain."
+    ],
+    "context": [
+      "Source review is req_053; application baseline 4d81541, 107 loaded models and 1287 buildings on the reference fixture. The source review remains historical evidence, not a competing implementation request.",
+      "Three GPU rounds at saved framing measured day 93.2 FPS, night 58.6, night lights-off 91.7, night buildings-hidden 93.2, bloom-off 59.0. These diagnostic ablations overlap and cannot predict partial culling gains.",
+      "Full rebuild median 363.7 ms; direct dirty 23.7 ms excludes deferred parcel rebuilding. Distinguish loading/edit stalls, steady frames and memory throughout.",
+      "Architecture remains deterministic browser-free src/sim, Babylon in src/render, DOM in src/ui and composition in src/app. No ECS, engine facade or new dependency is required.",
+      "Resolved choices: manual force-boxes overrides auto; simulation continues outside view; no asset streaming or adaptive resolution; experiment thresholds/tile sizes are initial candidates subject to the common evidence gate.",
+      "This corpus scopes all eight investigations and their necessary tests/docs; no application optimization has been implemented yet. Negative results are completed investigations only with committed measurements and an explicit verdict."
+    ],
+    "acceptance_criteria": [
+      "AC1: All performance harnesses use current asset/fixture readiness with explicit missing-asset diagnostics, record the actual renderer and workload, and reproduce fresh baseline measurements without temporary script edits.",
+      "AC2: Traffic visibility follows camera distance at bounded cadence while routes, queues, simulation time and gameplay outcomes continue offscreen; child meshes, headlights, selection and follow remain coherent.",
+      "AC3: Automatic building detail uses hysteresis and the existing simplified geometry, retains a manual force-boxes override, composes with all view/tool toggles and preserves selection and shadow invalidation.",
+      "AC4: Night lighting receives a measured distance-based implementation or an explicitly evidenced no-change decision; accepted changes preserve visible road/facade illumination and avoid per-camera light creation/disposal.",
+      "AC5: Lifecycle and needs allocations reuse results for unchanged semantic inputs independently; policy-specific population bands, incumbency and rebuilding exclusions remain correct and deterministic.",
+      "AC6: Spatial batching is prototyped for buildings and trees, with streetlight geometry evaluated separately, and either retained with measured frame-time benefit or removed with evidence; retained batches share assets, preserve identity, shadows and bounded rebuild equivalence.",
+      "AC7: Terrain rendering is tested separately for tiling and distant LOD; any retained implementation preserves the authoritative heightmap, picking, road cuts, seams, dirty-update equivalence and disposal. A rejected experiment includes its recorded cost and reason.",
+      "AC8: Render resolution and multisampling are evaluated at DPR 1 and 2; either ship one measured, persisted quality control with the current quality as default or document a measured no-change decision. Do not silently change existing look controls.",
+      "AC9: Every candidate has repeated comparable before/after evidence or a documented rejection; no feature-ablation ratio is claimed as an implemented gain. Correctness, visual/input checks, CI, workflow validation and updated performance documentation pass before closeout."
+    ]
+  },
+  "product": {
+    "title": "A smoother city near and far without losing the distant city",
+    "overview": "Improve camera movement and running-city frame times while keeping distant traffic alive, the nighttime city readable, and roads/terrain accurate. Use existing detail controls and shared assets; select added rendering complexity only when comparable measurements support it.",
+    "goals": [
+      "Render visible detail at useful distances without changing offscreen simulation.",
+      "Reduce measured nighttime and CPU frame costs while preserving city readability and deterministic gameplay.",
+      "Make every performance decision reproducible on the current assets and reference city.",
+      "Separate FPS, tail stalls, resolution quality and loading/memory concerns."
+    ],
+    "non_goals": [
+      "Asset streaming, engine/ECS rewrites, additional rendering dependencies or simulation LOD.",
+      "Guaranteed FPS on unspecified hardware or additive interpretation of ablation ratios.",
+      "Automatic quality degradation, default cap changes, economic balance changes or a graphics-preset framework."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Repair performance readiness and establish comparable distance baselines",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC1",
+        "AC9"
+      ],
+      "problem": [
+        "The profile probe times out waiting for exactly 28 models; the current city settles at 107. Other probes and docs carry the same historical assumptions.",
+        "The committed September 7 review measures 93.2 FPS daytime and 58.6 at night, but uses a temporary readiness adaptation and one saved camera; it is evidence, not a complete before/after baseline."
+      ],
+      "scope_in": [
+        "Priority rationale: Every following decision depends on a runnable and comparable measurement.",
+        "Depends on: none. Read all scripts/review probes, perf/ablate and tests/perf-review.mjs; replace obsolete model counts through an existing catalog/manifest or bounded readiness signal, not a new hard-coded 107. Require all expected assets or explicit errors, stable positive buildings and the intended fixture.",
+        "Reuse existing Playwright probes; preserve original fixture bytes and reload original resources for each short sample. Disable waves only for steady state; measure active combat separately without including synthetic fast-forward.",
+        "Record commit/source and script hashes, dirty state, fixture hash, browser, queried GPU backend, viewport/render buffer/DPR, resolved camera, toolbar, cap, time rate, building/model/mover counts, simulation advancement and mover progress.",
+        "Add isolated diagnostics for render-only traffic visibility (simulation still active), boxes, trees, ground, clustered lights, resolution and MSAA. Diagnostic switches stay outside shipped player UI and are restored in finally blocks.",
+        "Use street radius 140, district 600 and overview requested 1600 with the actual clamped radius recorded, plus saved framing; stationary, orbit/pan and follow paths; day 10 and night 22 at x1, x4 and paused labeled separately.",
+        "Baseline and candidate comparisons: at least three interleaved A/B pairs per affected scenario, 2 s warmup and 5 s samples, identical workload seed/state/settings and idle machine; no concurrent GPU probes. Record median and p95/p99 rendered frame intervals, CPU and draw/active-mesh/triangle/upload counts where available. Longer 30 s samples cover stalls; these are diagnostics, not flaky CI FPS assertions.",
+        "For retention target at least 5% median or p95 frame-time reduction in the targeted scenario, same direction in all three pairs, and no greater than 5% median/p95 regression in required control views. At refresh ceiling use direct CPU/GPU evidence; insufficient/noisy evidence means extend samples before deciding. Visual/correctness regressions always fail.",
+        "Update docs/performance.md to distinguish shipped behavior from historical experiments: automatic boxes and traffic distance masking are currently absent. Keep old numbers labeled by commit."
+      ],
+      "scope_out": [
+        "Changing gameplay or implementing optimizations in this measurement slice.",
+        "New benchmarking frameworks or absolute hardware-dependent CI FPS thresholds."
+      ],
+      "acceptance_criteria": [
+        "AC1: The documented runner finishes on the current reference without local patches; missing models produce a bounded actionable failure, covered by a small readiness test.",
+        "AC2: Fresh baseline and per-feature diagnostics include the defined metadata and verify the simulation was running, while pause and traffic simulation-off are explicitly distinct controls.",
+        "AC3: The comparison protocol and retention rule are recorded in docs/performance.md; feature removal is not presented as the expected gain of partial culling."
+      ]
+    },
+    {
+      "title": "Cull distant traffic visuals without stopping the simulation",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC2",
+        "AC9"
+      ],
+      "problem": [
+        "The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.",
+        "Existing setEnabled(false) clears movers and is unsuitable as distance culling."
+      ],
+      "scope_in": [
+        "Priority rationale: A bounded visibility pass is the smallest distance experiment; daytime traffic-off showed a cost but includes simulation.",
+        "Depends on: benchmark baseline. Trace trafficMovers, vehicleModels, vehicleLights, detail and app follow/selection together before editing.",
+        "Keep movers and logical positions in simulation. Check horizontal distance to the current camera target at 200 ms cadence, also on load/rebuild/teleport; initial candidate reach clamp(camera.radius * 2.3, 320, 2000) metres, with 15% extra exit reach for hysteresis. Treat these as measured initial tuning, not accepted universal values.",
+        "Hide or re-enable the visual root and children with a single visibility composition that respects user traffic, detail-level and view choices. Match headlights to stable mover identity, not visible-list position; disable distant beams without reallocating lights.",
+        "Keep the selected/followed vehicle visible and targetable; pause still responds to camera movement. Bound any late entry after camera motion and preserve offscreen routes, junction queues and occupancy.",
+        "Reuse current renderer hooks and distance squared; no ECS, global scene registry or simulation LOD. Consider skipping transform uploads only after logical position and follow stop depending on those visual transforms."
+      ],
+      "scope_out": [
+        "Stopping, thinning or slowing offscreen simulation.",
+        "Converting all traffic to thin instances without a separate measured need."
+      ],
+      "acceptance_criteria": [
+        "AC1: A focused check covers enter/exit hysteresis, paused camera movement, spawned movers, follow exemption and composition with pedestrian/part detail thresholds.",
+        "AC2: Offscreen simulation positions, queues and counts match unculled execution for the same steps; no extra lights or meshes are created during camera travel.",
+        "AC3: Headed street/district/overview A/B uses render-only visibility, with e2e selection/follow and night checks; retain only under the shared measurement rule. If the first candidate fails, record the result and revise the approach before claiming request AC2; a rejected traffic prototype alone does not satisfy the required distance behavior."
+      ]
+    },
+    {
+      "title": "Restore automatic building detail with a manual boxes override",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC3",
+        "AC9"
+      ],
+      "problem": [
+        "Buildings.setDistant is called only by the manual checkbox; the documented 1100 m automatic switch no longer exists.",
+        "Visibility setters and detail culler both enable meshes, so automatic transitions must not undo zoning/traffic views or decoration settings."
+      ],
+      "scope_in": [
+        "Priority rationale: Simplified building geometry already exists, so automatic detail needs no new assets.",
+        "Depends on: benchmark baseline. Reuse distant boxes and existing buffers; initially switch the whole city to boxes above radius 1100 and back to models below 1000, then tune against the actual upper camera limit and saved framings.",
+        "Unchecked force-boxes means automatic detail, checked means boxes at any radius. Keep the persisted setting compatible; update its accessible label/help through the existing i18n contract. Preserve every current show-buildings, decor, draw, zoning, state and traffic-view policy.",
+        "Centralize effective building/decor visibility in the existing renderer rather than adding a competing per-frame scene scan. Apply after asynchronous model arrivals, rebuilds, state updates and load.",
+        "Invalidate shadow maps when effective detail/caster geometry changes; maintain construction state, color, footprint, picking and building identity. No new asset loads or buffer rewrites solely for crossing the global threshold."
+      ],
+      "scope_out": [
+        "Per-building distance buffer rewrites every frame.",
+        "Deleting the manual override or changing saved city state."
+      ],
+      "acceptance_criteria": [
+        "AC1: Threshold oscillation does not flicker; manual override, visibility/tool combinations and async/rebuild paths have focused coverage.",
+        "AC2: Near, far and transition captures preserve colors, construction, selection and shadows. Zooming back never leaves stale boxes or missing models.",
+        "AC3: Paired far-view and moving-camera measurements meet the retention rule; record selected thresholds and exact shipped behavior."
+      ]
+    },
+    {
+      "title": "Bound distant night lighting while preserving city readability",
+      "priority": "High",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": [
+        "AC4",
+        "AC9"
+      ],
+      "problem": [
+        "Streetlights and vehicle headlights use city-wide clustered containers. Removing distant emitters may still leave a costly clustered pass.",
+        "Previous distance removal flattened the city and an additive substitute rendered black; simply disabling far lights is not an acceptable visual outcome."
+      ],
+      "scope_in": [
+        "Priority rationale: Night lights-off changed 58.6 to 91.7 FPS; bloom-off was effectively unchanged.",
+        "Depends on: baseline and traffic visibility identity/composition. Measure streetlights and headlights separately, emissive bulbs separately from real lighting, and cluster pass cost rather than counting lights alone.",
+        "Use persistent emitter pools and a bounded camera-motion/cadence pass. First candidate real-light reach is the traffic reach; test independent larger facade reach only if distant illumination requires it. Keep lights that influence a visible receiver even if the emitter is offscreen.",
+        "Prototype a cheap distant road-light pool/facade substitute using installed Babylon materials or existing geometry; verify blending/color in actual screenshots before scaling up. Preserve emissive bulbs and day/night clock behavior.",
+        "Accept a visual lighting LOD only if it improves the shared measurement gate across saved/street/overview night views and transitions. If clustered cost persists or the substitute fails appearance, remove prototype and record the negative result; retain the existing player lights switch.",
+        "Test lamp edits, loads, disabled lights, offscreen cars, follow, power-related building appearance and crossings of dawn/dusk without light/texture growth."
+      ],
+      "scope_out": [
+        "Switching off all distant lighting with no visual substitute.",
+        "A new lighting engine, new textures generated without need, or claiming light count predicts FPS."
+      ],
+      "acceptance_criteria": [
+        "AC1: Near lighting and distant road/facade readability remain demonstrably coherent in paired night screenshots; transitions have no sudden blackout.",
+        "AC2: Camera movement and repeat load/edit cycles do not create/dispose emitter pools continuously or leak resources; daytime incurs no night-light pass.",
+        "AC3: Report separate street/car/cluster measurements and a retained implementation or explicit measured rejection, including why earlier failed substitutes now work or remain unsuitable."
+      ]
+    },
+    {
+      "title": "Make workforce caching reusable across unchanged gameplay frames",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC5",
+        "AC9"
+      ],
+      "problem": [
+        "Workforce has a single last-allocation cache keyed by array and callback identity. Lifecycle builds fresh arrays/closures; the needs path builds another array and interleaves a distinct policy.",
+        "Completed item_168 already shares battery staffing and precomputes sort terms; this slice fixes the remaining invalidation gap, not those delivered changes."
+      ],
+      "scope_in": [
+        "Priority rationale: The CPU profile still samples lifecycle sync and allocation; current identity-based cache misses are confirmed.",
+        "Depends on: baseline. Count policy-specific allocations/sorts in the running app, not just repeated direct calls to allocateWorkforce.",
+        "Reuse results separately in existing lifecycle and needs owners using stable inputs or small semantic revision keys. No global multi-city cache or new framework. Include parcel identity/order/kind/size, committed versus integer population, incumbent changes, rebuilding exclusion and rules in the relevant invalidation policy.",
+        "Keep construction progress, seenAt/memory and resource simulation advancing each existing tick; cache expensive allocation only. Preserve distinct lifecycle hysteresis/incumbency and needs/battery policies.",
+        "Invalidate on load/replace, parcel edits/reorder, demolition, wave-held rebuild and transition back to eligible work; ensure memory remains bounded. Keep prior comparator/battery optimizations."
+      ],
+      "scope_out": [
+        "One shared allocation policy for lifecycle and HUD.",
+        "Throttling the simulation/HUD or changing economic balance to hide CPU work."
+      ],
+      "acceptance_criteria": [
+        "AC1: An integration-level runnable check proves zero repeated allocation sorts across unchanged app-equivalent frames for both interleaved policies, and recalculation on every relevant input change.",
+        "AC2: Compare cached and uncached outputs across population bands, workforce shortages, incumbent changes, parcel reordering, rebuild holds, expiry and reload; deterministic scenario outcomes match.",
+        "AC3: Run existing lifecycle/workforce/battery/replay tests and scenarios; record allocation counts and CPU/frame-time evidence for x1 and x4 without changing simulation cadence."
+      ]
+    },
+    {
+      "title": "Batch static city geometry by spatial tiles with shared assets",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": [
+        "AC6",
+        "AC9"
+      ],
+      "problem": [
+        "Buildings, tree species and streetlight geometry force global meshes active. Thin-instance bounds span the city and cannot reject individual instances.",
+        "Grouping by tiles can reduce submitted geometry near the camera but can worsen overview traversal and draw calls."
+      ],
+      "scope_in": [
+        "Priority rationale: City-wide thin-instance groups prevent useful spatial rejection, but more batches can increase draw calls.",
+        "Depends on: baseline, automatic building detail and completed high-priority lighting/traffic/CPU slices so the final policies are known.",
+        "Prototype buildings first with 256 m and 512 m tiles using floor(x/size), floor(z/size) including negative coordinates. Share model geometry/materials; one batch per occupied tile/model. Expand bounds to real geometry extent rather than parcel centers.",
+        "Reuse the same local pattern for trees and separately assess streetlight poles/arms/bulbs. No universal chunk manager unless multiple working renderers actually need a small shared helper. Keep global batching as the A/B control and remove unhelpful prototypes.",
+        "Let native frustum checks reject render batches with valid aggregate bounds; avoid setEnabled-based main-camera rejection that drops necessary offscreen shadow casters. Choose explicit per-tile near/far detail only if it improves on the prior global detail result.",
+        "Preserve parcel/tree/light semantic identity independently of batch index; state changes and async model arrivals update affected batches. Dirty edits use one preserve/recreate predicate expanded by geometry influence per run_008.",
+        "Cover decoration/contact-shadow/ground-pad batches as part of building visibility accounting, and dispose tile-owned buffers without disposing shared geometry/materials. Do not rebuild all matrices on every camera move."
+      ],
+      "scope_out": [
+        "Network/disk streaming or unloading shared models based on camera distance.",
+        "Rewriting road meshes or treating one tile size as proven before measurement."
+      ],
+      "acceptance_criteria": [
+        "AC1: Boundary and negative-coordinate checks prove full/dirty scene equivalence; edits, zone switches, construction, destruction and load retain object identity and pick results.",
+        "AC2: Outside-frustum tiles are actually rejected, while offscreen casters still shadow visible receivers; render counts and uploads show the intended bounded work.",
+        "AC3: Each of buildings, trees and streetlight geometry has its own A/B decision, including overview/district/street and camera movement. Keep only qualifying variants and document tile size, draw-call tradeoff and rejected variants."
+      ]
+    },
+    {
+      "title": "Evaluate terrain tiling and distant geometry without changing the heightmap",
+      "priority": "Medium",
+      "complexity": "High",
+      "theme": "Performance",
+      "request_acs": [
+        "AC7",
+        "AC9"
+      ],
+      "problem": [
+        "The 5400 m heightfield is one dense render mesh. Heightmap picking and dirty row uploads already exist and must survive a rendering change.",
+        "Full ground rebuild costs roughly 193 ms, while direct dirty ground work is about 0.5 ms; loading cost is not evidence of per-frame dominance."
+      ],
+      "scope_in": [
+        "Priority rationale: The ground submits 911250 triangles in one mesh, but its steady-state share is not isolated yet.",
+        "Depends on: baseline and spatial-batch results; do not couple implementation to a general tile system. First isolate ground-only render cost with simulation and other render settings unchanged.",
+        "Prototype render tiles aligned to 8 m heightmap cells (start 32x32 or 64x64 cells); retain the authoritative full-resolution heightmap and current exact pickHeightmap path for tools.",
+        "Compare frustum rejection at full resolution before adding distant LOD. Only when justified, test coarser distant grids with hysteresis and stitched/shared boundaries; retain exact geometry around road cuts/overlays if coarsening would expose roads or alter alignment.",
+        "Expand dirty regions for normal dependencies and neighboring seams. Account for scene pointer-up ground picking after replacing the single ground mesh; preserve offshore terrain, ground shadows and material ownership.",
+        "Measure steady frames, camera travel, load/full rebuild and end-to-end road/zone edit latency including deferred work separately. Remove experiments that cannot meet visual/correctness/performance gates."
+      ],
+      "scope_out": [
+        "Coarsening simulation terrain or changing road/placement rules.",
+        "World streaming, quadtree infrastructure or physics changes."
+      ],
+      "acceptance_criteria": [
+        "AC1: Tiling and LOD each receive separate evidence and a keep/reject decision; a cheap full-resolution tile win does not require shipping LOD.",
+        "AC2: Exact picks match the original triangle surface on slopes, coastlines and road cuts; tile boundaries and LOD transitions have no holes, normal discontinuities or exposed road geometry.",
+        "AC3: Partial/full rebuild equivalence and disposal pass targeted tests and rendered e2e checks; nearby detail and saved terrain data remain unchanged."
+      ]
+    },
+    {
+      "title": "Evaluate a minimal render-resolution quality option",
+      "priority": "Low",
+      "complexity": "Medium",
+      "theme": "Performance",
+      "request_acs": [
+        "AC8",
+        "AC9"
+      ],
+      "problem": [
+        "Engine DPR is capped at 1.5 while the postprocessing pipeline always uses four MSAA samples; no measured render-scale control exists.",
+        "Lights and geometry currently have stronger evidence, so a new quality UI is conditional on this isolated experiment."
+      ],
+      "scope_in": [
+        "Priority rationale: Resolution may help high-DPR displays, but the current review used DPR 1 and did not isolate fill cost.",
+        "Depends on: baseline and medium/high-priority render work. Measure DPR 1 and 2 at 1280x800 and 1920x1080, actual buffer size logged, with current versus 1x scale and MSAA 4 versus 2/1 as isolated changes.",
+        "If a meaningful gain survives the shared protocol, add the smallest existing-controls-compatible quality choice with current quality default and one measured lower setting, persisted with existing settings and current i18n/accessibility patterns.",
+        "Keep FXAA, bloom, SSAO and miniature controls semantically intact; explain rendered sharpness tradeoff with short user-facing text. Respect resize and DPR changes with no blurry HUD or incorrect picking.",
+        "If resolution changes merely reduce quality without stable gain, retain current behavior and record the decision. Do not add automatic frame-time-driven resolution changes in this chain."
+      ],
+      "scope_out": [
+        "A preset framework or automatic dynamic resolution.",
+        "Changing the 60 FPS default cap or presenting power savings as higher uncapped FPS."
+      ],
+      "acceptance_criteria": [
+        "AC1: Record isolated scale/MSAA results on both DPR classes and a retained setting or measured no-change decision.",
+        "AC2: If retained, persistence/default, resize, DPR, keyboard access and correct picking have coverage; captures preserve near-model readability and sharp DOM UI.",
+        "AC3: Finish with all request acceptance criteria mapped to proof, every experimental verdict documented and final integrated performance/CI/e2e gates passed."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Deliver and validate the distance-aware performance slices",
+    "plan": [
+      "Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.",
+      "Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.",
+      "Wave 2 (High): traffic render-only distance policy, then automatic building detail. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.",
+      "Wave 3 (High): night-light experiment and policy-specific workforce cache reuse, independently measured against the current integrated baseline; preserve existing simulation timing and policy differences.",
+      "Wave 4 (Medium): prototype spatial building batches, then trees and streetlight geometry, deciding each separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.",
+      "Wave 5 (Low): isolate resolution/MSAA costs after higher-priority changes and either deliver one minimal persisted option or record the measured no-change verdict.",
+      "Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.",
+      "Integrated validation: repeat saved/street/district/overview, day/night and camera travel A/B with running x1; include x4/paused diagnostics and one 30 s real-time combat window after warmup. Run ten load/edit/restore cycles for stable scene/light/texture counts; measure complete road/zone edit latency with deferred rebuild work.",
+      "GATE: each retained optimization satisfies the shared repeated-measurement rule and visual/correctness checks. Every rejected prototype is removed and has committed results; terrain, lighting or resolution cannot disappear from the report because they were inconclusive.",
+      "GATE: npm run ci and npm run test:e2e pass, plus targeted renderer/simulation tests and visual comparisons for changed rendering. Update docs/performance.md with actual shipped distance policies, catalog readiness, knobs, limitations and final evidence. Do not rerun all performance probes concurrently.",
+      "Closeout: validate each backlog slice and all request AC1-AC9 with real proof; run Logics lint/audit/flow validate and context-pack refresh. Use flow closeout/finish to settle completed lineage and consumed product; no hand-edited status/lineage. Commit final results only as authorized by the operator."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/distance-aware-city-performance.json",
+    "mode": "full",
+    "profile": "deep"
+  }
+}
