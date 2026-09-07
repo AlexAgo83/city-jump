@@ -2,9 +2,9 @@
 > From version: 0.5.2
 > Schema version: 1.0
 > Status: In progress
-> Understanding: 95%
-> Confidence: 85%
-> Progress: 75%
+> Understanding: 100%
+> Confidence: 90%
+> Progress: 92%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -27,8 +27,8 @@
 - [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
 - [x] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail measured and retained. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
 - [x] 4. Wave 3 (High): workforce cache reuse measured and retained; the night-light experiment measured and closed as an evidenced no-change.
-- [~] 5. Wave 4 (Medium): spatial batching measured and rejected before implementation for buildings, trees and streetlight geometry, each decided separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
-- [ ] 6. Wave 5 (Low): isolate resolution/MSAA costs after higher-priority changes and either deliver one minimal persisted option or record the measured no-change verdict.
+- [x] 5. Wave 4 (Medium): spatial batching and terrain tiling/LOD all measured and rejected before implementation, each decided separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
+- [x] 6. Wave 5 (Low): resolution and MSAA costs isolated; one minimal persisted option delivered.
 - [ ] 7. Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.
 - [ ] 8. Integrated validation: repeat saved/street/district/overview, day/night and camera travel A/B with running x1; include x4/paused diagnostics and one 30 s real-time combat window after warmup. Run ten load/edit/restore cycles for stable scene/light/texture counts; measure complete road/zone edit latency with deferred rebuild work.
 - [ ] 9. GATE: each retained optimization satisfies the shared repeated-measurement rule and visual/correctness checks. Every rejected prototype is removed and has committed results; terrain, lighting or resolution cannot disappear from the report because they were inconclusive.
@@ -69,10 +69,10 @@
 - request-AC9 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof: `perf/reviews/task055-wave3-workforce-ab-retry/`, three complete rounds, recorded as no measurable frame-time change rather than as a gain.
 - request-AC6 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof: three separate ceiling measurements plus the perfect-cull ceiling under `perf/reviews/task055-wave4-*`, each three rounds.
 - request-AC9 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof: documented measured rejection with the reason the premise fails, not merely the threshold.
-- request-AC7 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof deferred to slice closeout.
-- request-AC9 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof deferred to slice closeout.
-- request-AC8 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof deferred to slice closeout.
-- request-AC9 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof deferred to slice closeout.
+- request-AC7 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof: ground-only cost across seven framings including day/night pairs at identical cameras, in `perf/reviews/task055-wave4-ceiling-ground*`.
+- request-AC9 -> `item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap`. Proof: documented rejection of tiling and LOD with the recorded cost and reason.
+- request-AC8 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof: three measured candidates under `perf/reviews/task055-wave5-*` and the shipped-wiring probe `perf/reviews/task055-wave5-look/`.
+- request-AC9 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof: the retained option is measured at +21.6% at night-saved across three rounds, with the two rejected candidates recorded.
 
 # Validation
 - Wave 1: `npm run ci` passed on 2026-09-07 (386 tests, architecture checks, deterministic scenarios, build and Logics validation). After final harness metadata edits, `node --test tests/perf-review.mjs`, targeted Biome lint and `git diff --check` passed.
@@ -110,6 +110,13 @@
   - Trees (`.../ceiling-trees/`) cost nothing at three of four framings and +24.7% at `moving`, which is the framing with only 14% offscreen. Streetlight geometry (`.../ceiling-streetgeo/`) costs nothing anywhere.
   - The premise fails, not just the threshold: removing 49% of building instances buys nothing while removing 100% buys 12.6%, so the cost is fixed per mesh and per material rather than proportional to submitted instances. Tile batching multiplies meshes to reduce instances whose reduction is free.
   - Probe rule added here: an ablation that reaches no instances now throws rather than returning a sample, so a null result cannot mean "no measurement".
+- Wave 4 / item_193 REJECTED, both tiling and distant LOD, before implementation. The heightmap, the single ground mesh, `pickHeightmap` and the dirty-row uploads are untouched.
+  - Ground-only cost (`perf/reviews/task055-wave4-ceiling-ground/` and `.../-daynight/`): day-street -1.1%, day-district +1.9%, day-overview -6.6%, day-saved -0.0%, moving +7.0%, night-street +7.9%, night-saved +11.9%.
+  - The single-variable pairs decide it: day-saved -0.0% against night-saved +11.9%, day-street -1.1% against night-street +7.9%. The ground costs nothing by day. Its cost is per-pixel shading as the largest receiver of the clustered lights, not its 911250 triangles -- the same cost `item_190` characterised. Tiling rejects geometry that produces no pixels; LOD reduces triangles that cost nothing. AC1 asks for separate tiling and LOD decisions; both fall to this one measurement, and that is recorded as one measurement rather than dressed up as two.
+- Wave 5 / item_194 RETAINED as one minimal persisted option: an "Extra AA" checkbox, on by default, dropping scene multisampling from four samples to one. The FXAA pass behind "Smooth" is untouched and still smooths edges.
+  - Measured first, three rounds each, night-saved / day-district / moving: multisampling off +21.6% / +4.7% / +7.0%; two-thirds render resolution +18.6% / +9.1% / +4.7%; multisampling halved to two +10.3% / +3.7% / +2.6%.
+  - Multisampling was chosen over resolution scaling on that evidence: the larger win where it matters, and it costs edge quality only rather than blurring text and road markings. `pipeline.samples = 4` had no player control before this, so the slice's gap was a missing option, not a missing optimisation.
+  - `scripts/review/look.mjs` proves the shipped wiring end to end -- four samples by default, one unchecked, four re-checked, and the choice persisted. Its first `scale` measurement was invalid rather than null: `setHardwareScalingLevel(1)` at device pixel ratio 1 changed nothing. It now renders at two thirds and throws if the level does not move.
 - Remaining: spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
 
 # Links

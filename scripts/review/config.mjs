@@ -8,6 +8,7 @@ export const probes = [
 	"distance",
 	"detail",
 	"workforce",
+	"look",
 	"focus",
 	"rubble",
 	"wave",

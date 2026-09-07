@@ -11,6 +11,8 @@ import "@babylonjs/core/Rendering/geometryBufferRendererSceneComponent";
 /** Which of the screen-space passes are on. Colour grading is not here: it is free, so it stays. */
 export interface LookSettings {
   antialias: boolean;
+  /** Multisampling on the whole scene, on top of the FXAA pass `antialias` controls. */
+  multisample: boolean;
   bloom: boolean;
   ao: boolean;
   tiltShift: boolean;
@@ -20,7 +22,7 @@ export interface LookSettings {
  * four is a photograph of a model taken by someone who was showing off. */
 const MINIATURE_BLUR = 2;
 
-export const DEFAULT_LOOK: LookSettings = { antialias: true, bloom: true, ao: false, tiltShift: false };
+export const DEFAULT_LOOK: LookSettings = { antialias: true, multisample: true, bloom: true, ao: false, tiltShift: false };
 
 /**
  * Everything that happens to the picture after the city is drawn.
@@ -74,6 +76,10 @@ export function createPostFx(scene: Scene, camera: ArcRotateCamera) {
   function setLook(next: LookSettings): void {
     look = { ...next };
     pipeline.fxaaEnabled = look.antialias;
+    // Four samples is the whole scene rendered four times over at the fragment stage, and it is
+    // the single most expensive thing in a night frame. One sample still gets edge smoothing from
+    // the FXAA pass above, which is why this is a trade rather than a downgrade.
+    pipeline.samples = look.multisample ? 4 : 1;
     pipeline.depthOfFieldEnabled = look.tiltShift;
     applyBloom();
     if (look.ao && !ssao) {

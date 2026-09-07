@@ -1,10 +1,10 @@
 ## item_194_evaluate_a_minimal_render_resolution_quality_option - Evaluate a minimal render-resolution quality option
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,14 @@
 # Priority
 - Priority: Low
 - Rationale: Resolution may help high-DPR displays, but the current review used DPR 1 and did not isolate fill cost.
+
+# Outcome
+- One minimal persisted option delivered on 2026-09-07: an "Extra AA" checkbox in the Look row, on by default so nothing changes for an existing player. Off drops scene multisampling from four samples to one; the FXAA pass the "Smooth" checkbox controls is untouched and still smooths edges, which is what makes this a trade rather than a downgrade.
+- Measured before building anything, three rounds each, per-round paired deltas at night-saved / day-district / moving:
+  - multisampling off (`perf/reviews/task055-wave5-msaa/`): +21.6% / +4.7% / +7.0%
+  - render resolution at two thirds (`.../task055-wave5-scale/`): +18.6% / +9.1% / +4.7%
+  - multisampling halved to two samples (`.../task055-wave5-msaa2/`): +10.3% / +3.7% / +2.6%
+- Multisampling was chosen over resolution scaling on the same evidence: it is the larger win at the framing that needs it most, and it costs edge quality only, where scaling blurs the whole picture including text and road markings. Halving to two samples was rejected as an option because it buys less than half as much for the same amount of UI.
+- `pipeline.samples = 4` had no player control at all before this; "Smooth" is FXAA and always was. The slice's gap was a missing option, not a missing optimisation.
+- Shipped behaviour is proved by `scripts/review/look.mjs`, a new probe asserting the checkbox drives the pipeline end to end -- four samples by default, one when unchecked, four again when re-checked, and the choice written to the persisted settings. Evidence in `perf/reviews/task055-wave5-look/`.
+- Correction recorded: the first `scale` measurement was invalid, not null. The variant called `setHardwareScalingLevel(1)` while the probe already runs at device pixel ratio 1, so it changed nothing and read as no gain. It now renders at two thirds and throws if the level does not move, which is the same self-verification rule the other ablations gained in this task.

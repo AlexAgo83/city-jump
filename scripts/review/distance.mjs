@@ -115,11 +115,24 @@ try {
 							select.checked = true;
 							select.dispatchEvent(new Event("change", { bubbles: true }));
 						}
-						if (variant === "scale") engine.setHardwareScalingLevel(1);
-						if (variant === "msaa")
-							scene.postProcessRenderPipelineManager._renderPipelines.look.samples = 1;
-						if (variant === "msaa2")
-							scene.postProcessRenderPipelineManager._renderPipelines.look.samples = 2;
+						// Render at two thirds of the linear resolution, so the fragment cost drops
+						// to roughly 44%. Asking for level 1 measures nothing: the probe already
+						// runs at device pixel ratio 1, which is level 1 to begin with.
+						if (variant === "scale") {
+							const before = engine.getHardwareScalingLevel();
+							engine.setHardwareScalingLevel(1.5);
+							if (engine.getHardwareScalingLevel() === before)
+								throw new Error(`scale did not change hardware scaling from ${before}`);
+						}
+						if (variant === "msaa" || variant === "msaa2") {
+							const pipeline =
+								scene.postProcessRenderPipelineManager._renderPipelines.look;
+							if (!pipeline) throw new Error("no look pipeline to change samples on");
+							const before = pipeline.samples;
+							pipeline.samples = variant === "msaa" ? 1 : 2;
+							if (pipeline.samples === before)
+								throw new Error(`${variant} left samples at ${before}`);
+						}
 						const pattern =
 							variant === "traffic"
 								? /^(traffic_|pedestrian_|carpart_|carlamp_)/
@@ -167,10 +180,17 @@ try {
 						}
 						if (pattern) {
 							const hide = () => {
+								let hidden = 0;
 								for (const mesh of scene.meshes)
-									if (pattern.test(mesh.name)) mesh.isVisible = false;
+									if (pattern.test(mesh.name)) {
+										mesh.isVisible = false;
+										hidden++;
+									}
+								return hidden;
 							};
-							hide();
+							// Same rule as perfectcull: an ablation that matches nothing reads as
+							// "no gain" and is indistinguishable from "no measurement". Refuse it.
+							if (!hide()) throw new Error(`${variant} matched no mesh`);
 							scene.onBeforeRenderObservable.add(hide);
 						}
 						if (variant === "traffic")

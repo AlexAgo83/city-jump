@@ -27,7 +27,7 @@ export function bindControls(handlers: {
   onFps(visible: boolean): void;
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
-  onLook(look: { antialias: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
+  onLook(look: { antialias: boolean; multisample: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
   onDestructionEffects(effects: { fire: boolean; explosion: boolean }): void;
   onFrameCap(fps: number): void;
   onTraffic(enabled: boolean): void;
@@ -439,6 +439,7 @@ export function bindControls(handlers: {
       shortNight: shortNight.checked,
       cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
       fxAntialias: fxAntialias.checked,
+      fxMultisample: fxMultisample.checked,
       fxBloom: fxBloom.checked,
       fxAo: fxAo.checked,
       fxTilt: fxTilt.checked,
@@ -454,16 +455,17 @@ export function bindControls(handlers: {
     checkbox.dispatchEvent(new Event("change"));
   }
   const fxAntialias = document.getElementById("fx-antialias") as HTMLInputElement;
+  const fxMultisample = document.getElementById("fx-multisample") as HTMLInputElement;
   const fxBloom = document.getElementById("fx-bloom") as HTMLInputElement;
   const fxAo = document.getElementById("fx-ao") as HTMLInputElement;
   const fxTilt = document.getElementById("fx-tilt") as HTMLInputElement;
   const fxExplosion = document.getElementById("fx-explosion") as HTMLInputElement;
   const fxFire = document.getElementById("fx-fire") as HTMLInputElement;
   const emitLook = (): void => {
-    handlers.onLook({ antialias: fxAntialias.checked, bloom: fxBloom.checked, ao: fxAo.checked, tiltShift: fxTilt.checked });
+    handlers.onLook({ antialias: fxAntialias.checked, multisample: fxMultisample.checked, bloom: fxBloom.checked, ao: fxAo.checked, tiltShift: fxTilt.checked });
     persistSettings();
   };
-  for (const box of [fxAntialias, fxBloom, fxAo, fxTilt]) on(box, "change", emitLook);
+  for (const box of [fxAntialias, fxMultisample, fxBloom, fxAo, fxTilt]) on(box, "change", emitLook);
   const emitDestructionEffects = (): void => {
     handlers.onDestructionEffects({ fire: fxFire.checked, explosion: fxExplosion.checked });
     persistSettings();
@@ -513,7 +515,7 @@ export function bindControls(handlers: {
   applySetting(showFps, stored.fps);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
-  for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt], [fxExplosion, stored.fxExplosion], [fxFire, stored.fxFire]] as const) {
+  for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxMultisample, stored.fxMultisample], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt], [fxExplosion, stored.fxExplosion], [fxFire, stored.fxFire]] as const) {
     if (value !== undefined) box.checked = value;
   }
   if (stored.frameCap !== undefined) frameCap.value = String(stored.frameCap);

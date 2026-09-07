@@ -95,6 +95,7 @@ export interface UiSettings {
   shortNight?: boolean;
   cameraMode?: "free" | "orbit" | "follow";
   fxAntialias?: boolean;
+  fxMultisample?: boolean;
   fxBloom?: boolean;
   fxAo?: boolean;
   fxTilt?: boolean;

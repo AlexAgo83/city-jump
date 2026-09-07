@@ -1,10 +1,10 @@
 ## item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap - Evaluate terrain tiling and distant geometry without changing the heightmap
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -54,3 +54,11 @@
 # Priority
 - Priority: Medium
 - Rationale: The ground submits 911250 triangles in one mesh, but its steady-state share is not isolated yet.
+
+# Outcome
+- Both tiling and distant LOD rejected on 2026-09-07 before implementation. The authoritative heightmap, the single ground mesh, `pickHeightmap` and the dirty-row upload path are all untouched.
+- Ground-only render cost, three rounds each, per-round paired deltas (`perf/reviews/task055-wave4-ceiling-ground/` and `.../ceiling-ground-daynight/`): day-street -1.1%, day-district +1.9%, day-overview -6.6%, day-saved -0.0%, moving +7.0%, night-street +7.9%, night-saved +11.9%.
+- The day/night pairs at identical framings are the decisive evidence, and they were run as a single-variable test: day-saved -0.0% against night-saved +11.9%, and day-street -1.1% against night-street +7.9%. The ground costs nothing by day and costs only at night.
+- AC1 asks for separate tiling and LOD decisions. Both are rejected by the same measurement, and it is one measurement rather than two: the ground's cost is per-pixel shading as the largest receiver of the clustered lights, not its 911250 triangles. Tiling addresses geometry submitted outside the frustum, which produces no pixels and therefore no shading; distant LOD addresses triangle density, which the day figures show costs nothing. Neither mechanism touches the cost that exists.
+- This is the same clustered-lighting cost `item_190` characterised: disabling the streetlight container buys +32.1% at night-saved, and the ground is a large part of what those lights shade. It is not reachable by a terrain rendering change, which is why that slice closed as a no-change too.
+- The 193 ms full ground rebuild remains a loading cost, as the slice framing already suspected; nothing here claims it as a per-frame cost or changes it.
