@@ -3,8 +3,8 @@
 > Schema version: 1.0
 > Status: In progress
 > Understanding: 95%
-> Confidence: 80%
-> Progress: 25%
+> Confidence: 85%
+> Progress: 38%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -25,7 +25,7 @@
 # Plan
 - [x] 1. Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.
 - [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
-- [~] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail remains. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
+- [x] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail measured and retained. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
 - [ ] 4. Wave 3 (High): night-light experiment and policy-specific workforce cache reuse, independently measured against the current integrated baseline; preserve existing simulation timing and policy differences.
 - [ ] 5. Wave 4 (Medium): prototype spatial building batches, then trees and streetlight geometry, deciding each separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
 - [ ] 6. Wave 5 (Low): isolate resolution/MSAA costs after higher-priority changes and either deliver one minimal persisted option or record the measured no-change verdict.
@@ -59,10 +59,10 @@
 # AC Traceability
 - request-AC1 -> `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`. Proof deferred to slice closeout.
 - request-AC9 -> `item_187_repair_performance_readiness_and_establish_comparable_distance_baselines`. Proof deferred to slice closeout.
-- request-AC2 -> `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`. NOT satisfied here: the traffic prototype was measured and rejected. Carried to `item_189`.
+- request-AC2 -> `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`. NOT satisfied here: the traffic prototype was measured and rejected. Satisfied instead by `item_189` automatic building detail.
 - request-AC9 -> `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`. Proof: documented measured rejection with two complete three-round comparisons in `perf/reviews/task055-wave2-traffic-retry/` and `perf/reviews/task055-wave2-traffic-tuned-full/`.
-- request-AC3 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof deferred to slice closeout.
-- request-AC9 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof deferred to slice closeout.
+- request-AC3 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof: hysteresis, override composition and rebuild paths covered in `src/render/buildings.test.ts`; visual and shadow preservation asserted by `scripts/review/detail.mjs`.
+- request-AC9 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof: `perf/reviews/task055-wave2-detail/`, three complete rounds, +15.5% and +28.2% frame p50 at the two overview framings with flat controls.
 - request-AC4 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof deferred to slice closeout.
 - request-AC9 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof deferred to slice closeout.
 - request-AC5 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof deferred to slice closeout.
@@ -88,7 +88,13 @@
   - Superseded partial evidence is kept, not hidden: `perf/reviews/task055-wave2-traffic/` failed at reference-server startup (no samples), and `perf/reviews/task055-wave2-traffic-tuned/` was interrupted after two of three rounds at the same source hash as the complete tuned run. Its two-round day-street figure of +5.2% collapsed to +1.0% once the third round landed -- the reason the shared repeated-measurement rule exists.
   - Request AC2 is NOT satisfied by this slice. Per item_188 AC3 a rejected traffic prototype alone does not deliver the required distance behavior; the distance policy must come from `item_189` automatic building detail, where the mesh population actually lives (1287 buildings against 166 vehicles).
   - The prototype is fully removed from `src/`, including the pedestrian-cull removal in `src/render/detail.ts` it had introduced to compose with itself; the 900 m `pedestrian_` level is restored.
-- Remaining: automatic building detail, independent lighting/cache experiments, spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
+- Wave 2 / item_189 RETAINED. Automatic building detail: boxes above camera radius 1100 m, models again only below 1000 m, with the manual override composed as `forced || automatic` in one `applyDistance()` that also resets the shadow-map refresh counter.
+  - `perf/reviews/task055-wave2-detail/`, 48 samples, eight scenarios, three rounds, complete. Frame p50 night-overview +28.2% (17.00 -> 12.20 ms) and day-overview +15.5% (11.00 -> 9.30 ms); day-street, day-district, follow, moving, night-saved and paused stay flat with unchanged active-mesh counts, which is the control the thresholds owe.
+  - This is where request AC2 lands after the traffic rejection: the 1287 buildings are the mesh population that answers to distance, not the 166 vehicles.
+  - Visual and correctness proof is a probe, not a claim: `scripts/review/detail.mjs` walks near -> far -> back and asserts models near, boxes far, boxes surviving between the thresholds on the way down, every model restored with no stale boxes, the override winning close in and releasing cleanly, boxes after a rebuild far out, shadow casters at both details, and no page errors. Evidence in `perf/reviews/task055-wave2-detail-visual/`, captures in `docs/media/detail-*.png`.
+  - Thresholds are tuned against the real camera limit of 1200 m, so the automatic band is the top 100 m of zoom. A lower pair was rejected on sight: at 950 m the boxes lose towers, roof colours and farm rows still legible as models.
+  - Recorded trade, not hidden: at 1200 m the swap is visible. State and construction colours carry over intact and the distant city stays readable, but tower silhouettes flatten. `docs/media/detail-1200-models-before.png` against `docs/media/detail-far-boxes.png`.
+- Remaining: independent lighting/cache experiments, spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
 
 # Links
 - Request: `req_054_deliver_measured_distance_aware_city_performance`

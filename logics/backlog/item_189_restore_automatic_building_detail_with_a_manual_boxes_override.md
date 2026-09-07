@@ -1,10 +1,10 @@
 ## item_189_restore_automatic_building_detail_with_a_manual_boxes_override - Restore automatic building detail with a manual boxes override
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -53,3 +53,11 @@
 # Priority
 - Priority: High
 - Rationale: Simplified building geometry already exists, so automatic detail needs no new assets.
+
+# Outcome
+- Retained on 2026-09-07. Boxes above camera radius 1100 m, models again only below 1000 m; the manual checkbox composes as `forced || automatic` through a single `applyDistance()` in the buildings renderer, which also resets the shadow-map refresh counter when the effective geometry changes.
+- Measurement: `perf/reviews/task055-wave2-detail/`, 48 samples, eight scenarios, three rounds, complete. Frame p50 night-overview +28.2% (17.00 -> 12.20 ms), day-overview +15.5% (11.00 -> 9.30 ms). Every scenario below the threshold is flat within noise and shows an unchanged active-mesh count, which is the control the thresholds are supposed to give.
+- AC1: `nextDistantDetail` is pure and covered by five focused checks in `src/render/buildings.test.ts` -- the walk up and back down, no flicker between the thresholds in either direction, the override at any height, no automatic latch hidden behind the checkbox, and re-derivation after a rebuild.
+- AC2: `scripts/review/detail.mjs` is a new review probe that walks near -> far -> back and asserts what it captures: models near, boxes far, boxes surviving between the thresholds on the way down, every model restored with no stale boxes on return, the override winning close in and releasing cleanly, boxes still drawn after a rebuild far out, shadow casters present at both details, and no page errors. Captures in `docs/media/detail-*.png`.
+- AC3 and the shipped thresholds: the camera's real upper limit is 1200 m (`src/render/scene.ts`), so the automatic band is 1100-1200 m -- the top of the zoom, which is where both measured wins are. A lower pair was tried and rejected on sight, not on frame time: at 950 m the boxes lose towers, roof colours and farm rows that are still legible as models (`docs/media/detail-950-models-rejected-threshold.png` against `detail-950-boxes-rejected-threshold.png`).
+- Known trade, recorded rather than smoothed over: even at 1200 m the swap is visible. `docs/media/detail-1200-models-before.png` is the shipped-before skyline and `detail-far-boxes.png` the same framing after; state and construction colours carry over intact, but tower silhouettes flatten. This is the same trade the manual override always offered, now taken automatically at the top of the zoom in exchange for 15-28% frame time.

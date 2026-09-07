@@ -714,9 +714,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     setClockHour(sunHour, true);
     controls?.setPaused(simPaused);
   };
-  const setPaused = (paused: boolean): void => {
-    setTimeRate(paused ? 0 : lastRunRate);
-  };
+  const setPaused = (paused: boolean): void => setTimeRate(paused ? 0 : lastRunRate);
   const onSelect = (info: SelectionInfo | null): void => {
     selectedInfo = info;
     showSelection(info);
@@ -1083,6 +1081,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     updateWave(simDt);
     destructionEffects.step(performance.now() / 1000);
     detail.update();
+    buildings.setCameraRadius(camera.radius);
     postFx.update();
     if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
     showCompass(camera.alpha);

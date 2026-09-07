@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "startedAt": "2026-09-07T14:29:32.519Z",
+  "status": "complete",
+  "command": [
+    "http://127.0.0.1:5173",
+    "--probe",
+    "detail",
+    "--out",
+    "perf/reviews/task055-wave2-detail-visual"
+  ],
+  "commit": "a9ef2e903af514c2061db52c389edb53312f63ea",
+  "worktree": "M index.html\n M scripts/review/config.mjs\n M src/app/app.ts\n M src/render/buildings.test.ts\n M src/render/buildings.ts\n?? docs/media/detail-1200-models-before.png\n?? docs/media/detail-950-boxes-rejected-threshold.png\n?? docs/media/detail-950-models-rejected-threshold.png\n?? docs/media/detail-back-to-models.png\n?? docs/media/detail-between-thresholds.png\n?? docs/media/detail-far-boxes.png\n?? docs/media/detail-forced-boxes-near.png\n?? docs/media/detail-near-models.png\n?? perf/reviews/task055-wave2-detail/\n?? scripts/review/detail.mjs",
+  "sourceHash": "0d95e2f90c6ca082c4f1010a4f1a5d03f675c03cfe22cfd3cd711791678a4325",
+  "readinessHash": "59564559d0c5e6e4efcafcf4b4e9dac0eaa2563d37c2b925305efe11bbd32149",
+  "fixture": {
+    "path": "perf/cities/ma-ville.json",
+    "sha256": "2af5975a819a80e4ae2427655eeb9ffc742ac168793ba5e14c08a5fe69c3e052"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M3 Pro",
+  "node": "v22.16.0",
+  "headed": true,
+  "devUrl": "http://127.0.0.1:5173",
+  "scripts": {
+    "config.mjs": "bedbcdc79a5ec971a1cbd55960120f24e2370a85c722c72952cc9a1997446716",
+    "detail.mjs": "4bc91a2dba66f5d7b99bf6ed035f356406dc8751e2908bfe3bce08d1aa494507",
+    "distance.mjs": "8d81932714b4331f3c848c801fd5761d0ecb6c09f660334ab53a6aa189a5bd5b",
+    "extra.mjs": "d559ba16afd3808e37b84e8983e7ae6c5878af97c3b0e91cda80be11bf684b5b",
+    "focus.mjs": "b804544e37da1de73a95bd6416eff2f14197b0e91f90813ae6a4b317184f3b43",
+    "interactions.mjs": "c8037c6dbc0daeeb9de741da1fefff42a8c521b62ba70b03f1f2dd553f82f548",
+    "lights.mjs": "d69bc98d9dc883af5f7aed66e4a69b32340fbe1ecd679352a9cf39fff5ec3449",
+    "profile.mjs": "5292e86838e5c2125703f2fdf77c6bef558ec73dab80038dd90b0003538e28bc",
+    "rubble.mjs": "d7f0c59618637f7afe0cfe22c4eaf016bdaf9664c5a71514658e60dda676af03",
+    "run.mjs": "a9399ef93911652cef5de24487d0f195bbcc157990715204e85f2db8d7c58463",
+    "soak.mjs": "024f0a48ee97f617e7b51182a069ac7b58c9be6992863bab40921d6a4b7fc30f",
+    "wave.mjs": "23cc59b777c76285fb6593171703a8d1fa45467fd99404bf568aeeff623b3b4c"
+  },
+  "probes": [
+    {
+      "name": "detail",
+      "status": "complete",
+      "startedAt": "2026-09-07T14:29:33.094Z",
+      "exitCode": 0,
+      "finishedAt": "2026-09-07T14:29:48.458Z"
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+  "finishedAt": "2026-09-07T14:29:48.458Z"
+}

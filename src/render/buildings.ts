@@ -240,6 +240,26 @@ interface Model {
  * ponytail: module-size stays while GLB loading, fallback boxes, thin instances and decor share
  * asset caches and one dirty renderer; split when one path gets a separate lifecycle.
  */
+/**
+ * Where the city stops being worth drawing as models. Two numbers, not one: crossing up at
+ * TO_BOXES and back down only at TO_MODELS is the whole flicker guard.
+ *
+ * ponytail: one global threshold for the whole city, not per building. Per-building distance
+ * would mean rewriting the thin-instance buffers every frame -- measure that separately if a
+ * mixed near/far skyline ever earns it.
+ */
+const TO_BOXES = 1100;
+const TO_MODELS = 1000;
+
+/**
+ * The whole detail decision, kept pure so it can be checked without a scene: where the camera is,
+ * whether the automatic half already chose boxes, and whether the player forced them.
+ */
+export function nextDistantDetail(radius: number, wasAuto: boolean, forced: boolean): { auto: boolean; far: boolean } {
+  const auto = wasAuto ? radius > TO_MODELS : radius > TO_BOXES;
+  return { auto, far: forced || auto };
+}
+
 export async function createBuildingRenderer(scene: Scene, ground: Heightmap, shadows: ShadowGenerator) {
   const heightAt = (x: number, z: number) => ground.heightAt(x, z);
   const manifest = await loadManifest();
@@ -295,6 +315,8 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   let taken: Mesh | null = null;
   let visible = true;
   let far = false;
+  let forcedBoxes = false;
+  let autoBoxes = false;
   let gridVisible = false;
   // Roof props are created already opaque (see buildRoofProps), so this starts in sync with that
   // -- the very first setFaded(false) is then correctly a no-op too, not just repeats of it.
@@ -307,6 +329,19 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   let lastParcels: readonly BuildingParcel[] = [];
   let lastStatuses: readonly BuildingStatus[] = [];
   const modelById = new Map<string, Model>();
+
+  /**
+   * Boxes are on if either half asks for them. Both halves go through here so the manual override
+   * and the camera cannot fight over `far`, and a no-op change costs one comparison.
+   */
+  function applyDistance(): void {
+    const next = forcedBoxes || autoBoxes;
+    if (next === far) return;
+    far = next;
+    applyBuildingVisibility();
+    // The city just swapped between models and boxes: what casts shadows changed with it.
+    shadows.getShadowMap()?.resetRefreshCounter();
+  }
 
   function applyBuildingVisibility(): void {
     for (const model of available) model.mesh.setEnabled(visible && !far && model.mesh.thinInstanceCount > 0);
@@ -607,11 +642,19 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       decorVisible = next;
       applyDecor();
     },
-    /** Draw the city as boxes rather than models -- for when the camera is too high to tell. */
+    /** The manual override: checked draws boxes at any height, unchecked leaves it to the camera. */
     setDistant(next: boolean) {
-      if (next === far) return;
-      far = next;
-      applyBuildingVisibility();
+      forcedBoxes = next;
+      applyDistance();
+    },
+    /**
+     * The automatic half of the same decision. Boxes once the camera passes `TO_BOXES`, models
+     * again only below `TO_MODELS` -- the gap is what stops a camera sitting on the threshold
+     * from swapping the whole city back and forth every frame.
+     */
+    setCameraRadius(radius: number) {
+      autoBoxes = nextDistantDetail(radius, autoBoxes, forcedBoxes).auto;
+      applyDistance();
     },
     setGridVisible(next: boolean) {
       gridVisible = next;

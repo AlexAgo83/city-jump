@@ -6,6 +6,7 @@ export const root = fileURLToPath(new URL("../../", import.meta.url));
 export const probes = [
 	"profile",
 	"distance",
+	"detail",
 	"focus",
 	"rubble",
 	"wave",

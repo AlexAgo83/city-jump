@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildingParcels, type BuildableCell, type BuildingParcel } from "../sim/slots";
-import { BUILDING_MODELS, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, roofObjectLimit, roofPropY } from "./buildings";
+import { BUILDING_MODELS, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, nextDistantDetail, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -250,4 +250,43 @@ it("gives residual industrial 1x1 parcels three stable industrial models", () =>
   }
   expect([...selected].sort()).toEqual(["industrial_1x1_a", "industrial_1x1_b", "industrial_1x1_c"]);
   expect(buildingModelId({ ...parcel(0, 0, 1, 4), kind: "industrial" })).toBe("industrial_1x4");
+});
+
+
+describe("automatic building detail", () => {
+  // The camera walks up past the switch and back down again; `auto` is fed back in each step,
+  // which is what makes the gap between the two thresholds a hysteresis rather than one number.
+  const walk = (radii: readonly number[], forced = false) => {
+    let auto = false;
+    return radii.map((radius) => {
+      const next = nextDistantDetail(radius, auto, forced);
+      auto = next.auto;
+      return next.far;
+    });
+  };
+
+  it("switches to boxes above the upper threshold and back only below the lower one", () => {
+    expect(walk([900, 1050, 1101, 1050, 1001, 999, 900])).toEqual([false, false, true, true, true, false, false]);
+  });
+
+  it("does not flicker while the camera sits between the thresholds", () => {
+    expect(walk([1000, 1099, 1000, 1099])).toEqual([false, false, false, false]);
+    expect(walk([1200, 1050, 1099, 1005, 1050])).toEqual([true, true, true, true, true]);
+  });
+
+  it("keeps boxes at any height while the manual override is on", () => {
+    expect(walk([100, 500, 900, 1200, 100], true)).toEqual([true, true, true, true, true]);
+  });
+
+  it("hands the city back to the camera when the override is turned off far in", () => {
+    // Forced boxes while low: the automatic half must not have latched on behind the checkbox.
+    expect(nextDistantDetail(300, false, true)).toEqual({ auto: false, far: true });
+    expect(nextDistantDetail(300, false, false)).toEqual({ auto: false, far: false });
+  });
+
+  it("re-derives from the current radius after a rebuild or a reload, with no stale boxes", () => {
+    // A rebuild replays the same radius: the answer only depends on where the camera is now.
+    expect(nextDistantDetail(1400, true, false)).toEqual({ auto: true, far: true });
+    expect(nextDistantDetail(400, false, false)).toEqual({ auto: false, far: false });
+  });
 });
