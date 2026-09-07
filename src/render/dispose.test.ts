@@ -45,6 +45,9 @@ describe("renderer disposal", () => {
     const destructionEffects = createDestructionEffects(scene, () => 0);
     const missileRenderer = createMissileRenderer(scene);
 
+    // Shown, so their geometry exists to be disposed: a hidden overlay defers building it.
+    zoneRenderer.setVisible(true);
+    utilityRenderer.setVisible(true);
     zoneRenderer.rebuild([cell], zones);
     utilityRenderer.rebuild(suppliedDiffusers(graph, utilities.producers(), utilities.diffusers()));
     rubbleRenderer.rebuild([[0, 0]]);

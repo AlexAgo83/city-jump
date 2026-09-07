@@ -16,8 +16,20 @@ const COLORS: Record<UtilityKind, Color3> = {
 export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities: Utilities, heightAt: (x: number, z: number) => number) {
   let visible = false;
   let lines: LinesMesh[] = [];
+  /** What a rebuild asked for while the overlay was hidden, waiting to be built on reveal. */
+  let pending: ReadonlySet<string> | null = null;
 
   function rebuild(supplied: ReadonlySet<string>): void {
+    // Hidden overlays cost nothing until they are looked at; the latest call is the one built.
+    if (!visible) {
+      pending = supplied;
+      return;
+    }
+    pending = null;
+    build(supplied);
+  }
+
+  function build(supplied: ReadonlySet<string>): void {
     for (const line of lines) line.dispose();
     lines = [];
     for (const segment of graph.allSegments()) {
@@ -58,6 +70,12 @@ export function createUtilityRenderer(scene: Scene, graph: RoadGraph, utilities:
     rebuild,
     setVisible(next: boolean) {
       visible = next;
+      if (next && pending) {
+        const supplied = pending;
+        pending = null;
+        build(supplied);
+        return;
+      }
       for (const line of lines) line.setEnabled(next);
     },
     dispose(): void {

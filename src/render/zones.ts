@@ -39,6 +39,8 @@ export function createZoneRenderer(scene: Scene) {
 
   let meshes: Mesh[] = [];
   let visible = false;
+  /** What a rebuild asked for while the overlay was hidden, waiting to be built on reveal. */
+  let pending: [readonly BuildableCell[], Zones | undefined, ReadonlySet<string> | undefined] | null = null;
 
   /**
    * Colours only the zoned buildable cells the brush touched.
@@ -50,6 +52,18 @@ export function createZoneRenderer(scene: Scene) {
    * @param occupied Cells a standing building covers, as `x:z` keys rounded to the metre.
    */
   function rebuild(cells: readonly BuildableCell[], zones?: Zones, occupied?: ReadonlySet<string>): void {
+    // Nothing to look at, so nothing to build: an edit while the overlay is hidden only records
+    // what it would have been built from, and the geometry is generated when it is revealed. The
+    // latest call wins, so what appears on reveal is the city as it stands, never a stale grid.
+    if (!visible) {
+      pending = [cells, zones, occupied];
+      return;
+    }
+    pending = null;
+    build(cells, zones, occupied);
+  }
+
+  function build(cells: readonly BuildableCell[], zones?: Zones, occupied?: ReadonlySet<string>): void {
     for (const mesh of meshes) mesh.dispose();
     meshes = [];
     const buckets = new Map<string, { positions: number[]; indices: number[] }>();
@@ -84,6 +98,12 @@ export function createZoneRenderer(scene: Scene) {
     rebuild,
     setVisible(next: boolean) {
       visible = next;
+      if (next && pending) {
+        const [cells, zones, occupied] = pending;
+        pending = null;
+        build(cells, zones, occupied);
+        return;
+      }
       for (const mesh of meshes) mesh.setEnabled(next);
     },
     dispose(): void {
