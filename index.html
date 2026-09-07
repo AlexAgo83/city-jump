@@ -140,12 +140,14 @@
   /* One surface: the active tool's options sit beside the tools that own them, not floating above. */
   #action-dock {
     position: fixed; right: 12px; bottom: 12px; z-index: 2;
-    display: flex; align-items: stretch; gap: 6px; padding: 5px;
-    max-width: calc(100vw - 24px); box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+    padding: 5px; max-width: calc(100vw - 232px); box-sizing: border-box;
     background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
     box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
   }
-  #action-palette { display: flex; gap: 2px; align-items: center; max-width: 100%; overflow-x: auto; box-sizing: border-box; }
+  #action-palette { display: flex; gap: 2px; align-items: center; justify-content: flex-end; max-width: 100%; overflow-x: auto; box-sizing: border-box; }
+  /* The options sit beside the tools while there is room, and above them when there is not. */
+
   .tool-button {
     min-width: 58px; min-height: 44px; padding: 7px 9px; border: 0; border-radius: 6px;
     color: #8e9aa4; background: transparent; cursor: pointer; white-space: nowrap;
@@ -155,14 +157,29 @@
   .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
   .tool-button:hover { color: #e8edf1; background: #ffffff0d; }
   .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  /* No width cap here: a capped options group clipped the road-type segmented rather than
+     letting the dock wrap, which is the one thing an options row must never do. */
   .tool-options {
-    display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
-    max-width: 290px; padding: 6px 11px 6px 7px; box-sizing: border-box;
-    border-right: 1px solid #ffffff12; font-size: 11.5px;
+    display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 10px;
+    padding: 6px 7px; box-sizing: border-box; font-size: 11.5px; color: #a6b1ba;
   }
+  /* One rule under the last options group, so the tools read as their own row. */
+  .tool-options:not([hidden]) ~ #action-palette { border-top: 1px solid #ffffff12; padding-top: 5px; }
   .tool-options[hidden] { display: none; }
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
+  /* The same switch the settings panel uses, so a toggle looks like a toggle everywhere. */
+  .tool-options input[type="checkbox"] {
+    appearance: none; flex: none; position: relative; width: 24px; height: 14px; margin: 0;
+    border: 1px solid #ffffff24; border-radius: 7px; background: #232a31; cursor: pointer;
+  }
+  .tool-options input[type="checkbox"]::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 8px; height: 8px;
+    border-radius: 50%; background: #7f8b95; transition: left .14s ease, background .14s ease;
+  }
+  .tool-options input[type="checkbox"]:checked { background: #35525d; border-color: #75b9d15c; }
+  .tool-options input[type="checkbox"]:checked::after { left: 12px; background: #b9dbe7; }
+  .tool-options .price { color: #6d7883; font-variant-numeric: tabular-nums; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   .tool-options input[type="range"] { width: 92px; }
   /*
@@ -531,7 +548,7 @@
     <label><input id="road-lanes" type="checkbox" /> Two lanes</label>
     <label><input id="road-oneway" type="checkbox" /> One-way</label>
     <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
-    <output id="road-price">$8/m</output>
+    <output class="price" id="road-price">$8/m</output>
   </div>
   <div id="nature-options" class="tool-options" hidden>
     <div class="segmented" role="group" aria-label="Planting mode">
@@ -557,7 +574,7 @@
       <label><input type="radio" name="zone-kind" value="military" /><span>Military</span></label>
       <label><input type="radio" name="zone-kind" value="clear" /><span>Clear</span></label>
     </div>
-    <output id="zone-price">Zone</output>
+    <output class="price" id="zone-price">Zone</output>
   </div>
   <div id="zone-tool-options" class="tool-options" hidden>
     <div class="segmented" role="group" aria-label="Zoning tool">
@@ -571,7 +588,7 @@
       <label><input type="radio" name="utility-role" value="producer" checked /><span>Producer</span></label>
       <label><input type="radio" name="utility-role" value="diffuser" /><span>Diffuser</span></label>
     </div>
-    <output id="utility-price">$3,200 | 6 staff</output>
+    <output class="price" id="utility-price">$3,200 | 6 staff</output>
   </div>
   <div id="action-palette" role="toolbar" aria-label="Build tools">
     <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
