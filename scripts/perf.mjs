@@ -6,10 +6,12 @@
 //   npm run perf -- --city save.json   -- a city exported from the app (Share -> Save link JSON)
 //   npm run perf -- --city '#city=H4s' -- a share link, or the whole URL it came in
 //   npm run perf -- --label before     -- names the run, so runs are compared like with like
+//   npm run perf -- --paused           -- measures the still scene, on purpose and labelled
 //
 // Every run appends one line to perf/history.jsonl and prints the delta against the last run
 // with the same label.
 import { chromium } from "playwright";
+import { conditions, pauseGameplay, rendererOf, runGameplay } from "./measurement.mjs";
 import { execSync } from "node:child_process";
 import { readFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,13 +22,17 @@ const HISTORY = join(ROOT, "perf", "history.jsonl");
 
 const args = process.argv.slice(2);
 const url = args.find((arg) => arg.startsWith("http")) ?? "http://localhost:5173";
-const flag = (name) => {
+const flag = (name, fallback) => {
   const at = args.indexOf(`--${name}`);
-  return at >= 0 ? args[at + 1] : undefined;
+  return at >= 0 ? args[at + 1] : fallback;
 };
 const city = flag("city");
 const wave = args.includes("--wave");
-const label = flag("label") ?? (wave ? "wave-demo" : city ? city.replace(/.*\//, "").replace(/\.json$/, "") : "demo");
+// The city boots paused. Running is what a player sees, so it is the default; the paused scene is
+// still worth measuring, and gets its own label so the two never land in one history line.
+const paused = args.includes("--paused");
+const simRate = Number(flag("sim-rate", "1"));
+const label = (flag("label") ?? (wave ? "wave-demo" : city ? city.replace(/.*\//, "").replace(/\.json$/, "") : "demo")) + (paused ? "-paused" : "");
 const commit = execSync("git rev-parse --short HEAD", { cwd: ROOT }).toString().trim();
 const dirty = execSync("git status --porcelain", { cwd: ROOT }).toString().trim().length > 0;
 if (dirty && !args.includes("--allow-dirty")) {
@@ -81,16 +87,25 @@ if (shareHash) {
 
 // Buildings have to be standing before the numbers mean anything: an empty city reads as fast for
 // the wrong reason. They arrive over a few frames, so this waits for the count to stop climbing.
-await page.waitForFunction(
-  () => {
-    const { buildings, models } = window.cityjump.stats();
-    const settled = window.__perfBuildings === buildings;
-    window.__perfBuildings = buildings;
-    return settled && buildings > 0 && models > 0;
-  },
-  null,
-  { timeout: 30_000, polling: 1000 },
-);
+// An empty city has to fail here and say so: it renders fast for the wrong reason, and a number
+// taken from it looks like a win.
+try {
+  await page.waitForFunction(
+    () => {
+      const { buildings, models } = window.cityjump.stats();
+      const settled = window.__perfBuildings === buildings;
+      window.__perfBuildings = buildings;
+      return settled && buildings > 0 && models > 0;
+    },
+    null,
+    { timeout: 30_000, polling: 1000 },
+  );
+} catch {
+  const { buildings, models } = await page.evaluate(() => window.cityjump.stats());
+  console.error(`Refusing to measure a city with ${buildings} buildings and ${models} models: nothing standing, nothing to measure.`);
+  await browser.close();
+  process.exit(1);
+}
 await page.waitForTimeout(2000);
 
 // The toolbar ships collapsed and its content is display:none, so every control inside it is
@@ -104,6 +119,8 @@ if ((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) !== "t
 // The game caps itself to spare a laptop; a measurement wants the machine flat out.
 await page.selectOption("#frame-cap", "0");
 await page.waitForTimeout(500);
+
+const workload = paused ? await pauseGameplay(page) : await runGameplay(page, { rate: simRate });
 
 const stats = await page.evaluate(() => window.cityjump.stats());
 // What the scene is actually made of: a city is slow in draw calls, and a draw call is a mesh.
@@ -129,10 +146,15 @@ const waveMs = wave
     })
   : undefined;
 const fps = {};
+// A frame rate only means something next to a like one, so each framing keeps the camera the app
+// actually settled on rather than the one this script asked for.
+const framingConditions = {};
 for (const framing of FRAMINGS) {
   await page.evaluate(({ radius, beta }) => window.cityjump.camera(radius, beta), framing);
   await page.waitForTimeout(600);
+  const camera = await page.evaluate(() => window.cityjump.cameraState());
   fps[framing.name] = await page.evaluate(() => window.cityjump.measureFps(3000));
+  framingConditions[framing.name] = conditions({ ...workload, renderer: rendererOf(onGpu), camera });
 }
 await browser.close();
 
@@ -141,7 +163,10 @@ const run = {
   label: onGpu ? `${label}-gpu` : label,
   commit,
   dirty,
+  ...workload,
+  renderer: rendererOf(onGpu),
   fps,
+  conditions: framingConditions,
   rebuildMs,
   ...(wave ? { waveMs } : {}),
   meshes,
@@ -169,6 +194,7 @@ appendFileSync(HISTORY, `${JSON.stringify(run)}\n`);
 
 const delta = (now, before) => (before === undefined ? "" : `  (${now - before >= 0 ? "+" : ""}${Math.round(now - before)})`);
 console.log(`\n${run.label}  ${run.commit}${run.dirty ? "+dirty" : ""}`);
+console.log(`  workload    ${run.workload}, sim rate ${run.simRate}, ${run.renderer}`);
 console.log(`  city        ${run.city.segments} segments, ${run.city.buildings} buildings, ${run.city.cars} cars, ${run.city.activeMeshes} active meshes`);
 for (const framing of FRAMINGS) {
   console.log(`  ${framing.name.padEnd(11)} ${fps[framing.name]} fps${delta(fps[framing.name], previous?.fps?.[framing.name])}`);

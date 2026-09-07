@@ -4,9 +4,11 @@
 //
 //   npm run ablate                                          # the demo city
 //   npm run ablate -- --city perf/cities/ma-ville.json --rounds 3 --gpu
+//   npm run ablate -- --paused                              # the still scene, on purpose
 //
 // Prints, per ablation and framing, the median of "fps with it off / fps with everything on".
 import { chromium } from "playwright";
+import { ablationRatio, pauseGameplay, rendererOf, runGameplay } from "./measurement.mjs";
 import { readFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
@@ -19,6 +21,8 @@ const city = flag("city");
 const rounds = Number(flag("rounds", "3"));
 const onGpu = args.includes("--gpu");
 const sampleMs = Number(flag("ms", "2500"));
+const paused = args.includes("--paused");
+const simRate = Number(flag("sim-rate", "1"));
 
 const FRAMINGS = [
   { name: "overview", radius: 1600, beta: Math.PI / 3.4 },
@@ -57,16 +61,25 @@ if (city) {
     window.cityjump.rebuild();
   });
 }
-await page.waitForFunction(
-  () => {
-    const { buildings, models } = window.cityjump.stats();
-    const settled = window.__ablateBuildings === buildings;
-    window.__ablateBuildings = buildings;
-    return settled && buildings > 0 && models > 0;
-  },
-  null,
-  { timeout: 30_000, polling: 1000 },
-);
+// An empty city has to fail here and say so: it renders fast for the wrong reason, and a number
+// taken from it looks like a win.
+try {
+  await page.waitForFunction(
+    () => {
+      const { buildings, models } = window.cityjump.stats();
+      const settled = window.__ablateBuildings === buildings;
+      window.__ablateBuildings = buildings;
+      return settled && buildings > 0 && models > 0;
+    },
+    null,
+    { timeout: 30_000, polling: 1000 },
+  );
+} catch {
+  const { buildings, models } = await page.evaluate(() => window.cityjump.stats());
+  console.error(`Refusing to measure a city with ${buildings} buildings and ${models} models: nothing standing, nothing to measure.`);
+  await browser.close();
+  process.exit(1);
+}
 
 const setBoxes = async (off) => {
   for (const id of ["show-buildings", "show-traffic", "show-shadows", "show-lights"]) {
@@ -94,6 +107,8 @@ if ((await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) !== "t
 await page.selectOption("#frame-cap", "0");
 await page.waitForTimeout(500);
 
+const workload = paused ? await pauseGameplay(page) : await runGameplay(page, { rate: simRate });
+
 const results = new Map();
 const record = (key, value) => results.set(key, [...(results.get(key) ?? []), value]);
 
@@ -102,24 +117,37 @@ for (let round = 0; round < rounds; round++) {
     await setBoxes([]);
     const base = await measure(framing);
     record(`everything on|${framing.name}`, base);
+    let before = base;
     for (const ablation of ABLATIONS) {
       await setBoxes(ablation.off);
       const fps = await measure(framing);
-      record(`${ablation.name}|${framing.name}`, fps / base);
-      // Straight back to the full scene, so the next ratio is against a fresh baseline.
+      // Straight back to the full scene: the ablation is divided by the two baselines that
+      // bracket it, not by the one taken at the top of the round, which by the last ablation is
+      // minutes and a thermal state away and lands its own drift in the answer.
       await setBoxes([]);
-      record(`everything on|${framing.name}`, await measure(framing));
+      const after = await measure(framing);
+      record(`everything on|${framing.name}`, after);
+      record(`${ablation.name}|${framing.name}`, ablationRatio(fps, before, after));
+      before = after;
     }
   }
   process.stdout.write(`round ${round + 1}/${rounds} done\n`);
 }
+// One page, one camera: these have to be read one after the other, not raced.
+const cameras = {};
+for (const framing of FRAMINGS) {
+  await page.evaluate(({ radius, beta }) => window.cityjump.camera(radius, beta), framing);
+  cameras[framing.name] = await page.evaluate(() => window.cityjump.cameraState());
+}
 await browser.close();
 
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
-console.log(`\n${city ?? "demo"}${onGpu ? "  (gpu)" : "  (software rasteriser)"}, ${rounds} rounds\n`);
+console.log(`\n${city ?? "demo"}, ${rounds} rounds`);
+console.log(`workload ${workload.workload}, sim rate ${workload.simRate}, ${rendererOf(onGpu)}\n`);
 for (const framing of FRAMINGS) {
   const base = median(results.get(`everything on|${framing.name}`));
-  console.log(`  ${framing.name}: everything on = ${Math.round(base)} fps`);
+  const { radius, beta, alpha } = cameras[framing.name];
+  console.log(`  ${framing.name}: everything on = ${Math.round(base)} fps  (camera r=${Math.round(radius)} beta=${beta.toFixed(2)} alpha=${alpha.toFixed(2)})`);
   for (const ablation of ABLATIONS) {
     const ratio = median(results.get(`${ablation.name}|${framing.name}`));
     console.log(`    ${ablation.name.padEnd(16)} x${ratio.toFixed(2)}  (${Math.round(base * ratio)} fps)`);

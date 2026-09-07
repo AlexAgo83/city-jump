@@ -69,6 +69,7 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
     vehicleByMesh: movers.vehicleByMesh,
     firstVehicle: movers.firstVehicle,
     vehiclePoint: movers.vehiclePoint,
+    positionsKey: movers.positionsKey,
     count: movers.count,
     pedestrians: movers.pedestrians,
     dispose(): void {

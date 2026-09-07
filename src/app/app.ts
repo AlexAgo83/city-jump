@@ -1169,6 +1169,10 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     timeRate,
     simDay,
     simHour: sunHour,
+    // Both of these exist so a measurement harness can prove the city was actually running while
+    // it took its numbers: a paused city renders the same scene for a fraction of the cost.
+    simSeconds,
+    moverPositions: traffic.positionsKey(),
   }), { controller: drawController, setWorldGridVisible: worldGrid.setVisible, measureFps, extra: (debugApi) => ({
     reset() {
       tool.cancel();

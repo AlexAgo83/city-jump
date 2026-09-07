@@ -714,6 +714,16 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
       const mover = movers.find((candidate) => !candidate.walk);
       return mover ? { x: mover.mesh.position.x, y: mover.mesh.position.y, z: mover.mesh.position.z } : null;
     },
+    /**
+     * One number for where every mover is, so a harness can tell a running city from a paused one
+     * without tracking a particular car: the first vehicle alone can sit still at a red light
+     * while the rest of the traffic moves.
+     */
+    positionsKey(): number {
+      let key = 0;
+      for (const mover of movers) key += mover.mesh.position.x * 31 + mover.mesh.position.z;
+      return key;
+    },
     count: () => movers.filter((mover) => !mover.walk).length,
     pedestrians: () => movers.filter((mover) => mover.walk).length,
     dispose(): void {
