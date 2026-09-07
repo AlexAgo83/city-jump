@@ -121,7 +121,7 @@ describe("hud rendering", () => {
     expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBe(built);
 
     // The handler is the toggle itself: it opens the collapsed ledger and fills it in one go.
-    const [[, toggle]] = (elements.get("city-strip")?.addEventListener as ReturnType<typeof vi.fn>).mock.calls;
+    const [, toggle] = (elements.get("city-strip")!.addEventListener as ReturnType<typeof vi.fn>).mock.calls[0]!;
     (toggle as () => void)();
     expect(ledger.hidden).toBe(false);
     expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(built);
