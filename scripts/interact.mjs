@@ -694,19 +694,22 @@ await uncapFrames();
 
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 check("time controls are permanent", await page.locator("#time-controls").isVisible() && /Day 1 \d\d:\d\d/.test(await page.locator("#sim-time").textContent()));
+// The status bar took the top centre, so the compass moved to the right edge beside it.
 check("compass remains visible at the top", await page.evaluate(() => {
   const compass = document.getElementById("compass").getBoundingClientRect();
-  return compass.top < 24 && compass.left > window.innerWidth * 0.35 && compass.right < window.innerWidth * 0.65;
+  return compass.top < 120 && compass.right > window.innerWidth - 40 && compass.width > 0;
 }));
 // The city numbers moved into the status bar on the top edge, so the clock now shares its left
 // column with Supply instead of with them. What still has to hold: the bar owns the top, the
 // wave banner sits under it, and the clock stays on the bottom-left, clear of both.
+// Supply and the clock now share one surface on the bottom left, side by side rather than
+// stacked, so what has to hold is that they are in it together and clear of the bar above.
 check("the status bar owns the top edge and the clock the bottom left", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
   const bar = document.getElementById("status-bar").getBoundingClientRect();
   const supply = document.getElementById("supply").getBoundingClientRect();
   const wave = document.getElementById("wave-banner").getBoundingClientRect();
-  return bar.top < 24 && wave.top >= bar.bottom && supply.left === time.left && supply.bottom <= time.top;
+  return bar.top < 24 && wave.top >= bar.bottom && time.left >= supply.right && time.bottom > bar.bottom;
 }));
 check("settings menu contains no wave-critical gauges", await page.evaluate(() => !/Needs|Money|Workers|Food|Shortage/.test(document.getElementById("toolbar").textContent)));
 check("time controls do not cover the compass", await page.evaluate(() => {
@@ -1239,7 +1242,9 @@ const zoneToolBox = await page.locator("#zone-tool-options").boundingBox();
 const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
 // The dock is one row now, so these sit side by side rather than stacked: what matters is that
 // both are on screen and the tool choice reads before the palette it drives.
-check("zoning options and tool choice share the dock row", zoneToolBox && zoneOptionsBox && zoneToolBox.y === zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
+// The dock is a column of panels on the left rail now, so these stack instead of sharing a
+// row: what matters is that both are on screen and the tool choice sits under its settings.
+check("zoning options and tool choice are both in the dock", zoneToolBox && zoneOptionsBox && zoneToolBox.y >= zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
 check("zoning fill is the default tool", await page.locator('input[name="zone-tool"][value="fill"]').isChecked());
 await page.locator('input[name="zone-tool"][value="brush"]').check();
 await page.locator("#zone-radius").evaluate((input) => {

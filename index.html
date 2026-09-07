@@ -27,17 +27,20 @@
   #toolbar-rail { display: flex; flex-direction: column; flex: none; border-right: 1px solid #ffffff14; padding: 3px 0; }
   .rail-btn {
     display: flex; align-items: center; justify-content: center; position: relative;
-    width: 40px; height: 38px; padding: 0; border: 0; background: transparent;
-    color: #6f7c86; cursor: pointer;
+    width: 30px; height: 28px; padding: 0; border: 0; background: transparent;
+    color: #616d77; cursor: pointer;
   }
   .rail-btn:hover { color: #e6ebef; background: #ffffff0a; }
   .rail-btn[aria-selected="true"] { color: #b9dbe7; background: #ffffff0f; }
   .rail-btn[aria-selected="true"]::before {
-    content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 2px;
+    content: ""; position: absolute; left: 0; top: 5px; bottom: 5px; width: 2px;
     border-radius: 0 2px 2px 0; background: #75b9d1;
   }
   .rail-btn:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   #toolbar-panes { display: flex; flex-direction: column; min-width: 0; width: 260px; }
+  /* A short window must still show the whole rail, so a long section scrolls rather than
+     pushing the panel down over the tools. */
+  .pane { max-height: max(140px, calc(100vh - 470px)); overflow-y: auto; }
   #pane-head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 7px 10px; border-bottom: 1px solid #ffffff14;
@@ -71,7 +74,7 @@
     content: ""; position: absolute; top: 2px; left: 2px; width: 9px; height: 9px;
     border-radius: 50%; background: #7f8b95; transition: left .14s ease, background .14s ease;
   }
-  .pane input[type="checkbox"]:checked { background: #3c5965; border-color: #75b9d16b; }
+  .pane input[type="checkbox"]:checked { background: #33505b; border-color: #75b9d150; }
   .pane input[type="checkbox"]:checked::after { left: 13px; background: #b9dbe7; }
   .pane input[type="checkbox"]:focus-visible { outline: 2px solid #75b9d1; outline-offset: 2px; }
   .pane label { cursor: pointer; }
@@ -103,16 +106,19 @@
     50% { filter: brightness(1.45); }
   }
   /* Same rule as the right-hand column: one anchored box, everything else flows inside it. */
+  /* One surface, not two stacked boxes: the city's health and the clock are read together. */
   #left-stack {
     position: fixed; left: 12px; bottom: 12px; z-index: 2;
-    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
-    max-width: calc(100vw - 220px); pointer-events: none;
+    display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+    max-width: calc(100vw - 24px); box-sizing: border-box;
+    background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
+    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
   }
-  #left-stack > * { pointer-events: auto; }
   #time-controls {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px;
-    min-width: 210px; width: max-content; max-width: calc(100vw - 24px); box-sizing: border-box;
-    color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f; border-radius: 6px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 0 0 0 12px; width: max-content; box-sizing: border-box;
+    color: #e6ebef; background: transparent; border: 0; border-left: 1px solid #ffffff12;
+    align-self: stretch; justify-content: center;
     font: 12px/1.2 ui-sans-serif, system-ui;
   }
   #time-controls button {
@@ -120,13 +126,13 @@
     color: #aeb8c0; background: transparent; font: inherit; cursor: pointer;
   }
   #time-controls button:last-child { border-right: 0; }
-  #time-controls button[aria-pressed="true"] { color: #fff; background: #3c5965; }
+  #time-controls button[aria-pressed="true"] { color: #fff; background: #33505b; }
   #sim-time { min-width: 86px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
-  .segmented { display: flex; border: 1px solid #ffffff2b; border-radius: 5px; overflow: hidden; }
+  .segmented { display: flex; border: 1px solid #ffffff20; border-radius: 4px; overflow: hidden; }
   .segmented label { position: relative; }
   .segmented input { position: absolute; opacity: 0; }
-  .segmented span { padding: 5px 8px; color: #aeb8c0; cursor: pointer; }
-  .segmented input:checked + span { color: #fff; background: #3c5965; }
+  .segmented span { padding: 3px 7px; color: #a2aeb7; font-size: 10.5px; cursor: pointer; }
+  .segmented input:checked + span { color: #fff; background: #33505b; }
   #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   #sun-hour { flex: 1 1 104px; min-width: 80px; }
   #save-slot { flex: 1 1 0; min-width: 0; }
@@ -138,48 +144,91 @@
   #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
   /* One surface: the active tool's options sit beside the tools that own them, not floating above. */
+  /*
+   * The tools take a rail down the left edge instead of the bottom, so the widest thing on screen
+   * stays the city. The active tool's options open beside the rail and hug their content -- a
+   * bottom dock had to be as wide as its widest tool set, empty or not.
+   */
+  /* Anchored just above the city block, so it grows upward and the settings panel grows
+     downward -- they meet in the middle instead of sharing a corner. */
   #action-dock {
-    position: fixed; right: 12px; bottom: 12px; z-index: 2;
-    display: flex; flex-direction: column; align-items: stretch; gap: 4px;
-    padding: 5px; max-width: calc(100vw - 232px); box-sizing: border-box;
-    background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
-    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    position: fixed; left: 12px; bottom: 180px; z-index: 2;
+    display: flex; align-items: flex-start; gap: 6px;
+    max-width: calc(100vw - 24px); box-sizing: border-box;
   }
-  #action-palette { display: flex; gap: 2px; align-items: center; justify-content: flex-end; max-width: 100%; overflow-x: auto; box-sizing: border-box; }
-  /* The options sit beside the tools while there is room, and above them when there is not. */
-
+  #action-palette {
+    display: flex; flex-direction: column; gap: 2px; padding: 4px; flex: none;
+    overflow: visible;
+    background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
+    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
+  }
+  #tool-options-stack { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  /*
+   * A short window cannot hold a seven-tool column beside a settings panel and the city block.
+   * Below 700px tall the rail lies down on the bottom-right instead, options above it -- the same
+   * shape the console direction used, kept for exactly this case.
+   */
+  /* Narrower than this the panel would sit on the status bar, so it opens below it instead. */
+  @media (max-width: 940px) {
+    #toolbar { top: 62px; }
+    #compass { top: 112px; }
+    .pane { max-height: max(120px, calc(100vh - 520px)); }
+  }
+  @media (max-height: 700px) {
+    #action-dock {
+      left: auto; right: 12px; bottom: 12px; flex-direction: column-reverse; align-items: flex-end;
+    }
+    #action-palette { flex-direction: row; }
+    .tool-button { width: 52px; min-height: 40px; font-size: 9.5px; }
+    /* Side by side, not stacked: stacked they grew tall enough to cover the map a player is
+       trying to click on. */
+    #tool-options-stack { flex-direction: row; align-items: flex-end; }
+    .tool-options { max-width: 260px; }
+  }
   .tool-button {
-    min-width: 58px; min-height: 44px; padding: 7px 9px; border: 0; border-radius: 6px;
-    color: #8e9aa4; background: transparent; cursor: pointer; white-space: nowrap;
-    font: 11.5px/1.2 ui-sans-serif, system-ui;
+    width: 38px; min-height: 34px; padding: 6px 0 5px; border: 0; border-radius: 5px;
+    color: #8b97a1; background: transparent; cursor: pointer; white-space: nowrap;
+    font: 8.5px/1.2 ui-sans-serif, system-ui;
   }
-  .tool-button[aria-pressed="true"] { color: #fff; background: #35525d; }
+  .tool-button[aria-pressed="true"] { color: #fff; background: #33505b; }
   .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
   .tool-button:hover { color: #e8edf1; background: #ffffff0d; }
   .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   /* No width cap here: a capped options group clipped the road-type segmented rather than
      letting the dock wrap, which is the one thing an options row must never do. */
+  /* A column that is only as wide as what it holds, never a box waiting to be filled. */
   .tool-options {
-    display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 10px;
-    padding: 6px 7px; box-sizing: border-box; font-size: 11.5px; color: #a6b1ba;
+    display: flex; flex-direction: column; align-items: stretch; gap: 7px;
+    width: max-content; max-width: 216px; padding: 8px 10px; box-sizing: border-box;
+    font-size: 11px; color: #a6b1ba;
+    background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
+    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
   }
-  /* One rule under the last options group, so the tools read as their own row. */
-  .tool-options:not([hidden]) ~ #action-palette { border-top: 1px solid #ffffff12; padding-top: 5px; }
+  .tool-options > label { justify-content: space-between; }
+  /* Eight road types cannot ride one strip in a 216px column, so inside the options panel a
+     segmented wraps into pills rather than hiding its tail behind `overflow: hidden`. */
+  .tool-options .segmented {
+    width: 100%; display: flex; flex-wrap: wrap; gap: 3px; border: 0; overflow: visible;
+  }
+  .tool-options .segmented label { flex: 1 1 auto; }
+  .tool-options .segmented span {
+    display: block; text-align: center; border: 1px solid #ffffff20; border-radius: 4px;
+  }
   .tool-options[hidden] { display: none; }
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
   /* The same switch the settings panel uses, so a toggle looks like a toggle everywhere. */
   .tool-options input[type="checkbox"] {
     appearance: none; flex: none; position: relative; width: 24px; height: 14px; margin: 0;
-    border: 1px solid #ffffff24; border-radius: 7px; background: #232a31; cursor: pointer;
+    border: 1px solid #ffffff20; border-radius: 7px; background: #212830; cursor: pointer;
   }
   .tool-options input[type="checkbox"]::after {
     content: ""; position: absolute; top: 2px; left: 2px; width: 8px; height: 8px;
     border-radius: 50%; background: #7f8b95; transition: left .14s ease, background .14s ease;
   }
-  .tool-options input[type="checkbox"]:checked { background: #35525d; border-color: #75b9d15c; }
+  .tool-options input[type="checkbox"]:checked { background: #33505b; border-color: #75b9d150; }
   .tool-options input[type="checkbox"]:checked::after { left: 12px; background: #b9dbe7; }
-  .tool-options .price { color: #6d7883; font-variant-numeric: tabular-nums; }
+  .tool-options .price { color: #7d8892; font-variant-numeric: tabular-nums; }
   .tool-options select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   .tool-options input[type="range"] { width: 92px; }
   /*
@@ -202,8 +251,8 @@
   }
   #selection-panel {
     min-width: 176px; max-width: 240px; box-sizing: border-box;
-    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
-    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    color: #e8edf1; background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
+    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
     font: 12px/1.4 ui-sans-serif, system-ui; padding: 9px 11px 11px;
   }
   #fps-counter {
@@ -215,7 +264,7 @@
   #fps-counter[hidden] { display: none; }
   #selection-panel[hidden] { display: none; }
   #selection-panel .selection-kind {
-    font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #6d7883;
+    font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #6b7681;
     padding-bottom: 6px; border-bottom: 1px solid #ffffff12;
   }
   #selection-panel dl { margin: 7px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; }
@@ -241,8 +290,8 @@
   #wave-banner {
     position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
     max-width: min(360px, calc(100vw - 24px)); box-sizing: border-box;
-    color: #e8dcbb; background: #12161aeb; border: 1px solid #ffffff17;
-    border-radius: 7px; box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    color: #e0d3ad; background: #11151aef; border: 1px solid #ffffff17;
+    border-radius: 6px; box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
     font: 11.5px/1.3 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
     padding: 7px 12px; text-align: center;
     pointer-events: none;
@@ -280,12 +329,12 @@
   #status-bar {
     position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2;
     display: flex; align-items: stretch; max-width: calc(100vw - 24px);
-    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
-    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
-    font: 12px/1.25 ui-sans-serif, system-ui; box-sizing: border-box;
+    color: #e8edf1; background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
+    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
+    font: 11px/1.25 ui-sans-serif, system-ui; box-sizing: border-box;
   }
   #city-strip, #run-panel {
-    display: flex; align-items: baseline; gap: 5px; padding: 7px 13px; white-space: nowrap;
+    display: flex; align-items: baseline; gap: 7px; padding: 6px 12px; white-space: nowrap;
     color: inherit; background: transparent; border: 0; font: inherit; text-align: left;
   }
   /* Each label belongs to the number after it, so the space goes before the label, not between. */
@@ -295,18 +344,34 @@
   #city-strip:hover { background: #ffffff08; }
   #city-strip:focus-visible, #run-panel button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   #run-panel { border-left: 1px solid #ffffff12; }
-  #status-bar span { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  #status-bar span { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+  /*
+   * A reduced window drops the numbers that can wait before it drops the ones that cannot:
+   * jobs and science go first, then population. Money and the wave always survive.
+   */
+  @media (max-width: 1340px) {
+    #city-strip #workers, #city-strip #workers ~ span:first-of-type { display: none; }
+    #run-panel #run-science { display: none; }
+    #run-panel > span:nth-of-type(2) { display: none; }
+  }
+  @media (max-width: 1120px) {
+    #city-strip #population, #city-strip > span:first-of-type { display: none; }
+    /* Centred, it would sit on the settings panel the moment that opens. On a narrow window it
+       takes the right edge instead, which nothing else is using up there. */
+    #status-bar { left: auto; right: 12px; transform: none; }
+    #compass { top: 62px; }
+  }
   #status-bar b {
-    color: #f4fbff; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums;
+    color: #f4fbff; font-weight: 600; font-size: 12px; font-variant-numeric: tabular-nums;
     letter-spacing: -.01em;
   }
-  #city-strip b#money { font-size: 15px; }
+  #city-strip b#money { font-size: 14px; }
   #run-panel button {
-    color: #dbe3e9; background: #232a31; border: 1px solid #ffffff24; border-radius: 5px;
-    padding: 5px 9px; font: inherit; cursor: pointer;
+    color: #d7dfe6; background: #212830; border: 1px solid #ffffff20; border-radius: 4px;
+    padding: 3px 7px; font: inherit; cursor: pointer;
   }
   #run-panel button:hover { background: #2d353d; }
-  #run-panel #call-wave { background: #35525d; border-color: #75b9d15c; color: #fff; }
+  #run-panel #call-wave { background: #33505b; border-color: #75b9d150; color: #fff; }
   #ledger {
     position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
     width: min(340px, calc(100vw - 24px));
@@ -319,16 +384,14 @@
      the width of the stats line beside it. */
   /* Five meters instead of nine lines of prose: what is short is read, not parsed. */
   .supply-top { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-  .supply-top span { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  .supply-top span { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
   .supply-top span:nth-of-type(2) { margin-left: 10px; }
-  .supply-top b { color: #f4fbff; font-weight: 600; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .supply-top b { color: #f4fbff; font-weight: 600; font-size: 11px; font-variant-numeric: tabular-nums; }
   #supply {
-    display: flex; flex-direction: column; gap: 7px; width: 188px; box-sizing: border-box;
-    color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
-    box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
-    font: 12px/1.25 ui-sans-serif, system-ui; padding: 10px 12px 11px;
+    display: flex; flex-direction: column; gap: 5px; width: 200px; box-sizing: border-box;
+    color: #e8edf1; font: 11px/1.25 ui-sans-serif, system-ui;
   }
-  .supply-label { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  .supply-label { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
   #needs-panel { display: grid; gap: 7px; }
   #ledger-lines {
     display: grid; gap: 0; color: #c8d2d9; font-variant-numeric: tabular-nums;
@@ -351,17 +414,17 @@
    * Label, bar, value -- side by side and no wider than they need to be. The value used to be
    * pushed to the far right of the whole strip by a `1fr` column, leaving a hole across the middle.
    */
-  .need-row { display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 8px; font-size: 11.5px; }
+  .need-row { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 2px 7px; font-size: 10.5px; }
   /* The default meter is a green plastic bar in every browser; this is the same one in the
      palette the rest of the overlay uses. */
-  .need-row meter { width: 100%; height: 3px; min-width: 24px; appearance: none; }
+  .need-row meter { width: 100%; height: 2px; min-width: 24px; appearance: none; }
   .need-row meter::-webkit-meter-bar {
-    background: #ffffff14; border: 0; border-radius: 2px; height: 3px;
+    background: #ffffff14; border: 0; border-radius: 1px; height: 2px;
   }
-  .need-row meter::-webkit-meter-optimum-value { background: #75b9d1; border-radius: 2px; }
-  .need-row meter::-webkit-meter-suboptimum-value { background: #d9c48a; border-radius: 2px; }
-  .need-row meter::-webkit-meter-even-less-good-value { background: #d98a8a; border-radius: 2px; }
-  .need-row b { color: #97a3ac; font-weight: 500; font-size: 10.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .need-row meter::-webkit-meter-optimum-value { background: #75b9d1; border-radius: 1px; }
+  .need-row meter::-webkit-meter-suboptimum-value { background: #d9c48a; border-radius: 1px; }
+  .need-row meter::-webkit-meter-even-less-good-value { background: #d98a8a; border-radius: 1px; }
+  .need-row b { color: #7d8892; font-weight: 500; font-size: 9.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   /* Every click inside the strip belongs to the strip: a <meter> swallowed some of them, so
      opening the ledger worked or did not depending on the pixel. */
   #city-strip * { pointer-events: none; }
@@ -518,6 +581,16 @@
   </button>
 </div>
 <div id="action-dock">
+  <div id="action-palette" role="toolbar" aria-label="Build tools">
+    <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
+    <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
+    <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
+    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
+    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
+    <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
+    <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
+  </div>
+  <div id="tool-options-stack">
   <div id="select-view-options" class="tool-options">
     <div class="segmented" role="group" aria-label="View">
       <label><input type="radio" name="select-view" value="all" checked /><span>All</span></label>
@@ -590,16 +663,9 @@
     </div>
     <output class="price" id="utility-price">$3,200 | 6 staff</output>
   </div>
-  <div id="action-palette" role="toolbar" aria-label="Build tools">
-    <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
-    <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
-    <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
-    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
-    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
-    <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
-    <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
   </div>
 </div>
+
 <div id="right-stack">
   <div id="run-line">
     <div id="fps-counter" hidden></div>

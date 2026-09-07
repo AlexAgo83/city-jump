@@ -2,66 +2,93 @@
   "pages": [
     {
       "id": "page-1",
-      "name": "HUD - desktop and mobile"
+      "name": "HUD v2 - desktop"
     },
     {
       "id": "page-2",
-      "name": "Settings panel"
+      "name": "Earlier"
     }
   ],
   "artboards": [
+    {
+      "file": "DeskConsole.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "D1 - one console bar",
+      "page": "page-1"
+    },
+    {
+      "file": "DeskRail.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "D2 - left tool rail",
+      "page": "page-1"
+    },
+    {
+      "file": "DeskNarrow.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1024,
+      "h": 640,
+      "title": "D1 at 1024 wide",
+      "page": "page-1"
+    },
+    {
+      "file": "Mobile.dc.html",
+      "x": 4260,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Mobile (kept)",
+      "page": "page-1"
+    },
     {
       "file": "Desktop.dc.html",
       "x": 0,
       "y": 0,
       "w": 1280,
       "h": 800,
-      "title": "Desktop 1280",
-      "page": "page-1"
-    },
-    {
-      "file": "Mobile.dc.html",
-      "x": 1400,
-      "y": 0,
-      "w": 390,
-      "h": 844,
-      "title": "Mobile 390",
-      "page": "page-1"
+      "title": "Shipped now",
+      "page": "page-2"
     },
     {
       "file": "Main.dc.html",
-      "x": 0,
+      "x": 1380,
       "y": 0,
       "w": 600,
       "h": 760,
-      "title": "Settings - shipped",
+      "title": "Settings",
       "page": "page-2"
     },
     {
       "file": "Today.dc.html",
-      "x": 700,
+      "x": 2060,
       "y": 0,
       "w": 1060,
       "h": 900,
-      "title": "Settings - before",
+      "title": "Before",
       "page": "page-2"
     },
     {
       "file": "DirectionB.dc.html",
-      "x": 1860,
+      "x": 3200,
       "y": 0,
       "w": 560,
       "h": 960,
-      "title": "B - Accordion",
+      "title": "B",
       "page": "page-2"
     },
     {
       "file": "DirectionC.dc.html",
-      "x": 2500,
+      "x": 3840,
       "y": 0,
       "w": 630,
       "h": 760,
-      "title": "C - Tab strip",
+      "title": "C",
       "page": "page-2"
     }
   ],

@@ -1,0 +1,64 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><script src="./support.js"></script></head>
+<body><x-dc><helmet><style>
+    body { margin:0; font:11px/1.25 ui-sans-serif,system-ui,sans-serif; background:#0a0d10; color:#e8edf1; }
+    a { color:#75b9d1; } a:hover { color:#b9dbe7; }
+    .screen { position:relative; overflow:hidden; }
+    .screen img.bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .s { background:#11151aef; border:1px solid #ffffff17; border-radius:6px; box-shadow:0 8px 22px #0006, inset 0 1px 0 #ffffff0d; }
+    .k { color:#6b7681; font-size:9px; letter-spacing:.1em; text-transform:uppercase; }
+    .n { font-variant-numeric:tabular-nums; }
+    .row { display:flex; align-items:center; gap:7px; }
+    .div { width:1px; align-self:stretch; background:#ffffff12; }
+    .b { color:#d7dfe6; background:#212830; border:1px solid #ffffff20; border-radius:4px; padding:3px 7px; font:inherit; }
+    .b.on { background:#33505b; border-color:#75b9d150; color:#fff; }
+    .seg { display:flex; border:1px solid #ffffff20; border-radius:4px; overflow:hidden; }
+    .seg>span { padding:3px 7px; color:#a2aeb7; font-size:10.5px; }
+    .seg>span[data-on="1"] { color:#fff; background:#33505b; }
+    .tl { display:flex; flex-direction:column; align-items:center; gap:2px; width:46px; padding:5px 0 4px; border-radius:5px; color:#8b97a1; font-size:9.5px; }
+    .tl[data-on="1"] { color:#fff; background:#33505b; }
+    .mt { display:grid; grid-template-columns:52px 1fr auto; align-items:center; gap:2px 7px; font-size:10.5px; }
+    .mt i { display:block; height:2px; border-radius:1px; background:#ffffff14; }
+    .mt i>b { display:block; height:100%; border-radius:1px; }
+    .rl { display:flex; align-items:center; justify-content:center; width:30px; height:28px; color:#616d77; position:relative; }
+    .rl[data-on="1"] { color:#b9dbe7; background:#ffffff0d; }
+    .rl[data-on="1"]::before { content:""; position:absolute; left:0; top:5px; bottom:5px; width:2px; border-radius:0 2px 2px 0; background:#75b9d1; }
+</style></helmet>
+
+<div class="screen" style="width:1440px;height:900px;">
+  <img class="bg" src="city.jpg" alt="" />
+  <div class="s" style="position:absolute;top:10px;left:10px;display:flex;flex-direction:column;padding:2px 0;"><span class="rl" data-on="1"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="6" height="11"/><rect x="10" y="4" width="5" height="17"/><rect x="16" y="8" width="5" height="13"/></svg></span><span class="rl" data-on="0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6Z"/></svg></span><span class="rl" data-on="0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M2.5 12h2M19.5 12h2M5.4 18.6l1.4-1.4M17.2 6.8l1.4-1.4"/></svg></span><span class="rl" data-on="0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 3 17.5Z"/><circle cx="11.8" cy="13" r="3.2"/></svg></span><span class="rl" data-on="0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/></svg></span><span class="rl" data-on="0"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V9.5L12 4l7 5.5V20"/><path d="M9.5 20v-5h5v5"/></svg></span></div>
+  <div class="s" style="position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:11px;padding:6px 12px;">
+    <span class="n" style="font-size:14px;font-weight:600;">$8.80M</span><span class="n" style="color:#8fc7a4;font-size:10px;">+540/s</span>
+    <span class="div"></span><span class="k">Pop</span><span class="n" style="font-weight:600;">13,336</span>
+    <span class="k">Jobs</span><span class="n" style="font-weight:600;">13.3k</span><span class="n" style="color:#6b7681;">/12.1k</span>
+    <span class="div"></span><span class="k">Wave</span><span class="n" style="font-weight:600;">17</span>
+    <span style="width:96px;"><i style="display:block;height:2px;border-radius:1px;background:#ffffff14;"><b style="display:block;height:100%;width:78%;border-radius:1px;background:linear-gradient(90deg,#75b9d1,#d9c48a);"></b></i></span>
+    <span class="div"></span><span class="b on">Call wave</span><span class="b">Evacuate</span>
+  </div>
+
+  <!-- ONE bar owns the bottom edge: city on the left, build in the middle, clock on the right. -->
+  <div class="s" style="position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:stretch;border-radius:7px;">
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:3px;padding:7px 12px;min-width:216px;">
+      <div class="mt"><span>Workers</span><i><b style="width:100%;background:#75b9d1;"></b></i><span class="n" style="color:#7d8892;font-size:9.5px;">ok</span><span>Commerce</span><i><b style="width:56%;background:#d9c48a;"></b></i><span class="n" style="color:#7d8892;font-size:9.5px;">-121</span><span>Farming</span><i><b style="width:62%;background:#d9c48a;"></b></i><span class="n" style="color:#7d8892;font-size:9.5px;">-206</span><span>Industry</span><i><b style="width:100%;background:#75b9d1;"></b></i><span class="n" style="color:#7d8892;font-size:9.5px;">ok</span><span>Military</span><i><b style="width:83%;background:#75b9d1;"></b></i><span class="n" style="color:#7d8892;font-size:9.5px;">110k/134k</span></div>
+    </div>
+    <span class="div"></span>
+    <div style="flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;padding:6px 12px;">
+      <div class="row" style="gap:9px;">
+        <span class="k">View</span><div class="seg"><span data-on="1">All</span><span>Zones</span><span>Traffic</span><span>Utilities</span><span>State</span></div>
+      </div>
+      <div class="row" style="gap:2px;"><span class="tl" data-on="1"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l6 15 2.2-6.2L19.5 9.8z"/></svg><span>Select</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 5 21M16 3l3 18M12 4.5v3M12 11v3M12 17.5v3"/></svg><span>Roads</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg><span>Zones</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 5 13.5h5.5L11 22l8-11.5h-5.5z"/></svg><span>Power</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5s6 6.4 6 10.2a6 6 0 0 1-12 0C6 9.9 12 3.5 12 3.5Z"/></svg><span>Water</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-4.6M12 16.4 7.5 13.8A5 5 0 0 1 12 4.2a5 5 0 0 1 4.5 9.6Z"/></svg><span>Nature</span></span><span class="tl" data-on="0"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h9l4-4V9H8L3 14z"/><circle cx="7" cy="19.6" r="1.5"/><circle cx="15" cy="19.6" r="1.5"/></svg><span>Bulldoze</span></span></div>
+    </div>
+    <span class="div"></span>
+    <div style="display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:6px;padding:7px 12px;min-width:150px;">
+      <div class="seg"><span data-on="1">&#10073;&#10073;</span><span>&#9654;</span><span>2&times;</span><span>4&times;</span></div>
+      <span class="n" style="color:#9fc4d2;">Day 49 &middot; 17:44</span>
+    </div>
+  </div>
+  <div class="s" style="position:absolute;top:62px;left:50%;transform:translateX(-50%);padding:5px 11px;color:#e0d3ad;font-size:10.5px;">Kaiju at 17,000 residents &mdash; 3,664 to go</div>
+  <div class="s" style="position:absolute;top:10px;right:10px;padding:5px 9px;" class="k">NE</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {}
+</script></body></html>
