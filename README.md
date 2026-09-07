@@ -31,7 +31,7 @@ it. Take a road under a hill and it becomes a tunnel, portals and all.
 
 Nothing here is placed by hand except the roads. Everything else is what the roads imply.
 
-![The saved Demo city in Roads mode, framed on the same roundabout](docs/media/city-jump-curves.png)
+![The saved Demo city in the Zones view, framed on the same roundabout](docs/media/city-jump-curves.png)
 
 ## What you can do
 

@@ -14,10 +14,15 @@ import { chromium } from "playwright";
 const url = process.argv[2] ?? "http://127.0.0.1:5173";
 const save = JSON.parse(readFileSync("public/default-demo.json", "utf8"));
 
-/** One capture per README image, in the order the README shows them. */
+/**
+ * One capture per README image, in the order the README shows them: the three select views the
+ * `Read it` bullet describes, on one framing. The filename `city-jump-curves` predates this and is
+ * kept anyway -- `docs/media/README.md` warns that a capture may be cited from published release
+ * notes this repository cannot see, and a rename would break exactly such a citation.
+ */
 const shots = [
   { out: "docs/media/city-jump.png", tool: "select", view: "all", what: "Select mode" },
-  { out: "docs/media/city-jump-curves.png", tool: "roads", view: null, what: "Roads mode" },
+  { out: "docs/media/city-jump-curves.png", tool: "select", view: "no-buildings", what: "Zones view" },
   { out: "docs/media/city-jump-traffic.png", tool: "select", view: "traffic", what: "Traffic view" },
 ];
 
