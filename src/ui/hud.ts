@@ -63,21 +63,62 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
   workersText.textContent = workers ? `${workers.supply}/${workers.need}` : "0/0";
   foodText.textContent = compact(Math.floor(resources?.food ?? 0));
   shortageText.textContent = shortage(needs);
-  needsPanel.replaceChildren(...needs.map((need) => {
-    const row = document.createElement("div");
-    row.className = "need-row";
-    const name = document.createElement("span");
-    const meter = document.createElement("meter");
-    const value = document.createElement("b");
-    name.textContent = needLabel(need.kind);
-    meter.min = 0;
-    meter.max = 1;
-    meter.value = Number(need.ratio.toFixed(3));
-    value.textContent = needText(need);
-    row.replaceChildren(name, meter, value);
-    return row;
-  }));
-  ledgerLines.replaceChildren(...ledgerRows(terms, resources).map((row) => {
+  renderNeeds(needs);
+  renderLedger(terms, resources);
+}
+
+/**
+ * The needs rows and the ledger are rewritten from the gameplay frame, and the figures they show
+ * hold still for seconds at a time. Replacing their subtrees anyway cost about 45 inserted
+ * elements a frame -- 2,700 a second at 60 fps -- for a panel that had not changed. The nodes are
+ * built once for a given shape and written to only when a displayed value actually moves.
+ */
+let needRows: { kind: BuildingNeed["kind"]; row: HTMLElement; meter: HTMLMeterElement; value: HTMLElement; shown: string; ratio: number }[] = [];
+
+function renderNeeds(needs: readonly BuildingNeed[]): void {
+  if (needRows.length !== needs.length || needRows.some((row, index) => row.kind !== needs[index]!.kind)) {
+    needRows = needs.map((need) => {
+      const row = document.createElement("div");
+      row.className = "need-row";
+      const name = document.createElement("span");
+      const meter = document.createElement("meter");
+      const value = document.createElement("b");
+      name.textContent = needLabel(need.kind);
+      meter.min = 0;
+      meter.max = 1;
+      row.replaceChildren(name, meter, value);
+      return { kind: need.kind, row, meter, value, shown: "", ratio: Number.NaN };
+    });
+    needsPanel.replaceChildren(...needRows.map((row) => row.row));
+  }
+  for (const [index, need] of needs.entries()) {
+    const row = needRows[index]!;
+    const ratio = Number(need.ratio.toFixed(3));
+    const shown = needText(need);
+    if (row.ratio !== ratio) {
+      row.meter.value = ratio;
+      row.ratio = ratio;
+    }
+    if (row.shown !== shown) {
+      row.value.textContent = shown;
+      row.shown = shown;
+    }
+  }
+}
+
+/** Rebuilt only when its figures move, and not computed at all while the panel is collapsed. */
+let ledgerShown: string | null = null;
+
+function renderLedger(terms?: CityTerms, resources?: CityResources): void {
+  if (ledger.hidden) {
+    ledgerShown = null;
+    return;
+  }
+  const rows = ledgerRows(terms, resources);
+  const shown = rows.map((row) => `${row.label}|${row.value}|${row.inflow}|${row.outflow}|${row.short === true}`).join("\n");
+  if (shown === ledgerShown) return;
+  ledgerShown = shown;
+  ledgerLines.replaceChildren(...rows.map((row) => {
     const line = document.createElement("div");
     line.className = "ledger-row";
     if (row.short) line.dataset.short = "true";

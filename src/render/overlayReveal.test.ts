@@ -10,12 +10,17 @@ import { Zones } from "../sim/zones";
 import { createUtilityRenderer } from "./utilities";
 import { createZoneRenderer } from "./zones";
 
-const lot = (x: number, z: number): BuildableCell => ({
-  corners: [v3(x, 0, z), v3(x + 8, 0, z), v3(x + 8, 0, z + 8), v3(x, 0, z + 8)],
-  segment: 0,
+const lot = (x: number, z: number, column: number): BuildableCell => ({
+  lowRise: false,
+  industrial: false,
+  buildingKind: "residential",
+  segment: 1,
   side: 1,
-  along: 0,
-  zone: null,
+  block: 0,
+  column,
+  row: 0,
+  rotationY: 0,
+  corners: [v3(x, 0, z), v3(x + 8, 0, z), v3(x + 8, 0, z + 8), v3(x, 0, z + 8)],
 });
 
 const named = (scene: Scene, prefix: string) => scene.meshes.filter((mesh) => mesh.name.startsWith(prefix));
@@ -25,7 +30,7 @@ describe("overlays hidden while the city is edited", () => {
     const scene = new Scene(new NullEngine());
     const zones = new Zones();
     const overlay = createZoneRenderer(scene);
-    const cells = [lot(0, 0), lot(8, 0)];
+    const cells = [lot(0, 0, 0), lot(8, 0, 1)];
 
     // Hidden: three edits, and not one of them generates geometry.
     zones.paintLots([cells[0]!], "residential");

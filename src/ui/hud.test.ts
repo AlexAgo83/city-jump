@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { CityTerms } from "../sim/economy";
+
 function element() {
   return {
     children: [] as unknown[],
@@ -45,6 +47,13 @@ async function importHud() {
   return import("./hud");
 }
 
+const terms = (): CityTerms => ({
+  population: { value: 42, housing: 90, change: 3.5, foodShortage: 0 },
+  food: { value: 12, produced: 8, consumed: 6 },
+  materials: { value: 7, produced: 3, consumed: 2, shortage: 0 },
+  trade: 4,
+});
+
 describe("hud rendering", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -69,5 +78,39 @@ describe("hud rendering", () => {
 
     showSelection({ kind: "road", name: "<img>", street: "<script>", baseId: "street", lanes: 2, oneWay: false, length: 42 });
     expect(elements.get("selection-panel")?.hidden).toBe(false);
+  });
+
+  it("writes to the needs rows only when a displayed value moves", async () => {
+    const elements = installDom();
+    const { showCityStats } = await importHud();
+    const stats = (supply: number) =>
+      showCityStats(1234, [{ kind: "commercial", supply, need: 5, ratio: supply / 5 }], { population: 1234, food: 9, materials: 2 });
+
+    stats(1);
+    const built = (document.createElement as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // The same figures, ten gameplay frames running: not one new element.
+    for (let frame = 0; frame < 10; frame++) stats(1);
+    expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBe(built);
+
+    // A figure that moves is written, in the row that already exists.
+    stats(3);
+    expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBe(built);
+    expect(elements.get("needs-panel")?.children).toHaveLength(1);
+  });
+
+  it("does not build the ledger while it is collapsed", async () => {
+    const elements = installDom();
+    const { showCityStats } = await importHud();
+    const ledger = elements.get("ledger") as ReturnType<typeof element>;
+
+    ledger.hidden = true;
+    showCityStats(1234, [], { population: 1234, food: 9, materials: 2 }, terms());
+    expect(elements.get("ledger-lines")?.children).toHaveLength(0);
+
+    // Expanded, the very next frame fills it in.
+    ledger.hidden = false;
+    showCityStats(1234, [], { population: 1234, food: 9, materials: 2 }, terms());
+    expect(elements.get("ledger-lines")?.children.length).toBeGreaterThan(0);
   });
 });
