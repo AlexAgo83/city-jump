@@ -36,4 +36,4 @@ services:
         value: geolocation=(), microphone=(), camera=(), interest-cohort=()
       - path: /*
         name: Content-Security-Policy
-        value: default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-FA+ZzxF3wYStF2x9/S/IhInNPx8CFBwdnXMKezneJTs='; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
+        value: default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-CDxLi+jOUj4HSxtFsNZFXVzcEwhF/DalmSieV9+LeiQ='; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'

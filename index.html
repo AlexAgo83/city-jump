@@ -136,11 +136,11 @@
   #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   #sun-hour { flex: 1 1 104px; min-width: 80px; }
   #save-slot { flex: 1 1 0; min-width: 0; }
-  #toolbar button:not(#toolbar-toggle) {
+  #toolbar button:not(#toolbar-toggle, .rail-btn) {
     color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
     padding: 3px 8px; cursor: pointer; font: inherit;
   }
-  #toolbar button:not(#toolbar-toggle):hover { background: #333c45; }
+  #toolbar button:not(#toolbar-toggle, .rail-btn):hover { background: #333c45; }
   #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
   /* One surface: the active tool's options sit beside the tools that own them, not floating above. */
