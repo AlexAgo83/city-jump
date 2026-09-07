@@ -42,3 +42,24 @@ test("the kaiju includes textured skin and complete articulated limbs within its
   assert.ok(triangles > 20000 && triangles < 180000, `${triangles} triangles`);
   assert.ok(buffer.length < 12 * 1024 * 1024, `${buffer.length} bytes`);
 });
+
+
+test("kaiju pivots retain the animation layout and manifest triangle count", async () => {
+  const gltf = glbJson(await readFile(new URL("../public/kaiju.glb", import.meta.url)));
+  const manifest = JSON.parse(await readFile(new URL("../public/kaiju.manifest.json", import.meta.url), "utf8"));
+  const nodes = Object.fromEntries(gltf.nodes.map((node) => [node.name, node]));
+  const origin = nodes.kaiju_body.translation ?? [0, 0, 0];
+  const scale = (nodes.kaiju_right_leg.translation[0] - nodes.kaiju_left_leg.translation[0]) / 18;
+  const pivots = {
+    head: [0, 73, 4], jaw: [0, 73, 9], tail: [0, 30, -7],
+    left_leg: [-9, 34, -2], right_leg: [9, 34, -2],
+    left_arm: [-15, 63, 0], right_arm: [15, 63, 0],
+  };
+  for (const [part, pivot] of Object.entries(pivots)) {
+    for (let axis = 0; axis < 3; axis++) {
+      assert.ok(Math.abs(nodes[`kaiju_${part}`].translation[axis] - origin[axis] - pivot[axis] * scale) < 0.001, `${part} pivot axis ${axis}`);
+    }
+  }
+  const triangles = gltf.meshes.flatMap((mesh) => mesh.primitives).reduce((sum, primitive) => sum + gltf.accessors[primitive.indices].count / 3, 0);
+  assert.equal(triangles, manifest.models.kaiju.triangles);
+});

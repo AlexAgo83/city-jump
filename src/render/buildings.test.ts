@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { BuildableCell, BuildingParcel } from "../sim/slots";
-import { buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, roofObjectLimit, roofPropY } from "./buildings";
+import { buildingParcels, type BuildableCell, type BuildingParcel } from "../sim/slots";
+import { BUILDING_MODELS, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -191,3 +191,63 @@ function cell(column: number, row: number): BuildableCell {
     ],
   };
 }
+
+
+it("selects stable zone-specific variants, sparse eligible towers and low pedestrian models", () => {
+  const selected = new Set<string>();
+  for (const kind of ["residential", "commercial"] as const) {
+    for (let f = 1; f <= 4; f++) for (let d = 1; d <= 4; d++) {
+      let towers = 0;
+      for (let i = 0; i < 160; i++) {
+        const p = { ...parcel((i % 20) * 8, Math.floor(i / 20) * 8, f, d), kind };
+        const id = buildingModelId(p);
+        selected.add(id);
+        expect(BUILDING_MODELS).toContain(id);
+        expect(id.startsWith(`${kind}_${f}x${d}_`)).toBe(true);
+        expect(buildingModelId(JSON.parse(JSON.stringify(p)))).toBe(id);
+        expect(buildingModelId({ ...p, position: { ...p.position, y: 100 } })).toBe(id);
+        expect(buildingModelId({ ...p, cells: [{ ...p.cells[0]!, lowRise: true }] })).toBe(`${kind}_${f}x${d}_a`);
+        if (id.includes("_tower")) towers++;
+      }
+      const eligible = kind === "residential" ? f === d && f >= 3 : (f === 3 && d === 4) || (f === 4 && d === 3);
+      expect(towers).toBeLessThan(45);
+      expect(towers > 0).toBe(eligible);
+      expect(selected.has(`${kind}_${f}x${d}_a`)).toBe(true);
+      expect(selected.has(`${kind}_${f}x${d}_b`)).toBe(true);
+    }
+  }
+  expect(selected.size).toBe(76);
+  for (const kind of ["industrial", "agricultural", "military"] as const) {
+    expect(buildingModelId({ ...parcel(0, 0, 4, 4), kind })).toBe(`${kind === "agricultural" ? "farm" : kind}_4x4`);
+  }
+});
+
+it("places roof props on the highest containing terrace, including between twin towers", () => {
+  const roof = { kind: "terraced" as const, width: 30, decks: [
+    { minX: 0, maxX: 30, minZ: -30, maxZ: 0, deckY: 9 },
+    { minX: 2, maxX: 12, minZ: -25, maxZ: -5, deckY: 72 },
+    { minX: 18, maxX: 28, minZ: -25, maxZ: -5, deckY: 84 },
+  ] };
+  expect(roofPropY(roof, 7, -15, 85.5)).toBe(72);
+  expect(roofPropY(roof, -7, -15, 85.5)).toBe(84);
+  expect(roofPropY(roof, 15, -15, 85.5)).toBe(9);
+  expect(roofPropY(roof, 7, -2, 85.5)).toBe(9);
+});
+
+
+it("gives residual industrial 1x1 parcels three stable industrial models", () => {
+  const selected = new Set<string>();
+  for (let i = 0; i < 60; i++) {
+    const [p] = buildingParcels([{ ...cell(i, 0), buildingKind: "industrial", zone: "industrial", corners: [
+      { x: i*8, y: 0, z: 0 }, { x: i*8+8, y: 0, z: 0 },
+      { x: i*8+8, y: 0, z: -8 }, { x: i*8, y: 0, z: -8 },
+    ] }]);
+    expect([p!.frontageCells, p!.depthCells]).toEqual([1, 1]);
+    const id = buildingModelId(p!);
+    expect(BUILDING_MODELS).toContain(id);
+    expect(buildingModelId(JSON.parse(JSON.stringify(p)))).toBe(id);
+    selected.add(id);
+  }
+  expect([...selected].sort()).toEqual(["industrial_1x1_a", "industrial_1x1_b", "industrial_1x1_c"]);
+  expect(buildingModelId({ ...parcel(0, 0, 1, 4), kind: "industrial" })).toBe("industrial_1x4");
+});

@@ -68,14 +68,8 @@ export function parcelDemandLimits(population: number): Record<BuildingKind, num
   return { residential: Math.max(2, Math.ceil((population + 12) / 24)), agricultural: Math.ceil(population / 24), commercial: Math.ceil(population / 48), industrial: Math.ceil(population / 72), military: Math.ceil(population / 24) };
 }
 
-/**
- * Parcel sizes whose building model is short. A parcel picks its model by size, and model height
- * does NOT follow parcel area -- 1x1 is 9.5m while 4x2 is 28m and 4x4 only 14m -- so a low-rise
- * street has to name the sizes rather than cap the dimensions.
- *
- * Measured from the loaded models; if a model is reshaped, re-measure with the bounding box of
- * each `building_lot_*` mesh and update this list. Everything here is 14m or under.
- */
+/** Existing residential/pedestrian packing palette. The renderer independently enforces
+ * pedestrian height through each cell's lowRise flag, including commercial zoning. */
 export const LOW_RISE_SIZES = new Set(["1x1", "2x2", "1x3", "4x1", "4x4", "3x3"]);
 export const DENSE_SIZES = new Set(["2x3", "2x4", "3x2", "3x4", "4x2", "4x3"]);
 export const INDUSTRIAL_SIZES = new Set(["1x4", "2x4", "3x4", "4x4"]);

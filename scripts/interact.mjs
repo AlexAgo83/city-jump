@@ -385,7 +385,7 @@ const buildingModelCounts = () =>
   page.evaluate(() =>
     Object.fromEntries(
       window.cityjump._scene.meshes
-        .filter((mesh) => mesh.name.startsWith("building_lot_"))
+        .filter((mesh) => /^building_(lot|residential|commercial)_/.test(mesh.name))
         .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0]),
     ),
   );
@@ -535,10 +535,10 @@ check(
   offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.bend > 200,
   JSON.stringify(offshoreBridge),
 );
-check("startup does not wait for all parcel models", fresh.startupModels < 28, `${fresh.startupModels} models ready at renderer return`);
-await page.waitForFunction(() => window.cityjump.stats().models === 28, null, { timeout: 20_000 });
-// 16 lot models plus a farm, a works and a compound for each of the four deep lot sizes.
-check("all parcel models load", (await stats()).models === 28, `${(await stats()).models} models`);
+check("startup does not wait for all parcel models", fresh.startupModels < 107, `${fresh.startupModels} models ready at renderer return`);
+await page.waitForFunction(() => window.cityjump.stats().models === 107, null, { timeout: 20_000 });
+// Legacy lots/compounds plus 64 urban variants, twelve towers and three small industrial models.
+check("all parcel models load", (await stats()).models === 107, `${(await stats()).models} models`);
 const cameraBeforeForcedWave = await page.evaluate(() => window.cityjump.cameraState());
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
@@ -958,7 +958,7 @@ const boxState = () => page.evaluate(() => {
   return {
     boxes: boxes.isEnabled(),
     instances: boxes.thinInstanceCount,
-    models: scene.meshes.filter((m) => /^building_(lot|farm|industrial|military)_/.test(m.name) && m.isEnabled()).length,
+    models: scene.meshes.filter((m) => /^building_(lot|residential|commercial|farm|industrial|military)_/.test(m.name) && m.isEnabled()).length,
   };
 });
 await page.evaluate(async () => {
@@ -1192,7 +1192,7 @@ check("zoning fill that changes nothing records no undo entry", await page.evalu
 await page.evaluate(() => window.cityjump.setPaused(false));
 await page.waitForFunction(() => window.cityjump.stats().zones > 0, null, { timeout: 5_000 });
 await page.waitForFunction((before) => JSON.stringify(window.cityjump._scene.meshes
-  .filter((mesh) => mesh.name.startsWith("building_lot_"))
+  .filter((mesh) => /^building_(lot|residential|commercial)_/.test(mesh.name))
   .map((mesh) => [mesh.name, mesh.thinInstanceCount ?? 0])) !== before, JSON.stringify(Object.entries(unzonedModels)), { timeout: 5_000 });
 const zoned = await stats();
 const commercialModels = await buildingModelCounts();

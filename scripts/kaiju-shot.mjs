@@ -17,14 +17,18 @@ try {
     window.cityjump.forceWave();
     window.cityjump.setPaused(false);
   });
-  const angle = () => page.evaluate(() => window.cityjump._scene.getTransformNodeByName("kaiju_left_leg").rotationQuaternion.asArray());
-  const before = await angle();
-  await page.waitForTimeout(1100);
-  assert.notDeepEqual(await angle(), before, "the complete leg must animate");
+  const animated = ["left_leg", "right_leg", "left_arm", "right_arm", "tail", "jaw"];
+  await page.waitForFunction((names) => names.every((name) => window.cityjump._scene.getTransformNodeByName(`kaiju_${name}`)?.rotationQuaternion), animated);
+  const before = await page.evaluate((names) => names.map((name) => window.cityjump._scene.getTransformNodeByName(`kaiju_${name}`).rotationQuaternion.asArray()), animated);
+  await page.waitForFunction(({ names, previous }) => names.every((name, i) =>
+    window.cityjump._scene.getTransformNodeByName(`kaiju_${name}`).rotationQuaternion.asArray().some((value, axis) => Math.abs(value - previous[i][axis]) > 0.001)),
+  { names: animated, previous: before });
+  await page.waitForFunction(() => window.cityjump._scene.getTransformNodeByName("kaiju_left_leg").rotationQuaternion.x > 0.07);
   await page.evaluate(() => window.cityjump.setPaused(true));
-  for (const [name, width, height] of [["desktop", 1440, 1000], ["mobile", 390, 844]]) {
+  for (const [name, width, height] of [["desktop", 1440, 1000], ["profile", 1440, 1000], ["mobile", 390, 844]]) {
     await page.setViewportSize({ width, height });
-    const report = await page.evaluate(async (mobile) => {
+    const report = await page.evaluate(async (view) => {
+      const mobile = view === "mobile";
       const scene = window.cityjump._scene;
       const root = scene.getTransformNodeByName("kaiju");
       const camera = scene.activeCamera;
@@ -32,7 +36,7 @@ try {
       camera.target.y += 45;
       camera.radius = mobile ? 310 : 205;
       camera.beta = 1.18;
-      camera.alpha = Math.PI / 2 - root.rotationQuaternion.toEulerAngles().y - 0.65;
+      camera.alpha = Math.PI / 2 - root.rotationQuaternion.toEulerAngles().y + (view === "profile" ? 0.85 : -0.65);
       camera.lowerRadiusLimit = 100;
       const meshes = root.getChildMeshes().filter((mesh) => mesh.getTotalVertices() > 0);
       await scene.whenReadyAsync();
@@ -41,7 +45,7 @@ try {
       const colors = new Set();
       for (let i = 0; i < pixels.length; i += 256) colors.add(`${pixels[i]},${pixels[i + 1]},${pixels[i + 2]}`);
       return { meshes: meshes.length, colors: colors.size, visible: root.isEnabled(), textures: meshes.every((mesh) => mesh.material.isReady(mesh)), parented: scene.getTransformNodeByName("kaiju_left_leg").getChildMeshes().length };
-    }, name === "mobile");
+    }, name);
     assert.ok(report.visible && report.meshes >= 20 && report.colors > 100 && report.textures && report.parented >= 2, JSON.stringify(report));
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${out}/kaiju-${name}.png` });

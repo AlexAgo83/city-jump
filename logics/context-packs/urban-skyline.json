@@ -1,0 +1,300 @@
+{
+  "budgets": {
+    "max_docs": 12,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack req_049_residential_and_commercial_variety_with_a_mixed_skyline item_174_author_and_integrate_residential_commercial_variants_and_four_towers task_051_deliver_residential_commercial_variety_and_skyline --mode summary-only --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_174_author_and_integrate_residential_commercial_variants_and_four_towers"
+        ],
+        "prod": [
+          "prod_036_a_varied_residential_and_commercial_skyline"
+        ],
+        "req": [
+          "req_049_residential_and_commercial_variety_with_a_mixed_skyline"
+        ],
+        "task": [
+          "task_051_deliver_residential_commercial_variety_and_skyline"
+        ]
+      },
+      "path": "logics/product/prod_036_a_varied_residential_and_commercial_skyline.md",
+      "ref": "prod_036_a_varied_residential_and_commercial_skyline",
+      "status": "Proposed",
+      "title": "A varied residential and commercial skyline"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "residential, commercial, variety, mixed, skyline",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_174_author_and_integrate_residential_commercial_variants_and_four_towers"
+        ],
+        "prod": [
+          "prod_036_a_varied_residential_and_commercial_skyline"
+        ],
+        "req": [
+          "req_049_residential_and_commercial_variety_with_a_mixed_skyline"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel"
+        ]
+      },
+      "path": "logics/request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md",
+      "ref": "req_049_residential_and_commercial_variety_with_a_mixed_skyline",
+      "schema_version": "1.0",
+      "status": "Draft",
+      "title": "Residential and commercial variety with a mixed skyline"
+    },
+    {
+      "ai_context": {
+        "keywords": "author, integrate, residential, commercial, variants, four, towers",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_174_author_and_integrate_residential_commercial_variants_and_four_towers"
+        ],
+        "prod": [
+          "prod_036_a_varied_residential_and_commercial_skyline"
+        ],
+        "req": [
+          "req_049_residential_and_commercial_variety_with_a_mixed_skyline"
+        ],
+        "task": [
+          "task_051_deliver_residential_commercial_variety_and_skyline"
+        ]
+      },
+      "path": "logics/backlog/item_174_author_and_integrate_residential_commercial_variants_and_four_towers.md",
+      "ref": "item_174_author_and_integrate_residential_commercial_variants_and_four_towers",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Author and integrate residential commercial variants and four towers"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_174_author_and_integrate_residential_commercial_variants_and_four_towers"
+        ],
+        "prod": [
+          "prod_036_a_varied_residential_and_commercial_skyline"
+        ],
+        "req": [
+          "req_049_residential_and_commercial_variety_with_a_mixed_skyline"
+        ],
+        "task": [
+          "task_051_deliver_residential_commercial_variety_and_skyline"
+        ]
+      },
+      "path": "logics/product/prod_036_a_varied_residential_and_commercial_skyline.md",
+      "ref": "prod_036_a_varied_residential_and_commercial_skyline",
+      "schema_version": "1.0",
+      "status": "Proposed",
+      "title": "A varied residential and commercial skyline"
+    },
+    {
+      "ai_context": {},
+      "kind": "runbook",
+      "linked_refs": {
+        "item": [
+          "item_031_give_the_renderer_one_place_to_learn_a_model_s_geometry"
+        ],
+        "req": [
+          "req_009_building_geometry_facts_are_written_twice_in_two_languages_with_nothing_tying_them_together"
+        ],
+        "run": [
+          "run_001_author_a_building_model_that_lands_on_its_parcel",
+          "run_002_put_an_object_on_top_of_a_building_without_it_landing_in_the_street"
+        ],
+        "task": [
+          "task_011_implement_one_source_of_truth_for_building_model_geometry"
+        ]
+      },
+      "path": "logics/runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md",
+      "ref": "run_001_author_a_building_model_that_lands_on_its_parcel",
+      "schema_version": "1.0",
+      "status": "Active",
+      "title": "Author a building model that lands on its parcel"
+    },
+    {
+      "ai_context": {
+        "keywords": "deliver, residential, commercial, variety, skyline",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_174_author_and_integrate_residential_commercial_variants_and_four_towers"
+        ],
+        "prod": [
+          "prod_036_a_varied_residential_and_commercial_skyline"
+        ],
+        "req": [
+          "req_049_residential_and_commercial_variety_with_a_mixed_skyline"
+        ],
+        "task": [
+          "task_051_deliver_residential_commercial_variety_and_skyline"
+        ]
+      },
+      "path": "logics/tasks/task_051_deliver_residential_commercial_variety_and_skyline.md",
+      "ref": "task_051_deliver_residential_commercial_variety_and_skyline",
+      "schema_version": "1.0",
+      "status": "Ready",
+      "title": "Deliver residential commercial variety and skyline"
+    }
+  ],
+  "estimates": {
+    "char_count": 4577,
+    "companion_doc_count": 1,
+    "doc_count": 5
+  },
+  "generated_at": "2026-09-07T09:22:16Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_049_residential_and_commercial_variety_with_a_mixed_skyline",
+      "item_174_author_and_integrate_residential_commercial_variants_and_four_towers",
+      "task_051_deliver_residential_commercial_variety_and_skyline"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "summary-only",
+  "profile": "normal",
+  "ref": "req_049_residential_and_commercial_variety_with_a_mixed_skyline,item_174_author_and_integrate_residential_commercial_variants_and_four_towers,task_051_deliver_residential_commercial_variety_and_skyline",
+  "refs": [
+    "req_049_residential_and_commercial_variety_with_a_mixed_skyline",
+    "item_174_author_and_integrate_residential_commercial_variants_and_four_towers",
+    "task_051_deliver_residential_commercial_variety_and_skyline"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "github_release",
+        "required": true,
+        "state": "github_release",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.1",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_051_deliver_residential_commercial_variety_and_skyline.md",
+      "ref": "task_051_deliver_residential_commercial_variety_and_skyline"
+    }
+  ]
+}

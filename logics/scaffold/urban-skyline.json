@@ -1,0 +1,78 @@
+{
+  "title": "Residential and commercial variety with a mixed skyline",
+  "references": [
+    "scripts/gen_buildings.py",
+    "src/render/buildings.ts",
+    "src/sim/slots.ts",
+    "tests/building-assets.mjs",
+    "logics/runbook/run_001_author_a_building_model_that_lands_on_its_parcel.md"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "City legibility",
+    "needs": [
+      "Replace same-size residential and commercial lookalikes with distinct low, medium and tall silhouettes."
+    ],
+    "context": [
+      "Operator approved model variants and four tower silhouettes without economic or player density changes.",
+      "Pedestrian cells require low-rise models; zone packing offers different footprint sets."
+    ],
+    "acceptance_criteria": [
+      "AC1: Residential and commercial parcels use distinct authored libraries with two stable variants per footprint and four additional tower silhouettes on zone-eligible large footprints.",
+      "AC2: Towers remain a minority of eligible parcels and pedestrian frontage always selects a model below 14 m; zoning, economy and saves retain their existing rules.",
+      "AC3: Generated GLBs stay within their parcel and geometry budgets; manifest roof surfaces agree with geometry and serve roof props, construction and distant heights.",
+      "AC4: A mixed in-game neighbourhood and individual towers are inspected at close, distant and mobile views; CI and E2E pass and the authoring runbook records generation and pitfalls."
+    ]
+  },
+  "product": {
+    "title": "A varied residential and commercial skyline",
+    "overview": "Recognisable homes, shops and offices with sparse authored towers, stable per parcel.",
+    "goals": [
+      "Distinct zone identity and mixed building heights."
+    ],
+    "non_goals": [
+      "Economic rebalance, new density controls, changes to other asset families."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Author and integrate residential commercial variants and four towers",
+      "priority": "Medium",
+      "complexity": "Medium",
+      "theme": "City legibility",
+      "request_acs": [
+        "AC1",
+        "AC2",
+        "AC3",
+        "AC4"
+      ],
+      "problem": [
+        "Size alone selects shared lot assets and limits skyline variety."
+      ],
+      "scope_in": [
+        "Two variants per size per kind, four towers, stable renderer selection, roof facts, browser and asset checks, runbook."
+      ],
+      "scope_out": [
+        "Simulation or save schema changes; release and push."
+      ],
+      "acceptance_criteria": [
+        "AC1: Residential and commercial parcels use distinct authored libraries with two stable variants per footprint and four additional tower silhouettes on zone-eligible large footprints.",
+        "AC2: Towers remain a minority of eligible parcels and pedestrian frontage always selects a model below 14 m; zoning, economy and saves retain their existing rules.",
+        "AC3: Generated GLBs stay within their parcel and geometry budgets; manifest roof surfaces agree with geometry and serve roof props, construction and distant heights.",
+        "AC4: A mixed in-game neighbourhood and individual towers are inspected at close, distant and mobile views; CI and E2E pass and the authoring runbook records generation and pitfalls."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Deliver residential commercial variety and skyline",
+    "plan": [
+      "Author models and roof metadata; wire stable selection with pedestrian protection.",
+      "Check GLBs, inspect mixed neighbourhood and towers in the runtime, run CI/E2E and update runbook."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/urban-skyline.json",
+    "mode": "summary-only",
+    "profile": "normal"
+  }
+}

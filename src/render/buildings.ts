@@ -25,6 +25,13 @@ import { createGroundShadow } from "./groundShadow";
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = [
   ...PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`),
+  ...["residential", "commercial"].flatMap((kind) =>
+    PARCEL_SIZES.flatMap(({ frontageCells, depthCells }) => ["a", "b"].map((variant) => `${kind}_${frontageCells}x${depthCells}_${variant}`)),
+  ),
+  "industrial_1x1_a", "industrial_1x1_b", "industrial_1x1_c",
+  ...["residential_3x3", "residential_4x4", "commercial_3x4", "commercial_4x3"].flatMap((id) =>
+    ["tower", "tower_steps", "tower_offset"].map((variant) => `${id}_${variant}`),
+  ),
   // Farms, works and compounds are their own models -- a barn and crop rows, tanks and a stack,
   // barracks and a hangar -- not a tinted office block. They only exist for the deep lots that
   // kind of frontage is allowed (see INDUSTRIAL_SIZES).
@@ -34,8 +41,17 @@ export const BUILDING_MODELS = [
 ];
 
 /** Which model a parcel stands up: its size, and whether its business has its own models. */
-export function buildingModelId(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): string {
+export function buildingModelId(parcel: BuildingParcel): string {
   const size = `${parcel.frontageCells}x${parcel.depthCells}`;
+  if (parcel.kind === "residential" || parcel.kind === "commercial") {
+    // Pedestrian frontage wins over visual variety, regardless of the zone painted on it.
+    const low = parcel.cells.some((cell) => cell.lowRise);
+    const seed = roofSeed(parcel);
+    const towerSize = parcel.kind === "residential" ? size === "3x3" || size === "4x4" : size === "3x4" || size === "4x3";
+    const variant = low ? "a" : towerSize && seed % 7 === 0 ? ["tower", "tower_steps", "tower_offset"][(seed >>> 16) % 3] : (seed >>> 8) % 2 === 0 ? "a" : "b";
+    return `${parcel.kind}_${size}_${variant}`;
+  }
+  if (parcel.kind === "industrial" && size === "1x1") return `industrial_1x1_${["a", "b", "c"][roofSeed(parcel) % 3]}`;
   const own = parcel.kind === "agricultural" ? "farm" : parcel.kind === "industrial" || parcel.kind === "military" ? parcel.kind : null;
   return own && parcel.depthCells === 4 ? `${own}_${size}` : `lot_${size}`;
 }
@@ -61,6 +77,7 @@ export function buildingStateSignature(
 }
 
 type RoofGeometry =
+  | { readonly kind: "terraced"; readonly width: number; readonly decks: readonly { readonly minX: number; readonly maxX: number; readonly minZ: number; readonly maxZ: number; readonly deckY: number }[] }
   | { readonly kind: "flat"; readonly deckY: number }
   | {
       readonly kind: "pitched";
@@ -180,6 +197,10 @@ export function roofObjectLimit(cells: number): number {
 export function roofPropY(roof: RoofGeometry | undefined, localX: number, localZ: number, boundsMaxY: number): number {
   if (!roof) return boundsMaxY;
   if (roof.kind === "flat") return roof.deckY;
+  if (roof.kind === "terraced") {
+    const x = localX < 0 ? localX + roof.width : localX;
+    return Math.max(0, ...roof.decks.filter((deck) => x >= deck.minX && x <= deck.maxX && localZ >= deck.minZ && localZ <= deck.maxZ).map((deck) => deck.deckY));
+  }
   if (roof.kind === "setback") {
     const x = localX < 0 ? localX + roof.width : localX;
     return x >= roof.minX && x <= roof.maxX && localZ >= roof.minZ && localZ <= roof.maxZ ? roof.upperDeckY : roof.lowerDeckY;
@@ -323,7 +344,7 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
     return `${count}:${sum}`;
   }
 
-  function modelFor(parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">): Model | undefined {
+  function modelFor(parcel: BuildingParcel): Model | undefined {
     return modelById.get(buildingModelId(parcel));
   }
 
@@ -357,7 +378,7 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
     const propMatrices = new Map<PropKind, Matrix[]>();
     for (const parcel of standing) {
       // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
-      if (buildingModelId(parcel) !== `lot_${parcel.frontageCells}x${parcel.depthCells}`) continue;
+      if (parcel.kind !== "residential" && parcel.kind !== "commercial") continue;
       const model = available.find((m) => m.id === buildingModelId(parcel));
       if (!model) continue;
       const cells = parcel.frontageCells * parcel.depthCells;
@@ -547,7 +568,7 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
     if (decorKey(statuses) !== decorSignature) applyDecor();
   }
 
-  // The 16 lot models resolve over a few frames, and each used to trigger its own full rebuild --
+  // The building models resolve over a few frames, and each used to trigger its own full rebuild --
   // parcel bucketing, roof props and shadows over the *whole* city, once per model. On a small
   // demo city that's unnoticeable; on a real, built-up one it stacked into a multi-second freeze
   // as new models kept restarting the same city-wide pass. Debounced so the burst of arrivals
@@ -687,12 +708,7 @@ function setMaterialAlpha(material: Material | null, alpha: number): void {
 }
 
 /** Centres the baked mesh on the parcel frontage regardless of glTF handedness. */
-/**
- * The only thing telling a farm from a barracks apart right now: there is one set of lot models,
- * so a parcel's business shows as a tint and how tall it is allowed to stand. Residential keeps
- * the models' own look; the working kinds squat and take their colour.
- * ponytail: tint + squash, swap for real per-kind models when there are any.
- */
+/** Subtle zone tint and construction scale on the authored models. */
 export const BUILDING_KIND_STYLE: Record<BuildingKind, { scaleY: number; color: [number, number, number] }> = {
   residential: { scaleY: 1, color: tintFor("residential", 0.25) },
   commercial: { scaleY: 1, color: tintFor("commercial", 0.3) },

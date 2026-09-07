@@ -10,6 +10,7 @@ import os
 import bpy
 import numpy as np
 from mathutils import Vector
+from mathutils.geometry import interpolate_bezier
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public", "kaiju.glb")
 PARTS = []
@@ -213,19 +214,22 @@ def main():
     heat = material('kaiju_dorsal_fissures', (.18,.36,.30), .55, (.08,.48,.31))
 
     body = [flesh([((0,2,44),(13,11,22)), ((0,0,59),(16,12,15)),
-                   ((0,3,32),(12,10,11)), ((0,-3,71),(10,9,14)),
-                   ((-10,0,61),(8,9,10)), ((10,0,61),(8,9,10))], skin, 'torso')]
-    for z in range(31, 72, 3):
+                   ((0,3,32),(13,10.5,12)), ((0,-3,71),(10,9,14)),
+                   ((-10,0,61),(8,9,10)), ((10,0,61),(8,9,10)),
+                   ((-14,0,61),(6,7,7)), ((14,0,61),(6,7,7)),
+                   ((-8,2,33),(8,9,9)), ((8,2,33),(8,9,9))], skin, 'torso')]
+    for z in range(32, 71, 4):
         front = max(11*math.sqrt(max(0,1-((z-44)/22)**2))-2,
                     12*math.sqrt(max(0,1-((z-59)/15)**2)),
                     9*math.sqrt(max(0,1-((z-71)/14)**2))+3)
-        for side in (-1,1):
-            body.append(scute((side*3.7,-front+.1,z),(4.3,1.1,2.15),belly))
+        # One shallow overlapping shield per row, embedded in the torso rather than paired beads.
+        width = 5.8 + 1.8 * math.sin((z-32)/38*math.pi)
+        body.append(scute((0,-front+.35,z),(width,.65,2.5),belly))
     for side in (-1,1):
         for z in range(37, 67, 5):
             for step in range(3):
                 body.append(scute((side*(11+step*.85), -5+step*4,z),(1.8,1.1,2.5),armor))
-        for i in range(5):
+        for i in range(3):
             body.append(tube([(side*(12+i*.8),2+i*1.2,64-i*.6),
                               (side*(18+i),5+i,69-i*.5),
                               (side*(19+i),8+i,71-i*.8)], [2,1.2,.06], horn))
@@ -233,7 +237,7 @@ def main():
         z = 29+i*5
         y = 12 if z < 65 else 8-(z-65)*.3
         h = 8+5*math.sin(i/9*math.pi)
-        dorsal=plate((0,y,z),3.8,h,armor)
+        dorsal=plate((0,y,z),2.6+1.1*math.sin(i/9*math.pi),h,armor,(-1 if i%2 else 1)*.65)
         for vert in dorsal.data.vertices:
             vert.co.y += max(0,vert.co.z-z)*.9
         body.append(dorsal)
@@ -242,9 +246,9 @@ def main():
             body.append(plate((side*7,y-2,z-2),2.2,h*.65,armor,side*1.8))
     finish(body,'kaiju_body',(0,0,0))
 
-    head = [flesh([((0,-9,79),(8,9,6.5)), ((0,-17,79),(6.7,8,3.7)),
-                   ((0,-22,78),(6,4,3.4)), ((-6,-12,76),(3,6,5)),
-                   ((6,-12,76),(3,6,5))],skin,'skull')]
+    head = [flesh([((0,-9,79),(8.6,9,6.5)), ((0,-17,79),(6.2,8,3.5)),
+                   ((0,-22,78),(5.8,4,3.2)), ((-6,-12,76),(3.4,6,4.5)),
+                   ((6,-12,76),(3.4,6,4.5))],skin,'skull')]
     head.append(ellipsoid((0,-19,75.6),(5.5,7.2,.7),mouth))
     for side in (-1,1):
         head.append(ellipsoid((side*6.4,-16.5,80),(1.15,2.1,1.2),armor))
@@ -267,7 +271,8 @@ def main():
         for i in range(6):
             head.append(scute((side*(4+i%2),-22+i*2,81.4+i*.35),(2,.6,1.5),armor))
     finish(head,'kaiju_head',(0,-4,73))
-    jaw = [flesh([((0,-14,70.8),(6.8,6.5,3)), ((0,-21,71.4),(5.7,5,2))],skin,'jaw')]
+    jaw = [flesh([((0,-14,71.4),(6.3,6.5,2.7)), ((0,-21,71.7),(5.4,5,1.8)),
+                  ((-5.5,-10,73),(2.7,4,3.2)), ((5.5,-10,73),(2.7,4,3.2))],skin,'jaw')]
     jaw.append(ellipsoid((0,-19.8,73),(4.9,6.1,.5),mouth))
     jaw.append(ellipsoid((0,-19,73.4),(2.5,4,.45),mouth))
     for side in (-1,1):
@@ -277,8 +282,8 @@ def main():
     finish(jaw,'kaiju_jaw',(0,-9,73))
 
     for side, label in [(-1,'left'),(1,'right')]:
-        leg = [flesh([((side*9,2,26),(8,9,14)), ((side*11,-3,17),(6,6,8)),
-                       ((side*11,1,10),(4,4.8,9)), ((side*11,-4,3.2),(5.5,8,3.2))],skin,'leg')]
+        leg = [flesh([((side*9,2,26),(8,9,14)), ((side*10,-1,20),(6.8,7,10)),
+                       ((side*11,-3,17),(5.6,6,8)), ((side*11,1,10),(4.6,5.2,9)), ((side*11,-4,3.2),(5.5,8,3.2))],skin,'leg')]
         leg.append(scute((side*11,-7.6,18),(4.5,1.2,4),armor))
         for i in range(3):
             x=side*11+(i-1)*3.5
@@ -287,7 +292,8 @@ def main():
         for z in range(7,16,3):
             leg.append(scute((side*11,-3.5,z),(3.8,.8,1.8),belly))
         finish(leg,f'kaiju_{label}_leg',(side*9,2,34))
-        arm = [flesh([((side*17,-2,57),(6,6,9)), ((side*20,-4,49),(4.5,4.8,8)),
+        arm = [flesh([((side*15,0,62),(5.8,6,6)), ((side*17,-2,57),(6,6,9)),
+                       ((side*19,-3,52),(5,5.2,8)), ((side*20,-4,49),(4.5,4.8,8)),
                        ((side*21,-7,42),(4,4,7)), ((side*21,-9,36),(4.5,3.5,4))],skin,'arm')]
         for i in range(4):
             x=side*21+(i-1.5)*2.0
@@ -298,11 +304,22 @@ def main():
             arm.append(plate((side*22,0,41+i*4),1.7,4,armor,side*2))
         finish(arm,f'kaiju_{label}_arm',(side*15,0,63))
 
-    points=[(0,7,30),(0,16,24),(1,25,18),(3,35,12),(7,46,8),(13,57,6),(21,67,7),(29,75,10),(34,81,14)]
-    tail=[tube(points,[8,8,6.5,5.2,4,3,2,1,.04],skin,24)]
+    points=[(0,7,30),(0,16,24),(-2,25,18),(-4,35,12),(-2,46,8),(5,57,6),(16,67,7),(28,75,10),(34,81,14)]
+    radii=[8,8,6.5,5.2,4,3,2,1,.04]
+    curve, curve_radii = [], []
+    # Blender's Bezier interpolation rounds the silhouette without adding animation joints.
+    for i in range(len(points)-1):
+        start, end = Vector(points[i]), Vector(points[i+1])
+        handle_a = start + (end-Vector(points[max(0,i-1)]))/6
+        handle_b = end - (Vector(points[min(len(points)-1,i+2)])-start)/6
+        curve.extend(interpolate_bezier(start, handle_a, handle_b, end, 5)[:-1])
+        curve_radii.extend(radii[i]+(radii[i+1]-radii[i])*step/4 for step in range(4))
+    curve.append(Vector(points[-1]))
+    curve_radii.append(radii[-1])
+    tail=[tube(curve,curve_radii,skin,24)]
     for i,p in enumerate(points[1:-1]):
         radius=[8,6.5,5.2,4,3,2,1][i]
-        tail.append(plate((p[0],p[1],p[2]+radius*.8),max(.7,2.7-i*.32),max(2,8-i),armor))
+        tail.append(plate((p[0],p[1],p[2]+radius*.8),max(.7,2.7-i*.32),max(2,8-i),armor,(-1 if i%2 else 1)*.5))
         for side in (-1,1):
             tail.append(scute((p[0]+side*radius*.75,p[1],p[2]+radius*.5),(radius*.4,1,radius*.35),armor))
     finish(tail,'kaiju_tail',(0,7,30))

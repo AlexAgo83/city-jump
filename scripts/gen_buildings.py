@@ -37,7 +37,7 @@ SILO = (0.72, 0.73, 0.70, 1.0)
 TUNNEL = (0.80, 0.82, 0.78, 1.0)
 ORCHARD = (0.30, 0.44, 0.24, 1.0)
 HAY = (0.78, 0.70, 0.40, 1.0)
-CROP = [(0.52, 0.62, 0.24, 1.0), (0.74, 0.68, 0.28, 1.0), (0.42, 0.55, 0.26, 1.0)]
+CROP = [(0.36, 0.44, 0.16, 1.0), (0.56, 0.47, 0.20, 1.0), (0.28, 0.40, 0.18, 1.0)]
 SOIL = (0.36, 0.27, 0.19, 1.0)
 
 INDUSTRY_SHED = (0.62, 0.64, 0.66, 1.0)
@@ -180,33 +180,52 @@ def add_windows(parts, name, w, d, h, style, x0=0.0, y0=0.0, z0=0.0):
                 x = x0 + (col + 0.5) * w / cols
                 front_panel(parts, f"{name}_front_window_{floor}_{col}", x - 1.0, y0, z, x + 1.0, z + 1.8)
                 back_panel(parts, f"{name}_back_window_{floor}_{col}", x - 1.0, y0 + d, z, x + 1.0, z + 1.8)
-                parts.append((box(f"{name}_balcony_{floor}_{col}", x - 0.65, y0 - 0.55, z - 0.2, x + 0.65, y0 - 0.1, z), "trim"))
+                parts.append((box(f"{name}_balcony_{floor}_{col}", x - 1.1, y0 - 0.62, z - 0.2, x + 1.1, y0, z), "trim"))
+                parts.append((box(f"{name}_balcony_rail_{floor}_{col}", x - 1.1, y0 - 0.62, z + 0.65, x + 1.1, y0 - 0.54, z + 0.73), "trim"))
+                for dx in (-1.05, 0, 1.05):
+                    parts.append((box(f"{name}_baluster_{floor}_{col}", x + dx - 0.035, y0 - 0.62, z, x + dx + 0.035, y0 - 0.54, z + 0.65), "trim"))
             rows = max(1, int(d // 3.5))
             for row in range(rows):
                 y = y0 + (row + 0.5) * d / rows
                 left_panel(parts, f"{name}_left_window_{floor}_{row}", x0, y - 1.0, z, y + 1.0, z + 1.8)
                 right_panel(parts, f"{name}_right_window_{floor}_{row}", x0 + w, y - 1.0, z, y + 1.0, z + 1.8)
         else:
-            front_panel(parts, f"{name}_front_windows_{floor}", x0 + 0.65, y0, z, x0 + w - 0.65, z + 1.65)
-            back_panel(parts, f"{name}_back_windows_{floor}", x0 + 0.65, y0 + d, z, x0 + w - 0.65, z + 1.65)
-            left_panel(parts, f"{name}_left_windows_{floor}", x0, y0 + 0.65, z, y0 + d - 0.65, z + 1.65)
-            right_panel(parts, f"{name}_right_windows_{floor}", x0 + w, y0 + 0.65, z, y0 + d - 0.65, z + 1.65)
-        if style == "office":
-            for x in range(4, int(w), 4):
-                parts.append((box(f"{name}_mullion_{floor}_{x}", x0 + x - 0.05, y0 - 0.12, z - 0.1, x0 + x + 0.05, y0 + 0.02, z + 1.15), "trim"))
+            # Separate bays keep masonry visible; all frames sit ahead of the glass.
+            for span, front, back, origin, near, far in (
+                (w, front_panel, back_panel, x0, y0, y0 + d),
+                (d, left_panel, right_panel, y0, x0, x0 + w),
+            ):
+                count = max(1, int(span // (3.2 if style == "office" else 3.8)))
+                for bay in range(count):
+                    centre = origin + (bay + 0.5) * span / count
+                    half = min(1.15, span / count * 0.34)
+                    label = f"{name}_bay_{floor}_{bay}_{near}_{far}"
+                    if front == front_panel:
+                        front(parts, label + "_front", centre - half, near, z, centre + half, z + 1.65)
+                        back(parts, label + "_back", centre - half, far, z, centre + half, z + 1.65)
+                    else:
+                        front(parts, label + "_left", near, centre - half, z, centre + half, z + 1.65)
+                        back(parts, label + "_right", far, centre - half, z, centre + half, z + 1.65)
 
 
 def add_street_level(parts, name, w, style):
     if style == "industrial":
         parts.append((box(f"{name}_rollup", w * 0.18, -0.08, 0.0, w * 0.58, 0.0, 3.0), "industrial_door"))
         parts.append((box(f"{name}_service_door", w * 0.72, -0.08, 0.0, w * 0.84, 0.0, 2.3), "door"))
-    elif w >= CELL * 1.8:
-        parts.append((box(f"{name}_storefront", 0.8, -0.06, 0.35, w - 0.8, 0.0, 2.7), "glass"))
-        parts.append((box(f"{name}_sign", 0.8, -0.08, 2.9, w - 0.8, 0.0, 3.45), "sign"))
-        if style == "commercial":
-            parts.append((box(f"{name}_awning", 0.6, -0.75, 2.55, w - 0.6, -0.08, 2.85), "awning"))
+    elif style in ("commercial", "office"):
+        bays = max(1, int(w // 4))
+        for bay in range(bays):
+            left, right = bay * w / bays + 0.45, (bay + 1) * w / bays - 0.45
+            front_panel(parts, f"{name}_shopfront_{bay}", left, 0, 0.3, right, 2.5)
+            parts.append((box(f"{name}_shop_mullion_{bay}", right - 0.9, -0.62, 0.3, right - 0.8, -0.5, 2.5), "trim"))
+            if style == "commercial":
+                parts.append((box(f"{name}_sign_{bay}", left, -0.64, 2.65, right, -0.5, 2.95), "sign"))
+                parts.append((box(f"{name}_awning_{bay}", left - 0.1, -0.75, 2.5, right + 0.1, -0.1, 2.65), "awning"))
     else:
-        parts.append((box(f"{name}_door", w * 0.42, -0.06, 0.0, w * 0.58, 0.0, 2.4), "door"))
+        parts.append((box(f"{name}_door_surround", w * 0.35, -0.18, 0, w * 0.65, 0, 2.7), "trim"))
+        parts.append((box(f"{name}_door", w * 0.39, -0.22, 0, w * 0.61, -0.18, 2.4), "door"))
+        parts.append((box(f"{name}_door_light", w * 0.43, -0.25, 1.5, w * 0.57, -0.22, 2.2), "glass"))
+        parts.append((box(f"{name}_porch", w * 0.32, -0.62, 2.7, w * 0.68, 0, 2.85), "trim"))
 
 
 def add_parapet(parts, name, w, d, h, x0=0.0, y0=0.0):
@@ -237,6 +256,9 @@ def add_flat_roof(parts, name, w, d, h, x0=0.0, y0=0.0):
             "trim",
         )
     )
+    for row in range(4):
+        parts.append((box(f"{name}_roof_louvre_{row}", x0 + w * 0.15 + 0.2, y0 + d * 0.15 - 0.04, h + 0.3 + row * 0.25,
+                          x0 + w * 0.15 + 1.6, y0 + d * 0.15, h + 0.4 + row * 0.25), "wall"))
     if w >= CELL * 2 and d >= CELL * 2:
         parts.append((box(f"{name}_skylight", x0 + w * 0.55, y0 + d * 0.35, h + 0.06, x0 + w * 0.8, y0 + d * 0.55, h + 0.22), "glass"))
 
@@ -347,6 +369,63 @@ def export_parts(name, parts, mats, note):
     print(f"wrote {path}  ({note})")
 
 
+def build_small_industrial(variant):
+    """Residual 1x1 frontage: workshop, delivery depot, or boiler house with tank."""
+    name = f'industrial_1x1_{variant}'
+    clear_scene()
+    parts = []
+    def block(label, corners, mat='shed'):
+        parts.append((box(f'{name}_{label}', *corners), mat))
+    def cylinder(label, x, y, radius, bottom, top, mat='tank'):
+        parts.append((prism(f'{name}_{label}', x,y,radius,bottom,top,16),mat))
+
+    block('yard',(0,0,0,6.5,6.5,.18),'yard')
+    width = 3.2 if variant == 'c' else 5.5
+    height = 4.2 if variant == 'a' else 5.4 if variant == 'b' else 4.8
+    block('shed',(.5,1.2,.18,.5+width,6,height))
+    if variant == 'a':
+        parts.append((gabled_roof_at(name+'_roof',.35,1.05,width+.3,5.1,height,1.3),'trim'))
+    else:
+        block('roof',(.35,1.05,height,.65+width,6.15,height+.2),'trim')
+    for y in range(2,6):
+        for x in (.45,.5+width):
+            block('wall_rib',(x,y,.2,x+.07,y+.08,height),'pipe')
+    door_width = width-1
+    block('door_frame',(.85,1.04,.18,1.05+door_width,1.25,3.6),'trim')
+    block('loading_door',(1,1,.2,1+door_width,1.06,3.4),'pipe')
+    for row in range(7):
+        block('door_seam',(1,.96,.5+row*.4,1+door_width,1.02,.55+row*.4),'trim')
+    for x in (1,door_width+.8):
+        block('bollard',(x,.45,.18,x+.18,.63,1.05),'warning')
+    block('gutter',(.35,1,height-.12,.65+width,1.14,height+.06),'pipe')
+    if variant == 'a':
+        block('workshop_window',(6.01,2,1.8,6.07,4.5,3.2),'glass')
+        block('workshop_mullion',(6.06,3.2,1.8,6.12,3.3,3.2),'trim')
+        block('vent',(.8,4.4,height+.6,1.8,5.3,height+1.6),'pipe')
+    elif variant == 'b':
+        block('clerestory',(1,1.04,4.1,5.5,1.15,4.8),'glass')
+        block('loading_canopy',(.65,.3,3.7,5.85,1.5,3.9),'trim')
+        for x in (1,4.8):
+            block('crate',(x,.2,.18,x+.7,.85,.85),'tank')
+        block('roof_plant',(2,3.5,height+.2,4,5,height+1),'pipe')
+    else:
+        cylinder('tank',5,4.6,1.05,.18,4.2)
+        for z in (.5,2,3.8):
+            cylinder('tank_band',5,4.6,1.10,z,z+.12,'pipe')
+        cylinder('tank_cap',5,4.6,1.12,4.2,4.4,'trim')
+        cylinder('stack',2.5,4.8,.4,height,8,'stack')
+        cylinder('stack_rim',2.5,4.8,.48,7.75,8,'pipe')
+        block('feed_pipe',(3.5,4.3,2.5,4.3,4.55,2.75),'pipe')
+        block('service_box',(4.5,1.8,.18,5.7,2.8,1.7),'trim')
+    mats = {key: material(f'{name}_{key}', colour) for key,colour in {
+        'shed':INDUSTRY_SHED, 'trim':INDUSTRY_TRIM, 'pipe':PIPE,
+        'tank':TANK, 'yard':YARD, 'glass':GLASS, 'stack':STACK,
+        'warning':(.85,.58,.12,1),
+    }.items()}
+    export_parts(name,parts,mats,f'1x1 {variant}')
+    return name, {'kind':'flat','deckY':height}
+
+
 def works_specs(prefix):
     """Industry and the military take the same deep lots as a farm. One layout per size, so a
     row of them does not read as the same building stamped four times."""
@@ -355,60 +434,103 @@ def works_specs(prefix):
 
 
 def build_industrial(name, w, d, variant):
-    """A works. The variant decides what fills the yard behind the shed:
-    1 tank farm, 2 boiler house and stack, 3 warehouse and pipe rack, 4 the lot."""
+    """1 compact tank depot, 2 boiler works, 3 freight warehouse, 4 integrated works."""
     clear_scene()
-    parts = [(box(f"{name}_yard", 0.0, 9.0, 0.0, w, d, 0.15), "yard")]
-    shed_w = min(w, 26.0)
-    shed_h = 7.5
-    parts.append((box(f"{name}_shed", 0.0, 1.0, 0.0, shed_w, 9.0, shed_h), "shed"))
-    parts.append((gabled_roof_at(f"{name}_shed_roof", 0.0, 1.0, shed_w, 8.0, shed_h, 1.8), "trim"))
-    # Roller doors along the frontage, one per 8 m of shed.
-    for i in range(max(1, int(shed_w // 8))):
-        x = 1.5 + i * 8.0
-        if x + 4.5 > shed_w:
-            break
-        parts.append((box(f"{name}_door_{i}", x, 0.9, 0.0, x + 4.5, 1.05, shed_h * 0.6), "trim"))
+    parts = []
+
+    def block(label, corners, mat="shed"):
+        parts.append((box(f"{name}_{label}", *corners), mat))
+
+    def cylinder(label, x, y, radius, bottom, top, mat="tank"):
+        parts.append((prism(f"{name}_{label}", x, y, radius, bottom, top, 20), mat))
+
+    block("yard", (0, 0, 0, w, d, .18), "yard")
+    shed_w = min(w - .6, 18)
+    block("shed", (.3, 1, .18, .3 + shed_w, 9, 7.5))
+    parts.append((gabled_roof_at(f"{name}_roof", .2, .9, shed_w + .2, 8.2, 7.5, 1.8), "trim"))
+    for x in range(1, int(shed_w) + 1):
+        block("facade_rib", (x, .92, .3, x + .07, 1.02, 7.5), "pipe")
+        block("rear_rib", (x, 8.98, .3, x + .07, 9.08, 7.5), "pipe")
+    for y in range(2, 9):
+        for x in (.24, shed_w + .3):
+            block("side_rib", (x, y, .3, x + .07, y + .08, 7.5), "pipe")
+    for i in range(max(1, int(shed_w // 6))):
+        x = 1 + i * 6
+        door_w = min(4, shed_w - x - .3)
+        block("loading_frame", (x - .12, .78, .18, x + door_w + .12, 1.01, 4.8), "trim")
+        block("loading_door", (x, .73, .2, x + door_w, .79, 4.6), "pipe")
+        for row in range(8):
+            block("door_seam", (x, .70, .45 + row * .5, x + door_w, .74, .49 + row * .5), "trim")
+        for dx in (0, door_w - .18):
+            block("bollard", (x + dx, .3, .18, x + dx + .18, .5, 1.25), "warning")
+        block("clerestory", (x, .8, 5.6, x + door_w, .94, 6.7), "glass")
+        for dx in range(1, int(door_w)):
+            block("window_bar", (x + dx, .76, 5.6, x + dx + .06, .82, 6.7), "trim")
+    block("gutter", (.2, .75, 7.4, shed_w + .4, .94, 7.58), "pipe")
+    cylinder("downpipe", .45, .6, .085, .18, 7.5, "pipe")
+
     if variant in (2, 4):
-        # The stack, and the boiler house it comes out of.
-        parts.append((box(f"{name}_boiler", 0.5, 10.0, 0.0, min(w, 7.0), 16.0, 5.0), "shed"))
-        parts.append((prism(f"{name}_stack", min(w, 7.0) - 2.0, 13.0, 1.3, 0.0, 19.0), "stack"))
+        block("boiler", (.5, 10, .18, 7, 16, 5))
+        cylinder("stack", 4.8, 13, 1.25, .18, 18.6, "stack")
+        for height in (5, 10, 15, 18.3):
+            cylinder("stack_band", 4.8, 13, 1.32, height, height + .25, "pipe")
+        cylinder("stack_mouth", 4.8, 13, 1.1, 18.61, 18.64, "trim")
+        for height in range(1, 18):
+            block("ladder_rung", (4.4, 11.61, height, 5.2, 11.70, height + .06), "pipe")
+        for x in (4.4, 5.15):
+            block("ladder_rail", (x, 11.60, .5, x + .05, 11.69, 18), "pipe")
     if variant in (1, 4):
-        # A tank farm: as many as the frontage has room for, bunded by a low wall.
-        tanks = max(1, int((w - 2.0) // 7.0))
-        for i in range(tanks):
-            cx = 4.0 + i * 7.0
-            if cx + 3.0 > w:
-                break
-            parts.append((prism(f"{name}_tank_{i}", cx, 22.0, 3.0, 0.0, 8.0), "tank"))
-            parts.append((prism(f"{name}_tank_cap_{i}", cx, 22.0, 3.0, 8.0, 8.8, 8), "trim"))
-        parts.append((box(f"{name}_bund_front", 0.4, 17.5, 0.0, w - 0.4, 18.1, 1.1), "trim"))
-        parts.append((box(f"{name}_bund_back", 0.4, 26.5, 0.0, w - 0.4, 27.1, 1.1), "trim"))
+        # The old 3 m radius skipped the narrow depot entirely and intersected the 4x4 warehouse.
+        radius = min(2.5, (w - 1.2) / 2)
+        cx = w / 2 if variant == 1 else w - 4
+        for cy in (18, 25):
+            cylinder("tank", cx, cy, radius, .18, 7.8)
+            cylinder("tank_cap", cx, cy, radius + .1, 7.8, 8.05, "pipe")
+            cylinder("tank_hatch", cx, cy, .5, 8.05, 8.4, "trim")
+            for height in (.5, 4, 7.5):
+                cylinder("tank_ring", cx, cy, radius + .04, height, height + .12, "pipe")
+            block("tank_outlet", (cx - .2, cy - radius - .6, .6, cx + .2, cy, 1), "pipe")
+        for x in (cx - radius - .3, cx + radius + .15):
+            block("bund_side", (x, 14.9, .18, x + .15, 28.1, .7), "trim")
+        for y in (14.9, 28):
+            block("bund_end", (cx - radius - .3, y, .18, cx + radius + .3, y + .15, .7), "trim")
     if variant in (3, 4):
-        # A back warehouse and the pipe rack feeding it, on stubby legs.
-        parts.append((box(f"{name}_store", 0.8, d - 12.0, 0.0, max(3.0, w - 0.8), d - 1.0, 6.0), "shed"))
-        parts.append((gabled_roof_at(f"{name}_store_roof", 0.8, d - 12.0, max(2.2, w - 1.6), 11.0, 6.0, 1.5), "trim"))
+        store_w = w - 1.6 if variant == 3 else w * .55
+        block("warehouse", (.8, 20, .18, .8 + store_w, d - 1, 6))
+        parts.append((gabled_roof_at(f"{name}_warehouse_roof", .7, 19.9, store_w + .2, d - 20.8, 6, 1.5), "trim"))
+        block("dock", (.8, 18.5, .18, .8 + store_w, 20, 1), "pipe")
+        for x in range(2, int(store_w) - 2, 5):
+            block("freight_door", (x, 19.9, 1, x + 3, 20.02, 4.8), "trim")
+            block("dock_edge", (x, 18.46, .8, x + 3, 18.52, 1), "warning")
+        for y in range(21, int(d) - 1):
+            block("warehouse_rib", (.72, y, .18, .82, y + .09, 6), "pipe")
     if variant in (2, 3, 4):
-        parts.append((box(f"{name}_pipe", 0.6, 17.0, 3.4, 1.4, d - 1.0, 4.2), "pipe"))
-        parts.append((box(f"{name}_pipe2", 1.8, 17.0, 3.4, 2.6, d - 1.0, 4.2), "pipe"))
-        for i in range(3):
-            y = 18.0 + i * 5.0
-            parts.append((box(f"{name}_pipe_leg_{i}", 0.6, y, 0.0, 2.6, y + 0.6, 3.4), "pipe"))
-    if variant == 1:
-        # Nothing else stands here, so the yard gets its stock in the open.
-        for i in range(4):
-            x = 1.0 + i * 4.0
-            if x + 3.0 > w:
-                break
-            parts.append((box(f"{name}_stock_{i}", x, d - 6.0, 0.0, x + 3.0, d - 1.5, 2.2), "trim"))
-    mats = {
-        "shed": material(name, INDUSTRY_SHED),
-        "trim": material(f"{name}_trim", INDUSTRY_TRIM),
-        "tank": material(f"{name}_tank", TANK),
-        "stack": material(f"{name}_stack", STACK),
-        "pipe": material(f"{name}_pipe", PIPE),
-        "yard": material(f"{name}_yard", YARD),
-    }
+        # Elevated pipes run across the service yard, clear of the tanks and freight doors.
+        rack_end = w * .55 + 1 if variant == 4 else w - 1
+        for y in (17, 17.65):
+            pipe = prism(f"{name}_pipe", 0, 0, .18, 0, rack_end - 1, 12)
+            for vertex in pipe.data.vertices:
+                x, py, z = vertex.co
+                vertex.co = (1 + z, y + py, 5.7 - x)
+            parts.append((pipe, "pipe"))
+        block("service_walkway", (1, 16.2, 5.2, rack_end, 16.8, 5.32), "pipe")
+        for y in (16.2, 16.75):
+            block("walkway_rail", (1, y, 6.15, rack_end, y + .05, 6.22), "pipe")
+            for x in range(1, int(rack_end) + 1, 2):
+                block("walkway_post", (x, y, 5.32, x + .05, y + .05, 6.2), "pipe")
+        for height in range(1, 11):
+            block("access_rung", (1, 16.1, height * .5, 1.6, 16.18, height * .5 + .05), "pipe")
+        for x in (1, 1.55):
+            block("access_rail", (x, 16.1, .18, x + .05, 16.18, 6.2), "pipe")
+        for x in (1, rack_end):
+            for y in (16.8, 17.85):
+                block("rack_leg", (x - .08, y, .18, x + .08, y + .12, 6), "trim")
+            block("rack_beam", (x - .12, 16.7, 5.4, x + .12, 18.1, 5.55), "trim")
+    mats = {key: material(f"{name}_{key}", colour) for key, colour in {
+        "shed": INDUSTRY_SHED, "trim": INDUSTRY_TRIM, "tank": TANK,
+        "stack": STACK, "pipe": PIPE, "yard": YARD,
+        "glass": GLASS, "warning": (.85, .58, .12, 1),
+    }.items()}
     export_parts(name, parts, mats, f"works {w} x {d} m")
 
 
@@ -572,7 +694,14 @@ def farm_specs():
 
 def build_farm(name, w, d, variant):
     clear_scene()
+    import math
+
     parts = []
+    def block(label, corners, mat="barn"):
+        parts.append((box(f"{name}_{label}", *corners), mat))
+
+    # Yard anchors the exact parcel bounds; detail stays within these edges.
+    block("yard", (0, 0, 0, w, FARM_YARD_DEPTH, .15), "soil")
     barn_w = min(w * 0.62, 13.0)
     barn_d = 8.5
     barn_h = 5.0
@@ -581,12 +710,29 @@ def build_farm(name, w, d, variant):
     parts.append((gabled_roof_at(f"{name}_barn_roof", 0.0, 1.0, barn_w, barn_d, barn_h, ridge), "trim"))
     # The big sliding door, and the white boards a barn is always trimmed with.
     parts.append((box(f"{name}_barn_door", barn_w * 0.3, 0.9, 0.0, barn_w * 0.7, 1.02, barn_h * 0.72), "door"))
-    parts.append((box(f"{name}_barn_band", -0.05, 0.95, barn_h - 0.5, barn_w + 0.05, 1.05, barn_h - 0.2), "trim"))
+    parts.append((box(f"{name}_barn_band", 0.0, 0.95, barn_h - 0.5, barn_w + 0.05, 1.05, barn_h - 0.2), "trim"))
+    for x in range(1, int(barn_w * 2)):
+        block("plank", (x * .5, .95, .2, x * .5 + .045, 1.02, 4.8), "door")
+    for y in range(2, 10):
+        block("side_plank", (barn_w - .02, y, .2, barn_w + .035, y + .045, 4.9), "door")
+    for x in (barn_w * .3, barn_w * .7):
+        block("door_jamb", (x - .07, .78, .15, x + .07, .92, 3.7), "trim")
+    for z in (.5, 3.1):
+        block("door_brace", (barn_w * .3, .78, z, barn_w * .7, .92, z + .12), "trim")
+    block("loft_window", (barn_w * .4, .9, 4, barn_w * .6, 1, 4.55), "door")
+    block("gutter", (.05, .8, 4.95, barn_w, 1.02, 5.08), "trim")
     if w > barn_w + 4.0:
         # Silo and a low feed shed fill the rest of the yard.
         sx = barn_w + 1.5
-        parts.append((box(f"{name}_silo", sx, 2.0, 0.0, sx + 3.2, 5.2, 10.5), "silo"))
-        parts.append((gabled_roof_at(f"{name}_silo_cap", sx, 2.0, 3.2, 3.2, 10.5, 1.1), "trim"))
+        parts.append((prism(f"{name}_silo", sx + 1.6, 3.6, 1.6, .15, 10.5, 20), "silo"))
+        cap = prism(f"{name}_silo_cap", sx + 1.6, 3.6, 1.65, 10.5, 11.6, 20)
+        for vertex in cap.data.vertices:
+            if vertex.co.z > 11:
+                vertex.co.x = sx + 1.6 + (vertex.co.x - sx - 1.6) * .12
+                vertex.co.y = 3.6 + (vertex.co.y - 3.6) * .12
+        parts.append((cap, "trim"))
+        for z in (1, 4, 7, 10):
+            parts.append((prism(f"{name}_silo_band", sx + 1.6, 3.6, 1.64, z, z + .12, 20), "trim"))
         if w > sx + 8.0:
             parts.append((box(f"{name}_shed", sx + 4.2, 1.5, 0.0, w - 0.5, 6.5, 3.2), "barn"))
             parts.append((gabled_roof_at(f"{name}_shed_roof", sx + 4.2, 1.5, w - 0.5 - (sx + 4.2), 5.0, 3.2, 1.4), "trim"))
@@ -596,9 +742,33 @@ def build_farm(name, w, d, variant):
         # Market garden: polytunnels down the plot, with a bed between each pair.
         row = 0
         y = FARM_YARD_DEPTH + 1.0
-        while y + 3.0 < d:
-            parts.append((box(f"{name}_tunnel_{row}", 0.6, y, 0.0, w - 0.6, y + 3.0, 1.4), "tunnel"))
-            parts.append((gabled_roof_at(f"{name}_tunnel_top_{row}", 0.6, y, w - 1.2, 3.0, 1.4, 0.9), "tunnel"))
+        while y + 4.0 < d:
+            # Barrel roof extruded along X, with outward winding and opaque polythene.
+            vertices = []
+            for x in (.6, w - .6):
+                for step in range(9):
+                    angle = math.pi * step / 8
+                    vertices.append((x, y + 1.5 - 1.5 * math.cos(angle), .3 + 2.1 * math.sin(angle)))
+            faces = [(i, i + 9, i + 10, i + 1) for i in range(8)]
+            faces += [tuple(range(9)), tuple(range(17, 8, -1))]
+            mesh = bpy.data.meshes.new(f"{name}_tunnel_{row}")
+            mesh.from_pydata(vertices, [], faces)
+            mesh.update()
+            obj = bpy.data.objects.new(mesh.name, mesh)
+            bpy.context.scene.collection.objects.link(obj)
+            parts.append((obj, "tunnel"))
+            for x in (.6, w / 2, w - .6):
+                # A thin arch repeats the same profile, slightly above the skin.
+                for step in range(8):
+                    angle, next_angle = math.pi * step / 8, math.pi * (step + 1) / 8
+                    ya, za = y + 1.5 - 1.5 * math.cos(angle), .32 + 2.1 * math.sin(angle)
+                    yb, zb = y + 1.5 - 1.5 * math.cos(next_angle), .32 + 2.1 * math.sin(next_angle)
+                    rib_mesh = bpy.data.meshes.new(f"{name}_hoop")
+                    rib_mesh.from_pydata([(x-.035,ya,za),(x+.035,ya,za),(x+.035,yb,zb),(x-.035,yb,zb)], [], [(0,1,2,3)])
+                    rib_mesh.update()
+                    rib = bpy.data.objects.new(rib_mesh.name, rib_mesh)
+                    bpy.context.scene.collection.objects.link(rib)
+                    parts.append((rib, "trim"))
             parts.append((box(f"{name}_bed_{row}", 0.8, y + 3.2, 0.25, w - 0.8, y + 4.0, 0.7), f"crop{row % len(CROP)}"))
             y += 5.0
             row += 1
@@ -611,7 +781,14 @@ def build_farm(name, w, d, variant):
             i = 0
             while x + 1.5 < w:
                 parts.append((box(f"{name}_trunk_{row}_{i}", x - 0.2, y - 0.2, 0.25, x + 0.2, y + 0.2, 1.4), "soil"))
-                parts.append((prism(f"{name}_canopy_{row}_{i}", x, y, 1.5, 1.4, 3.6, 6), "orchard"))
+                for lobe, dx in enumerate((-.45, .45)):
+                    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1)
+                    crown = bpy.context.object
+                    crown.name = f"{name}_canopy_{row}_{i}_{lobe}"
+                    for vertex in crown.data.vertices:
+                        vertex.co = (x + dx + vertex.co.x * 1.1, y + vertex.co.y * 1.2,
+                                     2.5 + ((row + i + lobe) % 3) * .25 + vertex.co.z * 1.35)
+                    parts.append((crown, "orchard"))
                 x += 4.0
                 i += 1
             y += 4.0
@@ -619,26 +796,53 @@ def build_farm(name, w, d, variant):
     elif variant == 4:
         # Livestock: open pasture, a field shelter and hay bales, fenced into two paddocks.
         parts.append((box(f"{name}_pasture", 0.5, FARM_YARD_DEPTH + 0.5, 0.25, w - 0.5, d - 0.5, 0.55), "crop2"))
-        parts.append((box(f"{name}_paddock_split", 0.5, (FARM_YARD_DEPTH + d) / 2, 0.0, w - 0.5, (FARM_YARD_DEPTH + d) / 2 + 0.25, 1.2), "trim"))
-        parts.append((box(f"{name}_shelter", 0.8, FARM_YARD_DEPTH + 2.0, 0.0, min(w - 0.8, 6.0), FARM_YARD_DEPTH + 6.0, 2.6), "barn"))
+        split_y = (FARM_YARD_DEPTH + d) / 2
+        for x in range(1, int(w), 3):
+            block("paddock_post", (x, split_y, .55, x + .15, split_y + .15, 1.85), "trim")
+        for z in (1, 1.65):
+            for left, right in ((.5, w / 2 - 1), (w / 2 + 1, w - .5)):
+                block("paddock_rail", (left, split_y, z, right, split_y + .1, z + .12), "trim")
+        block("trough", (w - 6, 14, .55, w - 2, 15.3, 1.15), "silo")
+        block("water", (w - 5.85, 14.15, 1.16, w - 2.15, 15.15, 1.18), "water")
+        for x in (.8, 5.8):
+            for y in (FARM_YARD_DEPTH + 2, FARM_YARD_DEPTH + 5.8):
+                block("shelter_post", (x, y, .55, x + .2, y + .2, 2.6))
+        block("shelter_back", (.8, FARM_YARD_DEPTH + 5.8, .55, 6, FARM_YARD_DEPTH + 6, 2.6))
         parts.append((gabled_roof_at(f"{name}_shelter_roof", 0.8, FARM_YARD_DEPTH + 2.0, min(w - 1.6, 5.2), 4.0, 2.6, 1.0), "trim"))
         for i in range(3):
             x = 1.2 + i * 3.2
             if x + 2.2 > w:
                 break
-            parts.append((prism(f"{name}_bale_{i}", x + 1.1, d - 3.0, 1.1, 0.25, 2.4, 8), "hay"))
+            bale = prism(f"{name}_bale_{i}", 0, 0, 1, 0, 2, 12)
+            for vertex in bale.data.vertices:
+                bx, by, bz = vertex.co
+                vertex.co = (x + bz, d - 3 + by, 1.55 - bx)
+            parts.append((bale, "hay"))
     else:
         row = 0
         y = FARM_YARD_DEPTH + 0.9
         while y + 1.4 < d:
             # Tall enough to read as a crop from the camera's usual height, not a stripe on the dirt.
-            parts.append((box(f"{name}_crop_{row}", 0.5, y, 0.25, w - 0.5, y + 1.4, 1.6), f"crop{row % len(CROP)}"))
+            for strip in range(3):
+                block("crop_row", (.5, y + strip * .45, .3, w - .5, y + strip * .45 + .28,
+                                   1.05 + ((row + strip) % 3) * .12), "crop1")
             y += 2.4
             row += 1
-    # A post fence around the field, so its edge is legible even before the crop grows.
-    for i, fx in enumerate([0.1, w - 0.35]):
-        parts.append((box(f"{name}_fence_{i}", fx, FARM_YARD_DEPTH, 0.0, fx + 0.25, d, 1.3), "trim"))
-    parts.append((box(f"{name}_fence_back", 0.1, d - 0.25, 0.0, w - 0.1, d, 1.3), "trim"))
+    # Open rails, not continuous solid walls: keep the field visible from street level.
+    for x in (.15, w - .3):
+        for y in range(int(FARM_YARD_DEPTH), int(d), 3):
+            block("fence_post", (x, y, .3, x + .15, y + .15, 1.7), "trim")
+        for z in (.85, 1.4):
+            block("fence_rail", (x, FARM_YARD_DEPTH, z, x + .1, d - .2, z + .12), "trim")
+    for x in range(1, int(w), 3):
+        block("rear_post", (x, d - .3, .3, x + .15, d - .15, 1.7), "trim")
+    for z in (.85, 1.4):
+        block("rear_rail", (.15, d - .3, z, w - .15, d - .2, z + .12), "trim")
+    if variant == 3:
+        for i in range(3):
+            block("fruit_crate", (1 + i * 1.5, 10, .15, 2.2 + i * 1.5, 10.9, .85), "barn")
+            for z in (.3, .55):
+                block("crate_slat", (1 + i * 1.5, 9.96, z, 2.2 + i * 1.5, 10.02, z + .07), "trim")
 
     mats = {
         "barn": material(name, BARN),
@@ -647,37 +851,188 @@ def build_farm(name, w, d, variant):
         "silo": material(f"{name}_silo", SILO),
         "soil": material(f"{name}_soil", SOIL),
     }
+    mats["water"] = material(f"{name}_water", (.16, .32, .36, 1))
     mats["tunnel"] = material(f"{name}_tunnel", TUNNEL)
     mats["orchard"] = material(f"{name}_orchard", ORCHARD)
     mats["hay"] = material(f"{name}_hay", HAY)
     for i, colour in enumerate(CROP):
         mats[f"crop{i}"] = material(f"{name}_crop{i}", colour)
-    for part, mat_name in parts:
-        part.data.materials.append(mats[mat_name])
+    export_parts(name, parts, mats, f"farm {w} x {d} m")
 
-    bpy.ops.object.select_all(action="DESELECT")
-    for part, _ in parts:
-        part.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0][0]
-    if len(parts) > 1:
-        bpy.ops.object.join()
 
-    path = os.path.join(OUT_DIR, f"{name}.glb")
-    bpy.ops.export_scene.gltf(
-        filepath=path,
-        export_format="GLB",
-        use_selection=True,
-        export_yup=True,
-        export_apply=True,
-    )
-    print(f"wrote {path}  (farm {w} x {d} m)")
+def urban_specs():
+    # a is always pedestrian-safe; b is an urban mid-rise. Towers use zone-eligible sizes.
+    for kind in ('residential', 'commercial'):
+        for frontage in range(1, 5):
+            for depth in range(1, 5):
+                for variant in ('a', 'b'):
+                    yield f'{kind}_{frontage}x{depth}_{variant}', frontage * CELL - 1.5, depth * CELL - 1.5, kind, variant
+    for kind, size in (('residential', (3, 3)), ('residential', (4, 4)),
+                       ('commercial', (3, 4)), ('commercial', (4, 3))):
+        f, d = size
+        for variant in ('tower', 'tower_steps', 'tower_offset'):
+            yield f'{kind}_{f}x{d}_{variant}', f * CELL - 1.5, d * CELL - 1.5, kind, variant
+
+
+def build_urban(name, w, d, kind, variant):
+    clear_scene()
+    parts = []
+    residential = kind == 'residential'
+    large = min(w, d) >= 14
+    pitched = residential and variant == 'a' and min(w, d) < 14
+    # Volumes are also the roof contract: no second hand-maintained height formula.
+    h = (9 if large else 6) if residential else (6 if large else 4.5)
+    volumes = [(0, 0, w, d, 0, h)]
+    if variant == 'b':
+        if large:
+            volumes = [(0, 0, w, d, 0, 9),
+                       (w*.08, d*.12, w*.72, d*.72, 9, 27 if residential else 39)]
+        else:
+            volumes = [(0, 0, w, d, 0, 15 if residential else 18)]
+    elif variant == 'tower_steps':
+        # Broad inhabited terraces versus a narrow office crown; decks share the mesh volumes.
+        volumes = [(0, 0, w, d, 0, 6)]
+        if residential:
+            for level in range(4):
+                volumes.append((w*(.07+level*.12), d*.14, w*(.86-level*.12), d*.70,
+                                6+level*18, 24+level*18))
+        else:
+            volumes += [(w*.14,d*.16,w*.72,d*.68,6,90),
+                        (w*.24,d*.24,w*.52,d*.52,90,108),
+                        (w*.36,d*.34,w*.28,d*.32,108,120)]
+    elif variant == 'tower_offset':
+        volumes = [(0, 0, w, d, 0, 6)]
+        if residential:
+            # An L with unequal wings leaves an open courtyard instead of another central shaft.
+            volumes += [(w*.08,d*.10,w*.30,d*.78,6,96),
+                        (w*.38,d*.58,w*.54,d*.30,6,66)]
+        else:
+            # Offset upper shaft sits on a wider lower volume, with a visible shoulder.
+            volumes += [(w*.10,d*.12,w*.78,d*.72,6,48),
+                        (w*.36,d*.30,w*.52,d*.54,48,114)]
+    elif variant == 'tower':
+        volumes = [(0, 0, w, d, 0, 9)]
+        if residential and w < 25:
+            volumes += [(w*.18, d*.18, w*.64, d*.64, 9, 63)]
+        elif residential:
+            volumes += [(w*.08, d*.16, w*.32, d*.68, 9, 72),
+                        (w*.60, d*.16, w*.32, d*.68, 9, 84)]
+        elif w < 25:
+            volumes += [(w*.08, d*.08, w*.84, d*.84, 9, 63),
+                        (w*.19, d*.19, w*.62, d*.62, 63, 96),
+                        (w*.28, d*.28, w*.44, d*.44, 96, 108)]
+        else:
+            volumes += [(w*.25, d*.20, w*.50, d*.60, 9, 132),
+                        (w*.08, d*.25, w*.17, d*.50, 9, 36)]
+
+    for i, (x, y, sw, sd, base, top) in enumerate(volumes):
+        label = f'{name}_{i}'
+        parts.append((box(label, x, y, base, x+sw, y+sd, top), 'wall'))
+        if variant == 'a':
+            add_windows(parts, label, sw, sd, top-base, kind, x, y, base)
+        else:
+            # Continuous glazing with full-height piers gives a readable facade at city scale.
+            # Floor bands and balcony slabs cost a few boxes per floor, not per window pane.
+            for z in range(int(base)+3, int(top)-1, 3):
+                if residential:
+                    for span, front in ((sw, True), (sd, False)):
+                        count = max(1, int(span//3.5))
+                        for col in range(count):
+                            centre = (col+.5)*span/count
+                            for side in (0, sd) if front else (0, sw):
+                                corners = (x+centre-.9,y+side-.12,z,x+centre+.9,y+side+.12,z+1.9) if front else (x+side-.12,y+centre-.9,z,x+side+.12,y+centre+.9,z+1.9)
+                                parts.append((box(label+'_window', *corners), 'glass'))
+                else:
+                    for corners in ((x+.45,y-.12,z,x+sw-.45,y-.06,z+1.9),
+                                    (x+.45,y+sd+.06,z,x+sw-.45,y+sd+.12,z+1.9),
+                                    (x-.12,y+.45,z,x-.06,y+sd-.45,z+1.9),
+                                    (x+sw+.06,y+.45,z,x+sw+.12,y+sd-.45,z+1.9)):
+                        parts.append((box(label+'_glazing', *corners), 'glass'))
+                if residential and (variant != 'tower_offset' or z % 9 == 0):
+                    for by in (y-.60, y+sd):
+                        parts.append((box(label+'_balcony', x-.15,by,z-.2,x+sw+.15,by+.60,z), 'trim'))
+                        rail_y = by if by < y else by+.48
+                        parts.append((box(label+'_rail', x-.15,rail_y,z+.65,x+sw+.15,rail_y+.12,z+.85), 'trim'))
+                        for bx in (x, x+sw):
+                            parts.append((box(label+'_rail_end',bx-.05,by,z,bx+.05,by+.6,z+.85),'trim'))
+                elif not residential and variant != 'tower_steps':
+                    for by in (y-.16, y+sd):
+                        parts.append((box(label+'_spandrel',x,by,z+1.95,x+sw,by+.16,z+2.15),'trim'))
+            # Offset towers read horizontally; crowned offices use strong vertical fins.
+            for span, horizontal in (() if variant == 'tower_offset' else ((sw, True), (sd, False))):
+                for pier in range(max(1, int(span//4))+1):
+                    offset = pier * span/max(1, int(span//4))
+                    for side in (0, sd) if horizontal else (0, sw):
+                        corners = (x+offset-.10,y+side-.18,base,x+offset+.10,y+side+.18,top) if horizontal else (x+side-.18,y+offset-.10,base,x+side+.18,y+offset+.10,top)
+                        parts.append((box(label+'_pier',*corners),'trim'))
+        if pitched:
+            parts.append((gabled_roof_at(label+'_roof',x,y,sw,sd,top,2.5),'trim'))
+        else:
+            add_parapet(parts,label,sw,sd,top,x,y)
+    add_street_level(parts,name,w,kind)
+    # Accent entrance and visible roof plant are authored, while runtime props use these decks.
+    if variant != 'a':
+        parts.append((box(name+'_canopy',w*.30,-.65,2.7,w*.70,.15,3.0),'awning'))
+    x,y,sw,sd,base,top = max(volumes,key=lambda volume: volume[5])
+    if not pitched:
+        parts.append((box(name+'_roof_plant',x+sw*.15,y+sd*.15,top,x+sw*.15+1.5,y+sd*.15+1.2,top+1.5),'trim'))
+    colour = ((.70,.57,.46,1) if variant == 'a' else (.78,.76,.68,1)) if residential else ((.66,.68,.70,1) if variant == 'a' else (.30,.40,.48,1))
+    if variant == 'tower_steps':
+        colour = (.68,.42,.29,1) if residential else (.62,.65,.61,1)
+    elif variant == 'tower_offset':
+        colour = (.83,.81,.72,1) if residential else (.23,.32,.39,1)
+    mats = {key: material(f'{name}_{key}', value) for key,value in {
+        'wall':colour, 'glass':GLASS, 'trim':trim_colour(colour), 'door':DOOR,
+        'sign':SIGN, 'awning':AWNING,
+    }.items()}
+    export_parts(name,parts,mats,f'{kind} {variant}, {top} m deck')
+    if pitched:
+        return {'kind':'pitched','deckY':top,'ridgeY':top+2.5,'ridgeZ':-d/2}
+    return {'kind':'terraced','width':w,'decks':[
+        {'minX':x,'maxX':x+sw,'minZ':-y-sd,'maxZ':-y,'deckY':top}
+        for x,y,sw,sd,base,top in volumes]}
 
 
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    if "--urban-only" in sys.argv or "--towers-only" in sys.argv:
+        path = os.path.join(OUT_DIR, "manifest.json")
+        with open(path, encoding="utf-8") as f:
+            manifest = json.load(f)
+        for spec in urban_specs():
+            if "--towers-only" in sys.argv and not spec[-1].startswith("tower"):
+                continue
+            manifest["models"][spec[0]] = build_urban(*spec)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
+            f.write("\n")
+        return
+    if "--farms-only" in sys.argv:
+        for spec in farm_specs():
+            build_farm(*spec)
+        return
+    if "--industrial-only" in sys.argv or "--industrial-small-only" in sys.argv:
+        if "--industrial-only" in sys.argv:
+            for spec in works_specs("industrial"):
+                build_industrial(*spec)
+        path = os.path.join(OUT_DIR, "manifest.json")
+        with open(path, encoding="utf-8") as f:
+            manifest = json.load(f)
+        for variant in ('a', 'b', 'c'):
+            name, roof = build_small_industrial(variant)
+            manifest["models"][name] = roof
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
+            f.write("\n")
+        return
     if "--military-only" in sys.argv:
         for spec in works_specs("military"):
             build_military(*spec)
+        return
+    if "--lots-only" in sys.argv:
+        # Geometry-only refresh: roof facts remain unchanged and are checked against the GLBs.
+        for spec in building_specs():
+            build(*spec)
         return
     manifest = {"models": {}}
     for spec in building_specs():
@@ -706,6 +1061,11 @@ def main():
         # Nothing stands on a barn roof, so the manifest only has to keep the deck flat and low.
         manifest["models"][name] = {"kind": "flat", "deckY": 5.0}
         build_farm(name, w, d, variant)
+    for spec in urban_specs():
+        manifest["models"][spec[0]] = build_urban(*spec)
+    for variant in ('a', 'b', 'c'):
+        name, roof = build_small_industrial(variant)
+        manifest["models"][name] = roof
     with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")
