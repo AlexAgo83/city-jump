@@ -33,7 +33,7 @@
   "operator_intents": [
     {
       "utterance": "prepare release",
-      "boundary": "Prepare metadata, changelog, and validation evidence only. Do not tag, push, publish, upload assets, or create a GitHub release unless explicitly requested.",
+      "boundary": "Prepare metadata and changelog only. Do not tag, push, publish, upload assets, or create a GitHub release unless explicitly requested. Do not record gate evidence yet: evidence is anchored to the release commit, which resolves to the tag, and the tag does not exist during preparation.",
       "publication_action": false
     },
     {
@@ -45,6 +45,11 @@
       "utterance": "publish release",
       "boundary": "Publish only after required local and remote gates are green, then verify downstream publication or deployment evidence.",
       "publication_action": true
+    },
+    {
+      "utterance": "tag the release",
+      "boundary": "Tag only after the pushed commit is green in CI, then record every gate's evidence against that tagged commit in one pass. Recording evidence before the tag exists anchors it to a moving HEAD and each later evidence commit invalidates it.",
+      "publication_action": false
     }
   ],
   "missing_contract_discovery": {
@@ -152,7 +157,7 @@
     {
       "id": "github_release",
       "state": "github_release",
-      "required": false,
+      "required": true,
       "evidence_kinds": [
         "github_release"
       ],
@@ -199,34 +204,25 @@
   },
   "validation_commands": [
     {
-      "id": "lint",
+      "id": "ci",
       "command": [
         "npm",
         "run",
-        "lint"
+        "ci"
       ],
       "required": true,
       "evidence_kind": "command"
     },
     {
-      "id": "test",
+      "id": "e2e",
       "command": [
         "npm",
         "run",
-        "test"
+        "test:e2e"
       ],
       "required": true,
-      "evidence_kind": "command"
-    },
-    {
-      "id": "build",
-      "command": [
-        "npm",
-        "run",
-        "build"
-      ],
-      "required": true,
-      "evidence_kind": "command"
+      "evidence_kind": "command",
+      "description": "Browser interaction suite. Not run by GitHub Actions, so it only ever passes locally."
     }
   ],
   "git": {
@@ -235,14 +231,15 @@
       "main"
     ],
     "tag_policy": {
-      "required": false,
-      "pattern": "v{version}"
+      "required": true,
+      "pattern": "v{version}",
+      "anchors_evidence": true
     },
     "require_clean_worktree": true,
     "require_pushed_commit": true
   },
   "github_release": {
-    "required": false,
+    "required": true,
     "mode": "manual",
     "draft_allowed": false,
     "asset_paths": []
@@ -265,5 +262,16 @@
       "required": true,
       "description": "Verify the production deployment for the target commit and version."
     }
+  ],
+  "release_sequence": [
+    "Bump the version sources and stamp README, SECURITY and docs; npm run check:versions.",
+    "Write changelogs/CHANGELOGS_{version_underscore}.md and link it from changelogs/README.md.",
+    "Run npm run ci and npm run test:e2e locally.",
+    "Commit the preparation. This commit is the release commit.",
+    "Push it and wait for the GitHub Actions CI run on that exact commit.",
+    "Tag it v{version}, once CI is green.",
+    "Record version_metadata, changelog, local_validation, git_push and ci in one pass, every entry carrying the tagged commit. Commit and push that evidence.",
+    "Publish the GitHub release, which triggers the Render deployment.",
+    "Verify the public site serves the new version, then record github_release and production_deployment. The site sits behind a cache: sample it more than once."
   ]
 }

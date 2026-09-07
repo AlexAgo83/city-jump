@@ -10,6 +10,32 @@ loads bundled JavaScript plus static GLB assets, so it does not need a server ru
 - Live demo: <https://city-jump.onrender.com/>
 - Artifact directory: `dist/`
 
+## Release procedure
+
+The order matters, and not for ceremony. Gate evidence in `logics/release/evidence.jsonl` is
+anchored to the release commit, and the release commit resolves to the tag once one exists. Record
+evidence before tagging and it anchors to a moving `HEAD`, so the commit that records the evidence
+invalidates the evidence it records -- which is how 0.5.1 ended up re-recording three gates.
+
+1. Bump `package.json` and `package-lock.json`, stamp the README badge, `SECURITY.md` and the
+   version and tag above, then `npm run check:versions`.
+2. Write `changelogs/CHANGELOGS_x_y_z.md` and link it from `changelogs/README.md`.
+3. Run `npm run ci` and `npm run test:e2e`. GitHub Actions runs the first and not the second, so
+   the browser suite only ever passes here.
+4. Commit. **This commit is the release commit.**
+5. Push it, and wait for the CI run on that exact commit.
+6. Tag it `vx.y.z` once CI is green.
+7. Record `version_metadata`, `changelog`, `local_validation`, `git_push` and `ci` in one pass,
+   every entry carrying the tagged commit. Commit and push that evidence.
+8. Publish the GitHub release. That is what triggers the Render deployment -- there is no separate
+   deploy step, and no deployment without a release.
+9. Verify the public site serves the new version, then record `github_release` and
+   `production_deployment`. Sample the site more than once: it sits behind a cache and can serve
+   the previous `index.html` for a while after the deploy reports success.
+
+`logics-manager release validate <version>` is the check at every step, and
+`logics-manager release status` is the only thing that may be quoted as "the release is ready".
+
 ## Build
 
 ```bash
