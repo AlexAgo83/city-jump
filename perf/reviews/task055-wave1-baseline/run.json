@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "startedAt": "2026-09-07T13:25:07.798Z",
+  "status": "complete",
+  "command": [
+    "http://127.0.0.1:5173",
+    "--probe",
+    "distance",
+    "--out",
+    "perf/reviews/task055-wave1-baseline"
+  ],
+  "commit": "c3b4ee2c1389f1216ca62e183aa48a70daa02800",
+  "worktree": "M logics/backlog/item_187_repair_performance_readiness_and_establish_comparable_distance_baselines.md\n M logics/backlog/item_188_cull_distant_traffic_visuals_without_stopping_the_simulation.md\n M logics/backlog/item_189_restore_automatic_building_detail_with_a_manual_boxes_override.md\n M logics/backlog/item_190_bound_distant_night_lighting_while_preserving_city_readability.md\n M logics/backlog/item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames.md\n M logics/backlog/item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets.md\n M logics/backlog/item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap.md\n M logics/backlog/item_194_evaluate_a_minimal_render_resolution_quality_option.md\n M logics/tasks/task_055_deliver_and_validate_the_distance_aware_performance_slices.md\n M scripts/ablate.mjs\n M scripts/perf.mjs\n M scripts/review/config.mjs\n M scripts/review/extra.mjs\n M scripts/review/focus.mjs\n M scripts/review/interactions.mjs\n M scripts/review/profile.mjs\n M scripts/review/rubble.mjs\n M scripts/review/run.mjs\n M scripts/review/soak.mjs\n M scripts/review/wave.mjs\n M tests/perf-review.mjs\n?? scripts/model-readiness.mjs\n?? scripts/review/distance.mjs",
+  "sourceHash": "7db1037c665b0f666ee306a3aabb0c131dace50b205e02dbf43338aab07736fa",
+  "fixture": {
+    "path": "perf/cities/ma-ville.json",
+    "sha256": "2af5975a819a80e4ae2427655eeb9ffc742ac168793ba5e14c08a5fe69c3e052"
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M3 Pro",
+  "node": "v22.16.0",
+  "headed": true,
+  "devUrl": "http://127.0.0.1:5173",
+  "scripts": {
+    "config.mjs": "fab6520b7cc4327c5074a1aa4c28f99ea691883907cf2d9942f4a670621b4a33",
+    "distance.mjs": "cba49be26797269582836e78ed0cc12123178a4b9ab0cd417ce5efe10475ded5",
+    "extra.mjs": "d559ba16afd3808e37b84e8983e7ae6c5878af97c3b0e91cda80be11bf684b5b",
+    "focus.mjs": "b804544e37da1de73a95bd6416eff2f14197b0e91f90813ae6a4b317184f3b43",
+    "interactions.mjs": "c8037c6dbc0daeeb9de741da1fefff42a8c521b62ba70b03f1f2dd553f82f548",
+    "lights.mjs": "d69bc98d9dc883af5f7aed66e4a69b32340fbe1ecd679352a9cf39fff5ec3449",
+    "profile.mjs": "5292e86838e5c2125703f2fdf77c6bef558ec73dab80038dd90b0003538e28bc",
+    "rubble.mjs": "d7f0c59618637f7afe0cfe22c4eaf016bdaf9664c5a71514658e60dda676af03",
+    "run.mjs": "b3e5afc7d15b72d7ccc58887c8a77b9ef1546a8cfb866fdf588560e159e9df0f",
+    "soak.mjs": "024f0a48ee97f617e7b51182a069ac7b58c9be6992863bab40921d6a4b7fc30f",
+    "wave.mjs": "23cc59b777c76285fb6593171703a8d1fa45467fd99404bf568aeeff623b3b4c"
+  },
+  "probes": [
+    {
+      "name": "distance",
+      "status": "complete",
+      "startedAt": "2026-09-07T13:25:08.373Z",
+      "exitCode": 0,
+      "finishedAt": "2026-09-07T13:29:06.254Z"
+    }
+  ],
+  "browser": "151.0.7922.34",
+  "renderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro, Unspecified Version)",
+  "finishedAt": "2026-09-07T13:29:06.255Z"
+}

@@ -1,14 +1,14 @@
 ## item_188_cull_distant_traffic_visuals_without_stopping_the_simulation - Cull distant traffic visuals without stopping the simulation
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:21:08
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: The current traffic mover loop updates every mover with no camera-distance visibility policy; the old documented 320 m to 2 km reach is absent.

@@ -1,14 +1,14 @@
 ## item_187_repair_performance_readiness_and_establish_comparable_distance_baselines - Repair performance readiness and establish comparable distance baselines
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 80%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:00
+> Indicators reviewed: 2026-09-07 15:45:40
 
 # AI Context
 - Summary: The profile probe times out waiting for exactly 28 models; the current city settles at 107. Other probes and docs carry the same historical assumptions.
@@ -47,6 +47,12 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+
+# Delivery evidence
+- Shared `scripts/model-readiness.mjs` reads the served manifest and rejects missing assets with model IDs; `tests/perf-review.mjs` covers success and missing-model failure. Perf/ablate now query the actual renderer too.
+- `scripts/review/distance.mjs` provides isolated feature diagnostics and interleaved candidate/baseline URL measurements. Protocol, reproduction commands and rejection thresholds are documented in `docs/performance.md`.
+- Baseline: `perf/reviews/task055-wave1-baseline/` completed 24 samples on headed Chromium 151 / Apple M3 Pro, with 1287 buildings and 107 models. Original fixture bytes and application source remain unchanged.
+- `npm run ci` passed (386 tests); final harness edits passed focused lint, readiness/CLI tests and diff whitespace validation. Feature-specific diagnostics and final integrated proof are recorded in the subsequent waves before this slice closes.
 
 # Links
 - Product brief(s): `prod_040_a_smoother_city_near_and_far_without_losing_the_distant_city`

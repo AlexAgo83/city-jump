@@ -1,14 +1,14 @@
 ## item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames - Make workforce caching reusable across unchanged gameplay frames
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:01
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: Workforce has a single last-allocation cache keyed by array and callback identity. Lifecycle builds fresh arrays/closures; the needs path builds another array and interleaves a distinct policy.

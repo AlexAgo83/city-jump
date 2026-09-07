@@ -1,3 +1,4 @@
+import { waitForModels } from "../model-readiness.mjs";
 // Preserved review workload; see docs/performance.md before comparing results.
 import { fixturePath, launchOptions, output, url } from "./config.mjs";
 import { chromium } from "playwright";
@@ -11,11 +12,7 @@ try {
 		localStorage.setItem("cityjump.autosave", JSON.stringify(s));
 	}, save);
 	await p.goto(url);
-	await p.waitForFunction(
-		() =>
-			window.cityjump?.stats().models === 28 &&
-			window.cityjump.stats().buildings > 1000,
-	);
+	await waitForModels(p, 1287);
 	await p.locator("#toolbar-toggle").click();
 	await p.selectOption("#frame-cap", "0");
 	await p.waitForTimeout(1000);

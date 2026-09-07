@@ -1,3 +1,4 @@
+import { waitForModels, actualRenderer } from "./model-readiness.mjs";
 // Which part of the scene costs the frame rate. Switches one thing off at a time and measures,
 // re-measuring the full scene between every ablation so the answer is a ratio taken minutes apart
 // at most -- this machine's absolute fps wanders far more than most changes do.
@@ -8,7 +9,7 @@
 //
 // Prints, per ablation and framing, the median of "fps with it off / fps with everything on".
 import { chromium } from "playwright";
-import { ablationRatio, pauseGameplay, rendererOf, runGameplay } from "./measurement.mjs";
+import { ablationRatio, pauseGameplay, runGameplay } from "./measurement.mjs";
 import { readFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
@@ -63,23 +64,8 @@ if (city) {
 }
 // An empty city has to fail here and say so: it renders fast for the wrong reason, and a number
 // taken from it looks like a win.
-try {
-  await page.waitForFunction(
-    () => {
-      const { buildings, models } = window.cityjump.stats();
-      const settled = window.__ablateBuildings === buildings;
-      window.__ablateBuildings = buildings;
-      return settled && buildings > 0 && models > 0;
-    },
-    null,
-    { timeout: 30_000, polling: 1000 },
-  );
-} catch {
-  const { buildings, models } = await page.evaluate(() => window.cityjump.stats());
-  console.error(`Refusing to measure a city with ${buildings} buildings and ${models} models: nothing standing, nothing to measure.`);
-  await browser.close();
-  process.exit(1);
-}
+await waitForModels(page);
+const renderer = await actualRenderer(page);
 
 const setBoxes = async (off) => {
   for (const id of ["show-buildings", "show-traffic", "show-shadows", "show-lights"]) {
@@ -143,7 +129,7 @@ await browser.close();
 
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 console.log(`\n${city ?? "demo"}, ${rounds} rounds`);
-console.log(`workload ${workload.workload}, sim rate ${workload.simRate}, ${rendererOf(onGpu)}\n`);
+console.log(`workload ${workload.workload}, sim rate ${workload.simRate}, ${renderer}\n`);
 for (const framing of FRAMINGS) {
   const base = median(results.get(`everything on|${framing.name}`));
   const { radius, beta, alpha } = cameras[framing.name];

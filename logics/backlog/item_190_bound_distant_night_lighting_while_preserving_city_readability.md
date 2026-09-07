@@ -1,14 +1,14 @@
 ## item_190_bound_distant_night_lighting_while_preserving_city_readability - Bound distant night lighting while preserving city readability
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:01
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: Streetlights and vehicle headlights use city-wide clustered containers. Removing distant emitters may still leave a costly clustered pass.

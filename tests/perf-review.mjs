@@ -54,3 +54,27 @@ test("review CLI is portable, validates options and refuses to overwrite evidenc
 		rmSync(folder, { recursive: true, force: true });
 	}
 });
+
+test("model readiness follows the served manifest and explains missing assets", async () => {
+	const { waitForModels } = await import("../scripts/model-readiness.mjs");
+	const page = {
+		url: () => "http://localhost:5173/",
+		request: {
+			get: async () => ({
+				ok: () => true,
+				json: async () => ({ models: { a: {}, b: {} } }),
+			}),
+		},
+		waitForTimeout: async () => {},
+		waitForFunction: async (_fn, args) => {
+			assert.deepEqual(args.ids, ["a", "b"]);
+		},
+		evaluate: async () => ({ models: 2, buildings: 5 }),
+	};
+	assert.equal((await waitForModels(page, 5)).models, 2);
+	page.waitForFunction = async () => {
+		throw new Error("timeout");
+	};
+	page.evaluate = async () => ["building_a"];
+	await assert.rejects(waitForModels(page, 5, 1), /missing models: b/);
+});

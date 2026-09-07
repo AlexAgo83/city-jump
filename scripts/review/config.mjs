@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 export const root = fileURLToPath(new URL("../../", import.meta.url));
 export const probes = [
 	"profile",
+	"distance",
 	"focus",
 	"rubble",
 	"wave",
@@ -20,6 +21,17 @@ const { values, positionals } = parseArgs({
 		"preview-url": { type: "string" },
 		headless: { type: "boolean", default: false },
 		help: { type: "boolean", default: false },
+		"compare-url": { type: "string" },
+		cases: {
+			type: "string",
+			default:
+				"day-street,day-district,day-overview,night-saved,moving,follow,x4,paused",
+		},
+		variant: { type: "string", default: "none" },
+		rounds: { type: "string", default: "3" },
+		ms: { type: "string", default: "5000" },
+		dpr: { type: "string", default: "1" },
+		wide: { type: "boolean", default: false },
 	},
 });
 export const options = values;
@@ -27,7 +39,9 @@ export const url = positionals[0] ?? "http://127.0.0.1:5173";
 export const previewUrl = values["preview-url"];
 if (positionals.length > 1)
 	throw new Error("Expected only one development-server URL");
-for (const address of [url, previewUrl].filter(Boolean)) {
+for (const address of [url, previewUrl, values["compare-url"]].filter(
+	Boolean,
+)) {
 	if (!["http:", "https:"].includes(new URL(address).protocol))
 		throw new Error("Expected an HTTP(S) server URL");
 }

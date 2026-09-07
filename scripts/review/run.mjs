@@ -18,10 +18,15 @@ import {
 
 if (options.help) {
 	console.log(`Usage: node scripts/review/run.mjs [dev-url] [options]
-  --probe interactions|profile|focus|rubble|wave|extra|soak|all
+  --probe interactions|profile|distance|focus|rubble|wave|extra|soak|all
   --preview-url URL  Include production startup measurements in extra (build first)
   --out DIRECTORY    New output directory; existing directories are refused
   --headless         Diagnostic/CI mode, not comparable to headed GPU measurements
+  --compare-url URL  Distance probe: baseline server (candidate is the positional URL)
+  --cases LIST       Distance probe: day-street,day-district,day-overview,night-saved,moving,follow,x4,paused
+  --variant NAME     Distance probe: none|traffic|boxes|trees|ground|lights|scale|msaa
+  --rounds N --ms N  Distance samples (defaults 3 rounds, 5000 ms)
+  --dpr N --wide     Distance render size (wide is 1920x1080)
 Default: interactions, headed Chromium, perf/cities/ma-ville.json.
 See docs/performance.md for workloads, prerequisites and interpretation.`);
 	process.exit(0);
@@ -55,6 +60,9 @@ const manifest = {
 	commit: git("rev-parse", "HEAD"),
 	worktree: git("status", "--short"),
 	sourceHash,
+	readinessHash: hash(
+		readFileSync(resolve(root, "scripts/model-readiness.mjs")),
+	),
 	fixture: { path: "perf/cities/ma-ville.json", sha256: hash(raw) },
 	platform: platform(),
 	arch: arch(),

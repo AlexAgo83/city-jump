@@ -1,3 +1,4 @@
+import { waitForModels } from "../model-readiness.mjs";
 // Preserved review workload; see docs/performance.md before comparing results.
 import {
 	fixturePath,
@@ -37,11 +38,7 @@ const init = async (page) => {
 };
 const open = async (page, address = url) => {
 	await page.goto(address);
-	await page.waitForFunction(
-		() =>
-			window.cityjump?.stats().models === 28 &&
-			window.cityjump.stats().buildings === 1287,
-	);
+	await waitForModels(page, 1287);
 };
 const uncap = async (page) => {
 	await page.locator("#toolbar-toggle").click();

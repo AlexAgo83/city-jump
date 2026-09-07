@@ -1,14 +1,14 @@
 ## item_189_restore_automatic_building_detail_with_a_manual_boxes_override - Restore automatic building detail with a manual boxes override
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:01
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: Buildings.setDistant is called only by the manual checkbox; the documented 1100 m automatic switch no longer exists.

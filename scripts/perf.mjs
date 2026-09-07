@@ -1,3 +1,4 @@
+import { waitForModels, actualRenderer } from "./model-readiness.mjs";
 // Measures how a city actually runs, and keeps the numbers so a change can be compared with the
 // run before it. Verification for the performance side of the acceptance criteria, which no unit
 // test can speak to.
@@ -11,7 +12,7 @@
 // Every run appends one line to perf/history.jsonl and prints the delta against the last run
 // with the same label.
 import { chromium } from "playwright";
-import { conditions, pauseGameplay, rendererOf, runGameplay } from "./measurement.mjs";
+import { conditions, pauseGameplay, runGameplay } from "./measurement.mjs";
 import { execSync } from "node:child_process";
 import { readFileSync, appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -89,23 +90,8 @@ if (shareHash) {
 // the wrong reason. They arrive over a few frames, so this waits for the count to stop climbing.
 // An empty city has to fail here and say so: it renders fast for the wrong reason, and a number
 // taken from it looks like a win.
-try {
-  await page.waitForFunction(
-    () => {
-      const { buildings, models } = window.cityjump.stats();
-      const settled = window.__perfBuildings === buildings;
-      window.__perfBuildings = buildings;
-      return settled && buildings > 0 && models > 0;
-    },
-    null,
-    { timeout: 30_000, polling: 1000 },
-  );
-} catch {
-  const { buildings, models } = await page.evaluate(() => window.cityjump.stats());
-  console.error(`Refusing to measure a city with ${buildings} buildings and ${models} models: nothing standing, nothing to measure.`);
-  await browser.close();
-  process.exit(1);
-}
+await waitForModels(page);
+const renderer = await actualRenderer(page);
 await page.waitForTimeout(2000);
 
 // The toolbar ships collapsed and its content is display:none, so every control inside it is
@@ -154,7 +140,7 @@ for (const framing of FRAMINGS) {
   await page.waitForTimeout(600);
   const camera = await page.evaluate(() => window.cityjump.cameraState());
   fps[framing.name] = await page.evaluate(() => window.cityjump.measureFps(3000));
-  framingConditions[framing.name] = conditions({ ...workload, renderer: rendererOf(onGpu), camera });
+  framingConditions[framing.name] = conditions({ ...workload, renderer: renderer, camera });
 }
 await browser.close();
 
@@ -164,7 +150,7 @@ const run = {
   commit,
   dirty,
   ...workload,
-  renderer: rendererOf(onGpu),
+  renderer: renderer,
   fps,
   conditions: framingConditions,
   rebuildMs,

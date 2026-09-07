@@ -1,14 +1,15 @@
 ## task_055_deliver_and_validate_the_distance_aware_performance_slices - Deliver and validate the distance-aware performance slices
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:19:46
+> Indicators reviewed: 2026-09-07 15:46:13
+> Owner: Codex
 
 # AI Context
 - Summary: Deliver the eight slices in dependency and priority order, keeping repeatable measurements and correctness proof for each retained or rejected optimization.
@@ -17,12 +18,12 @@
 - Skip when: reviewing without implementation authorization or measuring two GPU variants concurrently.
 
 # Context
-- Application baseline: 4d81541, reference city with 1287 buildings and 107 loaded models. Evidence: perf/reviews/fps-distance-2026-09-07.json. No performance implementation has started.
+- Application baseline: 4d81541, reference city with 1287 buildings and 107 loaded models. Historical evidence: perf/reviews/fps-distance-2026-09-07.json. Wave 1 repairs the harnesses; application optimizations follow its measured baseline.
 - Execution order: item_187, item_188, item_189, item_190, item_191, item_192, item_193, item_194. Dependency details and rejection criteria live in each slice.
 - Check all main-pass and shadow-pass visibility consumers together; do not infer world streaming or simulation throttling from a render-distance requirement.
 
 # Plan
-- [ ] 1. Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.
+- [x] 1. Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.
 - [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
 - [ ] 3. Wave 2 (High): traffic render-only distance policy, then automatic building detail. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
 - [ ] 4. Wave 3 (High): night-light experiment and policy-specific workforce cache reuse, independently measured against the current integrated baseline; preserve existing simulation timing and policy differences.
@@ -74,10 +75,13 @@
 - request-AC9 -> `item_194_evaluate_a_minimal_render_resolution_quality_option`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- Wave 1: `npm run ci` passed on 2026-09-07 (386 tests, architecture checks, deterministic scenarios, build and Logics validation). After final harness metadata edits, `node --test tests/perf-review.mjs`, targeted Biome lint and `git diff --check` passed.
 
 # Report
-- Not started.
+- Wave 1: shared manifest-based readiness replaces historical model-count assumptions in perf, ablate and all seven existing review probes. The new distance probe records interleaved comparisons, running simulation/traffic proof, frame tails, CPU, draw calls, active meshes and actual GPU/camera/buffer conditions.
+- `perf/reviews/task055-wave1-baseline/` completed 24 samples (eight scenarios, three rounds) against unchanged application source hash `7db1037c665b0f666ee306a3aabb0c131dace50b205e02dbf43338aab07736fa`. Later feature diagnostics must use the same protocol; these baseline numbers are not optimization gains.
+- `perf/reviews/task055-wave1-additional/` completed nine samples covering saved/day and street/overview night, with explicit viewport/toolbar/cap metadata and readiness helper hash. Both manifests report complete; wave-specific diagnostics remain part of subsequent delivery.
+- Remaining: traffic and automatic building detail, independent lighting/cache experiments, spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
 
 # Links
 - Request: `req_054_deliver_measured_distance_aware_city_performance`

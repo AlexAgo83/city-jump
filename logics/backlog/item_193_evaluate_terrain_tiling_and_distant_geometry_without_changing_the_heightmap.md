@@ -1,14 +1,14 @@
 ## item_193_evaluate_terrain_tiling_and_distant_geometry_without_changing_the_heightmap - Evaluate terrain tiling and distant geometry without changing the heightmap
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:01
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: The 5400 m heightfield is one dense render mesh. Heightmap picking and dirty row uploads already exist and must survive a rendering change.

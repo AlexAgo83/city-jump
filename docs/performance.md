@@ -574,3 +574,43 @@ frame rate at night.
   rewrite. Measure before doing it.
 - **`ground` is 240 ms of a full rebuild.** The edit path already rebuilds only the dirty region
   (~50 ms); the full number is a load cost.
+
+## Distance delivery measurements (task 055)
+
+Use `npm run perf:review -- --probe distance` for the current reference workload.
+Readiness comes from the served building manifest, not the obsolete count of 28;
+missing assets report their model IDs. The historical distance sections above describe
+past experiments: at the start of this delivery, boxes are manual and traffic has no
+distance pass. Each delivered wave below supersedes that baseline explicitly.
+
+The distance probe reloads the original fixture for every sample, disables automatic
+waves, clears settings, uses a collapsed toolbar and Max cap, and verifies simulation
+and traffic advancement. Defaults are three rounds, two-second warmup and five-second
+samples. Cases: `day-street,day-district,day-overview,night-saved,moving,follow,x4,paused`;
+`day-saved,night-street,night-overview` are also available. Actual clamped camera, render buffer,
+GPU backend, DPR, state and draw/mesh counts travel with each sample in `distance.json`.
+`run.json` retains source/script/fixture hashes and completion status.
+
+- `--compare-url http://127.0.0.1:5190` pairs a baseline checkout with the candidate URL;
+  record the baseline commit alongside the output. Keep both source trees fixed while
+  measuring. A/B order alternates each round and no GPU probes run concurrently.
+- `--variant traffic|boxes|trees|ground|lights|scale|msaa|msaa2` isolates one browser-only change.
+  Traffic here hides visuals while its simulation continues. `scale` uses 1x rendering;
+  `msaa` uses one pipeline sample and `msaa2` uses two. Reload discards every diagnostic mutation.
+- `--cases day-street,night-saved --rounds 3 --ms 5000` selects a bounded comparison.
+- `--wide --dpr 2` measures a 1920x1080 viewport at DPR 2; compare actual buffers, not
+  viewport labels. Longer `--ms 30000` samples reveal stalls.
+
+Retain a candidate when the target median or p95 frame time improves by at least 5%,
+all three paired differences have the same direction, and required control views do
+not regress by over 5%. Extend noisy samples before deciding. At refresh ceiling,
+use measured CPU/GPU cost rather than claiming an FPS gain. Visual or gameplay defects
+always reject the candidate. Report p99 too; five-second tails are diagnostic rather
+than stable latency guarantees. Feature-removal deltas overlap and are not predicted
+partial-culling gains. Load/full rebuild and complete edit latency are separate budgets.
+
+Wave 1 baseline evidence: `perf/reviews/task055-wave1-baseline/` (24 samples) and
+`perf/reviews/task055-wave1-additional/` (nine additional saved/day and street/overview
+night samples), both complete on headed Chromium 151 and Apple M3 Pro. Application
+source is unchanged. The latter includes explicit viewport, toolbar and cap metadata
+and the readiness helper hash. Feature-specific A/B diagnostics follow per wave.

@@ -1,14 +1,14 @@
 ## item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets - Batch static city geometry by spatial tiles with shared assets
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 10%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 15:20:01
+> Indicators reviewed: 2026-09-07 15:22:14
 
 # AI Context
 - Summary: Buildings, tree species and streetlight geometry force global meshes active. Thin-instance bounds span the city and cannot reject individual instances.
