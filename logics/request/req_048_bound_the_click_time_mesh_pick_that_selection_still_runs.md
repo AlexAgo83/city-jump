@@ -1,13 +1,13 @@
 ## req_048_bound_the_click_time_mesh_pick_that_selection_still_runs - Bound the click-time mesh pick that selection still runs
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 09:49:38
+> Indicators reviewed: 2026-09-07 10:25:08
 
 # AI Context
 - Summary: Selection still runs a whole-scene `scene.pick` on click, which costs about 20 ms per pick on the large city.

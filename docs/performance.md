@@ -354,8 +354,30 @@ Headed GPU, `npm run perf:review --probe interactions`:
 | running-still | 77.2 | 82.4 |
 | speed x1 / x4 | 77.8 / 72.8 | 100.5 / 93.2 |
 
-What is left: `zone-paint` and `bulldoze-clicks` still pay 19-21 ms per pick, from the click-time
-`scene.pick` in `drawTool.selectMesh`. That is req_048, not this chain.
+## The req_048 click-time picks (2026-09-07)
+
+What req_047 left behind: 19-21 ms per pick at click time, two picks a click. Grooming found the
+cause was not what the leftover note said. Babylon picks the whole scene on both halves of a
+click, to fill a `pickInfo` for `scene.onPointerObservable` -- and nothing in `src/` reads it.
+
+- The pointer-**down** pick is skipped, `scene.skipPointerDownPicking`.
+- The pointer-**up** pick is not. `skipPointerUpPicking` fails the interaction suite, and so does
+  a predicate that admits no mesh; a predicate admitting only the ground passes. Something reads
+  that ground hit on release. So the pick stays and the ground got cheap instead: `createGround`
+  gives the ground mesh an `intersects` that walks the heightmap grid, the same walk the drawing
+  tools use, returning the same point its 911,250 triangles did.
+- `drawTool.selectMesh` picks a clicked vehicle against each car's bounding sphere along the
+  picking ray, rather than ray-testing 166 car bodies' triangles.
+
+| probe | before | after |
+| ----- | -----: | ----: |
+| zone-paint, picks per run | 8 at 19.97 ms | 4 at 0.58 ms |
+| bulldoze-clicks, picks per run | 6 at 18.08 ms | 3 at 0.30 ms |
+| zone-paint fps | 78.6 | 86.7 |
+
+Half the picks are gone and the ones left cost a thirtieth of what they did. What remains in that
+0.3-0.6 ms is the rest of the scene the pointer-up pick still walks, which no longer includes the
+ground's triangles.
 
 ## What costs the frame rate
 

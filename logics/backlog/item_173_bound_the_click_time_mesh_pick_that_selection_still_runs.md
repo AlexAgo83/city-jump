@@ -1,13 +1,14 @@
 ## item_173_bound_the_click_time_mesh_pick_that_selection_still_runs - Bound the click-time mesh pick that selection still runs
 > From version: 0.5.0
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 10:25:09
 
 # AI Context
 - Summary: Stop the unbounded scene picks that run on every pointer event and on a view-mode click.
@@ -61,8 +62,8 @@
 # Links
 - Product brief(s): (none yet)
 - Architecture decision(s): (none yet)
-- Request: `logics/request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md`
-- Primary task(s): (none yet)
+- Request: `req_048_bound_the_click_time_mesh_pick_that_selection_still_runs`
+- Primary task(s): `task_050_bound_the_click_time_mesh_pick_that_selection_still_runs`
 
 # Priority
 - Priority: Medium
@@ -73,6 +74,7 @@
 - Hybrid rationale: Derived from request `req_048_bound_the_click_time_mesh_pick_that_selection_still_runs` and kept bounded to one coherent delivery slice.
 - Source file: `logics/request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md`.
 - Generated locally by logics-manager.
+- Task `task_050_bound_the_click_time_mesh_pick_that_selection_still_runs` was finished via `logics-manager flow finish task` on 2026-09-07.
 
 # Tasks
 - `task_050_bound_the_click_time_mesh_pick_that_selection_still_runs`
