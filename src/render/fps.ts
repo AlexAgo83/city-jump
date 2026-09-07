@@ -2,6 +2,13 @@ export interface FpsMeter {
   readonly active: boolean;
   readonly display: number;
   watch(): () => void;
+  /**
+   * Frames over the whole requested interval, not the last display window. `display` only ever
+   * describes the most recent `updateEveryMs`, so a script asking for three seconds of frames
+   * used to be handed the last half second of them, and an early stall never showed up in the
+   * number. Returns a stop function that closes its own interval and reports its own rate.
+   */
+  measure(now: number): (now: number) => number;
   frame(now: number): boolean;
 }
 
@@ -19,6 +26,17 @@ export function createFpsMeter(updateEveryMs = 500): FpsMeter {
   let frames = 0;
   let windowStart: number | null = null;
   let display = 0;
+  const measurements = new Set<{ start: number; frames: number }>();
+  const watch = (): (() => void) => {
+    watchers++;
+    return () => {
+      watchers = Math.max(0, watchers - 1);
+      if (watchers > 0) return;
+      frames = 0;
+      windowStart = null;
+      display = 0;
+    };
+  };
   return {
     get active() {
       return watchers > 0;
@@ -26,18 +44,21 @@ export function createFpsMeter(updateEveryMs = 500): FpsMeter {
     get display() {
       return display;
     },
-    watch() {
-      watchers++;
-      return () => {
-        watchers = Math.max(0, watchers - 1);
-        if (watchers > 0) return;
-        frames = 0;
-        windowStart = null;
-        display = 0;
+    watch,
+    measure(now) {
+      const stopWatching = watch();
+      const measurement = { start: now, frames: 0 };
+      measurements.add(measurement);
+      return (until) => {
+        if (!measurements.delete(measurement)) return 0;
+        stopWatching();
+        const elapsed = until - measurement.start;
+        return elapsed > 0 ? Math.round((measurement.frames * 1000) / elapsed) : 0;
       };
     },
     frame(now) {
       if (watchers === 0) return false;
+      for (const measurement of measurements) measurement.frames++;
       if (windowStart === null) {
         windowStart = now;
         return false;

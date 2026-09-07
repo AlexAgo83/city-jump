@@ -481,15 +481,16 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     stopFpsHud = null;
     showFps(null);
   };
-  const fpsMeasurements = new Map<number, { stop(): void; resolve(fps: number): void }>();
+  const fpsMeasurements = new Map<number, { stop(now: number): number; resolve(fps: number): void }>();
+  // Counts the whole requested interval rather than reading the rolling HUD meter, which only
+  // ever describes its last 500 ms: a stall at the start of the window used to vanish from the
+  // number a measurement script was about to record.
   const measureFps = (ms: number): Promise<number> => {
-    const stop = fps.watch();
+    const stop = fps.measure(performance.now());
     return new Promise((resolve) => {
       const timer = window.setTimeout(() => {
         fpsMeasurements.delete(timer);
-        const measured = fps.display;
-        stop();
-        resolve(measured);
+        resolve(stop(performance.now()));
       }, ms);
       fpsMeasurements.set(timer, { stop, resolve });
     });
@@ -1287,8 +1288,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       window.clearTimeout(buildingRebuildTimer);
       for (const [timer, measurement] of fpsMeasurements) {
         window.clearTimeout(timer);
-        measurement.stop();
-        measurement.resolve(fps.display);
+        measurement.resolve(measurement.stop(performance.now()));
       }
       fpsMeasurements.clear();
       scheduleAutosave.dispose();
