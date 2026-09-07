@@ -14,7 +14,8 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import { Matrix, Vector3, Quaternion, Color3 } from "@babylonjs/core/Maths/math";
 
-import type { RoadGraph } from "../sim/graph";
+import type { Heightmap } from "../sim/heightmap";
+import { appendTerrainOverlay, terrainOverlayOutline } from "./terrainOverlay";
 import { GRID, PARCEL_SIZES, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { BUILDING_KIND_COLOR, type BuildingKind } from "../sim/buildingKinds";
 import type { BuildingStatus } from "../sim/buildingLifecycle";
@@ -239,7 +240,8 @@ interface Model {
  * ponytail: module-size stays while GLB loading, fallback boxes, thin instances and decor share
  * asset caches and one dirty renderer; split when one path gets a separate lifecycle.
  */
-export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, shadows: ShadowGenerator, heightAt: (x: number, z: number) => number) {
+export async function createBuildingRenderer(scene: Scene, ground: Heightmap, shadows: ShadowGenerator) {
+  const heightAt = (x: number, z: number) => ground.heightAt(x, z);
   const manifest = await loadManifest();
   const available: Model[] = [];
   let glassReflectionTexture: RawCubeTexture | null = null;
@@ -433,9 +435,8 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
       ? MeshBuilder.CreateLineSystem(
           "buildable-grid",
           {
-            lines: cells.map(({ corners }) =>
-              [...corners, corners[0]].map((p) => new Vector3(p.x, p.y + 0.12, p.z)),
-            ),
+            lines: cells.flatMap(({ corners }) => terrainOverlayOutline(ground, corners)
+              .map((line) => line.map((p) => new Vector3(p.x, p.y + 0.20, p.z)))),
           },
           scene,
         )
@@ -452,7 +453,7 @@ export async function createBuildingRenderer(scene: Scene, _graph: RoadGraph, sh
     // shows which grid squares are taken and which are still open, instead of leaving the grid a
     // uniform outline that gives no hint why a building isn't sitting in some of its cells.
     taken?.dispose();
-    taken = lastParcels.length ? takenCellsMesh(scene, lastParcels) : null;
+    taken = lastParcels.length ? takenCellsMesh(scene, lastParcels, ground) : null;
     if (taken) {
       taken.material = takenMaterial;
       taken.isPickable = false;
@@ -936,20 +937,17 @@ function buildingGroundPadMesh(scene: Scene): Mesh {
   return mesh;
 }
 
-/** One quad per taken cell, merged into a single mesh -- a highlight, not a hundred draw calls. */
-function takenCellsMesh(scene: Scene, parcels: readonly BuildingParcel[]): Mesh {
+/** Taken cells follow the terrain, merged into one highlight mesh. */
+function takenCellsMesh(scene: Scene, parcels: readonly BuildingParcel[], ground: Heightmap): Mesh {
   const positions: number[] = [];
   const indices: number[] = [];
   const colors: number[] = [];
   for (const parcel of parcels) {
     const [r, g, b] = BUILDING_KIND_COLOR[parcel.kind];
     for (const cell of parcel.cells) {
-      const base = positions.length / 3;
-      for (const corner of cell.corners) {
-        positions.push(corner.x, corner.y + 0.1, corner.z);
-        colors.push(r, g, b, 1);
-      }
-      indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      const start = positions.length / 3;
+      appendTerrainOverlay(ground, cell.corners, positions, indices, 0.14);
+      for (let i = start; i < positions.length / 3; i++) colors.push(r, g, b, 1);
     }
   }
   const mesh = new Mesh("buildable-grid-taken", scene);

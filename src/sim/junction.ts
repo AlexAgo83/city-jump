@@ -1,5 +1,5 @@
 import type { RoadGraph, NodeId, SegmentId } from "./graph";
-import { roadType } from "./roadTypes";
+import { roadType, SIDEWALK_WIDTH } from "./roadTypes";
 import { angleBetween, type Vec3, v3, normalizeXZ, perpXZ, scale } from "./vec";
 
 /**
@@ -133,7 +133,8 @@ export function junctionGeometry(graph: RoadGraph, nodeId: NodeId): JunctionGeom
     if (ring0 > 0) {
       // A roundabout may eat nearly all of a short road. Holding it to the ordinary trim limit
       // would leave the middle of that road drawn across the ring instead.
-      trim = Math.min(ring0, arm.seg.length * 0.9);
+      // Leave room outside the ring for the rounded mouth, even when the approach bends.
+      trim = Math.min(ring0 + SIDEWALK_WIDTH, arm.seg.length * 0.9);
       const distance = arm.atStart ? trim : arm.seg.length - trim;
       const { position } = graph.pointAt(arm.segId, distance);
       const n = normalizeXZ(perpXZ(arm.outward));

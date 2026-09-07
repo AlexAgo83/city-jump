@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { RoadGraph, type NodeId } from "./graph";
 import { junctionGeometry, allJunctions, segmentTrims, junctionRadius, roundaboutRadius } from "./junction";
 import { v3, type Vec3 } from "./vec";
-import { roadType } from "./roadTypes";
+import { roadType, SIDEWALK_WIDTH } from "./roadTypes";
 
 /** Spokes leaving a hub at the given bearings, in degrees. */
 function hub(bearings: number[], type = "street", length = 200): { g: RoadGraph; node: NodeId } {
@@ -164,7 +164,7 @@ describe("roundabouts", () => {
     const geometry = junctionGeometry(g, centre);
     const radius = roundaboutRadius(g, centre);
     expect(geometry.arms).toHaveLength(arms.length);
-    for (const arm of geometry.arms) expect(arm.trim).toBeCloseTo(radius, 5);
+    for (const arm of geometry.arms) expect(arm.trim).toBeCloseTo(radius + SIDEWALK_WIDTH, 5);
   });
 
   it("sizes the ring off the widest road meeting it", () => {

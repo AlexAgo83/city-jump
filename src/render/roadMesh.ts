@@ -53,8 +53,6 @@ import {
 
 /** A highway's guardrail, standing where a sidewalk would otherwise go. */
 const GUARDRAIL_HEIGHT = 0.85;
-const ROAD_THICKNESS = 0.32;
-const SIDEWALK_THICKNESS = 0.42;
 
 /** Zebra stripes: painted on the carriageway just outside the junction each arm runs into. */
 const STRIPE_WIDTH = 0.9;
@@ -264,7 +262,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
         right.push(new Vector3(position.x - n.x * half, position.y + ROAD_LIFT, position.z - n.z * half));
       }
 
-      const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right, ROAD_THICKNESS);
+      const ribbon = roadStripMesh(scene, `road_${seg.id}`, left, right);
       const baseId = baseRoadTypeId(seg.type);
       ribbon.material = type.pedestrian ? pavingMaterial : baseId === "dirt" ? dirtMaterial : baseId === "military" ? militaryMaterial : type.industrial ? industrialMaterial : material;
       ribbon.isPickable = false;
@@ -312,7 +310,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
         alignSidewalkEnds(junctions, seg, outerLeft, outerRight);
         // Both footways of a road in one mesh: same paving, same lifetime, and one draw instead
         // of two on every road in the city.
-        const walk = roadStripMesh(scene, `sidewalk_${seg.id}`, outerLeft, innerLeft, SIDEWALK_THICKNESS, [innerRight, outerRight]);
+        const walk = roadStripMesh(scene, `sidewalk_${seg.id}`, outerLeft, innerLeft, [innerRight, outerRight]);
         walk.material = pavingMaterial;
         walk.isPickable = false;
         meshes.push(walk);
@@ -347,7 +345,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
     for (const junction of junctions.values()) {
       if (dirty && !junctionTouchesBounds(junction, dirty)) continue;
       if (junction.roundabout > 0) {
-        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane, heightAt));
+        meshes.push(...roundaboutMeshes(scene, graph, junction, material, curb, pavingMaterial, lane));
         continue;
       }
       const mesh = junctionMesh(scene, junction);
@@ -387,11 +385,6 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
   };
 }
 
-/**
- * The ring itself: a flat annulus from the kerb of the island out to where the arms were trimmed.
- * Carriageway width is the widest road meeting the node, which is the same reference the radius
- * takes. ponytail: a lathe over two points, not a swept road built from the graph.
- */
 /**
  * One zebra across an arm, laid just beyond where the junction surface ends. Stripes run along
  * the road, so they read as a crossing rather than as lane markings.
@@ -466,7 +459,6 @@ function roundaboutMeshes(
   kerb: Color3,
   paving: StandardMaterial,
   laneColor: Color3,
-  heightAt: (x: number, z: number) => number,
 ): Mesh[] {
   const centre = graph.node(junction.node).pos;
   const outer = junction.roundabout;
@@ -483,17 +475,8 @@ function roundaboutMeshes(
   // between one arm and the next, means the ring always meets every road exactly where it is.
   const elevationAt = ringElevation(junction.arms, centre.y);
 
-  const ringPoints = (radius: number): Vector3[] =>
-    Array.from({ length: 41 }, (_, i) => {
-      const angle = (i / 40) * Math.PI * 2;
-      // A little more clearance than an ordinary road: the ring's disc is much wider than any
-      // single road is, so it has more terrain to clear underneath it, and a couple of
-      // centimetres extra here is cheap insurance against whatever the flatten still leaves
-      // imperfect.
-      const y = elevationAt(angle) + ROAD_LIFT + 0.15;
-      return new Vector3(centre.x + Math.cos(angle) * radius, y, centre.z + Math.sin(angle) * radius);
-    });
-  const ring = roadStripMesh(scene, `roundabout_${junction.node}`, ringPoints(inner), ringPoints(outer), ROAD_THICKNESS);
+  const ringPoints = (radius: number) => roundaboutArc(centre, radius, 0, Math.PI * 2, elevationAt, ROAD_LIFT);
+  const ring = roadStripMesh(scene, `roundabout_${junction.node}`, ringPoints(inner), ringPoints(outer));
   ring.material = onFoot ? paving : surface;
   ring.isPickable = false;
 
@@ -507,57 +490,103 @@ function roundaboutMeshes(
 
   return [
     ring,
-    ...roundaboutArmPatches(scene, graph, junction, outer, surface, paving, heightAt),
+    ...roundaboutArmPatches(scene, graph, junction, surface, paving, elevationAt),
     // A footway ring outside it, but broken where the arms come in: a full lathe would lay a band
     // straight across every road meeting the roundabout. A path is all footway already.
     ...(onFoot ? [] : footwayArcs(scene, graph, junction, centre, outer, elevationAt, paving)),
-    styledLine(scene, `roundabout_kerb_out_${junction.node}`, circle(outer), kerb),
     styledLine(scene, `roundabout_kerb_in_${junction.node}`, circle(inner), kerb),
     // A second lane's own divider, the same colour as a straight road's centre line.
     ...(lanes === 2 && !onFoot ? [styledLine(scene, `roundabout_lane_${junction.node}`, circle((inner + outer) / 2), laneColor)] : []),
   ];
 }
 
+/** Interpolate the rendered 40-sided ring, including each crossed vertex: analytic circles leave slivers. */
+function roundaboutArc(centre: Vec3, radius: number, from: number, to: number, elevationAt: (angle: number) => number, lift: number): Vector3[] {
+  const step = Math.PI * 2 / 40;
+  const angles = [from];
+  for (let i = Math.floor(from / step) + 1; i * step < to - 1e-8; i++) angles.push(i * step);
+  angles.push(to);
+  const point = (angle: number) => new Vector3(centre.x + Math.cos(angle) * radius, elevationAt(angle) + lift, centre.z + Math.sin(angle) * radius);
+  return angles.map((angle) => {
+    const lo = Math.floor(angle / step) * step;
+    return Vector3.Lerp(point(lo), point(lo + step), (angle - lo) / step);
+  });
+}
+
+function roundaboutMouth(graph: RoadGraph, junction: JunctionGeometry, arm: JunctionArm) {
+  const segment = graph.segment(arm.segment);
+  const atStart = segment.a === junction.node;
+  const { position, tangent } = graph.pointAt(segment.id, atStart ? arm.trim : segment.length - arm.trim);
+  const outward = new Vector3(tangent.x, 0, tangent.z).scale(atStart ? 1 : -1).normalize();
+  const normal = new Vector3(-outward.z, 0, outward.x);
+  const centre = graph.node(junction.node).pos;
+  const angle = Math.atan2(position.z - centre.z, position.x - centre.x);
+  const type = roadType(segment.type);
+  const half = type.width / 2;
+  const spread = Math.asin(Math.min(0.95, (half + (type.highway || type.pedestrian ? 0 : SIDEWALK_WIDTH)) / junction.roundabout));
+  return { position, outward, normal, angle, spread, half, type };
+}
+
+/** Quadratic corner tangent to the approach and to the ring; Y blends between the two actual surfaces. */
+function roundaboutCorner(start: Vector3, end: Vector3, inward: Vector3, centre: Vec3): Vector3[] {
+  const step = Math.PI * 2 / 40;
+  const angle = (Math.floor(Math.atan2(end.z - centre.z, end.x - centre.x) / step) + 0.5) * step;
+  const tangent = new Vector3(-Math.sin(angle), 0, Math.cos(angle));
+  const cross = inward.x * tangent.z - inward.z * tangent.x;
+  const delta = end.subtract(start);
+  const distance = Math.abs(cross) > 1e-6 ? (delta.x * tangent.z - delta.z * tangent.x) / cross : 0;
+  const control = start.add(inward.scale(Math.max(0, Math.min(distance, delta.length()))));
+  return Array.from({ length: 9 }, (_, i) => {
+    const t = i / 8, u = 1 - t;
+    const p = start.scale(u * u).add(control.scale(2 * u * t)).add(end.scale(t * t));
+    p.y = start.y + (end.y - start.y) * t;
+    return p;
+  });
+}
+
 function roundaboutArmPatches(
   scene: Scene,
   graph: RoadGraph,
   junction: JunctionGeometry,
-  outer: number,
   surface: StandardMaterial,
   paving: StandardMaterial,
-  heightAt: (x: number, z: number) => number,
+  elevationAt: (angle: number) => number,
 ): Mesh[] {
   const centre = graph.node(junction.node).pos;
   return junction.arms.flatMap((arm) => {
-    const type = roadType(graph.segment(arm.segment).type);
-    if (type.pedestrian) return [];
-    const n = normalizeXZ(perpXZ(arm.outward));
-    const half = type.width / 2;
-    const end = (side: number) => {
-      const x = centre.x + arm.outward.x * outer + n.x * half * side;
-      const z = centre.z + arm.outward.z * outer + n.z * half * side;
-      return new Vector3(x, heightAt(x, z) + ROAD_LIFT + 0.16, z);
-    };
-    const asphalt = roadStripMesh(
-      scene,
-      `roundabout_gap_${arm.segment}_${junction.node}`,
-      [new Vector3(arm.cornerHigh.x, arm.cornerHigh.y + ROAD_LIFT + 0.18, arm.cornerHigh.z), end(1)],
-      [new Vector3(arm.cornerLow.x, arm.cornerLow.y + ROAD_LIFT + 0.18, arm.cornerLow.z), end(-1)],
-      ROAD_THICKNESS,
-    );
-    asphalt.material = surface;
+    const { position, outward, normal, angle, spread, half, type } = roundaboutMouth(graph, junction, arm);
+    const arc = roundaboutArc(centre, junction.roundabout, angle - spread, angle + spread, elevationAt, ROAD_LIFT);
+    const mouth = (side: number, width: number, lift: number) => new Vector3(position.x + normal.x * side * width, position.y + lift, position.z + normal.z * side * width);
+    const low = roundaboutCorner(mouth(-1, half, ROAD_LIFT), arc[0]!, outward.scale(-1), centre);
+    const high = roundaboutCorner(mouth(1, half, ROAD_LIFT), arc.at(-1)!, outward.scale(-1), centre);
+    // Blend the arc into the mouth without changing either end tangent and folding the grid.
+    const rows = low.map((_, row) => arc.map((p, i) => {
+      let a = Math.atan2(p.z - centre.z, p.x - centre.x) - angle;
+      a = Math.atan2(Math.sin(a), Math.cos(a));
+      const u = i === 0 ? 0 : i === arc.length - 1 ? 1 : Math.max(0, Math.min(1, (a + spread) / (2 * spread)));
+      const t = row / 8;
+      return Vector3.Lerp(low[row]!, high[row]!, u).add(p.subtract(Vector3.Lerp(arc[0]!, arc.at(-1)!, u)).scale(t * t * (3 - 2 * t)));
+    }));
+    const strips = rows.slice(1).map((row, i): [Vector3[], Vector3[]] => [row, rows[i]!]);
+    const [first, ...rest] = strips;
+    const asphalt = roadStripMesh(scene, `roundabout_gap_${arm.segment}_${junction.node}`, first![0], first![1], ...rest);
+    asphalt.material = type.pedestrian ? paving : surface;
     asphalt.isPickable = false;
-
-    const island = roadStripMesh(
-      scene,
-      `roundabout_splitter_${arm.segment}_${junction.node}`,
-      [end(-0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
-      [end(0.22), new Vector3(centre.x + arm.outward.x * (outer + 5), centre.y + SIDEWALK_LIFT, centre.z + arm.outward.z * (outer + 5))],
-      SIDEWALK_THICKNESS,
-    );
-    island.material = paving;
-    island.isPickable = false;
-    return [asphalt, island];
+    const meshes = [asphalt];
+    if (!type.highway && !type.pedestrian) {
+      for (const [side, edge] of [[-1, low], [1, high]] as const) {
+        const joinAngle = angle + side * spread;
+        const end = roundaboutArc(centre, junction.roundabout + SIDEWALK_WIDTH, joinAngle, joinAngle, elevationAt, SIDEWALK_LIFT)[0]!;
+        const outside = roundaboutCorner(mouth(side, half + SIDEWALK_WIDTH, SIDEWALK_LIFT), end, outward.scale(-1), centre);
+        const inside = edge.map((p) => p.add(new Vector3(0, SIDEWALK_LIFT - ROAD_LIFT, 0)));
+        const walk = roadStripMesh(scene, `roundabout_corner_${arm.segment}_${junction.node}_${side}`, inside, outside);
+        walk.material = paving;
+        walk.isPickable = false;
+        meshes.push(walk);
+      }
+    }
+    // The short connector has no room for an island before the zebra crossing; omit the old spike.
+    return meshes;
   });
 }
 
@@ -701,7 +730,7 @@ function junctionFootway(
   }
   if (strips.length === 0) return [];
   const [first, ...rest] = strips;
-  const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}`, first![0], first![1], SIDEWALK_THICKNESS, ...rest);
+  const patch = roadStripMesh(scene, `sidewalk_corner_${junction.node}`, first![0], first![1], ...rest);
   patch.material = paving;
   patch.isPickable = false;
   return [patch];
@@ -894,15 +923,15 @@ function footwayArcs(
   scene: Scene,
   graph: RoadGraph,
   junction: JunctionGeometry,
-  centre: { x: number; y: number; z: number },
+  centre: Vec3,
   outer: number,
   elevationAt: (angle: number) => number,
   paving: StandardMaterial,
 ): Mesh[] {
   const blocked = junction.arms
     .map((arm) => {
-      const width = roadType(graph.segment(arm.segment).type).width / 2 + SIDEWALK_WIDTH;
-      return { angle: arm.angle, spread: Math.asin(Math.min(0.99, width / outer)) };
+      const { angle, spread } = roundaboutMouth(graph, junction, arm);
+      return { angle, spread };
     })
     .sort((l, r) => l.angle - r.angle);
   if (blocked.length === 0) return [];
@@ -911,26 +940,16 @@ function footwayArcs(
   for (const [i, arm] of blocked.entries()) {
     const next = blocked[(i + 1) % blocked.length]!;
     const from = arm.angle + arm.spread;
-    let to = next.angle - next.spread;
-    while (to < from) to += Math.PI * 2;
+    const to = next.angle - next.spread + (i === blocked.length - 1 ? Math.PI * 2 : 0);
     if (to - from < 0.05) continue; // arms nearly touching: no room for a walkway between them
 
-    const steps = Math.max(2, Math.ceil((to - from) / 0.12));
-    const near: Vector3[] = [];
-    const far: Vector3[] = [];
-    for (let s = 0; s <= steps; s++) {
-      const angle = from + ((to - from) * s) / steps;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const y = elevationAt(angle) + SIDEWALK_LIFT;
-      near.push(new Vector3(centre.x + cos * outer, y, centre.z + sin * outer));
-      far.push(new Vector3(centre.x + cos * (outer + SIDEWALK_WIDTH), y, centre.z + sin * (outer + SIDEWALK_WIDTH)));
-    }
+    const near = roundaboutArc(centre, outer, from, to, elevationAt, SIDEWALK_LIFT);
+    const far = roundaboutArc(centre, outer + SIDEWALK_WIDTH, from, to, elevationAt, SIDEWALK_LIFT);
     strips.push([far, near]);
   }
   if (strips.length === 0) return [];
   const [first, ...rest] = strips;
-  const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}`, first![0], first![1], SIDEWALK_THICKNESS, ...rest);
+  const walk = roadStripMesh(scene, `roundabout_walk_${junction.node}`, first![0], first![1], ...rest);
   walk.material = paving;
   walk.isPickable = false;
   return [walk];
@@ -1049,7 +1068,7 @@ function linesIntersect(a: Vec3, b: Vec3, c: Vec3, d: Vec3): boolean {
 }
 
 function segmentIdFromMeshName(name: string): number | null {
-  const match = /^(?:road|curb|guardrail_[lr]|sidewalk|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:pier|pylon|cable)|roundabout_gap|roundabout_splitter)_(\d+)/.exec(name);
+  const match = /^(?:road|curb|guardrail_[lr]|sidewalk|lane|traffic_lane|traffic_walk|traffic_lane_change|tunnel_trace|tunnel|bridge_(?:pier|pylon|cable)|roundabout_gap|roundabout_splitter|roundabout_corner)_(\d+)/.exec(name);
   return match ? Number(match[1]) : null;
 }
 
@@ -1261,36 +1280,26 @@ export function portalOutline(center: { x: number; z: number }, tangent: { x: nu
   return tunnelSection(width).map((p) => new Vector3(center.x + n.x * p.x, y + p.y, center.z + n.z * p.x));
 }
 
-function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[], thickness = 0, ...more: [Vector3[], Vector3[]][]): Mesh {
+/** Surface only: terrain clearance is handled by earthworks, without extruded pavement sides. */
+function roadStripMesh(scene: Scene, name: string, left: Vector3[], right: Vector3[], ...more: [Vector3[], Vector3[]][]): Mesh {
   const positions: number[] = [];
   const indices: number[] = [];
   for (const [l, r] of [[left, right] as [Vector3[], Vector3[]], ...more]) {
     const base = positions.length / 3;
     for (let i = 0; i < l.length; i++) {
       positions.push(l[i]!.x, l[i]!.y, l[i]!.z, r[i]!.x, r[i]!.y, r[i]!.z);
-      if (thickness > 0) positions.push(l[i]!.x, l[i]!.y - thickness, l[i]!.z, r[i]!.x, r[i]!.y - thickness, r[i]!.z);
     }
-    const stride = thickness > 0 ? 4 : 2;
     for (let i = 0; i < l.length - 1; i++) {
-      const a = base + i * stride;
-      const b = a + stride;
+      const a = base + i * 2;
+      const b = a + 2;
       indices.push(a, a + 1, b, a + 1, b + 1, b);
-      if (thickness <= 0) continue;
-      indices.push(a, b, a + 2, b, b + 2, a + 2);
-      indices.push(a + 1, a + 3, b + 1, a + 3, b + 3, b + 1);
     }
   }
   const mesh = new MeshClass(name, scene);
   const data = new VertexData();
   data.positions = positions;
   data.indices = indices;
-  if (thickness > 0) {
-    const normals: number[] = [];
-    VertexData.ComputeNormals(positions, indices, normals);
-    data.normals = normals;
-  } else {
-    data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
-  }
+  data.normals = Array.from({ length: positions.length / 3 }, () => [0, 1, 0]).flat();
   data.applyToMesh(mesh);
   return mesh;
 }

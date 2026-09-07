@@ -53,6 +53,7 @@
 | [prod_034_a_wave_the_player_sets_the_terms_of](product/prod_034_a_wave_the_player_sets_the_terms_of.md) | A wave the player sets the terms of | Settled |  |  | product/prod_034_a_wave_the_player_sets_the_terms_of.md |
 | [prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed](product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md) | An island that hands the player a road, and a bridge that knows when it has landed | Settled |  |  | product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md |
 | [prod_036_a_varied_residential_and_commercial_skyline](product/prod_036_a_varied_residential_and_commercial_skyline.md) | A varied residential and commercial skyline | Settled |  |  | product/prod_036_a_varied_residential_and_commercial_skyline.md |
+| [prod_037_continuous_roads_and_legible_terrain_zoning](product/prod_037_continuous_roads_and_legible_terrain_zoning.md) | Continuous roads and legible terrain zoning | Settled |  |  | product/prod_037_continuous_roads_and_legible_terrain_zoning.md |
 
 ## Roadmaps
 
@@ -116,6 +117,7 @@
 | [req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits](request/req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits.md) | Cut the per frame cost the large city review measured in gameplay and edits | Done |  |  | request/req_047_cut_the_per_frame_cost_the_large_city_review_measured_in_gameplay_and_edits.md |
 | [req_048_bound_the_click_time_mesh_pick_that_selection_still_runs](request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done |  |  | request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [req_049_residential_and_commercial_variety_with_a_mixed_skyline](request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md) | Residential and commercial variety with a mixed skyline | Done |  |  | request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md |
+| [req_050_keep_roads_and_zone_overlays_clear_of_terrain](request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md) | Keep roads and zone overlays clear of terrain | Done |  |  | request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md |
 
 ## Backlog
 
@@ -295,6 +297,7 @@
 | [item_172_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence](backlog/item_172_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence.md) | Bound autosave latency so accelerated play cannot starve persistence | Done |  | 100% | backlog/item_172_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence.md |
 | [item_173_bound_the_click_time_mesh_pick_that_selection_still_runs](backlog/item_173_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done |  | 100% | backlog/item_173_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [item_174_author_and_integrate_residential_commercial_variants_and_four_towers](backlog/item_174_author_and_integrate_residential_commercial_variants_and_four_towers.md) | Author and integrate residential commercial variants and four towers | Done | Codex | 100% | backlog/item_174_author_and_integrate_residential_commercial_variants_and_four_towers.md |
+| [item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground](backlog/item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground.md) | Correct road terrain support and drape zoning over final ground | Done |  | 100% | backlog/item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground.md |
 
 ## Tasks
 
@@ -351,6 +354,7 @@
 | [task_049_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence](tasks/task_049_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence.md) | Bound autosave latency so accelerated play cannot starve persistence | Done | claude | 100% | tasks/task_049_bound_autosave_latency_so_accelerated_play_cannot_starve_persistence.md |
 | [task_050_bound_the_click_time_mesh_pick_that_selection_still_runs](tasks/task_050_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done | claude | 100% | tasks/task_050_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [task_051_deliver_residential_commercial_variety_and_skyline](tasks/task_051_deliver_residential_commercial_variety_and_skyline.md) | Deliver residential commercial variety and skyline | Done | Codex | 100% | tasks/task_051_deliver_residential_commercial_variety_and_skyline.md |
+| [task_052_fix_terrain_crossing_roads_and_zones](tasks/task_052_fix_terrain_crossing_roads_and_zones.md) | Fix terrain crossing roads and zones | Done | Codex | 100% | tasks/task_052_fix_terrain_crossing_roads_and_zones.md |
 
 ## Runbooks
 

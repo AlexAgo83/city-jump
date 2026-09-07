@@ -5,6 +5,8 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 import type { Scene } from "@babylonjs/core/scene";
 
+import type { Heightmap } from "../sim/heightmap";
+import { appendTerrainOverlay } from "./terrainOverlay";
 import type { BuildableCell } from "../sim/slots";
 import type { ZoneKind, Zones } from "../sim/zones";
 import type { BuildingKind } from "../sim/buildingKinds";
@@ -34,7 +36,7 @@ const FREE_LOT_ALPHA = 0.45;
  * Lifting every kind the same amount keeps them apart from each other and away from the ground.
  */
 const LIFT = 0.1;
-export function createZoneRenderer(scene: Scene) {
+export function createZoneRenderer(scene: Scene, ground: Heightmap) {
   const materials = new Map<string, StandardMaterial>();
 
   let meshes: Mesh[] = [];
@@ -73,11 +75,7 @@ export function createZoneRenderer(scene: Scene) {
       const taken = occupied?.has(cellKey(cell)) === true;
       const key = `${kind}:${taken ? "taken" : "free"}`;
       const bucket = buckets.get(key) ?? { positions: [], indices: [] };
-      const base = bucket.positions.length / 3;
-      for (const corner of cell.corners) {
-        bucket.positions.push(corner.x, corner.y + 0.16, corner.z);
-      }
-      bucket.indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      appendTerrainOverlay(ground, cell.corners, bucket.positions, bucket.indices, 0.16);
       buckets.set(key, bucket);
     }
     for (const [key, bucket] of buckets) {

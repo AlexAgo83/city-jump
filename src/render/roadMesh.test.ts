@@ -3,6 +3,7 @@ import { NullEngine } from "@babylonjs/core/Engines/nullEngine";
 import { Vector3 } from "@babylonjs/core/Maths/math";
 import { Scene } from "@babylonjs/core/scene";
 
+import { ROAD_LIFT, SIDEWALK_LIFT } from "../sim/roadTypes";
 import { RoadGraph } from "../sim/graph";
 import { v3 } from "../sim/vec";
 import { createRoadRenderer, portalOutline, segmentMeshTouchesBounds, sidewalkOuterCorner, tunnelSection, tunnelStripIndices } from "./roadMesh";
@@ -102,7 +103,7 @@ describe("road mesh geometry", () => {
     engine.dispose();
   });
 
-  it("gives road surfaces vertical thickness and sinks sidewalks into the ground", () => {
+  it("keeps roads and sidewalks as surfaces without extruded sides", () => {
     const graph = new RoadGraph();
     const a = graph.addNode(0, 0);
     const b = graph.addNode(160, 0);
@@ -115,9 +116,72 @@ describe("road mesh geometry", () => {
     const ys = scene.getMeshByName(`road_${id}`)!.getVerticesData("position")!.filter((_, i) => i % 3 === 1);
     const sidewalkYs = scene.getMeshByName(`sidewalk_${id}`)!.getVerticesData("position")!.filter((_, i) => i % 3 === 1);
 
-    expect(Math.min(...ys)).toBeLessThan(Math.max(...ys) - 0.25);
-    expect(Math.min(...sidewalkYs)).toBeLessThan(0);
+    expect(ys.length).toBeGreaterThan(0);
+    expect(sidewalkYs.length).toBeGreaterThan(0);
+    for (const y of ys) expect(y).toBeCloseTo(ROAD_LIFT);
+    for (const y of sidewalkYs) expect(y).toBeCloseTo(SIDEWALK_LIFT);
     scene.dispose();
     engine.dispose();
   });
+});
+
+it("joins curved sloping roundabout mouths to the road, ring and rounded sidewalk edges", () => {
+  const graph = new RoadGraph((x, z) => 30 + x * 0.08 + z * 0.12);
+  const hub = graph.addNode(3, 1);
+  for (const [x, z, type] of [[-160, 10, "avenue"], [165, -18, "avenue"], [30, 165, "street"], [-20, -165, "street"]] as const) {
+    const end = graph.addNode(x, z);
+    graph.addSegment(x < 0 ? end : hub, x < 0 ? hub : end, v3(x * 0.4 + 12, 0, z * 0.55), type);
+  }
+  graph.setRoundabout(hub, true);
+  const engine = new NullEngine(), scene = new Scene(engine);
+  const roads = createRoadRenderer(scene, graph, graph.heightAt);
+  roads.rebuild();
+  const points = (name: string) => {
+    const p = scene.getMeshByName(name)!.getVerticesData("position")!;
+    return Array.from({ length: p.length / 3 }, (_, i) => new Vector3(p[i * 3]!, p[i * 3 + 1]!, p[i * 3 + 2]!));
+  };
+  const ring = points(`roundabout_${hub}`).filter((_, i) => i % 2 === 1);
+  const lines = (p: Vector3[]): [Vector3, Vector3][] => p.slice(1).map((b, i) => [p[i]!, b]);
+  const distance = (p: Vector3, a: Vector3, b: Vector3) => {
+    const ab = b.subtract(a);
+    const t = Math.max(0, Math.min(1, Vector3.Dot(p.subtract(a), ab) / ab.lengthSquared()));
+    return Vector3.Distance(p, a.add(ab.scale(t)));
+  };
+  const key = (p: Vector3) => [p.x, p.y, p.z].map((v) => v.toFixed(4)).join(",");
+  for (const id of graph.node(hub).segments) {
+    const road = points(`road_${id}`);
+    const end = graph.segment(id).a === hub ? road.slice(0, 2) : road.slice(-2);
+    const boundary: [Vector3, Vector3][] = [[end[0]!, end[1]!], ...lines(ring)];
+    for (const side of [-1, 1]) {
+      const corner = points(`roundabout_corner_${id}_${hub}_${side}`);
+      const inside = corner.filter((_, i) => i % 2 === 0).map((p) => p.subtract(new Vector3(0, SIDEWALK_LIFT - ROAD_LIFT, 0)));
+      boundary.push(...lines(inside));
+      // Both ends of the rounded paving join an existing sidewalk or the ring footway.
+      const walk = points(`sidewalk_${id}`);
+      for (const p of corner.slice(0, 2)) expect(walk.some((q) => Vector3.Distance(p, q) < 1e-4)).toBe(true);
+      const ringWalk = points(`roundabout_walk_${hub}`);
+      for (const p of corner.slice(-2)) expect(ringWalk.some((q) => Vector3.Distance(p, q) < 1e-4)).toBe(true);
+    }
+    const patch = scene.getMeshByName(`roundabout_gap_${id}_${hub}`)!;
+    const p = points(patch.name), indices = patch.getIndices()!;
+    for (let i = 0; i < indices.length; i += 3) {
+      const a = p[indices[i]!]!, b = p[indices[i + 1]!]!, c = p[indices[i + 2]!]!;
+      expect(Vector3.Cross(b.subtract(a), c.subtract(a)).y, JSON.stringify({ id, i, a, b, c })).toBeLessThanOrEqual(1e-6);
+    }
+    const edges = new Map<string, { a: Vector3; b: Vector3; count: number }>();
+    for (let i = 0; i < indices.length; i += 3) for (let j = 0; j < 3; j++) {
+      const a = p[indices[i + j]!]!, b = p[indices[i + (j + 1) % 3]!]!;
+      const k = [key(a), key(b)].sort().join(";");
+      const edge = edges.get(k);
+      if (edge) edge.count++;
+      else edges.set(k, { a, b, count: 1 });
+    }
+    const exposed = [...edges.values()].filter((e) => e.count === 1);
+    expect(exposed.length).toBeGreaterThan(4);
+    for (const { a, b } of exposed) {
+      const mid = Vector3.Lerp(a, b, 0.5);
+      expect(Math.min(...boundary.map(([lo, hi]) => distance(mid, lo, hi))), `${id}: ${key(mid)}`).toBeLessThan(1e-4);
+    }
+  }
+  roads.dispose(); scene.dispose(); engine.dispose();
 });

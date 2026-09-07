@@ -182,8 +182,8 @@ const visibleZonePoint = (kind) =>
     }
     return best;
   }, kind);
-const visibleNodePoint = (minSegments) =>
-  page.evaluate((minSegments) => {
+const visibleNodePoint = (minSegments, reach = 22) =>
+  page.evaluate(({ minSegments, reach }) => {
     const scene = window.cityjump._scene;
     const t = scene.getTransformMatrix().m;
     const engine = scene.getEngine();
@@ -197,15 +197,15 @@ const visibleNodePoint = (minSegments) =>
       const sx = (((x * t[0] + y * t[4] + z * t[8] + t[12]) / w) * 0.5 + 0.5) * engine.getRenderWidth();
       const sy = (0.5 - ((x * t[1] + y * t[5] + z * t[9] + t[13]) / w) * 0.5) * engine.getRenderHeight();
       if (sx < 180 || sy < 160 || sx > engine.getRenderWidth() - 180 || sy > engine.getRenderHeight() - 160) continue;
-      const pick = scene.pick(sx, sy, (mesh) => mesh.name === "ground");
-      if (!pick?.pickedPoint || Math.hypot(pick.pickedPoint.x - x, pick.pickedPoint.z - z) > 22) continue;
+      const pick = scene.pick(Math.round(sx), Math.round(sy), (mesh) => mesh.name === "ground");
+      if (!pick?.pickedPoint || Math.hypot(pick.pickedPoint.x - x, pick.pickedPoint.z - z) >= reach) continue;
       const distance = Math.hypot(sx - engine.getRenderWidth() / 2, sy - engine.getRenderHeight() / 2);
       if (distance >= bestDistance) continue;
       best = { id: node.id, x: sx, y: sy };
       bestDistance = distance;
     }
     return best;
-  }, minSegments);
+  }, { minSegments, reach });
 const drawCameraTarget = () =>
   page.evaluate(() => {
     const camera = window.cityjump._scene.activeCamera;
@@ -220,7 +220,7 @@ const setCameraTarget = async (target) => {
   }, target);
   await waitCameraStill();
 };
-const focusVisibleNode = async (minSegments) => {
+const focusVisibleNode = async (minSegments, reach = 22) => {
   const node = await page.evaluate((minSegments) => {
     const candidates = window.cityjump._graph.allNodes().filter((candidate) => candidate.segments.size >= minSegments);
     const node = candidates.sort((a, b) => b.segments.size - a.segments.size)[0];
@@ -228,7 +228,7 @@ const focusVisibleNode = async (minSegments) => {
   }, minSegments);
   if (!node) return null;
   await setCameraTarget(node);
-  return visibleNodePoint(minSegments);
+  return visibleNodePoint(minSegments, reach);
 };
 const visibleRoadPoints = () =>
   page.evaluate(() => {
@@ -266,7 +266,19 @@ const focusVisibleRoadPoints = async () => {
   return visibleRoadPoints();
 };
 const buildableGridCells = () =>
-  page.evaluate(() => (window.cityjump._scene.getMeshByName("buildable-grid")?.getTotalVertices() ?? 0) / 5);
+  page.evaluate(async () => {
+    const { GRID } = await import("/src/sim/slots.ts");
+    const mesh = window.cityjump._scene.getMeshByName("buildable-grid");
+    const positions = mesh?.getVerticesData("position"), indices = mesh?.getIndices();
+    if (!positions || !indices) return 0;
+    // Terrain triangles split each outline into more edges; its XZ perimeter stays the same.
+    let perimeter = 0;
+    for (let i = 0; i < indices.length; i += 2) {
+      const a = indices[i] * 3, b = indices[i + 1] * 3;
+      perimeter += Math.hypot(positions[a] - positions[b], positions[a + 2] - positions[b + 2]);
+    }
+    return perimeter / (4 * GRID.cellSize);
+  });
 const buildableGridVisible = () =>
   page.evaluate(() => window.cityjump._scene.getMeshByName("buildable-grid")?.isEnabled() ?? false);
 const brushRingRadius = () =>
@@ -1312,7 +1324,8 @@ check(
 );
 
 const cameraBeforeNodeHover = await drawCameraTarget();
-const visibleRoadNode = (await visibleNodePoint(1)) ?? (await focusVisibleNode(1));
+const nodeSnapRadius = await page.evaluate(async () => (await import("/src/sim/rules.ts")).RULES.nodeSnapRadius);
+const visibleRoadNode = (await visibleNodePoint(1, nodeSnapRadius)) ?? (await focusVisibleNode(1, nodeSnapRadius));
 if (!visibleRoadNode) throw new Error("no visible road node to highlight");
 await page.mouse.move(Math.round(visibleRoadNode.x), Math.round(visibleRoadNode.y));
 await nextFrame();
@@ -1570,12 +1583,13 @@ check(
   await page.evaluate((id) => Boolean(window.cityjump._scene.getMeshByName(`roundabout_${id}`)), junctionScreen.id),
 );
 check(
-  "roundabout arms have asphalt gap fillers and splitter islands",
+  "roundabout arms have asphalt connectors and rounded sidewalk corners without splitter spikes",
   await page.evaluate((id) => {
     const scene = window.cityjump._scene;
     const gaps = scene.meshes.filter((m) => m.name.endsWith(`_${id}`) && m.name.startsWith("roundabout_gap_"));
     const splitters = scene.meshes.filter((m) => m.name.endsWith(`_${id}`) && m.name.startsWith("roundabout_splitter_"));
-    return gaps.length > 0 && gaps.length === splitters.length;
+    const corners = scene.meshes.filter((m) => m.name.startsWith("roundabout_corner_") && m.name.split("_")[3] === String(id));
+    return gaps.length > 0 && corners.length > 0 && splitters.length === 0;
   }, junctionScreen.id),
 );
 // The drawn surface stops at the ring, while the road geometry still reaches the node.
@@ -2256,7 +2270,10 @@ await page.evaluate(() => {
   const at = graph.pointAt(road.id, road.length * 0.5).position;
   window.cityjump.zone(at.x, at.z, 400, "residential");
 });
-await realTime(2400); // let the debounced autosave land
+await page.waitForFunction(() => {
+  const saved = JSON.parse(localStorage.getItem("cityjump.autosave") ?? "null");
+  return saved?.zones?.length > 0;
+}, null, { timeout: 20000 });
 const beforeReload = await stats();
 // Zoned lots are counted through the brush itself: painting nothing anywhere answers with how
 // many of the city's lots currently carry a zone.

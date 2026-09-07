@@ -1,0 +1,298 @@
+{
+  "budgets": {
+    "max_docs": 8,
+    "max_docs_per_ref": 8
+  },
+  "changed_paths": [],
+  "command": "logics-manager sync context-pack task_052_fix_terrain_crossing_roads_and_zones --mode summary-only --profile deep --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground"
+        ],
+        "prod": [
+          "prod_037_continuous_roads_and_legible_terrain_zoning"
+        ],
+        "req": [
+          "req_050_keep_roads_and_zone_overlays_clear_of_terrain"
+        ],
+        "task": [
+          "task_052_fix_terrain_crossing_roads_and_zones"
+        ]
+      },
+      "path": "logics/product/prod_037_continuous_roads_and_legible_terrain_zoning.md",
+      "ref": "prod_037_continuous_roads_and_legible_terrain_zoning",
+      "status": "Settled",
+      "title": "Continuous roads and legible terrain zoning"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "fix, terrain, crossing, roads, zones",
+        "skip when": "Investigating lighting, building models, or road connectivity.",
+        "summary": "Road and pad height claims do not protect the outside vertices of an 8 m terrain triangle; cached zone heights also predate final earthworks.",
+        "use when": "Terrain hides pavement or zone cells after construction or on slopes."
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground"
+        ],
+        "prod": [
+          "prod_037_continuous_roads_and_legible_terrain_zoning"
+        ],
+        "req": [
+          "req_050_keep_roads_and_zone_overlays_clear_of_terrain"
+        ],
+        "run": [
+          "run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through"
+        ],
+        "task": [
+          "task_052_fix_terrain_crossing_roads_and_zones"
+        ]
+      },
+      "path": "logics/tasks/task_052_fix_terrain_crossing_roads_and_zones.md",
+      "ref": "task_052_fix_terrain_crossing_roads_and_zones",
+      "schema_version": "1.0",
+      "status": "Done",
+      "title": "Fix terrain crossing roads and zones"
+    },
+    {
+      "ai_context": {
+        "keywords": "roads, zone, overlays, clear, terrain",
+        "skip when": "Investigating lighting, building models, or road connectivity.",
+        "summary": "Road and pad height claims do not protect the outside vertices of an 8 m terrain triangle; cached zone heights also predate final earthworks.",
+        "use when": "Terrain hides pavement or zone cells after construction or on slopes."
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground"
+        ],
+        "prod": [
+          "prod_037_continuous_roads_and_legible_terrain_zoning"
+        ],
+        "req": [
+          "req_050_keep_roads_and_zone_overlays_clear_of_terrain"
+        ]
+      },
+      "path": "logics/request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md",
+      "ref": "req_050_keep_roads_and_zone_overlays_clear_of_terrain",
+      "schema_version": "1.0",
+      "status": "Done",
+      "title": "Keep roads and zone overlays clear of terrain"
+    },
+    {
+      "ai_context": {
+        "keywords": "correct, road, terrain, support, drape, zoning, over, final, ground",
+        "skip when": "Investigating lighting, building models, or road connectivity.",
+        "summary": "Road and pad height claims do not protect the outside vertices of an 8 m terrain triangle; cached zone heights also predate final earthworks.",
+        "use when": "Terrain hides pavement or zone cells after construction or on slopes."
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground"
+        ],
+        "prod": [
+          "prod_037_continuous_roads_and_legible_terrain_zoning"
+        ],
+        "req": [
+          "req_050_keep_roads_and_zone_overlays_clear_of_terrain"
+        ],
+        "task": [
+          "task_052_fix_terrain_crossing_roads_and_zones"
+        ]
+      },
+      "path": "logics/backlog/item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground.md",
+      "ref": "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground",
+      "schema_version": "1.0",
+      "status": "Done",
+      "title": "Correct road terrain support and drape zoning over final ground"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground"
+        ],
+        "prod": [
+          "prod_037_continuous_roads_and_legible_terrain_zoning"
+        ],
+        "req": [
+          "req_050_keep_roads_and_zone_overlays_clear_of_terrain"
+        ],
+        "task": [
+          "task_052_fix_terrain_crossing_roads_and_zones"
+        ]
+      },
+      "path": "logics/product/prod_037_continuous_roads_and_legible_terrain_zoning.md",
+      "ref": "prod_037_continuous_roads_and_legible_terrain_zoning",
+      "schema_version": "1.0",
+      "status": "Settled",
+      "title": "Continuous roads and legible terrain zoning"
+    },
+    {
+      "ai_context": {},
+      "kind": "runbook",
+      "linked_refs": {
+        "item": [
+          "item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed"
+        ],
+        "req": [
+          "req_008_performance_every_road_placed_rebuilds_the_whole_city_and_the_first_load_ships_what_it_never_uses"
+        ],
+        "run": [
+          "run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through"
+        ],
+        "task": [
+          "task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work"
+        ]
+      },
+      "path": "logics/runbook/run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through.md",
+      "ref": "run_003_cut_terrain_under_a_road_or_a_junction_without_raw_ground_poking_through",
+      "schema_version": "1.0",
+      "status": "Active",
+      "title": "Cut terrain under a road or a junction without raw ground poking through"
+    }
+  ],
+  "estimates": {
+    "char_count": 4843,
+    "companion_doc_count": 1,
+    "doc_count": 5
+  },
+  "generated_at": "2026-09-07T10:21:06Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "task_052_fix_terrain_crossing_roads_and_zones"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "summary-only",
+  "profile": "deep",
+  "ref": "task_052_fix_terrain_crossing_roads_and_zones",
+  "refs": [
+    "task_052_fix_terrain_crossing_roads_and_zones"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "github_release",
+        "required": true,
+        "state": "github_release",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.1",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)",
+        "- command: `npm run ci; npm run test:e2e; node scripts/with-dev-server.mjs scripts/terrain-shot.mjs /tmp/city-jump-terrain-final` | result: passed | date: 2026-09-07 | note: 2026-09-07: 369 unit tests, architecture/scenario/build/Logics gates and all interaction checks passed. Browser measured zero road/terrain overlaps before and after verified Demo autosave reload; day/night/zone captures inspected.",
+        "- Finish workflow executed on 2026-09-07.",
+        "- Linked backlog/request close verification passed."
+      ],
+      "path": "logics/tasks/task_052_fix_terrain_crossing_roads_and_zones.md",
+      "ref": "task_052_fix_terrain_crossing_roads_and_zones"
+    }
+  ]
+}

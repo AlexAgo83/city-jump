@@ -1,0 +1,72 @@
+{
+  "title": "Keep roads and zone overlays clear of terrain",
+  "references": [
+    "src/sim/heightmap.ts",
+    "src/render/zones.ts",
+    "src/app/app.ts"
+  ],
+  "request": {
+    "complexity": "Medium",
+    "theme": "Terrain correctness",
+    "needs": [
+      "Fix terrain triangles covering roads, sidewalks and zoning overlays."
+    ],
+    "context": [
+      "User supplied day, night and zoning screenshots with large triangular occlusions."
+    ],
+    "acceptance_criteria": [
+      "AC1: Surface roads and sidewalks remain above rendered terrain on sloping, rotated streets with adjacent building terraces at the production 8 m grid spacing; bridges and covered tunnels retain their terrain rules.",
+      "AC2: Zone overlays follow the final terrain triangles after construction, removal, hidden reveal and save reload without changing zoning semantics.",
+      "AC3: Regression checks fail before the fix; CI, E2E and browser visual checks pass and the terrain runbook records the method."
+    ]
+  },
+  "product": {
+    "title": "Continuous roads and legible terrain zoning",
+    "overview": "Road earthworks and zone overlays agree with the rendered terrain.",
+    "goals": [
+      "Visible continuous streets and zone cells on slopes."
+    ],
+    "non_goals": [
+      "Global terrain flattening, save schema changes or economic rebalance."
+    ]
+  },
+  "backlog_items": [
+    {
+      "title": "Correct road terrain support and drape zoning over final ground",
+      "priority": "High",
+      "complexity": "Medium",
+      "theme": "Terrain correctness",
+      "request_acs": [
+        "AC1",
+        "AC2",
+        "AC3"
+      ],
+      "problem": [
+        "Coarse terrain triangles cross paved footprints; cached zone corners predate final earthworks."
+      ],
+      "scope_in": [
+        "Road bed support, terrain triangle projection for zones, regression tests and visual validation."
+      ],
+      "scope_out": [
+        "New road types, release or push."
+      ],
+      "acceptance_criteria": [
+        "AC1: Surface roads and sidewalks remain above rendered terrain on sloping, rotated streets with adjacent building terraces at the production 8 m grid spacing; bridges and covered tunnels retain their terrain rules.",
+        "AC2: Zone overlays follow the final terrain triangles after construction, removal, hidden reveal and save reload without changing zoning semantics.",
+        "AC3: Regression checks fail before the fix; CI, E2E and browser visual checks pass and the terrain runbook records the method."
+      ]
+    }
+  ],
+  "orchestration_task": {
+    "title": "Fix terrain crossing roads and zones",
+    "plan": [
+      "Reproduce coarse-grid road and stale-zone intersections with regression checks.",
+      "Correct terrain support and zone geometry, inspect slopes and validate CI/E2E, record evidence."
+    ]
+  },
+  "context_pack": {
+    "out": "logics/context-packs/terrain-surfaces.json",
+    "mode": "summary-only",
+    "profile": "normal"
+  }
+}

@@ -1,7 +1,7 @@
 import type { Terrain } from "./terrain";
 import type { RoadGraph } from "./graph";
 import { roadType, SIDEWALK_WIDTH } from "./roadTypes";
-import { allJunctions, ringElevation, type JunctionGeometry } from "./junction";
+import { allJunctions, ringElevation, widestIncidentRoad, type JunctionGeometry } from "./junction";
 import type { BuildingParcel } from "./slots";
 import { smoothstep01, type Vec3 } from "./vec";
 
@@ -208,6 +208,57 @@ export class Heightmap implements Terrain {
     }
 
     for (const parcel of parcels) this.stampParcel(parcel, region);
+
+    // Nearest-wins earthworks above choose the desired ground. Clearance is a separate minimum:
+    // every vertex supporting a pavement triangle must stay below it, even outside the kerb or
+    // where another road/junction/pad won the claim. Extrapolate the local grade, not a flat disc.
+    for (const seg of graph.allSegments()) {
+      if (seg.elevated) continue;
+      const type = roadType(seg.type);
+      const half = type.width / 2 + (type.highway || type.pedestrian || type.tunnelDepth ? 0 : SIDEWALK_WIDTH);
+      for (let d = 0; d <= seg.length; d += 2) {
+        const { position, tangent } = graph.pointAt(seg.id, d);
+        if (type.tunnelDepth && this.baseHeightAt(position.x, position.z) - position.y > TUNNEL_COVER) continue;
+        const before = Math.max(0, d - 1), after = Math.min(seg.length, d + 1);
+        const grade = (graph.pointAt(seg.id, after).position.y - graph.pointAt(seg.id, before).position.y) / (after - before);
+        this.clearRoadSupport(position, tangent, grade, half, region);
+      }
+    }
+    // Ring footways need the same terrain-cell clearance as straight pavements.
+    for (const junction of junctions.values()) {
+      if (junction.roundabout <= 0) continue;
+      const centre = graph.node(junction.node).pos;
+      const elevationAt = ringElevation(junction.arms, centre.y);
+      const width = Math.max(6, widestIncidentRoad(graph, junction.node)?.width ?? 0);
+      const radius = junction.roundabout - width / 2;
+      for (let i = 0; i < 40; i++) {
+        const a = i * Math.PI * 2 / 40, b = (i + 1) * Math.PI * 2 / 40;
+        const start = { x: centre.x + Math.cos(a) * radius, y: elevationAt(a), z: centre.z + Math.sin(a) * radius };
+        const end = { x: centre.x + Math.cos(b) * radius, y: elevationAt(b), z: centre.z + Math.sin(b) * radius };
+        const length = Math.hypot(end.x - start.x, end.z - start.z);
+        const tangent = { x: (end.x - start.x) / length, y: 0, z: (end.z - start.z) / length };
+        for (let d = 0; d <= length; d += 1) {
+          const t = d / length;
+          this.clearRoadSupport({ x: start.x + tangent.x * d, y: start.y + (end.y - start.y) * t, z: start.z + tangent.z * d }, tangent, (end.y - start.y) / length, width / 2 + SIDEWALK_WIDTH, region);
+        }
+      }
+    }
+  }
+
+  private clearRoadSupport(p: Vec3, tangent: Vec3, grade: number, half: number, region: ReturnType<Heightmap["gridBounds"]> | null): void {
+    // A terrain triangle can reach a full cell diagonal beyond the paved footprint.
+    const reach = half + this.cell * Math.SQRT2;
+    const bounds = this.gridBounds({ minX: p.x-reach, maxX: p.x+reach, minZ: p.z-reach, maxZ: p.z+reach });
+    for (let iz = bounds.minIz; iz <= bounds.maxIz; iz++) for (let ix = bounds.minIx; ix <= bounds.maxIx; ix++) {
+      if (region && (ix < region.minIx || ix > region.maxIx || iz < region.minIz || iz > region.maxIz)) continue;
+      const dx = this.worldX(ix)-p.x, dz = this.worldZ(iz)-p.z;
+      if (dx*dx+dz*dz > reach*reach) continue;
+      const along = dx*tangent.x+dz*tangent.z;
+      if (Math.abs(along) > this.cell*Math.SQRT2 + 1) continue;
+      const bed = p.y + grade*along - ROAD_BED_DROP;
+      const index = iz*this.count+ix;
+      this.current[index] = Math.min(this.current[index]!, bed);
+    }
   }
 
   private gridBounds(bounds: TerrainBounds): { minIx: number; maxIx: number; minIz: number; maxIz: number } {

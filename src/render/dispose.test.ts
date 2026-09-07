@@ -39,7 +39,7 @@ describe("renderer disposal", () => {
     const cell = zoneCell();
     zones.paintLots([cell], "residential");
 
-    const zoneRenderer = createZoneRenderer(scene);
+    const zoneRenderer = createZoneRenderer(scene, new Heightmap({ size: 128, cell: 8, generator: () => 0 }));
     const utilityRenderer = createUtilityRenderer(scene, graph, utilities, () => 0);
     const rubbleRenderer = createRubbleRenderer(scene, () => 0);
     const destructionEffects = createDestructionEffects(scene, () => 0);

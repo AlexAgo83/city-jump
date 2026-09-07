@@ -6,7 +6,7 @@
 > Related backlog: `item_025_bound_the_terrain_re_stamp_and_ground_refresh_to_the_region_a_placement_changed`
 > Related task: `task_010_implement_the_rebuild_granularity_and_startup_payload_performance_work`
 > Reminder: Update status, category, verification, and linked refs when you edit this doc.
-> Indicators reviewed: 2026-08-30 11:24:40
+> Indicators reviewed: 2026-09-07 12:20:50
 
 # Trigger
 - A wedge, notch or sliver of untouched terrain shows through a road surface, a junction plaza or a roundabout ring.
@@ -42,3 +42,13 @@
 - `src/sim/junction.ts` -- `allJunctions`, `ringElevation`, the geometry the ground must match.
 - `src/sim/heightmap.test.ts` -- the regression tests for each of these cases.
 - Commits `1b45ae4` (the disc must be authoritative), `69d448c` (scope the bias to the disc), `70a112a` (flatten the rendered polygon; ring elevation follows the arms), `17ebabb` (tunnel cover).
+
+# Coarse terrain support and zone overlays (2026-09-07)
+- The production heightmap has 8 m cells. Tests only sampling a 4 m grid or the road centre missed triangles whose outside vertices were raised by adjacent building pads. A rotated/slope fixture reproduced 0.87 m of road intrusion after pad construction.
+- `conformToRoads` still uses nearest-wins stamping for the desired earthworks. After roads, junctions and pads, `clearRoadSupport` applies a lowering-only local grade constraint to the grid vertices that support the pavement. Include the cell diagonal beyond the sidewalk, because those outside vertices participate in triangles over the road. Extrapolate each local slope instead of flattening an enlarged disc; restrict the longitudinal reach to one diagonal plus half the 2 m sampling interval. This also prevents a neighbouring junction or road claim from raising a shared support vertex above a lower approach.
+- Keep elevated segments exempt and retain the tunnel-cover test. Apply the same regional bounds to this final pass for partial rebuilds. Pad interiors stay level; their roadside edges must yield to the paved surface where coarse triangles are shared.
+- Zone colours, occupied-cell fills and boundary lines must use the final rendered terrain. Cached `BuildableCell.corners[].y` precedes terrace stamping, and sampling four new corner heights still misses the ground diagonal. `terrainOverlayPolygons` clips the real ground triangles against the cell footprint and interpolates their heights; all filled overlays reuse it. Outlines keep only footprint edges, split at terrain triangle boundaries. Discard zero-area clipped fragments to avoid duplicate boundary lines.
+- `src/render/terrain-surfaces.test.ts` checks 8 m terrain, rotated sloping roads, adding/removing terraces, curved approaches and actual junction/sidewalk mesh vertices and centroids. `overlayReveal.test.ts` checks every projected zone vertex and triangle centre, cell area, outline perimeter/height and hidden reveal after terrain changes. The road and zone regressions were observed failing before their fixes.
+- Browser check: `node scripts/with-dev-server.mjs scripts/terrain-shot.mjs /tmp/city-jump-terrain`. It builds a zoned, populated Demo city and measures actual upward road/sidewalk/junction triangle centres against the shipped ground mesh, before and after save reload. Verified zero overlaps across 61,987 initial and 63,446 restored probes. Captures: `docs/media/terrain-clearance-day.png`, `docs/media/terrain-clearance-night.png`, `docs/media/terrain-clearance-zones.png`.
+- E2E geometry assumptions: count grid cells from XZ outline perimeter, not vertex count, since draping splits edges. For road-node hover, choose the rounded pointer's ground hit inside `RULES.nodeSnapRadius` (8 m); the 22 m junction-tool reach is not the road snap radius. The updated interaction suite passes both checks, demolition and save reload.
+- Wait for autosave after the final sun-hour edit before reloading the browser fixture; the screenshots can finish before the 2 s debounce. Verify the restored population and road count, allowing for the one offshore scenery bridge added on startup, so a fresh starter city cannot silently pass as the restored Demo.

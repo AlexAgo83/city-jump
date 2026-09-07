@@ -232,11 +232,14 @@ describe("heightmap", () => {
     g.addSegment(g.addNode(-200, 20), g.addNode(200, 20), v3(0, 0, 0));
     h.conformToRoads(g);
     const parcels = buildingParcels(buildableCells(g));
-    const parcel = parcels.find((p) => Math.abs(h.baseAt(...gridOf(h, p.position.x, p.position.z)) - p.position.y) > 0.08)!;
+    const parcel = parcels.find((p) => p.depthCells === 4)!;
     h.conformToRoads(g, [parcel]);
+    // Inspect the pad interior: its roadside edge must yield to pavement triangle support.
+    const x = parcel.position.x - Math.sin(parcel.rotationY) * 24;
+    const z = parcel.position.z - Math.cos(parcel.rotationY) * 24;
 
-    const before = Math.abs(h.baseAt(...gridOf(h, parcel.position.x, parcel.position.z)) - parcel.position.y);
-    const after = Math.abs(h.heightAt(parcel.position.x, parcel.position.z) - parcel.position.y);
+    const before = Math.abs(h.baseHeightAt(x, z) - parcel.position.y);
+    const after = Math.abs(h.heightAt(x, z) - parcel.position.y);
     expect(before).toBeGreaterThan(0.08);
     expect(after).toBeLessThan(0.05);
   });
