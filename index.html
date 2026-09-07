@@ -147,8 +147,9 @@
   }
   #action-palette { display: flex; gap: 2px; align-items: center; max-width: 100%; overflow-x: auto; box-sizing: border-box; }
   .tool-button {
-    min-width: 62px; min-height: 44px; padding: 7px 10px; border: 0; border-radius: 6px;
-    color: #8e9aa4; background: transparent; font: inherit; cursor: pointer; white-space: nowrap;
+    min-width: 58px; min-height: 44px; padding: 7px 9px; border: 0; border-radius: 6px;
+    color: #8e9aa4; background: transparent; cursor: pointer; white-space: nowrap;
+    font: 11.5px/1.2 ui-sans-serif, system-ui;
   }
   .tool-button[aria-pressed="true"] { color: #fff; background: #35525d; }
   .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
@@ -170,8 +171,10 @@
    * up. Each of these used to carry its own `top`, so showing two at once overlapped them and
    * showing three needed a rule per pair.
    */
+  /* The status bar owns the top edge, so this column starts below it and never has to fight it
+     for the same pixels -- overlapping it made the bar swallow clicks meant for these. */
   #right-stack {
-    position: fixed; top: 12px; right: 12px; z-index: 2;
+    position: fixed; top: 60px; right: 12px; z-index: 2;
     display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
     max-width: min(560px, calc(100vw - 24px)); pointer-events: none;
   }
@@ -211,7 +214,7 @@
   }
   #touch-notice[hidden] { display: none; }
   #compass {
-    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 12px; right: 12px; left: auto; transform: none;
     display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 86px; justify-content: center;
     color: #f4fbff; background: #171b20d8; border: 1px solid #ffffff2b;
     border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
@@ -219,11 +222,12 @@
     pointer-events: none;
   }
   #wave-banner {
-    position: fixed; top: 52px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
     max-width: min(360px, calc(100vw - 24px)); box-sizing: border-box;
-    color: #f4fbff; background: #171b20e8; border: 1px solid #ffffff2b;
-    border-radius: 6px; font: 12px/1.25 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
-    padding: 8px 12px; text-align: center; text-shadow: 0 1px 2px #000;
+    color: #e8dcbb; background: #12161aeb; border: 1px solid #ffffff17;
+    border-radius: 7px; box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
+    font: 11.5px/1.3 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
+    padding: 7px 12px; text-align: center;
     pointer-events: none;
   }
   #wave-banner[hidden] { display: none; }
@@ -257,18 +261,18 @@
    * in its own corner, so reading the city meant reading three corners.
    */
   #status-bar {
-    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2;
     display: flex; align-items: stretch; max-width: calc(100vw - 24px);
     color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
     box-shadow: 0 10px 28px #00000066, inset 0 1px 0 #ffffff0f;
     font: 12px/1.25 ui-sans-serif, system-ui; box-sizing: border-box;
   }
   #city-strip, #run-panel {
-    display: flex; align-items: baseline; gap: 5px; padding: 8px 14px; white-space: nowrap;
+    display: flex; align-items: baseline; gap: 5px; padding: 7px 13px; white-space: nowrap;
     color: inherit; background: transparent; border: 0; font: inherit; text-align: left;
   }
   /* Each label belongs to the number after it, so the space goes before the label, not between. */
-  #city-strip > span:not(:first-child), #run-panel > span:not(:first-child) { margin-left: 11px; }
+  #city-strip > span:not(:first-child), #run-panel > span:not(:first-child) { margin-left: 10px; }
   #run-panel button { margin-left: 11px; align-self: center; }
   #city-strip { cursor: pointer; }
   #city-strip:hover { background: #ffffff08; }
@@ -297,6 +301,10 @@
   /* The five needs run across the strip rather than down it: a column of short rows left a hole
      the width of the stats line beside it. */
   /* Five meters instead of nine lines of prose: what is short is read, not parsed. */
+  .supply-top { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+  .supply-top span { color: #6d7883; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+  .supply-top span:nth-of-type(2) { margin-left: 10px; }
+  .supply-top b { color: #f4fbff; font-weight: 600; font-size: 11.5px; font-variant-numeric: tabular-nums; }
   #supply {
     display: flex; flex-direction: column; gap: 7px; width: 188px; box-sizing: border-box;
     color: #e8edf1; background: #12161aeb; border: 1px solid #ffffff17; border-radius: 7px;
@@ -326,9 +334,17 @@
    * Label, bar, value -- side by side and no wider than they need to be. The value used to be
    * pushed to the far right of the whole strip by a `1fr` column, leaving a hole across the middle.
    */
-  .need-row { display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 6px; }
-  .need-row meter { width: 100%; height: 7px; min-width: 24px; }
-  .need-row b { color: #c8d2d9; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .need-row { display: grid; grid-template-columns: 58px 1fr auto; align-items: center; gap: 8px; font-size: 11.5px; }
+  /* The default meter is a green plastic bar in every browser; this is the same one in the
+     palette the rest of the overlay uses. */
+  .need-row meter { width: 100%; height: 3px; min-width: 24px; appearance: none; }
+  .need-row meter::-webkit-meter-bar {
+    background: #ffffff14; border: 0; border-radius: 2px; height: 3px;
+  }
+  .need-row meter::-webkit-meter-optimum-value { background: #75b9d1; border-radius: 2px; }
+  .need-row meter::-webkit-meter-suboptimum-value { background: #d9c48a; border-radius: 2px; }
+  .need-row meter::-webkit-meter-even-less-good-value { background: #d98a8a; border-radius: 2px; }
+  .need-row b { color: #97a3ac; font-weight: 500; font-size: 10.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   /* Every click inside the strip belongs to the strip: a <meter> swallowed some of them, so
      opening the ledger worked or did not depending on the pixel. */
   #city-strip * { pointer-events: none; }
@@ -351,8 +367,6 @@
   <span>Pop</span><b id="population">0 residents</b>
   <span>Money</span><b id="money">$40,000 +$0.0/s</b>
   <span>Workers</span><b id="workers">0/0</b>
-  <span>Food</span><b id="food">0</b>
-  <span>Short</span><b id="shortage">None</b>
 </button>
 <div id="run-panel" aria-label="Run status">
       <span>Wave <b id="run-wave">1</b></span>
@@ -367,6 +381,7 @@
 <div id="left-stack">
 <div id="supply" aria-label="City needs">
   <span class="supply-label">Supply</span>
+  <div class="supply-top"><span>Food</span><b id="food">0</b><span>Short</span><b id="shortage">None</b></div>
   <span id="needs-panel"></span>
 </div>
 <div id="time-controls" aria-label="Simulation time">

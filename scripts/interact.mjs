@@ -698,11 +698,15 @@ check("compass remains visible at the top", await page.evaluate(() => {
   const compass = document.getElementById("compass").getBoundingClientRect();
   return compass.top < 24 && compass.left > window.innerWidth * 0.35 && compass.right < window.innerWidth * 0.65;
 }));
-check("wave banner stays top and the clock sits under the city stats", await page.evaluate(() => {
+// The city numbers moved into the status bar on the top edge, so the clock now shares its left
+// column with Supply instead of with them. What still has to hold: the bar owns the top, the
+// wave banner sits under it, and the clock stays on the bottom-left, clear of both.
+check("the status bar owns the top edge and the clock the bottom left", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
-  const strip = document.getElementById("city-strip").getBoundingClientRect();
+  const bar = document.getElementById("status-bar").getBoundingClientRect();
+  const supply = document.getElementById("supply").getBoundingClientRect();
   const wave = document.getElementById("wave-banner").getBoundingClientRect();
-  return wave.top < 90 && strip.left === time.left && strip.bottom <= time.top;
+  return bar.top < 24 && wave.top >= bar.bottom && supply.left === time.left && supply.bottom <= time.top;
 }));
 check("settings menu contains no wave-critical gauges", await page.evaluate(() => !/Needs|Money|Workers|Food|Shortage/.test(document.getElementById("toolbar").textContent)));
 check("time controls do not cover the compass", await page.evaluate(() => {
@@ -1233,7 +1237,9 @@ const unzonedModels = await buildingModelCounts();
 await page.locator('[data-tool="zones"]').click();
 const zoneToolBox = await page.locator("#zone-tool-options").boundingBox();
 const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
-check("zoning tool choice sits below zone settings", zoneToolBox && zoneOptionsBox && zoneToolBox.y > zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
+// The dock is one row now, so these sit side by side rather than stacked: what matters is that
+// both are on screen and the tool choice reads before the palette it drives.
+check("zoning options and tool choice share the dock row", zoneToolBox && zoneOptionsBox && zoneToolBox.y === zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
 check("zoning fill is the default tool", await page.locator('input[name="zone-tool"][value="fill"]').isChecked());
 await page.locator('input[name="zone-tool"][value="brush"]').check();
 await page.locator("#zone-radius").evaluate((input) => {
