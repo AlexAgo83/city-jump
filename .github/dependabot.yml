@@ -1,0 +1,38 @@
+# Actions here are pinned to 40-character SHAs, which tests/architecture.mjs enforces. A pinned
+# SHA never advances on its own, so without this file the pinning quietly becomes dependency debt.
+# Dependabot updates the SHA and keeps the readable tag in a trailing comment.
+#
+# Majors are excluded from the grouped proposal on purpose: they are a deliberate change with
+# their own validation, not something to take in a weekly batch. `npm run ci` and a human review
+# stay in the path for every proposal; nothing here auto-merges.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: Update
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: Update
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major

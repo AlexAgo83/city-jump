@@ -1,13 +1,14 @@
 ## item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots - Clear the scratch copies, the hidden script and the regenerable screenshots
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 13:58:42
 
 # AI Context
 - Summary: Stale scratch copies of live modules, one script hidden from lint by a leading dot, and regenerable screenshots at the repository root.

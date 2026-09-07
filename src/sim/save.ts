@@ -214,7 +214,11 @@ export function parseCity(text: string): CitySave | null {
 function readRun(value: unknown): RunState | null {
   if (value === undefined) return createRun();
   if (!isRecord(value) || !Number.isFinite(value.wave) || !Number.isFinite(value.science)) return null;
-  if (value.ended !== null && value.ended !== "evacuated" && value.ended !== "population_zero" && value.ended !== "defeated") return null;
+  // Absent means the run never ended, like every other optional field here and like the absent
+  // `active` that readWaveClock tolerates below. Comparing `value.ended` directly refused the
+  // whole city over a missing null.
+  const ended = value.ended ?? null;
+  if (ended !== null && ended !== "evacuated" && ended !== "population_zero" && ended !== "defeated") return null;
   const rules = value.rules;
   if (rules !== undefined && !isRecord(rules)) return null;
   const rawResidentsPerWave = rules === undefined ? undefined : rules.residentsPerWave;
@@ -222,7 +226,7 @@ function readRun(value: unknown): RunState | null {
   return {
     wave: value.wave as number,
     science: value.science as number,
-    ended: value.ended,
+    ended,
     rules: {
       kaijuSpawns: rules?.kaijuSpawns === undefined ? DEFAULT_RUN_RULES.kaijuSpawns : rules.kaijuSpawns === true,
       instantConstruction: rules?.instantConstruction === undefined ? DEFAULT_RUN_RULES.instantConstruction : rules.instantConstruction === true,

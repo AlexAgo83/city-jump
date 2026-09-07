@@ -197,6 +197,20 @@ describe("city saves", () => {
     expect(invalid.run?.rules.residentsPerWave).toBe(DEFAULT_RUN_RULES.residentsPerWave);
   });
 
+  it("accepts a run block that omits its end reason, and still refuses an unknown one", () => {
+    const city = { v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [] };
+
+    const absent = parseCity(JSON.stringify({ ...city, run: { wave: 3, science: 40 } }));
+    const unknown = parseCity(JSON.stringify({ ...city, run: { wave: 3, science: 40, ended: "bulldozed" } }));
+
+    // A run that never ended is what an absent reason means -- refusing the city over a missing
+    // null lost every other thing in it, with nothing said about why.
+    expect(absent?.run?.ended).toBeNull();
+    // The whole run arrives usable, not half-built: an app reading it needs no repair pass.
+    expect(absent?.run).toEqual({ wave: 3, science: 40, ended: null, rules: DEFAULT_RUN_RULES });
+    expect(unknown).toBeNull();
+  });
+
   it("loads older resource saves that still carried services", () => {
     const save = parseCity(JSON.stringify({ v: SAVE_VERSION, terrain: "rolling", hour: 1, nodes: [], segments: [], resources: { population: 20, food: 5, services: 12 } }));
 

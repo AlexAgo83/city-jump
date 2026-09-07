@@ -1,13 +1,14 @@
 ## item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth - Move city loading out of the composition root and cap that root's growth
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: High
 > Theme: Project reliability
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 13:58:42
 
 # AI Context
 - Summary: loadCity at app.ts:996 holds four load rules by comment alone, and nothing stops the composition root growing back after an extraction.

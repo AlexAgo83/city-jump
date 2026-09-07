@@ -1,13 +1,15 @@
 ## item_176_accept_a_run_block_that_omits_its_end_reason - Accept a run block that omits its end reason
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: Persistence
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 13:58:43
+> Owner: Claude
 
 # AI Context
 - Summary: save.ts:217 rejects a whole city when the run block omits `ended`, unlike every neighbouring optional field.

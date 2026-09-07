@@ -1,13 +1,15 @@
 ## item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies - Let a bot move the pinned action SHAs and the in-range dependencies
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 100%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 13:58:43
+> Owner: Claude
 
 # AI Context
 - Summary: Nothing proposes to advance the SHA-pinned workflow actions, so a correct pinning discipline is turning into dormant dependency debt.

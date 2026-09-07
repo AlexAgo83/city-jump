@@ -1,13 +1,14 @@
 ## item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes - Settle the unreferenced review screenshots and say where a new one goes
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Low
 > Theme: Operator workflow
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
+> Indicators reviewed: 2026-09-07 13:58:42
 
 # AI Context
 - Summary: docs/media is 22 MB and 14 of its files are referenced by no document; the rule for where a delivery capture goes is unwritten.

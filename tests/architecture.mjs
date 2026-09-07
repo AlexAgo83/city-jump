@@ -143,6 +143,17 @@ test("release deploy workflow keeps secrets out of templated shell", async () =>
   assert.match(workflow, /build_failed\|canceled/);
 });
 
+test("something proposes to advance the pinned actions", async () => {
+  // The SHA pinning the next test enforces is only a discipline while something moves it. Without
+  // this configuration a pinned action never advances, and correct pinning turns into dormant debt.
+  const config = await readFile(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
+
+  assert.match(config, /package-ecosystem:\s*github-actions/);
+  assert.match(config, /package-ecosystem:\s*npm/);
+  // Majors stay a deliberate change with their own validation, not a weekly batch.
+  assert.match(config, /version-update:semver-major/);
+});
+
 test("third-party workflow actions are pinned by SHA", async () => {
   const workflows = new URL("../.github/workflows/", import.meta.url);
   for (const file of (await readdir(workflows)).filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))) {

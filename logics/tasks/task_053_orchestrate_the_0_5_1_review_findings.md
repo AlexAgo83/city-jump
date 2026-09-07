@@ -1,13 +1,15 @@
 ## task_053_orchestrate_the_0_5_1_review_findings - Orchestrate the 0.5.1 review findings
 > From version: 0.5.1
 > Schema version: 1.0
-> Status: Ready
+> Status: In progress
 > Understanding: 90%
 > Confidence: 85%
-> Progress: 0%
+> Progress: 25%
 > Complexity: Medium
 > Theme: Implementation delivery
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
+> Owner: Claude
+> Indicators reviewed: 2026-09-07 13:58:42
 
 # AI Context
 - Summary: Sequences the eight review slices into six waves: the defect and the bot first, the test net next, then the manual gate, the composition root, the coverage decision, and hygiene last.
@@ -19,7 +21,7 @@
 - Orchestrate the scaffolded request chain and keep sibling implementation slices linked.
 
 # Plan
-- [ ] 1. Wave 1 - the defect and the bot, both independent of everything else: normalize the run end reason in the save parser with its test, and add the dependency bot configuration. Gate on `npm test`.
+- [x] 1. Wave 1 - the defect and the bot, both independent of everything else: normalize the run end reason in the save parser with its test, and add the dependency bot configuration. Gate on `npm test`.
 - [ ] 2. Wave 2 - the simulation test net: add the colocated traffic test, verifying each property fails on a deliberate local break before accepting it. Gate on `npm test`.
 - [ ] 3. Wave 3 - the gate that is manual: add the CSP hash script, prove it by editing the inline style and running only that command, and confirm the existing architecture assertion passes against its output.
 - [ ] 4. Wave 4 - the composition root: extract city loading behind explicit dependencies, add its colocated test and the shrinking ceiling assertion. Gate on `npm run ci` plus `npm run test:e2e`, which is required here because persistence and loading are in scope.
@@ -57,7 +59,7 @@
 - request-AC8 -> `item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes`. Proof deferred to slice closeout.
 
 # Validation
-- (no validation recorded yet)
+- Wave 1: save parser and dependency bot. src/sim/save.ts:217 now normalizes an absent `ended` to null before validating it, matching readWaveClock below. New save.test.ts case proves it, and was verified to fail against the previous code (expected undefined to be null) before being accepted. .github/dependabot.yml covers github-actions and npm, groups minor and patch, and ignores majors; a new architecture test asserts both ecosystems and the major exclusion, so the config cannot be silently dropped. npx vitest run: 372 tests across 52 files. node --test tests/architecture.mjs: 12 tests. biome lint and tsc clean.
 
 # Report
 - Not started.
