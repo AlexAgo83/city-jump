@@ -1,0 +1,669 @@
+{
+  "budgets": {
+    "max_docs": 40,
+    "max_docs_per_ref": 4
+  },
+  "changed_paths": [
+    "logics/backlog/item_176_accept_a_run_block_that_omits_its_end_reason.md",
+    "logics/backlog/item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test.md",
+    "logics/backlog/item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth.md",
+    "logics/backlog/item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them.md",
+    "logics/backlog/item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it.md",
+    "logics/backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md",
+    "logics/backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md",
+    "logics/backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md",
+    "logics/product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md",
+    "logics/request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md",
+    "logics/tasks/task_053_orchestrate_the_0_5_1_review_findings.md"
+  ],
+  "command": "logics-manager sync context-pack req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand item_176_accept_a_run_block_that_omits_its_end_reason item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes task_053_orchestrate_the_0_5_1_review_findings --mode diff-first --profile normal --handoff",
+  "companion_docs": [
+    {
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_176_accept_a_run_block_that_omits_its_end_reason",
+          "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+          "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+          "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+          "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+          "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+          "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+          "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md",
+      "ref": "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded",
+      "sections": {
+        "Goals": [
+          "- A parser that defaults on absence everywhere, so no field is stricter than its neighbours by accident.",
+          "- Every pure simulation module reachable by its own test, with no exception left standing.",
+          "- A composition root that can only shrink, so each extraction is permanent rather than a moment of good intent.",
+          "- Values a gate checks are produced by a command, never transcribed by hand into a second file.",
+          "- Pinned dependencies that something proposes to advance, so pinning is discipline rather than dormant debt.",
+          "- A working tree and a media directory whose weight and contents are the result of a stated rule."
+        ],
+        "Key product decisions": [
+          "- Use structured input as the source of truth for generated docs.",
+          "- Keep generated write paths local and repo-bounded."
+        ],
+        "Overview": [
+          "Every rule this repository already believes in is enforced by something that runs, not by someone remembering - and the seams the tests need are reachable before the module gets large enough to hide them."
+        ],
+        "References": [
+          "- Product back-reference: `req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand`",
+          "- Task back-reference: `task_053_orchestrate_the_0_5_1_review_findings`"
+        ]
+      },
+      "status": "Proposed",
+      "title": "A repository that keeps its own rules without being reminded"
+    }
+  ],
+  "docs": [
+    {
+      "ai_context": {
+        "keywords": "review, findings, save, parser, refuses, sim, seams, test, reaches, gates, kept, hand",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "request",
+      "linked_refs": {
+        "item": [
+          "item_176_accept_a_run_block_that_omits_its_end_reason",
+          "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+          "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+          "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+          "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+          "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+          "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+          "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ]
+      },
+      "path": "logics/request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md",
+      "ref": "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `parseCity` accepts a run block that omits `ended`, restoring it as `null`, and still refuses an `ended` value outside the known reasons; a save whose run block carries only `wave` and `science` loads as a playable city.",
+          "- AC2: `src/sim/traffic.ts` has a colocated test that holds its published constants as properties on a graph built in the test - the gap two queued cars keep, a red stopping a bumper at the setback rather than a centre, a frame longer than `MAX_STEP_S` advancing no one further than the clamp, and a heading turning no faster than `CAR_TURN_RATE` in one step - and that test fails if the corresponding constant is honoured incorrectly rather than merely changed.",
+          "- AC3: City loading leaves `src/app/app.ts` for its own module taking explicit dependencies, with a test covering terrain normalization, the refusal to restore a wave in progress, the relaid and carried counts, and the elapsed and day defaults; an architecture test caps `src/app/app.ts` at a line count that can only be lowered.",
+          "- AC4: One command derives both CSP digests from `index.html` and writes them into `render.yaml`, the existing architecture assertion passes against its output, and editing the inline style then running that command is sufficient to keep the header correct.",
+          "- AC5: Simulation coverage over `src/sim/` is measured and recorded, and the decision whether to gate `npm run ci` on it is taken against that measured number rather than assumed; if gated, the threshold is scoped to `src/sim/` and set no higher than the level actually reached.",
+          "- AC6: A dependency bot configuration covers the github-actions and npm ecosystems, keeps SHA pinning intact when it proposes an action update, groups minor and patch application updates, and leaves majors out of the grouped proposal."
+        ],
+        "Needs": [
+          "- Load a save whose run block omits its end reason, instead of refusing the whole city.",
+          "- Hold the driving constants sim/traffic publishes to a test, like every other simulation module.",
+          "- Move city loading out of the composition root and stop that root from growing back.",
+          "- Produce the CSP hashes from index.html instead of transcribing them into render.yaml by hand.",
+          "- See simulation coverage before choosing whether to gate on it.",
+          "- Let a bot move the SHA-pinned workflow actions, which nothing moves today."
+        ]
+      },
+      "status": "Draft",
+      "title": "Review findings: a save the parser refuses, sim seams no test reaches, and gates kept by hand"
+    },
+    {
+      "ai_context": {
+        "keywords": "accept, run, block, omits, end, reason",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_176_accept_a_run_block_that_omits_its_end_reason"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_176_accept_a_run_block_that_omits_its_end_reason.md",
+      "ref": "item_176_accept_a_run_block_that_omits_its_end_reason",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `parseCity` on a city whose run block omits `ended` returns a save whose `run.ended` is null.",
+          "- AC2: `parseCity` still returns null for an `ended` value outside the three known reasons.",
+          "- AC3: The restored city is playable, not merely parsed: the run state it carries reaches the application unchanged."
+        ],
+        "Problem": [
+          "- `src/sim/save.ts:217` compares `value.ended` against null and the three known reasons, so an absent `ended` returns null from `parseCity` and the whole city is refused.",
+          "- Every other optional field in the parser defaults on absence, and `readWaveClock` directly below tolerates an absent `active`. This one field is inconsistent with its own neighbours.",
+          "- No save this build writes is affected, because `createRun` at `src/sim/run.ts:55` always writes `ended: null`. The exposure is a hand-edited save, a shortened fixture, or a future writer that omits null fields - and the failure gives the player no reason."
+        ]
+      },
+      "status": "Ready",
+      "title": "Accept a run block that omits its end reason"
+    },
+    {
+      "ai_context": {
+        "keywords": "hold, driving, constants, sim, traffic, publishes, own, test",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test.md",
+      "ref": "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: `src/sim/traffic.test.ts` exists and passes under `npm test`.",
+          "- AC2: Each of the four properties fails when the behaviour stops honouring its constant, verified by a deliberate local break before the test is accepted.",
+          "- AC3: Changing the numeric value of a tested constant alone leaves the suite green."
+        ],
+        "Problem": [
+          "- `src/sim/traffic.ts` is 386 lines and the only `src/sim/` module without a colocated test; it is observed only through `src/render/traffic.test.ts` and `src/render/trafficMovers.ts`.",
+          "- It imports neither Babylon nor the DOM, so nothing structural prevents a direct test. CONTRIBUTING.md already asks for the narrowest test proving changed simulation behaviour.",
+          "- The module is what performance work reopens most often, which is exactly where an untested pure module costs the most."
+        ]
+      },
+      "status": "Ready",
+      "title": "Hold the driving constants sim traffic publishes to their own test"
+    },
+    {
+      "ai_context": {
+        "keywords": "move, city, loading, out, composition, root, cap, growth",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth.md",
+      "ref": "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: City loading lives in its own module with explicit parameters, and `src/app/app.ts` calls it.",
+          "- AC2: A colocated test covers the four rules currently held by comment, and runs headless.",
+          "- AC3: An architecture test fails if `src/app/app.ts` grows beyond its recorded ceiling.",
+          "- AC4: `npm run test:e2e` passes against the dev server: loading a saved city, resuming an autosave and importing a shared link all still work."
+        ],
+        "Problem": [
+          "- `src/app/app.ts` is 1347 lines with 45 imports and no test. `loadCity` at line 996 is its highest-risk untested logic: terrain choice, replay, both `snapTo` passes, wave neutralization and camera restore.",
+          "- Four rules inside it are guaranteed by comment alone - terrain normalization, the deliberate `active: null` refusing to restore a wave in progress, the relaid and carried alert counts, and the `elapsed ?? 0` / `day ?? 1` defaults.",
+          "- `tests/architecture.mjs` requires a `ponytail: module-size` reason above 700 lines, which app.ts carries, but nothing stops it growing further - so each extraction can be silently undone."
+        ]
+      },
+      "status": "Ready",
+      "title": "Move city loading out of the composition root and cap that root's growth"
+    },
+    {
+      "ai_context": {
+        "keywords": "orchestrate, review, findings",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "task",
+      "linked_refs": {
+        "item": [
+          "item_176_accept_a_run_block_that_omits_its_end_reason",
+          "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+          "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+          "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+          "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+          "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+          "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+          "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/tasks/task_053_orchestrate_the_0_5_1_review_findings.md",
+      "ref": "task_053_orchestrate_the_0_5_1_review_findings",
+      "schema_version": "1.0",
+      "sections": {
+        "Context": [
+          "- Orchestrate the scaffolded request chain and keep sibling implementation slices linked."
+        ],
+        "Validation": [
+          "- (no validation recorded yet)"
+        ]
+      },
+      "status": "Ready",
+      "title": "Orchestrate the 0.5.1 review findings"
+    },
+    {
+      "ai_context": {},
+      "kind": "product",
+      "linked_refs": {
+        "item": [
+          "item_176_accept_a_run_block_that_omits_its_end_reason",
+          "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+          "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+          "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+          "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+          "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+          "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+          "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md",
+      "ref": "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded",
+      "schema_version": "1.0",
+      "sections": {},
+      "status": "Proposed",
+      "title": "A repository that keeps its own rules without being reminded"
+    },
+    {
+      "ai_context": {
+        "keywords": "derive, csp, hashes, index, html, instead, transcribing, them",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them.md",
+      "ref": "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Running the command after an inline-style edit leaves the architecture test green with no manual editing of `render.yaml`.",
+          "- AC2: The script and the architecture test derive their digests from the same extraction, so neither can be right while the other is wrong.",
+          "- AC3: The script fails loudly if an expected inline block is missing rather than writing an empty digest."
+        ],
+        "Problem": [
+          "- The two SHA-256 digests in `render.yaml:39` are typed in by hand.",
+          "- `tests/architecture.mjs` recomputes them from `index.html` and asserts they match, so a stale header cannot ship - but nothing produces the correct value, so the loop is edit, fail, compute by hand, retry.",
+          "- The inline style is 261 lines against a 4-line script: the one that changes is the one whose hash is forgotten."
+        ]
+      },
+      "status": "Ready",
+      "title": "Derive the CSP hashes from index.html instead of transcribing them"
+    },
+    {
+      "ai_context": {
+        "keywords": "measure, simulation, coverage, before, deciding, whether, gate",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it.md",
+      "ref": "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A coverage run over `src/sim/` completes and its figure is recorded in the task evidence.",
+          "- AC2: The gating decision is written down with the measured number as its basis.",
+          "- AC3: If a threshold is added, `npm run ci` passes with it on the first attempt, and it is scoped to `src/sim/`."
+        ],
+        "Problem": [
+          "- `@vitest/coverage-v8` is absent and `npm run ci` carries no coverage threshold, so the gaps this review found were invisible until read by hand.",
+          "- A repository-wide percentage would be actively harmful: executing a Babylon line in `src/render/` is not evidence a mesh is right, which is why `test:visual` and `test:e2e` exist separately.",
+          "- A threshold chosen before the measurement is either inert or an immediate block."
+        ]
+      },
+      "status": "Ready",
+      "title": "Measure simulation coverage before deciding whether to gate on it"
+    },
+    {
+      "ai_context": {
+        "keywords": "let, bot, move, pinned, action, shas, range, dependencies",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md",
+      "ref": "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: A bot configuration exists for both ecosystems and is accepted by the platform without a validation error.",
+          "- AC2: An action update it proposes keeps the 40-character SHA form, so the architecture assertion still passes.",
+          "- AC3: A major version update is not part of the grouped minor and patch proposal."
+        ],
+        "Problem": [
+          "- `.github/` holds only `workflows/`; nothing proposes updates.",
+          "- Both workflows pin third-party actions to 40-character SHAs and an architecture test enforces it. That is the right posture, but a pinned SHA never advances by itself, so the discipline becomes dormant debt.",
+          "- In-range application dependencies are drifting and frozen by `npm ci`: Babylon 9.22.2 against 9.25.0, playwright 1.62.1 against 1.63.0, plus a vitest 5.0.0 major."
+        ]
+      },
+      "status": "Ready",
+      "title": "Let a bot move the pinned action SHAs and the in-range dependencies"
+    },
+    {
+      "ai_context": {
+        "keywords": "clear, scratch, copies, hidden, script, regenerable, screenshots",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md",
+      "ref": "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: No scratch copy of a live `src/` module remains under `.tmp/`.",
+          "- AC2: Every script under `scripts/` is processed by `npm run lint`, with none excluded by a hidden filename.",
+          "- AC3: The repository root holds no generated screenshot and no `.DS_Store`."
+        ],
+        "Problem": [
+          "- `.tmp/` holds 19 scratch files including `app.ts.orig` and `app.kit.ts`; a stale copy of the largest module in the repository invites being reopened or partially copied back.",
+          "- `scripts/.lights.mjs` is hidden behind a leading dot, is not processed by biome, and is otherwise an exact sibling of `terrain-shot.mjs`, `buildings-shot.mjs` and `kaiju-shot.mjs`.",
+          "- `shot.png`, `shot-rugged.png` and `vehicle-closeup.png` at the root are the default output names of `scripts/shot.mjs:11`, and `.DS_Store` files sit at the root and in `src/`."
+        ]
+      },
+      "status": "Ready",
+      "title": "Clear the scratch copies, the hidden script and the regenerable screenshots"
+    },
+    {
+      "ai_context": {
+        "keywords": "settle, unreferenced, review, screenshots, say, new, goes",
+        "skip when": "(unfilled: replace before this doc is used)",
+        "summary": "(unfilled: replace before this doc is used)",
+        "use when": "(unfilled: replace before this doc is used)"
+      },
+      "kind": "backlog",
+      "linked_refs": {
+        "item": [
+          "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes"
+        ],
+        "prod": [
+          "prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded"
+        ],
+        "req": [
+          "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand"
+        ],
+        "task": [
+          "task_053_orchestrate_the_0_5_1_review_findings"
+        ]
+      },
+      "path": "logics/backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md",
+      "ref": "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes",
+      "schema_version": "1.0",
+      "sections": {
+        "Acceptance criteria": [
+          "- AC1: Every one of the 14 files is linked, recorded as externally cited, or deleted, with the disposition of each stated in the task evidence.",
+          "- AC2: No retained `docs/media/` image is materially larger than the width it is displayed at, and every document that references one still renders.",
+          "- AC3: CONTRIBUTING.md states where a delivery screenshot goes, at what size, and its fate at wave close."
+        ],
+        "Problem": [
+          "- `docs/media/` is 22 MB over 35 files and drives repository weight far more than the generated models do; the pack is 25.21 MiB.",
+          "- 14 files are referenced by no document in the repository - README.md, `docs/`, `changelogs/` and `logics/` all checked. They are delivery-wave proof captures, added and never linked.",
+          "- Some may be cited from GitHub release notes, a reference outside the repository. Unwritten, that fact will not survive the next person who looks at an orphan file.",
+          "- Individual files reach 1.9 MB for images rendered at about 800 px wide."
+        ]
+      },
+      "status": "Ready",
+      "title": "Settle the unreferenced review screenshots and say where a new one goes"
+    }
+  ],
+  "estimates": {
+    "char_count": 24194,
+    "companion_doc_count": 1,
+    "doc_count": 11
+  },
+  "generated_at": "2026-09-07T11:34:26Z",
+  "handoff": {
+    "companion_doc_count": 1,
+    "enabled": true,
+    "source_refs": [
+      "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand",
+      "item_176_accept_a_run_block_that_omits_its_end_reason",
+      "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+      "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+      "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+      "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+      "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+      "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+      "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes",
+      "task_053_orchestrate_the_0_5_1_review_findings"
+    ],
+    "validation_summary_count": 1
+  },
+  "i18n": {
+    "actions": [
+      "Keep catalogs valid with logics-manager i18n validate in the project quality gate."
+    ],
+    "applicable": true,
+    "catalogs": {
+      "en": 0
+    },
+    "configured": true,
+    "contract": {
+      "applicability": "applicable",
+      "catalog": {
+        "path": "src/i18n/{locale}.json"
+      },
+      "default_locale": "en",
+      "fallback_locale": "en",
+      "locales": [
+        "en"
+      ],
+      "schema_version": "1.0",
+      "source_locale": "en"
+    },
+    "contract_path": "logics/i18n/contract.json",
+    "findings": [],
+    "next_action": "The i18n contract is valid.",
+    "ok": true,
+    "state": "valid"
+  },
+  "mode": "diff-first",
+  "profile": "normal",
+  "ref": "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand,item_176_accept_a_run_block_that_omits_its_end_reason,item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test,item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth,item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them,item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it,item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies,item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots,item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes,task_053_orchestrate_the_0_5_1_review_findings",
+  "refs": [
+    "req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand",
+    "item_176_accept_a_run_block_that_omits_its_end_reason",
+    "item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test",
+    "item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth",
+    "item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them",
+    "item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it",
+    "item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies",
+    "item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots",
+    "item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes",
+    "task_053_orchestrate_the_0_5_1_review_findings"
+  ],
+  "release": {
+    "blocking_reasons": [],
+    "configured": true,
+    "contract_path": "logics/release/contract.json",
+    "guidance": [
+      "Release readiness must come from project-owned evidence, not conversational memory.",
+      "Use release status or validate before preparing or claiming release readiness.",
+      "Publication-oriented actions are explicit operator actions and are separate from safe read/validate actions."
+    ],
+    "next_action": "Release evidence is complete.",
+    "publication_actions": [
+      "GitHub release publication",
+      "external publication"
+    ],
+    "required_gates": [
+      {
+        "blocking_reason": null,
+        "id": "version_metadata",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "changelog",
+        "required": true,
+        "state": "preparing",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "local_validation",
+        "required": true,
+        "state": "local_validation",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "git_push",
+        "required": true,
+        "state": "pushed",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "ci",
+        "required": true,
+        "state": "ci_verification",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "github_release",
+        "required": true,
+        "state": "github_release",
+        "status": "passed"
+      },
+      {
+        "blocking_reason": null,
+        "id": "production_deployment",
+        "required": true,
+        "state": "external_publication",
+        "status": "passed"
+      }
+    ],
+    "safe_actions": [
+      "logics-manager release status",
+      "logics-manager release plan <version>",
+      "logics-manager release validate <version>"
+    ],
+    "state": "ready",
+    "target_id": null,
+    "target_version": "0.5.1",
+    "targets": []
+  },
+  "validation_summary": [
+    {
+      "items": [
+        "- (no validation recorded yet)"
+      ],
+      "path": "logics/tasks/task_053_orchestrate_the_0_5_1_review_findings.md",
+      "ref": "task_053_orchestrate_the_0_5_1_review_findings"
+    }
+  ]
+}

@@ -54,6 +54,7 @@
 | [prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed](product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md) | An island that hands the player a road, and a bridge that knows when it has landed | Settled |  |  | product/prod_035_an_island_that_hands_the_player_a_road_and_a_bridge_that_knows_when_it_has_landed.md |
 | [prod_036_a_varied_residential_and_commercial_skyline](product/prod_036_a_varied_residential_and_commercial_skyline.md) | A varied residential and commercial skyline | Settled |  |  | product/prod_036_a_varied_residential_and_commercial_skyline.md |
 | [prod_037_continuous_roads_and_legible_terrain_zoning](product/prod_037_continuous_roads_and_legible_terrain_zoning.md) | Continuous roads and legible terrain zoning | Settled |  |  | product/prod_037_continuous_roads_and_legible_terrain_zoning.md |
+| [prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded](product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md) | A repository that keeps its own rules without being reminded | Proposed |  |  | product/prod_038_a_repository_that_keeps_its_own_rules_without_being_reminded.md |
 
 ## Roadmaps
 
@@ -118,6 +119,7 @@
 | [req_048_bound_the_click_time_mesh_pick_that_selection_still_runs](request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done |  |  | request/req_048_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [req_049_residential_and_commercial_variety_with_a_mixed_skyline](request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md) | Residential and commercial variety with a mixed skyline | Done |  |  | request/req_049_residential_and_commercial_variety_with_a_mixed_skyline.md |
 | [req_050_keep_roads_and_zone_overlays_clear_of_terrain](request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md) | Keep roads and zone overlays clear of terrain | Done |  |  | request/req_050_keep_roads_and_zone_overlays_clear_of_terrain.md |
+| [req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand](request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md) | Review findings: a save the parser refuses, sim seams no test reaches, and gates kept by hand | Ready |  |  | request/req_051_review_findings_a_save_the_parser_refuses_sim_seams_no_test_reaches_and_gates_kept_by_hand.md |
 
 ## Backlog
 
@@ -298,6 +300,14 @@
 | [item_173_bound_the_click_time_mesh_pick_that_selection_still_runs](backlog/item_173_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done |  | 100% | backlog/item_173_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [item_174_author_and_integrate_residential_commercial_variants_and_four_towers](backlog/item_174_author_and_integrate_residential_commercial_variants_and_four_towers.md) | Author and integrate residential commercial variants and four towers | Done | Codex | 100% | backlog/item_174_author_and_integrate_residential_commercial_variants_and_four_towers.md |
 | [item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground](backlog/item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground.md) | Correct road terrain support and drape zoning over final ground | Done |  | 100% | backlog/item_175_correct_road_terrain_support_and_drape_zoning_over_final_ground.md |
+| [item_176_accept_a_run_block_that_omits_its_end_reason](backlog/item_176_accept_a_run_block_that_omits_its_end_reason.md) | Accept a run block that omits its end reason | Ready |  | 0% | backlog/item_176_accept_a_run_block_that_omits_its_end_reason.md |
+| [item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test](backlog/item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test.md) | Hold the driving constants sim traffic publishes to their own test | Ready |  | 0% | backlog/item_177_hold_the_driving_constants_sim_traffic_publishes_to_their_own_test.md |
+| [item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth](backlog/item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth.md) | Move city loading out of the composition root and cap that root's growth | Ready |  | 0% | backlog/item_178_move_city_loading_out_of_the_composition_root_and_cap_that_root_s_growth.md |
+| [item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them](backlog/item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them.md) | Derive the CSP hashes from index.html instead of transcribing them | Ready |  | 0% | backlog/item_179_derive_the_csp_hashes_from_index_html_instead_of_transcribing_them.md |
+| [item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it](backlog/item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it.md) | Measure simulation coverage before deciding whether to gate on it | Ready |  | 0% | backlog/item_180_measure_simulation_coverage_before_deciding_whether_to_gate_on_it.md |
+| [item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies](backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md) | Let a bot move the pinned action SHAs and the in-range dependencies | Ready |  | 0% | backlog/item_181_let_a_bot_move_the_pinned_action_shas_and_the_in_range_dependencies.md |
+| [item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots](backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md) | Clear the scratch copies, the hidden script and the regenerable screenshots | Ready |  | 0% | backlog/item_182_clear_the_scratch_copies_the_hidden_script_and_the_regenerable_screenshots.md |
+| [item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes](backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md) | Settle the unreferenced review screenshots and say where a new one goes | Ready |  | 0% | backlog/item_183_settle_the_unreferenced_review_screenshots_and_say_where_a_new_one_goes.md |
 
 ## Tasks
 
@@ -355,6 +365,7 @@
 | [task_050_bound_the_click_time_mesh_pick_that_selection_still_runs](tasks/task_050_bound_the_click_time_mesh_pick_that_selection_still_runs.md) | Bound the click-time mesh pick that selection still runs | Done | claude | 100% | tasks/task_050_bound_the_click_time_mesh_pick_that_selection_still_runs.md |
 | [task_051_deliver_residential_commercial_variety_and_skyline](tasks/task_051_deliver_residential_commercial_variety_and_skyline.md) | Deliver residential commercial variety and skyline | Done | Codex | 100% | tasks/task_051_deliver_residential_commercial_variety_and_skyline.md |
 | [task_052_fix_terrain_crossing_roads_and_zones](tasks/task_052_fix_terrain_crossing_roads_and_zones.md) | Fix terrain crossing roads and zones | Done | Codex | 100% | tasks/task_052_fix_terrain_crossing_roads_and_zones.md |
+| [task_053_orchestrate_the_0_5_1_review_findings](tasks/task_053_orchestrate_the_0_5_1_review_findings.md) | Orchestrate the 0.5.1 review findings | Ready |  | 0% | tasks/task_053_orchestrate_the_0_5_1_review_findings.md |
 
 ## Runbooks
 
