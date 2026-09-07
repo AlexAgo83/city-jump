@@ -43,6 +43,7 @@
 # Decision framing
 - Product framing: Not needed
 - Architecture framing: Not needed
+- Follow-up after the first attempt shipped empty streets. The city boots paused, so the captures were of stationary traffic sitting on its spawn points. The script now presses Play, waits until stats().moverPositions actually changes between two reads - the hook src/app/app.ts documents as existing so a harness can prove the city was running - lets the cars spread for six seconds, then pauses again. Pausing before the shot matters because a screenshot cannot show motion, only position, while running on costs about an hour of game time per eight seconds of wall clock and reshot the city in a different light than the save records. The saved hour is then written back through the sun slider and asserted within 0.05 before shooting, for the same reason the camera is never touched: the fixture decides what the captures look like. Two new refusals: no traffic on the roads, and an hour that is not the save's.
 
 # Links
 - Product brief(s): `prod_039_a_shop_window_that_shows_the_game_that_exists`

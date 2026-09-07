@@ -46,10 +46,10 @@
 - request-AC3 -> `item_186_make_every_readme_claim_one_the_code_or_the_record_can_support`. Proof: Six README corrections, each against a named source: the missing-features paragraph (parcelDemandLimits, CityEconomy, the upgrade web all ship; services and redevelopment do not), zoning by BuildingKind rather than low/dense, eight road types rather than five, five select views rather than two, power and water added, and the unsourced Apple M3 Pro frame rate replaced with the city size perf/history.jsonl holds plus an explicit statement that no device frame rate has been measured. The three Mermaid diagrams were checked and left unchanged.
 
 # Validation
-- (no validation recorded yet)
 - command: `npm run ci` | result: passed | date: 2026-09-07 | note: 386 unit tests, 29 architecture and asset tests including the repinned Demo assertions, src/sim coverage 96.86%, build and typecheck clean, Logics lint OK. npm run test:e2e passed with the new Demo bundled.
 - Finish workflow executed on 2026-09-07.
 - Linked backlog/request close verification passed.
+- Capture correction: the first three captures were taken with the simulation paused, so the streets were empty. scripts/readme-shots.mjs now runs the clock until stats().moverPositions changes, spreads the traffic for six seconds, pauses, restores the save's hour through the sun slider and asserts it within 0.05, then shoots. Retaken with 166 cars visible across the network and the clock reading day 41 20:30 in all three, matching the save. The script refuses to shoot on no traffic, a drifted hour, a drifted camera, or any page error. biome clean over 158 files; node --test tests/*.mjs 29 pass.
 
 # Report
 - Not started.

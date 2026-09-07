@@ -33,6 +33,11 @@ page.on("console", (message) => {
   if (message.type() === "error") noise.push(message.text());
 });
 
+async function openToolbar(open) {
+  const toggle = page.locator("#toolbar-toggle");
+  if (((await toggle.getAttribute("aria-expanded")) === "true") !== open) await toggle.click();
+}
+
 await page.goto(url, { waitUntil: "load" });
 await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 30_000 });
 
@@ -49,6 +54,54 @@ await page.waitForFunction(
   { timeout: 60_000 },
 );
 
+// The city boots paused, and a paused city has its traffic standing on the spawn points -- the
+// first version of these captures shipped with empty streets because of exactly that. Play, then
+// let the cars spread along the roads before shooting.
+await openToolbar(false);
+await page.locator('[data-time-rate="1"]').click();
+await page.waitForFunction(() => window.cityjump.stats().cars > 0, null, { timeout: 30_000 });
+// Moving, not merely present: two different position keys a beat apart is the only proof that the
+// clock is actually running.
+const moving = await page.evaluate(async () => {
+  const before = window.cityjump.stats().moverPositions;
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  return { before, after: window.cityjump.stats().moverPositions };
+});
+if (moving.before === moving.after) {
+  console.error("Refusing to shoot: the traffic is not moving, so the city is still paused.");
+  await browser.close();
+  process.exit(1);
+}
+// Long enough for the cars to be mid-street and queued at the lights rather than bunched where
+// they were placed.
+await page.waitForTimeout(6000);
+
+// Then stop the clock again. A screenshot cannot show motion, only where the traffic is, and the
+// cars stay spread out once they are moving -- while running on costs an hour of daylight per
+// eight seconds of wall clock, which reshot the city in a different light than the save records.
+await page.locator('[data-time-rate="0"]').click();
+// Put the hour back to the one the save carries, for the same reason the camera is not touched:
+// the fixture decides what the captures look like. The slider is bound to an `input` event and is
+// reachable whether or not its panel is open.
+await page.evaluate((hour) => {
+  const slider = document.getElementById("sun-hour");
+  slider.value = String(hour);
+  slider.dispatchEvent(new Event("input", { bubbles: true }));
+}, save.hour);
+await page.waitForTimeout(400);
+
+const settled = await page.evaluate(() => window.cityjump.stats());
+if (Math.abs(settled.simHour - save.hour) > 0.05) {
+  console.error(`Refusing to shoot: the hour is ${settled.simHour}, not the ${save.hour} the save records.`);
+  await browser.close();
+  process.exit(1);
+}
+if (settled.moverPositions === 0) {
+  console.error("Refusing to shoot: no traffic on the roads.");
+  await browser.close();
+  process.exit(1);
+}
+
 const stats = await page.evaluate(() => window.cityjump.stats());
 const camera = await page.evaluate(() => window.cityjump.cameraState());
 const drift = ["targetX", "targetY", "targetZ", "alpha", "beta", "radius"].filter(
@@ -62,26 +115,20 @@ if (drift.length > 0) {
   process.exit(1);
 }
 
-async function openToolbar(open) {
-  const toggle = page.locator("#toolbar-toggle");
-  if (((await toggle.getAttribute("aria-expanded")) === "true") !== open) await toggle.click();
-}
-
 for (const shot of shots) {
   await openToolbar(true);
   await page.locator(`[data-tool="${shot.tool}"]`).click();
   if (shot.view) await page.locator(`input[name="select-view"][value="${shot.view}"]`).check();
   // The toolbar is chrome, not city: every previous capture was taken with it shut.
   await openToolbar(false);
-  // Long enough for the traffic to be mid-street rather than mid-spawn, and for the lights to
-  // settle at the saved hour.
-  await page.waitForTimeout(2500);
+  // The traffic is already running; this is only the view switch settling.
+  await page.waitForTimeout(1200);
   await page.screenshot({ path: shot.out });
   console.log(`${shot.out}  ${shot.what}`);
 }
 
 console.log(
-  `Demo: ${stats.segments} segments, ${stats.buildings} buildings, ${stats.models} models, hour ${save.hour}, day ${save.day}`,
+  `Demo: ${stats.segments} segments, ${stats.buildings} buildings, ${stats.cars} cars, ${stats.models} models, traffic spread then held at day ${save.day} ${save.hour}h`,
 );
 if (noise.length > 0) {
   console.error(`page reported ${noise.length} error(s):`);
