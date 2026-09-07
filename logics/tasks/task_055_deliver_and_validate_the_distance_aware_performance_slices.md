@@ -4,7 +4,7 @@
 > Status: In progress
 > Understanding: 95%
 > Confidence: 85%
-> Progress: 50%
+> Progress: 62%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/backlog references when you edit this doc.
@@ -26,7 +26,7 @@
 - [x] 1. Preparation: read the request, product, source review, evidence and all eight slices; inspect LOGICS.md and run_008/run_009. Use flow start before implementation. No application work is included in corpus scaffolding.
 - [ ] 2. Wave 1 (High): repair every harness readiness assumption, add the isolated diagnostic controls and capture the full comparison baseline; this gates every optimization. Commit source/script hashes and exact conditions with evidence.
 - [x] 3. Wave 2 (High): traffic render-only distance policy measured and rejected (evidence committed, prototype removed); automatic building detail measured and retained. Validate paused camera travel, selection/follow, manual options, async arrivals and shadow invalidation after each change.
-- [~] 4. Wave 3 (High): workforce cache reuse measured and retained against the integrated baseline; the night-light experiment remains.
+- [x] 4. Wave 3 (High): workforce cache reuse measured and retained; the night-light experiment measured and closed as an evidenced no-change.
 - [ ] 5. Wave 4 (Medium): prototype spatial building batches, then trees and streetlight geometry, deciding each separately. Next isolate terrain cost, compare full-resolution tiles, and add distant terrain LOD only when its own experiment justifies it.
 - [ ] 6. Wave 5 (Low): isolate resolution/MSAA costs after higher-priority changes and either deliver one minimal persisted option or record the measured no-change verdict.
 - [ ] 7. Per-wave ADR 009 checkpoint: record affected AC proofs and before/after evidence, candidate parameters, rejected variants and visual captures under docs/media only. Use flow progress for task progress and keep the repo commit-ready; do not fabricate completion proof at scaffold time.
@@ -63,8 +63,8 @@
 - request-AC9 -> `item_188_cull_distant_traffic_visuals_without_stopping_the_simulation`. Proof: documented measured rejection with two complete three-round comparisons in `perf/reviews/task055-wave2-traffic-retry/` and `perf/reviews/task055-wave2-traffic-tuned-full/`.
 - request-AC3 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof: hysteresis, override composition and rebuild paths covered in `src/render/buildings.test.ts`; visual and shadow preservation asserted by `scripts/review/detail.mjs`.
 - request-AC9 -> `item_189_restore_automatic_building_detail_with_a_manual_boxes_override`. Proof: `perf/reviews/task055-wave2-detail/`, three complete rounds, +15.5% and +28.2% frame p50 at the two overview framings with flat controls.
-- request-AC4 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof deferred to slice closeout.
-- request-AC9 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof deferred to slice closeout.
+- request-AC4 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof: the evidenced no-change decision AC4 allows, from the five-way ablation split under `perf/reviews/task055-wave3-lights-ablation-*`.
+- request-AC9 -> `item_190_bound_distant_night_lighting_while_preserving_city_readability`. Proof: separate street, car, emitter, bulb and combined measurements, three rounds each, recorded with the reason no distance policy can reach the cost.
 - request-AC5 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof: allocation counts in `perf/reviews/task055-wave3-workforce/` and the cached-against-uncached equivalence run in `src/sim/buildingLifecycle.test.ts`.
 - request-AC9 -> `item_191_make_workforce_caching_reusable_across_unchanged_gameplay_frames`. Proof: `perf/reviews/task055-wave3-workforce-ab-retry/`, three complete rounds, recorded as no measurable frame-time change rather than as a gain.
 - request-AC6 -> `item_192_batch_static_city_geometry_by_spatial_tiles_with_shared_assets`. Proof deferred to slice closeout.
@@ -99,7 +99,12 @@
   - `perf/reviews/task055-wave3-workforce/` counts allocations against drawn frames. Paused 353 frames / 0 / 0. Running x1 351 frames / 0 lifecycle / 9 needs. Running x4 336 frames / 1 / 94. Before, the panel recomputed every frame because it handed a freshly mapped array to a cache keyed on array identity.
   - `perf/reviews/task055-wave3-workforce-ab-retry/`, 42 samples, three rounds, complete. Frame time does not move: paired deltas run -6.2% to +4.3% with no consistent direction. CPU p50 is +10.5% paused, mixed elsewhere. No frame-time gain is claimed, and the retention does not need one -- request AC5 asks for correct independent reuse, not a threshold.
   - Method correction recorded in the same wave: the first attempt `perf/reviews/task055-wave3-workforce-ab/` ran under machine contention, with every case baseline varying 1.45x to 1.89x across rounds. Read as a median per side it produced a spurious +36.6% on day-street. `scripts/review/paired.mjs` now reads any distance run as per-round paired deltas and flags a baseline that moves across rounds; it was written because of that run and has been applied back over the retained wave 2 evidence.
-- Remaining: distant night lighting, spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
+- Wave 3 / item_190 NO-CHANGE, evidenced. No distance-based night-lighting prototype is shipped; the player's lights switch is untouched.
+  - AC3's separate measurements, three rounds each against the integrated baseline, night-saved / night-street / night-overview frame p50: streetlight container disabled +32.1% / +25.0% / +11.8%; headlight container disabled +14.0% / +12.3% / +15.3%; all 808 individual emitters disabled with both containers still enabled +1.0% / +0.0% / -2.3%; emissive bulbs dimmed -0.5% / +0.7% / -2.5%; the player switch, which does all of it at once, +39.5% / +32.1% / +21.7%.
+  - The night cost is the clustered container's own pass, not the emitters in it. A distance policy can only reach individual lamps, so it can only buy that +1.0% while paying for a substitute pool and a distance scan. The scoped risk -- "removing distant emitters may still leave a costly clustered pass" -- is now settled by measurement.
+  - The emissive-substitute prototype was therefore never ported. Its appearance was not the blocker; there was no gain for it to preserve.
+  - Two measurement bugs were found and fixed here, and the runs they produced were deleted rather than kept, because they measured nothing rather than measuring a rejected candidate: a clustered container removes its lights from `scene.lights`, so an ablation filtering that array silently hit zero lights; and the running clock calls `updateLights()` every hour change, which undoes any one-shot lighting mutation within a frame or two. `scripts/review/distance.mjs` now reaches emitters through `container.lights` and re-applies every lighting ablation each frame.
+- Remaining: spatial and terrain experiments, resolution experiments, integrated visual/gameplay gates and final closeout. No application optimization is validated yet.
 
 # Links
 - Request: `req_054_deliver_measured_distance_aware_city_performance`

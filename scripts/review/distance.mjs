@@ -27,6 +27,10 @@ const variants = [
 	"trees",
 	"ground",
 	"lights",
+	"streetlights",
+	"headlights",
+	"emitters",
+	"bulbs",
 	"scale",
 	"msaa",
 	"msaa2",
@@ -128,6 +132,42 @@ try {
 						if (variant === "traffic")
 							for (const light of scene.lights)
 								if (light.name === "car_headlights") light.setEnabled(false);
+						// Every lighting ablation has to be re-applied each frame. The clock keeps
+						// running, and each hour change calls updateLights(), which re-enables every
+						// light and rewrites the bulb colours -- a one-shot mutation is undone within
+						// a frame or two and measures nothing at all.
+						const lighting = {
+							// The individual emitters, containers and lit bulbs left alone: what a
+							// per-lamp distance policy could actually reach.
+							// A clustered container removes its lights from scene.lights, so the
+							// emitters are only reachable through the container itself.
+							emitters: () => {
+								for (const container of scene.lights)
+									if (/^(streetlight_lights|car_headlights)$/.test(container.name))
+										for (const light of container.lights) light.setEnabled(false);
+							},
+							// The lit bulb materials alone, every real light still on: the other half
+							// of what the player's lights switch does.
+							bulbs: () => {
+								for (const material of scene.materials)
+									if (/^(streetlight_glow|car_head_lamps|car_tail_lamps)/.test(material.name))
+										material.emissiveColor.set(0.25, 0.18, 0.08);
+							},
+							// Each clustered container costs a pass of its own: disabling one names
+							// that pass's price without touching the other's.
+							streetlights: () => {
+								for (const light of scene.lights)
+									if (light.name === "streetlight_lights") light.setEnabled(false);
+							},
+							headlights: () => {
+								for (const light of scene.lights)
+									if (light.name === "car_headlights") light.setEnabled(false);
+							},
+						}[variant];
+						if (lighting) {
+							lighting();
+							scene.onBeforeRenderObservable.add(lighting);
+						}
 						api.setTimeRate(mode.rate ?? 1);
 					},
 					{ mode: cases[name], variant: candidate ? options.variant : "none" },

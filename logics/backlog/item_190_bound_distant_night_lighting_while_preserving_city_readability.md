@@ -1,10 +1,10 @@
 ## item_190_bound_distant_night_lighting_while_preserving_city_readability - Bound distant night lighting while preserving city readability
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: In progress
-> Understanding: 90%
-> Confidence: 85%
-> Progress: 10%
+> Status: Done
+> Understanding: 100%
+> Confidence: 95%
+> Progress: 100%
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
@@ -54,3 +54,16 @@
 # Priority
 - Priority: High
 - Rationale: Night lights-off changed 58.6 to 91.7 FPS; bloom-off was effectively unchanged.
+
+# Outcome
+- No-change decision on 2026-09-07, evidenced rather than assumed. No distance-based lighting prototype is shipped, and the existing player lights switch is untouched.
+- AC3's separate measurements, each three rounds against the integrated baseline, read as per-round paired deltas. Night-saved / night-street / night-overview frame p50:
+  - streetlight clustered container disabled: +32.1% / +25.0% / +11.8% (`perf/reviews/task055-wave3-lights-ablation-streetlights/`)
+  - headlight clustered container disabled: +14.0% / +12.3% / +15.3% (`.../-headlights/`)
+  - all 808 individual emitters disabled, both containers left enabled: +1.0% / +0.0% / -2.3% (`.../-emitters/`)
+  - emissive bulb materials dimmed, every real light left on: -0.5% / +0.7% / -2.5% (`.../-bulbs/`)
+  - the player's own lights switch, which does all of the above at once: +39.5% / +32.1% / +21.7% (`.../-all/`)
+- The reason for the rejection is in the third row. The night cost is the clustered container's own pass, not the emitters inside it. Disabling every one of the 808 lights while the containers stay enabled recovers nothing. A distance policy can only reach individual lamps, so it can only buy the +1.0% that row measures, while paying for a substitute pool and a per-cadence distance scan on top.
+- This is the risk the slice was scoped around -- "removing distant emitters may still leave a costly clustered pass" -- now settled by measurement instead of left as a caveat. The only lever that pays is disabling a whole container, which is the existing all-or-nothing player switch and not a distance policy.
+- Not attempted as a result: the emissive-substitute pool prototype. Its appearance was never the blocker; there was no gain for it to preserve. Anything better would mean replacing the clustered lighting approach, which this request puts out of scope.
+- Method note, because the first attempt at this split was wrong twice. A clustered container removes its lights from `scene.lights`, so an ablation filtering that array found nothing and read as 0%; and every lighting ablation is undone within a frame or two because the running clock calls `updateLights()`, which re-enables lights and rewrites bulb colours. `scripts/review/distance.mjs` now reaches emitters through `container.lights` and re-applies each ablation every frame. The invalid runs were deleted rather than kept: unlike a rejected candidate, they measured nothing and would only mislead a later reader.
