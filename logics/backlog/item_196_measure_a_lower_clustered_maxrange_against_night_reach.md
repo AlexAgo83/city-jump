@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 19:42:05
+> Indicators reviewed: 2026-09-07 20:07:47
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)
@@ -56,3 +56,9 @@
   - Fitted to the longest light each container actually holds, 44 m and 38 m (`perf/reviews/task056-rangefit/`): +0.5% / +0.0% / +0.0%.
 - AC1 asks for retention only with captures showing unchanged pool and facade reach. The fitted value is the only candidate that clips nothing, and it buys nothing: the headroom between 52 and 44 costs no frame time. Every candidate that pays does so by cutting real light reach, and 32 m changes the pools even though it keeps the facades.
 - So the cost is not slack in the parameter, it is the volume each light occupies in the cluster. Buying frame time here means buying it from the picture, which this slice was not scoped to spend.
+
+# Tasks
+- `task_056_deliver_the_measured_night_lighting_pass_reduction`
+
+# Notes
+- Task `task_056_deliver_the_measured_night_lighting_pass_reduction` was finished via `logics-manager flow finish task` on 2026-09-07.

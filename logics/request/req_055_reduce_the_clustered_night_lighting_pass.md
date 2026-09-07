@@ -1,13 +1,13 @@
 ## req_055_reduce_the_clustered_night_lighting_pass - Reduce the clustered night lighting pass
 > From version: 0.5.2
 > Schema version: 1.0
-> Status: Draft
+> Status: Done
 > Understanding: 90%
 > Confidence: 85%
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence and linked backlog/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 19:28:42
+> Indicators reviewed: 2026-09-07 20:07:46
 
 # AI Context
 - Summary: The night cost is the clustered light container's own per-frame pass, measured at +32.1% for streetlights and +14.0% for headlights at the saved night framing, while all 808 emitters inside them are worth +1.0%. Attack the pass, not the lamps.

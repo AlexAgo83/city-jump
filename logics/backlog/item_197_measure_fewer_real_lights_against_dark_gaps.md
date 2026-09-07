@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 19:42:05
+> Indicators reviewed: 2026-09-07 20:07:47
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)
@@ -53,3 +53,9 @@
 - Half the lamps disabled while both containers stay enabled (`perf/reviews/task056-attrib-halflamps/`), three rounds: +0.5% night-saved, -0.7% night-street, +0.8% night-overview.
 - That repeats what task_055 measured from the other end: disabling all 808 emitters bought +1.0%. Lamp count is not what the pass costs, so thinning the lamps trades dark gaps for nothing.
 - No captures were needed to reject it: with no gain to weigh, there was no trade to judge.
+
+# Tasks
+- `task_056_deliver_the_measured_night_lighting_pass_reduction`
+
+# Notes
+- Task `task_056_deliver_the_measured_night_lighting_pass_reduction` was finished via `logics-manager flow finish task` on 2026-09-07.

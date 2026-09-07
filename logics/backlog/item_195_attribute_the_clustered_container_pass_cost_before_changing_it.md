@@ -8,7 +8,7 @@
 > Complexity: Medium
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 19:42:05
+> Indicators reviewed: 2026-09-07 20:07:47
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)
@@ -54,3 +54,9 @@
 - Depth slices halved (`.../task056-attrib-slices/`): -2.7% / -4.3% / -7.5%. Also negative.
 - Half the lamps keeping a real light (`.../task056-attrib-halflamps/`): +0.5% / -0.7% / +0.8%. Lamp count does not carry the cost, which repeats what task_055 already measured with all 808 emitters disabled.
 - Method note kept with the result: the clustered container's own parameters persist, unlike the enabled flags and material colours the game rewrites every hour change. Re-applying them each frame makes the container rebuild its clustering continuously, which fails the probe's own "city and traffic advanced" guard and would have measured that rebuild rather than the parameter. `scripts/review/distance.mjs` applies these three once and the rest every frame.
+
+# Tasks
+- `task_056_deliver_the_measured_night_lighting_pass_reduction`
+
+# Notes
+- Task `task_056_deliver_the_measured_night_lighting_pass_reduction` was finished via `logics-manager flow finish task` on 2026-09-07.

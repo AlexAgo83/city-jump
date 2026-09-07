@@ -8,7 +8,7 @@
 > Complexity: High
 > Theme: Performance
 > Reminder: Update status/understanding/confidence/progress and linked request/task references when you edit this doc.
-> Indicators reviewed: 2026-09-07 19:42:05
+> Indicators reviewed: 2026-09-07 20:07:47
 
 # AI Context
 - Summary: (unfilled: replace before this doc is used)
@@ -54,3 +54,9 @@
 - The one such model already in the build is the player's lights switch, which is exactly that: no real lights. It measures +39.5% at night-saved (`perf/reviews/task055-wave3-lights-ablation-all/`) and looks like `docs/media/nightrange-lights-off.png` -- the city goes flat black, with no ground pools and no lit facades. It is a fine player choice and an unacceptable default, which is why it is a switch.
 - Anything between the two -- baked light maps, an emissive-only substitute, a forward pass hand-written for hundreds of small lights -- is a new lighting engine, which this request lists as out of scope. Recorded as the reason it cannot be tried here rather than left as an open question.
 - If it is ever worth revisiting, the number to beat is the +32.1% that disabling the streetlight container alone buys, and the picture to preserve is `docs/media/nightrange-current.png`.
+
+# Tasks
+- `task_056_deliver_the_measured_night_lighting_pass_reduction`
+
+# Notes
+- Task `task_056_deliver_the_measured_night_lighting_pass_reduction` was finished via `logics-manager flow finish task` on 2026-09-07.

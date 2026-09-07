@@ -1,11 +1,12 @@
 ## prod_041_a_city_that_stays_readable_at_night_without_paying_twice_for_it - A city that stays readable at night without paying twice for it
 > Date: 2026-09-07
-> Status: Proposed
+> Status: Settled
 > Related request: `req_055_reduce_the_clustered_night_lighting_pass`
-> Related backlog: `item_195_attribute_the_clustered_container_pass_cost_before_changing_it`, `item_196_measure_a_lower_clustered_maxrange_against_night_reach`, `item_197_measure_fewer_real_lights_against_dark_gaps`, `item_198_answer_whether_this_scene_needs_a_clustered_container`
+> Related backlog: `item_195_attribute_the_clustered_container_pass_cost_before_changing_it`
 > Related task: `task_056_deliver_the_measured_night_lighting_pass_reduction`
 > Related architecture: (none yet)
 > Reminder: Update status, linked refs, scope, decisions, success signals, and open questions when you edit this doc.
+> Indicators reviewed: 2026-09-07 20:08:04
 
 # Overview
 Night is the most expensive time of day in this city, and the cost sits in the lighting pass rather than in the lamps a player can see. Recover what is recoverable, and say plainly what is not.
@@ -28,6 +29,21 @@ Night is the most expensive time of day in this city, and the cost sits in the l
 - Generated docs pass lint and audit without broad manual rewrites.
 - Context-pack output can be handed to an implementation agent directly.
 
+```mermaid
+flowchart TD
+  A[Night frame costs 32.1% in the streetlight pass] --> B[Attribute the pass parameter by parameter]
+  B --> C{Which parameter carries it?}
+  C -->|maxRange| D[Shorter range buys frame time]
+  C -->|Tiles, slices, lamp count| E[No gain or a loss]
+  D --> F{Does the picture survive?}
+  F -->|24 m: facades go dark| G[Rejected]
+  F -->|32 m: ground pools shrink| G
+  F -->|Fitted to real ranges: nothing clipped| H[No gain either]
+  E --> G
+  H --> G
+  G --> I[Night lighting stays as it is]
+```
+
 # References
-- Product back-reference: `req_055_reduce_the_clustered_night_lighting_pass`
+- Product back-reference: `item_195_attribute_the_clustered_container_pass_cost_before_changing_it`
 - Task back-reference: `task_056_deliver_the_measured_night_lighting_pass_reduction`
