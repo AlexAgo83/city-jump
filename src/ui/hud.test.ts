@@ -75,6 +75,10 @@ describe("hud rendering", () => {
     expect(elements.get("population")?.textContent).toBe("1k");
     expect(elements.get("shortage")?.textContent).toBe("Commerce 4");
     expect(elements.get("needs-panel")?.children).toHaveLength(1);
+    showCityStats(12, [{ kind: "residential", supply: 12, need: 132, ratio: 12 / 132 }]);
+    expect(elements.get("unfilled-jobs")?.textContent).toBe("120");
+    showCityStats(200, [{ kind: "residential", supply: 200, need: 132, ratio: 1 }]);
+    expect(elements.get("unfilled-jobs")?.textContent).toBe("0");
 
     showSelection({ kind: "road", name: "<img>", street: "<script>", baseId: "street", lanes: 2, oneWay: false, length: 42 });
     expect(elements.get("selection-panel")?.hidden).toBe(false);
@@ -120,10 +124,16 @@ describe("hud rendering", () => {
     showCityStats(1234, [], { population: 1234, food: 9, materials: 2 }, { ...terms(), trade: 99 });
     expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBe(built);
 
-    // The handler is the toggle itself: it opens the collapsed ledger and fills it in one go.
-    const [, toggle] = (elements.get("city-strip")!.addEventListener as ReturnType<typeof vi.fn>).mock.calls[0]!;
-    (toggle as () => void)();
+    // The menu controller refreshes Stats after opening the panel.
+    ledger.hidden = false;
+    const { refreshLedger } = await import("./hud");
+    refreshLedger();
     expect(ledger.hidden).toBe(false);
+    ledger.dataset.section = "economy";
+    refreshLedger();
+    const lines = elements.get("ledger-lines")!.children as ReturnType<typeof element>[];
+    expect(lines).toHaveLength(1);
+    expect((lines[0]!.children[0] as ReturnType<typeof element>).textContent).toBe("Trade");
     expect((document.createElement as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(built);
   });
 });

@@ -46,11 +46,17 @@ page.on("console", (m) => {
  * moving a setting between sections then costs nothing.
  */
 const pane = async (selector) => {
+  await setSettingsOpen(true);
   await page.evaluate((sel) => {
     const el = document.querySelector(sel);
     const owner = el?.closest(".pane");
     if (owner?.hidden) document.querySelector(`.rail-btn[aria-controls="${owner.id}"]`)?.click();
   }, selector);
+};
+
+const actionControl = async (selector) => {
+  if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
+  return page.locator(selector);
 };
 
 const nextFrame = async () => {
@@ -605,6 +611,7 @@ check("gameplay switches are saved with the run", !savedRules.kaijuSpawns && sav
 await pane("#settings-reset");
 await page.locator("#settings-reset").click();
 await nextFrame();
+await page.locator("#kaiju-toggle").click();
 page.once("dialog", (dialog) => dialog.dismiss());
 await page.locator("#evacuate-run").click();
 check("evacuation asks before ending a run", (await stats()).run.ended === null);
@@ -616,24 +623,66 @@ check("prestige can buy an upgrade between runs", (await stats()).profile.upgrad
 check("evacuation no longer needs a second confirmation", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
 await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run?.ended === null, null, { timeout: 20_000 });
 await reloadApp();
-await page.locator('[data-tool="select"]').click();
+await (await actionControl('[data-tool="select"]')).click();
 let playBaseline = await stats();
 check("select is the default tool", (await page.locator('[data-tool="select"]').getAttribute("aria-pressed")) === "true");
 check("the old lower-left HUD is removed", (await page.locator("#hud").count()) === 0);
 const paletteBox = await page.locator("#action-palette").boundingBox();
-check("the action palette is bottom right", paletteBox.x + paletteBox.width > 980 && paletteBox.y > 620);
+check("the action palette shares the top-left menu", paletteBox.x < 100 && paletteBox.y < 100);
+await page.locator("#action-toggle").click();
+check("actions collapse to one button", !(await page.locator("#action-palette").isVisible()) && !(await page.locator("#select-view-options").isVisible()) && await page.locator("#action-toggle").getAttribute("aria-expanded") === "false");
+await page.locator("#action-toggle").press("Enter");
+check("actions reopen by keyboard with the same tool", await page.locator("#select-view-options").isVisible() && await page.locator('[data-tool="select"]').getAttribute("aria-pressed") === "true" && await page.locator("#action-toggle").getAttribute("aria-expanded") === "true");
+for (const tool of await page.locator(".tool-button:enabled").all()) {
+  await tool.click();
+  check(`Actions icon follows ${await tool.textContent()}`, await page.locator("#action-toggle svg").innerHTML() === await tool.locator("svg").innerHTML());
+}
+await page.locator('[data-tool="select"]').click();
+await page.locator("#action-toggle").click();
+check("the selected tool icon stays visible when Actions is collapsed", await page.locator("#action-toggle svg").isVisible() && await page.locator("#action-dock").isHidden());
 check("road actions are absent from the top toolbar", (await page.locator("#toolbar #road-type").count()) === 0);
+await setSettingsOpen(true);
 const expandedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
+check("opening settings closes actions", !(await page.locator("#action-dock").isVisible()) && await page.locator("#action-toggle").getAttribute("aria-expanded") === "false");
+await page.locator("#action-toggle").click();
+check("opening actions closes settings", !(await page.locator("#toolbar").isVisible()) && await page.locator("#toolbar-toggle").getAttribute("aria-expanded") === "false");
+await page.locator("#stats-toggle").press("Enter");
+check("opening Stats closes actions", await page.locator("#ledger").isVisible() && await page.locator("#action-dock").isHidden());
+await setSettingsOpen(true);
+check("opening settings closes Stats", await page.locator("#ledger").isHidden() && await page.locator("#stats-toggle").getAttribute("aria-expanded") === "false");
+await page.locator("#stats-toggle").click();
+check("opening Stats closes settings", await page.locator("#ledger").isVisible() && await page.locator("#toolbar").isHidden());
+await page.locator("#stats-toggle").click();
+check("Stats collapses on a second click", await page.locator("#ledger").isHidden());
+for (const toggle of ["#toolbar-toggle", "#action-toggle", "#stats-toggle"]) {
+  await page.locator(toggle).click();
+  await page.locator("#kaiju-toggle").press("Enter");
+  check(`Kaiju closes ${toggle}`, await page.locator("#kaiju-panel").isVisible() && await page.locator(toggle).getAttribute("aria-expanded") === "false");
+  check("the wave message is inside Kaiju", await page.locator("#kaiju-panel #wave-banner").isVisible());
+  check("Kaiju shows wave, science and both actions", await page.locator("#run-wave").isVisible() && await page.locator("#run-science").isVisible() && await page.locator("#call-wave").isVisible() && await page.locator("#evacuate-run").isVisible());
+  await page.locator(toggle).click();
+  check(`${toggle} closes Kaiju`, await page.locator("#kaiju-panel").isHidden() && await page.locator("#wave-banner").isHidden() && await page.locator("#kaiju-toggle").getAttribute("aria-expanded") === "false");
+  await page.locator(toggle).click();
+}
+await page.locator("#kaiju-toggle").click();
+await page.locator("#kaiju-toggle").click();
+check("Kaiju collapses on a second click", await page.locator("#kaiju-panel").isHidden());
+await setSettingsOpen(true);
 await page.locator("#toolbar-toggle").click();
-const collapsedToolbarHeight = (await page.locator("#toolbar").boundingBox()).height;
-check("the settings toolbar collapses without hiding game state", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#city-strip").isVisible());
+const collapsedToolbarHeight = (await page.locator("#toolbar").boundingBox())?.height ?? 0;
+check("the settings toolbar collapses without hiding game state", collapsedToolbarHeight < expandedToolbarHeight && await page.locator("#supply").isVisible());
 await page.reload({ waitUntil: "load" });
 await waitForApp();
-check("the settings toolbar opens closed, whatever it was left as", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#city-strip").isVisible());
+check("the settings toolbar opens closed, whatever it was left as", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "false" && await page.locator("#supply").isVisible());
 await page.locator("#toolbar-toggle").click();
 // The rail is in every section, so this asks whether the panel is showing at all. Which section
 // it reopens on is the player's last one, which the reload above deliberately restores.
 check("the settings toolbar expands again", (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true" && await page.locator("#toolbar-rail").isVisible());
+check("Settings sections show labels beneath their icons like Actions", await page.evaluate(() =>
+  [...document.querySelectorAll(".rail-btn")].every((button) =>
+    button.textContent.trim() === button.title && getComputedStyle(button).flexDirection === "column" && button.scrollWidth <= button.clientWidth
+  )
+));
 check(
   "the look settings offer the screen-space effects",
   (await page.locator("#fx-antialias").count()) === 1 && (await page.locator("#fx-bloom").count()) === 1 && (await page.locator("#fx-ao").count()) === 1 && (await page.locator("#fx-tilt").count()) === 1,
@@ -694,24 +743,37 @@ await uncapFrames();
 
 check("fps counter is off by default", await page.locator("#fps-counter").isHidden() && !(await page.locator("#show-fps").isChecked()));
 check("time controls are permanent", await page.locator("#time-controls").isVisible() && /Day 1 \d\d:\d\d/.test(await page.locator("#sim-time").textContent()));
-// The status bar took the top centre, so the compass moved to the right edge beside it.
-check("compass remains visible at the top", await page.evaluate(() => {
+check("compass is centred at the top", await page.evaluate(() => {
   const compass = document.getElementById("compass").getBoundingClientRect();
-  return compass.top < 120 && compass.right > window.innerWidth - 40 && compass.width > 0;
+  return compass.top === 12 && Math.abs(compass.left + compass.width / 2 - window.innerWidth / 2) < 1 && compass.width > 0;
 }));
-// The city numbers moved into the status bar on the top edge, so the clock now shares its left
-// column with Supply instead of with them. What still has to hold: the bar owns the top, the
-// wave banner sits under it, and the clock stays on the bottom-left, clear of both.
-// Supply and the clock now share one surface on the bottom left, side by side rather than
-// stacked, so what has to hold is that they are in it together and clear of the bar above.
-check("the status bar owns the top edge and the clock the bottom left", await page.evaluate(() => {
+check("city needs span the panel above the clock at the bottom left", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
-  const bar = document.getElementById("status-bar").getBoundingClientRect();
   const supply = document.getElementById("supply").getBoundingClientRect();
-  const wave = document.getElementById("wave-banner").getBoundingClientRect();
-  return bar.top < 24 && wave.top >= bar.bottom && time.left >= supply.right && time.bottom > bar.bottom;
+  return time.left < 30 && time.top >= supply.bottom && Math.abs(time.width - supply.width) < 1 && time.bottom > window.innerHeight - 40;
 }));
 check("settings menu contains no wave-critical gauges", await page.evaluate(() => !/Needs|Money|Workers|Food|Shortage/.test(document.getElementById("toolbar").textContent)));
+await page.locator("#stats-toggle").click();
+check("Pop, Food and Short use the same Stats rows as Money and Workers", await page.evaluate(() => {
+  const rows = ["population", "food", "shortage", "money", "workers"].map((id) => document.getElementById(id));
+  const money = getComputedStyle(document.getElementById("money"));
+  return rows.every((value) => {
+    const style = getComputedStyle(value);
+    return value.parentElement.classList.contains("stats-summary") && style.font === money.font && style.color === money.color && style.textAlign === "right";
+  });
+}));
+for (const [section, labels, fields] of [
+  ["city", ["People", "Housing", "Housing gap"], ["population", "workers", "unfilled-jobs"]],
+  ["resources", ["Food", "Materials"], ["food", "shortage"]],
+  ["economy", ["Trade"], ["money"]],
+]) {
+  await page.locator(`#stats-${section}`).click();
+  check(`Stats ${section} shows its own ledger rows`, JSON.stringify(await page.locator("#ledger-lines .ledger-row > span").allTextContents()) === JSON.stringify(labels));
+  for (const field of fields) check(`Stats ${section} shows ${field}`, await page.locator(`#${field}`).isVisible());
+  check(`Stats ${section} hides the other summaries`, await page.locator(".stats-summary:visible").count() === 1);
+}
+await page.locator("#stats-city").click();
+await page.locator("#stats-toggle").click();
 check("time controls do not cover the compass", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
   const compass = document.getElementById("compass").getBoundingClientRect();
@@ -860,7 +922,7 @@ await page.locator("#traffic-density").evaluate((input) => {
 await pane("#show-grid");
 await page.locator("#show-grid").check();
 check("the global reference grid can be shown", await worldGridVisible());
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="roads"]')).click();
 check("the road category opens its options", await page.locator("#road-options").isVisible());
 check(
   "zones sits between Roads and Power",
@@ -868,7 +930,7 @@ check(
     "select,roads,zones,power",
   ),
 );
-await page.locator('[data-tool="zones"]').click();
+await (await actionControl('[data-tool="zones"]')).click();
 check("zone mode switches to the Zones view", await page.locator('input[name="select-view"][value="no-buildings"]').isChecked());
 check("zone mode exposes a brush size slider", await page.locator("#zone-radius").isVisible());
 check("zone brush opens at the slider minimum", await page.locator("#zone-radius").evaluate((input) => input.value === input.min));
@@ -878,16 +940,16 @@ check(
   (await page.locator('input[name="zone-kind"]').evaluateAll((inputs) => inputs.map((input) => input.value).join(","))) ===
     "residential,commercial,industrial,agricultural,military,clear",
 );
-await page.locator('[data-tool="roads"]').click();
-await page.locator("#grid-snap").uncheck();
+await (await actionControl('[data-tool="roads"]')).click();
+await (await actionControl("#grid-snap")).uncheck();
 check("grid snapping can be disabled", !(await page.locator("#grid-snap").isChecked()));
-await page.locator("#grid-snap").check();
+await (await actionControl("#grid-snap")).check();
 await setUtilityRules(true);
-await page.locator('[data-tool="power"]').click();
+await (await actionControl('[data-tool="power"]')).click();
 check("power tools are placeable and priced", await page.locator("#utility-options").isVisible() && /\$\d/.test(await page.locator("#utility-price").textContent()));
-await page.locator('input[name="utility-role"][value="diffuser"]').check();
+await (await actionControl('input[name="utility-role"][value="diffuser"]')).check();
 check("a diffuser shows its own price and staffing", /staff/.test(await page.locator("#utility-price").textContent()));
-await page.locator('[data-tool="select"]').click();
+await (await actionControl('[data-tool="select"]')).click();
 
 const afternoonSun = await sunState();
 const afternoonSky = await skyState();
@@ -979,17 +1041,20 @@ await page.locator("#sun-hour").evaluate((input) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
-// The open settings menu covers the scene, so a terrain click folds it away like a player would
-// -- then puts it back, since most of what follows a click is another settings control. A check
+// Open panels cover the scene, so a terrain click folds them away like a player would
+// -- then puts them back, since most of what follows a click is another control. A check
 // that hovers over the scene where the menu sits uses `hoverScene`, which folds it again.
 const click = async (x, y) => {
   const wasOpen = (await page.locator("#toolbar-toggle").getAttribute("aria-expanded")) === "true";
+  const actionsOpen = (await page.locator("#action-toggle").getAttribute("aria-expanded")) === "true";
   await setSettingsOpen(false);
+  if (actionsOpen) await page.locator("#action-toggle").click();
   await page.mouse.move(x, y);
   await nextFrame();
   await page.mouse.click(x, y);
   await nextFrame();
   if (wasOpen) await setSettingsOpen(true);
+  if (actionsOpen) await page.locator("#action-toggle").click();
 };
 /** Move the pointer over the scene, with the settings menu out of the way. */
 const hoverScene = async (x, y) => {
@@ -1003,9 +1068,9 @@ check("select mode leaves left-click to the camera", (await stats()).segments ==
 const oceanBefore = await oceanSampleY();
 await realTime(250);
 check("the ocean surface is animated", Math.abs((await oceanSampleY()) - oceanBefore) > 0.01);
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="roads"]')).click();
 check("road tools show the metre price", /\$\d+\/m/.test(await page.locator("#road-price").textContent()));
-await page.locator('input[name="road-shape"][value="curve"]').check();
+await (await actionControl('input[name="road-shape"][value="curve"]')).check();
 playBaseline = await stats();
 
 await page.mouse.click(360, 360, { button: "right" });
@@ -1089,7 +1154,7 @@ await page.evaluate(() => window.cityjump.camera(520, Math.PI / 3.4));
 await nextFrame();
 const cityHud = await cityHudText();
 check(
-  "the city strip shows population, money, workers, food and one shortage",
+  "the HUD updates population, money, workers, food and one shortage",
   /^\d/.test(cityHud.population) &&
     /\$\d/.test(cityHud.money) &&
     /\d+\/\d+/.test(cityHud.workers) &&
@@ -1097,11 +1162,11 @@ check(
     cityHud.shortage.length > 0,
   JSON.stringify(cityHud),
 );
-await page.locator("#city-strip").click();
-check("clicking the city strip opens the resource ledger", await page.locator("#ledger").isVisible() && /People|Food/.test(await page.locator("#ledger-lines").textContent()));
+await page.locator("#stats-toggle").click();
+check("opening Stats shows the selected city section", await page.locator("#city-strip").isVisible() && /People|Housing|Food|Materials|Trade/.test(await page.locator("#ledger-lines").textContent()));
 const ledgerNeeds = await page.locator("#needs-panel").textContent();
-check("the ledger carries the detailed city gauges", ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => ledgerNeeds.includes(label)));
-await page.locator("#city-strip").click();
+check("the bottom panel keeps the detailed city gauges", ["Workers", "Commerce", "Farming", "Industry", "Military"].every((label) => ledgerNeeds.includes(label)));
+await page.locator("#stats-toggle").click();
 check("roads grow streetlights", drawn.streetlights > 0, `${drawn.streetlights} streetlights`);
 check("streetlights are real downward lights", (await realStreetlightCount()) > 0);
 check("streetlights use clustered lighting", await clusteredStreetlights());
@@ -1209,13 +1274,13 @@ const utilityDiffuserPoint = await screenPoint(`(() => {
 await pane("#save-slot");
 await page.locator("#save-slot").blur();
 const utilitiesBefore = (await stats()).utilities;
-await page.locator('[data-tool="water"]').click();
-await page.locator('input[name="utility-role"][value="producer"]').check();
+await (await actionControl('[data-tool="water"]')).click();
+await (await actionControl('input[name="utility-role"][value="producer"]')).check();
 await click(utilityProducerPoint.x, utilityProducerPoint.y);
-await page.locator('input[name="utility-role"][value="diffuser"]').check();
+await (await actionControl('input[name="utility-role"][value="diffuser"]')).check();
 await click(utilityDiffuserPoint.x, utilityDiffuserPoint.y);
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="utilities"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="utilities"]')).check();
 const utilitiesView = await utilityOverlayState();
 // The starter kit now opens a run with power and water already running, so count what this check
 // placed rather than what the city holds: a city that begins with none cannot feed itself.
@@ -1237,7 +1302,7 @@ await nextFrame();
 await page.evaluate(() => window.cityjump.growCity(2000, 200));
 await nextFrame();
 const unzonedModels = await buildingModelCounts();
-await page.locator('[data-tool="zones"]').click();
+await (await actionControl('[data-tool="zones"]')).click();
 const zoneToolBox = await page.locator("#zone-tool-options").boundingBox();
 const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
 // The dock is one row now, so these sit side by side rather than stacked: what matters is that
@@ -1246,12 +1311,12 @@ const zoneOptionsBox = await page.locator("#zone-options").boundingBox();
 // row: what matters is that both are on screen and the tool choice sits under its settings.
 check("zoning options and tool choice are both in the dock", zoneToolBox && zoneOptionsBox && zoneToolBox.y >= zoneOptionsBox.y && await page.locator("#zone-tool-options .segmented[role='group']").isVisible());
 check("zoning fill is the default tool", await page.locator('input[name="zone-tool"][value="fill"]').isChecked());
-await page.locator('input[name="zone-tool"][value="brush"]').check();
+await (await actionControl('input[name="zone-tool"][value="brush"]')).check();
 await page.locator("#zone-radius").evaluate((input) => {
   input.value = "56";
   input.dispatchEvent(new Event("input", { bubbles: true }));
 });
-await page.locator('input[name="zone-kind"][value="commercial"]').check();
+await (await actionControl('input[name="zone-kind"][value="commercial"]')).check();
 await setSettingsOpen(false);
 // Paint first with the clock stopped. A pause stops the city, not only its clock: the paint is a
 // plan, nothing goes up on it and nothing is charged for it until the player presses play.
@@ -1289,8 +1354,8 @@ check(
     afterPausedPaint.money === beforePausedPaint.money,
   JSON.stringify({ zones: [beforePausedPaint.zones, afterPausedPaint.zones], money: [beforePausedPaint.money, afterPausedPaint.money] }),
 );
-await page.locator('input[name="zone-tool"][value="fill"]').check();
-await page.locator('input[name="zone-kind"][value="residential"]').check();
+await (await actionControl('input[name="zone-tool"][value="fill"]')).check();
+await (await actionControl('input[name="zone-kind"][value="residential"]')).check();
 const beforeFill = await stats();
 const beforeFillKinds = await page.evaluate(() => ({
   commercial: window.cityjump.zonePoints("commercial").length,
@@ -1331,12 +1396,12 @@ const risingDecor = await decorInstances();
 await page.evaluate(() => window.cityjump.measureBuildingStateChange());
 await nextFrame();
 check("a building wears its decorations only once it is finished", (await decorInstances()) > risingDecor, `${risingDecor} while rising, ${await decorInstances()} once finished`);
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="no-buildings"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="no-buildings"]')).check();
 check("the Zones view shows the player's zones", await zonesOverlayVisible());
 check("the buildable grid stays readable under zones", await buildableGridVisible());
-await page.locator('[data-tool="zones"]').click();
-await page.locator('input[name="zone-kind"][value="clear"]').check();
+await (await actionControl('[data-tool="zones"]')).click();
+await (await actionControl('input[name="zone-kind"][value="clear"]')).check();
 const cameraBeforeClear = await drawCameraTarget();
 await setCameraTarget({ ...cameraBeforeClear, x: paintedZoneGroundPoint.x, z: paintedZoneGroundPoint.z });
 const clearZonePoint = await visibleZonePoint("commercial");
@@ -1351,9 +1416,9 @@ const clearedZones = (await stats()).zones;
 check("a zone can be cleared from the toolbar", clearedZones < zoned.zones, `${clearedZones} cells`);
 check("clearing a zone takes back what it built", clearedZones < zoned.zones);
 await page.evaluate(() => window.cityjump.setPaused(true));
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="all"]').check();
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="all"]')).check();
+await (await actionControl('[data-tool="roads"]')).click();
 check("roads spawn test traffic", drawn.cars > 0, `${drawn.cars} cars`);
 await pane("#traffic-density");
 await page.locator("#traffic-density").evaluate((input) => {
@@ -1415,19 +1480,19 @@ await page.waitForFunction(
   stillTraffic,
   { timeout: 5_000 },
 );
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="traffic"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="traffic"]')).check();
 await nextFrame();
 const trafficView = await trafficOverlayCounts();
 check("the Traffic view draws lane overlays", trafficView.lanes > 0, JSON.stringify(trafficView));
-await page.locator('input[name="select-view"][value="all"]').check();
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('input[name="select-view"][value="all"]')).check();
+await (await actionControl('[data-tool="roads"]')).click();
 const gridCells = await buildableGridCells();
 check("the buildable grid is drawn along the roads", gridCells > 0 && gridCells <= (await stats()).segments * 400, `${gridCells} cells`);
 check("the buildable grid is visible while drawing roads", await buildableGridVisible());
-await page.locator('[data-tool="select"]').click();
+await (await actionControl('[data-tool="select"]')).click();
 check("view mode hides the buildable grid", !(await buildableGridVisible()));
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="roads"]')).click();
 check("road mode restores the buildable grid", await buildableGridVisible());
 const shadows = await shadowState();
 check("buildings cast shadows onto the ground", shadows.groundReceives && shadows.casters >= drawn.models, `${JSON.stringify(shadows)}`);
@@ -1467,16 +1532,16 @@ await page.evaluate((mid) => {
 }, roadMidpoint);
 const branched = await stats();
 check("a road drawn onto another splits it into a junction", branched.junctions >= 1, `${branched.junctions} junctions`);
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="traffic"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="traffic"]')).check();
 await nextFrame();
 const trafficJunctionView = await trafficOverlayCounts();
 check("the Traffic view draws junction overlays", trafficJunctionView.turns > 0, JSON.stringify(trafficJunctionView));
-await page.locator('input[name="select-view"][value="all"]').check();
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('input[name="select-view"][value="all"]')).check();
+await (await actionControl('[data-tool="roads"]')).click();
 
-await page.locator('input[name="road-shape"][value="straight"]').check();
-await page.locator('input[name="road-type"][value="avenue"]').check();
+await (await actionControl('input[name="road-shape"][value="straight"]')).check();
+await (await actionControl('input[name="road-type"][value="avenue"]')).check();
 await click(760, 500);
 await click(850, 430);
 const straight = await stats();
@@ -1529,7 +1594,7 @@ check(
   }),
 );
 const beforeTunnel = await stats();
-await page.locator('input[name="road-type"][value="tunnel"]').check();
+await (await actionControl('input[name="road-type"][value="tunnel"]')).check();
 await page.evaluate((mid) => {
   if (!window.cityjump.road(mid.x - 260, mid.z + 320, mid.x - 130, mid.z + 360, mid.x, mid.z + 320, "tunnel")) throw new Error("tunnel refused");
   window.cityjump.rebuild();
@@ -1539,19 +1604,19 @@ check("the road type selector draws tunnels", tunneled.tunnels >= 1, `${tunneled
 check("tunnels render an entrance and exit", (await tunnelPortalCount()) >= 2);
 check("tunnels do not grow surface buildings", tunneled.buildings === beforeTunnel.buildings, `${tunneled.buildings} vs ${beforeTunnel.buildings}`);
 check("tunnels carry vehicle traffic", tunneled.cars > beforeTunnel.cars, `${tunneled.cars} vs ${beforeTunnel.cars}`);
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="traffic"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="traffic"]')).check();
 await nextFrame();
 const tunnelTrafficView = await page.evaluate(() => {
   const tunnel = window.cityjump._graph.allSegments().find((segment) => segment.type.startsWith("tunnel"));
   return tunnel ? window.cityjump._scene.meshes.filter((mesh) => mesh.name.startsWith(`traffic_lane_${tunnel.id}_`) && mesh.isEnabled()).length : 0;
 });
 check("the Traffic view draws tunnel lane overlays", tunnelTrafficView > 0, `${tunnelTrafficView} tunnel lanes`);
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="roads"]')).click();
 
 // A pedestrian path carries people on foot and no cars at all. Drawn away from the other roads:
 // a path that ends on one splits it, and the halves bring their own cars to the count.
-await page.locator('input[name="road-type"][value="pedestrian"]').check();
+await (await actionControl('input[name="road-type"][value="pedestrian"]')).check();
 await page.evaluate((mid) => {
   if (!window.cityjump.road(mid.x + 420, mid.z + 240, mid.x + 540, mid.z + 300, mid.x + 660, mid.z + 240, "pedestrian")) throw new Error("pedestrian path refused");
   window.cityjump.rebuild();
@@ -1684,11 +1749,11 @@ check(
   }),
 );
 
-await page.locator('input[name="road-type"][value="street"]').check();
-await page.locator('input[name="road-shape"][value="curve"]').check();
+await (await actionControl('input[name="road-type"][value="street"]')).check();
+await (await actionControl('input[name="road-shape"][value="curve"]')).check();
 
 // A roundabout sits on a node and pulls every road back to its ring.
-await page.locator('input[name="road-shape"][value="roundabout"]').check();
+await (await actionControl('input[name="road-shape"][value="roundabout"]')).check();
 await nextFrame();
 check("the buildable grid stays visible in roundabout mode", await buildableGridVisible());
 // Nodes are not meshes, so project the junction's world position to a screen point to click it.
@@ -1743,8 +1808,8 @@ await page.waitForFunction(() => {
 await reloadApp();
 check("a roundabout survives a reload", (await stats()).roundabouts === 1, `${(await stats()).roundabouts}`);
 await setCameraTarget(cameraBeforeRoundabout);
-await page.locator('[data-tool="roads"]').click();
-await page.locator('input[name="road-shape"][value="straight"]').check();
+await (await actionControl('[data-tool="roads"]')).click();
+await (await actionControl('input[name="road-shape"][value="straight"]')).check();
 await nextFrame();
 
 // Left-drag also orbits the camera, so a drag in a build mode must not be taken for a click.
@@ -1812,7 +1877,7 @@ const closeScreenGrid = () => {
   return offsets;
 };
 
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 await nextFrame();
 // A tree standing on a road: the tree is what the pointer is on, so the tree is what goes.
 // Try visible road points under the current camera and keep the one the pointer path actually plants.
@@ -1820,8 +1885,8 @@ const cameraBeforeTree = await drawCameraTarget();
 let roadPlantCandidates = await visibleRoadPoints();
 if (roadPlantCandidates.length === 0) roadPlantCandidates = await focusVisibleRoadPoints();
 if (roadPlantCandidates.length === 0) throw new Error("no visible road to plant over");
-await page.locator('[data-tool="nature"]').click();
-await page.locator('input[name="plant-mode"][value="plant"]').check();
+await (await actionControl('[data-tool="nature"]')).click();
+await (await actionControl('input[name="plant-mode"][value="plant"]')).check();
 await nextFrame();
 const beforePlant = await stats();
 let overRoad = null;
@@ -1836,7 +1901,7 @@ for (const candidate of roadPlantCandidates) {
 check("a tree can be planted over a road", overRoad !== null);
 if (!overRoad) throw new Error("no visible road point accepted a tree");
 
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 await nextFrame();
 await page.mouse.move(20, 20);
 await nextFrame();
@@ -1873,7 +1938,7 @@ await setCameraTarget(cameraBeforeTree);
 // Selecting a road shows it in the panel and picks up its type like an eyedropper -- and
 // neither one cancels the other, which a prior regression did (setRoadType's own reset used to
 // clear the very selection that triggered it).
-await page.locator('[data-tool="select"]').click();
+await (await actionControl('[data-tool="select"]')).click();
 await nextFrame();
 let roadSelectCandidates = await visibleRoadPoints();
 if (roadSelectCandidates.length === 0) roadSelectCandidates = await focusVisibleRoadPoints();
@@ -1933,10 +1998,10 @@ check(
 // destroyed is checked on the game's own alert, further up; and which kind needs which supply is
 // `missingUtility`'s own unit test.
 check("a building panel names a reason whenever it is not working", selectedBuilding.rows.State === "Working" || Boolean(selectedBuilding.rows.Reason), JSON.stringify(selectedBuilding.rows));
-await page.locator('input[name="select-view"][value="state"]').check();
+await (await actionControl('input[name="select-view"][value="state"]')).check();
 check("the State view keeps buildings visible for status colours", (await stats()).buildings > 0);
 await setUtilityRules(false);
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 const beforeBuildingBulldoze = await stats();
 await click(buildingPoint.x, buildingPoint.y);
 await page.waitForFunction((before) => {
@@ -1945,8 +2010,8 @@ await page.waitForFunction((before) => {
 }, beforeBuildingBulldoze, { timeout: 500 });
 const afterBuildingBulldoze = await stats();
 check("bulldozing a building is immediate and refunds half", afterBuildingBulldoze.buildings === beforeBuildingBulldoze.buildings - 1 && afterBuildingBulldoze.money > beforeBuildingBulldoze.money);
-await page.locator('[data-tool="select"]').click();
-await page.locator('input[name="select-view"][value="traffic"]').check();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('input[name="select-view"][value="traffic"]')).check();
 await page.evaluate(() => window.cityjump.setPaused(true));
 check("there is a vehicle to select", await page.evaluate(() => window.cityjump.selectVehicle()));
 const selectedVehicle = await page.evaluate(() => ({
@@ -1968,7 +2033,7 @@ await page.waitForFunction(
 );
 check("selected car street updates when it changes", true);
 await page.evaluate(() => window.cityjump.setPaused(false));
-await page.locator('input[name="select-view"][value="all"]').check();
+await (await actionControl('input[name="select-view"][value="all"]')).check();
 await setSettingsOpen(true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
 await pane('input[name="camera-mode"]');
@@ -2005,7 +2070,7 @@ await page.evaluate((state) => {
   camera.radius = state.radius;
 }, cameraBeforeOrbit);
 // Back to bulldoze mode: everything from here on still expects that, same as before this check.
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 await setSettingsOpen(false);
 await nextFrame();
 
@@ -2038,7 +2103,7 @@ check(
   `${afterRing.roundabouts} roundabouts, ${afterRing.segments}/${beforeRing.segments} segments`,
 );
 await setCameraTarget(cameraBeforeRing);
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="roads"]')).click();
 await nextFrame();
 
 // A road shorter than the minimum has to be refused, with a reason the player can read.
@@ -2049,8 +2114,8 @@ await click(206, 604);
 const refusedText = await toast();
 check("a refused road says why", refusedText.length > 0, JSON.stringify(refusedText));
 check("a refused road is not added", (await stats()).segments === beforeRefusedRoad.segments);
-await page.locator('[data-tool="select"]').click();
-await page.locator('[data-tool="roads"]').click();
+await (await actionControl('[data-tool="select"]')).click();
+await (await actionControl('[data-tool="roads"]')).click();
 await page.evaluate(() => window.cityjump.setMoney(0));
 const beforeDebtRoad = await stats();
 await click(300, 340);
@@ -2059,7 +2124,7 @@ await click(700, 360);
 const debtRoad = await stats();
 check("a road spend the treasury cannot cover does not treasury-refuse", !/treasury/.test(await toast()) && debtRoad.money < beforeDebtRoad.money, JSON.stringify(debtRoad));
 
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 await page.mouse.move(20, 20);
 await nextFrame();
 let roadBulldozeCandidates = await visibleRoadPoints();
@@ -2198,7 +2263,7 @@ check(
 // Nature tool: plant, spray, and clear with the bulldozer.
 await page.evaluate(() => { window.cityjump.reset(); window.cityjump.camera(600, Math.PI / 4, -Math.PI / 2); });
 await nextFrame();
-await page.locator('[data-tool="nature"]').click();
+await (await actionControl('[data-tool="nature"]')).click();
 check("the nature tool shows its planting options", !(await page.locator("#nature-options").isHidden()));
 check("the nature tool hides the road options", await page.locator("#road-options").isHidden());
 
@@ -2220,7 +2285,7 @@ const speciesCounts = () =>
   );
 const beforeSpecies = await speciesCounts();
 for (const [index, species] of ["oak", "apple", "palm"].entries()) {
-  await page.locator("#tree-species").selectOption(species);
+  await (await actionControl("#tree-species")).selectOption(species);
   await nextFrame();
   await click(560 + index * 90, 350);
 }
@@ -2230,11 +2295,11 @@ check(
   ["oak", "apple", "palm"].every((id) => afterSpecies[id] === beforeSpecies[id] + 1),
   JSON.stringify(afterSpecies),
 );
-await page.locator("#tree-species").selectOption("fir");
+await (await actionControl("#tree-species")).selectOption("fir");
 await nextFrame();
 const beforeSprayDrag = await treeCount();
 
-await page.locator('input[name="plant-mode"][value="spray"]').check();
+await (await actionControl('input[name="plant-mode"][value="spray"]')).check();
 check("spray mode exposes a brush size slider", await page.locator("#spray-radius").isVisible());
 await page.locator("#spray-radius").evaluate((input) => {
   input.value = "88";
@@ -2276,7 +2341,7 @@ await click(500, 430);
 const sprayed = await treeCount();
 check("a spray click scatters trees across the brush", sprayed > beforeSprayDrag, `${beforeSprayDrag} -> ${sprayed}`);
 
-await page.locator('[data-tool="bulldoze"]').click();
+await (await actionControl('[data-tool="bulldoze"]')).click();
 await nextFrame();
 check(
   "the brush ring is hidden outside spray mode",
@@ -2287,7 +2352,7 @@ await nextFrame();
 await click(500, 350);
 const cleared = await treeCount();
 check("the bulldozer clears a tree where there is no road", cleared === sprayed - 1, `${sprayed} -> ${cleared}`);
-await page.locator('[data-tool="select"]').click();
+await (await actionControl('[data-tool="select"]')).click();
 await nextFrame();
 
 await page.evaluate(() => window.cityjump.demoNetwork());

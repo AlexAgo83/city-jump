@@ -15,7 +15,6 @@ const workersText = document.getElementById("workers") as HTMLDivElement;
 const foodText = document.getElementById("food") as HTMLDivElement;
 const shortageText = document.getElementById("shortage") as HTMLDivElement;
 const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
-const cityStrip = document.getElementById("city-strip") as HTMLButtonElement;
 const ledger = document.getElementById("ledger") as HTMLDivElement;
 const ledgerLines = document.getElementById("ledger-lines") as HTMLDivElement;
 const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
@@ -23,13 +22,10 @@ const runWave = document.getElementById("run-wave") as HTMLSpanElement;
 const runScience = document.getElementById("run-science") as HTMLSpanElement;
 const profilePrestige = document.getElementById("profile-prestige") as HTMLSpanElement;
 
-cityStrip.addEventListener("click", () => {
-  ledger.hidden = !ledger.hidden;
-  cityStrip.setAttribute("aria-expanded", String(!ledger.hidden));
-  // Nothing was built while it was collapsed, so it is filled in on the way open rather than on
-  // the next gameplay frame: opening it must show the figures, not an empty panel for a frame.
+// Refresh when the menu opens, even while the simulation is paused.
+export function refreshLedger(): void {
   renderLedger(lastLedger.terms, lastLedger.resources);
-});
+}
 
 let lastLedger: { terms?: CityTerms; resources?: CityResources } = {};
 
@@ -66,6 +62,7 @@ export function showCityStats(population: number, needs: readonly BuildingNeed[]
   populationText.textContent = compact(Math.round(population));
   const workers = needs.find((need) => need.kind === "residential");
   workersText.textContent = workers ? `${workers.supply}/${workers.need}` : "0/0";
+  document.getElementById("unfilled-jobs")!.textContent = compact(Math.max(0, (workers?.need ?? 0) - (workers?.supply ?? 0)));
   foodText.textContent = compact(Math.floor(resources?.food ?? 0));
   shortageText.textContent = shortage(needs);
   lastLedger = { terms, resources };
@@ -120,7 +117,7 @@ function renderLedger(terms?: CityTerms, resources?: CityResources): void {
     ledgerShown = null;
     return;
   }
-  const rows = ledgerRows(terms, resources);
+  const rows = ledgerRows(terms, resources).filter((row) => row.section === (ledger.dataset.section ?? "city"));
   const shown = rows.map((row) => `${row.label}|${row.value}|${row.inflow}|${row.outflow}|${row.short === true}`).join("\n");
   if (shown === ledgerShown) return;
   ledgerShown = shown;

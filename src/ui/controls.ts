@@ -15,7 +15,7 @@ import {
   type UiSettings,
 } from "./saves";
 import type { BuildingDetail } from "../render/buildings";
-import { showRefusal } from "./hud";
+import { refreshLedger, showRefusal } from "./hud";
 
 // ponytail: module-size is one static settings panel wired to DOM ids in index.html; split when a
 // sub-panel has an independent state model instead of forwarding handlers.
@@ -64,24 +64,34 @@ export function bindControls(handlers: {
     disposers.push(() => target.removeEventListener(type, listener));
   };
   const toolbar = document.getElementById("toolbar")!;
-  const toolbarContent = document.getElementById("toolbar-content")!;
-  const toolbarToggle = document.getElementById("toolbar-toggle") as HTMLButtonElement;
-  const setToolbarOpen = (open: boolean): void => {
-    toolbarToggle.setAttribute("aria-expanded", String(open));
-    toolbarToggle.title = open ? "Collapse settings" : "Expand settings";
-    toolbar.classList.toggle("collapsed", !open);
-    toolbarContent.hidden = false;
+  const menus = [
+    { panel: toolbar, toggle: document.getElementById("toolbar-toggle")!, name: "settings" },
+    { panel: document.getElementById("action-dock")!, toggle: document.getElementById("action-toggle")!, name: "actions" },
+    { panel: document.getElementById("ledger")!, toggle: document.getElementById("stats-toggle")!, name: "stats" },
+    { panel: document.getElementById("kaiju-panel")!, toggle: document.getElementById("kaiju-toggle")!, name: "kaiju" },
+  ];
+  const setMenuOpen = (name: string | null): void => {
+    for (const menu of menus) {
+      const open = menu.name === name;
+      menu.panel.hidden = !open;
+      menu.panel.classList.toggle("collapsed", !open);
+      menu.toggle.setAttribute("aria-expanded", String(open));
+      menu.toggle.title = `${open ? "Collapse" : "Expand"} ${menu.name}`;
+    }
+    refreshLedger();
   };
-  on(toolbarToggle, "click", () => {
-    setToolbarOpen(toolbarToggle.getAttribute("aria-expanded") !== "true");
-    persistSettings();
-  });
+  const setToolbarOpen = (open: boolean): void => setMenuOpen(open ? "settings" : null);
+  for (const menu of menus)
+    on(menu.toggle, "click", () => {
+      setMenuOpen(menu.toggle.getAttribute("aria-expanded") === "true" ? null : menu.name);
+      persistSettings();
+    });
 
   /**
    * The section rail. One pane is shown at a time, which is what keeps the panel 300px wide
    * instead of 591 -- the settings did not shrink, they stopped being on screen all at once.
    */
-  const railButtons = [...document.querySelectorAll<HTMLButtonElement>(".rail-btn")];
+  const railButtons = [...document.querySelectorAll<HTMLButtonElement>("#toolbar .rail-btn")];
   const paneName = document.getElementById("pane-name")!;
   const paneHint = document.getElementById("pane-hint")!;
   const showPane = (pane: string): void => {
@@ -98,6 +108,17 @@ export function bindControls(handlers: {
     on(button, "click", () => {
       showPane(button.dataset.pane!);
       persistSettings();
+    });
+
+  const statsTabs = [...document.querySelectorAll<HTMLButtonElement>("#stats-rail button")];
+  for (const tab of statsTabs)
+    on(tab, "click", () => {
+      document.getElementById("ledger")!.dataset.section = tab.dataset.section;
+      document.getElementById("stats-head")!.textContent = tab.title;
+      document.getElementById("stats-content")!.setAttribute("aria-labelledby", tab.id);
+      for (const candidate of statsTabs) candidate.setAttribute("aria-selected", String(candidate === tab));
+      for (const summary of document.querySelectorAll<HTMLElement>(".stats-summary")) summary.hidden = summary.dataset.section !== tab.dataset.section;
+      refreshLedger();
     });
 
   const selectViewOptions = document.getElementById("select-view-options")!;
@@ -141,6 +162,8 @@ export function bindControls(handlers: {
       if (button.disabled) return;
       for (const candidate of toolButtons) candidate.setAttribute("aria-pressed", String(candidate === button));
       const tool = button.dataset.tool;
+      document.getElementById("action-head")!.textContent = button.textContent;
+      document.getElementById("action-toggle")!.replaceChildren(button.querySelector("svg")!.cloneNode(true));
       selectViewOptions.hidden = tool !== "select";
       roadTypeOptions.hidden = tool !== "roads";
       roadOptions.hidden = tool !== "roads";

@@ -74,6 +74,7 @@ try {
 	};
 	await snap("baseline");
 	for (let i = 0; i < 5; i++) {
+		if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 		await page.locator('[data-tool="roads"]').click();
 		const before = await page.evaluate(() => window.cityjump.stats().segments);
 		for (const pair of [
@@ -101,6 +102,7 @@ try {
 				break;
 		}
 		const after = await page.evaluate(() => window.cityjump.stats().segments);
+		if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 		await page.locator('[data-tool="bulldoze"]').click();
 		await page.mouse.click(720, 350);
 		await page.waitForTimeout(600);
@@ -118,6 +120,7 @@ try {
 		report.edits.every((e) => e.after > e.before),
 		"Actual roads must have been added",
 	);
+	if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 	await page.locator('[data-tool="select"]').click();
 	await page.evaluate(() => {
 		window.soak = { saves: 0 };

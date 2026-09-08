@@ -122,6 +122,7 @@ if (drift.length > 0) {
 
 for (const shot of shots) {
   await openToolbar(true);
+  if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
   await page.locator(`[data-tool="${shot.tool}"]`).click();
   if (shot.view) await page.locator(`input[name="select-view"][value="${shot.view}"]`).check();
   // The toolbar is chrome, not city: every previous capture was taken with it shut.

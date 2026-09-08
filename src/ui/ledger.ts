@@ -3,6 +3,7 @@ import type { CityResources, CityTerms } from "../sim/economy";
 /** One resource, read as a balance sheet: what there is, what comes in, what goes out. */
 export interface LedgerRow {
   readonly label: string;
+  readonly section: "city" | "resources" | "economy";
   readonly value: string;
   readonly inflow: string;
   readonly outflow: string;
@@ -22,22 +23,23 @@ export function ledgerRows(terms?: CityTerms, resources?: CityResources): Ledger
   if (!terms) {
     if (!resources) return [];
     return [
-      { label: "People", value: round(resources.population), inflow: "--", outflow: "--", short: false },
-      { label: "Food", value: round(resources.food), inflow: "--", outflow: "--", short: false },
-      { label: "Materials", value: round(resources.materials), inflow: "--", outflow: "--", short: false },
+      { label: "People", section: "city", value: round(resources.population), inflow: "--", outflow: "--", short: false },
+      { label: "Food", section: "resources", value: round(resources.food), inflow: "--", outflow: "--", short: false },
+      { label: "Materials", section: "resources", value: round(resources.materials), inflow: "--", outflow: "--", short: false },
     ];
   }
   return [
     {
-      label: "People",
+      label: "People", section: "city",
       value: round(terms.population.value),
       inflow: flow(Math.max(0, terms.population.change), "+"),
       outflow: flow(Math.max(0, -terms.population.change), "-"),
       short: terms.population.change < 0,
     },
-    { label: "Housing", value: round(terms.population.housing), inflow: "--", outflow: "--", short: terms.population.housing < terms.population.value },
-    { label: "Food", value: round(terms.food.value), inflow: flow(terms.food.produced, "+"), outflow: flow(terms.food.consumed, "-"), short: terms.population.foodShortage > 0 },
-    { label: "Materials", value: round(terms.materials.value), inflow: flow(terms.materials.produced, "+"), outflow: flow(terms.materials.consumed, "-"), short: terms.materials.shortage > 0 },
-    { label: "Trade", value: `$${round(terms.trade)}/s`, inflow: "--", outflow: "--", short: false },
+    { label: "Housing", section: "city", value: round(terms.population.housing), inflow: "--", outflow: "--", short: terms.population.housing < terms.population.value },
+    { label: "Housing gap", section: "city", value: round(Math.max(0, terms.population.value - terms.population.housing)), inflow: "--", outflow: "--", short: terms.population.housing < terms.population.value },
+    { label: "Food", section: "resources", value: round(terms.food.value), inflow: flow(terms.food.produced, "+"), outflow: flow(terms.food.consumed, "-"), short: terms.population.foodShortage > 0 },
+    { label: "Materials", section: "resources", value: round(terms.materials.value), inflow: flow(terms.materials.produced, "+"), outflow: flow(terms.materials.consumed, "-"), short: terms.materials.shortage > 0 },
+    { label: "Trade", section: "economy", value: `$${round(terms.trade)}/s`, inflow: "--", outflow: "--", short: false },
   ];
 }

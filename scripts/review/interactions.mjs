@@ -160,6 +160,7 @@ try {
 	await sample("select-pointer", move);
 	await open();
 	await page.evaluate(() => window.cityjump.setTimeRate(1));
+	if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 	await page.locator('[data-tool="roads"]').click();
 	await page.mouse.click(620, 390);
 	await page.mouse.move(720, 390);
@@ -172,6 +173,7 @@ try {
 	await page.keyboard.press("Escape");
 	await open();
 	await page.evaluate(() => window.cityjump.setTimeRate(1));
+	if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 	await page.locator('[data-tool="zones"]').click();
 	await page.locator('input[name="zone-tool"][value="brush"]').check();
 	await page.locator('input[name="zone-kind"][value="commercial"]').check();
@@ -239,6 +241,7 @@ try {
 		if (i === 0 || i === 4 || i === 9) await memory(`load-${i + 1}`);
 	}
 	await page.locator("#toolbar-toggle").click();
+	if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 	await page.locator('[data-tool="roads"]').click();
 	const before = await page.evaluate(() => window.cityjump.stats().segments);
 	for (const pair of [
@@ -266,6 +269,7 @@ try {
 			break;
 		}
 	}
+	if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 	await page.locator('[data-tool="bulldoze"]').click();
 	await sample("bulldoze-pointer", move);
 	await sample("bulldoze-clicks", async () => {

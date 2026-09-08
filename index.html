@@ -15,37 +15,35 @@
     padding: 8px 14px; border-radius: 6px; pointer-events: none; opacity: 0;
     transition: opacity .15s;
   }
-  #toolbar {
+  #menus {
     position: fixed; top: 12px; left: 12px; display: flex; align-items: stretch;
-    max-width: calc(100vw - 24px); padding: 0; overflow: hidden;
+    z-index: 2; max-width: calc(100vw - 24px); padding: 0; overflow: hidden;
     color: #e6ebef; background: #171b20e8; border: 1px solid #ffffff1f;
     border-radius: 6px; font: 12px/1.2 ui-sans-serif, system-ui; box-sizing: border-box;
   }
+  #menu-switcher { display: flex; flex-direction: column; border-right: 1px solid #ffffff14; }
+  #toolbar { display: flex; min-width: 0; }
+  #toolbar.collapsed, #action-dock.collapsed { display: none; }
   #toolbar-content { display: flex; min-width: 0; }
   #toolbar-content[hidden] { display: none; }
   /* A fixed rail, so opening a section never reflows the panel or moves the game under it. */
-  #toolbar-rail { display: flex; flex-direction: column; flex: none; border-right: 1px solid #ffffff14; padding: 3px 0; }
-  .rail-btn {
-    display: flex; align-items: center; justify-content: center; position: relative;
-    width: 30px; height: 28px; padding: 0; border: 0; background: transparent;
-    color: #616d77; cursor: pointer;
-  }
-  .rail-btn:hover { color: #e6ebef; background: #ffffff0a; }
-  .rail-btn[aria-selected="true"] { color: #b9dbe7; background: #ffffff0f; }
-  .rail-btn[aria-selected="true"]::before {
+  #toolbar-rail, #stats-rail { display: flex; flex-direction: column; flex: none; border-right: 1px solid #ffffff14; padding: 3px 0; }
+  .rail-btn:hover, .tool-button:hover:not(:disabled) { color: #e6ebef; background: #ffffff0a; }
+  .rail-btn[aria-selected="true"], .tool-button[aria-pressed="true"] { color: #b9dbe7; background: #ffffff0f; }
+  .rail-btn[aria-selected="true"]::before, .tool-button[aria-pressed="true"]::before {
     content: ""; position: absolute; left: 0; top: 5px; bottom: 5px; width: 2px;
     border-radius: 0 2px 2px 0; background: #75b9d1;
   }
-  .rail-btn:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  .rail-btn:focus-visible, .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
   #toolbar-panes { display: flex; flex-direction: column; min-width: 0; width: 260px; }
   /* A short window must still show the whole rail, so a long section scrolls rather than
      pushing the panel down over the tools. */
   .pane { max-height: max(140px, calc(100vh - 470px)); overflow-y: auto; }
-  #pane-head {
+  #pane-head, #action-head, #stats-head, #kaiju-head {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 7px 10px; border-bottom: 1px solid #ffffff14;
   }
-  #pane-name { color: #b9dbe7; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+  #pane-name, #action-head, #stats-head, #kaiju-head { color: #b9dbe7; font: 10px/1.2 ui-sans-serif, system-ui; letter-spacing: .08em; text-transform: uppercase; }
   #pane-hint { color: #7f8b95; font-size: 10px; }
   .pane { padding: 4px 10px 10px; }
   .pane[hidden] { display: none; }
@@ -79,13 +77,13 @@
   .pane input[type="checkbox"]:focus-visible { outline: 2px solid #75b9d1; outline-offset: 2px; }
   .pane label { cursor: pointer; }
   .pane input[type="number"] { width: 62px; }
-  #toolbar-toggle {
-    width: 34px; min-height: 38px; padding: 0; border: 0; border-left: 1px solid #ffffff1f;
+  #toolbar-toggle, #action-toggle, #stats-toggle, #kaiju-toggle {
+    width: 34px; height: 38px; flex: none; padding: 0; border: 0;
     color: #b9c3ca; background: transparent; cursor: pointer;
   }
-  #toolbar-toggle:hover { color: #fff; background: #2b343b; }
-  #toolbar-toggle:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
-  #toolbar.collapsed #toolbar-toggle { border-left: 0; }
+  #toolbar-toggle:hover, #action-toggle:hover, #stats-toggle:hover, #kaiju-toggle:hover { color: #fff; background: #2b343b; }
+  #toolbar-toggle:focus-visible, #action-toggle:focus-visible, #stats-toggle:focus-visible, #kaiju-toggle:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  #menu-switcher button[aria-expanded="true"] { color: #b9dbe7; background: #ffffff0f; }
   #toolbar.collapsed #toolbar-content { display: none; }
   .toolbar-glyph {
     display: inline-grid; gap: 4px; width: 18px; padding: 2px 0;
@@ -98,9 +96,9 @@
   .toolbar-glyph i:nth-child(1) { width: 13px; justify-self: start; }
   .toolbar-glyph i:nth-child(2) { width: 18px; justify-self: center; animation-delay: .15s; }
   .toolbar-glyph i:nth-child(3) { width: 10px; justify-self: end; animation-delay: .3s; }
-  #toolbar.collapsed .toolbar-glyph i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-  #toolbar.collapsed .toolbar-glyph i:nth-child(2) { opacity: 0; transform: scaleX(.2); }
-  #toolbar.collapsed .toolbar-glyph i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  #toolbar-toggle[aria-expanded="false"] .toolbar-glyph i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  #toolbar-toggle[aria-expanded="false"] .toolbar-glyph i:nth-child(2) { opacity: 0; transform: scaleX(.2); }
+  #toolbar-toggle[aria-expanded="false"] .toolbar-glyph i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
   @keyframes toolbar-pulse {
     0%, 100% { filter: brightness(1); }
     50% { filter: brightness(1.45); }
@@ -109,16 +107,16 @@
   /* One surface, not two stacked boxes: the city's health and the clock are read together. */
   #left-stack {
     position: fixed; left: 12px; bottom: 12px; z-index: 2;
-    display: flex; align-items: center; gap: 12px; padding: 8px 12px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 8px 12px;
+    width: 412px;
     max-width: calc(100vw - 24px); box-sizing: border-box;
     background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
     box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
   }
   #time-controls {
-    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-    padding: 0 0 0 12px; width: max-content; box-sizing: border-box;
-    color: #e6ebef; background: transparent; border: 0; border-left: 1px solid #ffffff12;
-    align-self: stretch; justify-content: center;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    padding: 8px 0 0; box-sizing: border-box;
+    color: #e6ebef; background: transparent; border: 0; border-top: 1px solid #ffffff12;
     font: 12px/1.2 ui-sans-serif, system-ui;
   }
   #time-controls button {
@@ -143,66 +141,34 @@
   #toolbar button:not(#toolbar-toggle, .rail-btn):hover { background: #333c45; }
   #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
-  /* One surface: the active tool's options sit beside the tools that own them, not floating above. */
-  /*
-   * The tools take a rail down the left edge instead of the bottom, so the widest thing on screen
-   * stays the city. The active tool's options open beside the rail and hug their content -- a
-   * bottom dock had to be as wide as its widest tool set, empty or not.
-   */
-  /* Anchored just above the city block, so it grows upward and the settings panel grows
-     downward -- they meet in the middle instead of sharing a corner. */
+  /* Both menus share one rail and open into the same surface. */
   #action-dock {
-    position: fixed; left: 12px; bottom: 180px; z-index: 2;
-    display: flex; align-items: flex-start; gap: 6px;
-    max-width: calc(100vw - 24px); box-sizing: border-box;
+    display: grid; grid-template-columns: 44px minmax(0, 260px); min-width: 0;
   }
+  #action-toggle svg { display: block; margin: auto; }
   #action-palette {
-    display: flex; flex-direction: column; gap: 2px; padding: 4px; flex: none;
-    overflow: visible;
-    background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
-    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
+    display: flex; flex-direction: column; padding: 3px 0; flex: none;
+    overflow: hidden;
+    border-right: 1px solid #ffffff14;
   }
-  #tool-options-stack { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  /*
-   * A short window cannot hold a seven-tool column beside a settings panel and the city block.
-   * Below 700px tall the rail lies down on the bottom-right instead, options above it -- the same
-   * shape the console direction used, kept for exactly this case.
-   */
-  /* Narrower than this the panel would sit on the status bar, so it opens below it instead. */
+  #tool-options-stack { display: flex; flex-direction: column; min-width: 0; max-height: max(140px, calc(100vh - 250px)); overflow-y: auto; }
+  /* Leave room for the centred compass above the menus on narrow windows. */
   @media (max-width: 940px) {
-    #toolbar { top: 62px; }
-    #compass { top: 112px; }
+    #menus { top: 62px; }
     .pane { max-height: max(120px, calc(100vh - 520px)); }
   }
-  @media (max-height: 700px) {
-    #action-dock {
-      left: auto; right: 12px; bottom: 12px; flex-direction: column-reverse; align-items: flex-end;
-    }
-    #action-palette { flex-direction: row; }
-    .tool-button { width: 52px; min-height: 40px; font-size: 9.5px; }
-    /* Side by side, not stacked: stacked they grew tall enough to cover the map a player is
-       trying to click on. */
-    #tool-options-stack { flex-direction: row; align-items: flex-end; }
-    .tool-options { max-width: 260px; }
-  }
-  .tool-button {
-    width: 38px; min-height: 34px; padding: 6px 0 5px; border: 0; border-radius: 5px;
+  .rail-btn, .tool-button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    position: relative; width: 44px; min-height: 34px; padding: 3px 0; border: 0;
     color: #8b97a1; background: transparent; cursor: pointer; white-space: nowrap;
     font: 8.5px/1.2 ui-sans-serif, system-ui;
   }
-  .tool-button[aria-pressed="true"] { color: #fff; background: #33505b; }
-  .tool-button:disabled { color: #6f7a82; cursor: not-allowed; }
-  .tool-button:hover { color: #e8edf1; background: #ffffff0d; }
-  .tool-button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
-  /* No width cap here: a capped options group clipped the road-type segmented rather than
-     letting the dock wrap, which is the one thing an options row must never do. */
-  /* A column that is only as wide as what it holds, never a box waiting to be filled. */
+  .rail-btn svg, .tool-button svg, #action-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .tool-button:disabled { opacity: .45; cursor: not-allowed; }
   .tool-options {
     display: flex; flex-direction: column; align-items: stretch; gap: 7px;
-    width: max-content; max-width: 216px; padding: 8px 10px; box-sizing: border-box;
-    font-size: 11px; color: #a6b1ba;
-    background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
-    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
+    min-width: 0; padding: 8px 10px; box-sizing: border-box;
+    font: 11px/1.2 ui-sans-serif, system-ui; color: #e6ebef;
   }
   .tool-options > label { justify-content: space-between; }
   /* Eight road types cannot ride one strip in a 216px column, so inside the options panel a
@@ -280,7 +246,7 @@
   }
   #touch-notice[hidden] { display: none; }
   #compass {
-    position: fixed; top: 12px; right: 12px; left: auto; transform: none;
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 86px; justify-content: center;
     color: #f4fbff; background: #171b20d8; border: 1px solid #ffffff2b;
     border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
@@ -288,13 +254,9 @@
     pointer-events: none;
   }
   #wave-banner {
-    position: fixed; top: 68px; left: 50%; transform: translateX(-50%);
-    max-width: min(360px, calc(100vw - 24px)); box-sizing: border-box;
-    color: #e0d3ad; background: #11151aef; border: 1px solid #ffffff17;
-    border-radius: 6px; box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
+    margin: 10px 10px 0; padding: 7px 10px; border-left: 2px solid #ffffff26;
+    color: #e0d3ad; background: #ffffff05;
     font: 11.5px/1.3 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
-    padding: 7px 12px; text-align: center;
-    pointer-events: none;
   }
   #wave-banner[hidden] { display: none; }
   #wave-banner[data-state="active"] { border-color: #ffcf66aa; color: #ffdf91; }
@@ -319,88 +281,42 @@
     width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent;
     border-bottom: 11px solid #75b9d1; transform-origin: 50% 70%;
   }
-  /* A narrow column: label on the left, value on the right, one line each. It used to be ten
-     columns across, which made a bar as wide as the screen with a hole in the middle of it. */
-  /*
-   * One status bar, centred on the top edge: the numbers a player watches while deciding, in the
-   * order they decide with. Money leads because it gates every action. Each of these used to sit
-   * in its own corner, so reading the city meant reading three corners.
-   */
-  #status-bar {
-    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2;
-    display: flex; align-items: stretch; max-width: calc(100vw - 24px);
-    color: #e8edf1; background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
-    box-shadow: 0 8px 22px #0006, inset 0 1px 0 #ffffff0d;
-    font: 11px/1.25 ui-sans-serif, system-ui; box-sizing: border-box;
-  }
-  #city-strip, #run-panel {
-    display: flex; align-items: baseline; gap: 7px; padding: 6px 12px; white-space: nowrap;
-    color: inherit; background: transparent; border: 0; font: inherit; text-align: left;
-  }
-  /* Each label belongs to the number after it, so the space goes before the label, not between. */
-  #city-strip > span:not(:first-child), #run-panel > span:not(:first-child) { margin-left: 10px; }
-  #run-panel button { margin-left: 11px; align-self: center; }
-  #city-strip { cursor: pointer; }
-  #city-strip:hover { background: #ffffff08; }
-  #city-strip:focus-visible, #run-panel button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
-  #run-panel { border-left: 1px solid #ffffff12; }
-  #status-bar span { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
-  /*
-   * A reduced window drops the numbers that can wait before it drops the ones that cannot:
-   * jobs and science go first, then population. Money and the wave always survive.
-   */
-  @media (max-width: 1340px) {
-    #city-strip #workers, #city-strip #workers ~ span:first-of-type { display: none; }
-    #run-panel #run-science { display: none; }
-    #run-panel > span:nth-of-type(2) { display: none; }
-  }
-  @media (max-width: 1120px) {
-    #city-strip #population, #city-strip > span:first-of-type { display: none; }
-    /* Centred, it would sit on the settings panel the moment that opens. On a narrow window it
-       takes the right edge instead, which nothing else is using up there. */
-    #status-bar { left: auto; right: 12px; transform: none; }
-    #compass { top: 62px; }
-  }
-  #status-bar b {
-    color: #f4fbff; font-weight: 600; font-size: 12px; font-variant-numeric: tabular-nums;
-    letter-spacing: -.01em;
-  }
-  #city-strip b#money { font-size: 14px; }
+  #run-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+  #run-panel > span { grid-column: 1 / -1; display: flex; justify-content: space-between; }
+  #run-panel b { color: #f4fbff; font-variant-numeric: tabular-nums; }
+  #run-panel button:focus-visible { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  .stats-summary { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 10px; }
+  .stats-summary b { text-align: right; color: #f4fbff; font-variant-numeric: tabular-nums; }
   #run-panel button {
     color: #d7dfe6; background: #212830; border: 1px solid #ffffff20; border-radius: 4px;
     padding: 3px 7px; font: inherit; cursor: pointer;
   }
   #run-panel button:hover { background: #2d353d; }
   #run-panel #call-wave { background: #33505b; border-color: #75b9d150; color: #fff; }
-  #ledger {
-    position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-    width: min(340px, calc(100vw - 24px));
-    color: #e6ebef; background: #171b20f2; border: 1px solid #ffffff26; border-radius: 7px;
-    box-shadow: 0 5px 18px #0000004d; font: 11px/1.35 ui-sans-serif, system-ui; padding: 9px;
-    box-sizing: border-box;
+  #ledger, #kaiju-panel {
+    width: 304px; min-width: 0; max-height: calc(100vh - 150px); overflow-y: auto;
+    color: #e6ebef; font: 11px/1.35 ui-sans-serif, system-ui;
   }
-  #ledger[hidden] { display: none; }
+  #ledger { display: flex; }
+  #stats-content { width: 260px; min-width: 0; }
+  .stats-summary[hidden] { display: none; }
+  #ledger[hidden], #kaiju-panel[hidden] { display: none; }
   /* The five needs run across the strip rather than down it: a column of short rows left a hole
      the width of the stats line beside it. */
   /* Five meters instead of nine lines of prose: what is short is read, not parsed. */
-  .supply-top { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
-  .supply-top span { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
-  .supply-top span:nth-of-type(2) { margin-left: 10px; }
-  .supply-top b { color: #f4fbff; font-weight: 600; font-size: 11px; font-variant-numeric: tabular-nums; }
   #supply {
-    display: flex; flex-direction: column; gap: 5px; width: 200px; box-sizing: border-box;
+    display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;
     color: #e8edf1; font: 11px/1.25 ui-sans-serif, system-ui;
   }
-  .supply-label { color: #6b7681; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
-  #needs-panel { display: grid; gap: 7px; }
+  #needs-panel { display: grid; grid-column: 1 / -1; gap: 7px; }
   #ledger-lines {
-    display: grid; gap: 0; color: #c8d2d9; font-variant-numeric: tabular-nums;
+    display: grid; gap: 0; padding: 0 10px 10px; color: #c8d2d9; font-variant-numeric: tabular-nums;
   }
   #ledger-lines[data-empty="true"]::before {
     content: "No city yet."; color: #8fa0aa; padding: 2px 0;
   }
   .ledger-row {
-    display: grid; grid-template-columns: 1fr auto 62px 62px; align-items: baseline; gap: 12px;
+    display: grid; grid-template-columns: 1fr auto 48px 48px; align-items: baseline; gap: 8px;
     padding: 4px 0; border-top: 1px solid #ffffff12;
   }
   .ledger-row:first-child { border-top: 0; }
@@ -425,13 +341,10 @@
   .need-row meter::-webkit-meter-suboptimum-value { background: #d9c48a; border-radius: 1px; }
   .need-row meter::-webkit-meter-even-less-good-value { background: #d98a8a; border-radius: 1px; }
   .need-row b { color: #7d8892; font-weight: 500; font-size: 9.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  /* Every click inside the strip belongs to the strip: a <meter> swallowed some of them, so
-     opening the ledger worked or did not depending on the pixel. */
-  #city-strip * { pointer-events: none; }
   @media (max-width: 680px) {
     #toolbar { max-width: calc(100vw - 24px); }
     #sun-hour { width: 72px; }
-    .tool-button { min-width: 70px; padding-inline: 8px; }
+    .tool-button { min-width: 40px; }
   }
 </style>
 <canvas id="app"></canvas>
@@ -441,27 +354,8 @@
     <span class="compass-direction">N</span>
   </div>
 </div>
-<div id="wave-banner" hidden></div>
-<div id="status-bar">
-<button id="city-strip" type="button" aria-expanded="false" aria-controls="ledger">
-  <span>Pop</span><b id="population">0 residents</b>
-  <span>Money</span><b id="money">$40,000 +$0.0/s</b>
-  <span>Workers</span><b id="workers">0/0</b>
-</button>
-<div id="run-panel" aria-label="Run status">
-      <span>Wave <b id="run-wave">1</b></span>
-      <span>Science <b id="run-science">0</b></span>
-      <button id="call-wave" type="button">Call wave</button>
-      <button id="evacuate-run" type="button">Evacuate</button>
-    </div>
-  <div id="ledger" hidden>
-    <div id="ledger-lines"></div>
-  </div>
-</div>
 <div id="left-stack">
 <div id="supply" aria-label="City needs">
-  <span class="supply-label">Supply</span>
-  <div class="supply-top"><span>Food</span><b id="food">0</b><span>Short</span><b id="shortage">None</b></div>
   <span id="needs-panel"></span>
 </div>
 <div id="time-controls" aria-label="Simulation time">
@@ -474,15 +368,24 @@
   <output id="sim-time">Day 1 18:30</output>
 </div>
 </div>
+<div id="menus">
+  <div id="menu-switcher" role="group" aria-label="Menus">
+  <button id="toolbar-toggle" type="button" aria-expanded="false" aria-controls="toolbar-content" title="Settings">
+    <span class="toolbar-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+  </button>
+  <button id="action-toggle" type="button" aria-label="Actions" title="Expand actions" aria-expanded="false" aria-controls="action-dock"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7Z"/></svg></button>
+  <button id="stats-toggle" type="button" aria-label="Stats" title="Expand stats" aria-expanded="false" aria-controls="ledger"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10h4v10m2 0V4h4v16m2 0v-7h4v7M2 20h20"/></svg></button>
+  <button id="kaiju-toggle" type="button" aria-label="Kaiju" title="Expand kaiju" aria-expanded="false" aria-controls="kaiju-panel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 20 1-9 3 2 3-10 3 10 3-2 1 9Z"/><path d="M9 17h.01M15 17h.01"/></svg></button>
+  </div>
 <div id="toolbar" class="collapsed">
   <div id="toolbar-content">
     <div id="toolbar-rail" role="tablist" aria-label="Settings sections">
-      <button class="rail-btn" type="button" role="tab" id="rail-world" data-pane="world" data-hint="6 settings" aria-controls="pane-world" aria-selected="true" title="World"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="6" height="11"/><rect x="10" y="4" width="5" height="17"/><rect x="16" y="8" width="5" height="13"/></svg></button>
-      <button class="rail-btn" type="button" role="tab" id="rail-look" data-pane="look" data-hint="8 settings" aria-controls="pane-look" aria-selected="false" title="Look"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6Z"/></svg></button>
-      <button class="rail-btn" type="button" role="tab" id="rail-sun" data-pane="sun" data-hint="5 settings" aria-controls="pane-sun" aria-selected="false" title="Sun"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-      <button class="rail-btn" type="button" role="tab" id="rail-camera" data-pane="camera" data-hint="2 settings" aria-controls="pane-camera" aria-selected="false" title="Camera"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 3 17.5Z"/><circle cx="11.8" cy="13" r="3.2"/></svg></button>
-      <button class="rail-btn" type="button" role="tab" id="rail-play" data-pane="play" data-hint="7 settings" aria-controls="pane-play" aria-selected="false" title="Gameplay"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg></button>
-      <button class="rail-btn" type="button" role="tab" id="rail-city" data-pane="city" data-hint="saves" aria-controls="pane-city" aria-selected="false" title="City"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V9.5L12 4l7 5.5V20"/><path d="M9.5 20v-5h5v5"/></svg></button>
+      <button class="rail-btn" type="button" role="tab" id="rail-world" data-pane="world" data-hint="6 settings" aria-controls="pane-world" aria-selected="true" title="World"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="6" height="11"/><rect x="10" y="4" width="5" height="17"/><rect x="16" y="8" width="5" height="13"/></svg>World</button>
+      <button class="rail-btn" type="button" role="tab" id="rail-look" data-pane="look" data-hint="8 settings" aria-controls="pane-look" aria-selected="false" title="Look"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6-9.5-6-9.5-6Z"/></svg>Look</button>
+      <button class="rail-btn" type="button" role="tab" id="rail-sun" data-pane="sun" data-hint="5 settings" aria-controls="pane-sun" aria-selected="false" title="Sun"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Sun</button>
+      <button class="rail-btn" type="button" role="tab" id="rail-camera" data-pane="camera" data-hint="2 settings" aria-controls="pane-camera" aria-selected="false" title="Camera"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.3-2h7l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 3 17.5Z"/><circle cx="11.8" cy="13" r="3.2"/></svg>Camera</button>
+      <button class="rail-btn" type="button" role="tab" id="rail-play" data-pane="play" data-hint="7 settings" aria-controls="pane-play" aria-selected="false" title="Gameplay"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>Gameplay</button>
+      <button class="rail-btn" type="button" role="tab" id="rail-city" data-pane="city" data-hint="saves" aria-controls="pane-city" aria-selected="false" title="City"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V9.5L12 4l7 5.5V20"/><path d="M9.5 20v-5h5v5"/></svg>City</button>
     </div>
     <div id="toolbar-panes">
       <div id="pane-head">
@@ -576,21 +479,19 @@
       </div>
     </div>
   </div>
-  <button id="toolbar-toggle" type="button" aria-expanded="false" aria-controls="toolbar-content" title="Settings">
-    <span class="toolbar-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
-  </button>
 </div>
-<div id="action-dock">
+<div id="action-dock" class="collapsed">
   <div id="action-palette" role="toolbar" aria-label="Build tools">
-    <button class="tool-button" type="button" data-tool="select" aria-pressed="true">Select</button>
-    <button class="tool-button" type="button" data-tool="roads" aria-pressed="false">Roads</button>
-    <button class="tool-button" type="button" data-tool="zones" aria-pressed="false">Zones</button>
-    <button class="tool-button" type="button" data-tool="power" aria-pressed="false">Power</button>
-    <button class="tool-button" type="button" data-tool="water" aria-pressed="false">Water</button>
-    <button class="tool-button" type="button" data-tool="nature" aria-pressed="false">Nature</button>
-    <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false">Bulldoze</button>
+    <button class="tool-button" type="button" data-tool="select" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 14 9-7 1-3 7Z"/></svg>Select</button>
+    <button class="tool-button" type="button" data-tool="roads" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 3-3 18M17 3l3 18M12 3v3m0 4v4m0 4v3"/></svg>Roads</button>
+    <button class="tool-button" type="button" data-tool="zones" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 12h18M12 3v18"/></svg>Zones</button>
+    <button class="tool-button" type="button" data-tool="power" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 2-9 12h6l-1 8 9-12h-6Z"/></svg>Power</button>
+    <button class="tool-button" type="button" data-tool="water" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2S5 10 5 14a7 7 0 0 0 14 0c0-4-7-12-7-12Z"/></svg>Water</button>
+    <button class="tool-button" type="button" data-tool="nature" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2-6 8h3l-5 7h16l-5-7h3ZM12 17v5"/></svg>Nature</button>
+    <button class="tool-button" type="button" data-tool="bulldoze" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15V8h7l3 7M7 8V4h5l3 11M3 15h14l4-5v10h-4"/><rect x="2" y="15" width="15" height="6" rx="3"/></svg>Bulldoze</button>
   </div>
   <div id="tool-options-stack">
+  <div id="action-head">Select</div>
   <div id="select-view-options" class="tool-options">
     <div class="segmented" role="group" aria-label="View">
       <label><input type="radio" name="select-view" value="all" checked /><span>All</span></label>
@@ -666,6 +567,42 @@
   </div>
 </div>
 
+  <div id="ledger" data-section="city" hidden>
+    <div id="stats-rail" role="tablist" aria-label="Stats sections">
+      <button class="rail-btn" id="stats-city" type="button" role="tab" data-section="city" aria-controls="stats-content" aria-selected="true" title="City"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V9.5L12 4l7 5.5V20M9.5 20v-5h5v5"/></svg>City</button>
+      <button class="rail-btn" id="stats-resources" type="button" role="tab" data-section="resources" aria-controls="stats-content" aria-selected="false" title="Resources"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 7 9-4 9 4v10l-9 4-9-4ZM3 7l9 4 9-4M12 11v10"/></svg>Resources</button>
+      <button class="rail-btn" id="stats-economy" type="button" role="tab" data-section="economy" aria-controls="stats-content" aria-selected="false" title="Economy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 6H9a4 4 0 0 0 0 8h6a4 4 0 0 1 0 8H6" transform="translate(0 -2) scale(1 .9)"/></svg>Economy</button>
+    </div>
+    <div id="stats-content" role="tabpanel" aria-labelledby="stats-city">
+      <div id="stats-head">City</div>
+      <div id="city-strip">
+        <div class="stats-summary" data-section="city">
+          <span>Pop</span><b id="population">0</b>
+          <span>Workers</span><b id="workers">0/0</b>
+          <span>Unfilled jobs</span><b id="unfilled-jobs">0</b>
+        </div>
+        <div class="stats-summary" data-section="resources" hidden>
+          <span>Food</span><b id="food">0</b>
+          <span>Short</span><b id="shortage">None</b>
+        </div>
+        <div class="stats-summary" data-section="economy" hidden>
+          <span>Money</span><b id="money">$40,000 +$0.0/s</b>
+        </div>
+      </div>
+      <div id="ledger-lines"></div>
+    </div>
+  </div>
+  <div id="kaiju-panel" hidden>
+    <div id="kaiju-head">Kaiju</div>
+    <div id="wave-banner" hidden></div>
+    <div id="run-panel" aria-label="Run status">
+      <span>Wave <b id="run-wave">1</b></span>
+      <span>Science <b id="run-science">0</b></span>
+      <button id="call-wave" type="button">Call wave</button>
+      <button id="evacuate-run" type="button">Evacuate</button>
+    </div>
+  </div>
+</div>
 <div id="right-stack">
   <div id="run-line">
     <div id="fps-counter" hidden></div>

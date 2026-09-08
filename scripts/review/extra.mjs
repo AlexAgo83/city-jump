@@ -123,6 +123,7 @@ try {
 		await open(page);
 		await uncap(page);
 		await page.evaluate(() => window.cityjump.setTimeRate(1));
+		if (await page.locator("#action-toggle").getAttribute("aria-expanded") !== "true") await page.locator("#action-toggle").click();
 		await page.locator('[data-tool="roads"]').click();
 		await page.mouse.click(620, 390);
 		await page.mouse.move(720, 390);

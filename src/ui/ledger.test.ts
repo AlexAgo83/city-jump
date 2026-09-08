@@ -17,6 +17,9 @@ describe("ledger", () => {
     expect(row("People")).toMatchObject({ value: "42.0", inflow: "+3.5", outflow: "--", short: false });
     expect(row("Food")).toMatchObject({ value: "12.0", inflow: "+8.0", outflow: "-6.0", short: true });
     expect(row("Materials")).toMatchObject({ value: "7.0", inflow: "+3.0", outflow: "-2.0", short: false });
+    expect(row("Housing gap")).toMatchObject({ section: "city", value: "0.0", short: false });
+    expect(row("Food").section).toBe("resources");
+    expect(row("Trade").section).toBe("economy");
     expect(row("Trade").value).toBe("$4.0/s");
     expect(ledgerRows(undefined)).toEqual([]);
   });
@@ -30,7 +33,8 @@ describe("ledger", () => {
     };
     const rows = ledgerRows(starving);
 
-    expect(rows.filter((row) => row.short).map((row) => row.label)).toEqual(["People", "Housing", "Food", "Materials"]);
+    expect(rows.filter((row) => row.short).map((row) => row.label)).toEqual(["People", "Housing", "Housing gap", "Food", "Materials"]);
+    expect(rows.find((row) => row.label === "Housing gap")!.value).toBe("22.0");
     expect(rows.find((row) => row.label === "People")!.outflow).toBe("-6.0");
   });
 });
