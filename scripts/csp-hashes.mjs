@@ -30,7 +30,7 @@ function inlineDigest(tag) {
 
 const digests = { script: inlineDigest("script"), style: inlineDigest("style") };
 
-const line = yaml.match(/^(\s*value:\s*)(default-src[^\n]*)$/m);
+const line = yaml.match(/^(\s*value:\s*")(default-src[^"\n]*)"$/m);
 if (!line) throw new Error("render.yaml has no Content-Security-Policy value line to update");
 
 // Only the digest inside an existing `'sha256-...'` source is replaced. Adding, removing or
@@ -54,5 +54,5 @@ if (check) {
   process.exit(1);
 }
 
-writeFileSync("render.yaml", yaml.replace(line[0], `${line[1]}${updated}`));
+writeFileSync("render.yaml", yaml.replace(line[0], `${line[1]}${updated}"`));
 console.log(`Updated CSP digests in render.yaml (script sha256-${digests.script}, style sha256-${digests.style}).`);

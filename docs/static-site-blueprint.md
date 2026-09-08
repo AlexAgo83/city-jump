@@ -101,6 +101,12 @@ services:
         value: geolocation=(), microphone=(), camera=(), interest-cohort=()
 ```
 
+The CSP header value must stay double-quoted: the space after `data:` in
+`img-src 'self' data: blob:` makes an unquoted YAML scalar invalid. The architecture
+gate checks this quoting and the CSP digest updater. After a header change, verify
+the actual response header as well as the bundle version; a successful application
+deployment does not prove that the Blueprint synchronized.
+
 ## Hook contract
 
 A release hook can stay small:

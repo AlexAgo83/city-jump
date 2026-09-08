@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { test } from "node:test";
@@ -82,6 +83,10 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
   assert.doesNotMatch(hud, /\.innerHTML\b/);
+  // JSON-quoted strings are valid YAML scalars even when the policy contains colon-space.
+  const policy = render.match(/name: Content-Security-Policy\n(?: *#.*\n)* *value: (.*)/)?.[1];
+  assert.equal(typeof JSON.parse(policy), "string");
+  execFileSync(process.execPath, ["scripts/csp-hashes.mjs", "--check"]);
   assert.match(render, /Content-Security-Policy/);
   assert.match(render, /default-src 'self'/);
   assert.match(render, /img-src 'self' data: blob:;/, "embedded GLB textures need blob image URLs");
