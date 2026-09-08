@@ -1,3 +1,4 @@
+import { ASSET_VERSION as APP_VERSION } from "../render/assets";
 import { parseCity, type CitySave } from "../sim/save";
 import { composeRoadTypeId } from "../sim/roadTypes";
 import { decodeShare, encodeShare, type SharedCity } from "../sim/share";
@@ -64,6 +65,7 @@ export function bindControls(handlers: {
     target.addEventListener(type, listener);
     disposers.push(() => target.removeEventListener(type, listener));
   };
+  document.getElementById("app-version")!.textContent = `v${APP_VERSION}`;
   const toolbar = document.getElementById("toolbar")!;
   const menus = [
     { panel: toolbar, toggle: document.getElementById("toolbar-toggle")!, name: "settings" },

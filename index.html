@@ -134,11 +134,11 @@
   #toolbar select { color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px; padding: 3px 5px; }
   #sun-hour { flex: 1 1 104px; min-width: 80px; }
   #save-slot { flex: 1 1 0; min-width: 0; }
-  #toolbar button:not(#toolbar-toggle, .rail-btn) {
+  #toolbar button:not(#toolbar-toggle, .rail-btn), #toolbar .button-link {
     color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b; border-radius: 4px;
-    padding: 3px 8px; cursor: pointer; font: inherit;
+    padding: 3px 8px; cursor: pointer; font: inherit; text-decoration: none;
   }
-  #toolbar button:not(#toolbar-toggle, .rail-btn):hover { background: #333c45; }
+  #toolbar button:not(#toolbar-toggle, .rail-btn):hover, #toolbar .button-link:hover { background: #333c45; }
   #toolbar button:disabled { opacity: 0.45; cursor: default; }
   #sun-time { width: 38px; color: #b9dbe7; font-variant-numeric: tabular-nums; }
   /* Both menus share one rail and open into the same surface. */
@@ -500,6 +500,7 @@
         <button id="settings-reset" type="button" title="Put every setting back to its default">Reset</button>
         <input id="save-import-file" type="file" accept="application/json,.json" hidden />
       </div>
+      <div class="toolbar-row"><span>App version</span><span id="app-version"></span><a id="project-github" class="button-link" href="https://github.com/AlexAgo83/city-jump" target="_blank" rel="noopener noreferrer" aria-label="Open City Jump on GitHub (new tab)">GitHub ↗</a></div>
       </div>
     </div>
   </div>

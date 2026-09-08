@@ -700,6 +700,10 @@ check(
   "the look settings offer the screen-space effects",
   (await page.locator("#fx-antialias").count()) === 1 && (await page.locator("#fx-bloom").count()) === 1 && (await page.locator("#fx-ao").count()) === 1 && (await page.locator("#fx-tilt").count()) === 1,
 );
+await pane("#app-version");
+const appVersion = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")).version;
+check("City settings show the package version", await page.locator("#app-version").innerText() === `v${appVersion}`);
+check("City settings link to the project in a new tab", await page.locator("#project-github").getAttribute("href") === "https://github.com/AlexAgo83/city-jump" && await page.locator("#project-github").getAttribute("target") === "_blank");
 // Each one attaches or drops a real post-process, which is the part that can throw.
 for (const id of ["fx-ao", "fx-tilt"]) {
   await pane(`#${id}`);

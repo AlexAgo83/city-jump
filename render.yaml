@@ -38,4 +38,4 @@ services:
         name: Content-Security-Policy
         # Quote the policy: YAML treats the colon-space in data: blob: as a mapping.
         # Babylon loads the kaiju GLB's embedded textures through blob URLs.
-        value: "default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-X90OFmtFwRFSjarjJyhT079a8VcOGYKH9ByobrMfrWI='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        value: "default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-lAoEuq9va7SYKTe5PS44lZ+gulf6zEKipBBw79obX30='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
