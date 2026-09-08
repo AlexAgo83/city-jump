@@ -84,6 +84,7 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   assert.doesNotMatch(hud, /\.innerHTML\b/);
   assert.match(render, /Content-Security-Policy/);
   assert.match(render, /default-src 'self'/);
+  assert.match(render, /img-src 'self' data: blob:;/, "embedded GLB textures need blob image URLs");
   assert.match(render, /object-src 'none'/);
   assert.match(render, /base-uri 'none'/);
   assert.match(render, new RegExp(`script-src 'self' 'sha256-${regexEscape(inlineHash(html, "script"))}'`));

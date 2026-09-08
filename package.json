@@ -1,6 +1,6 @@
 {
   "name": "city-jump",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "scripts": {
     "dev": "vite",
     "build": "vite build && npm run typecheck",

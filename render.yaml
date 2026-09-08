@@ -36,4 +36,5 @@ services:
         value: geolocation=(), microphone=(), camera=(), interest-cohort=()
       - path: /*
         name: Content-Security-Policy
-        value: default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-MOjNthuKQ2QkmFpZ/NN1E64aGdRbHsYM6OlkFPkC3qM='; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
+        # Babylon loads the kaiju GLB's embedded textures through blob URLs.
+        value: default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-MOjNthuKQ2QkmFpZ/NN1E64aGdRbHsYM6OlkFPkC3qM='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
