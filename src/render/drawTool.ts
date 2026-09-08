@@ -1,9 +1,10 @@
+import { profilerFor } from "./frameProfiler";
 // Side-effect import: without it `scene.pick` silently returns nothing and every click
 // is swallowed. Babylon only warns, so the tool looks broken rather than unconfigured.
 import "@babylonjs/core/Culling/ray";
 import type { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
+import { PointerEventTypes, type PointerInfo } from "@babylonjs/core/Events/pointerEvents";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
@@ -645,7 +646,7 @@ export function createDrawTool(
     return nearTree ? { kind: "tree", ...nearTree } : null;
   }
 
-  const pointerObserver = scene.onPointerObservable.add((info) => {
+  const pointerObserver = scene.onPointerObservable.add(profilerFor(scene).wrap("other", (info: PointerInfo) => {
     if (info.type === PointerEventTypes.POINTERMOVE) {
       if (mode === "spray") return onSprayMove();
       if (mode === "zone") return onZoneMove();
@@ -664,7 +665,7 @@ export function createDrawTool(
       : 0;
     pressedAt = null;
     if (isLeftClick && travelled <= CLICK_SLOP) onClick();
-  });
+  }));
 
   const keydown = (e: KeyboardEvent) => {
     if (e.key === "Escape") cancel();

@@ -1,3 +1,4 @@
+import { createPerformanceHud } from "../ui/performanceGraph";
 import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { createBuildingRenderer } from "../render/buildings";
 import { createDestructionEffects } from "../render/destructionEffects";
@@ -50,7 +51,7 @@ import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCame
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../sim/time";
-import { showAlert, showCityStats, showCompass, showFps, showMoney, showRefusal, showRunStats, showSelection, showWaveBanner } from "../ui/hud";
+import { showAlert, showCityStats as renderCityStats, showCompass, showMoney, showRefusal, showRunStats, showSelection as renderSelection, showWaveBanner } from "../ui/hud";
 import { bindRunPanel, type RunPanel } from "../ui/runPanel";
 import { clearWaveVisuals, createWavePlan, rebuildMissileTrails, settleWaveOutcome, type PendingMissile, type WaveVerdict } from "./waveLoop";
 import { createDrawController } from "./drawController";
@@ -99,9 +100,13 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   };
   const worldGrid = createWorldGrid(scene, heightmap);
   const roads = createRoadRenderer(scene, graph, (x, z) => heightmap.heightAt(x, z));
-  const traffic = createTrafficRenderer(scene, graph, frameDelta, (x, z) => heightmap.heightAt(x, z));
+  const traffic = createTrafficRenderer(scene, graph, frameDelta);
   const fps = createFpsMeter();
-  const signals = createSignalRenderer(scene, graph, frameDelta);
+  const { profiler, setProfiling } = renderScene;
+  const performanceHud = createPerformanceHud(fps, profiler, setProfiling);
+  const showCityStats = profiler.wrap("ui", renderCityStats);
+  const showSelection = profiler.wrap("ui", renderSelection);
+  const signals = createSignalRenderer(scene, graph, traffic.signalTime);
   const streetlights = createStreetlightRenderer(scene, graph);
   const trees = createTreeRenderer(scene, heightmap, graph, shadows, plantings);
   const zoneOverlay = createZoneRenderer(scene, heightmap);
@@ -165,7 +170,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     graph.addElevatedSegment(main, island, v3(980, 82, (1500 + islandZ) / 2), "highway_2lane");
   };
 
-  const rebuild = (dirty?: TerrainBounds, timings?: Record<string, number>): void => {
+  const rebuild = profiler.wrap("rebuild", (dirty?: TerrainBounds, timings?: Record<string, number>): void => {
     const measure = (name: string, work: () => void): void => {
       if (!timings) {
         work();
@@ -207,7 +212,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     invalidateShadows(); // the casters just changed, so the frozen shadow map is out of date
     detail.invalidate(); // and the new meshes have not been through the zoom rules yet
     scheduleAutosave();
-  };
+  });
 
   /**
    * The buildable cells, re-solved only when the roads, the zoning or the ground have moved.
@@ -231,7 +236,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
    * parcels 103, roads 82, signals 27, traffic 16 -- buildings themselves 10). Here the ground is
    * reconformed over the lots that appeared or left rather than over the whole map.
    */
-  const repackParcels = (): void => {
+  const repackParcels = profiler.wrap("rebuild", (): void => {
     const before = new Map(currentParcels.map((parcel) => [parcelId(parcel), parcel]));
     currentBuildableCells = solveBuildableCells();
     // While the clock is stopped the city is a plan, not a building site: the paint lands on the
@@ -272,7 +277,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     invalidateShadows();
     detail.invalidate();
     scheduleAutosave();
-  };
+  });
 
   // No longer chosen in the UI, but still carried by saves and honoured on load, so a city built
   // on the rugged map comes back on the rugged map.
@@ -321,8 +326,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       counts[status.state] = (counts[status.state] ?? 0) + 1;
       return counts;
     }, {} as Record<string, number>);
-  const updateMoneyHud = (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts());
-  const updateRunHud = (): void => showRunStats(runState.wave, runState.science, profile.prestige);
+  const updateMoneyHud = profiler.wrap("ui", (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts()));
+  const updateRunHud = profiler.wrap("ui", (): void => showRunStats(runState.wave, runState.science, profile.prestige));
   const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, day: 1, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), elapsed: 0, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
   /** What the next wave will bring, so the needs panel can price the defence against it. */
@@ -347,7 +352,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
     detail.invalidate();
   };
-  const syncBuildings = (): void => {
+  const syncBuildings = profiler.wrap("simulation", (): void => {
     const residents = cityEconomy.resources.population;
     const { supplied, diffusers } = currentUtilitySnapshot();
     currentBuildingStatuses = buildingLifecycle.sync(currentParcels, residents, simSeconds, runState.rules.instantConstruction ? 0 : BUILDING_STAGE_SECONDS, Boolean(waveClock.active)).map((status) => {
@@ -380,7 +385,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     lastTerms ??= cityEconomy.advance(currentBuildingStatuses, 0);
     showCityStats(residents, buildingNeeds(currentBuildingStatuses.filter((status) => status.state !== "rebuilding").map((status) => status.parcel), residents, projectedThreat()), cityEconomy.resources, { ...lastTerms, trade: income });
     showMoney(treasury.money, income, stateCounts());
-  };
+  });
   const refreshUtilities = (): void => {
     syncBuildings();
     buildings.updateStates(currentBuildingStatuses);
@@ -480,18 +485,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   };
   const redo = (): void => {
     if (!history.redo(snapshot(), restoreSnapshot)) showRefusal("Nothing to redo.");
-  };
-  let stopFpsHud: (() => void) | null = null;
-  const setFpsVisible = (visible: boolean): void => {
-    if (visible === Boolean(stopFpsHud)) return;
-    if (visible) {
-      stopFpsHud = fps.watch();
-      showFps(fps.display);
-      return;
-    }
-    stopFpsHud?.();
-    stopFpsHud = null;
-    showFps(null);
   };
   const fpsMeasurements = new Map<number, { stop(now: number): number; resolve(fps: number): void }>();
   // Counts the whole requested interval rather than reading the rolling HUD meter, which only
@@ -609,7 +602,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       for (const point of chosen) utilities.place(graph, "diffuser", kind, point.x, point.z);
     }
   };
-  const updateWave = (dt: number): void => {
+  const updateWave = profiler.wrap("combat", (dt: number): void => {
     // A finished run is finished. Without this the clock kept running over a dead city, gathered
     // the next wave and sent the kaiju back in -- and evacuating did nothing a player could see.
     if (runState.ended) {
@@ -695,7 +688,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     history.clear();
     rebuild(parcelBounds(hit));
     if (!currentBuildingStatuses.some((status) => status.state !== "rebuilding")) finishWave("breached", true);
-  };
+  });
 
   // Set once bindControls runs, just below -- createDrawTool needs a selection callback before
   // that exists, but the callback itself only ever fires later, once the player actually clicks.
@@ -710,7 +703,6 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // player to wait for the next demand step twenty simulated seconds later.
     if (wasPaused && !simPaused) repackParcels();
     traffic.setTimeScale(rate);
-    signals.setTimeScale(rate);
     setClockHour(sunHour, true);
     controls?.setPaused(simPaused);
   };
@@ -913,7 +905,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     roadPrice: (type) => roadBuildCost(type, 1),
     onUtility: (kind, role) => tool.setUtility(kind, role),
     onWorldGrid: worldGrid.setVisible,
-    onFps: setFpsVisible,
+    onFps: performanceHud.setFpsVisible,
+    onPerformanceGraph: performanceHud.setGraphVisible,
     onShadows: setShadowsEnabled,
     onLights(visible) {
       streetlights.setLightsEnabled(visible);
@@ -1052,7 +1045,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const savedCamera = readCameraState();
   if (savedCamera) applyCamera(savedCamera);
   showCompass(camera.alpha);
-  const appFrameObserver = scene.onBeforeRenderObservable.add(() => {
+  const appFrameObserver = scene.onBeforeRenderObservable.add(profiler.wrap("simulation", () => {
     const dt = frameDelta() / 1000;
     const simDt = dt * timeRate;
     advanceClock(simDt);
@@ -1080,11 +1073,13 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       }
     }
     updateWave(simDt);
+    profiler.section("visual");
     destructionEffects.step(performance.now() / 1000);
     detail.update();
     buildings.setCameraRadius(camera.radius);
     postFx.update();
-    if (fps.active && fps.frame(performance.now()) && stopFpsHud) showFps(fps.display);
+    profiler.section("ui");
+    performanceHud.frame();
     showCompass(camera.alpha);
     const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;
     if (selectedInfo?.kind === "vehicle" && selectedTarget) {
@@ -1094,6 +1089,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         showSelection(selectedInfo);
       }
     }
+    profiler.section("visual");
     if (cameraMode === "orbit") {
       if (selectedTarget) camera.target.set(selectedTarget.x, selectedTarget.y, selectedTarget.z);
       camera.alpha += (frameDelta() / 1000) * 0.22;
@@ -1110,8 +1106,9 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     camera.target.y += (target.y - camera.target.y) * 0.14;
     camera.target.z += (target.z - camera.target.z) * 0.14;
     camera.alpha = approachAngle(camera.alpha, -target.heading - Math.PI / 2, dt * 3);
-  });
+  }));
   const keydown = (event: KeyboardEvent): void => {
+    if ((event.target as HTMLElement | null)?.id === "performance-chart") return;
     if (!(event.target as HTMLElement | null)?.closest("input, textarea, select, [contenteditable='true']") && event.code === "Space") {
       event.preventDefault();
       setPaused(!simPaused);
@@ -1210,6 +1207,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       if (target) onSelect({ kind: "vehicle", name: target.kind, model: target.vehicle, street: streetForSegment(graph, target.segment.id).name, target: target.target });
       return Boolean(target);
     },
+    performanceStats: () => ({ enabled: profiler.enabled, samples: profiler.history.length, latest: profiler.history.at(-1) ?? null }),
     paused: () => simPaused,
     setTimeRate,
     // For a check that has to click a car: a moving one is somewhere else by the time the click
@@ -1301,6 +1299,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         measurement.resolve(measurement.stop(performance.now()));
       }
       fpsMeasurements.clear();
+      performanceHud.dispose();
       scheduleAutosave.dispose();
       debugApi.dispose();
       controls?.dispose();

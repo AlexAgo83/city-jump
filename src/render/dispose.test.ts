@@ -85,7 +85,7 @@ describe("renderer disposal", () => {
     const ocean = createOcean(scene);
     const grid = createWorldGrid(scene, heightmap);
     const roads = createRoadRenderer(scene, graph, () => 12);
-    const traffic = createTrafficRenderer(scene, graph, () => 16, () => 12);
+    const traffic = createTrafficRenderer(scene, graph, () => 16);
     const markers = createWaveMarkerRenderer(scene, () => 12);
     const detail = createDetailCuller(scene, camera);
 

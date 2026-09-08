@@ -1,3 +1,5 @@
+import { profilerFor } from "./frameProfiler";
+import { createGpuTimer } from "./gpuTimer";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
@@ -37,6 +39,13 @@ export function createScene(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: false }, true);
   engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 1.5));
   const scene = new Scene(engine);
+  const profiler = profilerFor(scene);
+  const gpuTimer = createGpuTimer(engine);
+  const renderFrame = profiler.wrap("render", () => scene.render());
+  const setProfiling = (enabled: boolean): void => {
+    profiler.setEnabled(enabled);
+    gpuTimer.reset();
+  };
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
   scene.imageProcessingConfiguration.contrast = 1.12;
   scene.imageProcessingConfiguration.exposure = 1.04;
@@ -143,12 +152,12 @@ export function createScene(canvas: HTMLCanvasElement) {
   let shadowObserver: ReturnType<typeof scene.onBeforeRenderObservable.add> | null = null;
   if (shadowMap) {
     shadowMap.refreshRate = RenderTargetTexture.REFRESHRATE_RENDER_ONCE;
-    shadowObserver = scene.onBeforeRenderObservable.add(() => {
+    shadowObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("visual", () => {
       const key = `${camera.alpha.toFixed(4)},${camera.beta.toFixed(4)},${camera.radius.toFixed(2)},${camera.target.x.toFixed(2)},${camera.target.z.toFixed(2)},${sun.direction.x.toFixed(4)},${sun.direction.y.toFixed(4)}`;
       if (key === shadowKey) return;
       shadowKey = key;
       shadowMap.resetRefreshCounter();
-    });
+    }));
   }
   /** Whatever casts shadows has changed: draw the map again on the next frame. */
   const invalidateShadows = (): void => {
@@ -201,7 +210,9 @@ export function createScene(canvas: HTMLCanvasElement) {
     const drawnAt = performance.now();
     frameDeltaMs = lastDrawn === 0 ? 1000 / 60 : drawnAt - lastDrawn;
     lastDrawn = drawnAt;
-    scene.render();
+    if (profiler.enabled) gpuTimer.begin();
+    renderFrame();
+    if (profiler.enabled) profiler.finishFrame(frameDeltaMs, gpuTimer.end());
   };
   engine.runRenderLoop(renderLoop);
   const resize = (): void => engine.resize();
@@ -210,6 +221,8 @@ export function createScene(canvas: HTMLCanvasElement) {
   return {
     engine,
     scene,
+    profiler,
+    setProfiling,
     camera,
     shadows,
     setSunHour,
@@ -219,6 +232,7 @@ export function createScene(canvas: HTMLCanvasElement) {
     frameDelta: () => frameDeltaMs,
     dispose(): void {
       engine.stopRenderLoop(renderLoop);
+      setProfiling(false);
       window.removeEventListener("blur", blur);
       window.removeEventListener("focus", focus);
       window.removeEventListener("resize", resize);
@@ -273,7 +287,7 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: ()
   window.addEventListener("blur", blur);
 
   const move = new Vector3();
-  const beforeRenderObserver = scene.onBeforeRenderObservable.add(() => {
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("visual", () => {
     if (held.size === 0) return;
     const forward = camera.getDirection(Vector3.Forward());
     const right = camera.getDirection(Vector3.Right());
@@ -295,7 +309,7 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: ()
     move.normalize().scaleInPlace(step);
     camera.target.x = clamp(camera.target.x + move.x, PAN_LIMIT);
     camera.target.z = clamp(camera.target.z + move.z, PAN_LIMIT);
-  });
+  }));
   return {
     dispose(): void {
       window.removeEventListener("keydown", keydown);
@@ -337,10 +351,10 @@ function createSky(scene: Scene, camera: ArcRotateCamera) {
   const moonDisc = celestialDisc(scene, "moon_disc", new Color3(0.72, 0.78, 0.86), 190);
   let sunVector = new Vector3(0, 1, 0);
 
-  const beforeRenderObserver = scene.onBeforeRenderObservable.add(() => {
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("visual", () => {
     sunDisc.position.copyFrom(camera.position).addInPlace(sunVector.scale(6500));
     moonDisc.position.copyFrom(camera.position).addInPlace(sunVector.scale(-6500));
-  });
+  }));
 
   return {
     setHour(daylight: number, nextSunVector: Vector3): void {

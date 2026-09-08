@@ -1,3 +1,4 @@
+import { profilerFor } from "./frameProfiler";
 import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
@@ -42,7 +43,7 @@ interface Mast {
  * from the same cycle the traffic obeys. Which arms have one, and what they show, is all decided
  * in `sim/signals`; nothing here has an opinion of its own.
  */
-export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
+export function createSignalRenderer(scene: Scene, graph: RoadGraph, signalTime: () => number) {
   const metal = new StandardMaterial("signal_metal", scene);
   metal.diffuseColor = new Color3(0.1, 0.11, 0.11);
   metal.specularColor = new Color3(0.2, 0.2, 0.2);
@@ -77,9 +78,6 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
   let masts: Mast[] = [];
   let meshes: (Mesh | InstancedMesh)[] = [];
   const cycles = new Map<NodeId, SignalCycle>();
-  let paused = false;
-  let timeScale = 1;
-  let simTime = performance.now() / 1000;
 
   function rebuild(junctions: Map<NodeId, JunctionGeometry> = allJunctions(graph), dirty?: TerrainBounds): void {
     if (dirty) {
@@ -119,6 +117,7 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
         masts.push(placeMast(junction.node, arm, roadType(graph.segment(arm.segment).type).width));
       }
     }
+    update(signalTime());
   }
 
   /** A mast stands at the stop line, on the kerb side of the road it faces. */
@@ -177,19 +176,12 @@ export function createSignalRenderer(scene: Scene, graph: RoadGraph, frameDelta:
 
   // Driven from the same clock the traffic reads, so the lamp and the car agree on the moment.
   const beforeRender = () => {
-    if (paused) return;
-    simTime += (frameDelta() / 1000) * timeScale;
-    update(simTime);
+    update(signalTime());
   };
-  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("traffic", beforeRender));
 
   return {
     rebuild,
-    setPaused: (next: boolean) => { paused = next; },
-    setTimeScale(next: number) {
-      timeScale = Math.max(0, next);
-      paused = timeScale === 0;
-    },
     count: () => masts.length,
     dispose(): void {
       scene.onBeforeRenderObservable.remove(beforeRenderObserver);

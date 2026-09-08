@@ -30,7 +30,7 @@ describe("traffic mover renderer", () => {
     const models = createVehicleModels(scene);
     const baseline = scene.onBeforeRenderObservable.observers.length;
     const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
-    const traffic = createTrafficMoverSystem(scene, graph, () => 16, () => 0, models, headlights, {
+    const traffic = createTrafficMoverSystem(scene, graph, () => 16, models, headlights, {
       lightsOn: () => false,
       enabled: true,
       paused: false,
@@ -58,7 +58,7 @@ describe("traffic mover renderer", () => {
     graph.addSegment(graph.addNode(0, 0), graph.addNode(140, 0), v3(70, 0, 0), "street");
     const models = createVehicleModels(scene);
     const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
-    const traffic = createTrafficMoverSystem(scene, graph, () => 16, () => 0, models, headlights, {
+    const traffic = createTrafficMoverSystem(scene, graph, () => 16, models, headlights, {
       lightsOn: () => false,
       enabled: true,
       paused: false,
@@ -111,7 +111,7 @@ describe("traffic mover renderer", () => {
     const exit = graph.addSegment(b, c, v3(90, 0, 45), "street");
     const models = createVehicleModels(scene);
     const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
-    const traffic = createTrafficMoverSystem(scene, graph, () => 250, () => 0, models, headlights, {
+    const traffic = createTrafficMoverSystem(scene, graph, () => 250, models, headlights, {
       lightsOn: () => false,
       enabled: true,
       paused: false,
@@ -151,7 +151,7 @@ describe("traffic mover renderer", () => {
       graph.addSegment(a, b, v3(200, 0, 0), "street");
       const models = createVehicleModels(localScene);
       const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
-      const traffic = createTrafficMoverSystem(localScene, graph, () => frameMs, () => 0, models, headlights, {
+      const traffic = createTrafficMoverSystem(localScene, graph, () => frameMs, models, headlights, {
         lightsOn: () => false,
         enabled: true,
         paused: false,
@@ -198,7 +198,7 @@ describe("traffic mover renderer", () => {
     graph.addSegment(b, c, v3(200, 0, 100), "street");
     const models = createVehicleModels(scene);
     const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
-    const traffic = createTrafficMoverSystem(scene, graph, () => MAX_STEP_S * 1000, () => 0, models, headlights, {
+    const traffic = createTrafficMoverSystem(scene, graph, () => MAX_STEP_S * 1000, models, headlights, {
       lightsOn: () => false,
       enabled: true,
       paused: false,

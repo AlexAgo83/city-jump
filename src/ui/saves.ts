@@ -86,6 +86,7 @@ export interface UiSettings {
   buildingDetail?: "auto" | "boxes" | "models";
   gridSnap?: boolean;
   fps?: boolean;
+  performanceGraph?: boolean;
   shadows?: boolean;
   lights?: boolean;
   settingsOpen?: boolean;

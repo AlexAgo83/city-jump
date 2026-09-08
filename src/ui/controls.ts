@@ -26,6 +26,7 @@ export function bindControls(handlers: {
   onUtility(kind: UtilityKind, role: UtilityRole): void;
   onWorldGrid(visible: boolean): void;
   onFps(visible: boolean): void;
+  onPerformanceGraph(visible: boolean): void;
   onShadows(visible: boolean): void;
   onLights(visible: boolean): void;
   onLook(look: { antialias: boolean; multisample: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
@@ -223,6 +224,7 @@ export function bindControls(handlers: {
   const showDecor = document.getElementById("show-decor") as HTMLInputElement;
   const buildingDetail = document.getElementById("building-detail") as HTMLSelectElement;
   const showFps = document.getElementById("show-fps") as HTMLInputElement;
+  const showPerformance = document.getElementById("show-performance") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
   const showTraffic = document.getElementById("show-traffic") as HTMLInputElement;
@@ -255,6 +257,11 @@ export function bindControls(handlers: {
 
   on(showFps, "change", () => {
     handlers.onFps(showFps.checked);
+    persistSettings();
+  });
+
+  on(showPerformance, "change", () => {
+    handlers.onPerformanceGraph(showPerformance.checked);
     persistSettings();
   });
 
@@ -483,6 +490,7 @@ export function bindControls(handlers: {
       buildingDetail: buildingDetail.value as BuildingDetail,
       gridSnap: gridSnap.checked,
       fps: showFps.checked,
+      performanceGraph: showPerformance.checked,
       shadows: showShadows.checked,
       lights: showLights.checked,
       settingsOpen: !toolbar.classList.contains("collapsed"),
@@ -573,6 +581,7 @@ export function bindControls(handlers: {
   else if (stored.boxes !== undefined) buildingDetail.value = stored.boxes ? "boxes" : "models";
   buildingDetail.dispatchEvent(new Event("change"));
   applySetting(showFps, stored.fps);
+  applySetting(showPerformance, stored.performanceGraph);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
   for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxMultisample, stored.fxMultisample], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt], [fxExplosion, stored.fxExplosion], [fxFire, stored.fxFire]] as const) {

@@ -1,3 +1,4 @@
+import { profilerFor } from "./frameProfiler";
 import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
@@ -423,7 +424,7 @@ export function createOcean(scene: Scene) {
     VertexData.ComputeNormals(current, indices, normals as unknown as number[]);
     mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
   };
-  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("visual", beforeRender));
   return {
     mesh,
     dispose(): void {

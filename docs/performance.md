@@ -1,5 +1,37 @@
 # Performance
 
+## Live graph
+
+Enable **Show performance graph** beside **Show FPS** in Settings. The graph is independent of
+that counter and its preference survives reloads. It shows 30 seconds of real measurements at
+up to 10 updates per second. Hover, or focus the chart and use arrow keys, to inspect a sample.
+
+The colored stack is **exclusive synchronous CPU milliseconds per drawn frame**, averaged over
+each sampling window: simulation, traffic/signals, combat, city rebuilds, visual updates, Babylon
+CPU rendering, UI, and other measured input work. Nested scopes are subtracted from their parent.
+Rebuilds triggered by pointer events or deferred timers are included in the next drawn frame.
+Browser layout, garbage collection outside measured scopes, idle time, and uninstrumented async
+callbacks are not guessed or attributed to a category.
+
+White is the actual interval between rendered frames, including the FPS cap and waiting; the
+faint white peak and orange CPU peak preserve stalls that an average would hide. GPU time is a
+separate cyan trace, measured around drawn frames with Babylon timer queries, never stacked onto
+CPU time. GPU results arrive asynchronously and may not align with the same CPU frame. Unsupported
+or unavailable GPU measurements say **unavailable**, rather than reporting zero. The 16.7 and
+33.3 ms reference lines correspond to 60 and 30 FPS. The scale follows the 90th percentile of the
+visible workload; isolated peaks above it are labeled with their actual value instead of flattening
+the entire trace. Every sample and its full peak values remain available in the tooltip.
+
+Turning the graph off stops timing reads, GPU queries, history collection, canvas updates and resize
+observation. Timing wrappers remain a disabled branch. Hiding the tab suspends capture and returning
+starts a fresh history, so time spent in the background is not reported as a game stall.
+
+Run the focused browser proof and regenerate desktop/mobile captures with:
+
+```sh
+node scripts/with-dev-server.mjs scripts/performance-shot.mjs
+```
+
 ## Measuring
 
 ```sh

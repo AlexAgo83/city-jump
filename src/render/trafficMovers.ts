@@ -1,7 +1,7 @@
+import { profilerFor } from "./frameProfiler";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { InstancedMesh } from "@babylonjs/core/Meshes/instancedMesh";
-import type { Vector3 } from "@babylonjs/core/Maths/math";
 
 import type { NodeId, RoadGraph, Segment, SegmentId } from "../sim/graph";
 import { junctionGeometry, ringLaneRadii, type JunctionArm, type JunctionGeometry } from "../sim/junction";
@@ -97,7 +97,7 @@ export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; t
 
 // ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
 // per-frame loop; split when a pure planner can be tested without mesh position state.
-export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, heightAt: (x: number, z: number) => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
+export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
   const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkerPrototypes } = models;
 
   let movers: RenderMover[] = [];
@@ -522,20 +522,17 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     if (mover.walk) {
       mover.pitch = 0;
     } else {
-      const targetPitch = roadType(mover.segment.type).tunnelDepth ? 0 : vehicleTerrainPitch(mover.mesh.position, mover.heading);
+      // Sample the same elevated road/turn profile used to place the vehicle.
+      const at = (offset: number): Vec3 => mover.ride
+        ? pointAlong(mover.ride.points, mover.ride.cumulative, mover.ride.travelled + offset).position
+        : graph.pointAt(mover.segment.id, mover.distance + offset * mover.direction).position;
+      const back = at(-2), front = at(2);
+      const targetPitch = -Math.atan2(front.y - back.y, Math.hypot(front.x - back.x, front.z - back.z));
       mover.pitch += (targetPitch - mover.pitch) * Math.min(1, dt * 5);
     }
     mover.mesh.rotationQuaternion = null;
     mover.mesh.rotation.x = mover.pitch;
     mover.mesh.rotation.y = mover.heading;
-  }
-  
-  function vehicleTerrainPitch(position: Vector3, heading: number): number {
-    const forwardX = Math.sin(heading);
-    const forwardZ = Math.cos(heading);
-    const reach = 2;
-    const rise = heightAt(position.x + forwardX * reach, position.z + forwardZ * reach) - heightAt(position.x - forwardX * reach, position.z - forwardZ * reach);
-    return -Math.atan2(rise, reach * 2);
   }
   
   const crossingKey = (nodeId: NodeId, segmentId: SegmentId): string => `${nodeId}:${segmentId}`;
@@ -578,7 +575,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
   const queues = new Map<number, RenderMover[]>();
   const queueOf = new Map<RenderMover, number>();
   const ahead = new Map<RenderMover, RenderMover>();
-  let simTime = performance.now() / 1000;
+  let simTime = 0;
   
   function leaveQueue(mover: RenderMover): void {
     leaveLaneQueue(queues, queueOf, mover);
@@ -590,9 +587,10 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
   }
   
   const beforeRender = () => {
-    if (!state.enabled || state.paused || movers.length === 0) return;
+    if (state.paused) return;
     const dt = Math.min(MAX_STEP_S, (frameDelta() / 1000) * state.timeScale);
     simTime += dt;
+    if (!state.enabled || movers.length === 0) return;
     const now = simTime;
   
     const beams = state.lightsOn() ? headlights.lights : null;
@@ -680,7 +678,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     }
     if (staleMovers.size > 0) movers = movers.filter((mover) => !staleMovers.has(mover));
   };
-  const beforeRenderObserver = scene.onBeforeRenderObservable.add(beforeRender);
+  const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("traffic", beforeRender));
   
   function vehicleTarget(mover: RenderMover): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } {
     return {
@@ -756,6 +754,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
       for (const mover of movers) key += mover.mesh.position.x * 31 + mover.mesh.position.z;
       return key;
     },
+    signalTime: () => simTime,
     count: () => movers.filter((mover) => !mover.walk).length,
     pedestrians: () => movers.filter((mover) => mover.walk).length,
     dispose(): void {
