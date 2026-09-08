@@ -581,6 +581,8 @@ await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
 const cameraAfterForcedWave = await page.evaluate(() => window.cityjump.cameraState());
 check("a forced wave leaves the camera where the player left it", JSON.stringify(cameraAfterForcedWave) === JSON.stringify(cameraBeforeForcedWave));
+// The wave enables its root before the independently loaded GLB has arrived.
+await page.waitForFunction(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled()), null, { timeout: 30_000 });
 check("a forced wave shows the kaiju mesh", await page.evaluate(() => window.cityjump._scene.meshes.some((mesh) => mesh.name.startsWith("kaiju_") && mesh.isEnabled())));
 check("an active wave shows the kaiju HP banner", /Kaiju \d+\/\d+ HP - \d+ dmg\/min/.test(await waveBanner()), await waveBanner());
 await page.evaluate(() => window.cityjump.forceHeldWave());
