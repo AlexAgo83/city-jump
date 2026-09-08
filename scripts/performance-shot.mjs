@@ -144,6 +144,13 @@ try {
   assert.match(await unsupported.locator("#performance-summary").innerText(), /GPU unavailable/);
   await unsupported.close();
   console.log("ok: browser without GPU timer queries displays unavailable");
+  await page.locator("#performance-close").click();
+  assert.equal(await page.locator("#performance-panel").isHidden(), true);
+  assert.equal(await page.locator("#show-performance").isChecked(), false);
+  assert.equal(await page.locator("#fps-counter").isVisible(), true);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("cityjump.settings")).performanceGraph), false);
+  assert.deepEqual(await page.evaluate(() => window.cityjump.performanceStats()), { enabled: false, samples: 0, latest: null });
+  console.log("ok: close button disables capture, unchecks the saved setting and preserves FPS");
   assert.deepEqual(errors, []);
   const report = { capped, rebuilt, measuredRebuild, rates, latest: await page.evaluate(() => window.cityjump.performanceStats().latest) };
   await writeFile("/tmp/city-jump-performance-proof.json", JSON.stringify(report, null, 2));

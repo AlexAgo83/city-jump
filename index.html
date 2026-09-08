@@ -221,8 +221,10 @@
   #performance-panel[hidden] { display: none; }
   #right-stack:has(#performance-panel:not([hidden])) { max-height: calc(100vh - 72px); overflow-y: auto; }
   #right-stack > * { flex-shrink: 0; }
-  .performance-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; border-bottom: 1px solid #ffffff14; padding-bottom: 6px; }
+  .performance-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; border-bottom: 1px solid #ffffff14; padding: 0 24px 6px 0; }
   .performance-head b { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
+  #performance-close { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; padding: 0; border: 0; background: transparent; color: #aebbc5; font-size: 18px; line-height: 1; }
+  #performance-close:hover { color: #fff; }
   #performance-summary { font-variant-numeric: tabular-nums; }
   .performance-axis { color: #aebbc5; margin-top: 6px; }
   #performance-chart { display: block; width: 100%; height: 180px; outline-offset: 2px; }
@@ -633,6 +635,7 @@
 <div id="fps-counter" hidden></div>
 <div id="right-stack">
 <section id="performance-panel" aria-label="Live performance" hidden>
+  <button id="performance-close" type="button" aria-label="Close performance graph" title="Close performance graph">×</button>
   <div class="performance-head"><b>Performance</b><span id="performance-summary">CPU — · GPU —</span></div>
   <div class="performance-axis">Frame time · ms</div>
   <canvas id="performance-chart" tabindex="0" role="img" aria-label="CPU frame costs over the last 30 seconds"></canvas>

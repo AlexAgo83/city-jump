@@ -14,7 +14,7 @@ it("follows body impact targets and switches between walking, idle and attack po
   const engine = new NullEngine();
   const scene = new Scene(engine);
   const imported = new Mesh("imported", scene);
-  const body = MeshBuilder.CreateSphere("body", { diameter: 30 }, scene);
+  const body = MeshBuilder.CreateSphere("kaiju_body", { diameter: 30 }, scene);
   const head = MeshBuilder.CreateSphere("head", { diameter: 10 }, scene);
   body.parent = head.parent = imported;
   body.position.y = 60;
@@ -46,7 +46,17 @@ it("follows body impact targets and switches between walking, idle and attack po
     const walkStride = Math.abs(limbs[0]!.rotationQuaternion!.x);
     kaiju.show(position, Math.PI, 0.25, "running");
     expect(Math.abs(limbs[0]!.rotationQuaternion!.x)).toBeGreaterThan(walkStride * 2);
+    const torso = scene.getTransformNodeByName("kaiju_torso")!;
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeGreaterThan(0.28);
+    expect(body.parent).toBe(torso);
+    expect(limbs[2]!.parent).toBe(torso);
+    expect(limbs[0]!.parent).toBe(imported); // The lean must not tip the feet with the torso.
+    expect(limbs[6]!.rotationQuaternion!.x).toBeLessThan(0); // Keep the gaze ahead.
+    const runningPose = torso.rotationQuaternion!.asArray();
+    kaiju.show(position, Math.PI, 0.25, "running");
+    expect(torso.rotationQuaternion!.asArray()).toEqual(runningPose);
     kaiju.show(position, Math.PI, 1, "walking");
+    expect(torso.rotationQuaternion!.x).toBe(0);
     expect(limbs[0]!.rotationQuaternion!.x).not.toBe(0);
     kaiju.show(position, 0, 1, "idle");
     const idle = pose();
@@ -64,7 +74,20 @@ it("follows body impact targets and switches between walking, idle and attack po
     kaiju.show(position, 0, 2, "attacking", 2.5);
     expect(pose()).toEqual(attacking); // A paused simulation freezes the attack.
     expect(scene.getTransformNodeByName("kaiju")!.rotationQuaternion!.toEulerAngles().y).toBeCloseTo(Math.PI);
-    kaiju.show(position, 0, 3, "walking");
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeLessThan(-0.15); // Whole-body windup.
+    kaiju.show(position, 0, 4.99, "attacking", 4.99);
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeGreaterThan(0.55);
+    expect(Math.abs(limbs[2]!.rotationQuaternion!.x)).toBeLessThan(0.3); // Hands slam down.
+    kaiju.show(position, 0, 5, "walking"); // The simulation destroys the building and changes mode here.
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeCloseTo(0.65);
+    const impactPose = torso.rotationQuaternion!.asArray();
+    kaiju.show(position, 0, 5, "walking");
+    expect(torso.rotationQuaternion!.asArray()).toEqual(impactPose);
+    kaiju.show(position, 0, 5.3, "walking");
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeGreaterThan(0);
+    expect(torso.rotationQuaternion!.toEulerAngles().x).toBeLessThan(0.3);
+    kaiju.show(position, 0, 6, "walking");
+    expect(torso.rotationQuaternion!.x).toBe(0);
     expect(Math.abs(limbs[2]!.rotationQuaternion!.x)).toBeLessThan(0.1);
   } finally {
     kaiju.dispose();

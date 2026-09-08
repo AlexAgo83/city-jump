@@ -260,6 +260,11 @@ export function bindControls(handlers: {
     persistSettings();
   });
 
+  on(document.getElementById("performance-close")!, "click", () => {
+    showPerformance.checked = false;
+    showPerformance.dispatchEvent(new Event("change"));
+  });
+
   on(showPerformance, "change", () => {
     handlers.onPerformanceGraph(showPerformance.checked);
     persistSettings();

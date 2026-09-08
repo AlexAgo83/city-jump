@@ -51,6 +51,44 @@ try {
     await page.screenshot({ path: `${out}/kaiju-${name}.png` });
     console.log(name, report);
   }
+  // Inspect fixed attack phases through the real renderer and shipped model.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(async () => {
+    const scene = window.cityjump._scene;
+    const original = scene.getTransformNodeByName("kaiju");
+    const position = original.position.clone();
+    const heading = original.rotationQuaternion.toEulerAngles().y;
+    scene.onBeforeRenderObservable.clear(); // Freeze this inspection page's game simulation.
+    original.setEnabled(false);
+    const { createKaijuRenderer } = await import("/src/render/kaiju.ts");
+    const shadows = scene.lights.map((light) => light.getShadowGenerator?.()).find(Boolean);
+    const renderer = createKaijuRenderer(scene, shadows);
+    const root = scene.transformNodes.find((node) => node.name === "kaiju" && node !== original);
+    window.kaijuPreview = { renderer, root, position, heading };
+    scene.activeCamera.radius = 230;
+    scene.activeCamera.alpha = Math.PI / 2 - heading + 0.85;
+  });
+  await page.waitForFunction(() => window.kaijuPreview.root.getChildMeshes().length >= 20);
+  for (const [name, mode, seconds, attackSeconds] of [
+    ["sprint", "running", 0.25, 0],
+    ["windup", "attacking", 2.75, 2.75],
+    ["slam", "attacking", 4.99, 4.99],
+    ["impact", "walking", 5, 0],
+    ["recovered", "walking", 6, 0],
+  ]) {
+    const lean = await page.evaluate(({ mode, seconds, attackSeconds }) => {
+      const { renderer, root, position, heading } = window.kaijuPreview;
+      renderer.show(position, heading, seconds, mode, attackSeconds);
+      return root.getDescendants().find((node) => node.name === "kaiju_torso").rotationQuaternion.toEulerAngles().x;
+    }, { mode, seconds, attackSeconds });
+    if (name === "sprint") assert.ok(lean > 0.28);
+    if (name === "windup") assert.ok(lean < -0.15);
+    if (name === "slam" || name === "impact") assert.ok(lean > 0.55);
+    if (name === "recovered") assert.ok(Math.abs(lean) < 1e-9);
+    await page.waitForTimeout(100);
+    await page.screenshot({ path: `${out}/kaiju-${name}.png` });
+    console.log(name, { lean });
+  }
   assert.deepEqual(errors, []);
 } finally {
   await browser.close();
