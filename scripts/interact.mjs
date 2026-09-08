@@ -1972,6 +1972,25 @@ const selected = await page.evaluate(() => ({
 }));
 check("selecting a road shows it in the panel", !selected.hidden && selected.kind === "Road", JSON.stringify(selected));
 check("a road panel shows its street name", / (Street|Avenue|Walk|Expressway)$/.test(selected.rows.Street ?? ""), JSON.stringify(selected.rows));
+check("static selection offers Orbit without Follow", await page.locator("#selection-orbit").isVisible() && await page.locator("#selection-follow").isHidden());
+const beforeSelectionOrbit = await page.evaluate(() => window.cityjump.cameraState());
+await page.locator("#selection-orbit").click();
+check("selection Orbit centres on a road midpoint", await page.evaluate(() => {
+  const graph = window.cityjump._graph;
+  const target = window.cityjump._scene.activeCamera.target;
+  return graph.allSegments().some((segment) => {
+    const point = graph.pointAt(segment.id, segment.length / 2).position;
+    return Math.hypot(target.x - point.x, target.y - point.y, target.z - point.z) < 0.01;
+  }) && document.querySelector('input[name="camera-mode"][value="orbit"]').checked;
+}));
+await page.keyboard.press("ArrowUp");
+await page.evaluate((state) => {
+  const camera = window.cityjump._scene.activeCamera;
+  camera.target.set(state.targetX, state.targetY, state.targetZ);
+  camera.alpha = state.alpha;
+  camera.beta = state.beta;
+  camera.radius = state.radius;
+}, beforeSelectionOrbit);
 await setSettingsOpen(true);
 await pane("#show-fps");
 await page.locator("#show-fps").check();
@@ -2054,8 +2073,9 @@ await page.evaluate(() => window.cityjump.setPaused(false));
 await (await actionControl('input[name="select-view"][value="all"]')).check();
 await setSettingsOpen(true);
 const cameraBeforeOrbit = await page.evaluate(() => window.cityjump.cameraState());
-await pane('input[name="camera-mode"]');
-await page.locator('input[name="camera-mode"][value="orbit"]').check();
+await setSettingsOpen(false);
+check("moving selection offers Follow", await page.locator("#selection-follow").isVisible());
+await page.locator("#selection-orbit").click();
 await realTime(500);
 const cameraAfterOrbit = await page.evaluate(() => window.cityjump.cameraState());
 check("orbit mode turns the camera around the target", Math.abs(cameraAfterOrbit.alpha - cameraBeforeOrbit.alpha) > 0.02);
@@ -2070,9 +2090,7 @@ const followVehiclePoint = await screenPoint("window.cityjump.vehiclePoint()");
 check("there is still a vehicle to follow", followVehiclePoint !== null);
 await click(followVehiclePoint.x, followVehiclePoint.y);
 const cameraBeforeFollow = await page.evaluate(() => window.cityjump.cameraState());
-await setSettingsOpen(true); // the click above folded the menu away, and the camera controls live in it
-await pane('input[name="camera-mode"]');
-await page.locator('input[name="camera-mode"][value="follow"]').check();
+await page.locator("#selection-follow").click();
 await realTime(650);
 const cameraAfterFollow = await page.evaluate(() => window.cityjump.cameraState());
 check("follow mode keeps the selected car framed", Math.hypot(cameraAfterFollow.targetX - cameraBeforeFollow.targetX, cameraAfterFollow.targetZ - cameraBeforeFollow.targetZ) > 0.2);

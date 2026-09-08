@@ -50,12 +50,20 @@ type SelectTarget =
 
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
-  | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number }
+  | { kind: "road"; name: string; street: string; baseId: string; lanes: 1 | 2; oneWay: boolean; length: number; x: number; y: number; z: number }
   | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"]; x: number; z: number; progress: number; remainingSeconds: number; workers: number; staffed: boolean }
-  | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number }
+  | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number; x: number; z: number }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
-  | { kind: "tree" }
-  | { kind: "roundabout"; lanes: 1 | 2; radius: number };
+  | { kind: "tree"; x: number; z: number }
+  | { kind: "roundabout"; lanes: 1 | 2; radius: number; x: number; z: number };
+
+/** Centre the camera on the current selection, including the live position of a mover. */
+export function focusSelection(cameraTarget: Vector3, info: SelectionInfo | null, terrain: Terrain): boolean {
+  const target = info?.kind === "vehicle" ? info.target() : info;
+  if (!target) return false;
+  cameraTarget.set(target.x, "y" in target ? target.y : terrain.heightAt(target.x, target.z), target.z);
+  return true;
+}
 
 type Stage =
   | { phase: "idle" }
@@ -280,6 +288,7 @@ export function createDrawTool(
         lanes: type.lanes,
         oneWay: Boolean(type.oneWay),
         length: target.segment.length,
+        ...graph.pointAt(target.segment.id, target.segment.length / 2).position,
       });
       return;
     }
@@ -302,7 +311,7 @@ export function createDrawTool(
       return;
     }
     if (target.kind === "utility") {
-      onSelect({ kind: "utility", role: target.utility[0], utility: target.utility[1], staff: UTILITY_CATALOG[target.utility[1]][target.utility[0]].staff });
+      onSelect({ kind: "utility", x: target.utility[2], z: target.utility[3], role: target.utility[0], utility: target.utility[1], staff: UTILITY_CATALOG[target.utility[1]][target.utility[0]].staff });
       return;
     }
     if (target.kind === "vehicle") {
@@ -313,13 +322,13 @@ export function createDrawTool(
       selectRing.position.set(target.x, heightAt(target.x, target.z) + PREVIEW_LIFT, target.z);
       selectRing.scaling.set(3, 1, 3);
       selectRing.setEnabled(true);
-      onSelect({ kind: "tree" });
+      onSelect({ kind: "tree", x: target.x, z: target.z });
       return;
     }
     selectRing.position.set(target.x, heightAt(target.x, target.z) + PREVIEW_LIFT, target.z);
     selectRing.scaling.set(target.radius, 1, target.radius);
     selectRing.setEnabled(true);
-    onSelect({ kind: "roundabout", lanes: target.lanes, radius: target.radius });
+    onSelect({ kind: "roundabout", x: target.x, z: target.z, lanes: target.lanes, radius: target.radius });
   }
 
   function selectAt(x: number, z: number): void {

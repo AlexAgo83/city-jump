@@ -80,8 +80,20 @@ describe("hud rendering", () => {
     showCityStats(200, [{ kind: "residential", supply: 200, need: 132, ratio: 1 }]);
     expect(elements.get("unfilled-jobs")?.textContent).toBe("0");
 
-    showSelection({ kind: "road", name: "<img>", street: "<script>", baseId: "street", lanes: 2, oneWay: false, length: 42 });
+    showSelection({ kind: "road", name: "<img>", street: "<script>", baseId: "street", lanes: 2, oneWay: false, length: 42, x: 0, y: 0, z: 0 });
     expect(elements.get("selection-panel")?.hidden).toBe(false);
+  });
+
+  it("offers Follow only for moving selections and clears it on deselection", async () => {
+    const elements = installDom();
+    const { showSelection } = await importHud();
+    showSelection({ kind: "vehicle", name: "Car", model: "saloon", street: "Ash Street", target: () => null });
+    expect(elements.get("selection-follow")?.hidden).toBe(false);
+    showSelection({ kind: "tree", x: 5, z: 8 });
+    expect(elements.get("selection-follow")?.hidden).toBe(true);
+    showSelection(null);
+    expect(elements.get("selection-panel")?.hidden).toBe(true);
+    expect(elements.get("selection-follow")?.hidden).toBe(true);
   });
 
   it("writes to the needs rows only when a displayed value moves", async () => {

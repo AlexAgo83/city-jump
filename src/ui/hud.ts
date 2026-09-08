@@ -208,6 +208,7 @@ function row(label: string, value: string): [HTMLElement, HTMLElement] {
 /** What the select tool put under the pointer, or null to hide the panel again. */
 export function showSelection(info: SelectionInfo | null): void {
   selectionPanel.hidden = info === null;
+  document.getElementById("selection-follow")!.hidden = info?.kind !== "vehicle";
   if (info === null) return;
   if (info.kind === "road") {
     selectionKind.textContent = "Road";

@@ -47,7 +47,7 @@ export function bindControls(handlers: {
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
-  onCameraMode(mode: "free" | "orbit" | "follow"): void;
+  onCameraMode(mode: "free" | "orbit" | "follow", selection?: boolean): void;
   onUndo(): void;
   onRedo(): void;
   canUndo(): boolean;
@@ -441,6 +441,13 @@ export function bindControls(handlers: {
     on(input, "change", () => {
       if (!input.checked) return;
       handlers.onCameraMode(input.value === "follow" ? "follow" : input.value === "orbit" ? "orbit" : "free");
+      persistSettings();
+    });
+  }
+
+  for (const mode of ["orbit", "follow"] as const) {
+    on(document.getElementById(`selection-${mode}`)!, "click", () => {
+      handlers.onCameraMode(mode, true);
       persistSettings();
     });
   }

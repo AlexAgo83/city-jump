@@ -2,7 +2,7 @@ import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { createBuildingRenderer } from "../render/buildings";
 import { createDestructionEffects } from "../render/destructionEffects";
 import { installDebugApi } from "../render/debugApi";
-import { createDrawTool, TREE_REACH } from "../render/drawTool";
+import { createDrawTool, focusSelection, TREE_REACH } from "../render/drawTool";
 import { createGround, createOcean, createWorldGrid, GROUND_CELL, GROUND_SIZE, OFFSHORE_ISLAND_RADIUS, OFFSHORE_ISLAND_Z, offshoreIslandHeight } from "../render/ground";
 import { createKaijuRenderer } from "../render/kaiju";
 import { createMissileRenderer } from "../render/missiles";
@@ -972,7 +972,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       maybeAutosaveClock();
     },
     onTimeRate: setTimeRate,
-    onCameraMode(mode) {
+    onCameraMode(mode, selection) {
+      if (selection && !focusSelection(camera.target, selectedInfo, heightmap)) return;
       if (mode === "follow" && !followTarget) {
         showRefusal("Select a car before using Follow.");
         setCameraMode("free");
@@ -1094,15 +1095,11 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       }
     }
     if (cameraMode === "orbit") {
+      if (selectedTarget) camera.target.set(selectedTarget.x, selectedTarget.y, selectedTarget.z);
       camera.alpha += (frameDelta() / 1000) * 0.22;
       return;
     }
     if (cameraMode !== "follow") return;
-    // A wave outranks a selected car: while a kaiju is on the island it is what Follow follows.
-    if (kaijuAssault && waveClock.active) {
-      camera.target.set(kaijuAssault.position.x, heightmap.heightAt(kaijuAssault.position.x, kaijuAssault.position.z), kaijuAssault.position.z);
-      return;
-    }
     const target = selectedTarget ?? followTarget?.();
     if (!target) {
       showRefusal("Follow ended because the vehicle is gone.");
