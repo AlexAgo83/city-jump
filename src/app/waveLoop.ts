@@ -63,10 +63,10 @@ export function clearWaveVisuals({ kaiju, missiles, markers }: WaveVisuals): voi
   missiles.rebuild([]);
 }
 
-export function rebuildMissileTrails(missiles: ReturnType<typeof createMissileRenderer>, pending: readonly PendingMissile[], hits: readonly PendingMissile[], target: Vec3, seconds: number): void {
+export function rebuildMissileTrails(missiles: ReturnType<typeof createMissileRenderer>, pending: readonly PendingMissile[], hits: readonly PendingMissile[], target: (seed: number) => Vec3, seconds: number): void {
   const trail = (missile: PendingMissile, impact = false): MissileTrail => ({
     from: missile.from,
-    to: target,
+    to: target(missile.launchedAt * 1000 + missile.from.x * 31 + missile.from.z * 17),
     progress: impact ? 1 : (seconds - missile.launchedAt) / Math.max(0.01, missile.impactAt - missile.launchedAt),
     impact,
   });

@@ -18,12 +18,15 @@ export interface KaijuPlan {
 export interface KaijuAssaultState {
   readonly position: Vec3;
   readonly target: Vec3 | null;
-  readonly mode: "walking" | "attacking" | "idle";
+  readonly mode: "running" | "walking" | "attacking" | "idle";
   readonly attackSeconds: number;
   readonly destroyed: Vec3 | null;
 }
 
 export const KAIJU_ATTACK_SECONDS = 5;
+export const KAIJU_RUN_SPEED = WAVE_STARTING_VALUES.kaijuSpeedMps * 2;
+// Treat the area within 160 m of a living building as city streets.
+const CITY_APPROACH_METERS = 160;
 
 type Edge =
   | { readonly side: "west" | "east"; readonly x: number; readonly z0: number; readonly z1: number }
@@ -37,7 +40,7 @@ export function planKaiju(seed: string, bounds: MapBounds, coast: readonly Vec3[
   return { landing, coast: coastPoint, target, path };
 }
 
-export function kaijuPositionAt(plan: KaijuPlan, seconds: number, speed = WAVE_STARTING_VALUES.kaijuSpeedMps): Vec3 {
+export function kaijuPositionAt(plan: KaijuPlan, seconds: number, speed: number = WAVE_STARTING_VALUES.kaijuSpeedMps): Vec3 {
   let remaining = Math.max(0, seconds) * speed;
   for (let i = 1; i < plan.path.length; i++) {
     const from = plan.path[i - 1]!;
@@ -58,14 +61,22 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
   let targets = state.destroyed ? buildings.filter((building) => !sameXZ(building, state.destroyed!)) : [...buildings];
   let position = state.position;
   let target = state.target && targets.some((building) => sameXZ(building, state.target!)) ? state.target : nearest(targets, state.position);
-  let mode: KaijuAssaultState["mode"] = !target ? "idle" : state.mode === "attacking" && sameXZ(target, state.position) ? "attacking" : "walking";
+  let mode: KaijuAssaultState["mode"] = !target ? "idle" : state.mode === "attacking" && sameXZ(target, state.position) ? "attacking" : distXZ(state.position, target) > CITY_APPROACH_METERS ? "running" : "walking";
   let attackSeconds = mode === "attacking" ? state.attackSeconds : 0;
   let remaining = Math.max(0, dtSeconds);
   let destroyed: Vec3 | null = null;
 
   // Drain large ticks until the one-destruction return contract would become ambiguous.
   while (target && remaining > 0) {
-    const distance = distXZ(position, target);
+    let distance = distXZ(position, target);
+    if (distance > CITY_APPROACH_METERS) {
+      const travel = Math.min(distance - CITY_APPROACH_METERS, remaining * speed * 2);
+      position = lerp(position, target, travel / distance);
+      remaining = Math.max(0, remaining - travel / (speed * 2));
+      distance = distXZ(position, target);
+      mode = distance > CITY_APPROACH_METERS ? "running" : "walking";
+      if (remaining === 0) break;
+    }
     if (distance > 0) {
       const travel = Math.min(distance, remaining * speed);
       position = lerp(position, target, travel / distance);
@@ -73,6 +84,7 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
       mode = distance === travel ? "attacking" : "walking";
       if (mode === "walking") break;
     }
+    mode = "attacking";
     const attack = Math.min(remaining, attackDuration - attackSeconds);
     attackSeconds += attack;
     remaining -= attack;
@@ -80,7 +92,7 @@ export function advanceKaijuAssault(state: KaijuAssaultState, buildings: readonl
       destroyed = target;
       targets = targets.filter((building) => !sameXZ(building, destroyed!));
       target = nearest(targets, position);
-      mode = target ? "walking" : "idle";
+      mode = !target ? "idle" : distXZ(position, target) > CITY_APPROACH_METERS ? "running" : "walking";
       attackSeconds = 0;
     }
   }

@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createRun } from "../sim/run";
 import { callWaveNow, createWaveClock } from "../sim/wave";
-import { settleWaveOutcome } from "./waveLoop";
+import { rebuildMissileTrails, settleWaveOutcome } from "./waveLoop";
 
 describe("wave loop helpers", () => {
   it("settles held waves and clears the active clock", () => {
@@ -28,4 +28,18 @@ describe("wave loop helpers", () => {
     expect(next.run.ended).toBe("defeated");
     expect(next.clock.active).toEqual(active.active);
   });
+});
+
+
+it("keeps each missile's body target stable from flight through impact", () => {
+  const renderer = { rebuild: vi.fn(), dispose: vi.fn() };
+  const missiles = [0, 1].map((index) => ({ from: { x: index * 10, y: 0, z: 20 }, launchedAt: index, impactAt: 5, damage: 10 }));
+  const target = vi.fn((seed: number) => ({ x: seed, y: 70, z: 0 }));
+  rebuildMissileTrails(renderer, missiles, [], target, 2);
+  const flying = renderer.rebuild.mock.calls[0]![0];
+  rebuildMissileTrails(renderer, [], missiles, target, 5);
+  const hits = renderer.rebuild.mock.calls[1]![0];
+  expect(flying[0].to).not.toEqual(flying[1].to);
+  expect(hits.map((hit: { to: unknown }) => hit.to)).toEqual(flying.map((trail: { to: unknown }) => trail.to));
+  expect(hits.every((hit: { impact: boolean; progress: number }) => hit.impact && hit.progress === 1)).toBe(true);
 });

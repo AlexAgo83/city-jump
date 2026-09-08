@@ -7,14 +7,15 @@ import { createMissileRenderer, missilePoint } from "./missiles";
 import { v3 } from "../sim/vec";
 
 describe("missilePoint", () => {
-  it("climbs above both endpoints during flight and lands on target xz", () => {
+  it("climbs above both endpoints during flight and lands exactly on the target", () => {
     const from = v3(0, 0, 0);
-    const to = v3(100, 0, 0);
+    const to = v3(100, 72, 0);
 
     expect(missilePoint(from, to, 0).x).toBe(0);
     expect(missilePoint(from, to, 0.5).y).toBeGreaterThan(missilePoint(from, to, 0).y);
     expect(missilePoint(from, to, 1).x).toBe(100);
     expect(missilePoint(from, to, 1).z).toBe(0);
+    expect(missilePoint(from, to, 1).y).toBeCloseTo(to.y);
   });
 });
 
@@ -41,6 +42,7 @@ it("orients the missile along its arc, swaps to impact and releases pooled resou
     renderer.rebuild([{ from, to, progress: 1, impact: true }]);
     expect(scene.getMeshByName("missile-0")!.isEnabled()).toBe(false);
     expect(scene.getMeshByName("missile-impact-0")!.isEnabled()).toBe(true);
+    expect(Vector3.Distance(scene.getMeshByName("missile-impact-0")!.position, new Vector3(to.x, to.y, to.z))).toBeLessThan(1e-8);
     expect(scene.getMeshByName("missile-trail")!.isEnabled()).toBe(false);
     renderer.rebuild([]);
     expect({ meshes: scene.meshes.length, materials: scene.materials.length }).toEqual(baseline);

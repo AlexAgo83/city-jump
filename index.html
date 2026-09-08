@@ -171,15 +171,18 @@
     font: 11px/1.2 ui-sans-serif, system-ui; color: #e6ebef;
   }
   .tool-options > label { justify-content: space-between; }
-  /* Eight road types cannot ride one strip in a 216px column, so inside the options panel a
-     segmented wraps into pills rather than hiding its tail behind `overflow: hidden`. */
   .tool-options .segmented {
-    width: 100%; display: flex; flex-wrap: wrap; gap: 3px; border: 0; overflow: visible;
+    width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; border: 0; overflow: visible;
   }
-  .tool-options .segmented label { flex: 1 1 auto; }
+  .tool-options .segmented label { display: block; min-width: 0; }
   .tool-options .segmented span {
-    display: block; text-align: center; border: 1px solid #ffffff20; border-radius: 4px;
+    display: block; padding: 5px 4px; text-align: center; border: 1px solid #ffffff20; border-radius: 4px;
   }
+  .segmented input:focus-visible + span { outline: 2px solid #75b9d1; outline-offset: -2px; }
+  #select-view-options .segmented label:first-child { grid-column: 1 / -1; }
+  #road-options .segmented { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .option-heading { color: #8b97a1; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
+  #road-options, #zone-tool-options { border-top: 1px solid #ffffff14; }
   .tool-options[hidden] { display: none; }
   .tool-options label { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
   .tool-options input, .tool-options select { accent-color: #75b9d1; }
@@ -211,10 +214,6 @@
     max-width: min(560px, calc(100vw - 24px)); pointer-events: none;
   }
   #right-stack > * { pointer-events: auto; }
-  #run-line {
-    display: flex; align-items: flex-start; justify-content: flex-end; gap: 8px;
-    max-width: min(560px, calc(100vw - 24px));
-  }
   #selection-panel {
     min-width: 176px; max-width: 240px; box-sizing: border-box;
     color: #e8edf1; background: #11151aef; border: 1px solid #ffffff17; border-radius: 6px;
@@ -222,10 +221,8 @@
     font: 12px/1.4 ui-sans-serif, system-ui; padding: 9px 11px 11px;
   }
   #fps-counter {
-    min-width: 60px; box-sizing: border-box;
-    color: #f4fbff; background: #171b20e8; border: 1px solid #ffffff2b;
-    border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
-    padding: 7px 9px; text-align: right; text-shadow: 0 1px 2px #000;
+    position: fixed; top: 0; right: 0; z-index: 2; pointer-events: none;
+    color: #a2aeb7; font: 10px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
   }
   #fps-counter[hidden] { display: none; }
   #selection-panel[hidden] { display: none; }
@@ -247,10 +244,10 @@
   #touch-notice[hidden] { display: none; }
   #compass {
     position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 86px; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; justify-content: center;
     color: #f4fbff; background: #171b20d8; border: 1px solid #ffffff2b;
     border-radius: 6px; font: 12px/1 ui-sans-serif, system-ui; font-variant-numeric: tabular-nums;
-    padding: 7px 9px; box-sizing: border-box; text-shadow: 0 1px 2px #000;
+    padding: 5px 7px; box-sizing: border-box; text-shadow: 0 1px 2px #000;
     pointer-events: none;
   }
   #wave-banner {
@@ -493,6 +490,7 @@
   <div id="tool-options-stack">
   <div id="action-head">Select</div>
   <div id="select-view-options" class="tool-options">
+    <span class="option-heading">View</span>
     <div class="segmented" role="group" aria-label="View">
       <label><input type="radio" name="select-view" value="all" checked /><span>All</span></label>
       <label><input type="radio" name="select-view" value="no-buildings" /><span>Zones</span></label>
@@ -502,6 +500,7 @@
     </div>
   </div>
   <div id="road-type-options" class="tool-options" hidden>
+    <span class="option-heading">Road type</span>
     <div class="segmented" role="group" aria-label="Road type">
       <label><input type="radio" name="road-type" value="pedestrian" /><span>Pedestrian</span></label>
       <label><input type="radio" name="road-type" value="street" checked /><span>Street</span></label>
@@ -514,14 +513,15 @@
     </div>
   </div>
   <div id="road-options" class="tool-options" hidden>
+    <span class="option-heading">Shape</span>
     <div class="segmented" role="group" aria-label="Road shape">
       <label><input type="radio" name="road-shape" value="straight" checked /><span>Straight</span></label>
       <label><input type="radio" name="road-shape" value="curve" /><span>Curve</span></label>
       <label><input type="radio" name="road-shape" value="roundabout" /><span>Roundabout</span></label>
     </div>
-    <label><input id="road-lanes" type="checkbox" /> Two lanes</label>
-    <label><input id="road-oneway" type="checkbox" /> One-way</label>
-    <label><input id="grid-snap" type="checkbox" checked /> Snap</label>
+    <label>Two lanes <input id="road-lanes" type="checkbox" /></label>
+    <label>One-way <input id="road-oneway" type="checkbox" /></label>
+    <label>Snap <input id="grid-snap" type="checkbox" checked /></label>
     <output class="price" id="road-price">$8/m</output>
   </div>
   <div id="nature-options" class="tool-options" hidden>
@@ -540,6 +540,7 @@
     <label>Brush <input id="spray-radius" type="range" min="16" max="96" step="8" value="45" aria-label="Spray brush size" /></label>
   </div>
   <div id="zone-options" class="tool-options" hidden>
+    <span class="option-heading">Zone type</span>
     <div class="segmented" role="group" aria-label="Zone kind">
       <label><input type="radio" name="zone-kind" value="residential" checked /><span>Residential</span></label>
       <label><input type="radio" name="zone-kind" value="commercial" /><span>Commercial</span></label>
@@ -551,6 +552,7 @@
     <output class="price" id="zone-price">Zone</output>
   </div>
   <div id="zone-tool-options" class="tool-options" hidden>
+    <span class="option-heading">Painting</span>
     <div class="segmented" role="group" aria-label="Zoning tool">
       <label><input type="radio" name="zone-tool" value="fill" checked /><span>Fill</span></label>
       <label><input type="radio" name="zone-tool" value="brush" /><span>Brush</span></label>
@@ -603,10 +605,8 @@
     </div>
   </div>
 </div>
+<div id="fps-counter" hidden></div>
 <div id="right-stack">
-  <div id="run-line">
-    <div id="fps-counter" hidden></div>
-  </div>
 <div id="between-runs" aria-label="Between runs" hidden>
   <span id="run-outcome"></span>
   <span>Prestige <b id="profile-prestige">0</b></span>

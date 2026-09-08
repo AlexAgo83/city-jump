@@ -32,7 +32,7 @@ import { buildingNeeds, buildingNeedsAllocations, BUILDING_KIND_COLOR } from "..
 import { Heightmap, rollingHills, SEA_LEVEL, type TerrainBounds } from "../sim/heightmap";
 import { createCityHistory } from "../sim/history";
 import { allJunctions } from "../sim/junction";
-import { advanceKaijuAssault, createKaijuAssault, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
+import { advanceKaijuAssault, createKaijuAssault, KAIJU_RUN_SPEED, kaijuPositionAt, type KaijuAssaultState, type KaijuPlan } from "../sim/kaiju";
 import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, UTILITY_CATALOG, Utilities } from "../sim/utilities";
 import { buildableCells, contiguousLotsFrom, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
@@ -647,19 +647,19 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       return;
     }
     const seconds = waveClock.elapsedSeconds - waveClock.active.startedAtSeconds;
-    const coastSeconds = distXZ(kaijuPlan.landing, kaijuPlan.coast) / WAVE_STARTING_VALUES.kaijuSpeedMps;
+    const coastSeconds = distXZ(kaijuPlan.landing, kaijuPlan.coast) / KAIJU_RUN_SPEED;
     const livingBuildings = currentBuildingStatuses.filter((status) => status.state !== "rebuilding");
     if (seconds >= coastSeconds) {
       kaijuAssault ??= createKaijuAssault(kaijuPlan.coast);
       kaijuAssault = advanceKaijuAssault(kaijuAssault, livingBuildings.map((status) => status.parcel.position), dt);
     }
-    const position = kaijuAssault?.position ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds);
-    const next = kaijuAssault?.target ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds + 0.1);
+    const position = kaijuAssault?.position ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds, KAIJU_RUN_SPEED);
+    const next = kaijuAssault?.target ?? kaijuPositionAt({ ...kaijuPlan, path: [kaijuPlan.landing, kaijuPlan.coast] }, seconds + 0.1, KAIJU_RUN_SPEED);
     waveMarkers.show(kaijuPlan);
     // Never below the waterline: offshore, the ground it is standing on is the sea floor -- 136 m
     // down at the edge of the map -- and a kaiju coming out of the sea wades in rather than
     // walking along the bottom of it.
-    kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds);
+    kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds, kaijuAssault?.mode ?? "running", kaijuAssault?.attackSeconds ?? 0);
     const batteries = batteriesForParcels(livingBuildings.map((status) => status.parcel), cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel));
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
@@ -676,7 +676,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     const hits = pendingMissiles.filter((missile) => missile.impactAt <= seconds);
     if (hits.length) waveClock = damageWaveClock(waveClock, hits.reduce((sum, missile) => sum + missile.damage, 0));
     pendingMissiles = pendingMissiles.filter((missile) => missile.impactAt > seconds);
-    rebuildMissileTrails(missiles, pendingMissiles, hits, position, seconds);
+    rebuildMissileTrails(missiles, pendingMissiles, hits, kaiju.impactPoint, seconds);
     const active = waveClock.active;
     if (!active) return;
     showWaveBanner(`Kaiju ${Math.ceil(active.hitPoints)}/${active.threat} HP - ${Math.round(firepowerPerMinute(batteries))} dmg/min`, "active");

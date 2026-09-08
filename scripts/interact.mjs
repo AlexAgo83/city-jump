@@ -635,6 +635,17 @@ await page.locator("#action-toggle").press("Enter");
 check("actions reopen by keyboard with the same tool", await page.locator("#select-view-options").isVisible() && await page.locator('[data-tool="select"]').getAttribute("aria-pressed") === "true" && await page.locator("#action-toggle").getAttribute("aria-expanded") === "true");
 for (const tool of await page.locator(".tool-button:enabled").all()) {
   await tool.click();
+  if (["select", "roads", "zones"].includes(await tool.getAttribute("data-tool"))) {
+    check(`Action choices align and fit for ${await tool.textContent()}`, await page.evaluate(() =>
+      [...document.querySelectorAll(".tool-options:not([hidden]) .segmented")].every((group) => {
+        const labels = [...group.querySelectorAll("label")];
+        return getComputedStyle(group).display === "grid" && labels.every((label) => {
+          const span = label.querySelector("span");
+          return span.scrollWidth <= span.clientWidth && label.getBoundingClientRect().right <= group.getBoundingClientRect().right + 1;
+        });
+      })
+    ));
+  }
   check(`Actions icon follows ${await tool.textContent()}`, await page.locator("#action-toggle svg").innerHTML() === await tool.locator("svg").innerHTML());
 }
 await page.locator('[data-tool="select"]').click();
@@ -745,7 +756,7 @@ check("fps counter is off by default", await page.locator("#fps-counter").isHidd
 check("time controls are permanent", await page.locator("#time-controls").isVisible() && /Day 1 \d\d:\d\d/.test(await page.locator("#sim-time").textContent()));
 check("compass is centred at the top", await page.evaluate(() => {
   const compass = document.getElementById("compass").getBoundingClientRect();
-  return compass.top === 12 && Math.abs(compass.left + compass.width / 2 - window.innerWidth / 2) < 1 && compass.width > 0;
+  return compass.top === 12 && Math.abs(compass.left + compass.width / 2 - window.innerWidth / 2) < 1 && compass.width > 0 && compass.width < 65;
 }));
 check("city needs span the panel above the clock at the bottom left", await page.evaluate(() => {
   const time = document.getElementById("time-controls").getBoundingClientRect();
@@ -853,6 +864,11 @@ check(
   `${JSON.stringify(fpsSample)}`,
 );
 await reloadApp();
+check("FPS is plain text flush with the top-right corner", await page.locator("#fps-counter").evaluate((counter) => {
+  const box = counter.getBoundingClientRect();
+  const style = getComputedStyle(counter);
+  return box.top === 0 && box.right === innerWidth && style.padding === "0px" && style.backgroundColor === "rgba(0, 0, 0, 0)" && style.borderTopWidth === "0px";
+}));
 check("fps setting is remembered across reload", await page.locator("#show-fps").isChecked() && await page.locator("#fps-counter").isVisible());
 await pane("#show-fps");
 await page.locator("#show-fps").uncheck();

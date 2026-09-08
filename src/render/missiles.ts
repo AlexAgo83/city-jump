@@ -136,7 +136,7 @@ function missileModel(scene: Scene, skin: StandardMaterial, trim: StandardMateri
 
 export function missileDirection(from: Vec3, to: Vec3, progress: number): Vector3 {
   const p = Math.max(0, Math.min(1, progress));
-  const direction = new Vector3(to.x - from.x, to.y + 26 - from.y + Math.cos(Math.PI * p) * Math.PI * 55, to.z - from.z);
+  const direction = new Vector3(to.x - from.x, to.y - from.y - 8 + Math.cos(Math.PI * p) * Math.PI * 55, to.z - from.z);
   return direction.lengthSquared() > 1e-12 ? direction.normalize() : Vector3.Up();
 }
 
@@ -144,6 +144,6 @@ export function missilePoint(from: Vec3, to: Vec3, progress: number): Vector3 {
   const p = Math.max(0, Math.min(1, progress));
   const x = from.x + (to.x - from.x) * p;
   const z = from.z + (to.z - from.z) * p;
-  const y = from.y + 8 + (to.y + 26 - from.y) * p + Math.sin(Math.PI * p) * 55;
+  const y = from.y + 8 + (to.y - from.y - 8) * p + Math.sin(Math.PI * p) * 55;
   return new Vector3(x, y, z);
 }

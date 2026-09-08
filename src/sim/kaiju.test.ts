@@ -5,6 +5,24 @@ import { WAVE_STARTING_VALUES } from "./wave";
 import { distXZ, v3 } from "./vec";
 
 describe("kaiju", () => {
+  it("runs toward the city, slows near buildings, attacks, then rests without targets", () => {
+    const target = v3(200, 0, 0);
+    const start = createKaijuAssault(v3(0, 0, 0));
+    const running = advanceKaijuAssault(start, [target], 1, 10);
+    expect(running.mode).toBe("running");
+    expect(running.position.x).toBeCloseTo(20);
+    const walking = advanceKaijuAssault(running, [target], 2, 10);
+    expect(walking.mode).toBe("walking");
+    expect(walking.position.x).toBeCloseTo(50);
+    const combined = advanceKaijuAssault(start, [target], 3, 10);
+    expect(combined.position.x).toBeCloseTo(walking.position.x);
+    const attacking = advanceKaijuAssault({ ...walking, position: target }, [target], 1, 10);
+    expect(attacking.mode).toBe("attacking");
+    const idle = advanceKaijuAssault(attacking, [], 1, 10);
+    expect(idle.mode).toBe("idle");
+    expect(idle.position).toEqual(target);
+  });
+
   it("lands away from the bridge, walks to the nearest coast point, then the nearest building", () => {
     const plan = planKaiju(
       "fixed",
