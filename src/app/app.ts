@@ -38,7 +38,7 @@ import { baseRoadTypeId, roadType } from "../sim/roadTypes";
 import { missingUtility, suppliedDiffusers, UTILITY_CATALOG, Utilities } from "../sim/utilities";
 import { buildableCells, contiguousLotsFrom, lotsWithin, parcelDemandLimits, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import { parseCity, serializeCity, restoreCity, SAVE_VERSION, type CitySave, type SavedCamera } from "../sim/save";
-import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, type ProfileState, type RunState } from "../sim/run";
+import { carryScience, createRun, endIfPopulationZero, evacuate, startingMoney, startingResources, talentBonuses, type ProfileState, type RunState } from "../sim/run";
 import { streetForSegment } from "../sim/streets";
 import { setTerrain } from "../sim/terrain";
 import { approachAngle } from "../sim/transfers";
@@ -84,8 +84,11 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const utilities = new Utilities();
   const buildingLifecycle = new BuildingLifecycle();
   let profile: ProfileState = readProfile();
+  // Read once per purchase, not once per frame that wants a multiplier.
+  let talents = talentBonuses(profile);
   const treasury = new Treasury(startingMoney(profile));
   const cityEconomy = new CityEconomy(startingResources(profile, new CityEconomy().resources));
+  cityEconomy.setTalentBonuses(talents);
   const history = createCityHistory<CitySave>(20);
   const ocean = createOcean(scene);
   const ground = createGround(scene, heightmap);
@@ -326,7 +329,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       counts[status.state] = (counts[status.state] ?? 0) + 1;
       return counts;
     }, {} as Record<string, number>);
-  const updateMoneyHud = profiler.wrap("ui", (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses), stateCounts()));
+  const updateMoneyHud = profiler.wrap("ui", (): void => showMoney(treasury.money, incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses, talents.tradeOutput), stateCounts()));
   const updateRunHud = profiler.wrap("ui", (): void => showRunStats(runState.wave, runState.science, profile.prestige));
   const emptyCity = (): CitySave => ({ v: SAVE_VERSION, terrain: "rolling", hour: DEFAULT_HOUR, day: 1, money: startingMoney(profile), resources: startingResources(profile, new CityEconomy().resources), run: createRun(), waveClock: createWaveClock(), elapsed: 0, nodes: [], segments: [], planted: [], cleared: [], zones: [], rubble: [], buildingStates: [], utilities: [] });
   const spendBuild = (cost: number, allowDebt = false): boolean => runState.rules.freeBuilding || treasury.spend(cost, allowDebt);
@@ -379,7 +382,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     if (clearedRubble) {
       refreshRubble();
     }
-    const income = incomePerSecond(residents, currentBuildingStatuses);
+    const income = incomePerSecond(residents, currentBuildingStatuses, talents.tradeOutput);
     // A city that has not ticked yet still has stocks worth reading. Without this the ledger sat
     // empty after every load and every refresh, until the player pressed play.
     lastTerms ??= cityEconomy.advance(currentBuildingStatuses, 0);
@@ -653,7 +656,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // down at the edge of the map -- and a kaiju coming out of the sea wades in rather than
     // walking along the bottom of it.
     kaiju.show(v3(position.x, Math.max(SEA_LEVEL, heightmap.heightAt(position.x, position.z)), position.z), Math.atan2(next.x - position.x, next.z - position.z), seconds, kaijuAssault?.mode ?? "running", kaijuAssault?.attackSeconds ?? 0);
-    const batteries = batteriesForParcels(livingBuildings.map((status) => status.parcel), cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel));
+    const batteries = batteriesForParcels(livingBuildings.map((status) => status.parcel), cityEconomy.resources.population, (parcel) => buildingLifecycle.staffedOf(parcel), talents.militaryPower);
     if (seconds >= nextSalvoAt) {
       pendingMissiles.push(...batteriesInRange(batteries, position).map((battery, index) => {
         const launchedAt = seconds + index * 0.22;
@@ -872,6 +875,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     getProfile: () => profile,
     setProfile: (next) => {
       profile = next;
+      talents = talentBonuses(profile);
+      cityEconomy.setTalentBonuses(talents);
       writeProfile(profile);
     },
     updateRunHud,
@@ -888,6 +893,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     setToolEnabled: (tool, enabled) => controls?.setToolEnabled(tool, enabled),
     showRefusal,
   });
+
 
   controls = bindControls({
     onRoadMode(mode) {
@@ -939,13 +945,9 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       buildingsVisible = visible;
       buildings.setVisible(visible);
     },
-    onDecor(visible) {
-      buildings.setDecor(visible);
-    },
+    onDecor: buildings.setDecor,
     onTrees: trees.setVisible,
-    onBuildingDetail(detail) {
-      buildings.setDetail(detail);
-    },
+    onBuildingDetail: buildings.setDetail,
     onSelectView(view) {
       // "Zones" swaps the models for the same taken/open grid a road-draw already shows,
       // so the ground itself reads as which cells are used without full 3D buildings in the way.
@@ -1060,7 +1062,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         updateRunHud();
       }
       syncBuildings();
-      const income = incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses);
+      const income = incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses, talents.tradeOutput);
       treasury.earn(income * simDt);
       updateMoneyHud();
       buildings.updateStates(currentBuildingStatuses);
@@ -1158,7 +1160,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     // and that swap is two buildings changing colour on screen.
     staffedKey: currentBuildingStatuses.reduce((sum, status) => sum + (status.staffed ? Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z) : 0), 0),
     money: treasury.money,
-    income: incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses),
+    income: incomePerSecond(cityEconomy.resources.population, currentBuildingStatuses, talents.tradeOutput),
     models: buildings.modelCount,
     workforceAllocations: { lifecycle: buildingLifecycle.workforceAllocations, needs: buildingNeedsAllocations() },
     startupModels: buildings.startupModelCount,

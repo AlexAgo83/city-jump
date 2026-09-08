@@ -324,7 +324,33 @@
     width: 304px; min-width: 0; max-height: calc(100vh - 150px); overflow-y: auto;
     color: #e6ebef; font: 11px/1.35 ui-sans-serif, system-ui;
   }
-  #ledger { display: flex; }
+  #ledger, #kaiju-panel { display: flex; }
+  #kaiju-rail { display: flex; flex-direction: column; flex: none; border-right: 1px solid #ffffff14; padding: 3px 0; }
+  #kaiju-content { width: 260px; min-width: 0; }
+  .kaiju-section[hidden] { display: none; }
+  #talent-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    padding: 0 10px 6px; color: #c8d2d9;
+  }
+  #talent-head b { color: #f4fbff; font-weight: 600; }
+  #talent-hint { color: #8fa0aa; font-size: 10px; text-align: right; }
+  #talent-web { display: block; width: 100%; height: auto; padding: 0 6px; box-sizing: border-box; }
+  #talent-web .talent-edge { stroke: #ffffff1f; stroke-width: 2; }
+  #talent-web .talent-edge[data-state="owned"] { stroke: #8ee6a8aa; }
+  #talent-web .talent-node { cursor: pointer; }
+  #talent-web .talent-node circle { fill: #212830; stroke: #ffffff26; stroke-width: 2; }
+  #talent-web .talent-node[data-state="open"] circle { stroke: #75b9d1; fill: #23323a; }
+  #talent-web .talent-node[data-state="owned"] circle { stroke: #8ee6a8; fill: #26382c; }
+  #talent-web .talent-node[data-selected="true"] circle { stroke-width: 3; }
+  #talent-web .talent-node text { fill: #c8d2d9; font: 9px ui-sans-serif, system-ui; text-anchor: middle; }
+  #talent-web .talent-node[data-state="locked"] { opacity: 0.45; }
+  #talent-detail { padding: 4px 10px 10px; color: #c8d2d9; }
+  #talent-detail b { color: #f4fbff; }
+  #talent-detail button {
+    margin-top: 5px; color: #e6ebef; background: #272d34; border: 1px solid #ffffff2b;
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; font: inherit;
+  }
+  #talent-detail button:disabled { opacity: 0.5; cursor: default; }
   #stats-content { width: 260px; min-width: 0; }
   .stats-summary[hidden] { display: none; }
   #ledger[hidden], #kaiju-panel[hidden] { display: none; }
@@ -632,14 +658,27 @@
       <div id="ledger-lines"></div>
     </div>
   </div>
-  <div id="kaiju-panel" hidden>
-    <div id="kaiju-head">Kaiju</div>
-    <div id="wave-banner" hidden></div>
-    <div id="run-panel" aria-label="Run status">
-      <span>Wave <b id="run-wave">1</b></span>
-      <span>Science <b id="run-science">0</b></span>
-      <button id="call-wave" type="button">Call wave</button>
-      <button id="evacuate-run" type="button">Evacuate</button>
+  <div id="kaiju-panel" data-section="wave" hidden>
+    <div id="kaiju-rail" role="tablist" aria-label="Kaiju sections">
+      <button class="rail-btn" id="kaiju-tab-wave" type="button" role="tab" data-section="wave" aria-controls="kaiju-content" aria-selected="true" title="Kaiju"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 20 1-9 3 2 3-10 3 10 3-2 1 9Z"/><path d="M9 17h.01M15 17h.01"/></svg>Kaiju</button>
+      <button class="rail-btn" id="kaiju-tab-talents" type="button" role="tab" data-section="talents" aria-controls="kaiju-content" aria-selected="false" title="Talents"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.4"/><circle cx="12" cy="4" r="1.6"/><circle cx="19" cy="16" r="1.6"/><circle cx="5" cy="16" r="1.6"/><path d="M12 9.6V5.6M13.7 13.2l3.9 2.2M10.3 13.2l-3.9 2.2"/></svg>Talents</button>
+    </div>
+    <div id="kaiju-content" role="tabpanel" aria-labelledby="kaiju-tab-wave">
+      <div id="kaiju-head">Kaiju</div>
+      <div class="kaiju-section" data-section="wave">
+        <div id="wave-banner" hidden></div>
+        <div id="run-panel" aria-label="Run status">
+          <span>Wave <b id="run-wave">1</b></span>
+          <span>Science <b id="run-science">0</b></span>
+          <button id="call-wave" type="button">Call wave</button>
+          <button id="evacuate-run" type="button">Evacuate</button>
+        </div>
+      </div>
+      <div class="kaiju-section" data-section="talents" hidden>
+        <div id="talent-head"><span>Banked science <b id="talent-points">0</b></span><span id="talent-hint">Evacuate to bank a run&rsquo;s science.</span></div>
+        <svg id="talent-web" viewBox="0 0 240 240" role="group" aria-label="Talent web"></svg>
+        <div id="talent-detail">Pick a node.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -657,8 +696,8 @@
 </section>
 <div id="between-runs" aria-label="Between runs" hidden>
   <span id="run-outcome"></span>
-  <span>Prestige <b id="profile-prestige">0</b></span>
-  <span id="upgrade-web" aria-label="Prestige upgrades"></span>
+  <span>Science <b id="profile-prestige">0</b></span>
+  <span id="upgrade-web" aria-label="Talents"></span>
   <button id="new-run" type="button">New island</button>
 </div>
 <div id="selection-panel" hidden>

@@ -13,22 +13,22 @@ export interface Battery {
  * @param wasStaffed Passed straight to the allocation, so the guns that fire are the ones the
  * city says are staffed rather than a second, independent deal of the same workforce.
  */
-export function batteriesForParcels<T extends Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">>(parcels: readonly T[], population?: number, wasStaffed?: (parcel: T) => boolean): Battery[] {
-  return batteriesForStaffing(parcels, population === undefined ? null : allocateWorkforce(parcels, population, wasStaffed));
+export function batteriesForParcels<T extends Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">>(parcels: readonly T[], population?: number, wasStaffed?: (parcel: T) => boolean, damageFactor = 1): Battery[] {
+  return batteriesForStaffing(parcels, population === undefined ? null : allocateWorkforce(parcels, population, wasStaffed), damageFactor);
 }
 
 /**
  * The same batteries from an allocation the caller already has. The needs panel deals one every
  * frame and then asked for a second, identical one just to learn which barracks are staffed.
  */
-export function batteriesForStaffing<T extends Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">>(parcels: readonly T[], staffing: Staffing | null): Battery[] {
+export function batteriesForStaffing<T extends Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells" | "position">>(parcels: readonly T[], staffing: Staffing | null, damageFactor = 1): Battery[] {
   const staffed = staffing === null ? null : new Set(staffing.parcels.filter((parcel) => parcel.staffed).map((parcel) => parcel.index));
   return parcels
     .filter((parcel, index) => parcel.kind === "military" && (!staffed || staffed.has(index)))
     .map((parcel) => ({
       position: parcel.position,
       range: WAVE_STARTING_VALUES.batteryRangeM,
-      damage: parcel.frontageCells * parcel.depthCells * WAVE_STARTING_VALUES.damagePerParcelCell,
+      damage: parcel.frontageCells * parcel.depthCells * WAVE_STARTING_VALUES.damagePerParcelCell * damageFactor,
     }));
 }
 

@@ -126,6 +126,15 @@ export function bindControls(handlers: {
       refreshLedger();
     });
 
+  const kaijuTabs = [...document.querySelectorAll<HTMLButtonElement>("#kaiju-rail button")];
+  for (const tab of kaijuTabs)
+    on(tab, "click", () => {
+      document.getElementById("kaiju-content")!.setAttribute("aria-labelledby", tab.id);
+      document.getElementById("kaiju-head")!.textContent = tab.title;
+      for (const candidate of kaijuTabs) candidate.setAttribute("aria-selected", String(candidate === tab));
+      for (const section of document.querySelectorAll<HTMLElement>(".kaiju-section")) section.hidden = section.dataset.section !== tab.dataset.section;
+    });
+
   const selectViewOptions = document.getElementById("select-view-options")!;
   const roadTypeOptions = document.getElementById("road-type-options")!;
   const roadOptions = document.getElementById("road-options")!;

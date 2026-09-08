@@ -16,6 +16,12 @@ class FakeElement extends EventTarget {
   replaceChildren(...children: unknown[]): void {
     this.children = children;
   }
+
+  append(...children: unknown[]): void {
+    this.children.push(...children);
+  }
+
+  setAttribute(): void {}
 }
 
 describe("run panel disposal", () => {
@@ -25,12 +31,13 @@ describe("run panel disposal", () => {
 
   it("removes persistent listeners and generated controls", () => {
     const elements = new Map<string, FakeElement>();
-    for (const id of ["evacuate-run", "call-wave", "hardcore-run", "kaiju-spawns", "instant-construction", "free-building", "ignore-power", "ignore-water", "residents-per-wave", "gameplay-note", "between-runs", "upgrade-web", "run-outcome", "new-run"]) {
+    for (const id of ["evacuate-run", "call-wave", "hardcore-run", "kaiju-spawns", "instant-construction", "free-building", "ignore-power", "ignore-water", "residents-per-wave", "gameplay-note", "between-runs", "upgrade-web", "run-outcome", "new-run", "talent-web", "talent-points", "talent-detail", "kaiju-toggle", "kaiju-tab-talents"]) {
       elements.set(id, new FakeElement());
     }
     (globalThis as { document?: unknown }).document = {
       getElementById: (id: string) => elements.get(id),
       createElement: () => new FakeElement(),
+      createElementNS: () => new FakeElement(),
     };
 
     let calls = 0;

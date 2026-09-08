@@ -623,8 +623,19 @@ check("evacuation asks before ending a run", (await stats()).run.ended === null)
 const evacuatedRun = await page.evaluate(() => window.cityjump.evacuateRun());
 check("evacuation banks science and opens a fresh island", evacuatedRun.run.ended === null && evacuatedRun.profile.prestige >= rewardedRun.run.science && (await stats()).run.ended === null, JSON.stringify(evacuatedRun));
 check("the prestige web stays reachable on the fresh island", await page.locator("#between-runs").isVisible() && (await page.locator("#upgrade-web button").count()) > 0 && await page.locator("#new-run").isHidden());
-await page.locator('#upgrade-web button').first().click();
-check("prestige can buy an upgrade between runs", (await stats()).profile.upgrades.length === 1 && (await stats()).profile.prestige < evacuatedRun.profile.prestige, JSON.stringify((await stats()).profile));
+// The between-runs strip is the way in; the talent web itself is where science is spent.
+await page.locator("#upgrade-web button").first().click();
+check("the talents tab opens on the kaiju panel", await page.locator("#talent-web").isVisible() && (await page.locator("#talent-web .talent-node").count()) > 1);
+check(
+  "a talent away from the centre stays locked",
+  (await page.locator('#talent-web .talent-node[data-state="locked"]').count()) > 0 && (await page.locator('#talent-web .talent-node[data-state="open"]').count()) === 1,
+);
+await page.locator('#talent-web .talent-node[data-state="open"]').first().click();
+await page.locator("#talent-detail button").click();
+check("science can buy a talent from the web", (await stats()).profile.upgrades.length === 1 && (await stats()).profile.prestige < evacuatedRun.profile.prestige, JSON.stringify((await stats()).profile));
+check("buying one talent opens its neighbours", (await page.locator('#talent-web .talent-node[data-state="open"]').count()) > 1);
+await page.locator("#kaiju-tab-wave").click();
+await page.locator("#kaiju-toggle").click();
 check("evacuation no longer needs a second confirmation", (await stats()).run.ended === null && await page.locator("#between-runs").isHidden());
 await page.waitForFunction(() => JSON.parse(localStorage.getItem("cityjump.autosave") ?? "{}").run?.ended === null, null, { timeout: 20_000 });
 await reloadApp();

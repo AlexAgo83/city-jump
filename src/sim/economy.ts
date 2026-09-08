@@ -85,12 +85,20 @@ export class CityEconomy {
   private housed = false;
   /** Latched while the works are behind, cleared only once the stock has really recovered. */
   private starved = false;
+  /** Talent multipliers, 1 until the profile says otherwise. */
+  private farmOutput = 1;
+  private tradeOutput = 1;
   /** The city's own clock, so a shortage can be made to last rather than to blink. */
   private clock = 0;
   private shortSince = 0;
 
   constructor(state: Partial<CityResources> = {}) {
     this.replaceWith(state);
+  }
+
+  setTalentBonuses(bonuses: { readonly farmOutput: number; readonly tradeOutput: number }): void {
+    this.farmOutput = bonuses.farmOutput;
+    this.tradeOutput = bonuses.tradeOutput;
   }
 
   get resources(): CityResources {
@@ -121,7 +129,7 @@ export class CityEconomy {
     const day = Math.max(0, seconds) / CITY_DAY_SECONDS;
     const workingParcels = statuses.filter((status) => status.state === "working").map((status) => status.parcel);
     const housing = housingCapacity(workingParcels);
-    const foodProduced = output(statuses, "agricultural", 8) * day;
+    const foodProduced = output(statuses, "agricultural", 8) * this.farmOutput * day;
     const materialsProduced = output(statuses, "industrial", 5) * day;
     const materialsConsumed = (output(statuses, "commercial", MATERIALS_PER_COMMERCE_CELL) + output(statuses, "military", MATERIALS_PER_MILITARY_CELL)) * day;
     this.clock += Math.max(0, seconds);
@@ -166,7 +174,7 @@ export class CityEconomy {
       population: { value: this.state.population, housing, change: growth, foodShortage },
       food: { value: this.state.food, produced: foodProduced, consumed: foodConsumed },
       materials: { value: this.state.materials, produced: materialsProduced, consumed: materialsConsumed, shortage: materialsShortage },
-      trade: incomePerSecond(this.state.population, statuses),
+      trade: incomePerSecond(this.state.population, statuses, this.tradeOutput),
     };
   }
 
@@ -210,9 +218,9 @@ export function rebuildingCost(cost: number): number {
   return cost / 4;
 }
 
-export function incomePerSecond(population: number, statuses: readonly { readonly parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">; readonly state: BuildingStatus["state"] }[]): number {
+export function incomePerSecond(population: number, statuses: readonly { readonly parcel: Pick<BuildingParcel, "kind" | "frontageCells" | "depthCells">; readonly state: BuildingStatus["state"] }[], tradeFactor = 1): number {
   const trade = statuses.reduce((sum, status) => sum + (status.state === "working" && status.parcel.kind === "commercial" ? status.parcel.frontageCells * status.parcel.depthCells * 0.35 : 0), 0);
-  return population * 0.02 + trade;
+  return population * 0.02 + trade * tradeFactor;
 }
 
 export class Treasury {

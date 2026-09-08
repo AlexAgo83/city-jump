@@ -1,4 +1,5 @@
-import { buyUpgrade, FIRST_UPGRADE_WEB, type ProfileState, type RunState } from "../sim/run";
+import type { ProfileState, RunState } from "../sim/run";
+import { bindTalentWeb } from "./talentWeb";
 
 export interface RunPanel {
   renderGameplayRules(): void;
@@ -41,6 +42,16 @@ export function bindRunPanel(options: {
   const runOutcome = document.getElementById("run-outcome") as HTMLSpanElement;
   const newRunButton = document.getElementById("new-run") as HTMLButtonElement;
   let upgradeOutcome: string | null = null;
+  const talentWeb = bindTalentWeb({
+    getProfile: options.getProfile,
+    setProfile: options.setProfile,
+    onBought: () => {
+      options.updateRunHud();
+      // Buying is an answer to the outcome line, so the strip stands down with it.
+      panel.hideUpgradeWeb();
+    },
+    showRefusal: options.showRefusal,
+  });
 
   const panel: RunPanel = {
     renderGameplayRules() {
@@ -59,23 +70,18 @@ export function bindRunPanel(options: {
     renderUpgradeWeb() {
       const run = options.getRun();
       const profile = options.getProfile();
-      upgradeWeb.replaceChildren(...FIRST_UPGRADE_WEB.map((upgrade) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = `${upgrade.name} ${upgrade.cost}`;
-        button.title = upgrade.description;
-        button.dataset.owned = String(profile.upgrades.includes(upgrade.id));
-        button.addEventListener("click", () => {
-          const current = options.getProfile();
-          const next = buyUpgrade(current, upgrade.id);
-          if (next === current) return options.showRefusal("Not enough prestige.");
-          options.setProfile(next);
-          options.updateRunHud();
-          upgradeOutcome = null;
-          panel.renderUpgradeWeb();
-        });
-        return button;
-      }));
+      // One place spends science: the talent web in the Kaiju panel. This is the way in, not a
+      // second shop that would have to stay in step with it.
+      const talents = document.createElement("button");
+      talents.type = "button";
+      talents.textContent = `Talents ${Math.floor(profile.prestige)}`;
+      talents.title = "Spend banked science on the talent web.";
+      talents.addEventListener("click", () => {
+        if (document.getElementById("kaiju-toggle")!.getAttribute("aria-expanded") !== "true") document.getElementById("kaiju-toggle")!.click();
+        document.getElementById("kaiju-tab-talents")!.click();
+      });
+      upgradeWeb.replaceChildren(talents);
+      talentWeb.render();
       const endedOutcome = run.ended === "evacuated" ? `Evacuated with ${Math.floor(run.science)} science.`
         : run.ended === "population_zero" ? "The island emptied."
         : run.ended === "defeated" ? "The city was levelled." : "";
@@ -93,6 +99,7 @@ export function bindRunPanel(options: {
     },
     dispose() {
       for (const dispose of disposers.splice(0)) dispose();
+      talentWeb.dispose();
       upgradeWeb.replaceChildren();
     },
   };
