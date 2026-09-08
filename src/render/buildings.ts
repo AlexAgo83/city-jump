@@ -25,19 +25,19 @@ import { createGroundShadow } from "./groundShadow";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = [
-  ...PARCEL_SIZES.map(({ frontageCells, depthCells }) => `lot_${frontageCells}x${depthCells}`),
+  ...PARCEL_SIZES.flatMap(({ frontageCells, depthCells }) => ["", "_gable", "_slab"].map((suffix) => `lot_${frontageCells}x${depthCells}${suffix}`)),
   ...["residential", "commercial"].flatMap((kind) =>
-    PARCEL_SIZES.flatMap(({ frontageCells, depthCells }) => ["a", "b"].map((variant) => `${kind}_${frontageCells}x${depthCells}_${variant}`)),
+    PARCEL_SIZES.flatMap(({ frontageCells, depthCells }) => ["a", "b", "court", "terraces"].map((variant) => `${kind}_${frontageCells}x${depthCells}_${variant}`)),
   ),
   "industrial_1x1_a", "industrial_1x1_b", "industrial_1x1_c",
   ...["residential_3x3", "residential_4x4", "commercial_3x4", "commercial_4x3"].flatMap((id) =>
-    ["tower", "tower_steps", "tower_offset"].map((variant) => `${id}_${variant}`),
+    ["tower", "tower_steps", "tower_offset", "tower_crown", "tower_split"].map((variant) => `${id}_${variant}`),
   ),
   // Farms, works and compounds are their own models -- a barn and crop rows, tanks and a stack,
   // barracks and a hangar -- not a tinted office block. They only exist for the deep lots that
   // kind of frontage is allowed (see INDUSTRIAL_SIZES).
   ...["farm", "industrial", "military"].flatMap((prefix) =>
-    PARCEL_SIZES.filter(({ depthCells }) => depthCells === 4).map(({ frontageCells }) => `${prefix}_${frontageCells}x4`),
+    PARCEL_SIZES.filter(({ depthCells }) => depthCells === 4).flatMap(({ frontageCells }) => ["", "_b", "_c"].map((suffix) => `${prefix}_${frontageCells}x4${suffix}`)),
   ),
 ];
 
@@ -49,12 +49,13 @@ export function buildingModelId(parcel: BuildingParcel): string {
     const low = parcel.cells.some((cell) => cell.lowRise);
     const seed = roofSeed(parcel);
     const towerSize = parcel.kind === "residential" ? size === "3x3" || size === "4x4" : size === "3x4" || size === "4x3";
-    const variant = low ? "a" : towerSize && seed % 7 === 0 ? ["tower", "tower_steps", "tower_offset"][(seed >>> 16) % 3] : (seed >>> 8) % 2 === 0 ? "a" : "b";
+    const variant = low ? ["a", "court"][(seed >>> 8) % 2] : towerSize && seed % 7 === 0 ? ["tower", "tower_steps", "tower_offset", "tower_crown", "tower_split"][(seed >>> 16) % 5] : ["a", "b", "court", "terraces"][(seed >>> 8) % 4];
     return `${parcel.kind}_${size}_${variant}`;
   }
   if (parcel.kind === "industrial" && size === "1x1") return `industrial_1x1_${["a", "b", "c"][roofSeed(parcel) % 3]}`;
   const own = parcel.kind === "agricultural" ? "farm" : parcel.kind === "industrial" || parcel.kind === "military" ? parcel.kind : null;
-  return own && parcel.depthCells === 4 ? `${own}_${size}` : `lot_${size}`;
+  const choice = (roofSeed(parcel) >>> 8) % 3;
+  return own && parcel.depthCells === 4 ? `${own}_${size}${["", "_b", "_c"][choice]}` : `lot_${size}${["", "_gable", "_slab"][choice]}`;
 }
 
 const STATE_CODE = { rising: 1, working: 2, idle: 3, rebuilding: 4 } as const;

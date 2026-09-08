@@ -430,7 +430,7 @@ const buildingModelCounts = () =>
 const industrialBuildingCount = () =>
   page.evaluate(() =>
     window.cityjump._scene.meshes
-      .filter((mesh) => /^building_industrial_\dx4$/.test(mesh.name))
+      .filter((mesh) => /^building_industrial_\dx4(?:_[bc])?$/.test(mesh.name))
       .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0),
   );
 const zonesOverlayVisible = () =>
@@ -572,10 +572,10 @@ check(
   offshoreBridge && offshoreBridge.length > 2000 && offshoreBridge.pylons >= 6 && offshoreBridge.piers >= 6 && offshoreBridge.bend > 200,
   JSON.stringify(offshoreBridge),
 );
-check("startup does not wait for all parcel models", fresh.startupModels < 107, `${fresh.startupModels} models ready at renderer return`);
-await page.waitForFunction(() => window.cityjump.stats().models === 107, null, { timeout: 20_000 });
-// Legacy lots/compounds plus 64 urban variants, twelve towers and three small industrial models.
-check("all parcel models load", (await stats()).models === 107, `${(await stats()).models} models`);
+check("startup does not wait for all parcel models", fresh.startupModels < 235, `${fresh.startupModels} models ready at renderer return`);
+await page.waitForFunction(() => window.cityjump.stats().models === 235, null, { timeout: 20_000 });
+// Legacy lots/compounds plus 128 urban variants, twenty towers and three small industrial models.
+check("all parcel models load", (await stats()).models === 235, `${(await stats()).models} models`);
 const cameraBeforeForcedWave = await page.evaluate(() => window.cityjump.cameraState());
 await page.evaluate(() => window.cityjump.forceWave());
 await page.waitForFunction(() => window.cityjump.stats().kaiju === true, null, { timeout: 5_000 });
@@ -1578,7 +1578,7 @@ await page.evaluate(() => {
   window.cityjump.growCity(2000, 200);
 });
 await page.waitForFunction((before) => window.cityjump._scene.meshes
-  .filter((mesh) => /^building_industrial_\dx4$/.test(mesh.name))
+  .filter((mesh) => /^building_industrial_\dx4(?:_[bc])?$/.test(mesh.name))
   .reduce((sum, mesh) => sum + (mesh.thinInstanceCount ?? 0), 0) > before, industrialBefore, { timeout: 5_000 });
 const industrial = await page.evaluate(() => window.cityjump._graph.allSegments().filter((segment) => segment.type === "industrial").length);
 check("industrial roads generate industrial buildings", industrial >= 1 && (await industrialBuildingCount()) > industrialBefore, `${industrial} industrial roads`);

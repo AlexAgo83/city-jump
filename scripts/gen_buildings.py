@@ -433,7 +433,7 @@ def works_specs(prefix):
         yield (f"{prefix}_{frontage}x4", frontage * CELL - 1.5, 4 * CELL - 1.5, frontage)
 
 
-def build_industrial(name, w, d, variant):
+def build_industrial(name, w, d, variant, layout="a"):
     """1 compact tank depot, 2 boiler works, 3 freight warehouse, 4 integrated works."""
     clear_scene()
     parts = []
@@ -447,7 +447,16 @@ def build_industrial(name, w, d, variant):
     block("yard", (0, 0, 0, w, d, .18), "yard")
     shed_w = min(w - .6, 18)
     block("shed", (.3, 1, .18, .3 + shed_w, 9, 7.5))
-    parts.append((gabled_roof_at(f"{name}_roof", .2, .9, shed_w + .2, 8.2, 7.5, 1.8), "trim"))
+    if layout == "b":
+        for bay in range(3):
+            parts.append((gabled_roof_at(f"{name}_roof_{bay}", .2, .9+bay*8.2/3, shed_w+.2, 8.2/3, 7.5, 2.2), "trim"))
+    elif layout == "c":
+        block("office_roof", (.2,.9,7.5,shed_w+.4,9.1,7.8), "trim")
+        block("office_glass", (.6,.85,5.2,shed_w,1,7), "glass")
+        for x in range(1, int(shed_w), 2):
+            block("office_pier", (x,.78,5,x+.16,1,7.5), "trim")
+    else:
+        parts.append((gabled_roof_at(f"{name}_roof", .2, .9, shed_w + .2, 8.2, 7.5, 1.8), "trim"))
     for x in range(1, int(shed_w) + 1):
         block("facade_rib", (x, .92, .3, x + .07, 1.02, 7.5), "pipe")
         block("rear_rib", (x, 8.98, .3, x + .07, 9.08, 7.5), "pipe")
@@ -463,13 +472,15 @@ def build_industrial(name, w, d, variant):
             block("door_seam", (x, .70, .45 + row * .5, x + door_w, .74, .49 + row * .5), "trim")
         for dx in (0, door_w - .18):
             block("bollard", (x + dx, .3, .18, x + dx + .18, .5, 1.25), "warning")
-        block("clerestory", (x, .8, 5.6, x + door_w, .94, 6.7), "glass")
-        for dx in range(1, int(door_w)):
-            block("window_bar", (x + dx, .76, 5.6, x + dx + .06, .82, 6.7), "trim")
+        if layout != "c":
+            block("clerestory", (x, .8, 5.6, x + door_w, .94, 6.7), "glass")
+            for dx in range(1, int(door_w)):
+                block("window_bar", (x + dx, .76, 5.6, x + dx + .06, .82, 6.7), "trim")
     block("gutter", (.2, .75, 7.4, shed_w + .4, .94, 7.58), "pipe")
     cylinder("downpipe", .45, .6, .085, .18, 7.5, "pipe")
 
-    if variant in (2, 4):
+    equipment = 3 if layout == "b" else 1 if layout == "c" else variant
+    if equipment in (2, 4):
         block("boiler", (.5, 10, .18, 7, 16, 5))
         cylinder("stack", 4.8, 13, 1.25, .18, 18.6, "stack")
         for height in (5, 10, 15, 18.3):
@@ -479,10 +490,10 @@ def build_industrial(name, w, d, variant):
             block("ladder_rung", (4.4, 11.61, height, 5.2, 11.70, height + .06), "pipe")
         for x in (4.4, 5.15):
             block("ladder_rail", (x, 11.60, .5, x + .05, 11.69, 18), "pipe")
-    if variant in (1, 4):
+    if equipment in (1, 4):
         # The old 3 m radius skipped the narrow depot entirely and intersected the 4x4 warehouse.
         radius = min(2.5, (w - 1.2) / 2)
-        cx = w / 2 if variant == 1 else w - 4
+        cx = w / 2 if equipment == 1 else w - 4
         for cy in (18, 25):
             cylinder("tank", cx, cy, radius, .18, 7.8)
             cylinder("tank_cap", cx, cy, radius + .1, 7.8, 8.05, "pipe")
@@ -494,8 +505,8 @@ def build_industrial(name, w, d, variant):
             block("bund_side", (x, 14.9, .18, x + .15, 28.1, .7), "trim")
         for y in (14.9, 28):
             block("bund_end", (cx - radius - .3, y, .18, cx + radius + .3, y + .15, .7), "trim")
-    if variant in (3, 4):
-        store_w = w - 1.6 if variant == 3 else w * .55
+    if equipment in (3, 4):
+        store_w = w - 1.6 if equipment == 3 else w * .55
         block("warehouse", (.8, 20, .18, .8 + store_w, d - 1, 6))
         parts.append((gabled_roof_at(f"{name}_warehouse_roof", .7, 19.9, store_w + .2, d - 20.8, 6, 1.5), "trim"))
         block("dock", (.8, 18.5, .18, .8 + store_w, 20, 1), "pipe")
@@ -504,9 +515,9 @@ def build_industrial(name, w, d, variant):
             block("dock_edge", (x, 18.46, .8, x + 3, 18.52, 1), "warning")
         for y in range(21, int(d) - 1):
             block("warehouse_rib", (.72, y, .18, .82, y + .09, 6), "pipe")
-    if variant in (2, 3, 4):
+    if equipment in (2, 3, 4):
         # Elevated pipes run across the service yard, clear of the tanks and freight doors.
-        rack_end = w * .55 + 1 if variant == 4 else w - 1
+        rack_end = w * .55 + 1 if equipment == 4 else w - 1
         for y in (17, 17.65):
             pipe = prism(f"{name}_pipe", 0, 0, .18, 0, rack_end - 1, 12)
             for vertex in pipe.data.vertices:
@@ -526,6 +537,9 @@ def build_industrial(name, w, d, variant):
             for y in (16.8, 17.85):
                 block("rack_leg", (x - .08, y, .18, x + .08, y + .12, 6), "trim")
             block("rack_beam", (x - .12, 16.7, 5.4, x + .12, 18.1, 5.55), "trim")
+    if layout == "c":
+        cylinder("silo", w/2, 11.7, min(1.4, w*.18), .18, 11.5)
+        cylinder("silo_cap", w/2, 11.7, min(1.4, w*.18)+.06, 11.5, 11.8, "pipe")
     mats = {key: material(f"{name}_{key}", colour) for key, colour in {
         "shed": INDUSTRY_SHED, "trim": INDUSTRY_TRIM, "tank": TANK,
         "stack": STACK, "pipe": PIPE, "yard": YARD,
@@ -534,7 +548,7 @@ def build_industrial(name, w, d, variant):
     export_parts(name, parts, mats, f"works {w} x {d} m")
 
 
-def build_military(name, w, d, variant):
+def build_military(name, w, d, variant, layout="a"):
     """Air-defense batteries: field post, hangar, magazine, and regional command."""
     from mathutils import Vector
 
@@ -570,7 +584,7 @@ def build_military(name, w, d, variant):
         block("slab_joint", (.5,y,.251,w-.5,y+.035,.26), "steel")
 
     # Front command cabin keeps the existing 3.6 m roof-deck contract.
-    cabin_w = min(w-1.6, 9)
+    cabin_w = min(w-1.6, 6 if layout == "b" else 9)
     block("command", (.8,1.2,.25,.8+cabin_w,7.5,3.6), bevel=.12)
     block("roof", (.65,1.05,3.6,.95+cabin_w,7.65,3.82), "steel")
     for x in range(1, int(cabin_w)+1):
@@ -597,9 +611,9 @@ def build_military(name, w, d, variant):
     rod("bearing", (cx,cy,1.05),(cx,cy,1.45),1.3,"trim",24)
     block("pedestal", (cx-.7,cy-.75,1.3,cx+.7,cy+.75,3.4), "wall", .12)
     rod("elevation_axle", (cx-1.4,cy,3.2),(cx+1.4,cy,3.2),.35)
-    direction = Vector((0,-.5,.866))
+    direction = Vector((0,0,1)) if layout == "c" else Vector((0,-.5,.866))
     for side in (-1,1):
-        for row in range(2):
+        for row in range(3 if layout == "b" else 2):
             start = Vector((cx+side*.57,cy+1+row*.85,2.7+row*.48))
             end = start + direction*5.3
             rod("launch_canister", start,end,.44,"wall",16)
@@ -612,7 +626,8 @@ def build_military(name, w, d, variant):
         rod("hydraulic",(cx+side*.9,cy-.9,1.4),(cx+side*.9,cy-.35,4),.12)
         rod("piston",(cx+side*.9,cy-.35,4),(cx+side*.9,cy-.7,4.65),.07,"light")
 
-    if variant in (2,4):
+    has_hangar = variant in (2,4) if layout == "a" else layout == "b"
+    if has_hangar:
         hw = min(w-1.6, 12)
         block("hangar",(.8,22,.25,.8+hw,d-1,5.1),"wall",.15)
         parts.append((gabled_roof_at(f"{name}_hangar_roof",.65,21.85,hw+.3,d-22.7,5.1,1.3),"steel"))
@@ -629,18 +644,26 @@ def build_military(name, w, d, variant):
 
     # Phased-array radar on a braced tower, above the rear shelter.
     rx, ry = (w-3.2 if variant >= 3 else w/2), d-4
-    base = 2.8 if variant in (1,3) else (6.6 if variant==2 else .25)
+    base = (2.8 if variant in (1,3) else (6.6 if variant==2 else .25)) if layout == "a" else 2.8
+    if layout == "b":
+        rx, ry = .8 + min(w-1.6,12)/2, (22+d-1)/2
+        base = 6.4  # The hangar ridge, directly under the radar legs.
     for sx in (-.6,.6):
         for sy in (-.6,.6):
-            rod("radar_leg",(rx+sx,ry+sy,base),(rx+sx*.45,ry+sy*.45,base+3),.085)
+            rod("radar_leg",(rx+sx,ry+sy,base-abs(sy)*1.3/((d-22.7)/2) if layout == "b" else base),(rx+sx*.45,ry+sy*.45,base+3),.085)
     for level in range(3):
         rod("tower_brace",(rx-.6,ry-.6,base+level),(rx+.6,ry-.6,base+level+1),.045)
     rod("radar_yoke",(rx,ry,base+2.7),(rx,ry,base+3.6),.24)
-    block("radar_back",(rx-1.6,ry-.3,base+3.4,rx+1.6,ry+.1,base+5.5),"steel",.1)
-    block("radar_face",(rx-1.48,ry-.35,base+3.52,rx+1.48,ry-.30,base+5.38),"light")
-    for x in range(8):
-        for z in range(5):
-            block("radar_element",(rx-1.35+x*.35,ry-.39,base+3.62+z*.33,rx-1.12+x*.35,ry-.35,base+3.83+z*.33),"trim")
+    if layout == "c":
+        rod("radar_disc",(rx,ry-.15,base+4.2),(rx,ry+.12,base+4.2),1.45,"steel",24)
+        rod("radar_face",(rx,ry-.20,base+4.2),(rx,ry-.15,base+4.2),1.30,"light",24)
+        rod("radar_feed",(rx,ry-.2,base+4.2),(rx,ry-1,base+4.2),.08)
+    else:
+        block("radar_back",(rx-1.6,ry-.3,base+3.4,rx+1.6,ry+.1,base+5.5),"steel",.1)
+        block("radar_face",(rx-1.48,ry-.35,base+3.52,rx+1.48,ry-.30,base+5.38),"light")
+        for x in range(8):
+            for z in range(5):
+                block("radar_element",(rx-1.35+x*.35,ry-.39,base+3.62+z*.33,rx-1.12+x*.35,ry-.35,base+3.83+z*.33),"trim")
 
     if variant >= 3:
         # Service container and protected fuel tank occupy the unused right-hand apron.
@@ -692,7 +715,7 @@ def farm_specs():
         yield (f"farm_{frontage}x4", frontage * CELL - 1.5, 4 * CELL - 1.5, frontage)
 
 
-def build_farm(name, w, d, variant):
+def build_farm(name, w, d, variant, layout="a"):
     clear_scene()
     import math
 
@@ -702,10 +725,13 @@ def build_farm(name, w, d, variant):
 
     # Yard anchors the exact parcel bounds; detail stays within these edges.
     block("yard", (0, 0, 0, w, FARM_YARD_DEPTH, .15), "soil")
-    barn_w = min(w * 0.62, 13.0)
-    barn_d = 8.5
+    # Crop family and barn proportions vary together; all layouts must fit the 1x4 holding.
+    if layout != "a":
+        variant = (variant - 1 + (1 if layout == "b" else 2)) % 4 + 1
+    barn_w = min(w * (.45 if layout == "b" else .75 if layout == "c" else .62), 13.0)
+    barn_d = 6.5 if layout == "b" else 8.5
     barn_h = 5.0
-    ridge = 3.4
+    ridge = 4 if layout == "c" else 3.4
     parts.append((box(f"{name}_barn", 0.0, 1.0, 0.0, barn_w, 1.0 + barn_d, barn_h), "barn"))
     parts.append((gabled_roof_at(f"{name}_barn_roof", 0.0, 1.0, barn_w, barn_d, barn_h, ridge), "trim"))
     # The big sliding door, and the white boards a barn is always trimmed with.
@@ -713,7 +739,7 @@ def build_farm(name, w, d, variant):
     parts.append((box(f"{name}_barn_band", 0.0, 0.95, barn_h - 0.5, barn_w + 0.05, 1.05, barn_h - 0.2), "trim"))
     for x in range(1, int(barn_w * 2)):
         block("plank", (x * .5, .95, .2, x * .5 + .045, 1.02, 4.8), "door")
-    for y in range(2, 10):
+    for y in range(2, int(1+barn_d)+1):
         block("side_plank", (barn_w - .02, y, .2, barn_w + .035, y + .045, 4.9), "door")
     for x in (barn_w * .3, barn_w * .7):
         block("door_jamb", (x - .07, .78, .15, x + .07, .92, 3.7), "trim")
@@ -865,12 +891,12 @@ def urban_specs():
     for kind in ('residential', 'commercial'):
         for frontage in range(1, 5):
             for depth in range(1, 5):
-                for variant in ('a', 'b'):
+                for variant in ('a', 'b', 'court', 'terraces'):
                     yield f'{kind}_{frontage}x{depth}_{variant}', frontage * CELL - 1.5, depth * CELL - 1.5, kind, variant
     for kind, size in (('residential', (3, 3)), ('residential', (4, 4)),
                        ('commercial', (3, 4)), ('commercial', (4, 3))):
         f, d = size
-        for variant in ('tower', 'tower_steps', 'tower_offset'):
+        for variant in ('tower', 'tower_steps', 'tower_offset', 'tower_crown', 'tower_split'):
             yield f'{kind}_{f}x{d}_{variant}', f * CELL - 1.5, d * CELL - 1.5, kind, variant
 
 
@@ -889,6 +915,39 @@ def build_urban(name, w, d, kind, variant):
                        (w*.08, d*.12, w*.72, d*.72, 9, 27 if residential else 39)]
         else:
             volumes = [(0, 0, w, d, 0, 15 if residential else 18)]
+    elif variant == 'court':
+        # Street wing and two return wings enclose a real, lower patio deck.
+        top = 12 if residential else 9
+        volumes = [(0, 0, w, d, 0, 3)]
+        if large:
+            volumes += [(0, 0, w, d*.28, 3, top),
+                        (0, d*.28, w*.27, d*.72, 3, top),
+                        (w*.73, d*.28, w*.27, d*.72, 3, top-3)]
+        else:
+            volumes += [(0, 0, w, d*.62, 3, top-3),
+                        (w*.12, d*.62, w*.76, d*.38, 3, 6)]
+    elif variant == 'terraces':
+        # Deep, inhabitable setbacks; narrow lots still have three distinct roof levels.
+        step = 6 if residential else 9
+        volumes = [(0, 0, w, d, 0, step)]
+        for level in range(1, 4):
+            volumes.append((w*.06*level, d*.17*level, w*(1-.12*level), d*(1-.17*level),
+                            step*level, step*(level+1)))
+    elif variant == 'tower_crown':
+        # Art-deco shoulders and a narrow lantern, distinct from the broad stepped tower.
+        shoulder = 72 if residential else 96
+        volumes = [(0,0,w,d,0,9),
+                   (w*.12,d*.14,w*.76,d*.72,9,shoulder),
+                   (w*.22,d*.22,w*.56,d*.56,shoulder,shoulder+18),
+                   (w*.34,d*.30,w*.32,d*.40,shoulder+18,shoulder+30),
+                   (w*.41,d*.38,w*.18,d*.24,shoulder+30,shoulder+39)]
+    elif variant == 'tower_split':
+        # Unequal parallel shafts and an elevated bridge leave a visible slot in the skyline.
+        top = 117 if residential else 129
+        volumes = [(0,0,w,d,0,6),
+                   (w*.07,d*.16,w*.29,d*.70,6,top),
+                   (w*.64,d*.16,w*.29,d*.70,6,top-18),
+                   (w*.36,d*.39,w*.28,d*.22,top-42,top-36)]
     elif variant == 'tower_steps':
         # Broad inhabited terraces versus a narrow office crown; decks share the mesh volumes.
         volumes = [(0, 0, w, d, 0, 6)]
@@ -928,7 +987,7 @@ def build_urban(name, w, d, kind, variant):
     for i, (x, y, sw, sd, base, top) in enumerate(volumes):
         label = f'{name}_{i}'
         parts.append((box(label, x, y, base, x+sw, y+sd, top), 'wall'))
-        if variant == 'a':
+        if variant in ('a', 'court'):
             add_windows(parts, label, sw, sd, top-base, kind, x, y, base)
         else:
             # Continuous glazing with full-height piers gives a readable facade at city scale.
@@ -936,7 +995,7 @@ def build_urban(name, w, d, kind, variant):
             for z in range(int(base)+3, int(top)-1, 3):
                 if residential:
                     for span, front in ((sw, True), (sd, False)):
-                        count = max(1, int(span//3.5))
+                        count = max(1, int(span//(5 if variant == "tower_split" else 3.5)))
                         for col in range(count):
                             centre = (col+.5)*span/count
                             for side in (0, sd) if front else (0, sw):
@@ -948,23 +1007,31 @@ def build_urban(name, w, d, kind, variant):
                                     (x-.12,y+.45,z,x-.06,y+sd-.45,z+1.9),
                                     (x+sw+.06,y+.45,z,x+sw+.12,y+sd-.45,z+1.9)):
                         parts.append((box(label+'_glazing', *corners), 'glass'))
-                if residential and (variant != 'tower_offset' or z % 9 == 0):
+                if residential and (variant not in ('tower_offset', 'tower_split', 'tower_crown') or (variant != 'tower_crown' and z % 9 == 0)):
                     for by in (y-.60, y+sd):
                         parts.append((box(label+'_balcony', x-.15,by,z-.2,x+sw+.15,by+.60,z), 'trim'))
                         rail_y = by if by < y else by+.48
                         parts.append((box(label+'_rail', x-.15,rail_y,z+.65,x+sw+.15,rail_y+.12,z+.85), 'trim'))
                         for bx in (x, x+sw):
                             parts.append((box(label+'_rail_end',bx-.05,by,z,bx+.05,by+.6,z+.85),'trim'))
-                elif not residential and variant != 'tower_steps':
+                elif not residential and variant not in ('tower_steps', 'tower_crown'):
                     for by in (y-.16, y+sd):
                         parts.append((box(label+'_spandrel',x,by,z+1.95,x+sw,by+.16,z+2.15),'trim'))
             # Offset towers read horizontally; crowned offices use strong vertical fins.
-            for span, horizontal in (() if variant == 'tower_offset' else ((sw, True), (sd, False))):
+            for span, horizontal in (() if variant in ('tower_offset', 'tower_split', 'terraces') else ((sw, True), (sd, False))):
                 for pier in range(max(1, int(span//4))+1):
                     offset = pier * span/max(1, int(span//4))
                     for side in (0, sd) if horizontal else (0, sw):
                         corners = (x+offset-.10,y+side-.18,base,x+offset+.10,y+side+.18,top) if horizontal else (x+side-.18,y+offset-.10,base,x+side+.18,y+offset+.10,top)
                         parts.append((box(label+'_pier',*corners),'trim'))
+        if variant in ('court', 'tower_crown'):
+            # Projecting masonry cornices make these facades read differently from balcony slabs.
+            for z in (top-.65, top-.25):
+                for corners in ((x-.2,y-.2,z,x+sw+.2,y+.1,z+.18),
+                                (x-.2,y+sd-.1,z,x+sw+.2,y+sd+.2,z+.18),
+                                (x-.2,y,z,x+.1,y+sd,z+.18),
+                                (x+sw-.1,y,z,x+sw+.2,y+sd,z+.18)):
+                    parts.append((box(label+'_cornice',*corners),'trim'))
         if pitched:
             parts.append((gabled_roof_at(label+'_roof',x,y,sw,sd,top,2.5),'trim'))
         else:
@@ -981,6 +1048,14 @@ def build_urban(name, w, d, kind, variant):
         colour = (.68,.42,.29,1) if residential else (.62,.65,.61,1)
     elif variant == 'tower_offset':
         colour = (.83,.81,.72,1) if residential else (.23,.32,.39,1)
+    if variant == 'court':
+        colour = (.64,.34,.23,1) if residential else (.76,.66,.49,1)
+    elif variant == 'terraces':
+        colour = (.89,.85,.74,1) if residential else (.42,.52,.54,1)
+    elif variant == 'tower_crown':
+        colour = (.78,.66,.46,1) if residential else (.62,.57,.45,1)
+    elif variant == 'tower_split':
+        colour = (.66,.71,.73,1) if residential else (.21,.36,.43,1)
     mats = {key: material(f'{name}_{key}', value) for key,value in {
         'wall':colour, 'glass':GLASS, 'trim':trim_colour(colour), 'door':DOOR,
         'sign':SIGN, 'awning':AWNING,
@@ -993,8 +1068,61 @@ def build_urban(name, w, d, kind, variant):
         for x,y,sw,sd,base,top in volumes]}
 
 
+def lot_roof(w, d, h, roof):
+    if roof > 0:
+        return {"kind": "pitched", "deckY": h, "ridgeY": h + roof, "ridgeZ": -d / 2}
+    elif w * d >= CELL * CELL * 6:
+        return {
+            "kind": "setback",
+            "lowerDeckY": round(h * 0.72, 5),
+            "upperDeckY": h,
+            "width": w,
+            "minX": round(w * 0.12, 5),
+            "maxX": round(w * 0.88, 5),
+            "minZ": round(-d * 0.88, 5),
+            "maxZ": round(-d * 0.12, 5),
+        }
+    else:
+        return {"kind": "flat", "deckY": h}
+
+
+def build_variants(manifest, families=("lot", "farm", "industrial", "military")):
+    if "lot" in families:
+        for name, w, d, *_ in building_specs():
+            for variant, h, roof, colour, style in (
+                ("gable", 8, 3, (.73,.60,.45,1), "residential"),
+                ("slab", 12, 0, (.53,.62,.65,1), "office"),
+            ):
+                model = f"{name}_{variant}"
+                build(model,w,d,h,roof,colour,style)
+                manifest["models"][model] = lot_roof(w,d,h,roof)
+    for kind, builder in (("farm",build_farm),("industrial",build_industrial),("military",build_military)):
+        if kind not in families:
+            continue
+        for name,w,d,size in works_specs(kind):
+            for layout in ("b", "c"):
+                model = f"{name}_{layout}"
+                builder(model,w,d,size,layout)
+                # These compounds receive no runtime roof props, as with the original models.
+                manifest["models"][model] = {"kind":"flat","deckY":5 if kind == "farm" else 7.5 if kind == "industrial" else 3.6}
+
+
+def write_manifest(manifest):
+    with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
+    path = os.path.join(OUT_DIR, "manifest.json")
+    if any(flag in sys.argv for flag in ("--variants-only", "--farms-only", "--military-only", "--lots-only")):
+        with open(path, encoding="utf-8") as f:
+            manifest = json.load(f)
+    if "--variants-only" in sys.argv:
+        build_variants(manifest)
+        write_manifest(manifest)
+        return
     if "--urban-only" in sys.argv or "--towers-only" in sys.argv:
         path = os.path.join(OUT_DIR, "manifest.json")
         with open(path, encoding="utf-8") as f:
@@ -1010,6 +1138,8 @@ def main():
     if "--farms-only" in sys.argv:
         for spec in farm_specs():
             build_farm(*spec)
+        build_variants(manifest, ("farm",))
+        write_manifest(manifest)
         return
     if "--industrial-only" in sys.argv or "--industrial-small-only" in sys.argv:
         if "--industrial-only" in sys.argv:
@@ -1018,6 +1148,8 @@ def main():
         path = os.path.join(OUT_DIR, "manifest.json")
         with open(path, encoding="utf-8") as f:
             manifest = json.load(f)
+        if "--industrial-only" in sys.argv:
+            build_variants(manifest, ("industrial",))
         for variant in ('a', 'b', 'c'):
             name, roof = build_small_industrial(variant)
             manifest["models"][name] = roof
@@ -1028,30 +1160,20 @@ def main():
     if "--military-only" in sys.argv:
         for spec in works_specs("military"):
             build_military(*spec)
+        build_variants(manifest, ("military",))
+        write_manifest(manifest)
         return
     if "--lots-only" in sys.argv:
         # Geometry-only refresh: roof facts remain unchanged and are checked against the GLBs.
         for spec in building_specs():
             build(*spec)
+        build_variants(manifest, ("lot",))
+        write_manifest(manifest)
         return
     manifest = {"models": {}}
     for spec in building_specs():
         name, w, d, h, roof, *_ = spec
-        if roof > 0:
-            manifest["models"][name] = {"kind": "pitched", "deckY": h, "ridgeY": h + roof, "ridgeZ": -d / 2}
-        elif w * d >= CELL * CELL * 6:
-            manifest["models"][name] = {
-                "kind": "setback",
-                "lowerDeckY": round(h * 0.72, 5),
-                "upperDeckY": h,
-                "width": w,
-                "minX": round(w * 0.12, 5),
-                "maxX": round(w * 0.88, 5),
-                "minZ": round(-d * 0.88, 5),
-                "maxZ": round(-d * 0.12, 5),
-            }
-        else:
-            manifest["models"][name] = {"kind": "flat", "deckY": h}
+        manifest["models"][name] = lot_roof(w, d, h, roof)
         build(*spec)
     for prefix, builder in (("industrial", build_industrial), ("military", build_military)):
         for name, w, d, variant in works_specs(prefix):
@@ -1066,9 +1188,8 @@ def main():
     for variant in ('a', 'b', 'c'):
         name, roof = build_small_industrial(variant)
         manifest["models"][name] = roof
-    with open(os.path.join(OUT_DIR, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump(manifest, f, indent=2)
-        f.write("\n")
+    build_variants(manifest)
+    write_manifest(manifest)
 
 
 if __name__ == "__main__":

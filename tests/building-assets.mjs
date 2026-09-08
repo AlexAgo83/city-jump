@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { readdirSync } from "node:fs";
 import test from "node:test";
+import { createHash } from "node:crypto";
 
 const BUILDINGS = new URL("../public/buildings/", import.meta.url);
 const EPSILON = 0.01;
@@ -40,7 +41,7 @@ function close(actual, expected, model, quantity) {
 test("every generated building model has a manifest entry", async () => {
   const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
   const shipped = readdirSync(BUILDINGS)
-    .filter((name) => /^(lot|farm|industrial|military)_\dx\d\.glb$/.test(name))
+    .filter((name) => /^(lot|farm|industrial|military|residential|commercial)_\dx\d(?:_[a-z_]+)?\.glb$/.test(name))
     .map((name) => name.slice(0, -4))
     .sort();
 
@@ -54,7 +55,7 @@ test("every generated building model has a manifest entry", async () => {
  */
 test("the lot manifest agrees with shipped GLB height facts", async () => {
   const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
-  const models = readdirSync(BUILDINGS).filter((name) => /^lot_\dx\d\.glb$/.test(name)).map((name) => name.slice(0, -4)).sort();
+  const models = readdirSync(BUILDINGS).filter((name) => /^lot_\dx\d(?:_gable|_slab)?\.glb$/.test(name)).map((name) => name.slice(0, -4)).sort();
 
   for (const model of models) {
     const roof = manifest.models[model];
@@ -77,8 +78,8 @@ test("hand-authored fallback building models declare usable height in the GLB", 
 });
 
 test("military batteries keep their footprint, origin and instancing budget", async () => {
-  for (let frontage = 1; frontage <= 4; frontage++) {
-    const model = `military_${frontage}x4`;
+  for (let frontage = 1; frontage <= 4; frontage++) for (const suffix of ["", "_b", "_c"]) {
+    const model = `military_${frontage}x4${suffix}`;
     const buffer = await readFile(new URL(`${model}.glb`, BUILDINGS));
     const gltf = glbJson(buffer);
     const bounds = boundsOf(gltf);
@@ -102,8 +103,8 @@ test("military batteries keep their footprint, origin and instancing budget", as
 
 test("detailed lots stay inside their cells with bounded geometry and baked transforms", async () => {
 	for (let frontage = 1; frontage <= 4; frontage++) {
-		for (let depth = 1; depth <= 4; depth++) {
-			const model = `lot_${frontage}x${depth}`;
+		for (let depth = 1; depth <= 4; depth++) for (const suffix of ["", "_gable", "_slab"]) {
+			const model = `lot_${frontage}x${depth}${suffix}`;
 			const buffer = await readFile(new URL(`${model}.glb`, BUILDINGS));
 			const gltf = glbJson(buffer);
 			const { min, max } = boundsOf(gltf);
@@ -137,8 +138,8 @@ test("detailed lots stay inside their cells with bounded geometry and baked tran
 });
 
 test("industrial works keep their parcel and bounded multi-material geometry", async () => {
-  for (let frontage = 1; frontage <= 4; frontage++) {
-    const model = `industrial_${frontage}x4`;
+  for (let frontage = 1; frontage <= 4; frontage++) for (const suffix of ["", "_b", "_c"]) {
+    const model = `industrial_${frontage}x4${suffix}`;
     const buffer = await readFile(new URL(`${model}.glb`, BUILDINGS));
     const gltf = glbJson(buffer);
     const { min, max } = boundsOf(gltf);
@@ -159,19 +160,19 @@ test("industrial works keep their parcel and bounded multi-material geometry", a
     assert.ok(triangles < 10000 && buffer.length < 600000, `${model}: ${triangles} triangles, ${buffer.length} bytes`);
     assert.ok(primitives.length <= 8, `${model} material budget`);
     // The narrow depot used to silently skip every tank because its radius did not fit.
-    if (frontage === 1 || frontage === 4) {
+    if (suffix === "_c" || (suffix === "" && (frontage === 1 || frontage === 4))) {
       const tank = primitives.find((primitive) => gltf.materials[primitive.material].name === `${model}_tank`);
       assert.ok(tank, `${model} has no tank geometry`);
       const bounds = gltf.accessors[tank.attributes.POSITION];
       assert.ok(bounds.min[0] > 0 && bounds.max[0] < frontage * 8 - 1.5);
-      if (frontage === 4) assert.ok(bounds.min[0] > 0.8 + (frontage * 8 - 1.5) * 0.55, "tanks intersect the warehouse");
+      if (frontage === 4 && suffix === "") assert.ok(bounds.min[0] > 0.8 + (frontage * 8 - 1.5) * 0.55, "tanks intersect the warehouse");
     }
   }
 });
 
 test("farms keep all equipment and crops within the parcel and instancing budget", async () => {
-  for (let frontage = 1; frontage <= 4; frontage++) {
-    const model = `farm_${frontage}x4`;
+  for (let frontage = 1; frontage <= 4; frontage++) for (const suffix of ["", "_b", "_c"]) {
+    const model = `farm_${frontage}x4${suffix}`;
     const buffer = await readFile(new URL(`${model}.glb`, BUILDINGS));
     const gltf = glbJson(buffer);
     const { min, max } = boundsOf(gltf);
@@ -191,23 +192,29 @@ test("farms keep all equipment and crops within the parcel and instancing budget
     const triangles = primitives.reduce((sum, primitive) => sum + gltf.accessors[primitive.indices].count / 3, 0);
     assert.ok(triangles < 8000 && buffer.length < 500000, `${model}: ${triangles} triangles, ${buffer.length} bytes`);
     assert.ok(primitives.length <= 10, `${model} material budget`);
-    const feature = ["tunnel", "silo", "orchard", "water"][frontage - 1];
+    const feature = (suffix ? ["tunnel", "crop1", "orchard", "water"] : ["tunnel", "silo", "orchard", "water"])[(frontage - 1 + (suffix === "_b" ? 1 : suffix === "_c" ? 2 : 0)) % 4];
     assert.ok(primitives.some((primitive) => gltf.materials[primitive.material].name === `${model}_${feature}`), `${model} missing ${feature}`);
   }
 });
 
-test("urban variants and twelve towers match footprints, roof decks and browser budgets", async () => {
+test("urban variants and twenty towers match footprints, roof decks and browser budgets", async () => {
   const manifest = JSON.parse(await readFile(new URL("manifest.json", BUILDINGS), "utf8"));
   const ids = Object.keys(manifest.models).filter((id) => /^(residential|commercial)_/.test(id));
-  assert.equal(ids.length, 76);
-  assert.equal(ids.filter((id) => id.includes("_tower")).length, 12);
+  assert.equal(ids.length, 148);
+  assert.equal(ids.filter((id) => id.includes("_tower")).length, 20);
   for (const footprint of ["residential_3x3", "residential_4x4", "commercial_3x4", "commercial_4x3"]) {
-    const silhouettes = ["tower", "tower_steps", "tower_offset"].map((variant) => JSON.stringify(manifest.models[`${footprint}_${variant}`].decks));
-    assert.equal(new Set(silhouettes).size, 3, `${footprint} needs three distinct silhouettes`);
+    const silhouettes = ["tower", "tower_steps", "tower_offset", "tower_crown", "tower_split"].map((variant) => JSON.stringify(manifest.models[`${footprint}_${variant}`].decks));
+    assert.equal(new Set(silhouettes).size, 5, `${footprint} needs five distinct silhouettes`);
+  }
+  for (const kind of ["residential", "commercial"]) {
+    for (let f = 1; f <= 4; f++) for (let d = 1; d <= 4; d++) {
+      const roofs = ["a", "b", "court", "terraces"].map((v) => JSON.stringify(manifest.models[`${kind}_${f}x${d}_${v}`]));
+      assert.equal(new Set(roofs).size, 4, `${kind}_${f}x${d} needs four distinct silhouettes`);
+    }
   }
   let totalBytes = 0;
   for (const id of ids) {
-    const [, frontage, depth, variant] = id.match(/_(\d)x(\d)_(a|b|tower(?:_steps|_offset)?)$/);
+    const [, frontage, depth, variant] = id.match(/_(\d)x(\d)_(a|b|court|terraces|tower(?:_steps|_offset|_crown|_split)?)$/);
     const buffer = await readFile(new URL(`${id}.glb`, BUILDINGS));
     totalBytes += buffer.length;
     const gltf = glbJson(buffer);
@@ -246,10 +253,10 @@ test("urban variants and twelve towers match footprints, roof decks and browser 
         assert.ok(found, `${id} has no roof surface at ${deck.deckY}`);
       }
     }
-    if (variant === "a") assert.ok(max[1] < 14, `${id} exceeds pedestrian height`);
+    if (variant === "a" || variant === "court") assert.ok(max[1] < 14, `${id} exceeds pedestrian height`);
     if (variant.startsWith("tower")) assert.ok(max[1] > 60 && max[1] < 140, `${id} tower height`);
   }
-  assert.ok(totalBytes < 12*1024*1024, `urban library: ${totalBytes} bytes`);
+  assert.ok(totalBytes < 24*1024*1024, `urban library: ${totalBytes} bytes`);
 });
 
 test("small industrial variants fit one cell and retain their equipment", async () => {
@@ -276,4 +283,27 @@ test("small industrial variants fit one cell and retain their equipment", async 
     const feature = variant === "c" ? "stack" : "glass";
     assert.ok(primitives.some((p) => gltf.materials[p.material].name === `${id}_${feature}`), `${id} missing ${feature}`);
   }
+});
+
+
+test("each compound and generic footprint has three different geometries", async () => {
+  let addedBytes = 0;
+  for (const family of ["lot", "farm", "industrial", "military"]) {
+    for (let f = 1; f <= 4; f++) for (const d of family === "lot" ? [1,2,3,4] : [4]) {
+      const geometries = new Set();
+      for (const suffix of family === "lot" ? ["", "_gable", "_slab"] : ["", "_b", "_c"]) {
+        const buffer = await readFile(new URL(`${family}_${f}x${d}${suffix}.glb`, BUILDINGS));
+        if (suffix) addedBytes += buffer.length;
+        const gltf = glbJson(buffer), bin = 20 + buffer.readUInt32LE(12) + 8;
+        const hash = createHash("sha256");
+        for (const primitive of gltf.meshes[0].primitives) {
+          const view = gltf.bufferViews[gltf.accessors[primitive.attributes.POSITION].bufferView];
+          hash.update(buffer.subarray(bin + (view.byteOffset ?? 0), bin + (view.byteOffset ?? 0) + view.byteLength));
+        }
+        geometries.add(hash.digest("hex"));
+      }
+      assert.equal(geometries.size, 3, `${family}_${f}x${d} repeats geometry`);
+    }
+  }
+  assert.ok(addedBytes < 10*1024*1024, `additional compound/lot library: ${addedBytes} bytes`);
 });

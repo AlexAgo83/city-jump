@@ -1440,6 +1440,2676 @@
           "deckY": 114
         }
       ]
+    },
+    "residential_1x1_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_1x1_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 12
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 18
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_1x2_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -8.99,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -14.5,
+          "maxZ": -8.99,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_1x2_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 12
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_1x3_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -13.95,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -22.5,
+          "maxZ": -13.95,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_1x3_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 12
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 18
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_1x4_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -18.91,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -30.5,
+          "maxZ": -18.91,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_1x4_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_2x1_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_2x1_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 12
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 18
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_2x2_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_2x2_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 12
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_2x3_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_2x3_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 12
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 18
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_2x4_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_2x4_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_3x1_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_3x1_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 12
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 18
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_3x2_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_3x2_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 12
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_3x3_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_3x3_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 12
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 18
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_3x4_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_3x4_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_4x1_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "residential_4x1_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 12
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 18
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_4x2_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_4x2_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 12
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_4x3_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_4x3_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 12
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 18
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "residential_4x4_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 12
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 12
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        }
+      ]
+    },
+    "residential_4x4_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 12
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 18
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 24
+        }
+      ]
+    },
+    "commercial_1x1_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_1x1_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 18
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 27
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_1x2_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -8.99,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -14.5,
+          "maxZ": -8.99,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_1x2_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 18
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_1x3_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -13.95,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -22.5,
+          "maxZ": -13.95,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_1x3_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 18
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 27
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_1x4_court": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -18.91,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -30.5,
+          "maxZ": -18.91,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_1x4_terraces": {
+      "kind": "terraced",
+      "width": 6.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 6.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.39,
+          "maxX": 6.109999999999999,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 18
+        },
+        {
+          "minX": 0.78,
+          "maxX": 5.720000000000001,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 1.17,
+          "maxX": 5.33,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_2x1_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_2x1_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 18
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 27
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_2x2_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_2x2_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 18
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_2x3_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_2x3_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 18
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 27
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_2x4_court": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 3.915,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 10.584999999999999,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_2x4_terraces": {
+      "kind": "terraced",
+      "width": 14.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 14.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0.87,
+          "maxX": 13.629999999999999,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 18
+        },
+        {
+          "minX": 1.74,
+          "maxX": 12.76,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 2.61,
+          "maxX": 11.889999999999999,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_3x1_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_3x1_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 18
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 27
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_3x2_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_3x2_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 18
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_3x3_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_3x3_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 18
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 27
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_3x4_court": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 6.075,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 16.425,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_3x4_terraces": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.3499999999999999,
+          "maxX": 21.150000000000002,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 18
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 4.05,
+          "maxX": 18.45,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_4x1_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -4.03,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -6.5,
+          "maxZ": -4.03,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_4x1_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -6.5,
+          "maxZ": -1.105,
+          "deckY": 18
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -6.499999999999999,
+          "maxZ": -2.21,
+          "deckY": 27
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -6.5,
+          "maxZ": -3.315,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_4x2_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -4.0600000000000005,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 9
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": -4.0600000000000005,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_4x2_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -14.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -14.5,
+          "maxZ": -2.4650000000000003,
+          "deckY": 18
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -14.5,
+          "maxZ": -4.930000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -14.5,
+          "maxZ": -7.395000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_4x3_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -6.300000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": -6.300000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_4x3_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -22.5,
+          "maxZ": -3.825,
+          "deckY": 18
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -22.5,
+          "maxZ": -7.65,
+          "deckY": 27
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -22.5,
+          "maxZ": -11.475000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "commercial_4x4_court": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 3
+        },
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -8.540000000000001,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 0,
+          "maxX": 8.235000000000001,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 9
+        },
+        {
+          "minX": 22.265,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": -8.540000000000001,
+          "deckY": 6
+        }
+      ]
+    },
+    "commercial_4x4_terraces": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 1.8299999999999998,
+          "maxX": 28.669999999999998,
+          "minZ": -30.5,
+          "maxZ": -5.1850000000000005,
+          "deckY": 18
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -30.5,
+          "maxZ": -10.370000000000001,
+          "deckY": 27
+        },
+        {
+          "minX": 5.489999999999999,
+          "maxX": 25.009999999999998,
+          "minZ": -30.5,
+          "maxZ": -15.555000000000001,
+          "deckY": 36
+        }
+      ]
+    },
+    "residential_3x3_tower_crown": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -19.35,
+          "maxZ": -3.1500000000000004,
+          "deckY": 72
+        },
+        {
+          "minX": 4.95,
+          "maxX": 17.55,
+          "minZ": -17.55,
+          "maxZ": -4.95,
+          "deckY": 90
+        },
+        {
+          "minX": 7.65,
+          "maxX": 14.850000000000001,
+          "minZ": -15.75,
+          "maxZ": -6.75,
+          "deckY": 102
+        },
+        {
+          "minX": 9.225,
+          "maxX": 13.274999999999999,
+          "minZ": -13.95,
+          "maxZ": -8.55,
+          "deckY": 111
+        }
+      ]
+    },
+    "residential_3x3_tower_split": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.5750000000000002,
+          "maxX": 8.1,
+          "minZ": -19.349999999999998,
+          "maxZ": -3.6,
+          "deckY": 117
+        },
+        {
+          "minX": 14.4,
+          "maxX": 20.925,
+          "minZ": -19.349999999999998,
+          "maxZ": -3.6,
+          "deckY": 99
+        },
+        {
+          "minX": 8.1,
+          "maxX": 14.4,
+          "minZ": -13.725000000000001,
+          "maxZ": -8.775,
+          "deckY": 81
+        }
+      ]
+    },
+    "residential_4x4_tower_crown": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -26.23,
+          "maxZ": -4.2700000000000005,
+          "deckY": 72
+        },
+        {
+          "minX": 6.71,
+          "maxX": 23.790000000000003,
+          "minZ": -23.790000000000003,
+          "maxZ": -6.71,
+          "deckY": 90
+        },
+        {
+          "minX": 10.370000000000001,
+          "maxX": 20.130000000000003,
+          "minZ": -21.35,
+          "maxZ": -9.15,
+          "deckY": 102
+        },
+        {
+          "minX": 12.504999999999999,
+          "maxX": 17.994999999999997,
+          "minZ": -18.91,
+          "maxZ": -11.59,
+          "deckY": 111
+        }
+      ]
+    },
+    "residential_4x4_tower_split": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 2.1350000000000002,
+          "maxX": 10.979999999999999,
+          "minZ": -26.229999999999997,
+          "maxZ": -4.88,
+          "deckY": 117
+        },
+        {
+          "minX": 19.52,
+          "maxX": 28.365,
+          "minZ": -26.229999999999997,
+          "maxZ": -4.88,
+          "deckY": 99
+        },
+        {
+          "minX": 10.98,
+          "maxX": 19.520000000000003,
+          "minZ": -18.605,
+          "maxZ": -11.895,
+          "deckY": 81
+        }
+      ]
+    },
+    "commercial_3x4_tower_crown": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 2.6999999999999997,
+          "maxX": 19.8,
+          "minZ": -26.23,
+          "maxZ": -4.2700000000000005,
+          "deckY": 96
+        },
+        {
+          "minX": 4.95,
+          "maxX": 17.55,
+          "minZ": -23.790000000000003,
+          "maxZ": -6.71,
+          "deckY": 114
+        },
+        {
+          "minX": 7.65,
+          "maxX": 14.850000000000001,
+          "minZ": -21.35,
+          "maxZ": -9.15,
+          "deckY": 126
+        },
+        {
+          "minX": 9.225,
+          "maxX": 13.274999999999999,
+          "minZ": -18.91,
+          "maxZ": -11.59,
+          "deckY": 135
+        }
+      ]
+    },
+    "commercial_3x4_tower_split": {
+      "kind": "terraced",
+      "width": 22.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 22.5,
+          "minZ": -30.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 1.5750000000000002,
+          "maxX": 8.1,
+          "minZ": -26.229999999999997,
+          "maxZ": -4.88,
+          "deckY": 129
+        },
+        {
+          "minX": 14.4,
+          "maxX": 20.925,
+          "minZ": -26.229999999999997,
+          "maxZ": -4.88,
+          "deckY": 111
+        },
+        {
+          "minX": 8.1,
+          "maxX": 14.4,
+          "minZ": -18.605,
+          "maxZ": -11.895,
+          "deckY": 93
+        }
+      ]
+    },
+    "commercial_4x3_tower_crown": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 9
+        },
+        {
+          "minX": 3.6599999999999997,
+          "maxX": 26.84,
+          "minZ": -19.35,
+          "maxZ": -3.1500000000000004,
+          "deckY": 96
+        },
+        {
+          "minX": 6.71,
+          "maxX": 23.790000000000003,
+          "minZ": -17.55,
+          "maxZ": -4.95,
+          "deckY": 114
+        },
+        {
+          "minX": 10.370000000000001,
+          "maxX": 20.130000000000003,
+          "minZ": -15.75,
+          "maxZ": -6.75,
+          "deckY": 126
+        },
+        {
+          "minX": 12.504999999999999,
+          "maxX": 17.994999999999997,
+          "minZ": -13.95,
+          "maxZ": -8.55,
+          "deckY": 135
+        }
+      ]
+    },
+    "commercial_4x3_tower_split": {
+      "kind": "terraced",
+      "width": 30.5,
+      "decks": [
+        {
+          "minX": 0,
+          "maxX": 30.5,
+          "minZ": -22.5,
+          "maxZ": 0,
+          "deckY": 6
+        },
+        {
+          "minX": 2.1350000000000002,
+          "maxX": 10.979999999999999,
+          "minZ": -19.349999999999998,
+          "maxZ": -3.6,
+          "deckY": 129
+        },
+        {
+          "minX": 19.52,
+          "maxX": 28.365,
+          "minZ": -19.349999999999998,
+          "maxZ": -3.6,
+          "deckY": 111
+        },
+        {
+          "minX": 10.98,
+          "maxX": 19.520000000000003,
+          "minZ": -13.725000000000001,
+          "maxZ": -8.775,
+          "deckY": 93
+        }
+      ]
+    },
+    "lot_1x1_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -3.25
+    },
+    "lot_1x1_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_1x2_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -7.25
+    },
+    "lot_1x2_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_1x3_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -11.25
+    },
+    "lot_1x3_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_1x4_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -15.25
+    },
+    "lot_1x4_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_2x1_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -3.25
+    },
+    "lot_2x1_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_2x2_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -7.25
+    },
+    "lot_2x2_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_2x3_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -11.25
+    },
+    "lot_2x3_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_2x4_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -15.25
+    },
+    "lot_2x4_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 14.5,
+      "minX": 1.74,
+      "maxX": 12.76,
+      "minZ": -26.84,
+      "maxZ": -3.66
+    },
+    "lot_3x1_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -3.25
+    },
+    "lot_3x1_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_3x2_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -7.25
+    },
+    "lot_3x2_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_3x3_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -11.25
+    },
+    "lot_3x3_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 22.5,
+      "minX": 2.7,
+      "maxX": 19.8,
+      "minZ": -19.8,
+      "maxZ": -2.7
+    },
+    "lot_3x4_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -15.25
+    },
+    "lot_3x4_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 22.5,
+      "minX": 2.7,
+      "maxX": 19.8,
+      "minZ": -26.84,
+      "maxZ": -3.66
+    },
+    "lot_4x1_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -3.25
+    },
+    "lot_4x1_slab": {
+      "kind": "flat",
+      "deckY": 12
+    },
+    "lot_4x2_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -7.25
+    },
+    "lot_4x2_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 30.5,
+      "minX": 3.66,
+      "maxX": 26.84,
+      "minZ": -12.76,
+      "maxZ": -1.74
+    },
+    "lot_4x3_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -11.25
+    },
+    "lot_4x3_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 30.5,
+      "minX": 3.66,
+      "maxX": 26.84,
+      "minZ": -19.8,
+      "maxZ": -2.7
+    },
+    "lot_4x4_gable": {
+      "kind": "pitched",
+      "deckY": 8,
+      "ridgeY": 11,
+      "ridgeZ": -15.25
+    },
+    "lot_4x4_slab": {
+      "kind": "setback",
+      "lowerDeckY": 8.64,
+      "upperDeckY": 12,
+      "width": 30.5,
+      "minX": 3.66,
+      "maxX": 26.84,
+      "minZ": -26.84,
+      "maxZ": -3.66
+    },
+    "farm_1x4_b": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_1x4_c": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_2x4_b": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_2x4_c": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_3x4_b": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_3x4_c": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_4x4_b": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "farm_4x4_c": {
+      "kind": "flat",
+      "deckY": 5
+    },
+    "industrial_1x4_b": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_1x4_c": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_2x4_b": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_2x4_c": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_3x4_b": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_3x4_c": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_4x4_b": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "industrial_4x4_c": {
+      "kind": "flat",
+      "deckY": 7.5
+    },
+    "military_1x4_b": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_1x4_c": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_2x4_b": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_2x4_c": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_3x4_b": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_3x4_c": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_4x4_b": {
+      "kind": "flat",
+      "deckY": 3.6
+    },
+    "military_4x4_c": {
+      "kind": "flat",
+      "deckY": 3.6
     }
   }
 }

@@ -52,7 +52,7 @@ await page.reload({ waitUntil: "load" });
 await page.waitForFunction(() => Boolean(window.cityjump), null, { timeout: 30_000 });
 
 // Every building model has to be in before the shot, or the city is photographed half-built.
-await page.waitForFunction(() => window.cityjump.stats().models === 107, null, { timeout: 60_000 });
+await page.waitForFunction(() => window.cityjump.stats().models === 235, null, { timeout: 60_000 });
 await page.waitForFunction(
   (expected) => window.cityjump.stats().buildings >= expected,
   save.buildingStates.length * 0.95,

@@ -16,7 +16,7 @@ try {
 	page.on("pageerror", (e) => errors.push(e.message));
 	await page.goto(url);
 	await page.waitForFunction(
-		() => window.cityjump?.stats().models === 107,
+		() => window.cityjump?.stats().models === 235,
 		null,
 		{ timeout: 60000 },
 	);
@@ -107,7 +107,7 @@ try {
 	}, beforeReload.population, { timeout: 20000 });
 	await page.reload();
 	await page.waitForFunction(
-		() => window.cityjump?.stats().models === 107,
+		() => window.cityjump?.stats().models === 235,
 		null,
 		{ timeout: 60000 },
 	);

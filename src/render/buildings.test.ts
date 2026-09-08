@@ -207,19 +207,19 @@ it("selects stable zone-specific variants, sparse eligible towers and low pedest
         expect(id.startsWith(`${kind}_${f}x${d}_`)).toBe(true);
         expect(buildingModelId(JSON.parse(JSON.stringify(p)))).toBe(id);
         expect(buildingModelId({ ...p, position: { ...p.position, y: 100 } })).toBe(id);
-        expect(buildingModelId({ ...p, cells: [{ ...p.cells[0]!, lowRise: true }] })).toBe(`${kind}_${f}x${d}_a`);
+        expect([`${kind}_${f}x${d}_a`, `${kind}_${f}x${d}_court`]).toContain(buildingModelId({ ...p, cells: [{ ...p.cells[0]!, lowRise: true }] }));
         if (id.includes("_tower")) towers++;
       }
       const eligible = kind === "residential" ? f === d && f >= 3 : (f === 3 && d === 4) || (f === 4 && d === 3);
       expect(towers).toBeLessThan(45);
       expect(towers > 0).toBe(eligible);
       expect(selected.has(`${kind}_${f}x${d}_a`)).toBe(true);
-      expect(selected.has(`${kind}_${f}x${d}_b`)).toBe(true);
+      for (const variant of ["b", "court", "terraces"]) expect(selected.has(`${kind}_${f}x${d}_${variant}`)).toBe(true);
     }
   }
-  expect(selected.size).toBe(76);
+  expect(selected.size).toBe(148);
   for (const kind of ["industrial", "agricultural", "military"] as const) {
-    expect(buildingModelId({ ...parcel(0, 0, 4, 4), kind })).toBe(`${kind === "agricultural" ? "farm" : kind}_4x4`);
+    expect(buildingModelId({ ...parcel(0, 0, 4, 4), kind })).toMatch(new RegExp(`^${kind === "agricultural" ? "farm" : kind}_4x4(?:_[bc])?$`));
   }
 });
 
@@ -250,7 +250,7 @@ it("gives residual industrial 1x1 parcels three stable industrial models", () =>
     selected.add(id);
   }
   expect([...selected].sort()).toEqual(["industrial_1x1_a", "industrial_1x1_b", "industrial_1x1_c"]);
-  expect(buildingModelId({ ...parcel(0, 0, 1, 4), kind: "industrial" })).toBe("industrial_1x4");
+  expect(buildingModelId({ ...parcel(0, 0, 1, 4), kind: "industrial" })).toMatch(/^industrial_1x4(?:_[bc])?$/);
 });
 
 
@@ -298,4 +298,35 @@ describe("automatic building detail", () => {
     expect(nextDistantDetail(1400, true, "auto")).toEqual({ auto: true, far: true });
     expect(nextDistantDetail(400, false, "auto")).toEqual({ auto: false, far: false });
   });
+});
+
+
+it("varies compounds, generic leftovers and pedestrian buildings without changing zone or height eligibility", () => {
+  for (const kind of ["agricultural", "industrial", "military"] as const) {
+    for (let f = 1; f <= 4; f++) {
+      const ids = new Set<string>();
+      for (let i = 0; i < 120; i++) {
+        const p = { ...parcel((i%20)*8, Math.floor(i/20)*8, f, 4), kind };
+        const id = buildingModelId(p);
+        ids.add(id);
+        expect(BUILDING_MODELS).toContain(id);
+        expect(buildingModelId(JSON.parse(JSON.stringify(p)))).toBe(id);
+      }
+      const prefix = `${kind === "agricultural" ? "farm" : kind}_${f}x4`;
+      expect([...ids].sort()).toEqual([prefix, `${prefix}_b`, `${prefix}_c`]);
+    }
+  }
+  for (let f = 1; f <= 4; f++) for (let d = 1; d <= 3; d++) {
+    const ids = new Set(Array.from({length: 120}, (_, i) => buildingModelId({ ...parcel(i*8,0,f,d), kind: "military" })));
+    expect([...ids].sort()).toEqual([`lot_${f}x${d}`, `lot_${f}x${d}_gable`, `lot_${f}x${d}_slab`]);
+  }
+  for (const kind of ["residential", "commercial"] as const) {
+    for (let f = 1; f <= 4; f++) for (let d = 1; d <= 4; d++) {
+      const ids = new Set(Array.from({length: 120}, (_, i) => {
+        const p = { ...parcel(i*8,0,f,d), kind };
+        return buildingModelId({ ...p, cells: [...p.cells, { ...p.cells[0]!, lowRise: true }] });
+      }));
+      expect([...ids].sort()).toEqual([`${kind}_${f}x${d}_a`, `${kind}_${f}x${d}_court`]);
+    }
+  }
 });
