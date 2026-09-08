@@ -592,11 +592,14 @@ check("a held wave adds science to the run", rewardedRun.run.science > 0 && rewa
 check("the prestige web is off the play panel during a run", (await page.locator("#run-panel #upgrade-web").count()) === 0 && await page.locator("#between-runs").isHidden());
 await pane("#hardcore-run");
 check("hardcore is in Gameplay settings, not the play panel", (await page.locator("#run-panel #hardcore-run").count()) === 0 && await page.locator("#toolbar #hardcore-run").isVisible());
+const kaijuVisible = await page.locator("#kaiju-spawns").isVisible() && (await page.locator("#gameplay-note").count()) === 1;
+await pane("#instant-construction");
 check(
   "Gameplay settings expose kaiju, instant build and free build",
   // The note says nothing under the ordinary rules -- an empty span is not a visible one -- so it
-  // is checked once pacifist has given it something to say, just below.
-  await page.locator("#kaiju-spawns").isVisible() && await page.locator("#instant-construction").isVisible() && await page.locator("#free-building").isVisible() && (await page.locator("#gameplay-note").count()) === 1,
+  // is checked once pacifist has given it something to say, just below. Build instantly and
+  // Ignore build costs sit one pane over, under Assists.
+  kaijuVisible && await page.locator("#instant-construction").isVisible() && await page.locator("#free-building").isVisible(),
 );
 await pane("#kaiju-spawns");
 await page.locator("#kaiju-spawns").setChecked(false);

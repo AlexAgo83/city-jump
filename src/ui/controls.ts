@@ -29,7 +29,8 @@ export function bindControls(handlers: {
   onFps(visible: boolean): void;
   onPerformanceGraph(visible: boolean): void;
   onShadows(visible: boolean): void;
-  onLights(visible: boolean): void;
+  /** Street lamps and vehicle headlights toggle apart; the "Lights" master gates both. */
+  onLights(lights: { street: boolean; cars: boolean }): void;
   onLook(look: { antialias: boolean; multisample: boolean; bloom: boolean; ao: boolean; tiltShift: boolean }): void;
   onDestructionEffects(effects: { fire: boolean; explosion: boolean }): void;
   onFrameCap(fps: number): void;
@@ -44,6 +45,7 @@ export function bindControls(handlers: {
   onBuildings(visible: boolean): void;
   /** Street furniture and roof clutter: everything a building wears once it is finished. */
   onDecor(visible: boolean): void;
+  onTrees(visible: boolean): void;
   /** Draw the city as coloured boxes rather than models, whatever the camera is doing. */
   onBuildingDetail(detail: BuildingDetail): void;
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
@@ -229,6 +231,9 @@ export function bindControls(handlers: {
   const showPerformance = document.getElementById("show-performance") as HTMLInputElement;
   const showShadows = document.getElementById("show-shadows") as HTMLInputElement;
   const showLights = document.getElementById("show-lights") as HTMLInputElement;
+  const showCarLights = document.getElementById("show-car-lights") as HTMLInputElement;
+  const showStreetLights = document.getElementById("show-street-lights") as HTMLInputElement;
+  const showTrees = document.getElementById("show-trees") as HTMLInputElement;
   const showTraffic = document.getElementById("show-traffic") as HTMLInputElement;
   const trafficDensity = document.getElementById("traffic-density") as HTMLInputElement;
 
@@ -277,8 +282,14 @@ export function bindControls(handlers: {
     persistSettings();
   });
 
-  on(showLights, "change", () => {
-    handlers.onLights(showLights.checked);
+  const emitLights = (): void => {
+    handlers.onLights({ street: showLights.checked && showStreetLights.checked, cars: showLights.checked && showCarLights.checked });
+    persistSettings();
+  };
+  for (const box of [showLights, showCarLights, showStreetLights]) on(box, "change", emitLights);
+
+  on(showTrees, "change", () => {
+    handlers.onTrees(showTrees.checked);
     persistSettings();
   });
 
@@ -500,6 +511,9 @@ export function bindControls(handlers: {
       performanceGraph: showPerformance.checked,
       shadows: showShadows.checked,
       lights: showLights.checked,
+      carLights: showCarLights.checked,
+      streetLights: showStreetLights.checked,
+      trees: showTrees.checked,
       settingsOpen: !toolbar.classList.contains("collapsed"),
       settingsPane: railButtons.find((b) => b.getAttribute("aria-selected") === "true")?.dataset.pane,
       traffic: showTraffic.checked,
@@ -591,6 +605,9 @@ export function bindControls(handlers: {
   applySetting(showPerformance, stored.performanceGraph);
   applySetting(showShadows, stored.shadows);
   applySetting(showLights, stored.lights);
+  applySetting(showCarLights, stored.carLights);
+  applySetting(showStreetLights, stored.streetLights);
+  applySetting(showTrees, stored.trees);
   for (const [box, value] of [[fxAntialias, stored.fxAntialias], [fxMultisample, stored.fxMultisample], [fxBloom, stored.fxBloom], [fxAo, stored.fxAo], [fxTilt, stored.fxTilt], [fxExplosion, stored.fxExplosion], [fxFire, stored.fxFire]] as const) {
     if (value !== undefined) box.checked = value;
   }

@@ -908,9 +908,9 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     onFps: performanceHud.setFpsVisible,
     onPerformanceGraph: performanceHud.setGraphVisible,
     onShadows: setShadowsEnabled,
-    onLights(visible) {
-      streetlights.setLightsEnabled(visible);
-      traffic.setLightsEnabled(visible);
+    onLights(lights) {
+      streetlights.setLightsEnabled(lights.street);
+      traffic.setLightsEnabled(lights.cars);
     },
     onLook: postFx.setLook,
     onDestructionEffects: (effects) => destructionEffects.setEnabled(effects, performance.now() / 1000),
@@ -942,6 +942,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     onDecor(visible) {
       buildings.setDecor(visible);
     },
+    onTrees: trees.setVisible,
     onBuildingDetail(detail) {
       buildings.setDetail(detail);
     },

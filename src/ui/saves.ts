@@ -89,6 +89,9 @@ export interface UiSettings {
   performanceGraph?: boolean;
   shadows?: boolean;
   lights?: boolean;
+  carLights?: boolean;
+  streetLights?: boolean;
+  trees?: boolean;
   settingsOpen?: boolean;
   settingsPane?: string;
   traffic?: boolean;

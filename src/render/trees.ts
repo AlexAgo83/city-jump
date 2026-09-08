@@ -121,7 +121,16 @@ export function createTreeRenderer(
   });
 
   let treeCount = 0;
+  let visible = true;
   let treeBases: TreeBase[] = [];
+
+  /** Re-asserted after every rebuild: applyInstances enables a mesh whenever it has instances. */
+  function applyVisibility(): void {
+    for (const { trunk, canopy } of built)
+      for (const mesh of [trunk, canopy]) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
+    groundShadows.setEnabled(visible && groundShadows.thinInstanceCount > 0);
+    contactShadow.mesh.setEnabled(visible && contactShadow.mesh.thinInstanceCount > 0);
+  }
   let sunHour = 14;
 
   function rebuild(dirty?: TerrainBounds): number {
@@ -227,6 +236,7 @@ export function createTreeRenderer(
     treeBases = bases;
     contactShadow.setInstances(bases.map(({ x, y, z, scale, spread }) => ({ x, y, z, radius: scale * spread * 1.6 })));
     updateGroundShadows();
+    applyVisibility();
     treeCount = bases.length;
     return treeCount;
   }
@@ -279,6 +289,10 @@ export function createTreeRenderer(
   return {
     rebuild,
     setSunHour,
+    setVisible(next: boolean): void {
+      visible = next;
+      applyVisibility();
+    },
     nearestTree,
     count: () => treeCount,
     dispose(): void {

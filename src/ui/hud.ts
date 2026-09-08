@@ -18,6 +18,7 @@ const needsPanel = document.getElementById("needs-panel") as HTMLDivElement;
 const ledger = document.getElementById("ledger") as HTMLDivElement;
 const ledgerLines = document.getElementById("ledger-lines") as HTMLDivElement;
 const waveBanner = document.getElementById("wave-banner") as HTMLDivElement;
+const kaijuToggle = document.getElementById("kaiju-toggle") as HTMLButtonElement;
 const runWave = document.getElementById("run-wave") as HTMLSpanElement;
 const runScience = document.getElementById("run-science") as HTMLSpanElement;
 const profilePrestige = document.getElementById("profile-prestige") as HTMLSpanElement;
@@ -149,6 +150,8 @@ export function showWaveBanner(text: string, state: "waiting" | "active" | "held
   waveBanner.hidden = text === "";
   waveBanner.dataset.state = state;
   waveBanner.textContent = text;
+  // The kaiju menu is collapsed by default, so the icon itself carries the alarm.
+  kaijuToggle.classList.toggle("alert", state === "active");
 }
 
 export function showRunStats(wave: number, science: number, prestige: number): void {
