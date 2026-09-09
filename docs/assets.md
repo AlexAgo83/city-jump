@@ -94,7 +94,7 @@ Each footprint now has four ordinary silhouettes and each eligible tower footpri
 Selection is stable across reloads; the expanded palette can change an existing parcel's
 appearance when upgrading. Pedestrian parcels select between `a` and `court`; both remain below 14 m.
 
-The 148 urban assets total 24,511,364 bytes (23.38 MiB). The family budget is 24 MiB for
+The 148 urban assets total 13,842,880 bytes (13.20 MiB) after the facade pass. The family budget is 24 MiB for
 the expanded catalog; per-model ceilings remain 750 kB, 14,000 triangles and six primitives.
 The extra assets increase initial model download and memory use; geometry checks do not
 establish unchanged frame rate. Browser fixtures cover actual city selection and isolated
@@ -131,3 +131,40 @@ It validates zoned districts, generic leftovers and pedestrian selection, then c
 all 56 additions and representative low-rise models through the actual game renderer.
 
 Pedestrian profiles and animation are documented in [pedestrians.md](pedestrians.md).
+
+## Residential and commercial facade identity
+
+The 148 urban GLBs now distinguish usage through facade rhythm, material palettes
+and street-level details. The existing footprint and variant selection remains in use.
+
+| Usage | Family | Visible features |
+|---|---|---|
+| Residential | Low pitched apartments (`a`) | Warm plaster, timber shutters, small windows, planted entrances |
+| Residential | Brick blocks (`court`, stepped/crowned towers) | Brick-coloured masonry, pale individual balconies, cornices |
+| Residential | Pale residences (other variants) | Projecting loggia sides, small domestic openings, pale balcony rails |
+| Commercial | Local shops (`a`) | Wide storefronts, coloured awnings, sign panels and outdoor tables |
+| Commercial | Low commercial buildings (`court`, `terraces`) | Broad glazing, courtyard/setback forms and shopfronts |
+| Commercial | Offices (`b`, towers) | Wide glazed bays, metal fins, marked lobby and rooftop equipment |
+
+Flat residential roofs have timber pergolas and planted containers; commercial
+roofs group ventilation units. All residential `a` footprints now have pitched
+roofs, with corresponding roof metadata. Every low pedestrian-safe variant remains
+below 14 m. Loggias use projecting sides rather than interior rooms; window panes
+are opaque exterior surfaces with reflections. Signs carry colour, not generated text.
+
+Runtime material conversion preserves authored urban colours, including glass,
+trim, awnings and wood. Existing reflection and depth-offset handling remains in
+place. Lighter, facade-specific trim replaces the uniform almost-black outlines.
+The browser fixture compares converted colours against the source GLBs to prevent
+future palette overrides from making the families look alike again.
+
+The library ranges from 230 to 5,284 triangles per model. Exterior window planes
+omit buried faces, keeping the existing 24 MiB family budget and per-model limits.
+These geometry savings are not a frame-rate benchmark.
+
+![Residential and commercial facade identities](media/buildings-facades.png)
+
+Regenerate with `-- --urban-only` and inspect with
+`node scripts/with-dev-server.mjs scripts/buildings-shot.mjs /tmp/city-jump-urban urban`.
+The fixture covers mixed districts, distant and mobile views, all twenty towers,
+and representative small/large facades through the actual game renderer.

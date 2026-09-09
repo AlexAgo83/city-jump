@@ -905,7 +905,7 @@ def build_urban(name, w, d, kind, variant):
     parts = []
     residential = kind == 'residential'
     large = min(w, d) >= 14
-    pitched = residential and variant == 'a' and min(w, d) < 14
+    pitched = residential and variant == 'a'
     # Volumes are also the roof contract: no second hand-maintained height formula.
     h = (9 if large else 6) if residential else (6 if large else 4.5)
     volumes = [(0, 0, w, d, 0, h)]
@@ -987,43 +987,53 @@ def build_urban(name, w, d, kind, variant):
     for i, (x, y, sw, sd, base, top) in enumerate(volumes):
         label = f'{name}_{i}'
         parts.append((box(label, x, y, base, x+sw, y+sd, top), 'wall'))
-        if variant in ('a', 'court'):
-            add_windows(parts, label, sw, sd, top-base, kind, x, y, base)
-        else:
-            # Continuous glazing with full-height piers gives a readable facade at city scale.
-            # Floor bands and balcony slabs cost a few boxes per floor, not per window pane.
-            for z in range(int(base)+3, int(top)-1, 3):
-                if residential:
-                    for span, front in ((sw, True), (sd, False)):
-                        count = max(1, int(span//(5 if variant == "tower_split" else 3.5)))
-                        for col in range(count):
-                            centre = (col+.5)*span/count
-                            for side in (0, sd) if front else (0, sw):
-                                corners = (x+centre-.9,y+side-.12,z,x+centre+.9,y+side+.12,z+1.9) if front else (x+side-.12,y+centre-.9,z,x+side+.12,y+centre+.9,z+1.9)
-                                parts.append((box(label+'_window', *corners), 'glass'))
-                else:
-                    for corners in ((x+.45,y-.12,z,x+sw-.45,y-.06,z+1.9),
-                                    (x+.45,y+sd+.06,z,x+sw-.45,y+sd+.12,z+1.9),
-                                    (x-.12,y+.45,z,x-.06,y+sd-.45,z+1.9),
-                                    (x+sw+.06,y+.45,z,x+sw+.12,y+sd-.45,z+1.9)):
-                        parts.append((box(label+'_glazing', *corners), 'glass'))
-                if residential and (variant not in ('tower_offset', 'tower_split', 'tower_crown') or (variant != 'tower_crown' and z % 9 == 0)):
-                    for by in (y-.60, y+sd):
-                        parts.append((box(label+'_balcony', x-.15,by,z-.2,x+sw+.15,by+.60,z), 'trim'))
-                        rail_y = by if by < y else by+.48
-                        parts.append((box(label+'_rail', x-.15,rail_y,z+.65,x+sw+.15,rail_y+.12,z+.85), 'trim'))
-                        for bx in (x, x+sw):
-                            parts.append((box(label+'_rail_end',bx-.05,by,z,bx+.05,by+.6,z+.85),'trim'))
-                elif not residential and variant not in ('tower_steps', 'tower_crown'):
-                    for by in (y-.16, y+sd):
-                        parts.append((box(label+'_spandrel',x,by,z+1.95,x+sw,by+.16,z+2.15),'trim'))
-            # Offset towers read horizontally; crowned offices use strong vertical fins.
-            for span, horizontal in (() if variant in ('tower_offset', 'tower_split', 'terraces') else ((sw, True), (sd, False))):
-                for pier in range(max(1, int(span//4))+1):
-                    offset = pier * span/max(1, int(span//4))
-                    for side in (0, sd) if horizontal else (0, sw):
-                        corners = (x+offset-.10,y+side-.18,base,x+offset+.10,y+side+.18,top) if horizontal else (x+side-.18,y+offset-.10,base,x+side+.18,y+offset+.10,top)
-                        parts.append((box(label+'_pier',*corners),'trim'))
+        # Usage is visible in the facade rhythm: domestic openings and balconies versus
+        # broad commercial glazing. Shallow coloured sills replace four dark frames per pane.
+        brick = residential and variant in ('court', 'tower_steps', 'tower_crown')
+        for z in range(int(base)+3, int(top)-1, 3):
+            for span, front in ((sw, True), (sd, False)):
+                count = max(1, int(span // (3.6 if residential else 6)))
+                for col in range(count):
+                    centre = (col+.5)*span/count
+                    half = min(.78, span/count*.28) if residential else span/count*.44
+                    height = 1.65 if residential else 2.25
+                    for side in (0, sd) if front else (0, sw):
+                        # Only the exterior glass surface is visible; no buried box faces.
+                        plane = side + (-.09 if side == 0 else .09)
+                        verts = [(x+centre-half,y+plane,z),(x+centre+half,y+plane,z),
+                                 (x+centre+half,y+plane,z+height),(x+centre-half,y+plane,z+height)] if front else [
+                                 (x+plane,y+centre-half,z),(x+plane,y+centre+half,z),
+                                 (x+plane,y+centre+half,z+height),(x+plane,y+centre-half,z+height)]
+                        face = (0,1,2,3) if (front == (side == 0)) else (3,2,1,0)
+                        mesh = bpy.data.meshes.new(label+'_window')
+                        mesh.from_pydata(verts, [], [face])
+                        mesh.update()
+                        pane = bpy.data.objects.new(label+'_window', mesh)
+                        bpy.context.scene.collection.objects.link(pane)
+                        parts.append((pane, 'glass'))
+                        if residential and top <= 40:
+                            sill = (x+centre-half-.12,y+side-.18,z-.12,x+centre+half+.12,y+side+.18,z) if front else (x+side-.18,y+centre-half-.12,z-.12,x+side+.18,y+centre+half+.12,z)
+                            parts.append((box(label+'_sill', *sill), 'trim'))
+                if residential and front and z % (9 if top > 40 else 3) == 0:
+                    # Individual balconies for brick homes; deep shaded bays for loggias.
+                    for col in range(count):
+                        cx = x+(col+.5)*sw/count
+                        half = min(1.25, sw/count*.38)
+                        parts.append((box(label+'_balcony',cx-half,y-.62,z-.18,cx+half,y+.02,z),'trim'))
+                        parts.append((box(label+'_balcony_rail',cx-half,y-.62,z+.65,cx+half,y-.51,z+.85),'trim'))
+                        if not brick and variant != 'a':
+                            for bx in (cx-half, cx+half-.12):
+                                parts.append((box(label+'_loggia_side',bx,y-.62,z,bx+.12,y+.02,z+2.8),'wall'))
+                        elif variant == 'a':
+                            for bx in (cx-.99, cx+.80):
+                                parts.append((box(label+'_shutter',bx,y-.15,z,bx+.19,y-.1,z+1.65),'sign'))
+            if not residential:
+                # Pale stone/matte metal spandrels keep office glazing visually continuous.
+                for by in (y-.1, y+sd):
+                    parts.append((box(label+'_spandrel',x,by,z+2.25,x+sw,by+.1,z+2.38),'trim'))
+        if not residential and variant not in ('a', 'court'):
+            for bx in (x+.15, x+sw-.3):
+                parts.append((box(label+'_metal_fin',bx,y-.2,base,bx+.15,y+.05,top),'trim'))
         if variant in ('court', 'tower_crown'):
             # Projecting masonry cornices make these facades read differently from balcony slabs.
             for z in (top-.65, top-.25):
@@ -1036,29 +1046,51 @@ def build_urban(name, w, d, kind, variant):
             parts.append((gabled_roof_at(label+'_roof',x,y,sw,sd,top,2.5),'trim'))
         else:
             add_parapet(parts,label,sw,sd,top,x,y)
-    add_street_level(parts,name,w,kind)
-    # Accent entrance and visible roof plant are authored, while runtime props use these decks.
-    if variant != 'a':
-        parts.append((box(name+'_canopy',w*.30,-.65,2.7,w*.70,.15,3.0),'awning'))
+    add_street_level(parts,name,w,'residential' if residential else 'commercial' if variant in ('a','court','terraces') else 'office')
+    # Domestic entrances have planted thresholds; shops get coloured awnings and terraces.
+    if residential:
+        for bx in (.55, w-1.65):
+            parts.append((box(name+'_planter',bx,-.58,0,bx+1.1,-.05,.35),'trim'))
+            parts.append((box(name+'_hedge',bx+.08,-.53,.35,bx+1.02,-.10,.85),'awning'))
+        parts.append((box(name+'_step',w*.36,-.65,0,w*.64,-.2,.15),'trim'))
+    else:
+        if variant in ('a','court','terraces'):
+            for bx in (w*.2,w*.8):
+                parts.append((box(name+'_terrace_table',bx-.35,-.68,.65,bx+.35,-.1,.76),'sign'))
+                parts.append((box(name+'_table_leg',bx-.06,-.43,0,bx+.06,-.31,.65),'trim'))
+        else:
+            parts.append((box(name+'_lobby',w*.36,-.20,0,w*.64,-.10,4.2),'glass'))
+            parts.append((box(name+'_entrance_canopy',w*.28,-.65,3.9,w*.72,.15,4.1),'trim'))
     x,y,sw,sd,base,top = max(volumes,key=lambda volume: volume[5])
     if not pitched:
-        parts.append((box(name+'_roof_plant',x+sw*.15,y+sd*.15,top,x+sw*.15+1.5,y+sd*.15+1.2,top+1.5),'trim'))
-    colour = ((.70,.57,.46,1) if variant == 'a' else (.78,.76,.68,1)) if residential else ((.66,.68,.70,1) if variant == 'a' else (.30,.40,.48,1))
-    if variant == 'tower_steps':
-        colour = (.68,.42,.29,1) if residential else (.62,.65,.61,1)
-    elif variant == 'tower_offset':
-        colour = (.83,.81,.72,1) if residential else (.23,.32,.39,1)
-    if variant == 'court':
-        colour = (.64,.34,.23,1) if residential else (.76,.66,.49,1)
-    elif variant == 'terraces':
-        colour = (.89,.85,.74,1) if residential else (.42,.52,.54,1)
-    elif variant == 'tower_crown':
-        colour = (.78,.66,.46,1) if residential else (.62,.57,.45,1)
-    elif variant == 'tower_split':
-        colour = (.66,.71,.73,1) if residential else (.21,.36,.43,1)
+        if residential:
+            # A timber pergola and planted roof terrace, within the existing 1.5 m roof budget.
+            for bx in (x+sw*.2,x+sw*.2+2):
+                for by in (y+sd*.25,y+sd*.25+1.6):
+                    parts.append((box(name+'_pergola_post',bx,by,top,bx+.12,by+.12,top+1.5),'sign'))
+            for offset in (0,.5,1,1.5,2):
+                parts.append((box(name+'_pergola_beam',x+sw*.2+offset,y+sd*.25,top+1.35,x+sw*.2+offset+.12,y+sd*.25+1.72,top+1.5),'sign'))
+            parts.append((box(name+'_roof_planter',x+sw*.55,y+sd*.55,top,x+sw*.55+1.3,y+sd*.55+.7,top+.3),'trim'))
+            parts.append((box(name+'_roof_greenery',x+sw*.55+.08,y+sd*.55+.08,top+.3,x+sw*.55+1.22,y+sd*.55+.62,top+.75),'awning'))
+        else:
+            for offset in (0,1.8):
+                parts.append((box(name+'_roof_plant',x+sw*.15+offset,y+sd*.15,top,x+sw*.15+offset+1.5,y+sd*.15+1.2,top+1.5),'trim'))
+                parts.append((box(name+'_plant_grille',x+sw*.15+offset+.15,y+sd*.15+.15,top+1.5,x+sw*.15+offset+1.35,y+sd*.15+1.05,top+1.5),'glass'))
+    family = 0 if variant == 'a' else 1 if variant in ('court','tower_steps','tower_crown') else 2
+    palettes = [
+        ((.83,.72,.55,1),(.62,.48,.34,1),(.31,.37,.32,1)),
+        ((.60,.30,.20,1),(.79,.69,.55,1),(.26,.31,.30,1)),
+        ((.88,.84,.73,1),(.65,.66,.58,1),(.33,.42,.39,1)),
+    ] if residential else [
+        ((.77,.66,.48,1),(.69,.60,.46,1),(.20,.40,.43,1)),
+        ((.70,.73,.68,1),(.53,.59,.58,1),(.24,.45,.49,1)),
+        ((.32,.43,.48,1),(.55,.63,.65,1),(.27,.49,.57,1)),
+    ]
+    colour, trim, glass = palettes[family]
+    accent = (.35,.49,.26,1) if residential else ((.66,.26,.15,1) if int(w)//8 % 2 else (.16,.40,.43,1))
     mats = {key: material(f'{name}_{key}', value) for key,value in {
-        'wall':colour, 'glass':GLASS, 'trim':trim_colour(colour), 'door':DOOR,
-        'sign':SIGN, 'awning':AWNING,
+        'wall':colour, 'glass':glass, 'trim':trim, 'door':DOOR,
+        'sign':(.46,.29,.16,1) if residential else (.87,.72,.38,1), 'awning':accent,
     }.items()}
     export_parts(name,parts,mats,f'{kind} {variant}, {top} m deck')
     if pitched:

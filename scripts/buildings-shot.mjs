@@ -27,6 +27,21 @@ try {
 	);
 	if (family === "urban") {
     await page.waitForFunction(() => window.cityjump.stats().models === 235, null, { timeout: 60000 });
+    // The renderer must retain the authored urban palette after PBR conversion.
+    for (const id of ["residential_3x3_a", "residential_3x3_court", "residential_3x3_b", "commercial_3x4_a", "commercial_3x4_court", "commercial_3x4_b"]) {
+      const buffer = await (await page.request.get(`${url}/buildings/${id}.glb`)).body();
+      const source = JSON.parse(buffer.subarray(20, 20 + buffer.readUInt32LE(12)).toString());
+      const converted = await page.evaluate((id) => {
+        const material = window.cityjump._scene.getMeshByName(`building_${id}`).material;
+        return (material.subMaterials ?? [material]).map((surface) => ({ name: surface.name, color: surface.diffuseColor.asArray() }));
+      }, id);
+      for (const material of source.materials) {
+        const actual = converted.find((surface) => surface.name === `${material.name}_standard` || surface.name === material.name);
+        assert.ok(actual, material.name);
+        const expected = material.pbrMetallicRoughness.baseColorFactor;
+        assert.ok(actual.color.every((value, i) => Math.abs(value - expected[i]) < 0.0001), `${material.name}: authored colour overwritten`);
+      }
+    }
     await page.evaluate(() => {
       const api = window.cityjump;
       api.demoCity();
@@ -49,7 +64,7 @@ try {
         assert.ok(Object.keys(counts).some((id) => id.startsWith(`building_${kind}_`) && id.endsWith(`_${variant}`)), `${kind} ${variant} absent from city`);
       }
     }
-    for (const [view, width, height, radius] of [["district", 1440, 1000, 650], ["distant", 1440, 1000, 1300], ["mobile", 390, 844, 800]]) {
+    for (const [view, width, height, radius] of [["facades", 900, 650, 650], ["district", 1440, 1000, 650], ["distant", 1440, 1000, 1300], ["mobile", 390, 844, 800]]) {
       await page.setViewportSize({ width, height });
       await page.evaluate((r) => window.cityjump.camera(r, 1.05, -Math.PI/3), radius);
       await page.waitForTimeout(700);

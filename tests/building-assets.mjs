@@ -218,6 +218,9 @@ test("urban variants and twenty towers match footprints, roof decks and browser 
     const buffer = await readFile(new URL(`${id}.glb`, BUILDINGS));
     totalBytes += buffer.length;
     const gltf = glbJson(buffer);
+    const surfaces = Object.fromEntries(gltf.materials.map((material) => [material.name.split("_").at(-1), material.pbrMetallicRoughness.baseColorFactor]));
+    assert.ok(surfaces.trim.slice(0, 3).every((value) => value > .3), `${id}: trim must not revert to black outlines`);
+    if (id.startsWith("residential_")) assert.ok(surfaces.awning[1] > surfaces.awning[0], `${id}: planted residential accents`);
     const { min, max } = boundsOf(gltf);
     const w = Number(frontage) * 8 - 1.5, d = Number(depth) * 8 - 1.5;
     close(min[1], 0, id, "ground");

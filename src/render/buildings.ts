@@ -1080,7 +1080,7 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null, glas
     return standard;
   }
   if (lit.name.includes("_glass") && lit.diffuseColor) {
-    lit.diffuseColor = new Color3(0.28, 0.38, 0.44);
+    if (!/^(residential|commercial)_/.test(lit.name)) lit.diffuseColor = new Color3(0.28, 0.38, 0.44);
     lit.alpha = 1;
     lit.transparencyMode = Material.MATERIAL_OPAQUE;
     lit.reflectionTexture = glassReflection();
@@ -1102,8 +1102,9 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null, glas
 }
 
 function finishBuildingMaterial(material: StandardMaterial, glassReflection: () => RawCubeTexture): void {
+  const authoredUrban = /^(residential|commercial)_/.test(material.name);
   if (material.name.includes("_glass")) {
-    material.diffuseColor = new Color3(0.28, 0.38, 0.44);
+    if (!authoredUrban) material.diffuseColor = new Color3(0.28, 0.38, 0.44);
     material.emissiveColor = Color3.Black();
     material.alpha = 1;
     material.transparencyMode = Material.MATERIAL_OPAQUE;
@@ -1111,13 +1112,13 @@ function finishBuildingMaterial(material: StandardMaterial, glassReflection: () 
     material.specularColor = new Color3(0.8, 0.9, 1);
     material.specularPower = 96;
   } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
-    material.diffuseColor = new Color3(0.22, 0.12, 0.08);
+    if (!authoredUrban) material.diffuseColor = new Color3(0.22, 0.12, 0.08);
   } else if (material.name.includes("_sign")) {
-    material.diffuseColor = new Color3(0.95, 0.65, 0.18);
+    if (!authoredUrban) material.diffuseColor = new Color3(0.95, 0.65, 0.18);
   } else if (material.name.includes("_awning")) {
-    material.diffuseColor = new Color3(0.16, 0.28, 0.34);
+    if (!authoredUrban) material.diffuseColor = new Color3(0.16, 0.28, 0.34);
   } else if (material.name.includes("_trim")) {
-    material.diffuseColor = new Color3(0.12, 0.15, 0.16);
+    if (!authoredUrban) material.diffuseColor = new Color3(0.12, 0.15, 0.16);
     material.alpha = 1;
     material.transparencyMode = Material.MATERIAL_OPAQUE;
     material.zOffset = -2;

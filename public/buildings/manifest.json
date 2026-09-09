@@ -250,17 +250,10 @@
       ]
     },
     "residential_2x2_a": {
-      "kind": "terraced",
-      "width": 14.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 14.5,
-          "minZ": -14.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -7.25
     },
     "residential_2x2_b": {
       "kind": "terraced",
@@ -283,17 +276,10 @@
       ]
     },
     "residential_2x3_a": {
-      "kind": "terraced",
-      "width": 14.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 14.5,
-          "minZ": -22.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -11.25
     },
     "residential_2x3_b": {
       "kind": "terraced",
@@ -316,17 +302,10 @@
       ]
     },
     "residential_2x4_a": {
-      "kind": "terraced",
-      "width": 14.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 14.5,
-          "minZ": -30.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -15.25
     },
     "residential_2x4_b": {
       "kind": "terraced",
@@ -368,17 +347,10 @@
       ]
     },
     "residential_3x2_a": {
-      "kind": "terraced",
-      "width": 22.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 22.5,
-          "minZ": -14.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -7.25
     },
     "residential_3x2_b": {
       "kind": "terraced",
@@ -401,17 +373,10 @@
       ]
     },
     "residential_3x3_a": {
-      "kind": "terraced",
-      "width": 22.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 22.5,
-          "minZ": -22.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -11.25
     },
     "residential_3x3_b": {
       "kind": "terraced",
@@ -434,17 +399,10 @@
       ]
     },
     "residential_3x4_a": {
-      "kind": "terraced",
-      "width": 22.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 22.5,
-          "minZ": -30.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -15.25
     },
     "residential_3x4_b": {
       "kind": "terraced",
@@ -486,17 +444,10 @@
       ]
     },
     "residential_4x2_a": {
-      "kind": "terraced",
-      "width": 30.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 30.5,
-          "minZ": -14.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -7.25
     },
     "residential_4x2_b": {
       "kind": "terraced",
@@ -519,17 +470,10 @@
       ]
     },
     "residential_4x3_a": {
-      "kind": "terraced",
-      "width": 30.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 30.5,
-          "minZ": -22.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -11.25
     },
     "residential_4x3_b": {
       "kind": "terraced",
@@ -552,17 +496,10 @@
       ]
     },
     "residential_4x4_a": {
-      "kind": "terraced",
-      "width": 30.5,
-      "decks": [
-        {
-          "minX": 0,
-          "maxX": 30.5,
-          "minZ": -30.5,
-          "maxZ": 0,
-          "deckY": 9
-        }
-      ]
+      "kind": "pitched",
+      "deckY": 9,
+      "ridgeY": 11.5,
+      "ridgeZ": -15.25
     },
     "residential_4x4_b": {
       "kind": "terraced",
