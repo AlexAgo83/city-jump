@@ -97,7 +97,7 @@ export interface PickRay {
   readonly direction: { readonly x: number; readonly y: number; readonly z: number };
 }
 
-export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null };
+export type MoverTarget = { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null };
 
 // ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
 // per-frame loop; split when a pure planner can be tested without mesh position state.
@@ -489,7 +489,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
         for (let i = 0; i < count; i++) {
           const walker = walkers.create(`pedestrian_${seg.id}_${i}`, type.frontageKind, si + i);
           walker.isPickable = false;
-          place(walker, i, count, true, walks[i % walks.length]!);
+          place(walker, i, count, true, walks[i % walks.length]!, walker.sourceMesh.metadata.pedestrianProfile);
         }
       }
       if (type.pedestrian) continue;
@@ -685,13 +685,13 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
   };
   const beforeRenderObserver = scene.onBeforeRenderObservable.add(profilerFor(scene).wrap("traffic", beforeRender));
   
-  function vehicleTarget(mover: RenderMover): { segment: Segment; kind: string; vehicle: string; target(): { x: number; y: number; z: number; heading: number; segment: Segment } | null } {
+  function moverTarget(mover: RenderMover): MoverTarget {
     return {
       segment: mover.segment,
-      kind: "Car",
+      kind: mover.walk ? "Pedestrian" : "Car",
       vehicle: mover.vehicle,
       target: () =>
-        movers.includes(mover) && !mover.walk
+        movers.includes(mover)
           ? { x: mover.mesh.position.x, y: mover.mesh.position.y, z: mover.mesh.position.z, heading: mover.heading, segment: mover.segment }
           : null,
     };
@@ -701,49 +701,48 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
   return {
     rebuild,
     clearMovers,
-    vehicleAt(x: number, z: number): VehicleTarget | null {
+    moverAt(x: number, z: number): MoverTarget | null {
       let best: RenderMover | null = null;
       let bestDistance = 14;
       for (const mover of movers) {
-        if (mover.walk) continue;
         const d = Math.hypot(mover.mesh.position.x - x, mover.mesh.position.z - z);
-        if (d <= bestDistance) {
+        if (d <= bestDistance && (!mover.walk || d <= 1.2)) {
           best = mover;
           bestDistance = d;
         }
       }
-      return best ? vehicleTarget(best) : null;
+      return best ? moverTarget(best) : null;
     },
     /**
-     * The vehicle a picking ray hits, nearest first.
+     * The vehicle or pedestrian a picking ray hits, nearest first.
      *
      * `scene.pick` did this by ray-testing every pickable car body's triangles -- 166 of them on
      * the large city, 18-20 ms a click. A car is a box about four metres long, so a sphere around
      * its centre answers the same question: which one is under the cursor. Screen-space accuracy
-     * is the point, which is why this is not the flat 14 m `vehicleAt` fallback.
+     * is the point, which is why this is not the flat 14 m `moverAt` fallback.
      */
-    vehicleAlong(ray: PickRay): VehicleTarget | null {
+    moverAlong(ray: PickRay): MoverTarget | null {
       let best: RenderMover | null = null;
       let bestDistance = Number.POSITIVE_INFINITY;
       for (const mover of movers) {
-        if (mover.walk) continue;
         const toCentreX = mover.mesh.position.x - ray.origin.x;
-        const toCentreY = mover.mesh.position.y - ray.origin.y;
+        const toCentreY = mover.mesh.position.y + (mover.walk ? 0.9 : 0) - ray.origin.y;
         const toCentreZ = mover.mesh.position.z - ray.origin.z;
         const along = toCentreX * ray.direction.x + toCentreY * ray.direction.y + toCentreZ * ray.direction.z;
         if (along <= 0 || along >= bestDistance) continue;
         const offX = toCentreX - ray.direction.x * along;
         const offY = toCentreY - ray.direction.y * along;
         const offZ = toCentreZ - ray.direction.z * along;
-        if (offX * offX + offY * offY + offZ * offZ > VEHICLE_PICK_RADIUS * VEHICLE_PICK_RADIUS) continue;
+        const radius = mover.walk ? 1 : VEHICLE_PICK_RADIUS;
+        if (offX * offX + offY * offY + offZ * offZ > radius * radius) continue;
         best = mover;
         bestDistance = along;
       }
-      return best ? vehicleTarget(best) : null;
+      return best ? moverTarget(best) : null;
     },
-    firstVehicle(): VehicleTarget | null {
+    firstVehicle(): MoverTarget | null {
       const mover = movers.find((candidate) => !candidate.walk);
-      return mover ? vehicleTarget(mover) : null;
+      return mover ? moverTarget(mover) : null;
     },
     vehiclePoint(): { x: number; y: number; z: number } | null {
       const mover = movers.find((candidate) => !candidate.walk);

@@ -713,7 +713,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const onSelect = (info: SelectionInfo | null): void => {
     selectedInfo = info;
     showSelection(info);
-    followTarget = info?.kind === "vehicle" ? info.target : null;
+    followTarget = (info?.kind === "vehicle" || info?.kind === "pedestrian") ? info.target : null;
     // The eyedropper: picking a road sets the Roads tab up to match it, ready to draw more.
     if (info?.kind === "road") controls?.applyRoadType(info.baseId, info.lanes, info.oneWay);
   };
@@ -783,8 +783,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     },
     {
       buildingAt: (x, z) => buildings.buildingAt(x, z),
-      vehicleAt: (x, z) => traffic.vehicleAt(x, z),
-      vehicleAlong: (ray) => traffic.vehicleAlong(ray),
+      moverAt: (x, z) => traffic.moverAt(x, z),
+      moverAlong: (ray) => traffic.moverAlong(ray),
     },
     onSelect,
     "street",
@@ -971,7 +971,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     onCameraMode(mode, selection) {
       if (selection && !focusSelection(camera.target, selectedInfo, heightmap)) return;
       if (mode === "follow" && !followTarget) {
-        showRefusal("Select a car before using Follow.");
+        showRefusal("Select a vehicle or pedestrian before using Follow.");
         setCameraMode("free");
         return;
       }
@@ -1084,8 +1084,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     profiler.section("ui");
     performanceHud.frame();
     showCompass(camera.alpha);
-    const selectedTarget = selectedInfo?.kind === "vehicle" ? selectedInfo.target() : null;
-    if (selectedInfo?.kind === "vehicle" && selectedTarget) {
+    const selectedTarget = (selectedInfo?.kind === "vehicle" || selectedInfo?.kind === "pedestrian") ? selectedInfo.target() : null;
+    if ((selectedInfo?.kind === "vehicle" || selectedInfo?.kind === "pedestrian") && selectedTarget) {
       const street = streetForSegment(graph, selectedTarget.segment.id).name;
       if (street !== selectedInfo.street) {
         selectedInfo = { ...selectedInfo, street };
@@ -1101,7 +1101,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     if (cameraMode !== "follow") return;
     const target = selectedTarget ?? followTarget?.();
     if (!target) {
-      showRefusal("Follow ended because the vehicle is gone.");
+      showRefusal("Follow ended because the selected vehicle or pedestrian is gone.");
       setCameraMode("free");
       return;
     }

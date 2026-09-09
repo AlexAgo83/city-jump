@@ -2116,6 +2116,28 @@ check("follow mode turns with the selected car", Math.abs(cameraAfterFollow.alph
 await page.evaluate(() => window.cityjump.rebuild());
 await realTime(100);
 check("follow mode ends cleanly when the car is rebuilt away", await page.locator('input[name="camera-mode"][value="free"]').isChecked());
+// Pick an articulated pedestrian through the same pointer path, then follow and remove it.
+await page.evaluate(() => {
+  window.cityjump.setPaused(true);
+  const scene = window.cityjump._scene;
+  const walker = scene.meshes.find((mesh) => mesh.name.startsWith("pedestrian_"));
+  scene.activeCamera.target.copyFrom(walker.position);
+  scene.activeCamera.radius = 35;
+});
+await nextFrame();
+const pedestrianPoint = await screenPoint('(() => { const p = window.cityjump._scene.meshes.find((mesh) => mesh.name.startsWith("pedestrian_")).position; return { x: p.x, y: p.y + 0.9, z: p.z }; })()');
+await click(pedestrianPoint.x, pedestrianPoint.y);
+check("click selects a pedestrian", await page.locator("#selection-panel .selection-kind").textContent() === "Pedestrian");
+check("pedestrian offers Follow", await page.locator("#selection-follow").isVisible());
+await page.locator("#selection-follow").click();
+const pedestrianCamera = await page.evaluate(() => window.cityjump.cameraState());
+await page.evaluate(() => window.cityjump.setPaused(false));
+await realTime(1000);
+const followedPedestrian = await page.evaluate(() => window.cityjump.cameraState());
+check("follow tracks the walking pedestrian", Math.hypot(followedPedestrian.targetX - pedestrianCamera.targetX, followedPedestrian.targetZ - pedestrianCamera.targetZ) > 0.2);
+await page.evaluate(() => window.cityjump.rebuild());
+await realTime(100);
+check("follow ends when the pedestrian disappears", await page.locator('input[name="camera-mode"][value="free"]').isChecked());
 await page.evaluate((state) => {
   const camera = window.cityjump._scene.activeCamera;
   camera.target.set(state.targetX, state.targetY, state.targetZ);

@@ -14,6 +14,10 @@ pairs according to walking speed. A waiting pedestrian returns to a standing
 pose; pausing the simulation freezes movement and animation together. Feet start
 at ground level, using the existing road and sidewalk lifts.
 
+The Select tool picks pedestrians as well as vehicles. The panel shows their
+profile and current street, with Orbit and Follow actions. Follow tracks their
+walk and returns to Free if the pedestrian is removed or traffic is rebuilt.
+
 The models are authored in `src/render/pedestrianModels.ts` and instantiated by
 the existing traffic mover system. There is no skeleton, animation asset or new
 dependency. The torso and head remain rigid; elbows and knees do not bend.

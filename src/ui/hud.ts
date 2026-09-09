@@ -211,7 +211,7 @@ function row(label: string, value: string): [HTMLElement, HTMLElement] {
 /** What the select tool put under the pointer, or null to hide the panel again. */
 export function showSelection(info: SelectionInfo | null): void {
   selectionPanel.hidden = info === null;
-  document.getElementById("selection-follow")!.hidden = info?.kind !== "vehicle";
+  document.getElementById("selection-follow")!.hidden = info?.kind !== "vehicle" && info?.kind !== "pedestrian";
   if (info === null) return;
   if (info.kind === "road") {
     selectionKind.textContent = "Road";
@@ -252,7 +252,7 @@ export function showSelection(info: SelectionInfo | null): void {
     );
     return;
   }
-  if (info.kind === "vehicle") {
+  if (info.kind === "vehicle" || info.kind === "pedestrian") {
     selectionKind.textContent = info.name;
     // "saloon" -> "Saloon", "troop truck" -> "Troop truck".
     const model = info.model ? info.model.charAt(0).toUpperCase() + info.model.slice(1) : "";

@@ -68,8 +68,8 @@ export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta
       state.density = clamped;
       rebuild();
     },
-    vehicleAt: movers.vehicleAt,
-    vehicleAlong: movers.vehicleAlong,
+    moverAt: movers.moverAt,
+    moverAlong: movers.moverAlong,
     firstVehicle: movers.firstVehicle,
     vehiclePoint: movers.vehiclePoint,
     positionsKey: movers.positionsKey,

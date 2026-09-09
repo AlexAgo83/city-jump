@@ -46,6 +46,17 @@ describe("traffic mover renderer", () => {
     expect(traffic.firstVehicle()?.vehicle).toBeTruthy();
     expect(scene.onBeforeRenderObservable.observers.length).toBeGreaterThan(baseline);
 
+    scene.onBeforeRenderObservable.notifyObservers(scene);
+    const walker = scene.meshes.find((mesh) => mesh.name.startsWith("pedestrian_"))!;
+    const point = walker.position.clone();
+    const selected = traffic.moverAlong({ origin: { x: point.x, y: point.y + 100, z: point.z }, direction: { x: 0, y: -1, z: 0 } });
+    expect(selected?.kind).toBe("Pedestrian");
+    expect(selected?.vehicle).toBeTruthy();
+    expect(traffic.moverAt(point.x, point.z)?.kind).toBe("Pedestrian");
+    scene.onBeforeRenderObservable.notifyObservers(scene);
+    expect(selected?.target()?.x).not.toBe(point.x);
+    traffic.clearMovers();
+    expect(selected?.target()).toBeNull();
     traffic.dispose();
     models.dispose();
     expect(scene.onBeforeRenderObservable.observers.filter((observer) => !observer._willBeUnregistered)).toHaveLength(baseline);
@@ -74,17 +85,17 @@ describe("traffic mover renderer", () => {
 
     // Straight down onto a car: that car.
     const overhead = { origin: { x: car.x, y: car.y + 100, z: car.z }, direction: { x: 0, y: -1, z: 0 } };
-    expect(traffic.vehicleAlong(overhead)?.target()).toMatchObject({ x: car.x, z: car.z });
+    expect(traffic.moverAlong(overhead)?.target()).toMatchObject({ x: car.x, z: car.z });
 
     // Pointing away from every car: nothing, and no nearest-thing consolation prize.
-    expect(traffic.vehicleAlong({ origin: { x: car.x, y: car.y + 100, z: car.z }, direction: { x: 0, y: 1, z: 0 } })).toBeNull();
-    expect(traffic.vehicleAlong({ origin: { x: car.x, y: car.y + 100, z: car.z + 400 }, direction: { x: 0, y: -1, z: 0 } })).toBeNull();
+    expect(traffic.moverAlong({ origin: { x: car.x, y: car.y + 100, z: car.z }, direction: { x: 0, y: 1, z: 0 } })).toBeNull();
+    expect(traffic.moverAlong({ origin: { x: car.x, y: car.y + 100, z: car.z + 400 }, direction: { x: 0, y: -1, z: 0 } })).toBeNull();
 
     // Down the road, through the line of cars on it: the near one wins, not whichever the mover
     // list happens to hold first.
     const lane = [];
     for (let probe = -20; probe < 200; probe += 0.5) {
-      const hit = traffic.vehicleAlong({ origin: { x: probe, y: car.y, z: car.z }, direction: { x: 1, y: 0, z: 0 } })?.target();
+      const hit = traffic.moverAlong({ origin: { x: probe, y: car.y, z: car.z }, direction: { x: 1, y: 0, z: 0 } })?.target();
       if (hit) lane.push({ from: probe, hit: hit.x });
     }
     expect(lane.length).toBeGreaterThan(0);

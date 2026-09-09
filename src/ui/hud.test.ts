@@ -89,6 +89,8 @@ describe("hud rendering", () => {
     const { showSelection } = await importHud();
     showSelection({ kind: "vehicle", name: "Car", model: "saloon", street: "Ash Street", target: () => null });
     expect(elements.get("selection-follow")?.hidden).toBe(false);
+    showSelection({ kind: "pedestrian", name: "Pedestrian", model: "worker", street: "Ash Street", target: () => null });
+    expect(elements.get("selection-follow")?.hidden).toBe(false);
     showSelection({ kind: "tree", x: 5, z: 8 });
     expect(elements.get("selection-follow")?.hidden).toBe(true);
     showSelection(null);

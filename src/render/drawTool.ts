@@ -47,7 +47,8 @@ export type FollowTarget = () => { x: number; y: number; z: number; heading: num
 type SelectTarget =
   | BulldozeTarget
   | { kind: "building"; status: BuildingStatus }
-  | { kind: "vehicle"; segment: Segment; vehicle: string; model: string; target: FollowTarget };
+  | { kind: "vehicle"; segment: Segment; vehicle: string; model: string; target: FollowTarget }
+  | { kind: "pedestrian"; segment: Segment; vehicle: string; model: string; target: FollowTarget };
 
 /** What the select tool shows in its panel -- one summary per kind of thing it can pick. */
 export type SelectionInfo =
@@ -55,12 +56,13 @@ export type SelectionInfo =
   | { kind: "building"; address: string; footprint: string; buildingKind: BuildingKind; state: BuildingStatus["state"]; reason?: BuildingStatus["reason"]; x: number; z: number; progress: number; remainingSeconds: number; workers: number; staffed: boolean }
   | { kind: "utility"; role: UtilityRole; utility: UtilityKind; staff: number; x: number; z: number }
   | { kind: "vehicle"; name: string; model: string; street: string; target: FollowTarget }
+  | { kind: "pedestrian"; name: string; model: string; street: string; target: FollowTarget }
   | { kind: "tree"; x: number; z: number }
   | { kind: "roundabout"; lanes: 1 | 2; radius: number; x: number; z: number };
 
 /** Centre the camera on the current selection, including the live position of a mover. */
 export function focusSelection(cameraTarget: Vector3, info: SelectionInfo | null, terrain: Terrain): boolean {
-  const target = info?.kind === "vehicle" ? info.target() : info;
+  const target = (info?.kind === "vehicle" || info?.kind === "pedestrian") ? info.target() : info;
   if (!target) return false;
   cameraTarget.set(target.x, "y" in target ? target.y : terrain.heightAt(target.x, target.z), target.z);
   return true;
@@ -152,8 +154,8 @@ export interface ZoneTools {
 
 export interface SelectionTools {
   buildingAt(x: number, z: number): BuildingStatus | null;
-  vehicleAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
-  vehicleAlong(ray: PickRay): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
+  moverAt(x: number, z: number): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
+  moverAlong(ray: PickRay): { segment: Segment; kind: string; vehicle: string; target: FollowTarget } | null;
 }
 
 export interface HistoryTools {
@@ -315,8 +317,8 @@ export function createDrawTool(
       onSelect({ kind: "utility", x: target.utility[2], z: target.utility[3], role: target.utility[0], utility: target.utility[1], staff: UTILITY_CATALOG[target.utility[1]][target.utility[0]].staff });
       return;
     }
-    if (target.kind === "vehicle") {
-      onSelect({ kind: "vehicle", name: target.vehicle, model: target.model, street: streetForSegment(graph, target.segment.id).name, target: target.target });
+    if (target.kind === "vehicle" || target.kind === "pedestrian") {
+      onSelect({ kind: target.kind, name: target.vehicle, model: target.model, street: streetForSegment(graph, target.segment.id).name, target: target.target });
       return;
     }
     if (target.kind === "tree") {
@@ -335,8 +337,8 @@ export function createDrawTool(
   function selectAt(x: number, z: number): void {
     const onTree = nature.treeAt(x, z, TREE_HIT);
     if (onTree) return showSelection({ kind: "tree", ...onTree });
-    const vehicle = selection.vehicleAt(x, z);
-    if (vehicle) return showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
+    const vehicle = selection.moverAt(x, z);
+    if (vehicle) return showSelection({ kind: vehicle.kind === "Pedestrian" ? "pedestrian" : "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
     const building = selection.buildingAt(x, z);
     if (building) return showSelection({ kind: "building", status: building });
     const target = bulldozeTarget(x, z);
@@ -344,11 +346,10 @@ export function createDrawTool(
     showSelection(target);
   }
   function selectMesh(): boolean {
-    // The ray against the cars' own bounding spheres, rather than scene.pick walking every car
-    // body's triangles: 18-20 ms a click on the large city, for a question about 166 boxes.
-    const vehicle = selection.vehicleAlong(scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), null));
+    // Pick traffic with body-sized spheres; triangle picking costs 18-20 ms in a large city.
+    const vehicle = selection.moverAlong(scene.createPickingRay(scene.pointerX, scene.pointerY, Matrix.Identity(), null));
     if (!vehicle) return false;
-    showSelection({ kind: "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
+    showSelection({ kind: vehicle.kind === "Pedestrian" ? "pedestrian" : "vehicle", segment: vehicle.segment, vehicle: vehicle.kind, model: vehicle.vehicle, target: vehicle.target });
     return true;
   }
 
