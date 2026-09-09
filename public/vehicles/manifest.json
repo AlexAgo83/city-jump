@@ -6,7 +6,8 @@
     "width": 2.43,
     "height": 2.106,
     "theme": null,
-    "triangles": 2032
+    "triangles": 2032,
+    "emergency": false
   },
   {
     "name": "hatchback",
@@ -15,7 +16,8 @@
     "width": 2.43,
     "height": 2.0562,
     "theme": null,
-    "triangles": 2088
+    "triangles": 2088,
+    "emergency": false
   },
   {
     "name": "van",
@@ -24,7 +26,8 @@
     "width": 2.43,
     "height": 2.187,
     "theme": null,
-    "triangles": 2082
+    "triangles": 2082,
+    "emergency": false
   },
   {
     "name": "motorcycle",
@@ -33,7 +36,8 @@
     "width": 0.85,
     "height": 1.82,
     "theme": null,
-    "triangles": 1056
+    "triangles": 1056,
+    "emergency": false
   },
   {
     "name": "tractor",
@@ -42,7 +46,8 @@
     "width": 2.07,
     "height": 2.471,
     "theme": "agricultural",
-    "triangles": 2220
+    "triangles": 2220,
+    "emergency": false
   },
   {
     "name": "farm trailer",
@@ -51,7 +56,8 @@
     "width": 2.43,
     "height": 2.9007,
     "theme": "agricultural",
-    "triangles": 3320
+    "triangles": 3320,
+    "emergency": false
   },
   {
     "name": "tanker",
@@ -60,7 +66,8 @@
     "width": 2.43,
     "height": 3.065,
     "theme": "industrial",
-    "triangles": 3180
+    "triangles": 3180,
+    "emergency": false
   },
   {
     "name": "flatbed",
@@ -69,7 +76,8 @@
     "width": 2.43,
     "height": 2.106,
     "theme": "industrial",
-    "triangles": 2864
+    "triangles": 2864,
+    "emergency": false
   },
   {
     "name": "apc",
@@ -78,7 +86,8 @@
     "width": 2.67,
     "height": 2.7538,
     "theme": "military",
-    "triangles": 1420
+    "triangles": 1420,
+    "emergency": false
   },
   {
     "name": "troop truck",
@@ -87,6 +96,27 @@
     "width": 2.43,
     "height": 2.605,
     "theme": "military",
-    "triangles": 2956
+    "triangles": 2956,
+    "emergency": false
+  },
+  {
+    "name": "fire engine",
+    "file": "fire-engine.glb",
+    "length": 6.8,
+    "width": 2.43,
+    "height": 2.825,
+    "theme": null,
+    "triangles": 3204,
+    "emergency": true
+  },
+  {
+    "name": "police car",
+    "file": "police-car.glb",
+    "length": 4.7,
+    "width": 2.43,
+    "height": 2.406,
+    "theme": null,
+    "triangles": 2276,
+    "emergency": true
   }
 ]

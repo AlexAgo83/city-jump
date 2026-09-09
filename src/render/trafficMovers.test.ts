@@ -62,6 +62,38 @@ describe("traffic mover renderer", () => {
     expect(scene.onBeforeRenderObservable.observers.filter((observer) => !observer._willBeUnregistered)).toHaveLength(baseline);
   });
 
+  it("spawns rare emergency vehicles and alternates their beacons with simulation time", () => {
+    engine = new NullEngine();
+    scene = new Scene(engine);
+    const graph = new RoadGraph();
+    for (let i = 0; i < 100; i++) graph.addSegment(graph.addNode(0, i * 30), graph.addNode(200, i * 30), v3(100, 0, i * 30), "street");
+    const models = createVehicleModels(scene);
+    const headlights = { lights: [], setLamps: () => undefined, sync: () => undefined, aim: () => undefined, dispose: () => undefined };
+    const state = { lightsOn: () => false, enabled: true, paused: false, density: 1, timeScale: 1 };
+    const traffic = createTrafficMoverSystem(scene, graph, () => 100, models, headlights, state);
+    traffic.rebuild();
+    for (const index of models.emergencyShapes) {
+      const cars = models.carBodies[index]![0]!.instances;
+      expect(cars.length).toBeGreaterThan(0);
+      expect(cars.length / traffic.count()).toBeLessThan(0.05);
+      expect(cars[0]!.getChildMeshes()).toHaveLength(5);
+    }
+    const left = scene.getMaterialByName("car_beacon_0")!;
+    const right = scene.getMaterialByName("car_beacon_1")!;
+    const initial = left.serialize().emissive;
+    scene.onBeforeRenderObservable.notifyObservers(scene);
+    scene.onBeforeRenderObservable.notifyObservers(scene);
+    expect(left.serialize().emissive).not.toEqual(initial);
+    expect(left.serialize().emissive).not.toEqual(right.serialize().emissive);
+    state.paused = true;
+    const paused = left.serialize().emissive;
+    scene.onBeforeRenderObservable.notifyObservers(scene);
+    expect(left.serialize().emissive).toEqual(paused);
+    traffic.dispose();
+    expect(models.carBeacons.flat().every((mesh) => mesh.instances.length === 0)).toBe(true);
+    models.dispose();
+  });
+
   it("picks the vehicle a ray hits, nearest first, and nothing when it misses", () => {
     engine = new NullEngine();
     scene = new Scene(engine);

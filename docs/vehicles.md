@@ -1,6 +1,6 @@
 # Vehicle models
 
-The ten traffic silhouettes use local GLBs in `public/vehicles/`. The generated
+The twelve traffic silhouettes use local GLBs in `public/vehicles/`. The generated
 `manifest.json` supplies their dimensions, frontage themes and triangle counts.
 Civilian colours and agricultural, industrial and military palettes remain owned
 by `src/render/vehicleModels.ts`.
@@ -17,6 +17,8 @@ by `src/render/vehicleModels.ts`.
 | flatbed | Kenney truck-flat with an extra axle, crates and pipes |
 | apc | Project model: chamfered hull, eight wheels, turret, hatches, stowage and antennae |
 | troop truck | Kenney truck-flat with an extra axle, canvas cover, open rear and spare wheel |
+| fire engine | Kenney truck-flat with red equipment body, roller shutters and roof ladder |
+| police car | Kenney sedan with white paint, blue stripes and door badges |
 
 ## Sources and regeneration
 
@@ -30,11 +32,12 @@ license. No paid assets are required.
 /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/gen_vehicles.py
 ```
 
-Commit the generator, regenerated GLBs and manifest together. Each file has four
-named meshes: `body`, `trim`, `head`, `tail`. Paint vertices are white for runtime
+Commit the generator, regenerated GLBs and manifest together. Every file has four
+named meshes: `body`, `trim`, `head`, `tail`; emergency vehicles also have
+`beacon_left` and `beacon_right`. Paint vertices are white for runtime
 recolouring; trim retains baked palette colours, including glass and wheel hubs.
 No textures, external buffers, rig or animation are required. Geometry stays under
-4,000 triangles per vehicle; the complete shipped fleet is approximately 2.6 MiB.
+4,000 triangles per vehicle; the complete shipped fleet is approximately 3.2 MiB.
 
 Models use metres, Y-up, centred X/Z bounds, tyres at Y=0 and the nose toward glTF
 +Z. The generator authors in Blender Z-up and rotates for that export convention.
@@ -43,8 +46,8 @@ geometry into Babylon's left-handed scene.
 
 ## Runtime and verification
 
-There are four shared prototype parts per shape, regardless of the number of
-moving vehicles. Body colour variants share geometry after loading. The renderer
+There are four shared prototype parts per ordinary shape and six per emergency
+shape, regardless of the number of moving vehicles. Body colour variants share geometry after loading. The renderer
 starts with simple boxes and streams each GLB once. Arrival replaces prototype
 geometry in place, preserving existing instances, movement, selection and lamps.
 An asset failure reports a warning and keeps the corresponding fallback. Late
@@ -69,8 +72,24 @@ every colour palette, the complete catalogue and mobile view.
 
 ![Daytime fleet](media/vehicles-fleet.png)
 
-The catalogue places saloon, hatchback, van, motorcycle and tractor in the back
-row; farm trailer, tanker, flatbed, APC and troop truck in the front row.
+The catalogue places saloon, hatchback, van, motorcycle, tractor and farm trailer
+in the back row; tanker, flatbed, APC, troop truck, fire engine and police car
+in the front row.
 
 The browser script also writes night, mobile close-up and live traffic captures to
 the chosen output directory. Only the fleet overview is retained in this repository.
+
+## Emergency traffic
+
+Fire engines and police cars each replace about 2% of ordinary traffic slots,
+using a stable per-road seed. Counts vary in small cities; they do not increase
+traffic density. Red and white/blue liveries remain fixed across palette variants.
+Both obey the same traffic rules and support selection and Follow.
+
+Two shared emissive blue materials alternate at six half-cycles per simulation
+second, in daylight and at night. Pausing freezes their phase. The lightbar parts
+follow each vehicle and are disposed with it; no extra point lights are allocated.
+The generator, asset tests and browser catalogue include all six emergency parts.
+The browser check verifies rare live spawns, motion and both beacon states.
+
+![Fire engine and police car](media/vehicles-emergency.png)

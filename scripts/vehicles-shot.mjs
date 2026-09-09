@@ -26,14 +26,23 @@ try {
     api.demoCity();
     api.setPaused(false);
     const cars = api._scene.meshes.filter((mesh) => mesh.name.startsWith("traffic_"));
+    const emergency = Object.fromEntries(["fire engine", "police car"].map((name) => [name, cars.filter((car) => car.sourceMesh.name.includes(name)).length]));
+    const beacon = api._scene.getMaterialByName("car_beacon_0");
+    const flashes = new Set();
+    for (let i = 0; i < 12; i++) {
+      flashes.add(beacon.emissiveColor.b);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
     const before = cars.map((car) => car.position.clone());
     await new Promise((resolve) => setTimeout(resolve, 700));
     const moved = cars.some((car, i) => !car.position.equals(before[i]));
     api.setPaused(true);
     api.selectVehicle();
-    return { count: cars.length, moved, loaded: cars.every((car) => car.sourceMesh?.metadata?.vehicleAsset) };
+    return { emergency, flashes: flashes.size, count: cars.length, moved, loaded: cars.every((car) => car.sourceMesh?.metadata?.vehicleAsset) };
   });
   assert.ok(live.count > 100 && live.moved && live.loaded, JSON.stringify(live));
+  assert.ok(live.flashes > 1, "emergency beacons alternate in live traffic");
+  for (const count of Object.values(live.emergency)) assert.ok(count > 0 && count / live.count < 0.06, JSON.stringify(live));
   await page.screenshot({ path: `${out}/vehicles-traffic.png` });
   await page.keyboard.press("Escape");
   await page.evaluate(async (catalog) => {
@@ -56,16 +65,16 @@ try {
     const camera = scene.activeCamera;
     camera.lowerRadiusLimit = 4;
     camera.target.set(0, 1, 0);
-    camera.radius = 32;
+    camera.radius = 38;
     camera.beta = 0.82;
     camera.alpha = Math.PI / 2.4;
     for (const [i, shape] of catalog.entries()) {
       const body = scene.getMeshByName(`car_body_${shape.name}_0`);
-      const meshes = [body, scene.getMeshByName(`car_parts_${shape.name}`), scene.getMeshByName(`car_head_${shape.name}`), scene.getMeshByName(`car_tail_${shape.name}`)];
+      const meshes = [body, scene.getMeshByName(`car_parts_${shape.name}`), scene.getMeshByName(`car_head_${shape.name}`), scene.getMeshByName(`car_tail_${shape.name}`), ...(shape.emergency ? [0, 1].map((side) => scene.getMeshByName(`car_beacon_${shape.name}_${side}`)) : [])];
       for (const mesh of meshes) {
         mesh.setEnabled(true);
         const instance = mesh.createInstance(`showcase_${i}_${mesh.name}`);
-        instance.position.set((2-(i % 5))*5.2, 0, i < 5 ? -5.5 : 5.5);
+        instance.position.set((2.5-(i % 6))*5.2, 0, i < 6 ? -5.5 : 5.5);
         instance.rotation.y = -0.35;
       }
     }
@@ -119,17 +128,29 @@ try {
   });
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${out}/vehicles-fleet-night.png` });
+  await page.evaluate(() => {
+    const scene = window.cityjump._scene;
+    scene.getLightByName("showcase_fill").intensity = 1.2;
+    scene.clearColor.set(0.14, 0.18, 0.21, 1);
+    for (const mesh of scene.meshes) {
+      if (mesh.name.startsWith("showcase_")) mesh.setEnabled(mesh.name.startsWith("showcase_10_") || mesh.name.startsWith("showcase_11_"));
+    }
+    scene.activeCamera.target.set(-10.4, 1, 5.5);
+    scene.activeCamera.radius = 17;
+  });
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: `${out}/vehicles-emergency.png` });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => {
     const scene = window.cityjump._scene;
     scene.getLightByName("showcase_fill").intensity = 1.2;
     scene.clearColor.set(0.14, 0.18, 0.21, 1);
     for (const mesh of scene.meshes) {
-      if (mesh.name.startsWith("showcase_") && !mesh.name.startsWith("showcase_7_")) mesh.setEnabled(false);
+      if (mesh.name.startsWith("showcase_") && !mesh.name.startsWith("showcase_10_")) mesh.setEnabled(false);
     }
     const camera = scene.activeCamera;
     camera.radius = 16;
-    camera.target.set(0, 1, 5.5);
+    camera.target.set(-7.8, 1, 5.5);
   });
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${out}/vehicles-mobile.png` });

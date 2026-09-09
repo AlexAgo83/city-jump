@@ -102,7 +102,7 @@ export type MoverTarget = { segment: Segment; kind: string; vehicle: string; tar
 // ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
 // per-frame loop; split when a pure planner can be tested without mesh position state.
 export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
-  const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkers } = models;
+  const { shapes: carShapes, themedShapes, plainShapes, emergencyShapes, carBodies, carLamps, carParts, carBeacons, walkers } = models;
 
   let movers: RenderMover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
@@ -502,12 +502,14 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
         // dirt track, tankers past a works -- but never only them: something still passes through.
         const themed = type.frontageKind ? themedShapes.get(type.frontageKind) ?? [] : [];
         const pool = themed.length && (si + i) % 4 !== 3 ? themed : plainShapes;
-        const shape = pool[(si * 3 + i) % pool.length]!;
+        // Stable 2% per emergency model, without increasing traffic density.
+        const emergencyRoll = ((Math.imul(seg.id, 2654435761) + Math.imul(i, 40503)) >>> 0) % 100;
+        const shape = emergencyRoll < 4 ? emergencyShapes[emergencyRoll % 2]! : pool[(si * 3 + i) % pool.length]!;
         const palette = carBodies[shape]!;
         const body = palette[(si + i) % palette.length]!.createInstance(`traffic_${seg.id}_${i}`);
         body.isPickable = true;
         // Wheels and glass ride along: parented, so only the body is ever positioned.
-        for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail]) {
+        for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail, ...carBeacons[shape]!]) {
           const part = source.createInstance(`carpart_${seg.id}_${i}_${source.name}`);
           part.isPickable = false;
           part.parent = body;
@@ -598,6 +600,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     simTime += dt;
     if (!state.enabled || movers.length === 0) return;
     const now = simTime;
+    models.animateBeacons(now);
   
     const beams = state.lightsOn() ? headlights.lights : null;
     let beam = 0;

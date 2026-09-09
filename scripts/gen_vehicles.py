@@ -33,6 +33,8 @@ SPECS = [
     ("flatbed", "truck-flat", 6.48, 2.43, "industrial"),
     ("apc", None, 5.67, 2.67, "military"),
     ("troop truck", "truck-flat", 6.16, 2.43, "military"),
+    ("fire engine", "truck-flat", 6.8, 2.43, None),
+    ("police car", "sedan", 4.7, 2.43, None),
 ]
 
 
@@ -178,6 +180,33 @@ def truck_details(name, length):
         wheel(1.0, 0.95, 0.38, 1.35)
 
 
+def emergency_details(name):
+    roof = max(z for vertices, _ in groups["body"] for _, _, z in vertices)
+    blue = (0.035, 0.16, 0.48, 1)
+    if name == "fire engine":
+        box("body", (0, -1.05, 1.78), (2.1, 3.5, 1.65))
+        for x in [-1.06, 1.06]:
+            for y in [-2.1, -0.95, 0.2]:
+                box("trim", (x, y, 1.72), (0.035, 0.95, 1.05), METAL, 0)
+                for z in [1.4, 1.65, 1.9, 2.15]:
+                    box("trim", (x*1.01, y, z), (0.02, 0.88, 0.025), RUBBER, 0)
+            box("trim", (x, -1.05, 1.12), (0.045, 3.45, 0.13), (0.92, 0.83, 0.22, 1), 0)
+        for x in [-0.47, 0.47]:
+            box("trim", (x, -0.8, 2.76), (0.09, 3.8, 0.13), METAL, 0)
+        for i in range(11):
+            box("trim", (0, -2.5+i*0.34, 2.76), (0.95, 0.06, 0.08), METAL, 0)
+        y = 1.8
+    else:
+        for x in [-1.0, 1.0]:
+            box("trim", (x, -0.05, 0.9), (0.035, 2.25, 0.22), blue, 0)
+            box("trim", (x*1.025, 0.12, 1.05), (0.04, 0.3, 0.26), (0.9, 0.74, 0.23, 1), 0.06)
+        y = 0
+    box("trim", (0, y, roof+0.06), (1.25, 0.34, 0.12), RUBBER)
+    for side, x in [("left", -0.43), ("right", 0.43)]:
+        groups[f"beacon_{side}"] = []
+        box(f"beacon_{side}", (x, y, roof+0.2), (0.43, 0.3, 0.2))
+
+
 def motorcycle():
     for y in [-0.75, 0.75]:
         wheel(0, y, 0.32)
@@ -250,7 +279,7 @@ def export(name, length, width, theme):
                              export_materials="EXPORT", export_cameras=False)
     triangles = sum(len(faces) for faces in groups.values())
     print(f"FLEET {name}: {triangles} triangles")
-    return dict(name=name, file=file, length=length, width=width, height=round(hi[2]-lo[2], 4), theme=theme, triangles=triangles)
+    return dict(name=name, file=file, length=length, width=width, height=round(hi[2]-lo[2], 4), theme=theme, triangles=triangles, emergency=name in ["fire engine", "police car"])
 
 
 OUT.mkdir(parents=True, exist_ok=True)
@@ -274,5 +303,7 @@ for name, source, length, width, theme in SPECS:
         motorcycle()
     elif name == "apc":
         apc()
+    if name in ["fire engine", "police car"]:
+        emergency_details(name)
     catalog.append(export(name, length, width, theme))
 (OUT/"manifest.json").write_text(json.dumps(catalog, indent=2) + "\n")

@@ -27,7 +27,7 @@ const THEMED_SHAPES = new Map<BuildingKind, number[]>();
 CAR_SHAPES.forEach((shape, index) => {
   if (shape.theme) THEMED_SHAPES.set(shape.theme, [...(THEMED_SHAPES.get(shape.theme) ?? []), index]);
 });
-const PLAIN_SHAPES = CAR_SHAPES.map((_, index) => index).filter((index) => !CAR_SHAPES[index]!.theme);
+const PLAIN_SHAPES = CAR_SHAPES.map((_, index) => index).filter((index) => !CAR_SHAPES[index]!.theme && !CAR_SHAPES[index]!.emergency);
 
 export function createVehicleModels(scene: Scene) {
   let disposed = false;
@@ -50,7 +50,8 @@ export function createVehicleModels(scene: Scene) {
     return mesh;
   };
   const carBodies = CAR_SHAPES.map((shape) => {
-    const colors = THEME_COLORS[shape.theme as keyof typeof THEME_COLORS] ?? CAR_COLORS;
+    const colors = shape.emergency ? [shape.name === "fire engine" ? new Color3(0.8, 0.055, 0.035) : new Color3(0.88, 0.91, 0.94)]
+      : THEME_COLORS[shape.theme as keyof typeof THEME_COLORS] ?? CAR_COLORS;
     return colors.map((color, i) => prototype(`car_body_${shape.name}_${i}`, shape.width * 0.9, shape.height * 0.65,
       shape.length, shape.height * 0.325 + 0.15, 0, material(`car_${shape.name}_${i}`, color)));
   });
@@ -73,13 +74,36 @@ export function createVehicleModels(scene: Scene) {
     tail: prototype(`car_tail_${shape.name}`, shape.width * 0.6, 0.16, 0.12, 0.6, -shape.length/2, lampMaterials.tail),
   }));
 
+  const beaconMaterials = [0, 1].map((side) => {
+    const lamp = material(`car_beacon_${side}`, Color3.Black());
+    lamp.disableLighting = true;
+    return lamp;
+  });
+  const carBeacons = CAR_SHAPES.map((shape) => shape.emergency ? beaconMaterials.map((lamp, side) => {
+    const mesh = prototype(`car_beacon_${shape.name}_${side}`, 0.43, 0.2, 0.3, shape.height, 0, lamp);
+    mesh.position.x = side ? 0.43 : -0.43;
+    mesh.bakeCurrentTransformIntoVertices();
+    return mesh;
+  }) : []);
+  function animateBeacons(time: number): void {
+    for (const [side, lamp] of beaconMaterials.entries()) {
+      const intensity = Math.floor(time * 6) % 2 === side ? 2.5 : 0.12;
+      lamp.emissiveColor.set(0.035 * intensity, 0.25 * intensity, intensity);
+    }
+  }
+  animateBeacons(0);
+
   async function loadShape(index: number): Promise<boolean> {
     const shape = CAR_SHAPES[index]!;
     try {
       const container = await SceneLoader.LoadAssetContainerAsync("/vehicles/", `${shape.file}?v=${ASSET_VERSION}`, scene);
       try {
         if (disposed || scene.isDisposed) return false;
-        const targets = { body: carBodies[index]!, trim: [carParts[index]!], head: [carLamps[index]!.head], tail: [carLamps[index]!.tail] };
+        const targets: Record<string, Mesh[]> = { body: carBodies[index]!, trim: [carParts[index]!], head: [carLamps[index]!.head], tail: [carLamps[index]!.tail] };
+        if (shape.emergency) {
+          targets.beacon_left = [carBeacons[index]![0]!];
+          targets.beacon_right = [carBeacons[index]![1]!];
+        }
         // Validate and prepare every part before replacing any fallback geometry.
         const prepared = Object.entries(targets).map(([name, meshes]) => {
           const source = container.meshes.find((mesh) => mesh.name === name);
@@ -115,7 +139,8 @@ export function createVehicleModels(scene: Scene) {
 
   return {
     shapes: CAR_SHAPES, themedShapes: THEMED_SHAPES, plainShapes: PLAIN_SHAPES,
-    carBodies, carLamps, carParts, walkers, lampMaterials,
+    carBodies, carLamps, carParts, carBeacons, animateBeacons, walkers, lampMaterials,
+    emergencyShapes: CAR_SHAPES.map((_, index) => index).filter((index) => CAR_SHAPES[index]!.emergency),
     load(): Promise<boolean[]> {
       loading ??= disposed ? Promise.resolve([]) : Promise.all(CAR_SHAPES.map((_, index) => loadShape(index)));
       return loading;
@@ -123,7 +148,7 @@ export function createVehicleModels(scene: Scene) {
     dispose(): void {
       disposed = true;
       walkers.dispose();
-      const meshes = [...carBodies.flat(), ...carParts, ...carLamps.flatMap((pair) => [pair.head, pair.tail])];
+      const meshes = [...carBodies.flat(), ...carParts, ...carBeacons.flat(), ...carLamps.flatMap((pair) => [pair.head, pair.tail])];
       const materials = new Set(meshes.map((mesh) => mesh.material));
       for (const mesh of meshes) mesh.dispose();
       for (const surface of materials) surface?.dispose();

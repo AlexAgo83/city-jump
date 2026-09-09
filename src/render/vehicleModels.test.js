@@ -24,14 +24,14 @@ it("loads the complete shipped fleet into existing instances with correct bounds
   try {
     const pending = models.load();
     expect(models.load()).toBe(pending);
-    expect(await pending).toEqual(Array(10).fill(true));
+    expect(await pending).toEqual(Array(models.shapes.length).fill(true));
     expect(scene.meshes.length).toBe(before.meshes);
     // Babylon may create its one scene default material while importing.
     expect(scene.materials.length).toBeLessThanOrEqual(before.materials + 1);
     expect(instance.position.asArray()).toEqual([12, 3, 5]);
     expect(instance.getTotalVertices()).toBeGreaterThan(100);
     for (const [i, shape] of models.shapes.entries()) {
-      const parts = [models.carBodies[i][0], models.carParts[i], models.carLamps[i].head, models.carLamps[i].tail];
+      const parts = [models.carBodies[i][0], models.carParts[i], models.carLamps[i].head, models.carLamps[i].tail, ...models.carBeacons[i]];
       const boxes = parts.map((part) => part.getBoundingInfo().boundingBox);
       const min = (axis) => Math.min(...boxes.map((box) => box.minimum[axis]));
       const max = (axis) => Math.max(...boxes.map((box) => box.maximum[axis]));
@@ -68,7 +68,7 @@ it("keeps usable fallback geometry when assets fail and disposes requests that a
   const loader = vi.spyOn(SceneLoader, "LoadAssetContainerAsync").mockRejectedValue(new Error("offline"));
   const models = createVehicleModels(scene);
   const geometry = models.carBodies[0][0].geometry;
-  expect(await models.load()).toEqual(Array(10).fill(false));
+  expect(await models.load()).toEqual(Array(models.shapes.length).fill(false));
   expect(models.carBodies[0][0].geometry).toBe(geometry);
   models.dispose();
 
@@ -83,8 +83,8 @@ it("keeps usable fallback geometry when assets fail and disposes requests that a
   const pending = late.load();
   late.dispose();
   release();
-  expect(await pending).toEqual(Array(10).fill(false));
-  expect(dispose).toHaveBeenCalledTimes(10);
+  expect(await pending).toEqual(Array(models.shapes.length).fill(false));
+  expect(dispose).toHaveBeenCalledTimes(models.shapes.length);
   expect(scene.meshes).toHaveLength(0);
   expect(scene.materials).toHaveLength(0);
   scene.dispose(); engine.dispose();
