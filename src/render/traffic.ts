@@ -11,6 +11,8 @@ import { createVehicleModels } from "./vehicleModels";
  * engine's own delta, which counts animation frames the render loop may have skipped. */
 export function createTrafficRenderer(scene: Scene, graph: RoadGraph, frameDelta: () => number) {
   const models = createVehicleModels(scene);
+  // Headless simulation checks use the immediate fallbacks; browser traffic streams the GLBs.
+  if (scene.getEngine().getRenderingCanvas()) void models.load();
   const headlights = createVehicleHeadlights(scene, models.lampMaterials);
   let sunHour = 14;
   let lightsEnabled = true;

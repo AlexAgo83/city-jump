@@ -1,0 +1,92 @@
+[
+  {
+    "name": "saloon",
+    "file": "saloon.glb",
+    "length": 4.7,
+    "width": 2.43,
+    "height": 2.106,
+    "theme": null,
+    "triangles": 2032
+  },
+  {
+    "name": "hatchback",
+    "file": "hatchback.glb",
+    "length": 3.73,
+    "width": 2.43,
+    "height": 2.0562,
+    "theme": null,
+    "triangles": 2088
+  },
+  {
+    "name": "van",
+    "file": "van.glb",
+    "length": 5.35,
+    "width": 2.43,
+    "height": 2.187,
+    "theme": null,
+    "triangles": 2082
+  },
+  {
+    "name": "motorcycle",
+    "file": "motorcycle.glb",
+    "length": 2.2,
+    "width": 0.85,
+    "height": 1.82,
+    "theme": null,
+    "triangles": 1056
+  },
+  {
+    "name": "tractor",
+    "file": "tractor.glb",
+    "length": 3.57,
+    "width": 2.07,
+    "height": 2.471,
+    "theme": "agricultural",
+    "triangles": 2220
+  },
+  {
+    "name": "farm trailer",
+    "file": "farm-trailer.glb",
+    "length": 7.5,
+    "width": 2.43,
+    "height": 2.9007,
+    "theme": "agricultural",
+    "triangles": 3320
+  },
+  {
+    "name": "tanker",
+    "file": "tanker.glb",
+    "length": 7.3,
+    "width": 2.43,
+    "height": 3.065,
+    "theme": "industrial",
+    "triangles": 3180
+  },
+  {
+    "name": "flatbed",
+    "file": "flatbed.glb",
+    "length": 6.48,
+    "width": 2.43,
+    "height": 2.106,
+    "theme": "industrial",
+    "triangles": 2864
+  },
+  {
+    "name": "apc",
+    "file": "apc.glb",
+    "length": 5.67,
+    "width": 2.67,
+    "height": 2.7538,
+    "theme": "military",
+    "triangles": 1420
+  },
+  {
+    "name": "troop truck",
+    "file": "troop-truck.glb",
+    "length": 6.16,
+    "width": 2.43,
+    "height": 2.605,
+    "theme": "military",
+    "triangles": 2956
+  }
+]

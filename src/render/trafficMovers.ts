@@ -1,3 +1,5 @@
+import { animatePedestrian } from "./pedestrianModels";
+import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { profilerFor } from "./frameProfiler";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -74,6 +76,8 @@ type VehicleHeadlights = ReturnType<typeof createVehicleHeadlights>;
 
 interface RenderMover extends Mover {
   readonly mesh: Mesh | InstancedMesh;
+  readonly limbs: AbstractMesh[];
+  walkPhase: number;
 }
 
 interface TrafficMoverState {
@@ -98,7 +102,7 @@ export type VehicleTarget = { segment: Segment; kind: string; vehicle: string; t
 // ponytail: module-size keeps route planning, occupancy and Babylon mover updates beside one
 // per-frame loop; split when a pure planner can be tested without mesh position state.
 export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
-  const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkerPrototypes } = models;
+  const { shapes: carShapes, themedShapes, plainShapes, carBodies, carLamps, carParts, walkers } = models;
 
   let movers: RenderMover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
@@ -439,11 +443,13 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
           : 0.85 + ((si + i * 3) % 5) * 0.075;
         const mover: RenderMover = {
           mesh,
+          limbs: walk ? mesh.getChildMeshes() : [],
+          walkPhase: i,
           vehicle,
           walk,
-          stride: walk ? 0.05 : 0,
+          stride: 0,
           phase: (((si * 13 + i * 29) % 100) / 100) * Math.PI * 2,
-          lift: walk ? (type.pedestrian ? ROAD_LIFT : SIDEWALK_LIFT) + 0.58 : ROAD_LIFT + 0.02,
+          lift: walk ? (type.pedestrian ? ROAD_LIFT : SIDEWALK_LIFT) + 0.02 : ROAD_LIFT + 0.02,
           pace,
           seed: (si * 2654435761 + i * 40503 + (walk ? 7919 : 0)) >>> 0,
           segment: seg,
@@ -481,9 +487,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
           : Math.min(6, Math.floor(seg.length / 45));
         const count = scaledTrafficCount(baseCount, state.density);
         for (let i = 0; i < count; i++) {
-          const walker = walkerPrototypes[(si + i) % walkerPrototypes.length]!.createInstance(
-            `pedestrian_${seg.id}_${i}`,
-          );
+          const walker = walkers.create(`pedestrian_${seg.id}_${i}`, type.frontageKind, si + i);
           walker.isPickable = false;
           place(walker, i, count, true, walks[i % walks.length]!);
         }
@@ -521,6 +525,8 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     mover.heading = approachAngle(mover.heading, heading, rate);
     if (mover.walk) {
       mover.pitch = 0;
+      mover.walkPhase += mover.currentSpeed * dt * 5;
+      animatePedestrian(mover.limbs, mover.walkPhase, mover.currentSpeed > 0);
     } else {
       // Sample the same elevated road/turn profile used to place the vehicle.
       const at = (offset: number): Vec3 => mover.ride
@@ -606,7 +612,6 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     const staleMovers = new Set<RenderMover>();
   
     for (const mover of movers) {
-      const bob = mover.stride === 0 ? 0 : Math.abs(Math.sin(now * 5 + mover.phase)) * mover.stride;
       if (!graph.hasSegment(mover.segment.id)) {
         staleMovers.add(mover);
         leaveQueue(mover);
@@ -637,7 +642,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
           board(mover, ride.exit, ride.from, { lane: ride.lane, changing: ride.changing, plan: mover.plan }, ride.trim);
         } else {
           const { position, tangent } = pointAlong(ride.points, ride.cumulative, ride.travelled);
-          mover.mesh.position.set(position.x, position.y + mover.lift + bob, position.z);
+          mover.mesh.position.set(position.x, position.y + mover.lift, position.z);
           face(mover, Math.atan2(tangent.x, tangent.z), dt);
           if (beams && !mover.walk) headlights.aim(beams[beam++], mover);
           continue;
@@ -670,7 +675,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
       const normal = perpXZ(normalizeXZ(tangent));
       mover.mesh.position.set(
         position.x + normal.x * offset,
-        position.y + mover.lift + bob,
+        position.y + mover.lift,
         position.z + normal.z * offset,
       );
       face(mover, Math.atan2(tangent.x * mover.direction, tangent.z * mover.direction), dt);

@@ -24,6 +24,8 @@ what a visitor sees.
 
 | Image | Added | Wave it evidenced | Size |
 |---|---|---|---|
+| [`vehicles-fleet.png`](vehicles-fleet.png) | 2026-09-09 | Replace all ten traffic silhouettes with Kenney-derived and project GLBs; see `docs/vehicles.md` | 900 px wide |
+| [`pedestrians-catalogue.png`](pedestrians-catalogue.png) | 2026-09-09 | Six articulated profiles and four palettes; see [pedestrian models](../pedestrians.md) | 900 px wide |
 | [`buildings-farm-3x4.png`](buildings-farm-3x4.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 167 KB |
 | [`buildings-farm-4x4.png`](buildings-farm-4x4.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 154 KB |
 | [`buildings-industrial-1x1-a.png`](buildings-industrial-1x1-a.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 132 KB |

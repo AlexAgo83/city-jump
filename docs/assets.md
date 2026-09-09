@@ -1,5 +1,7 @@
 # Building asset convention
 
+Vehicle GLBs have their own centred, four-part contract: see [vehicle models](vehicles.md).
+
 Anything that authors a building model for city-jump — MeshAnvil, Blender by hand, or
 whatever comes next — obeys this. It is fixed now on purpose: correcting it once two
 hundred models exist is a two-hundred-model correction.
@@ -127,3 +129,5 @@ Inspect the full fixture with:
 `node scripts/with-dev-server.mjs scripts/buildings-shot.mjs /tmp/city-jump-compounds variety`.
 It validates zoned districts, generic leftovers and pedestrian selection, then captures
 all 56 additions and representative low-rise models through the actual game renderer.
+
+Pedestrian profiles and animation are documented in [pedestrians.md](pedestrians.md).
