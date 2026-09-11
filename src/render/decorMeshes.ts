@@ -7,6 +7,9 @@ import { Color3 } from "@babylonjs/core/Maths/math";
 
 export type PropKind = "ac" | "tank" | "antenna" | "chimney" | "hut" | "solar";
 export type FootDecorKind =
+  | "path"
+  | "garden"
+  | "terrace"
   | "bench"
   | "bollard"
   | "planter"
@@ -128,6 +131,9 @@ export function buildRoofProps(scene: Scene, shadows: ShadowGenerator): Record<P
 
 export function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
   const material: Record<FootDecorKind, StandardMaterial> = {
+    path: new StandardMaterial("footdecor_path", scene),
+    garden: new StandardMaterial("footdecor_garden", scene),
+    terrace: new StandardMaterial("footdecor_terrace", scene),
     bench: new StandardMaterial("footdecor_bench", scene),
     bollard: new StandardMaterial("footdecor_bollard", scene),
     planter: new StandardMaterial("footdecor_planter", scene),
@@ -142,7 +148,9 @@ export function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     wallLight: new StandardMaterial("footdecor_wallLight", scene),
     vending: new StandardMaterial("footdecor_vending", scene),
   };
+  material.path.diffuseColor = new Color3(0.48, 0.45, 0.38);
   material.bench.diffuseColor = new Color3(0.34, 0.2, 0.12);
+  material.garden.diffuseColor = material.terrace.diffuseColor = Color3.White();
   material.bollard.diffuseColor = new Color3(0.82, 0.72, 0.42);
   material.planter.diffuseColor = new Color3(0.18, 0.38, 0.2);
   material.utility.diffuseColor = new Color3(0.32, 0.34, 0.34);
@@ -316,7 +324,37 @@ export function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     false,
   )!;
 
+  const gardenParts = [
+    box(scene, "garden_border", 3.2, 0.2, 1.3, 0, 0.1, 0),
+    box(scene, "garden_hedge", 2.9, 0.65, 0.8, 0, 0.52, 0.12),
+    ...[-1, 0, 1].map((x) => box(scene, "garden_flowers", 0.45, 0.16, 0.35, x, 0.88, -0.14)),
+  ];
+  const terraceParts = [
+    box(scene, "terrace_paving", 3.2, 0.06, 1.4, 0, 0.03, 0),
+    box(scene, "terrace_table", 1, 0.12, 0.75, 0, 0.85, 0),
+    box(scene, "terrace_stem", 0.12, 0.8, 0.12, 0, 0.4, 0),
+    ...[-1, 1].flatMap((x) => [
+      box(scene, "terrace_seat", 0.55, 0.5, 0.55, x, 0.25, 0),
+      box(scene, "terrace_back", 0.12, 0.55, 0.55, x * 1.22, 0.7, 0),
+    ]),
+  ];
+  // Vertex colours keep each arrangement in one instanced draw call.
+  for (const [parts, colors] of [
+    [gardenParts, [[0.58, 0.52, 0.42], [0.25, 0.46, 0.23], [0.87, 0.64, 0.38]]],
+    [terraceParts, [[0.57, 0.54, 0.47], [0.68, 0.4, 0.22], [0.28, 0.37, 0.38]]],
+  ] as const) {
+    for (const [i, part] of parts.entries()) {
+      const color = [...colors[Math.min(i, 2)]!, 1];
+      part.setVerticesData("color", Array.from({ length: part.getTotalVertices() }, () => color).flat());
+    }
+  }
+  const garden = Mesh.MergeMeshes(gardenParts, true, true, undefined, false, false)!;
+  const terrace = Mesh.MergeMeshes(terraceParts, true, true, undefined, false, false)!;
+
   return {
+    path: finish(Mesh.MergeMeshes([-1, 0, 1].map((z) => box(scene, "path_slab", 1.35, 0.06, 0.78, 0, 0.03, z * 0.88)), true, true, undefined, false, false)!, "path"),
+    garden: finish(garden, "garden"),
+    terrace: finish(terrace, "terrace"),
     bench: finish(bench, "bench"),
     bollard: finish(bollard, "bollard"),
     planter: finish(planter, "planter"),

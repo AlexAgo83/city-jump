@@ -138,6 +138,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const setSun = (hour: number): void => {
     setSunHour(hour);
     streetlights.setSunHour(hour);
+    buildings.setSunHour(hour);
     traffic.setSunHour(hour);
     trees.setSunHour(hour);
     postFx.setNight(streetlightsOnAt(hour));
@@ -206,7 +207,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     measure("zones", () => zoneOverlay.rebuild(currentBuildableCells, zones, occupiedCells()));
     measure("rubble", () => {
       const savedRubble = rubble.toJSON();
-      rubbleRenderer.rebuild(savedRubble);
+      rubbleRenderer.rebuild(savedRubble, currentParcels);
       destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
     });
     measure("utilities", () => utilityOverlay.rebuild(currentSuppliedUtilities()));
@@ -351,7 +352,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const currentSuppliedUtilities = (): Set<string> => currentUtilitySnapshot().supplied;
   const refreshRubble = (): void => {
     const savedRubble = rubble.toJSON();
-    rubbleRenderer.rebuild(savedRubble);
+    rubbleRenderer.rebuild(savedRubble, currentParcels);
     destructionEffects.rebuildFires(savedRubble, performance.now() / 1000);
     detail.invalidate();
   };

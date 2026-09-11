@@ -168,3 +168,37 @@ Regenerate with `-- --urban-only` and inspect with
 `node scripts/with-dev-server.mjs scripts/buildings-shot.mjs /tmp/city-jump-urban urban`.
 The fixture covers mixed districts, distant and mobile views, all twenty towers,
 and representative small/large facades through the actual game renderer.
+
+## Runtime lighting and landscape
+
+Urban instances receive subtle, deterministic district tints. At night, the existing
+glass surfaces show warm residential rooms and cooler offices, with unlit panes and
+floors. Connected window geometry shares a lighting seed; keep separate panes
+disconnected when authoring glass. Construction, rubble and buildings without power
+have no interior glow. This adds vertex attributes, without extra window draw calls.
+
+Foot decorations include small gardens and cafe terraces; sufficiently wide roundabout
+centres reuse the oak instances and respect cleared land. Softer lighting, broader beach
+transitions and distance fog are renderer settings, without changing terrain elevations.
+Kaiju dorsal emission follows the attack windup. Footstep dust expires, while rubble
+smoke follows the fire setting and disappears with the rubble. Smoke is capped at 64
+ruins (three puffs each), and footstep trails at six steps. Each fire uses five
+independently swaying, tapered tongues with yellow cores and orange edges. Impacts
+flash, expand into a fading fireball, and leave an expanding dust ring plus smoke
+for 3.2 seconds. Impact meshes stay visible beyond the roof-detail cutoff. A single
+orange light follows the latest impact, then the fire nearest the camera; concurrent
+fires share this lighting budget. Ground and road surfaces reserve a fifth light
+slot so the glow does not displace streetlights or headlights.
+
+Districts also favour existing courtyard, terrace and roof variants. Roads and paving
+use subtle world-space detail that fades with distance; foot decorations include short
+paths. Ruins retain cell footprints, perimeter walls and tilted slabs, with parcel
+orientation and zoning tint when available, over a scorched ground patch. Coastal
+rocks avoid altered terrain, foam animates along sea level, and natural trees thin out
+towards the beach. Tree wind and commercial signs animate in their materials; chimney
+smoke is capped at 32 working-building outlets. Contact shadows follow building
+footprints, street furniture and moving vehicles.
+
+Check day, night, street, coast and attack views with:
+`node scripts/with-dev-server.mjs scripts/visual-polish.mjs /tmp/city-jump-polish`.
+Its short, capped FPS samples are visual smoke checks, not a performance comparison.

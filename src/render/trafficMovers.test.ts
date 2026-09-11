@@ -76,7 +76,8 @@ describe("traffic mover renderer", () => {
       const cars = models.carBodies[index]![0]!.instances;
       expect(cars.length).toBeGreaterThan(0);
       expect(cars.length / traffic.count()).toBeLessThan(0.05);
-      expect(cars[0]!.getChildMeshes()).toHaveLength(5);
+      expect(cars[0]!.getChildMeshes().filter((mesh) => mesh.name.startsWith("carpart_"))).toHaveLength(5);
+      expect(cars[0]!.getChildMeshes().some((mesh) => mesh.name.startsWith("vehicle_contact_"))).toBe(true);
     }
     const left = scene.getMaterialByName("car_beacon_0")!;
     const right = scene.getMaterialByName("car_beacon_1")!;

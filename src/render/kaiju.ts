@@ -4,11 +4,14 @@ import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
+import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
+import type { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 
 import { KAIJU_ATTACK_SECONDS, type KaijuAssaultState } from "../sim/kaiju";
 import type { Vec3 } from "../sim/vec";
 import { ASSET_VERSION } from "./assets";
+import { SEA_LEVEL } from "../sim/heightmap";
+import { createSmokeMesh } from "./destructionEffects";
 
 export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   const root = new TransformNode("kaiju", scene);
@@ -19,6 +22,10 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   let disposed = false;
   let previousAttack = 0;
   let recoveryAt = -Infinity;
+  const heat: PBRMaterial[] = [];
+  const dust = createSmokeMesh(scene, "kaiju_footstep_dust", new Color3(0.62, 0.54, 0.4));
+  let footsteps: { position: Vec3; at: number }[] = [];
+  let lastStep = -1;
 
   void SceneLoader.ImportMeshAsync("", "/", `kaiju.glb?v=${ASSET_VERSION}`, scene).then((result) => {
     if (disposed) {
@@ -48,6 +55,7 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       mesh.receiveShadows = true;
       shadows.addShadowCaster(mesh);
       casters.push(mesh);
+      if (mesh.material?.name === "kaiju_dorsal_fissures" && !heat.includes(mesh.material as PBRMaterial)) heat.push(mesh.material as PBRMaterial);
     }
   });
 
@@ -66,6 +74,28 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       const phase = Math.min(1, Math.max(0, attackSeconds / KAIJU_ATTACK_SECONDS));
       const windup = mode === "attacking" ? Math.sin(Math.min(1, phase / 0.55) * Math.PI / 2) : recovery;
       const slam = mode === "attacking" ? Math.max(0, (phase - 0.84) / 0.16) ** 3 : recovery;
+      for (const material of heat) material.emissiveColor.set(0.08 + windup * 0.25, 0.48 + windup * 1.5, 0.31 + windup * 0.9);
+      const step = Math.floor(seconds * (mode === "running" ? 5.6 : 2.8) / Math.PI);
+      if ((mode === "running" || mode === "walking") && step !== lastStep && position.y > SEA_LEVEL + 0.5) {
+        lastStep = step;
+        const side = step % 2 === 0 ? -1 : 1;
+        footsteps.push({ position: { x: position.x + Math.cos(heading) * side * 12, y: position.y, z: position.z - Math.sin(heading) * side * 12 }, at: seconds });
+      }
+      footsteps = footsteps.filter((foot) => seconds - foot.at < 1.6).slice(-6);
+      const matrices = new Float32Array(footsteps.length * 3 * 16);
+      const colors = new Float32Array(footsteps.length * 3 * 4);
+      for (const [i, foot] of footsteps.entries()) {
+        const age = Math.max(0, seconds - foot.at) / 1.6;
+        for (let puff = 0; puff < 3; puff++) {
+          const size = 4 + age * 12;
+          Matrix.Compose(new Vector3(size, size * 0.5, size), Quaternion.Identity(), new Vector3(foot.position.x + (puff - 1) * (2 + age * 5), foot.position.y + 1 + age * 3, foot.position.z + puff * 2)).copyToArray(matrices, (i * 3 + puff) * 16);
+          colors.set([1, 1, 1, 1 - age], (i * 3 + puff) * 4);
+        }
+      }
+      dust.thinInstanceSetBuffer("matrix", matrices, 16, false);
+      dust.thinInstanceSetBuffer("color", colors, 4, false);
+      dust.thinInstanceCount = footsteps.length * 3;
+      dust.setEnabled(footsteps.length > 0);
       const runLean = mode === "running" ? (0.32 + Math.sin(seconds * 11.2) * 0.035) * (1 - recovery) : 0;
       const lean = runLean - windup * 0.2 + slam * 0.85;
       if (torso) torso.rotationQuaternion = Quaternion.FromEulerAngles(lean, (windup - slam) * 0.12, 0);
@@ -91,6 +121,10 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       previousAttack = 0;
       recoveryAt = -Infinity;
       root.setEnabled(false);
+      footsteps = [];
+      lastStep = -1;
+      dust.thinInstanceCount = 0;
+      dust.setEnabled(false);
     },
     visible(): boolean {
       return root.isEnabled();
@@ -101,6 +135,8 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       casters.length = 0;
       parts.clear();
       root.dispose(false, true);
+      dust.material?.dispose();
+      dust.dispose();
     },
   };
 }

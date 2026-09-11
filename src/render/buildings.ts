@@ -22,6 +22,9 @@ import type { BuildingStatus } from "../sim/buildingLifecycle";
 import { ASSET_VERSION } from "./assets";
 import { buildFootDecor, buildRoofProps, type FootDecorKind, type PropKind } from "./decorMeshes";
 import { createGroundShadow } from "./groundShadow";
+import { SurfaceDetail } from "./surfaceDetail";
+import { createChimneySmoke } from "./ambientMotion";
+import { attachWindowLights, windowPower } from "./windowLights";
 
 /** Model ids, resolved to `public/buildings/<id>.glb`. See docs/assets.md. */
 export const BUILDING_MODELS = [
@@ -49,7 +52,9 @@ export function buildingModelId(parcel: BuildingParcel): string {
     const low = parcel.cells.some((cell) => cell.lowRise);
     const seed = roofSeed(parcel);
     const towerSize = parcel.kind === "residential" ? size === "3x3" || size === "4x4" : size === "3x4" || size === "4x3";
-    const variant = low ? ["a", "court"][(seed >>> 8) % 2] : towerSize && seed % 7 === 0 ? ["tower", "tower_steps", "tower_offset", "tower_crown", "tower_split"][(seed >>> 16) % 5] : ["a", "b", "court", "terraces"][(seed >>> 8) % 4];
+    const district = districtIndex(parcel);
+    const localVariant = seed % 4 === 0 ? (seed >>> 8) % 4 : district;
+    const variant = low ? ["a", "court"][localVariant % 2] : towerSize && seed % 7 === 0 ? ["tower", "tower_steps", "tower_offset", "tower_crown", "tower_split"][(seed >>> 16) % 5] : ["a", "court", "terraces", "b"][localVariant];
     return `${parcel.kind}_${size}_${variant}`;
   }
   if (parcel.kind === "industrial" && size === "1x1") return `industrial_1x1_${["a", "b", "c"][roofSeed(parcel) % 3]}`;
@@ -271,6 +276,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   const heightAt = (x: number, z: number) => ground.heightAt(x, z);
   const manifest = await loadManifest();
   const available: Model[] = [];
+  let sunHour = 14;
   let glassReflectionTexture: RawCubeTexture | null = null;
   const glassReflection = (): RawCubeTexture => {
     glassReflectionTexture ??= createGlassReflection(scene);
@@ -280,7 +286,9 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   const footDecor = buildFootDecor(scene);
   // Named without the "building_" prefix: that prefix is how tests and the shadow pipeline
   // pick out actual building meshes, and this plane is neither a building nor shadow-mapped.
-  const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.32);
+  const groundShadow = createGroundShadow(scene, "ground_shadow_buildings", 0.44);
+  const decorShadow = createGroundShadow(scene, "footdecor_contact_shadows", 0.3);
+  const chimneySmoke = createChimneySmoke(scene);
   /**
    * The whole city as boxes. From high up a building is a few pixels of coloured roof, and the
    * model it came from is a few thousand vertices of window frames and roof plant nobody can see.
@@ -301,6 +309,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   const groundPadMaterial = new StandardMaterial("building-ground-pad", scene);
   // Same paving tone as sidewalks, faded at the edges by vertex alpha.
   groundPadMaterial.diffuseColor = new Color3(0.56, 0.53, 0.48);
+  new SurfaceDetail(groundPadMaterial, true);
   groundPadMaterial.specularColor = Color3.Black();
   groundPadMaterial.alpha = 0.42;
   groundPadMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
@@ -356,6 +365,8 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
     for (const mesh of Object.values(roofProps)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     for (const mesh of Object.values(footDecor)) mesh.setEnabled(visible && mesh.thinInstanceCount > 0);
     groundShadow.mesh.setEnabled(visible && groundShadow.mesh.thinInstanceCount > 0);
+    decorShadow.mesh.setEnabled(visible && decorVisible && decorShadow.mesh.thinInstanceCount > 0);
+    chimneySmoke.setVisible(visible && decorVisible);
     groundPad.setEnabled(visible && groundPad.thinInstanceCount > 0);
   }
 
@@ -379,13 +390,15 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
    */
   function decorKey(statuses: readonly BuildingStatus[]): string {
     let count = 0;
+    let workingCount = 0;
     let sum = 0;
     for (const status of statuses) {
       if (!decorated(status)) continue;
       count += 1;
+      if (status.state === "working") workingCount++;
       sum += Math.round(status.parcel.position.x) * 31 + Math.round(status.parcel.position.z);
     }
-    return `${count}:${sum}`;
+    return `${count}:${sum}:${workingCount}`;
   }
 
   function modelFor(parcel: BuildingParcel): Model | undefined {
@@ -420,6 +433,8 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
     // model's roof height and its own footprint, then bucketed by kind the same way a building
     // itself is bucketed by model.
     const propMatrices = new Map<PropKind, Matrix[]>();
+    const chimneyOutlets: Vector3[] = [];
+    const working = new Set(lastStatuses.filter((status) => status.state === "working").map((status) => status.parcel));
     for (const parcel of standing) {
       // Nothing stands on a barn, a works shed or a hangar -- they carry their own stacks.
       if (parcel.kind !== "residential" && parcel.kind !== "commercial") continue;
@@ -430,7 +445,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       const offered = ROOF_LAYOUTS.filter(
         (layout) => layout.minCells <= cells && layout.props.length <= roofObjectLimit(cells) && (layout.pitched ?? false) === pitched,
       );
-      const layout = offered[roofSeed(parcel) % offered.length]!;
+      const layout = offered[(districtIndex(parcel) * 3 + roofSeed(parcel) % 3) % offered.length]!;
       // `parcel.position` is the frontage edge, not the roof's centre -- the footprint runs
       // back from it by its own full depth, on the building's own local -Z. A prop's small
       // offset lands relative to the actual middle of the roof only once that run-back is
@@ -446,11 +461,14 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
           Quaternion.FromEulerAngles(0, parcel.rotationY + prop.rotationY, 0),
           Vector3.TransformCoordinates(local, buildingMatrix),
         );
+        if (prop.kind === "chimney" && working.has(parcel)) chimneyOutlets.push(matrix.getTranslation().add(new Vector3(0, 1.8, 0)));
         const bucket = propMatrices.get(prop.kind);
         if (bucket) bucket.push(matrix);
         else propMatrices.set(prop.kind, [matrix]);
       }
     }
+    chimneySmoke.rebuild(chimneyOutlets);
+    decorShadow.setInstances([...footDecorMatrices.entries()].flatMap(([kind, matrices]) => kind === "path" ? [] : matrices.map((matrix) => { const { x, y, z } = matrix.getTranslation(); return { x, y, z, radius: kind === "garden" || kind === "terrace" ? 1.9 : 0.8 }; })));
     for (const [kind, mesh] of Object.entries(roofProps) as [PropKind, Mesh][]) writeDecorBuffer(mesh, propMatrices.get(kind) ?? []);
     for (const [kind, mesh] of Object.entries(footDecor) as [FootDecorKind, Mesh][]) writeDecorBuffer(mesh, footDecorMatrices.get(kind) ?? []);
   }
@@ -507,12 +525,12 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       buckets.get(buildingModelId(status.parcel))?.push(status);
     }
     groundShadow.setInstances(
-      lastParcels.map((parcel) => ({
-        x: parcel.position.x,
-        y: parcel.position.y,
-        z: parcel.position.z,
-        radius: ((parcel.frontageCells + parcel.depthCells) / 2) * GRID.cellSize * 0.3,
-      })),
+      lastParcels.map((parcel) => {
+        const center = buildingGroundPadMatrix(parcel).getTranslation();
+        return { x: center.x, y: parcel.position.y, z: center.z,
+          radius: parcel.frontageCells * GRID.cellSize * 0.68,
+          radiusZ: parcel.depthCells * GRID.cellSize * 0.68, rotationY: parcel.rotationY };
+      }),
     );
     const padMatrices = new Float32Array(lastParcels.length * 16);
     const padColors = new Float32Array(lastParcels.length * 4);
@@ -563,6 +581,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
         colors.set([...buildingModelColor(status.parcel, status), 1], i * 4);
       }
       model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
+      model.mesh.thinInstanceSetBuffer("windowPower", Float32Array.from(chosen, windowPower), 1, false);
       model.mesh.thinInstanceCount = chosen.length;
       placed += chosen.length;
     }
@@ -596,6 +615,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       }
       model.mesh.thinInstanceSetBuffer("matrix", matrices, 16, false);
       model.mesh.thinInstanceSetBuffer("color", colors, 4, false);
+      model.mesh.thinInstanceSetBuffer("windowPower", Float32Array.from(chosen, windowPower), 1, false);
     }
     const distantMatrices = new Float32Array(statuses.length * 16);
     const distantColors = new Float32Array(statuses.length * 4);
@@ -629,6 +649,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
         glassReflectionTexture = null;
         return;
       }
+      attachWindowLights(model.mesh, () => sunHour);
       available.push(model);
       modelById.set(model.id, model);
       clearTimeout(modelLoadRebuildTimer);
@@ -638,6 +659,7 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   const startupModelCount = available.length;
   return {
     rebuild,
+    setSunHour(hour: number) { sunHour = hour; },
     setVisible(next: boolean) {
       visible = next;
       applyBuildingVisibility();
@@ -711,6 +733,8 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
       distant.dispose();
       distantMaterial.dispose();
       groundShadow.dispose();
+      decorShadow.dispose();
+      chimneySmoke.dispose();
       for (const mesh of [...Object.values(roofProps), ...Object.values(footDecor)]) {
         mesh.material?.dispose();
         mesh.dispose();
@@ -812,18 +836,27 @@ const WORKS_COLORS: Partial<Record<BuildingKind, [number, number, number]>> = {
 };
 
 function distantColor(parcel: BuildingParcel): [number, number, number] {
-  return WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
+  const base = WORKS_COLORS[parcel.kind] ?? LOT_COLORS[(parcel.frontageCells * 4 + parcel.depthCells) % LOT_COLORS.length]!;
+  const tint = districtTint(parcel);
+  return base.map((channel, i) => channel * tint[i]!) as [number, number, number];
 }
 
-/**
- * The same states on a real model rather than on a stand-in box. The state colours are per-instance
- * vertex colours, and those multiply the model's own texture, so `working` -- the one state that is
- * not saying anything -- has to multiply by nothing. `buildingStateColor` answers a wall colour
- * there, which is right for the untextured boxes and halved the brightness of every finished
- * building that was drawn as a model.
- */
+export function districtIndex(parcel: Pick<BuildingParcel, "position">): number {
+  return Math.abs(Math.imul(Math.floor(parcel.position.x / 160), 31) ^ Math.floor(parcel.position.z / 160)) % 4;
+}
+
+/** Neighbouring lots share a restrained palette; their own seed keeps it from becoming stripes. */
+export function districtTint(parcel: BuildingParcel): [number, number, number] {
+  if (parcel.kind !== "residential" && parcel.kind !== "commercial") return [1, 1, 1];
+  const district = districtIndex(parcel);
+  const palette = [[1, 0.94, 0.86], [0.95, 0.88, 0.82], [0.94, 1, 0.9], [0.88, 0.95, 1]][district]!;
+  const brightness = 0.94 + (roofSeed(parcel) % 7) * 0.01;
+  return palette.map((channel) => channel * brightness) as [number, number, number];
+}
+
+/** Instance colours preserve the authored facade under a subtle district tint or a lifecycle warning. */
 export function buildingModelColor(parcel: BuildingParcel, status?: Pick<BuildingStatus, "state" | "reason">): [number, number, number] {
-  if (status?.state === "working") return [1, 1, 1];
+  if (status?.state === "working") return districtTint(parcel);
   const [r, g, b] = buildingStateColor(parcel, status);
   // A building under construction wears its state: sand-coloured and eighteen per cent of its
   // height, it is a site and should look like one. A building that has stopped is still a
@@ -891,8 +924,8 @@ export function buildingFootDecorMatrices(
   const halfWidth = width / 2;
   const gap = 0.8;
   const placements: FootDecorPlacement[] = [];
-  // Half of what it used to be (1..4): the pavement clutter read as a junk shop up close.
-  const maxPlacements = Math.max(1, Math.round((1 + (roofSeed(parcel) % 4)) / 2));
+  // Larger frontages get a few coherent groups, with the same four-placement ceiling.
+  const maxPlacements = Math.min(4, Math.max(1, Math.ceil((parcel.frontageCells + parcel.depthCells) / 2)));
 
   const add = (kind: FootDecorKind, localX: number, localZ: number, rotationY: number) => {
     if (placements.length >= maxPlacements) return;
@@ -912,12 +945,12 @@ export function buildingFootDecorMatrices(
 
   for (let i = 0; i < parcel.frontageCells; i++) {
     const x = -halfWidth + (i + 0.5) * GRID.cellSize;
-    if (parcel.frontageCells > 1 && !blockedFaces.has("front") && shouldPlace("front", i)) add(pick("front", i, ["bench", "planter", "sign", "trash", "mail", "bikeRack", "vending"]), x, gap, 0);
-    if (!blockedFaces.has("back") && shouldPlace("back", i)) add(pick("back", i, ["utility", "crate", "barrier", "trash", "shrub"]), x, -depth - gap, Math.PI);
+    if (parcel.frontageCells > 1 && !blockedFaces.has("front") && shouldPlace("front", i)) add(pick("front", i, parcel.kind === "commercial" ? ["terrace", "planter", "sign", "bikeRack", "vending"] : ["bench", "garden", "planter", "mail", "bikeRack", "trash", "wallLight"]), x, gap, 0);
+    if (!blockedFaces.has("back") && shouldPlace("back", i)) add(pick("back", i, parcel.kind === "residential" ? ["garden", "path", "bench", "utility", "bollard", "planter"] : ["utility", "crate", "barrier", "trash", "shrub"]), x, -depth - gap, Math.PI);
   }
   for (let i = 0; i < parcel.depthCells; i++) {
     const z = -(i + 0.5) * GRID.cellSize;
-    if (!blockedFaces.has("left") && shouldPlace("left", i)) add(pick("left", i, ["bollard", "planter", "shrub", "wallLight"]), -halfWidth - gap, z, Math.PI / 2);
+    if (!blockedFaces.has("left") && shouldPlace("left", i)) add(pick("left", i, ["bollard", "planter", "path", "wallLight"]), -halfWidth - gap, z, Math.PI / 2);
     if (!blockedFaces.has("right") && shouldPlace("right", i)) add(pick("right", i, ["planter", "bollard", "wallLight", "trash"]), halfWidth + gap, z, -Math.PI / 2);
   }
 

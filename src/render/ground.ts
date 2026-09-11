@@ -1,3 +1,4 @@
+import { createCoast } from "./coast";
 import { profilerFor } from "./frameProfiler";
 import type { Scene } from "@babylonjs/core/scene";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
@@ -27,6 +28,7 @@ export const OFFSHORE_ISLAND_RADIUS = 2500;
  */
 export function createGround(scene: Scene, heightmap: Heightmap) {
   const material = new StandardMaterial("ground", scene);
+  material.maxSimultaneousLights = 5; // Sun, sky, cars, streetlights and the destruction glow.
   material.diffuseColor = new Color3(0.94, 0.94, 0.9);
   material.specularColor = new Color3(0.018, 0.017, 0.014);
   material.specularPower = 10;
@@ -35,6 +37,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   mesh.material = material;
   mesh.receiveShadows = true;
 
+  const coast = createCoast(scene, heightmap, material);
   const n = heightmap.count;
   const positions = new Float32Array(n * n * 3);
   const normals = new Float32Array(n * n * 3);
@@ -88,11 +91,13 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
   };
 
   function refresh(dirty?: TerrainBounds): void {
+    let shoreChanged = !dirty;
     const bounds = dirty ? groundGridBounds(heightmap, dirty) : { minIx: 0, maxIx: n - 1, minIz: 0, maxIz: n - 1 };
     for (let iz = bounds.minIz; iz <= bounds.maxIz; iz++) {
       for (let ix = bounds.minIx; ix <= bounds.maxIx; ix++) {
         const h = heightmap.at(ix, iz);
         const i = iz * n + ix;
+        if (Math.min(h, positions[i * 3 + 1]!) < SEA_LEVEL + 8) shoreChanged = true;
         positions[i * 3 + 1] = h;
         writeTerrainColor(colors, i * 4, h, heightmap.baseAt(ix, iz), terrainSlope(heightmap, ix, iz), heightmap.worldX(ix), heightmap.worldZ(iz));
       }
@@ -111,6 +116,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
     if (dirty) uploadRows(mesh, VertexBuffer.NormalKind, normals, n, 3, normalBounds);
     else mesh.updateVerticesData(VertexBuffer.NormalKind, normals);
     mesh.refreshBoundingInfo();
+    if (shoreChanged) coast.rebuild();
   }
 
   refresh();
@@ -119,6 +125,7 @@ export function createGround(scene: Scene, heightmap: Heightmap) {
     mesh,
     refresh,
     dispose(): void {
+      coast.dispose();
       offshore.dispose();
       mesh.dispose();
       material.bumpTexture?.dispose();
@@ -490,8 +497,8 @@ function waveNoise(x: number, z: number): number {
 
 type Rgba = readonly [number, number, number, number];
 
-const SAND: Rgba = [0.58, 0.5, 0.29, 1];
-const GRASS: Rgba = [0.31, 0.5, 0.27, 1];
+const SAND: Rgba = [0.68, 0.6, 0.42, 1];
+const GRASS: Rgba = [0.34, 0.47, 0.29, 1];
 const ROCK: Rgba = [0.34, 0.35, 0.31, 1];
 const SNOW: Rgba = [0.86, 0.87, 0.8, 1];
 const SEAFLOOR_NEAR: Rgba = [0.19, 0.36, 0.32, 1];
@@ -505,8 +512,8 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
   let r: number;
   let g: number;
   let b: number;
-  if (h < SEA_LEVEL + 4) {
-    const shore = smoothstep((h - SEA_LEVEL) / 8);
+  if (h < SEA_LEVEL + 10) {
+    const shore = smoothstep((h - SEA_LEVEL - 1) / 9);
     const shoreR = mix(SAND[0], GRASS[0], shore);
     const shoreG = mix(SAND[1], GRASS[1], shore);
     const shoreB = mix(SAND[2], GRASS[2], shore);
@@ -514,7 +521,7 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     r = mix(seaR, shoreR, beach);
     g = mix(seaG, shoreG, beach);
     b = mix(seaB, shoreB, beach);
-  } else if (h < 88) {
+  } else if (h < 104) {
     const t = smoothstep((h - 66) / 38);
     r = mix(GRASS[0], ROCK[0], t);
     g = mix(GRASS[1], ROCK[1], t);
@@ -531,9 +538,9 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
   const dryPatch = valueNoise(x - 900, z + 300, 380);
   const lushPatch = valueNoise(x + 1200, z - 850, 520);
   const roadWear = smoothstep((baseH - h - 0.08) / 0.7);
-  if (h > SEA_LEVEL + 2 && h < 44) {
-    const dry = smoothstep((dryPatch - 0.45) / 0.35) * 0.22;
-    const lush = smoothstep((lushPatch - 0.58) / 0.22) * 0.12;
+  if (h > SEA_LEVEL + 10 && h < 44) {
+    const dry = smoothstep((dryPatch - 0.45) / 0.35) * 0.22 * smoothstep((h - SEA_LEVEL - 10) / 6);
+    const lush = smoothstep((lushPatch - 0.58) / 0.22) * 0.12 * smoothstep((h - SEA_LEVEL - 10) / 6);
     r = mix(r, 0.46, dry);
     g = mix(g, 0.43, dry);
     b = mix(b, 0.25, dry);
@@ -541,8 +548,8 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
     g = mix(g, 0.55, lush);
     b = mix(b, 0.25, lush);
   }
-  if (h > SEA_LEVEL + 4) {
-    const wetPocket = smoothstep((26 - h) / 18) * (1 - smoothstep(slope / 0.28)) * (0.55 + valueNoise(x - 140, z + 680, 180) * 0.45);
+  if (h > SEA_LEVEL + 10) {
+    const wetPocket = smoothstep((h - SEA_LEVEL - 10) / 6) * smoothstep((26 - h) / 18) * (1 - smoothstep(slope / 0.28)) * (0.55 + valueNoise(x - 140, z + 680, 180) * 0.45);
     const rockFace = smoothstep((slope - 0.24) / 0.58) * (0.65 + valueNoise(x + 540, z + 210, 70) * 0.35) * smoothstep((h - 38) / 42);
     r = mix(r, 0.2, wetPocket * 0.32);
     g = mix(g, 0.38, wetPocket * 0.28);
@@ -573,7 +580,7 @@ export function writeTerrainColor(out: Float32Array, offset: number, h: number, 
   if (roadWear > 0) {
     const dust = valueNoise(x + 300, z - 1200, 36) * 0.16;
     r = mix(r, 0.42 + dust, roadWear * 0.42);
-    g = mix(g, 0.39 + dust, roadWear * 0.38);
+    g = mix(g, 0.35 + dust * 0.7, roadWear * 0.38);
     b = mix(b, 0.30 + dust * 0.5, roadWear * 0.34);
   }
 

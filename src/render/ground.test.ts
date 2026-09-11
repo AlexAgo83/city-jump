@@ -2,10 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { VertexData } from "@babylonjs/core/Meshes/mesh.vertexData";
 
-import { Heightmap, rollingHills } from "../sim/heightmap";
+import { Heightmap, rollingHills, SEA_LEVEL } from "../sim/heightmap";
 import { writeHeightfieldNormals, writeTerrainColor } from "./ground";
 
 describe("ground terrain color", () => {
+  it("blends the beach continuously into grass", () => {
+    const below = new Float32Array(4);
+    const above = new Float32Array(4);
+    writeTerrainColor(below, 0, SEA_LEVEL + 9.999, SEA_LEVEL + 9.999, 0, 1700, 0);
+    writeTerrainColor(above, 0, SEA_LEVEL + 10.001, SEA_LEVEL + 10.001, 0, 1700, 0);
+    expect(Math.max(...below.map((channel, i) => Math.abs(channel - above[i]!)))).toBeLessThan(0.002);
+  });
   it("adds deterministic terrain variation and dusty road edges", () => {
     const naturalA = new Float32Array(4);
     const naturalB = new Float32Array(4);

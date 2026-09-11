@@ -42,9 +42,9 @@ what a visitor sees.
 | [`buildings-urban-distant.png`](buildings-urban-distant.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 1795 KB |
 | [`buildings-urban-district.png`](buildings-urban-district.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 1973 KB |
 | [`buildings-urban-mobile.png`](buildings-urban-mobile.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 490 KB |
-| [`city-jump-curves.png`](city-jump-curves.png) | `272f1e0` 2026-08-27 | Add curved-road README capture; now the Zones view, name kept | 1016 KB |
-| [`city-jump-traffic.png`](city-jump-traffic.png) | `101eea3` 2026-08-29 | Refresh README screenshots | 848 KB |
-| [`city-jump.png`](city-jump.png) | `d0b1c4f` 2026-08-27 | Establish repository documentation | 1105 KB |
+| [`city-jump-curves.png`](city-jump-curves.png) | Refreshed 2026-09-11 | Release 0.5.8 visual polish; bundled Demo in Zones view | 952 KB |
+| [`city-jump-traffic.png`](city-jump-traffic.png) | Refreshed 2026-09-11 | Release 0.5.8 visual polish; bundled Demo in Traffic view | 794 KB |
+| [`city-jump.png`](city-jump.png) | Refreshed 2026-09-11 | Release 0.5.8 visual polish; bundled Demo in Select view | 994 KB |
 | [`kaiju-refined-profile.png`](kaiju-refined-profile.png) | `1c4c485` 2026-09-07 | Diversify city buildings and towers and refine the kaiju model | 281 KB |
 | [`terrain-clearance-day.png`](terrain-clearance-day.png) | `a4c1d2d` 2026-09-07 | Fix terrain clearance and smooth roundabout road connections | 1311 KB |
 | [`terrain-clearance-night.png`](terrain-clearance-night.png) | `a4c1d2d` 2026-09-07 | Fix terrain clearance and smooth roundabout road connections | 1200 KB |

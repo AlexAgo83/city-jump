@@ -28,8 +28,8 @@ export function sunAzimuthAt(hour: number): number {
 }
 
 /** Engine, scene, camera and lights. Nothing here knows about roads. */
-/** How lit the world stays at midnight, so a night is dim rather than off. */
-const NIGHT_FLOOR = 0.42;
+/** Keep the night sky readable; the lights themselves follow the actual daylight below. */
+const SKY_NIGHT_FLOOR = 0.42;
 
 export function createScene(canvas: HTMLCanvasElement) {
   // adaptToDeviceRatio: without it the canvas renders at CSS pixels and a retina screen shows the
@@ -47,12 +47,12 @@ export function createScene(canvas: HTMLCanvasElement) {
     gpuTimer.reset();
   };
   scene.clearColor = new Color4(0.106, 0.118, 0.137, 1);
-  scene.imageProcessingConfiguration.contrast = 1.12;
+  scene.imageProcessingConfiguration.contrast = 1.04;
   scene.imageProcessingConfiguration.exposure = 1.04;
   // Aerial perspective: everything far enough away becomes the horizon colour, so the
   // ocean has no visible end. ponytail: exp2 fog, swap for a real atmosphere shader only if needed.
   scene.fogMode = Scene.FOGMODE_EXP2;
-  scene.fogDensity = 0.00016;
+  scene.fogDensity = 0.00022;
   /**
    * Babylon picks the whole scene on both halves of a click, to hand `onPointerObservable` a
    * `pickInfo`. On the large city that measured 18-20 ms a pick, twice per click.
@@ -98,7 +98,7 @@ export function createScene(canvas: HTMLCanvasElement) {
   shadows.normalBias = 0.08;
   shadows.usePercentageCloserFiltering = true;
   shadows.filteringQuality = ShadowGenerator.QUALITY_LOW;
-  shadows.setDarkness(0.58);
+  shadows.setDarkness(0.68);
   const sky = createSky(scene, camera);
 
   function setSunHour(hour: number): void {
@@ -106,15 +106,16 @@ export function createScene(canvas: HTMLCanvasElement) {
     // The island never goes fully dark. Played at night the city disappeared -- only the halos
     // under the streetlights were left -- and a builder you cannot see is a builder you cannot
     // play. A floor keeps the ground readable while the colour still says night.
-    const daylight = NIGHT_FLOOR + daylightAt(hour) * (1 - NIGHT_FLOOR);
+    const solar = daylightAt(hour);
+    const daylight = SKY_NIGHT_FLOOR + solar * (1 - SKY_NIGHT_FLOOR);
     const azimuth = sunAzimuthAt(hour);
     const sunVector = new Vector3(-Math.cos(azimuth), Math.sin(phase), -Math.sin(azimuth)).normalize();
     sun.direction.copyFromFloats(Math.cos(azimuth), -Math.max(0.05, daylight), Math.sin(azimuth)).normalize();
     // Once the sun is down the directional light becomes moonlight: dim, blue and still
     // directional, so the night keeps some shape instead of going flat black. Real moonlight is
     // near-neutral; the eye's scotopic response reads it as blue, which is also what film does.
-    const moonlit = 1 - Math.min(1, daylight * 4);
-    sun.intensity = daylight * 1.22 + moonlit * 0.34;
+    const moonlit = 1 - solar;
+    sun.intensity = solar * 1.05 + moonlit * 0.24;
     sun.diffuse = Color3.Lerp(
       Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight),
       new Color3(0.44, 0.58, 0.95),
@@ -122,9 +123,9 @@ export function createScene(canvas: HTMLCanvasElement) {
     );
     // Sky fill. Played at night, 0.12 still read as black: the city vanished and only the halos
     // under the streetlights were left. A night should be dim and blue, not an off switch.
-    ambient.intensity = 0.34 + daylight * 0.26;
-    ambient.diffuse = Color3.Lerp(new Color3(0.3, 0.42, 0.72), Color3.White(), daylight);
-    ambient.groundColor = Color3.Lerp(new Color3(0.12, 0.16, 0.26), new Color3(0.18, 0.2, 0.22), daylight);
+    ambient.intensity = 0.5 + solar * 0.22;
+    ambient.diffuse = Color3.Lerp(new Color3(0.56, 0.66, 0.88), new Color3(0.94, 0.97, 1), solar);
+    ambient.groundColor = Color3.Lerp(new Color3(0.22, 0.27, 0.38), new Color3(0.3, 0.31, 0.3), solar);
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,

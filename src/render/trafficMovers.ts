@@ -1,3 +1,4 @@
+import { createGroundShadow } from "./groundShadow";
 import { animatePedestrian } from "./pedestrianModels";
 import type { AbstractMesh } from "@babylonjs/core/Meshes/abstractMesh";
 import { profilerFor } from "./frameProfiler";
@@ -104,6 +105,9 @@ export type MoverTarget = { segment: Segment; kind: string; vehicle: string; tar
 export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDelta: () => number, models: VehicleModels, headlights: VehicleHeadlights, state: TrafficMoverState) {
   const { shapes: carShapes, themedShapes, plainShapes, emergencyShapes, carBodies, carLamps, carParts, carBeacons, walkers } = models;
 
+  const contactShadow = createGroundShadow(scene, "vehicle_contact_shadow", 0.4);
+  contactShadow.mesh.setEnabled(true);
+  contactShadow.mesh.isVisible = false;
   let movers: RenderMover[] = [];
   /** Built on demand and dropped on every rebuild: the geometry behind it moves with the graph. */
   const junctions = new Map<NodeId, JunctionGeometry>();
@@ -508,6 +512,11 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
         const palette = carBodies[shape]!;
         const body = palette[(si + i) % palette.length]!.createInstance(`traffic_${seg.id}_${i}`);
         body.isPickable = true;
+        const shadow = contactShadow.mesh.createInstance(`vehicle_contact_${seg.id}_${i}`);
+        shadow.isPickable = false;
+        shadow.parent = body;
+        shadow.position.y = -0.005;
+        shadow.scaling.set(carShapes[shape]!.width * 1.5, 1, carShapes[shape]!.length * 1.3);
         // Wheels and glass ride along: parented, so only the body is ever positioned.
         for (const source of [carParts[shape]!, carLamps[shape]!.head, carLamps[shape]!.tail, ...carBeacons[shape]!]) {
           const part = source.createInstance(`carpart_${seg.id}_${i}_${source.name}`);
@@ -767,6 +776,7 @@ export function createTrafficMoverSystem(scene: Scene, graph: RoadGraph, frameDe
     dispose(): void {
       scene.onBeforeRenderObservable.remove(beforeRenderObserver);
       clearMovers();
+      contactShadow.dispose();
     },
   };
 }

@@ -230,11 +230,12 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     // difference in count is created or disposed now; every other light is simply moved.
     for (const record of records) {
       const i = lampRecords.indexOf(record);
-      const pool = new SpotLight(`streetlight_pool_${i}`, Vector3.Zero(), Vector3.Down(), Math.PI / 2.1, 1.35, scene);
-      pool.intensity = 7;
+      const pool = new SpotLight(`streetlight_pool_${i}`, Vector3.Zero(), Vector3.Down(), Math.PI / 1.5, 5, scene);
+      // Clustered lights use default falloff: the wide cone reaches its edge below 4% intensity.
+      pool.intensity = 3.8;
       pool.range = 44;
       const facade = new PointLight(`streetlight_facade_${i}`, Vector3.Zero(), scene);
-      facade.intensity = 3.2;
+      facade.intensity = 1.35;
       facade.range = 40;
       for (const light of [pool, facade]) lightCluster.addLight(light);
     record.lights = { pool, facade };

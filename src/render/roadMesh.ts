@@ -1,3 +1,4 @@
+import { SurfaceDetail } from "./surfaceDetail";
 import type { Scene } from "@babylonjs/core/scene";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { LinesMesh } from "@babylonjs/core/Meshes/linesMesh";
@@ -104,6 +105,9 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
   tubeMaterial.diffuseColor = new Color3(0.06, 0.06, 0.055);
   tubeMaterial.emissiveColor = new Color3(0.01, 0.008, 0.006);
   tubeMaterial.specularColor = Color3.Black();
+  for (const surface of [material, industrialMaterial, dirtMaterial, militaryMaterial, industrialPaintMaterial, pavingMaterial, paintMaterial, portalMaterial, tubeMaterial]) surface.maxSimultaneousLights = 5;
+  for (const surface of [material, industrialMaterial, dirtMaterial, militaryMaterial]) new SurfaceDetail(surface);
+  new SurfaceDetail(pavingMaterial, true);
   const curb = new Color3(0.52, 0.55, 0.53);
   const lane = new Color3(0.86, 0.78, 0.48);
   const tunnel = new Color3(0.58, 0.55, 0.49);

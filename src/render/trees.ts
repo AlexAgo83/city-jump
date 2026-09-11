@@ -1,3 +1,4 @@
+import { TreeWind } from "./ambientMotion";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
@@ -7,6 +8,7 @@ import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math"
 import type { Scene } from "@babylonjs/core/scene";
 
 import type { RoadGraph } from "../sim/graph";
+import { allJunctions, widestIncidentWidth } from "../sim/junction";
 import { SEA_LEVEL, type Heightmap, type TerrainBounds } from "../sim/heightmap";
 import type { Plantings } from "../sim/plantings";
 import { ROAD_TYPES, roadType } from "../sim/roadTypes";
@@ -103,6 +105,7 @@ export function createTreeRenderer(
     trunkMaterial.diffuseColor = Color3.White();
     trunkMaterial.specularColor = Color3.Black();
     trunk.material = trunkMaterial;
+    new TreeWind(trunkMaterial);
 
     const canopyMaterial = new StandardMaterial(`tree_canopy_${id}`, scene);
     canopyMaterial.diffuseColor = Color3.White();
@@ -110,6 +113,7 @@ export function createTreeRenderer(
     canopyMaterial.twoSidedLighting = true;
     canopyMaterial.specularColor = Color3.Black();
     canopy.material = canopyMaterial;
+    new TreeWind(canopyMaterial);
 
     for (const mesh of [trunk, canopy]) {
       mesh.isPickable = false;
@@ -164,7 +168,7 @@ export function createTreeRenderer(
       const h = heightmap.heightAt(px, pz);
       const bucket = `${Math.round(px / 10)}:${Math.round(pz / 10)}`;
       if (h <= SEA_LEVEL + 5 || h > 86 || occupied.has(bucket) || nearRoad(roads, px, pz)) return;
-      if (plantings.isCleared(px, pz)) return;
+      if (plantings.isCleared(px, pz) || (h < SEA_LEVEL + 18 && randomish(seed, 31) > (h - SEA_LEVEL - 5) / 13)) return;
       occupied.add(bucket);
       put(px, pz, seed, h, DEFAULT_SPECIES);
     };
@@ -219,6 +223,17 @@ export function createTreeRenderer(
         }
       }
       seedOffset += cols * cols;
+    }
+
+    // The centre is outside the traffic ring; reuse the oak instances and respect cleared land.
+    for (const junction of allJunctions(graph).values()) {
+      if (!junction.roundabout) continue;
+      const { pos: position } = graph.node(junction.node);
+      if (region && !pointTouchesBounds(position.x, position.z, region)) continue;
+      const inner = Math.max(3, junction.roundabout - Math.max(6, widestIncidentWidth(graph, junction.node)));
+      const y = heightmap.heightAt(position.x, position.z);
+      if (inner < 7 || y <= SEA_LEVEL || plantings.isCleared(position.x, position.z)) continue;
+      putBase({ x: position.x, y, z: position.z, scale: 0.7, spread: SPECIES.oak.spread, yaw: 0, species: "oak" });
     }
 
     // Hand-planted trees go in last and answer to none of the scenery rules: the player put them

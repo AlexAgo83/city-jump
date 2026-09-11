@@ -2,7 +2,8 @@ import type { Scene } from "@babylonjs/core/scene";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Material } from "@babylonjs/core/Materials/material";
-import { DynamicTexture } from "@babylonjs/core/Materials/Textures/dynamicTexture";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 import { Color3, Matrix } from "@babylonjs/core/Maths/math";
 
 /**
@@ -16,15 +17,13 @@ import { Color3, Matrix } from "@babylonjs/core/Maths/math";
  * is a thin instance of it.
  */
 export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
-  const texture = new DynamicTexture(`${name}_texture`, 64, scene, false);
-  const ctx = texture.getContext() as unknown as CanvasRenderingContext2D;
-  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gradient.addColorStop(0, "rgba(0,0,0,1)");
-  gradient.addColorStop(0.6, "rgba(0,0,0,0.5)");
-  gradient.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 64, 64);
-  texture.update(false);
+  const pixels = new Uint8Array(64 * 64 * 4);
+  for (let z = 0; z < 64; z++) for (let x = 0; x < 64; x++) {
+    const radius = Math.hypot((x - 31.5) / 31.5, (z - 31.5) / 31.5);
+    pixels[(z * 64 + x) * 4 + 3] = Math.round(Math.max(0, 1 - radius * radius) ** 2 * 255);
+  }
+  const texture = RawTexture.CreateRGBATexture(pixels, 64, 64, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+  texture.name = `${name}_texture`;
 
   const material = new StandardMaterial(`${name}_material`, scene);
   material.diffuseTexture = texture;
@@ -37,6 +36,8 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
   material.alpha = alpha;
   material.transparencyMode = Material.MATERIAL_ALPHABLEND;
   material.backFaceCulling = false;
+  material.disableDepthWrite = true;
+  material.zOffset = -2;
 
   // A plane in its default orientation faces the camera, not the sky -- rotate it flat and
   // bake that in, so the thin-instance matrices below are pure scale and translation.
@@ -48,7 +49,7 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
   mesh.alwaysSelectAsActiveMesh = true;
   mesh.setEnabled(false);
 
-  function setInstances(bases: readonly { x: number; y: number; z: number; radius: number }[]): void {
+  function setInstances(bases: readonly GroundShadowBase[]): void {
     mesh.thinInstanceCount = 0;
     mesh.setEnabled(bases.length > 0);
     if (bases.length === 0) return;
@@ -56,7 +57,8 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
     const buffer = new Float32Array(bases.length * 16);
     for (const [i, base] of bases.entries()) {
       const size = base.radius * 2;
-      Matrix.Scaling(size, 1, size)
+      Matrix.Scaling(size, 1, (base.radiusZ ?? base.radius) * 2)
+        .multiply(Matrix.RotationY(base.rotationY ?? 0))
         .multiply(Matrix.Translation(base.x, base.y + 0.03, base.z))
         .copyToArray(buffer, i * 16);
     }
@@ -75,4 +77,4 @@ export function createGroundShadow(scene: Scene, name: string, alpha = 0.35) {
   };
 }
 
-export type GroundShadowBase = { x: number; y: number; z: number; radius: number };
+export type GroundShadowBase = { x: number; y: number; z: number; radius: number; radiusZ?: number; rotationY?: number };

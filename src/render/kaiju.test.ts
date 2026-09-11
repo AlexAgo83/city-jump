@@ -6,6 +6,7 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { Vector3 } from "@babylonjs/core/Maths/math";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { createKaijuRenderer } from "./kaiju";
@@ -16,6 +17,8 @@ it("follows body impact targets and switches between walking, idle and attack po
   const imported = new Mesh("imported", scene);
   const body = MeshBuilder.CreateSphere("kaiju_body", { diameter: 30 }, scene);
   const head = MeshBuilder.CreateSphere("head", { diameter: 10 }, scene);
+  const heat = new PBRMaterial("kaiju_dorsal_fissures", scene);
+  body.material = heat;
   body.parent = head.parent = imported;
   body.position.y = 60;
   head.position.set(0, 90, 10);
@@ -65,8 +68,10 @@ it("follows body impact targets and switches between walking, idle and attack po
     expect(limbs[1]!.rotationQuaternion!.x).toBeCloseTo(0);
     expect(pose()[4]).not.toEqual(idle[4]); // Tail moves gently without stepping.
     kaiju.show(position, 0, 2, "attacking", 0);
+    const restingHeat = heat.emissiveColor.g;
     const windup = pose();
     kaiju.show(position, 0, 2, "attacking", 2.5);
+    expect(heat.emissiveColor.g).toBeGreaterThan(restingHeat * 2);
     expect(Math.abs(limbs[2]!.rotationQuaternion!.x)).toBeGreaterThan(0.5);
     expect(pose()[6]).not.toEqual(windup[6]); // The head follows the attack phase.
     expect(limbs[0]!.rotationQuaternion!.x).toBe(0);
@@ -89,6 +94,17 @@ it("follows body impact targets and switches between walking, idle and attack po
     kaiju.show(position, 0, 6, "walking");
     expect(torso.rotationQuaternion!.x).toBe(0);
     expect(Math.abs(limbs[2]!.rotationQuaternion!.x)).toBeLessThan(0.1);
+    const dust = scene.getMeshByName("kaiju_footstep_dust") as Mesh;
+    expect(dust.thinInstanceCount).toBeGreaterThan(0);
+    const dustCount = dust.thinInstanceCount;
+    kaiju.show(position, 0, 6, "walking");
+    expect(dust.thinInstanceCount).toBe(dustCount); // Pause emits no extra footsteps.
+    kaiju.show(position, 0, 8, "idle");
+    expect(dust.isEnabled()).toBe(false);
+    kaiju.show(position, 0, 9, "running");
+    expect(dust.isEnabled()).toBe(true);
+    kaiju.hide();
+    expect(dust.thinInstanceCount).toBe(0);
   } finally {
     kaiju.dispose();
     load.mockRestore();

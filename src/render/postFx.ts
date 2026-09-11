@@ -47,14 +47,14 @@ export function createPostFx(scene: Scene, camera: ArcRotateCamera) {
   pipeline.imageProcessingEnabled = true;
   pipeline.imageProcessing.toneMappingEnabled = true;
   pipeline.imageProcessing.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-  pipeline.imageProcessing.contrast = 1.12;
+  pipeline.imageProcessing.contrast = 1.04;
   pipeline.imageProcessing.exposure = 1.05;
   pipeline.imageProcessing.vignetteEnabled = true;
-  pipeline.imageProcessing.vignetteWeight = 1.4;
+  pipeline.imageProcessing.vignetteWeight = 0.85;
   pipeline.imageProcessing.vignetteStretch = 0.4;
 
   pipeline.bloomThreshold = 0.72;
-  pipeline.bloomWeight = 0.28;
+  pipeline.bloomWeight = 0.2;
   pipeline.bloomKernel = 48;
   pipeline.bloomScale = 0.5;
 

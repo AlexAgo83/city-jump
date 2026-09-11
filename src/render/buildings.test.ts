@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildingParcels, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import type { BuildingDetail } from "./buildings";
-import { BUILDING_MODELS, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, nextDistantDetail, roofObjectLimit, roofPropY } from "./buildings";
+import { BUILDING_MODELS, districtTint, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, nextDistantDetail, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -68,7 +68,7 @@ describe("roof props", () => {
     );
     // Not every kind on every run -- a parcel only gets a couple of pieces -- but the mix has to
     // stay varied, and nothing may show up that is not in the catalogue.
-    const catalogue = ["barrier", "bench", "bikeRack", "bollard", "crate", "mail", "planter", "shrub", "sign", "trash", "utility", "vending", "wallLight"];
+    const catalogue = ["path", "garden", "terrace", "barrier", "bench", "bikeRack", "bollard", "crate", "mail", "planter", "shrub", "sign", "trash", "utility", "vending", "wallLight"];
     expect([...kinds].filter((kind) => !catalogue.includes(kind))).toEqual([]);
     expect(kinds.size).toBeGreaterThanOrEqual(10);
   });
@@ -113,9 +113,13 @@ describe("roof props", () => {
     expect(buildingStateColor(p, { state: "rebuilding" })).not.toEqual(buildingStateColor(p, { state: "working" }));
   });
 
-  it("leaves a working model's own texture alone, and still colours its stand-in box", () => {
+  it("keeps working models subtly tinted, and still colours their stand-in boxes", () => {
     const p = parcel(0, 0, 2, 2);
-    expect(buildingModelColor(p, { state: "working" })).toEqual([1, 1, 1]);
+    const tint = buildingModelColor(p, { state: "working" });
+    expect(tint.every((channel) => channel >= 0.8 && channel <= 1)).toBe(true);
+    expect(tint).not.toEqual([1, 1, 1]);
+    expect(districtTint(p)).toEqual(districtTint({ ...p }));
+    expect(districtTint({ ...p, position: { ...p.position, x: p.position.x + 160 } })).not.toEqual(tint);
     expect(buildingStateColor(p, { state: "working" })).not.toEqual([1, 1, 1]);
     // An idle model takes the same colour, at half strength: see the next case.
     expect(buildingModelColor(p, { state: "idle" })).not.toEqual([1, 1, 1]);
