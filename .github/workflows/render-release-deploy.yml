@@ -115,7 +115,8 @@ jobs:
               script="$(grep -oE 'src="/assets/index-[^"]+\.js"' <<< "$html" | head -n 1 | cut -d '"' -f 2)"
               if [ -n "$script" ]; then
                 bundle="$(curl --ipv4 --connect-timeout 10 --max-time 60 --fail-with-body --silent --show-error "${site_url%/}${script}")"
-                if grep -q "$expected" <<< "$bundle"; then
+                # Version dots are literal; regex dots can match unrelated bundle numbers.
+                if grep -Fq "$expected" <<< "$bundle"; then
                   echo "Public site serves release ${expected}."
                   exit 0
                 fi
