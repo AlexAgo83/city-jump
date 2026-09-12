@@ -68,9 +68,11 @@ Click a building and it gives you a street address. Click a car and you get the 
 Streets carry one name across every segment that continues them, and buildings are numbered along
 their frontage.
 
-**Watch it.** The camera has three modes: free, orbit — which turns slowly around whatever you
-are looking at — and follow, which rides along with a car you picked. Any pan or arrow key hands
-control straight back to you.
+**Watch it.** The camera has four modes: free, orbit — which turns slowly around whatever you
+are looking at — follow, which rides along with a car or pedestrian you picked, and POV for first-person
+exploration. In POV, use WASD/ZQSD or the arrows to move, drag to look, Shift to move faster, and
+Esc to return to your previous view. POV follows the terrain without building collisions. In
+orbit and follow, an arrow key hands control straight back to you.
 
 **Set the hour.** Drag through a full 24 hours and watch the light move: the sun's angle, the
 colour of the sky, the streetlights, the headlights.

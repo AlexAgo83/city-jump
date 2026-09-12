@@ -51,7 +51,7 @@ export function bindControls(handlers: {
   onSelectView(view: "all" | "no-buildings" | "traffic" | "utilities" | "state"): void;
   onSunHour(hour: number): void;
   onTimeRate(rate: 0 | 1 | 2 | 4): void;
-  onCameraMode(mode: "free" | "orbit" | "follow", selection?: boolean): void;
+  onCameraMode(mode: "free" | "orbit" | "follow" | "pov", selection?: boolean): void;
   onUndo(): void;
   onRedo(): void;
   canUndo(): boolean;
@@ -474,7 +474,7 @@ export function bindControls(handlers: {
   for (const input of document.querySelectorAll<HTMLInputElement>('input[name="camera-mode"]')) {
     on(input, "change", () => {
       if (!input.checked) return;
-      handlers.onCameraMode(input.value === "follow" ? "follow" : input.value === "orbit" ? "orbit" : "free");
+      handlers.onCameraMode(input.value === "pov" ? "pov" : input.value === "follow" ? "follow" : input.value === "orbit" ? "orbit" : "free");
       persistSettings();
     });
   }
@@ -510,6 +510,7 @@ export function bindControls(handlers: {
   // back exactly as it was left, instead of resetting to whatever the markup defaults to.
   function persistSettings(): void {
     if (restoringSettings) return;
+    const cameraMode = document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value;
     writeSettings({
       grid: showGrid.checked,
       buildings: showBuildings.checked,
@@ -530,7 +531,7 @@ export function bindControls(handlers: {
       sunHour: Number(sunHour.value),
       sunAuto: sunAuto.checked,
       shortNight: shortNight.checked,
-      cameraMode: document.querySelector<HTMLInputElement>('input[name="camera-mode"]:checked')?.value as UiSettings["cameraMode"],
+      cameraMode: (cameraMode === "pov" ? "free" : cameraMode) as UiSettings["cameraMode"],
       fxAntialias: fxAntialias.checked,
       fxMultisample: fxMultisample.checked,
       fxBloom: fxBloom.checked,

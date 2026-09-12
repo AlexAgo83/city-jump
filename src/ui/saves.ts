@@ -186,3 +186,15 @@ function write(key: string, value: string | null): boolean {
     return false; // a browser that refuses storage is not a reason to stop building
   }
 }
+
+export async function seedDefaultDemoSave(): Promise<void> {
+  if (readSave("Demo")) return;
+  try {
+    const response = await fetch("/default-demo.json", { cache: "no-cache" });
+    if (!response.ok) return;
+    const city = parseCity(await response.text());
+    if (city) writeSave("Demo", city);
+  } catch {
+    // Offline/dev-file runs still work; they just start without the bundled save.
+  }
+}

@@ -231,6 +231,7 @@ export function createScene(canvas: HTMLCanvasElement) {
     invalidateShadows,
     setFrameCap,
     frameDelta: () => frameDeltaMs,
+    setKeyboardPanEnabled: keyboardPan.setEnabled,
     dispose(): void {
       engine.stopRenderLoop(renderLoop);
       setProfiling(false);
@@ -263,14 +264,16 @@ const PAN_KEYS: Record<string, "forward" | "back" | "left" | "right"> = {
  * turning the camera turns what "forward" means.
  * ponytail: held-key set + one per-frame vector, no input abstraction layer.
  */
-function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: () => number): { dispose(): void } {
+function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: () => number) {
   camera.keysUp = [];
   camera.keysDown = [];
   camera.keysLeft = [];
   camera.keysRight = [];
 
+  let enabled = true;
   const held = new Set<string>();
   const track = (event: KeyboardEvent, down: boolean): void => {
+    if (!enabled) return;
     const direction = PAN_KEYS[event.key];
     if (!direction) return;
     // Let the arrow keys keep doing their normal job inside the toolbar controls.
@@ -312,6 +315,7 @@ function attachKeyboardPan(scene: Scene, camera: ArcRotateCamera, frameDelta: ()
     camera.target.z = clamp(camera.target.z + move.z, PAN_LIMIT);
   }));
   return {
+    setEnabled(next: boolean): void { enabled = next; held.clear(); },
     dispose(): void {
       window.removeEventListener("keydown", keydown);
       window.removeEventListener("keyup", keyup);

@@ -1,3 +1,4 @@
+import { createPov } from "../render/pov";
 import { createPerformanceHud } from "../ui/performanceGraph";
 import { Matrix } from "@babylonjs/core/Maths/math.vector";
 import { createBuildingRenderer } from "../render/buildings";
@@ -47,7 +48,7 @@ import { distXZ, v3 } from "../sim/vec";
 import { advanceWaveClock, callWaveNow, createWaveClock, damageWaveClock, missileTravelSeconds, residentsUntilWave, summonIfDue, waveAtPopulation, waveThreat, WAVE_STARTING_VALUES } from "../sim/wave";
 import type { FollowTarget, SelectionInfo } from "../render/drawTool";
 import { bindControls } from "../ui/controls";
-import { deleteRunSaveOnDefeat, readAutosave, readSave, writeAutosave, writeCameraState, writeSave, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
+import { deleteRunSaveOnDefeat, readAutosave, seedDefaultDemoSave, writeAutosave, writeCameraState, readCameraState, readSettings, readProfile, writeProfile } from "../ui/saves";
 import { createDetailCuller } from "../render/detail";
 import { createPostFx } from "../render/postFx";
 import { DEFAULT_HOUR, streetlightsOnAt } from "../sim/time";
@@ -59,7 +60,7 @@ import { createDrawController } from "./drawController";
 /** The island a run opens on. Exported from the game, so the layout is edited by playing it. */
 const STARTER_KIT_URL = "/starter-kit.json";
 
-type CameraMode = "free" | "orbit" | "follow";
+type CameraMode = "free" | "orbit" | "follow" | "pov";
 type TimeRate = 0 | 1 | 2 | 4;
 
 // ponytail: module-size is the composition root owning the live scene graph; split only when a
@@ -130,8 +131,14 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   let lastRunRate: Exclude<TimeRate, 0> = readSettings().timeRate ?? 1;
   let simDay = 1;
   let pendingHistorySnapshot: CitySave | null = null;
+  const pov = createPov(camera, canvas, heightmap, () => setCameraMode("free"));
   const setCameraMode = (mode: CameraMode): void => {
+    pov.setEnabled(mode === "pov");
+    renderScene.setKeyboardPanEnabled(mode !== "pov");
+    if (mode === "pov" && tool.mode() !== "view") tool.cancel();
     cameraMode = mode;
+    const hint = document.getElementById("pov-hint");
+    if (hint) hint.hidden = mode !== "pov";
     const input = document.querySelector<HTMLInputElement>(`input[name="camera-mode"][value="${mode}"]`);
     if (input) input.checked = true;
   };
@@ -447,7 +454,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     frameTerrain();
   };
 
-  const cameraSnapshot = (): SavedCamera => snapshotCamera(camera);
+  const cameraSnapshot = (): SavedCamera => snapshotCamera(pov.savedView ?? camera);
   const applyCamera = (state: SavedCamera): void => applyCameraState(camera, state);
   const scheduleAutosave = createAutosave(
     () => {
@@ -898,6 +905,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
 
   controls = bindControls({
     onRoadMode(mode) {
+      if (cameraMode === "pov") setCameraMode("free");
       tool.setMode(mode);
       const drawingRoads = mode === "straight" || mode === "curve" || mode === "roundabout";
       const zoning = mode === "zone";
@@ -970,6 +978,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     },
     onTimeRate: setTimeRate,
     onCameraMode(mode, selection) {
+      if (cameraMode === "pov" && mode !== "pov") setCameraMode("free");
       if (selection && !focusSelection(camera.target, selectedInfo, heightmap)) return;
       if (mode === "follow" && !followTarget) {
         showRefusal("Select a vehicle or pedestrian before using Follow.");
@@ -993,6 +1002,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
   const cityState: CityState = { graph, plantings, zones, rubble, buildingLifecycle, treasury, cityEconomy, utilities, buildableCells: solveBuildableCells };
 
   function loadCity(city: CitySave): boolean {
+    if (cameraMode === "pov") setCameraMode("free");
     const resumed = loadCityInto(city, cityState, {
       cancelTool: () => tool.cancel(),
       applyTerrain,
@@ -1081,7 +1091,8 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
     destructionEffects.step(performance.now() / 1000);
     detail.update();
     buildings.setCameraRadius(camera.radius);
-    postFx.update();
+    pov.update(frameDelta() / 1000);
+    postFx.update(cameraMode === "pov");
     profiler.section("ui");
     performanceHud.frame();
     showCompass(camera.alpha);
@@ -1118,7 +1129,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       setPaused(!simPaused);
       return;
     }
-    if (cameraMode !== "free" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
+    if (cameraMode !== "free" && cameraMode !== "pov" && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) setCameraMode("free");
   };
   window.addEventListener("keydown", keydown, true);
   let cameraSaveTimer = 0;
@@ -1303,6 +1314,7 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
         measurement.resolve(measurement.stop(performance.now()));
       }
       fpsMeasurements.clear();
+      pov.dispose();
       performanceHud.dispose();
       scheduleAutosave.dispose();
       debugApi.dispose();
@@ -1330,16 +1342,4 @@ export async function startApp(startedAt = performance.now()): Promise<{ dispose
       renderScene.dispose();
     },
   };
-}
-
-async function seedDefaultDemoSave(): Promise<void> {
-  if (readSave("Demo")) return;
-  try {
-    const response = await fetch("/default-demo.json", { cache: "no-cache" });
-    if (!response.ok) return;
-    const city = parseCity(await response.text());
-    if (city) writeSave("Demo", city);
-  } catch {
-    // Offline/dev-file runs still work; they just start without the bundled save.
-  }
 }

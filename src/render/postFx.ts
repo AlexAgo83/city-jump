@@ -107,8 +107,9 @@ export function createPostFx(scene: Scene, camera: ArcRotateCamera) {
    * Focus follows the camera: what the player is looking at stays sharp, and the blur grows with
    * height so the miniature effect only appears when the city is small enough to be one.
    */
-  function update(): void {
-    if (!look.tiltShift) return;
+  function update(pov = false): void {
+    pipeline.depthOfFieldEnabled = look.tiltShift && !pov;
+    if (!pipeline.depthOfFieldEnabled) return;
     // Focus on what the camera is actually pointed at, so the middle of the screen is sharp; the
     // ground falls away from it towards the top and the bottom of the picture, and that is where
     // the blur comes from. An ordinary lens focused hundreds of metres out holds a whole city in
