@@ -27,7 +27,9 @@ export function rubblePieces(rubble: readonly SavedRubble[], parcels: readonly B
     const tint = parcel?.kind === "residential" ? [0.42, 0.31, 0.25] : parcel?.kind === "commercial" ? [0.35, 0.38, 0.39] : [0.3, 0.29, 0.25];
     const add = (size: Vector3, offset: Vector3, tilt = 0) => {
       matrices.push(Matrix.Compose(size, Quaternion.FromEulerAngles(tilt, yaw, tilt * 0.4), Vector3.TransformCoordinates(offset, Matrix.Compose(Vector3.OneReadOnly, rotation, base))));
-      colors.push(...tint, 1);
+      // Charred foundation, lighter broken faces: the collapsed footprint stays readable.
+      const shade = size.y < 0.6 && tilt === 0 ? 0.55 : 0.88 + (matrices.length % 4) * 0.12;
+      colors.push(...tint.map((channel) => channel * shade), 1);
     };
     add(new Vector3(7, 0.5, 7), new Vector3(0, 0.3, 0));
     for (let side = 0; side < 4; side++) {

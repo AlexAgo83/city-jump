@@ -59,19 +59,22 @@ class WindowLights extends MaterialPluginBase {
 
   override getCustomCode(shaderType: string): Record<string, string> {
     return shaderType === "vertex" ? {
-      CUSTOM_VERTEX_DEFINITIONS: "attribute vec2 windowSeed; attribute float windowPower; varying float vWindowLight;",
+      CUSTOM_VERTEX_DEFINITIONS: "attribute vec2 windowSeed; attribute float windowPower; varying float vWindowLight; varying float vShopWindow;",
       CUSTOM_VERTEX_MAIN_END: `
         float blockSeed = dot(finalWorld[3].xz, vec2(0.017, 0.031));
         float floorRoll = fract(sin(windowSeed.y * 12.9898 + blockSeed) * 43758.5453);
+        float roomRoll = fract(sin(floor(windowSeed.x / 5.0) * 27.17 + windowSeed.y * 12.9898 + blockSeed) * 43758.5453);
         float paneRoll = fract(sin(dot(windowSeed, vec2(12.9898, 78.233)) + blockSeed) * 43758.5453);
         vWindowLight = windowPower * step(0.24 + windowOffice * 0.28, floorRoll)
-          * step(0.36, paneRoll) * (0.65 + paneRoll * 0.35);
+          * step(0.32, roomRoll) * step(0.12, paneRoll) * (0.72 + roomRoll * 0.28);
+        vShopWindow = windowPower * windowOffice * (1.0 - step(1.5, windowSeed.y));
       `,
     } : {
-      CUSTOM_FRAGMENT_DEFINITIONS: "varying float vWindowLight;",
+      CUSTOM_FRAGMENT_DEFINITIONS: "varying float vWindowLight; varying float vShopWindow;",
       CUSTOM_FRAGMENT_BEFORE_FOG: `
-        vec3 roomColor = mix(vec3(1.0, 0.66, 0.28), vec3(0.65, 0.82, 1.0), windowOffice);
-        color.rgb += roomColor * vWindowLight * windowNight * 0.85;
+        vec3 roomColor = mix(vec3(1.0, 0.66, 0.28), vec3(0.86, 0.88, 0.79), windowOffice);
+        color.rgb += mix(roomColor, vec3(1.0, 0.72, 0.38), vShopWindow)
+          * max(vWindowLight * 0.72, vShopWindow * 0.8) * windowNight;
       `,
     };
   }

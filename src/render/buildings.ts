@@ -311,7 +311,8 @@ export async function createBuildingRenderer(scene: Scene, ground: Heightmap, sh
   groundPadMaterial.diffuseColor = new Color3(0.56, 0.53, 0.48);
   new SurfaceDetail(groundPadMaterial, true);
   groundPadMaterial.specularColor = Color3.Black();
-  groundPadMaterial.alpha = 0.42;
+  groundPadMaterial.alpha = 0.32;
+  groundPad.receiveShadows = true;
   groundPadMaterial.transparencyMode = Material.MATERIAL_ALPHABLEND;
   groundPadMaterial.backFaceCulling = false;
   groundPad.material = groundPadMaterial;
@@ -783,30 +784,13 @@ function setMaterialAlpha(material: Material | null, alpha: number): void {
 }
 
 /** Centres the baked mesh on the parcel frontage regardless of glTF handedness. */
-/** Subtle zone tint and construction scale on the authored models. */
-export const BUILDING_KIND_STYLE: Record<BuildingKind, { scaleY: number; color: [number, number, number] }> = {
-  residential: { scaleY: 1, color: tintFor("residential", 0.25) },
-  commercial: { scaleY: 1, color: tintFor("commercial", 0.3) },
-  industrial: { scaleY: 1, color: [1, 1, 1] }, // its own models already look the part
-  agricultural: { scaleY: 1, color: [1, 1, 1] }, // its own models already look the part
-
-  military: { scaleY: 1, color: [1, 1, 1] },
-};
-
-/** The kind's own colour, mixed back towards white -- a full-strength tint over an already
- * textured model reads as a plastic toy rather than a building. */
-function tintFor(kind: BuildingKind, strength: number): [number, number, number] {
-  const [r, g, b] = BUILDING_KIND_COLOR[kind];
-  return [1 + (r - 1) * strength, 1 + (g - 1) * strength, 1 + (b - 1) * strength];
-}
-
 function matrixFor(parcel: BuildingParcel, centerX: number, status?: Pick<BuildingStatus, "state" | "progress">): Matrix {
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // Along-frontage direction is the model's +X once rotated.
   const alongX = Math.cos(parcel.rotationY);
   const alongZ = -Math.sin(parcel.rotationY);
   return Matrix.Compose(
-    new Vector3(1, BUILDING_KIND_STYLE[parcel.kind].scaleY * buildingStateScaleY(status), 1),
+    new Vector3(1, buildingHeightScale(parcel) * buildingStateScaleY(status), 1),
     rotation,
     new Vector3(
       parcel.position.x - alongX * centerX,
@@ -845,12 +829,18 @@ export function districtIndex(parcel: Pick<BuildingParcel, "position">): number 
   return Math.abs(Math.imul(Math.floor(parcel.position.x / 160), 31) ^ Math.floor(parcel.position.z / 160)) % 4;
 }
 
+/** Small district-led height steps; both roof attachments and distant boxes use this scale. */
+export function buildingHeightScale(parcel: BuildingParcel): number {
+  if ((parcel.kind !== "residential" && parcel.kind !== "commercial") || parcel.cells.some((cell) => cell.lowRise)) return 1;
+  return [0.94, 1, 0.98, 1.06][districtIndex(parcel)]! + (roofSeed(parcel) % 3 - 1) * 0.025;
+}
+
 /** Neighbouring lots share a restrained palette; their own seed keeps it from becoming stripes. */
 export function districtTint(parcel: BuildingParcel): [number, number, number] {
   if (parcel.kind !== "residential" && parcel.kind !== "commercial") return [1, 1, 1];
   const district = districtIndex(parcel);
-  const palette = [[1, 0.94, 0.86], [0.95, 0.88, 0.82], [0.94, 1, 0.9], [0.88, 0.95, 1]][district]!;
-  const brightness = 0.94 + (roofSeed(parcel) % 7) * 0.01;
+  const palette = [[1, 0.93, 0.83], [0.97, 0.86, 0.82], [0.89, 0.97, 0.85], [0.85, 0.93, 1]][district]!;
+  const brightness = 0.97 + (roofSeed(parcel) % 4) * 0.01;
   return palette.map((channel) => channel * brightness) as [number, number, number];
 }
 
@@ -884,7 +874,7 @@ function buildingStateScaleY(status?: Pick<BuildingStatus, "state" | "progress">
 function distantBoxMatrix(parcel: BuildingParcel, height: number, status?: Pick<BuildingStatus, "state" | "progress">): Matrix {
   const width = parcel.frontageCells * GRID.cellSize - 1.5;
   const depth = parcel.depthCells * GRID.cellSize - 1.5;
-  const scaledHeight = height * buildingStateScaleY(status);
+  const scaledHeight = height * buildingHeightScale(parcel) * buildingStateScaleY(status);
   const rotation = Quaternion.FromEulerAngles(0, parcel.rotationY, 0);
   // The parcel's position is the middle of its frontage; the building runs back from there.
   const backX = -Math.sin(parcel.rotationY);
@@ -943,9 +933,11 @@ export function buildingFootDecorMatrices(
   const shouldPlace = (face: FootDecorFace, i: number) => decorSeed(parcel, face, i) % 5 !== 0;
   const pick = (face: FootDecorFace, i: number, kinds: readonly FootDecorKind[]) => kinds[Math.floor(decorSeed(parcel, face, i) / 5) % kinds.length]!;
 
+  // Reserve the middle of a wide frontage for an actual entrance, before furniture fills the budget.
+  if (parcel.frontageCells > 1 && !blockedFaces.has("front")) add("path", 0, gap, 0);
   for (let i = 0; i < parcel.frontageCells; i++) {
     const x = -halfWidth + (i + 0.5) * GRID.cellSize;
-    if (parcel.frontageCells > 1 && !blockedFaces.has("front") && shouldPlace("front", i)) add(pick("front", i, parcel.kind === "commercial" ? ["terrace", "planter", "sign", "bikeRack", "vending"] : ["bench", "garden", "planter", "mail", "bikeRack", "trash", "wallLight"]), x, gap, 0);
+    if (parcel.frontageCells > 1 && !blockedFaces.has("front") && Math.abs(x) > 2 && shouldPlace("front", i)) add(pick("front", i, parcel.kind === "commercial" ? ["terrace", "terrace", "planter", "sign", "bikeRack", "vending"] : ["garden", "garden", "bench", "planter", "mail", "bikeRack", "trash", "wallLight"]), x, gap, 0);
     if (!blockedFaces.has("back") && shouldPlace("back", i)) add(pick("back", i, parcel.kind === "residential" ? ["garden", "path", "bench", "utility", "bollard", "planter"] : ["utility", "crate", "barrier", "trash", "shrub"]), x, -depth - gap, Math.PI);
   }
   for (let i = 0; i < parcel.depthCells; i++) {
@@ -1108,7 +1100,10 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null, glas
     lit.subMaterials = lit.subMaterials.map((sub) => normalizeBuildingMaterial(scene, sub, glassReflection));
   } else if (lit.albedoColor && !lit.diffuseColor) {
     const standard = new StandardMaterial(`${lit.name}_standard`, scene);
-    standard.diffuseColor = lit.albedoColor.clone();
+    // Roofs share facade materials in the shipped GLBs; soften their whites together.
+    standard.diffuseColor = lit.albedoColor.scale(0.94);
+    // Lift near-black facade frames without changing the authored geometry.
+    if (lit.name.includes("_trim")) standard.diffuseColor = Color3.Lerp(standard.diffuseColor, new Color3(0.3, 0.31, 0.3), 0.42);
     finishBuildingMaterial(standard, glassReflection);
     return standard;
   }
@@ -1117,7 +1112,7 @@ function normalizeBuildingMaterial(scene: Scene, material: Material | null, glas
     lit.alpha = 1;
     lit.transparencyMode = Material.MATERIAL_OPAQUE;
     lit.reflectionTexture = glassReflection();
-    if (lit.specularColor) lit.specularColor = new Color3(0.8, 0.9, 1);
+    if (lit.specularColor) lit.specularColor = new Color3(0.48, 0.56, 0.62);
     if (typeof lit.specularPower === "number") lit.specularPower = 96;
   } else if (lit.name.includes("_trim")) {
     lit.alpha = 1;
@@ -1142,7 +1137,7 @@ function finishBuildingMaterial(material: StandardMaterial, glassReflection: () 
     material.alpha = 1;
     material.transparencyMode = Material.MATERIAL_OPAQUE;
     material.reflectionTexture = glassReflection();
-    material.specularColor = new Color3(0.8, 0.9, 1);
+    material.specularColor = new Color3(0.48, 0.56, 0.62);
     material.specularPower = 96;
   } else if (material.name.includes("_door") || material.name.includes("_industrial_door")) {
     if (!authoredUrban) material.diffuseColor = new Color3(0.22, 0.12, 0.08);
@@ -1182,6 +1177,6 @@ function createGlassReflection(scene: Scene): RawCubeTexture {
   );
   texture.name = "building_glass_reflection";
   texture.coordinatesMode = Texture.CUBIC_MODE;
-  texture.level = 0.55;
+  texture.level = 0.38;
   return texture;
 }

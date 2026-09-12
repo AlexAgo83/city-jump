@@ -24,6 +24,7 @@ what a visitor sees.
 
 | Image | Added | Wave it evidenced | Size |
 |---|---|---|---|
+| [`city-visual-refresh.png`](city-visual-refresh.png) | 2026-09-12 | Softer light, district height and palette variation, entrance paths and planted gardens; see [runtime rendering](../assets.md#runtime-lighting-and-landscape) | 900 px wide |
 | [`vehicles-emergency.png`](vehicles-emergency.png) | 2026-09-09 | Rare fire engines and police cars with animated blue lightbars; see `docs/vehicles.md` | 900 px wide |
 | [`vehicles-fleet.png`](vehicles-fleet.png) | 2026-09-09 | Replace all ten traffic silhouettes with Kenney-derived and project GLBs; see `docs/vehicles.md` | 900 px wide |
 | [`pedestrians-catalogue.png`](pedestrians-catalogue.png) | 2026-09-09 | Six articulated profiles and four palettes; see [pedestrian models](../pedestrians.md) | 900 px wide |

@@ -6,7 +6,7 @@ import { chromium } from "playwright";
 const [url = "http://127.0.0.1:5173", out = "/tmp/city-jump-polish"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ args: ["--use-gl=angle", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -109,12 +109,14 @@ try {
       window.cityjump._scene.render();
       const scene = window.cityjump._scene;
       return {
+        fill: scene.lights.filter((light) => light.name === "kaiju_fill").at(-1).includedOnlyMeshes.length,
         heat: scene.materials.filter((m) => m.name === "kaiju_dorsal_fissures").at(-1).emissiveColor.g,
         dust: scene.meshes.filter((m) => m.name === "kaiju_footstep_dust").at(-1).thinInstanceCount,
         smoke: scene.meshes.filter((m) => m.name === "rubble_smoke").at(-1).thinInstanceCount,
         activeSmoke: scene.getActiveMeshes().data.filter((m) => m?.name === "rubble_smoke").length,
       };
     }, { name, seconds, attackSeconds });
+    assert.ok(report.fill > 0);
     if (name === "windup") assert.ok(report.heat > 1.5);
     if (name === "footsteps") assert.ok(report.dust > 0);
     if (name === "rubble") {
@@ -144,10 +146,12 @@ try {
       await api._scene.whenReadyAsync();
       api._scene.render();
       return {
+        debris: api._scene.meshes.filter((mesh) => mesh.name === "rubble_flying_debris").at(-1).thinInstanceCount,
         blast: api._scene.meshes.filter((mesh) => mesh.name === "rubble_blast").at(-1).thinInstanceCount,
         glow: api._scene.lights.filter((light) => light.name === "destruction_glow").at(-1).intensity,
       };
     }, { age, hour, radius });
+    assert.equal(report.debris, age < 3.2 ? 8 : 0);
     if (age < 3.2) assert.equal(report.blast, 15);
     else assert.equal(report.blast, 0);
     assert.ok(report.glow > 0);
@@ -156,7 +160,7 @@ try {
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: `${out}/attack-mobile.png` });
-  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.setViewportSize({ width: 900, height: 600 });
   await page.evaluate(async () => {
     const api = window.cityjump;
     const scene = api._scene;

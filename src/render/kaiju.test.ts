@@ -39,6 +39,9 @@ it("follows body impact targets and switches between walking, idle and attack po
     expect(points[1]!.y).toBeGreaterThan(points[0]!.y);
     expect(kaiju.impactPoint(1).asArray()).toEqual(points[1]!.asArray());
     kaiju.show(new Vector3(120, 60, 230), Math.PI, 1);
+    const fill = scene.getLightByName("kaiju_fill")!;
+    expect(fill.isEnabled()).toBe(true);
+    expect(fill.includedOnlyMeshes.map((mesh) => mesh.name)).toEqual([body.name, head.name]);
     const moved = kaiju.impactPoint(1);
     expect(moved.x).toBeCloseTo(120 - (points[1]!.x - 100));
     expect(moved.y).toBeCloseTo(points[1]!.y + 20);
@@ -104,9 +107,11 @@ it("follows body impact targets and switches between walking, idle and attack po
     kaiju.show(position, 0, 9, "running");
     expect(dust.isEnabled()).toBe(true);
     kaiju.hide();
+    expect(fill.isEnabled()).toBe(false);
     expect(dust.thinInstanceCount).toBe(0);
   } finally {
     kaiju.dispose();
+    expect(scene.getLightByName("kaiju_fill")).toBeNull();
     load.mockRestore();
     scene.dispose();
     engine.dispose();

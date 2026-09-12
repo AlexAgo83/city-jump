@@ -69,6 +69,14 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
   explosionMaterial.alpha = 0.95;
   const blast = createSmokeMesh(scene, "rubble_blast", Color3.White());
   (blast.material as StandardMaterial).alpha = 0.85;
+  const debris = MeshBuilder.CreateBox("rubble_flying_debris", { size: 1 }, scene);
+  const debrisMaterial = new StandardMaterial("rubble_flying_debris", scene);
+  debrisMaterial.diffuseColor = new Color3(0.42, 0.37, 0.31);
+  debrisMaterial.specularColor = Color3.Black();
+  debris.material = debrisMaterial;
+  debris.isPickable = false;
+  debris.receiveShadows = true;
+  debris.setEnabled(false);
   const glow = new PointLight("destruction_glow", Vector3.Zero(), scene);
   glow.diffuse = new Color3(1, 0.32, 0.055);
   glow.specular = Color3.Black();
@@ -125,6 +133,7 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
     if (explosions.length === 0 && explosionInstances === 0) return;
     const matrices = new Float32Array(explosions.length * 16);
     const colors = new Float32Array(explosions.length * 4);
+    const debrisMatrices = new Float32Array(explosions.length * 8 * 16);
     const blastMatrices = new Float32Array(explosions.length * 15 * 16);
     const blastColors = new Float32Array(explosions.length * 15 * 4);
     for (const [i, item] of explosions.entries()) {
@@ -135,6 +144,17 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
       const y = heightAt(x, z);
       Matrix.Compose(new Vector3(size, size * 0.85, size), Quaternion.Identity(), new Vector3(x, y + 8 + age * 12, z)).copyToArray(matrices, i * 16);
       colors.set([1.8 + flash * 2, 0.38 + flash * 2.6, 0.04 + flash * 1.5, Math.max(0, 1 - age / 0.9)], i * 4);
+      for (let piece = 0; piece < 8; piece++) {
+        const angle = piece * Math.PI / 4 + x * 0.13 + z * 0.07;
+        const flight = Math.min(age, 1.4 + piece * 0.06);
+        const radius = 4 + flight * (12 + piece * 1.5);
+        const px = x + Math.cos(angle) * radius;
+        const pz = z + Math.sin(angle) * radius;
+        const size = (1.3 + piece % 3 * 0.6) * Math.min(1, (EXPLOSION_SECONDS - age) / 0.5);
+        const py = Math.max(heightAt(px, pz) + size, y + 4 + flight * (18 + piece) - 16 * flight * flight);
+        Matrix.Compose(new Vector3(size, size * 0.6, size * 1.4), Quaternion.FromEulerAngles(flight * 3, angle, flight * 2), new Vector3(px, py, pz))
+          .copyToArray(debrisMatrices, (i * 8 + piece) * 16);
+      }
       for (let puff = 0; puff < 15; puff++) {
         const ring = puff < 12;
         const angle = puff * Math.PI / 6;
@@ -148,6 +168,9 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
         blastColors.set(ring ? [0.62, 0.52, 0.39, opacity] : [0.26, 0.25, 0.24, opacity], (i * 15 + puff) * 4);
       }
     }
+    debris.thinInstanceSetBuffer("matrix", debrisMatrices, 16, false);
+    debris.thinInstanceCount = explosions.length * 8;
+    debris.setEnabled(explosions.length > 0);
     explosion.thinInstanceSetBuffer("matrix", matrices, 16, false);
     if (explosions.length) explosion.thinInstanceSetBuffer("color", colors, 4, false);
     explosion.thinInstanceCount = explosions.length;
@@ -200,6 +223,8 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
         explosion.thinInstanceCount = 0;
         explosionInstances = 0;
         explosion.setEnabled(false);
+        debris.thinInstanceCount = 0;
+        debris.setEnabled(false);
         blast.thinInstanceCount = 0;
         blast.setEnabled(false);
       }
@@ -225,6 +250,8 @@ export function createDestructionEffects(scene: Scene, heightAt: (x: number, z: 
       updateGlow(now);
     },
     dispose(): void {
+      debris.dispose();
+      debrisMaterial.dispose();
       glow.dispose();
       blast.material?.dispose();
       blast.dispose();

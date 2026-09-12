@@ -51,6 +51,7 @@ describe("destruction effects", () => {
     const detail = createDetailCuller(scene, camera);
     const effects = createDestructionEffects(scene, () => 5);
     const blast = scene.getMeshByName("rubble_blast") as Mesh;
+    const debris = scene.getMeshByName("rubble_flying_debris") as Mesh;
     const explosion = scene.getMeshByName("rubble_explosion") as Mesh;
     let explosionColors: Float32Array | null = null;
     const setBuffer = explosion.thinInstanceSetBuffer.bind(explosion);
@@ -65,6 +66,8 @@ describe("destruction effects", () => {
     effects.step(0.2);
     expect(fire.thinInstanceGetWorldMatrices().map((matrix) => [...matrix.m])).not.toEqual(initialFlames);
     effects.explode(v3(0, 5, 0), 1);
+    expect(debris.thinInstanceCount).toBe(8);
+    const startDebris = debris.thinInstanceGetWorldMatrices().map((matrix) => [...matrix.m]);
     const flashIntensity = glow.intensity;
     expect(flashIntensity).toBeGreaterThan(5);
     detail.update();
@@ -73,6 +76,8 @@ describe("destruction effects", () => {
     expect(blast.isEnabled()).toBe(true);
     expect(blast.thinInstanceCount).toBe(15);
     effects.step(1.5);
+    expect(debris.thinInstanceGetWorldMatrices().map((matrix) => [...matrix.m])).not.toEqual(startDebris);
+    expect(debris.thinInstanceGetWorldMatrices().every((matrix) => matrix.getTranslation().y > 5)).toBe(true);
     expect(glow.intensity).toBeLessThan(flashIntensity);
     expect(blast.thinInstanceGetWorldMatrices()[0]!.getTranslation().x).toBeGreaterThan(5);
     effects.step(2);
@@ -80,6 +85,8 @@ describe("destruction effects", () => {
     expect(blast.isEnabled()).toBe(true);
     effects.setEnabled({ fire: false, explosion: false }, 2);
     expect(blast.thinInstanceCount).toBe(0);
+    expect(debris.thinInstanceCount).toBe(0);
+    expect(debris.isEnabled()).toBe(false);
     expect(glow.isEnabled()).toBe(false);
     effects.setEnabled({ fire: true, explosion: true }, 3);
     expect(glow.isEnabled()).toBe(true);
@@ -88,6 +95,7 @@ describe("destruction effects", () => {
     effects.explode(v3(0, 5, 0), 4);
     effects.step(8);
     expect(blast.isEnabled()).toBe(false);
+    expect(debris.isEnabled()).toBe(false);
     expect(glow.isEnabled()).toBe(false);
     effects.dispose();
     expect(scene.lights).toHaveLength(0);

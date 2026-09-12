@@ -329,6 +329,11 @@ export function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     box(scene, "garden_hedge", 2.9, 0.65, 0.8, 0, 0.52, 0.12),
     ...[-1, 0, 1].map((x) => box(scene, "garden_flowers", 0.45, 0.16, 0.35, x, 0.88, -0.14)),
   ];
+  // A small courtyard tree stays inside the same narrow garden footprint and draw call.
+  const crown = MeshBuilder.CreateSphere("garden_tree_crown", { diameter: 1.25, segments: 6 }, scene);
+  crown.scaling.y = 1.35;
+  crown.position.set(-0.95, 2.75, 0);
+  gardenParts.push(box(scene, "garden_tree_trunk", 0.16, 2.2, 0.16, -0.95, 1.1, 0), crown);
   const terraceParts = [
     box(scene, "terrace_paving", 3.2, 0.06, 1.4, 0, 0.03, 0),
     box(scene, "terrace_table", 1, 0.12, 0.75, 0, 0.85, 0),
@@ -344,7 +349,7 @@ export function buildFootDecor(scene: Scene): Record<FootDecorKind, Mesh> {
     [terraceParts, [[0.57, 0.54, 0.47], [0.68, 0.4, 0.22], [0.28, 0.37, 0.38]]],
   ] as const) {
     for (const [i, part] of parts.entries()) {
-      const color = [...colors[Math.min(i, 2)]!, 1];
+      const color = [...(parts === gardenParts && i >= 5 ? (i === 5 ? [0.34, 0.24, 0.16] : [0.3, 0.48, 0.25]) : colors[Math.min(i, 2)]!), 1];
       part.setVerticesData("color", Array.from({ length: part.getTotalVertices() }, () => color).flat());
     }
   }

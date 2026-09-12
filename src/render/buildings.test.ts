@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildingParcels, type BuildableCell, type BuildingParcel } from "../sim/slots";
 import type { BuildingDetail } from "./buildings";
-import { BUILDING_MODELS, districtTint, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, nextDistantDetail, roofObjectLimit, roofPropY } from "./buildings";
+import { BUILDING_MODELS, buildingHeightScale, districtTint, buildingModelId, buildingBlockedDecorFaces, buildingFootDecorMatrices, buildingGroundPadMatrix, buildingModelColor, buildingStateColor, buildingStateSignature, nextDistantDetail, roofObjectLimit, roofPropY } from "./buildings";
 
 describe("roof props", () => {
   it("allows up to three objects as the roof gets bigger", () => {
@@ -55,7 +55,8 @@ describe("roof props", () => {
     );
     expect(placements.length).toBeGreaterThan(0);
     expect(placements.length).toBeLessThanOrEqual(4);
-    expect(placements[0]!.matrix.m[12]).toBeCloseTo(6);
+    expect(placements[0]!.kind).toBe("path");
+    expect(placements[0]!.matrix.m[12]).toBeCloseTo(10);
     expect(placements[0]!.matrix.m[13]).toBeCloseTo(2.08);
     expect(placements[0]!.matrix.m[14]).toBeCloseTo(20.8);
   });
@@ -333,4 +334,25 @@ it("varies compounds, generic leftovers and pedestrian buildings without changin
       expect([...ids].sort()).toEqual([`${kind}_${f}x${d}_a`, `${kind}_${f}x${d}_court`]);
     }
   }
+});
+
+
+it("keeps district height variations stable, bounded and off pedestrian or working compounds", () => {
+  const p = parcel(0, 0, 3, 3);
+  const scales = Array.from({ length: 30 }, (_, i) => buildingHeightScale({ ...p, position: { x: i * 32, y: 0, z: 0 } }));
+  expect(new Set(scales).size).toBeGreaterThan(3);
+  expect(scales.every((scale) => scale >= 0.9 && scale <= 1.1)).toBe(true);
+  expect(buildingHeightScale(p)).toBe(buildingHeightScale({ ...p }));
+  expect(buildingHeightScale({ ...p, kind: "industrial" })).toBe(1);
+  expect(buildingHeightScale({ ...p, cells: p.cells.map((cell) => ({ ...cell, lowRise: true })) })).toBe(1);
+  for (const rotationY of [0, Math.PI / 2, Math.PI]) {
+    const placed = buildingFootDecorMatrices({ ...p, rotationY }, () => 0);
+    const entrance = placed[0]!;
+    expect(entrance.kind).toBe("path");
+    const point = entrance.matrix.getTranslation();
+    expect(point.x).toBeCloseTo(p.position.x + Math.sin(rotationY) * 0.8);
+    expect(point.z).toBeCloseTo(p.position.z + Math.cos(rotationY) * 0.8);
+    for (const other of placed.slice(1)) expect(other.matrix.getTranslation().subtract(point).length()).toBeGreaterThan(2);
+  }
+  expect(buildingFootDecorMatrices(p, () => 0, new Set(["front", "back", "left", "right"]))).toEqual([]);
 });

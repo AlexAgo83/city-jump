@@ -72,7 +72,7 @@ const walkTurnColor = new Color3(0.55, 0.85, 0.55);
  */
 export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x: number, z: number) => number) {
   const material = new StandardMaterial("road", scene);
-  material.diffuseColor = new Color3(0.18, 0.18, 0.19);
+  material.diffuseColor = new Color3(0.23, 0.235, 0.24);
   const industrialMaterial = new StandardMaterial("industrial_road", scene);
   industrialMaterial.diffuseColor = new Color3(0.13, 0.14, 0.14);
   industrialMaterial.specularColor = Color3.Black();
@@ -95,7 +95,7 @@ export function createRoadRenderer(scene: Scene, graph: RoadGraph, heightAt: (x:
   // right. ponytail: one flag, not four orientation arguments.
   pavingMaterial.backFaceCulling = false;
   const paintMaterial = new StandardMaterial("road_paint", scene);
-  paintMaterial.diffuseColor = new Color3(0.88, 0.88, 0.85);
+  paintMaterial.diffuseColor = new Color3(0.72, 0.71, 0.65);
   paintMaterial.specularColor = Color3.Black();
   material.specularColor = Color3.Black();
   const portalMaterial = new StandardMaterial("tunnel_portal", scene);

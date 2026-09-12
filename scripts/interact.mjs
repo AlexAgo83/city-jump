@@ -455,7 +455,7 @@ const trafficOverlayCounts = () =>
 const streetlightFacadeLights = () =>
   page.evaluate(() => {
     const cluster = window.cityjump._scene.getLightByName("streetlight_lights");
-    return cluster?.lights.some((light) => light.name.startsWith("streetlight_facade_") && light.range >= 40) ?? false;
+    return cluster?.lights.some((light) => light.name.startsWith("streetlight_facade_") && light.range >= 20 && light.range <= 32 && light.intensity > 0 && light.intensity < 1) ?? false;
   });
 const shadowState = () =>
   page.evaluate(() => {
@@ -1265,7 +1265,7 @@ await pane("#show-lights");
 await page.locator("#show-lights").check();
 const relitCity = await cityLightState();
 check("city lights can be restored", relitCity.streetlights > 0 && relitCity.headlights > 0, `${JSON.stringify(relitCity)}`);
-check("streetlights include facade fill lights", await streetlightFacadeLights());
+check("streetlights include restrained facade fill lights", await streetlightFacadeLights());
 check("streetlights reach nearby buildings", await streetlightsReachBuildings());
 check("buildings do not use fake emissive lighting by night", (await buildingFacadeEmission()) === 0);
 check("buildings use the same night lighting pipeline as scenery", await buildingLightPipeline());

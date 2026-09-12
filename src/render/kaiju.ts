@@ -2,6 +2,7 @@ import "@babylonjs/loaders/glTF/2.0/glTFLoader";
 import type { Scene } from "@babylonjs/core/scene";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import type { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { Color3, Matrix, Quaternion, Vector3 } from "@babylonjs/core/Maths/math";
@@ -19,6 +20,15 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
   const parts = new Map<string, TransformNode>();
   let torso: TransformNode | null = null;
   const casters: Mesh[] = [];
+  // One camera-side fill reveals the silhouette at night without lighting the surrounding city.
+  const fill = new DirectionalLight("kaiju_fill", Vector3.Down(), scene);
+  fill.diffuse = new Color3(0.72, 0.82, 0.9);
+  fill.specular = Color3.Black();
+  fill.intensity = 0.75;
+  fill.shadowEnabled = false;
+  fill.renderPriority = 1;
+  fill.includedOnlyMeshes = casters;
+  fill.setEnabled(false);
   let disposed = false;
   let previousAttack = 0;
   let recoveryAt = -Infinity;
@@ -68,6 +78,10 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       if (((mode === "walking" || mode === "running") && recovery === 0) || !root.rotationQuaternion) root.rotationQuaternion = Quaternion.FromEulerAngles(0, heading, 0);
       root.metadata = { mode };
       root.setEnabled(true);
+      const camera = scene.activeCamera?.globalPosition ?? new Vector3(position.x + 100, position.y + 100, position.z);
+      const towardCamera = camera.subtract(root.position).normalize();
+      fill.direction.copyFrom(towardCamera).scaleInPlace(-1);
+      fill.setEnabled(casters.length > 0);
       const stride = mode === "running" ? Math.sin(seconds * 5.6) * 0.32 : mode === "walking" ? Math.sin(seconds * 2.8) * 0.16 : 0;
       // Raise both arms, hold the weight back, then slam at the simulation's five-second impact.
       // Its next state is already walking/idle: keep the impact pose and recoil for 0.65 s.
@@ -121,6 +135,7 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
       previousAttack = 0;
       recoveryAt = -Infinity;
       root.setEnabled(false);
+      fill.setEnabled(false);
       footsteps = [];
       lastStep = -1;
       dust.thinInstanceCount = 0;
@@ -131,6 +146,7 @@ export function createKaijuRenderer(scene: Scene, shadows: ShadowGenerator) {
     },
     dispose(): void {
       disposed = true;
+      fill.dispose();
       for (const mesh of casters) shadows.removeShadowCaster(mesh);
       casters.length = 0;
       parts.clear();

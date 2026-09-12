@@ -232,11 +232,11 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
       const i = lampRecords.indexOf(record);
       const pool = new SpotLight(`streetlight_pool_${i}`, Vector3.Zero(), Vector3.Down(), Math.PI / 1.5, 5, scene);
       // Clustered lights use default falloff: the wide cone reaches its edge below 4% intensity.
-      pool.intensity = 3.8;
-      pool.range = 44;
+      pool.intensity = 2.4;
+      pool.range = 32;
       const facade = new PointLight(`streetlight_facade_${i}`, Vector3.Zero(), scene);
-      facade.intensity = 1.35;
-      facade.range = 40;
+      facade.intensity = 0.65;
+      facade.range = 24;
       for (const light of [pool, facade]) lightCluster.addLight(light);
     record.lights = { pool, facade };
     moveRecordLights(record);
@@ -248,7 +248,7 @@ export function createStreetlightRenderer(scene: Scene, graph: RoadGraph) {
     const { pool, facade } = record.lights;
     pool.position = record.position;
     pool.direction = record.direction;
-    pool.diffuse = record.white ? new Color3(0.82, 0.9, 1) : new Color3(1, 0.72, 0.4);
+    pool.diffuse = record.white ? new Color3(0.95, 0.9, 0.8) : new Color3(1, 0.76, 0.46);
     pool.specular = record.white ? new Color3(0.3, 0.34, 0.4) : new Color3(0.45, 0.28, 0.1);
     facade.position = record.position;
     facade.diffuse = record.white ? new Color3(0.78, 0.86, 1) : new Color3(1, 0.66, 0.34);

@@ -115,7 +115,7 @@ export function createScene(canvas: HTMLCanvasElement) {
     // directional, so the night keeps some shape instead of going flat black. Real moonlight is
     // near-neutral; the eye's scotopic response reads it as blue, which is also what film does.
     const moonlit = 1 - solar;
-    sun.intensity = solar * 1.05 + moonlit * 0.24;
+    sun.intensity = solar * 0.88 + moonlit * 0.24;
     sun.diffuse = Color3.Lerp(
       Color3.Lerp(new Color3(1, 0.52, 0.28), new Color3(1, 0.97, 0.9), daylight),
       new Color3(0.44, 0.58, 0.95),
@@ -123,9 +123,9 @@ export function createScene(canvas: HTMLCanvasElement) {
     );
     // Sky fill. Played at night, 0.12 still read as black: the city vanished and only the halos
     // under the streetlights were left. A night should be dim and blue, not an off switch.
-    ambient.intensity = 0.5 + solar * 0.22;
+    ambient.intensity = 0.5 + solar * 0.3;
     ambient.diffuse = Color3.Lerp(new Color3(0.56, 0.66, 0.88), new Color3(0.94, 0.97, 1), solar);
-    ambient.groundColor = Color3.Lerp(new Color3(0.22, 0.27, 0.38), new Color3(0.3, 0.31, 0.3), solar);
+    ambient.groundColor = Color3.Lerp(new Color3(0.22, 0.27, 0.38), new Color3(0.38, 0.38, 0.35), solar);
     scene.clearColor = new Color4(
       0.025 + daylight * 0.081,
       0.035 + daylight * 0.083,

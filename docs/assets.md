@@ -172,25 +172,34 @@ and representative small/large facades through the actual game renderer.
 ## Runtime lighting and landscape
 
 Urban instances receive subtle, deterministic district tints. At night, the existing
-glass surfaces show warm residential rooms and cooler offices, with unlit panes and
-floors. Connected window geometry shares a lighting seed; keep separate panes
+glass surfaces show warm residential rooms, neutral offices and amber ground-floor
+shop windows. Room groups share brightness while some panes and floors stay dark. Connected window geometry shares a lighting seed; keep separate panes
 disconnected when authoring glass. Construction, rubble and buildings without power
 have no interior glow. This adds vertex attributes, without extra window draw calls.
 
-Foot decorations include small gardens and cafe terraces; sufficiently wide roundabout
+Wide, unobstructed frontages reserve a central entrance path before placing furniture;
+small frontages and shared faces stay clear. Gardens contain a hedge and a small tree
+in the existing instanced mesh. Foot decorations also include cafe terraces; sufficiently wide roundabout
 centres reuse the oak instances and respect cleared land. Softer lighting, broader beach
 transitions and distance fog are renderer settings, without changing terrain elevations.
-Kaiju dorsal emission follows the attack windup. Footstep dust expires, while rubble
+Kaiju dorsal emission follows the attack windup. A camera-facing fill light affects
+only the kaiju meshes, keeping the night silhouette visible. Footstep dust expires, while rubble
 smoke follows the fire setting and disappears with the rubble. Smoke is capped at 64
 ruins (three puffs each), and footstep trails at six steps. Each fire uses five
 independently swaying, tapered tongues with yellow cores and orange edges. Impacts
 flash, expand into a fading fireball, and leave an expanding dust ring plus smoke
-for 3.2 seconds. Impact meshes stay visible beyond the roof-detail cutoff. A single
+for 3.2 seconds. Eight instanced fragments fly outward, land above the terrain and
+shrink away with the impact; persistent ruins keep darker foundations and varied broken
+faces. Impact meshes stay visible beyond the roof-detail cutoff. A single
 orange light follows the latest impact, then the fire nearest the camera; concurrent
 fires share this lighting budget. Ground and road surfaces reserve a fifth light
 slot so the glow does not displace streetlights or headlights.
 
-Districts also favour existing courtyard, terrace and roof variants. Roads and paving
+Districts also favour existing courtyard, terrace and roof variants. Urban heights
+vary by less than ten percent with a stable district and parcel seed; roof attachments
+and distant boxes follow the same scale. Pedestrian buildings and compounds retain
+their authored heights. Softer daytime fill, muted roof and road paint, restrained
+glass reflections and shorter, warmer streetlight pools keep the scene readable. Roads and paving
 use subtle world-space detail that fades with distance; foot decorations include short
 paths. Ruins retain cell footprints, perimeter walls and tilted slabs, with parcel
 orientation and zoning tint when available, over a scorched ground patch. Coastal
@@ -202,3 +211,4 @@ footprints, street furniture and moving vehicles.
 Check day, night, street, coast and attack views with:
 `node scripts/with-dev-server.mjs scripts/visual-polish.mjs /tmp/city-jump-polish`.
 Its short, capped FPS samples are visual smoke checks, not a performance comparison.
+The [daytime capture](media/city-visual-refresh.png) records the September 12 visual refresh.
