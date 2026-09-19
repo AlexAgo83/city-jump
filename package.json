@@ -46,17 +46,17 @@
   },
   "description": "A browser-based 3D city builder where roads, terrain, buildings, and traffic derive from a playable road graph.",
   "devDependencies": {
-    "@biomejs/biome": "^2.5.12",
-    "@grifhinz/logics-manager": "^2.23.0",
+    "@biomejs/biome": "^2.5.13",
+    "@grifhinz/logics-manager": "^2.23.1",
     "@vitest/coverage-v8": "^4.1.11",
     "playwright": "^1.63.0",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.25.0",
-    "@babylonjs/loaders": "^9.25.0"
+    "@babylonjs/core": "^9.26.1",
+    "@babylonjs/loaders": "^9.26.1"
   },
   "type": "module"
 }
