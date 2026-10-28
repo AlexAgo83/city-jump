@@ -14,7 +14,14 @@
   replacing it. It is a bounded shortcut, not a TODO.
 - After editing the inline `<script>` or `<style>` in `index.html`, run `npm run csp:sync`.
   It rewrites the digests in `render.yaml`; an architecture test refuses a header that has
-  drifted, so a stale policy cannot ship.
+  drifted, so a stale policy cannot ship. HUD styling lives in that inline `<style>`; there is no
+  separate HUD stylesheet under `src/ui/`.
+- When `tests/architecture.mjs` reports `app/app.ts` past its line ceiling, move the behavior out
+  of the composition root (for example into `src/render/`) instead of raising the ceiling.
+- Deterministic simulation tests assert replay and semantic constraints (distances, counts), not
+  the identity of one seed-picked element, unless that identity is the contract.
+- Guard per-frame DOM writes against unchanged state: rewriting an identical banner every frame
+  was a measurable FPS regression.
 
 ## Development
 
@@ -38,6 +45,11 @@ npm run ci
 Before claiming release readiness, run `logics-manager release status`, then use
 `logics-manager release plan <version>` and `logics-manager release validate <version>`.
 Record the matching release evidence with `logics-manager release evidence add ...`.
+The order that works: version and changelog, `npm run ci` plus local `npm run test:e2e`, release
+commit and push, CI green for that exact SHA, tag, evidence commit pushed (evidence is bound to the
+tag and commit, so `release validate` fails before it), GitHub release, then check the public site
+serves the new hashed bundle: a green deploy can still serve the previous bundle until Render's
+cache catches up.
 
 Browser checks run locally through the shared dev-server wrapper:
 
