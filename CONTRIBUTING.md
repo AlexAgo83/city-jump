@@ -12,10 +12,11 @@
 - Record product decisions in the relevant ADR or specification when behavior changes.
 - Mark a deliberate simplification with `ponytail:` plus the condition that would justify
   replacing it. It is a bounded shortcut, not a TODO.
-- After editing the inline `<script>` or `<style>` in `index.html`, run `npm run csp:sync`.
-  It rewrites the digests in `render.yaml`; an architecture test refuses a header that has
-  drifted, so a stale policy cannot ship. HUD styling lives in that inline `<style>`; there is no
-  separate HUD stylesheet under `src/ui/`.
+- HUD styling lives in `src/ui/hud.css`, linked from `index.html`. Vite emits it as a
+  fingerprinted `/assets/` stylesheet; keep `style-src 'self'` and avoid inline style blocks.
+- After editing the inline `<script>` in `index.html`, run `npm run csp:sync`.
+  It rewrites the script digest in `render.yaml`; an architecture test refuses a header
+  that has drifted.
 - When `tests/architecture.mjs` reports `app/app.ts` past its line ceiling, move the behavior out
   of the composition root (for example into `src/render/`) instead of raising the ceiling.
 - Deterministic simulation tests assert replay and semantic constraints (distances, counts), not
