@@ -93,7 +93,11 @@ test("HUD and CSP keep loaded city values out of HTML sinks", async () => {
   assert.match(render, /object-src 'none'/);
   assert.match(render, /base-uri 'none'/);
   assert.match(render, new RegExp(`script-src 'self' 'sha256-${regexEscape(inlineHash(html, "script"))}'`));
-  assert.match(render, new RegExp(`style-src 'self' 'sha256-${regexEscape(inlineHash(html, "style"))}'`));
+  assert.match(render, /style-src 'self';/);
+  assert.doesNotMatch(html, /<style\b/i, "HUD styles must load from the same-origin stylesheet");
+  assert.match(html, /<link rel="stylesheet" href="\/src\/ui\/hud\.css" \/>/);
+  const css = await readFile(new URL("ui/hud.css", src), "utf8");
+  assert.match(css, /#app\s*\{/);
   assert.doesNotMatch(render, /style-src[^\\n]*'unsafe-inline'/);
 });
 

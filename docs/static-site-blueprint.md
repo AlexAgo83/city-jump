@@ -107,6 +107,42 @@ gate checks this quoting and the CSP digest updater. After a header change, veri
 the actual response header as well as the bundle version; a successful application
 deployment does not prove that the Blueprint synchronized.
 
+## CSP stylesheet deployment note
+
+The CSP is declared in `render.yaml` as a Render Static Site response header, not in
+application code or middleware. On 2026-10-31, Chromium reproduced the production
+failure: the response allowed style hash `sha256-dXfMueqj2NrmKNtGO2iXqKbkSUjpBYNVJliTPSKhJgk=`
+but the inline stylesheet required `sha256-455pl8DJMdw5wUt8YDhx3h0mmXmNtDg379xkITGOJHI=`.
+The received CSP matched the Blueprint. Response headers included `server: cloudflare`,
+`cf-cache-status: HIT` and `rndr-id`; these show the delivery path, but do not establish
+whether an operator has configured additional Cloudflare or Render dashboard overrides.
+No such account settings were available for this investigation.
+
+HUD CSS now lives in `src/ui/hud.css`. Vite emits a fingerprinted `/assets/*.css` file
+and links it from the built HTML, removing the changing style hash from the policy.
+Keep `style-src 'self'`; the remaining inline script still uses `npm run csp:sync`.
+
+For deployment, the operator must:
+
+1. Review and merge the change, then follow the normal release procedure above.
+   `autoDeploy: false` means merging alone does not deploy it.
+2. Deploy the new HTML and fingerprinted assets first: the existing policy already
+   permits same-origin CSS. Then synchronize the Render Blueprint header configuration
+   to remove the obsolete style hash, allowing for cached old HTML before tightening it.
+   A release deploy hook does not prove the Blueprint headers were synchronized.
+3. Check the actual response CSP on both `/` and `/index.html`: it must include
+   `style-src 'self'`, with no stale style hash or second conflicting CSP. If it differs,
+   inspect Render custom headers and any Cloudflare header transform rules.
+4. Confirm the HTML links the new `/assets/*.css`, that the stylesheet returns HTTP 200
+   with a CSS content type, and that a fresh Chromium session reports no CSP violations.
+   Check the canvas and HUD at mobile and desktop widths. Repeat after the CDN cache
+   expires or is purged: `/` was served with `s-maxage=300` during reproduction.
+5. Keep the HTML, fingerprinted assets, and header configuration together when rolling
+   back. Old HTML containing inline CSS cannot use the new `style-src 'self'` policy.
+
+Local preview does not apply Render headers automatically. Browser validation of this
+fix must serve the built `dist/` with the exact CSP from `render.yaml`.
+
 ## Hook contract
 
 A release hook can stay small:

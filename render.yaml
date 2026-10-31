@@ -38,4 +38,5 @@ services:
         name: Content-Security-Policy
         # Quote the policy: YAML treats the colon-space in data: blob: as a mapping.
         # Babylon loads the kaiju GLB's embedded textures through blob URLs.
-        value: "default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self' 'sha256-dXfMueqj2NrmKNtGO2iXqKbkSUjpBYNVJliTPSKhJgk='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+        # Vite emits HUD CSS under /assets/; style-src needs no changing inline hash.
+        value: "default-src 'self'; script-src 'self' 'sha256-IVPEA6nHCEYy5Y7orWjJIVBjgrYnBzQFwad53sD41nw='; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
