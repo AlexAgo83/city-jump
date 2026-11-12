@@ -1,7 +1,7 @@
 ## run_009_rerun_the_large_city_performance_review - Rerun the large city performance review
-> Status: Draft
+> Status: Active
 > Category: other
-> Verified: (not yet verified)
+> Verified: 2026-11-12
 > Related request: `logics/request/req_045_review_findings_gameplay_performance_and_benchmark_validity.md`
 > Related backlog: (none yet)
 > Related task: (none yet)
@@ -22,6 +22,7 @@
 4. Inspect `run.json` and the selected probe outputs before interpreting FPS. Record a dated conclusion and retain relevant JSON/CPU profiles under `perf/reviews/`; never overwrite earlier review evidence.
 
 # Verification
+- Operator cleanup 2026-11-12: checked this procedure against `scripts/review/config.mjs`, `scripts/review/run.mjs`, `tests/perf-review.mjs`, `docs/performance.md` and git history (introduced in `0158998`, with subsequent tooling maintenance). The probes, fixture guard, output isolation and manifest checks still match the code. Active denotes a reusable procedure, not planned project work; no GPU benchmark was rerun.
 - `run.json` must report `complete`, with each requested probe complete and exit code zero. A missing preview URL intentionally skips startup, even when the other extra workloads complete.
 - Check fixture hash, source/script hashes, browser, actual renderer, settings and runtime building counts before comparing two runs. Headless, toolbar state, daylight and viewport changes are not optimization gains.
 - The CLI safety check is `node --test tests/perf-review.mjs`. It runs as part of `npm run test:architecture`.
